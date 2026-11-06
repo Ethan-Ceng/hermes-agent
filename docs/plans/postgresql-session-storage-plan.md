@@ -12,7 +12,7 @@
 
 - 整体状态：`IN_PROGRESS`，不表示完整后端已通过验证。
 - 当前阶段：M2 业务语义（离线实现）；M1 的真实 PG 验证尚未完成。
-- 当前任务：Task 9（Worker 回执与异步委派）；Tasks 4–8 等待真实 PG 配置。
+- 当前任务：Task 11（路由、会话代次与整理状态）；Tasks 4–10 等待真实 PG 配置。
 - 已完成：3 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：真实 PG 验证时需用户提供本地测试配置，实际版本、权限和扩展由 Task 4 检查；当前没有连接数据库。
@@ -517,7 +517,7 @@ epoch 行共享锁先于映射和根锁，启动更新 epoch 等待旧写入结�
 
 ## Task 10：实现租约、压缩与谱系提交
 
-状态：pending
+状态：verification_pending
 
 ### 目标
 
@@ -553,15 +553,25 @@ epoch 行共享锁先于映射和根锁，启动更新 epoch 等待旧写入结�
 
 ### 执行结果
 
-未开始；未修改本任务业务代码。
+已实现公开回合/压缩租约、归档压缩、原子子会话发布、冷却/anti-thrash 状态和保守孤立恢复，以及全部 Worker compression/cleanup/history/lineage handlers。所有操作复用当前 Connection 和 store_id；LLM、等待与回调在事务外，回调绑定拥有者 Profile。PG 的 holder 是共享命名空间中的不透明身份，统一按租约到期回收，不调用当前主机 PID 探测去回收远端 holder；过期未接管仍可条件续租。55P03 仅在事务体确认回滚后分类为 StorageBusyError，提交阶段仍是 UnknownCommitError。
+
+Coverage 仅复用现有无 I/O 的身份/版本证明函数；Core 仓储提供本 store 的 detached active rows，不继承 SQLite SQL。归档在同一根锁事务内完成 held CAS、named/merged/retired coverage、尾部识别、归档标记、BYTEA/UID/所有列的 INSERT SELECT 克隆、显示去重、计数/config/revision。发布同事务检查/续租、关闭父会话、继承路由/提示/工具 pin/归档状态、插入完整子会话及晚到尾部，并原子推进 Local route/receipt；路由冲突回滚全部内容。
+
+Worker 发布将 execution 的物理目标和 admission lineage 同事务推进，FIFO/idempotency 逻辑键不变；丢失回复按原 assignment/sequence/digest 精确重放。Worker receipt 新增 assignment_parent/assignment_session 投影，原始 assignment 查询不把可能含 NUL 的整段 result_json 转成 JSONB；26 表/18 索引的未发布初始 revision 已同步。旧只读快照退休规则保留。
+
+新增根回填租约契约复现了租约遗留旧根的问题；构造器在已有映射栅栏和两个根锁下原子转移租约，两个不同有效 holder 拒绝合并，失败不改变 parent 字段。SQLite 原实现未改。Task 16 的旧压缩链维护仍仅适用 SQLite，不为 PG 增加旧数据兼容。
 
 ### 验证证据
 
-未执行。实施时记录实际命令、退出码、数据库/解释器版本、关键结果、执行时间及偏差。
+- PM Python 3.14.9；全部通过标准 scripts/run_tests.sh。最初租约 4 passed/5 missing-interface failed、归档 4 passed/4 missing-interface failed、metadata 3 passed/3 missing-interface failed，建立红灯依据。实现后租约/事务错误 17 passed，归档/发布 16 passed；Worker RPC 丢回复/连续旋转/guard/谱系授权 4 passed。
+- 整轮：tests/hermes_db + watermark/lease refresh/turn lease + 5 个 Worker compression SQLite 回归文件，45 files / 270 passed / 0 failed，29.1s，exit 0，日志 .build/postgresql/task10-tests.log。随后新增老子会话终结和 Local 路由冲突/回滚契约；受影响 metadata/atomicity 16 passed / 0 failed，exit 0。
+- 根回填修复红灯：Core competitor 错误取得租约；修复后 atomicity + sessions 29 passed。Local route 冲突错误类型被 ValueError 外层覆盖，专门测试发现并修正；最新 16 项受影响测试通过。
+- ruff/health 当前通过（35 files、0 blocking/0 advisory）；全量 staged scripts/check --staged --base HEAD 14 checks / 0 blocking / 0 advisory 通过，exit 0，日志 .build/postgresql/task10-checks.log。
+- 新增 27 项真实 PG 压缩/租约/Worker/故障/并发用例，尚未执行；与前序合计 102 项 PG 用例未验证。仅 collect-only 尝试被 runner 按 0 实际测试返回 exit 1，不记为通过。默认本地 PostgreSQL 测试配置路径仍不存在；未连接 PG、未管理数据库服务/扩展。
 
 ## Task 11：实现路由、会话代次与整理状态
 
-状态：pending
+状态：in_progress
 
 ### 目标
 
@@ -596,7 +606,7 @@ epoch 行共享锁先于映射和根锁，启动更新 epoch 等待旧写入结�
 
 ### 执行结果
 
-未开始；未修改本任务业务代码。
+从 Task 10 离线检查点继续。先建立路由作用域/心跳/交接状态共享契约；业务删除入口需要复用 Task 12 墓碑事务，不能先做不受保护的删除。
 
 ### 验证证据
 
@@ -1012,3 +1022,5 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 - Task 6 commit 7fd192bb81；Task 7 离线检查点 148 tests/14 checks passed，状态 verification_pending。当前 26 表/17 索引；42 个消息主题接口已核对。下一步 Task 8 队列、epoch、generation 与终态事务。archive_and_compact 在 Task 10 实施。真实 PG 47 项未执行，严格 completed 数仍为 3/18；不启用生产 PG 工厂。
 - Task 7 commit 22c6fb7924；Task 8 离线准入/终态检查点：一轮 166 passed、后续受影响 18/依赖隔离 14/提交确认丢失 1 passed；14 staged checks 与最新 ruff/health 通过。下一步 Task 9 Worker 登记/采用/序列回执和异步委派（复用 worker_retirement）。Scope/epoch→映射→根锁顺序不得反转。59 项真实 PG 未执行；完整会话动作及 mutation receipt runner 在 Task 12，旧队列导入仅 SQLite，Task 17 须适配 CoreEffect。
 - Task 8 commit 5b68f4ebd6；Task 9 检查点：186 项整轮局部回归、后续 14 项受影响测试与 14 项 staged 检查通过，状态 verification_pending。当前 26 表/18 索引，回执投影与候选标题均同步冻结 revision。下一步 Task 10 租约/压缩/尾部与 held coverage，复用 leases/append/title 的连接内操作；补齐压缩 Worker handlers。75 项真实 PG 未执行，工厂与普通入口仍未启用/接线。严格 completed 仍 3/18。
+
+- Task 10 离线检查点：270 项整轮回归、随后 16 项受影响测试与 14 项 staged 检查通过，verification_pending；26 表/18 索引。下一步 Task 11 路由/心跳/代次/交接和整理状态；复用 root/map 锁与 PG TTL-only holder 规则。新增 27 项真实 PG 用例，合计 102 项未验证，默认配置仍不存在；PG 工厂仍拒绝生产启用。严格 completed 为 3/18。

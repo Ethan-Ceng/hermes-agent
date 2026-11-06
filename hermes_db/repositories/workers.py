@@ -65,3 +65,23 @@ def linked_admission(conn, scope, session_id, generation, epoch, statuses):
     if len(rows) > 1:
         raise RuntimeStoreError("admission_conflict")
     return rows[0] if rows else None
+
+
+def claim_origin(conn, scope, params):
+    origin = conn.scalar(select(worker_receipts.c.assignment_parent).where(
+        worker_receipts.c.store_id == scope.require_store_id(), worker_receipts.c.execution_id == params["execution_id"],
+        worker_receipts.c.assignment_parent.is_not(None))
+        .order_by(worker_receipts.c.sequence).limit(1))
+    return origin or params["session_id"]
+
+
+def retry_target(conn, scope, params):
+    from hermes_state_keys import admission_fingerprint
+
+    if params.get("operation") != "compression.publish":
+        return params["session_id"]
+    digest = admission_fingerprint(canonical_target=params["session_id"],
+        payload={"operation": params["operation"], "payload": params["payload"]})
+    row = receipt_assignment(conn, scope, params["execution_id"], params["session_id"],
+        params["generation"], params["sequence"], digest)
+    return row["session_id"]

@@ -7,7 +7,7 @@ import pytest
 
 sa = pytest.importorskip("sqlalchemy", reason="optional postgresql extra")
 
-from hermes_db.errors import RetryableStorageError, StorageConflictError, StorageWriteError, UnknownCommitError
+from hermes_db.errors import RetryableStorageError, StorageBusyError, StorageConflictError, StorageWriteError, UnknownCommitError
 from hermes_db.postgresql.transactions import Transactions
 
 
@@ -39,7 +39,7 @@ class FailingEngine:
             self.closed = True
 
 
-@pytest.mark.parametrize("state", [None, "08006", "57014"])
+@pytest.mark.parametrize("state", [None, "08006", "57014", "55P03"])
 def test_commit_failure_is_unknown_and_body_is_not_replayed(state):
     engine = FailingEngine(sa.exc.OperationalError(None, None, DriverFailure(state)))
     transactions = Transactions(engine, schema="hermes")
@@ -71,3 +71,12 @@ def test_body_and_constraint_failures_close_the_connection():
     with pytest.raises(StorageConflictError):
         with Transactions(engine, schema="hermes").write():
             raise sa.exc.IntegrityError(None, None, DriverFailure("23505"))
+
+
+def test_lock_timeout_is_retryable_only_after_body_rollback():
+    engine = FailingEngine()
+    with pytest.raises(StorageBusyError) as error:
+        with Transactions(engine, schema="hermes").write(lock_timeout=0.01):
+            raise sa.exc.OperationalError(None, None, DriverFailure("55P03"))
+    assert engine.closed
+    assert "private connection details" not in str(error.value)

@@ -44,6 +44,7 @@ worker_receipts = scoped_table(
     Column("payload_digest", Text, nullable=False), Column("result_json", Text, nullable=False),
     Column("read_snapshot", BigInteger, nullable=False, server_default="0"),
     Column("title_candidate", LargeBinary),
+    Column("assignment_parent", Text), Column("assignment_session", Text),
     key=("execution_id", "sequence"), constraints=(
         scoped_fk(("execution_id",), "worker_executions", ("execution_id",), ondelete="RESTRICT"),
         CheckConstraint("sequence > 0", name="sequence"),

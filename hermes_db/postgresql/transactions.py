@@ -6,7 +6,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError, IntegrityError, TimeoutError as PoolTimeout
 
 from hermes_db.errors import (
-    RetryableStorageError, StorageConflictError, StorageUnavailableError, StorageWriteError, UnknownCommitError,
+    RetryableStorageError, StorageBusyError, StorageConflictError, StorageUnavailableError, StorageWriteError, UnknownCommitError,
 )
 from hermes_db.tables.metadata import SCHEMA
 
@@ -18,11 +18,12 @@ class Transactions:
         self.lock_timeout = lock_timeout
         self.statement_timeout = statement_timeout
 
-    def _timeouts(self, conn):
+    def _timeouts(self, conn, lock_timeout=None):
         if conn.dialect.name == "postgresql":
+            timeout = self.lock_timeout if lock_timeout is None else lock_timeout
             conn.execute(text("SELECT set_config('lock_timeout', :lock_timeout, true), "
                               "set_config('statement_timeout', :statement_timeout, true)"),
-                         {"lock_timeout": str(max(1, int(self.lock_timeout * 1000))),
+                         {"lock_timeout": str(max(1, int(timeout * 1000))),
                           "statement_timeout": str(max(1, int(self.statement_timeout * 1000)))})
 
     @contextmanager
@@ -41,12 +42,12 @@ class Transactions:
             raise StorageUnavailableError("Session database pool wait timed out") from None
 
     @contextmanager
-    def write(self):
+    def write(self, *, lock_timeout=None):
         phase = "connect"
         try:
             with self.engine.begin() as conn:
                 phase = "body"
-                self._timeouts(conn)
+                self._timeouts(conn, lock_timeout=lock_timeout)
                 yield conn.execution_options(schema_translate_map={SCHEMA: self.schema})
                 phase = "commit"
         except IntegrityError:
@@ -61,4 +62,6 @@ class Transactions:
                 raise UnknownCommitError("Session commit outcome is unknown; inspect the original request receipt") from None
             if phase == "connect":
                 raise StorageUnavailableError("Session database connection unavailable") from None
+            if state == "55P03":
+                raise StorageBusyError("Session database lock wait timed out") from None
             raise StorageWriteError("Session database write failed") from None

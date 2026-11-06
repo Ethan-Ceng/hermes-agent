@@ -20,6 +20,16 @@ class RuntimeWorkers:
         from hermes_db.operations.worker_handlers import handlers
         return self.apply_worker_receipt(**kwargs, handlers=handlers())
 
+    def worker_claim_origin(self, params):
+        from hermes_db.repositories.workers import claim_origin
+        with self._store._read() as conn:
+            return claim_origin(conn, self.scope, params)
+
+    def worker_retry_target(self, params):
+        from hermes_db.repositories.workers import retry_target
+        with self._store._read() as conn:
+            return retry_target(conn, self.scope, params)
+
     def persist_delegation(self, *, owner, **kwargs):
         from hermes_db.operations.worker_delegations import handlers
         from hermes_state_runtime import RuntimeStoreError

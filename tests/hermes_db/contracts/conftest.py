@@ -25,8 +25,13 @@ def _offline_engine(sa, tmp_path, name):
         # allocator enables sequential contracts; it proves no PG sequence or
         # concurrency behavior. Production never uses this hook.
         if isinstance(statement, Insert) and statement.table is messages and "id" not in statement.compile().params:
-            row_id = conn.scalar(sa.select(sa.func.coalesce(sa.func.max(messages.c.id), 0) + 1))
-            statement = statement.values(id=row_id)
+            if statement.select is not None:
+                maximum = sa.select(sa.func.coalesce(sa.func.max(messages.c.id), 0)).correlate(None).scalar_subquery()
+                projection = statement.select.add_columns(maximum + sa.func.row_number().over(order_by=messages.c.id))
+                statement = sa.insert(messages).from_select([*statement._select_names, "id"], projection)
+            else:
+                row_id = conn.scalar(sa.select(sa.func.coalesce(sa.func.max(messages.c.id), 0) + 1))
+                statement = statement.values(id=row_id)
         if isinstance(statement, Insert) and statement.table is session_admissions and "seq" not in statement.compile().params:
             sequence = conn.scalar(sa.select(sa.func.coalesce(sa.func.max(session_admissions.c.seq), 0) + 1))
             statement = statement.values(seq=sequence)

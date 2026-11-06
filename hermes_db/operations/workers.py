@@ -110,5 +110,7 @@ def _save_receipt(conn, scope, execution_id, sequence, digest, result):
     snapshot = isinstance(result, dict) and ("messages" in result or "session" in result)
     candidate = result.get("title_candidate") if isinstance(result, dict) else None
     candidate = candidate.encode("utf-8", "surrogatepass") if isinstance(candidate, str) else None
+    assignment = result.get("worker_assignment", {}) if isinstance(result, dict) else {}
     conn.execute(worker_receipts.insert().values(store_id=scope.require_store_id(), execution_id=execution_id,
-        sequence=sequence, payload_digest=digest, result_json=encoded, read_snapshot=int(snapshot), title_candidate=candidate))
+        sequence=sequence, payload_digest=digest, result_json=encoded, read_snapshot=int(snapshot), title_candidate=candidate,
+        assignment_parent=assignment.get("parent"), assignment_session=assignment.get("session_id")))

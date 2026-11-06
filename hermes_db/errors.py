@@ -41,5 +41,9 @@ class RetryableStorageError(StorageWriteError):
     """PostgreSQL confirmed a serialization/deadlock rollback."""
 
 
+class StorageBusyError(StorageWriteError):
+    """A bounded lock wait failed in the transaction body and rolled back."""
+
+
 class UnknownCommitError(StorageError):
     """The client cannot determine whether COMMIT reached the server."""

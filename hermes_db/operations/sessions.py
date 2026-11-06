@@ -55,6 +55,8 @@ def create_on_connection(conn, scope, session_id, source, *, own_profile=None, *
     if existing:
         update = _merge_constructor(existing, encoded)
         if existing["parent_session_id"] is None and encoded["parent_session_id"] and continuation:
+            from hermes_db.repositories.leases import merge_turn_roots
+            merge_turn_roots(conn, scope, existing["lineage_root_id"], parent["lineage_root_id"], time.time())
             update["lineage_root_id"] = parent["lineage_root_id"]
             conn.execute(sessions.update().where(sessions.c.store_id == scope.require_store_id(),
                 sessions.c.lineage_root_id == existing["lineage_root_id"]).values(lineage_root_id=parent["lineage_root_id"]))

@@ -29,3 +29,14 @@ def pg_store(postgres_test_config, postgres_schema, tmp_path):
 def pg_runtime(pg_store):
     from hermes_db.runtime_store import PostgresRuntimeStore
     return PostgresRuntimeStore(pg_store)
+
+
+@pytest.fixture
+def pg_pair(pg_store, tmp_path):
+    from hermes_db.scope import DatabaseScope
+    from hermes_db.session_store import PostgresSessionStore
+    peer = PostgresSessionStore(pg_store._transactions, DatabaseScope(tmp_path / "other", "other-store"))
+    try:
+        yield [pg_store, peer]
+    finally:
+        peer.close()

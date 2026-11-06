@@ -33,17 +33,6 @@ PAIR_CONTRACTS = [
 ]
 
 
-@pytest.fixture
-def pg_pair(pg_store, tmp_path):
-    from hermes_db.scope import DatabaseScope
-    from hermes_db.session_store import PostgresSessionStore
-    peer = PostgresSessionStore(pg_store._transactions, DatabaseScope(tmp_path / "other", "other-store"))
-    try:
-        yield [pg_store, peer]
-    finally:
-        peer.close()
-
-
 @pytest.mark.parametrize("contract", CONTRACTS, ids=lambda fn: fn.__name__.removeprefix("test_"))
 def test_shared_worker_contract_on_postgresql(pg_store, pg_runtime, contract):
     contract(pg_store, pg_runtime)

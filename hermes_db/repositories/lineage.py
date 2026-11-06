@@ -67,3 +67,41 @@ def runtime_targets(conn, scope, session_id):
     targets.update(conn.execute(select(session_table.c.id).where(session_table.c.store_id == scope.require_store_id(),
         session_table.c.lineage_root_id.in_(roots))).scalars())
     return targets
+
+
+def advance_local_target(conn, scope, parent_session_id, child_session_id, *, entry=None):
+    from hermes_db.repositories.runtime import meta, set_meta
+    from hermes_db.tables.gateway import gateway_routing
+    from hermes_state_runtime import _json
+
+    parent = sessions.raw_session(conn, scope, parent_session_id)
+    logical_id = parent["chat_id"] if parent else None
+    if not logical_id:
+        return
+    raw = meta(conn, scope, POLICY_PREFIX + logical_id)
+    if raw is None:
+        if logical_id.startswith("local-"):
+            raise RuntimeStoreError("storage_unavailable")
+        return
+    try:
+        receipt = json.loads(raw)
+        if (receipt["session_id"] != logical_id or receipt["entry"]["session_id"] != parent_session_id
+                or receipt["principal_id"] != parent["user_id"] or receipt["route"] != parent["session_key"]):
+            raise RuntimeStoreError("storage_unavailable")
+        where = (gateway_routing.c.store_id == scope.require_store_id(), gateway_routing.c.scope == "",
+                 gateway_routing.c.session_key == receipt["route"])
+        routed_raw = conn.scalar(select(gateway_routing.c.entry_json).where(*where))
+        routed = json.loads(routed_raw) if routed_raw else None
+        if routed is None or routed["session_id"] != parent_session_id:
+            raise RuntimeStoreError("admission_conflict")
+        candidate = dict(entry or routed, session_id=child_session_id)
+        receipt["entry"] = candidate
+        receipt["lineage"] = [*receipt.get("lineage", [logical_id]), child_session_id]
+        validate_local_receipt(conn, scope, receipt, logical_id)
+    except RuntimeStoreError:
+        raise
+    except (KeyError, TypeError, ValueError):
+        raise RuntimeStoreError("storage_unavailable") from None
+    conn.execute(gateway_routing.update().where(*where).values(entry_json=_json(candidate)))
+    set_meta(conn, scope, POLICY_PREFIX + logical_id, _json(receipt))
+    sessions.update_session(conn, scope, logical_id, {"runtime_revision": session_table.c.runtime_revision + 1})
