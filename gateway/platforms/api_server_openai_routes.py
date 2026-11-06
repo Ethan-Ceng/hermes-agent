@@ -866,7 +866,7 @@ class OpenAICompatRoutesMixin:
         """POST /v1/chat/completions — OpenAI Chat Completions format."""
         from gateway.platforms.api_server import (
             ThreadSafeAsyncQueue, _api_request_profile, _chat_usage_payload, _coerce_request_bool,
-            _content_has_visible_payload, _derive_chat_session_id, _error_response, _invalid_request,
+            _content_has_visible_payload, _error_response, _invalid_request,
             _openai_error, _redact_api_error_text, _resolve_media_to_data_urls)
         # Bound total in-flight agent runs (configurable; #7483).
         limited = self._concurrency_limited_response()
@@ -914,26 +914,15 @@ class OpenAICompatRoutesMixin:
             if len(provided_session_id) > self._MAX_SESSION_HEADER_LEN:
                 return _invalid_request("Session ID too long")
             session_id = provided_session_id
-            try:
-                db = await self._ensure_session_db_async()
-                if db is not None:
-                    # #98619/#13437: a client-addressed id from before a compression rotation
-                    # must adopt the live continuation tip — history loads from it, the turn and
-                    # the wake target bind it, and a detached delegation delivery row persisted
-                    # on the tip is what this continuation consumes. Same canonical resolution
-                    # the delivery writer (gateway/wake.py) and /v1/runs use; fails open.
-                    from gateway.platforms.api_server_runs import _resolve_live_session_id
-                    session_id = await _resolve_live_session_id(self, provided_session_id)
-                    history = await asyncio.to_thread(db.get_messages_as_conversation, session_id)
-            except Exception as e:
-                logger.warning("Failed to load session history for %s: %s", session_id, e)
-                history = []
+            from gateway.platforms.api_server_storage_resources import chat_history
+            session_id, history = await chat_history(self, session_id, history)
         else:
             # Stable id from the conversation fingerprint so Open WebUI-style clients map onto
             # one Hermes session; namespaced by the routed profile (#123989).
             first_user = next(
                 (cm.get("content", "") for cm in conversation_messages if cm.get("role") == "user"), "")
-            session_id = _derive_chat_session_id(system_prompt, first_user, _api_request_profile.get())
+            from gateway.platforms.api_server_storage_resources import chat_session_id
+            session_id = chat_session_id(self, system_prompt, first_user, _api_request_profile.get())
             session_id, lookup_error = await self._implicit_chat_session(request, session_id)
             if lookup_error is not None:
                 return lookup_error
@@ -1090,10 +1079,11 @@ class OpenAICompatRoutesMixin:
             return session_id, None  # admission refuses the unserved profile with its own verdict
         import sqlite3
         from hermes_state_runtime import RuntimeStoreError
+        from hermes_db.errors import StorageError
         try:
             return await asyncio.to_thread(implicit_api_session, authority.db, session_id,
                                            self._chat_request_id(request)), None
-        except (RuntimeStoreError, sqlite3.Error, OSError) as exc:
+        except (RuntimeStoreError, StorageError, sqlite3.Error, OSError) as exc:
             from gateway.platforms.api_server import _openai_error
             from gateway.platforms.api_server_authority_runs import store_error_response
             return session_id, store_error_response(_openai_error, exc)

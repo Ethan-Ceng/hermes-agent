@@ -113,10 +113,16 @@ def http_failure(log_msg: str, status: int, prefix: Optional[str] = None, *, det
     then re-raised as ``HTTPException(status, f"{prefix}: {exc}")`` — or ``detail`` when given
     (fixed message, exception text only in the log).
     """
+    from hermes_db.errors import StorageError, UnknownCommitError
     try:
         yield
     except HTTPException:
         raise
+    except UnknownCommitError as exc:
+        raise HTTPException(status_code=503, detail={'error': 'session_storage_unknown_commit',
+            'message': 'Inspect the original request identity before retrying.'}, headers={'x-should-retry': 'false'}) from exc
+    except StorageError as exc:
+        raise HTTPException(status_code=503, detail={'error': 'session_storage_unavailable'}) from exc
     except ConfigWriteError as exc:
         refusal = config_refusal_http(exc)
         if refusal is None:

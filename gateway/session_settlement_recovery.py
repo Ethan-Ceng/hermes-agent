@@ -4,13 +4,20 @@ import logging
 import sqlite3
 
 from gateway.session_producer_lifecycle import drop_producer_turn
-from hermes_state_runtime import RuntimeStoreError, _admission, _epoch, get_session_admission, settle_steer_transfers
+from hermes_state_runtime import RuntimeStoreError, _admission, _epoch, settle_steer_transfers
+from hermes_db.runtime_calls import get_session_admission
+from hermes_db.errors import StorageError
 
 logger = logging.getLogger(__name__)
 
 
 def _mark_unknown(authority, row):
     transfers = _transfers(authority, authority.sessions.get(row['target_session_id']), row)
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(authority.db):
+        from hermes_db.runtime_access import runtime_for_store
+        return runtime_for_store(authority.db).mark_unknown(epoch=authority.epoch, admission_id=row['admission_id'],
+            generation=row['generation'], transfers=transfers)
 
     def write(conn):
         _epoch(conn, authority.epoch)
@@ -47,7 +54,7 @@ async def recover_failed_settlement(authority, row):
             from gateway.session_runtime_workers import track_mutation
             writer = track_mutation(authority, asyncio.to_thread(_mark_unknown, authority, row))
             return await asyncio.shield(writer)
-        except (OSError, sqlite3.Error):
+        except (StorageError, OSError, sqlite3.Error):
             await asyncio.sleep(1)
 
 

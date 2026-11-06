@@ -15,13 +15,19 @@ from hermes_db.tables.api import conversations, responses, response_keys, respon
 
 
 class PostgresResponseStore:
-    def __init__(self, session_store, *, api_scope="", max_size=100, max_identities=None):
+    @property
+    def database_identity(self):
+        from hermes_db.health import storage_identity
+        return storage_identity(self._store)
+
+    def __init__(self, session_store, *, api_scope="", max_size=100, max_identities=None, initialize=True):
         self._store, self.scope, self.api_scope = session_store, session_store.scope, api_scope
         self._max_size, self._max_identities = max_size, max_identities or 10 * max_size
         self._closed, self._local = False, threading.local()
-        with self._transaction() as conn:
-            operations.settle_keys(conn, self.scope, self.api_scope)
-            operations.evict(conn, self.scope, self.api_scope, self._max_size, self._max_identities, time.time())
+        self._needs_maintenance = True
+        if initialize:
+            with self._transaction():
+                pass
 
     @contextmanager
     def _transaction(self):
@@ -33,11 +39,15 @@ class PostgresResponseStore:
             return
         with self._store._profile.activate(), self._store._write() as conn:
             sessions.lock_store(conn, self.scope, exclusive=True)
+            if self._needs_maintenance:
+                operations.settle_keys(conn, self.scope, self.api_scope)
+                operations.evict(conn, self.scope, self.api_scope, self._max_size, self._max_identities, time.time())
             self._local.connection = conn
             try:
                 yield conn
             finally:
                 self._local.connection = None
+        self._needs_maintenance = False
 
     def atomically(self, fn, /, *args, **kwargs):
         with self._transaction():

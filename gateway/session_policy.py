@@ -1,4 +1,6 @@
 """Frozen, explicit local-client launch policy for the existing TurnRunner."""
+
+from hermes_db.health import profile_home_for_store
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
@@ -58,7 +60,7 @@ def pin_reasoning_effort(config, effort, *, session=False):
 def profile_config(authority):
     """The owning profile's current ``config.yaml`` (its present sections), read fresh."""
     from gateway.run import _load_gateway_config
-    return present_sections(_load_gateway_config(Path(authority.db.db_path).resolve().parent / 'config.yaml'))
+    return present_sections(_load_gateway_config(profile_home_for_store(authority.db) / 'config.yaml'))
 
 
 def unpin_reasoning(config, profile):
@@ -892,7 +894,7 @@ def rebind_launch_key(authority, session, api_key):
     source = authority.sessions[session.session_id].source
     if source is None or source.platform != Platform.LOCAL:
         raise RuntimeStoreError('admission_conflict')
-    from hermes_state_local import local_receipt
+    from hermes_db.local_access import local_receipt
     ref = restore_policy(local_receipt(authority.db, session.session_id)['policy']).credential_ref
     if ref is None:
         raise RuntimeStoreError('admission_conflict')

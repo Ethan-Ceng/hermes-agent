@@ -118,7 +118,8 @@ async def discard_lost_turns(authority, session_id) -> str:
     the TUI queue and ``hermes sessions discard`` use. Never replays the input; the saved
     followers run once it commits."""
     from gateway.session_contract import SessionRef
-    from hermes_state_runtime import RuntimeStoreError, list_session_admissions
+    from hermes_state_runtime import RuntimeStoreError
+    from hermes_db.runtime_calls import list_session_admissions
     rows = await asyncio.to_thread(list_session_admissions, authority.db, session_id=session_id)
     lost = [row for row in rows if row['status'] == 'unknown']
     if not lost:
@@ -541,6 +542,18 @@ class GatewaySessionCommandsMixin:
             def write(conn):
                 db.replace_messages_in_transaction(conn, session_id, [dict(m) for m in truncated], active_only=True,
                                                    reject_active_turn_lease=True, expected_active_ids=pinned)
+
+        from hermes_db.health import is_postgresql_store
+        if is_postgresql_store(db):
+            from hermes_db.operations import messages as native_messages
+            from hermes_db.operations.effects import CoreEffect
+            if composite:
+                write = CoreEffect(lambda conn, scope: native_messages.rewind(conn, scope, session_id, plan.target_row_id,
+                    preserve_compaction_handoff=True, expected_active_ids=plan.expected_active_ids,
+                    expected_target_content=plan.expected_target_content))
+            else:
+                write = CoreEffect(lambda conn, scope: native_messages.replace_on_connection(conn, scope, session_id,
+                    [dict(m) for m in truncated], active_only=True, reject_active_turn_lease=True, expected_active_ids=pinned))
 
         def committed():
             self.session_store._clear_dirty_transcript(session_id)

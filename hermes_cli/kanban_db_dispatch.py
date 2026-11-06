@@ -2670,22 +2670,19 @@ def _resolve_worker_cli_toolsets(hermes_home: Optional[str]) -> Optional[list[st
 _retagged_workspace_roots: set[str] = set()
 
 def _retag_legacy_worker_sessions(workspaces_root_path: str) -> None:
-    """Reclaim pre-tag worker rows in state.db so they leave the session lists.
-
-    Best-effort: the durable gate is ``state_meta`` in
-    ``retag_kanban_worker_sessions``; the in-process set avoids reopening
-    state.db on every spawn. A tick must never fail because a session DB was
-    busy or missing.
-    """
+    """Best-effort SQLite legacy retag; the durable gate is state_meta, the set saves opens."""
     if workspaces_root_path in _retagged_workspace_roots:
         return
     try:
-        from hermes_state_registry import acquire, release_or_close
+        from hermes_db.access import release_session_store as release_or_close, acquire_sessions as acquire
 
         # Inside the gateway the dispatcher shares the process's registry handle; a bare
         # SessionDB() here was one more writer connection on the same state.db (#100896).
         db = acquire()
         try:
+            from hermes_db.health import is_postgresql_store
+            if is_postgresql_store(db):
+                return  # Current PG worker receipts already retain their creating surface.
             db.retag_kanban_worker_sessions(workspaces_root_path)
         finally:
             release_or_close(db)

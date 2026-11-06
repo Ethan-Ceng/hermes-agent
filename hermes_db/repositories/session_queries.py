@@ -25,6 +25,12 @@ def json_path_value(conn, column, path):
     return case((value == cast("null", JSONB), None), else_=value)
 
 
+def json_path_text(conn, column, path):
+    if conn.dialect.name == 'sqlite':
+        return func.json_extract(column, '$.' + '.'.join(path))
+    return cast(column, JSON)[tuple(path)].as_string()
+
+
 def filters(conn, scope, *, source=None, sources=None, session_key=None, exclude_sources=None, cwd_prefix=None,
             min_message_count=0, archived_only=False, include_archived=False, exclude_children=False,
             include_subagents=False, local_created_sources=None, include_hidden=True):

@@ -33,6 +33,8 @@ def _admission_row(receipt):
     """
     if not receipt:
         return None
+    if receipt.get('storage_backend') == 'postgresql':
+        return _native_admission_row(receipt)
     try:
         with closing(sqlite3.connect(Path(receipt['db']).as_uri() + '?mode=ro', uri=True)) as owner:
             row = owner.execute('SELECT status,outcome FROM session_admissions WHERE target_session_id=? AND request_id=?',
@@ -40,6 +42,25 @@ def _admission_row(receipt):
     except (OSError, KeyError, TypeError, ValueError, sqlite3.Error):
         return None
     return (row[0], row[1]) if row is not None else None
+
+
+def _native_admission_row(receipt):
+    from agent.runtime_session_store import is_worker_process
+    from hermes_db.access import open_session_store
+    from hermes_db.errors import StorageError
+    from hermes_db.health import is_postgresql_store
+    from hermes_db.runtime_access import runtime_for_store
+    if is_worker_process():
+        return None
+    try:
+        with closing(open_session_store(Path(receipt['profile_home']) / 'state.db', read_only=True)) as owner:
+            if not is_postgresql_store(owner) or owner.scope.store_id != receipt['store_id']:
+                return None
+            row = runtime_for_store(owner).find_admission(principal_id=receipt['principal_id'],
+                session_id=receipt['session_id'], request_id=receipt['request_id'])
+    except (StorageError, OSError, KeyError, TypeError, ValueError):
+        return None
+    return (row['status'], row['outcome']) if row is not None else None
 
 
 def owner_reclaim_paused(conn, task_id):
@@ -54,6 +75,8 @@ def owner_reclaim_paused(conn, task_id):
             # when nothing can still be running it.
             return row[1] == 'interrupted'
         if row is None or row[0] in {'queued', 'unknown'}:
+            return True
+        if receipt.get('storage_backend') == 'postgresql':
             return True
         from hermes_cli.process_identity import worker_birth
         return worker_birth(psutil.Process(receipt['pid'])) != receipt['birth']
@@ -101,6 +124,8 @@ def _owner_process_gone(receipt) -> bool:
     already exited, so liveness goes through the dispatcher's zombie-aware ``_pid_alive``. A live pid we cannot compare (no ``birth``
     recorded) and an unreadable one are never proof of death.
     """
+    if receipt.get('storage_backend') == 'postgresql':
+        return False
     try:
         pid = int(receipt['pid'])
     except (KeyError, TypeError, ValueError):

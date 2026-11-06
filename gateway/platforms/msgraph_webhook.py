@@ -330,7 +330,8 @@ class MSGraphWebhookAdapter(BasePlatformAdapter):
         from datetime import datetime, timezone
         from gateway.platforms.webhook_ingress import producer_scope
         from gateway.session_ingress_context import capture_provenance
-        from hermes_state_runtime import admit_session_input, RuntimeStoreError
+        from hermes_state_runtime import RuntimeStoreError
+        from hermes_db.runtime_calls import admit_session_input
 
         async with producer_scope(self, event) as authority:
             authority._require_admission_open()

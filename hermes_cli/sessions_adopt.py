@@ -123,6 +123,11 @@ def cmd_adopt(args) -> int:
     from hermes_cli.gateway_client import GatewayClientError
     from hermes_constants import display_hermes_home, get_hermes_home
 
+    from hermes_cli.db_setup import session_backend
+    if session_backend(get_hermes_home()) == "postgresql":
+        print("Pre-gateway adoption applies to SQLite history. Resume current PostgreSQL history through a native client.")
+        return 1
+
     path = get_hermes_home() / 'state.db'
     if not path.exists():
         print(f'No session database at {display_hermes_home()}/state.db (nothing to adopt).')

@@ -16,18 +16,21 @@ def _authority(adapter):
 # identity) keeps the documented 409, as /v1/runs clients already branch on it. ``chain_moved``: a
 # chain's lookup went stale before its bind (``bind_api_steps``); a retry looks it up again.
 _STORE_ERROR_STATUS = {'invalid_params': 400, 'runtime_draining': 503, 'storage_unavailable': 503,
-                       'chain_moved': 503}
+                       'chain_moved': 503, 'storage_unknown_commit': 503}
 
 
 def store_error_response(_openai_error, exc):
     """A refused store call -> HTTP: a ``RuntimeStoreError`` keeps its reason; any other failure
     (SQLite writer patience exhausted, I/O) is ``storage_unavailable``."""
     from aiohttp import web
-    reason = exc.reason if isinstance(exc, RuntimeStoreError) else 'storage_unavailable'
-    if reason == 'admission_queued':
+    from hermes_db.errors import UnknownCommitError
+    reason = ('storage_unknown_commit' if isinstance(exc, UnknownCommitError) else
+              exc.reason if isinstance(exc, RuntimeStoreError) else 'storage_unavailable')
+    if reason in {'admission_queued', 'storage_unknown_commit'}:
         # Accepted and still queued for the next owner, so not retryable: no Retry-After, and
         # x-should-retry tells the OpenAI/Anthropic SDKs not to retry the 503 on their own.
-        return web.json_response(_openai_error(str(exc), err_type='server_error', code=reason), status=503,
+        message = str(exc) if reason == 'admission_queued' else reason
+        return web.json_response(_openai_error(message, err_type='server_error', code=reason), status=503,
                                  headers={'x-should-retry': 'false'})
     status = _STORE_ERROR_STATUS.get(reason, 409)
     return web.json_response(_openai_error(reason, code=reason), status=status,
@@ -40,12 +43,13 @@ async def continued_session(adapter, session_id, request_id=None):
     ``storage_unavailable`` (``store_error_response``), as for the header-less chat lookup."""
     import asyncio
     import sqlite3
+    from hermes_db.errors import StorageError
     from gateway.platforms.api_server import _openai_error
     from gateway.session_api import continued_api_session
     try:
         return await asyncio.to_thread(
             continued_api_session, adapter.gateway_runner, session_id, request_id), None
-    except (RuntimeStoreError, sqlite3.Error, OSError) as exc:
+    except (RuntimeStoreError, StorageError, sqlite3.Error, OSError) as exc:
         return session_id, store_error_response(_openai_error, exc)
 
 
@@ -56,6 +60,11 @@ def run_admission(adapter, run_id):
     # A streaming completion's public run id names its admission through the in-memory binding
     # its own request holds; every other run id is the admission's durable request id.
     alias = getattr(adapter, '_run_admission_aliases', {}).get(run_id)
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(authority.db):
+        from hermes_db.runtime_access import runtime_for_store
+        row = runtime_for_store(authority.db).find_api_run(run_id, admission_id=alias)
+        return (authority, row) if row is not None else None
     column, value = ('admission_id', alias) if alias else ('request_id', run_id)
     with authority.db._read_ctx() as conn:
         rows = conn.execute(f"SELECT * FROM session_admissions WHERE principal_id='api' AND {column}=?",

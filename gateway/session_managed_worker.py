@@ -496,6 +496,10 @@ def _execution_tip(db, execution_id):
     """The session this worker execution last wrote to, as the owner's ledger records it."""
     if not execution_id:
         return None
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(db):
+        from hermes_db.runtime_access import runtime_for_store
+        return runtime_for_store(db).worker_session(execution_id)
     with db._read_ctx() as conn:
         row = conn.execute('SELECT session_id FROM worker_executions WHERE execution_id=?', (execution_id,)).fetchone()
     return row[0] if row else None
@@ -504,9 +508,10 @@ def _execution_tip(db, execution_id):
 def _continuation_path(db, start, tip):
     """Ids from *start* to *tip* when *tip* reaches *start* through compression continuations only, else None."""
     path, current = [tip], tip
+    from hermes_db.authority_access import is_compression_child
     while current != start and len(path) <= 200:
         row = db.get_session(current)
-        if not row or not db._is_compression_child_row(row):
+        if not row or not is_compression_child(db, row):
             return None
         current = row['parent_session_id']
         path.append(current)

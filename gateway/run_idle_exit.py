@@ -126,9 +126,15 @@ def _ledger_busy(runner) -> str | None:
     from gateway.session_authorities import all_authorities
     for authority in all_authorities(runner):
         db = authority.db
-        if db._read_all("SELECT 1 FROM session_admissions WHERE status IN ('queued','started') LIMIT 1"):
+        from hermes_db.health import is_postgresql_store
+        from hermes_db.runtime_access import runtime_for_store
+        if is_postgresql_store(db):
+            reason = runtime_for_store(db).runtime_busy_reason()
+            if reason:
+                return f'{reason} in {authority.profile_id}'
+        elif db._read_all("SELECT 1 FROM session_admissions WHERE status IN ('queued','started') LIMIT 1"):
             return f"admissions pending in {authority.profile_id}"
-        if db._read_all("SELECT 1 FROM worker_executions WHERE status != 'terminal' LIMIT 1"):
+        elif db._read_all("SELECT 1 FROM worker_executions WHERE status != 'terminal' LIMIT 1"):
             return f"managed worker live in {authority.profile_id}"
         service = getattr(authority, "hosted_room_service", None)
         if service is not None:

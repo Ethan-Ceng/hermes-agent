@@ -964,7 +964,7 @@ class TestCapabilitiesEndpoint:
 
     @pytest.mark.asyncio
     async def test_capabilities_reports_in_memory_idempotency_fallback(self, adapter):
-        adapter._run_idempotency_store._db_path = None
+        adapter._run_idempotency_store._home_store(adapter._run_idempotency_store._root)._db_path = None
         app = _create_app(adapter)
         async with TestClient(TestServer(app)) as cli:
             response = await cli.get("/v1/capabilities")

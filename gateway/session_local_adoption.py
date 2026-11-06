@@ -25,6 +25,9 @@ def on_owner_loop():
 
 def _due(authority, sid):
     """*sid*'s stored receipt when a catch-up would commit for it on this owner, else None. Read-only."""
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(authority.db):
+        return None
     from gateway.session_local_recovery import owned_receipt
     from hermes_state_local_lineage import adoptable_compression
     try:

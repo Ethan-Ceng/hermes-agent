@@ -604,12 +604,12 @@ def _acquire_session_db(home: str):
     """The registry's shared handle for ``home/state.db``. A bare ``SessionDB()`` here was a SECOND
     writer per profile beside the gateway's registry handle — its own token-writer thread and
     close-time checkpoint (the #90837 corruption shape), doubled under multiplexing."""
-    from hermes_state_registry import acquire
+    from hermes_db.access import acquire_sessions as acquire
     return acquire(Path(home) / "state.db")
 
 
 def _release_session_db(db) -> None:
-    from hermes_state_registry import release_or_close
+    from hermes_db.access import release_session_store as release_or_close
     try:
         release_or_close(db)
     except Exception:
@@ -620,7 +620,8 @@ def _registry_tore_down(db) -> bool:
     """True once the registry force-closed *db* (``close_all`` / ``close_all_under`` clear the
     shared-owned flag at teardown); every handle cached here was acquired through the registry, so a
     cleared flag means the connection is gone and the cache entry is stale."""
-    return getattr(db, "_shared_registry_owned", True) is False
+    from hermes_db.access import session_store_is_live
+    return not session_store_is_live(db)
 
 
 def _warn_dropped_write(manager: str, kind: str, session_id: str) -> None:

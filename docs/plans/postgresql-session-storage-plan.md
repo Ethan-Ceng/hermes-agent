@@ -12,7 +12,7 @@
 
 - 整体状态：`IN_PROGRESS`，不表示完整后端已通过验证。
 - 当前阶段：M3 完整接入（离线实现）；M1/M2 的真实 PG 验证尚未完成。
-- 当前任务：Task 17（统一普通入口与运行能力接线）；Tasks 4–16 等待真实 PG 配置。
+- 当前任务：Task 18（配置文档、最终验证与审查）；Tasks 4–17 为 verification_pending，真实 PG 与完整回归未通过。
 - 已完成：3 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：真实 PG 验证时需用户提供本地测试配置，实际版本、权限和扩展由 Task 4 检查；当前没有连接数据库。
@@ -928,7 +928,7 @@ Task 16 最终 staged 全部 14 检查通过，76 code files、0 blocking / 0 ad
 
 ## Task 17：统一 CLI、Web、Gateway、TUI、ACP 与 Agent 接线
 
-状态：in_progress
+状态：verification_pending
 
 ### 目标
 
@@ -969,11 +969,101 @@ Task 16 最终 staged 全部 14 检查通过，76 code files、0 blocking / 0 ad
 
 ### 执行结果
 
-未开始；未修改本任务业务代码。
+从 Task 16 commit 4e5a339721 继续。先补 Native scoped acquisition：native_registry 按 PID/PG 配置/scope 共享 SessionStore 与 RuntimeStore，连接仍是短期借用；建立/最终 usage flush 在全局锁外，引用独立释放，同 key 关闭结束前不发布替代对象。DatabaseHandle 禁止跨进程继续借用旧句柄。工厂完整 PG 激活守卫仍保留，等普通入口/授权/CoreEffect/API 与关停资源完成后再移除。
 
 ### 验证证据
 
-未执行。实施时记录实际命令、退出码、数据库/解释器版本、关键结果、执行时间及偏差。
+首批 acquisition 契约 3 setup errors（缺 native_registry），实现后与原 factory/scope 共 14 passed / 0 failed，2.3s，标准 runner，PM Python 3.14.9。并发获取用六方 Barrier，验证共享一个 scoped store 且不同 scope 不共对象；Native Runtime 在 Core 隔离库实际准入/读取，最后引用关闭后重开仍保留消息。测试曾把 admission 的公开字段误写 session_id，实施时按现有 target_session_id 改正。尚未连 PG，也未声称普通生产接线完成。
+
+本地会话幂等创建、路由/策略回执、提示前缀发布和 idle close 已接入 runtime/local 能力；Core 测试包含真实提交后注入确认丢失，必须保留已发布的提示前缀，原请求重查不重复发布。首批生产 runtime/local 自由函数调用已改为显式后端能力派发，SQLite 旧实现保留；原 SQL 授权回调仍需逐项适配 CoreEffect，工厂守卫继续保留。
+
+普通共享获取已转到 access.acquire_sessions；释放统一识别独立 SessionResource，再转交原 SQLite registry。只读 CLI/ACP、Gateway reader、Insights 等入口按配置打开，PG 无 state.db 也尝试连接；受管 Worker 拒绝打开 owner store。Native 强制 unserve 后持有句柄失效，RecoverableHandleCache 可重开新 generation；测试曾发现缓存先 getattr(_db) 触发关闭代理，已按真实类型先检查并通过。Gateway PG 打开、退避、路由读写失败显式报错，不保存成 JSONL/sessions.json 降级成功，不导入旧路由 mirror。原异步获取/释放方法从 run facade 移入 run_session_storage sibling，保持借用句柄关停所有权。
+
+Native authority 的 Profile home/资源 identity、启动 current receipt selector、lineage 检查、结果结算和 discarded boundary 已接入 scoped 能力。新当前会话的压缩/接管在原事务更新回执，明确绕过 SQLite 旧数据修复，不添加 PG 兼容格式。Core 隔离库已实际通过普通 owner 创建、读取授权、rename 精确重试和重启恢复；随后冷历史测试发现 Task 12 mutation_binding 误将列表传给只接收对象的 _json，已改为精确 JSON 列表编码，绑定随 mutation 提交并拒绝其他主体。当前继续扩展 owner submit、其余 CoreEffect、Worker RPC、API store 和 profile 克隆/关停接线；未启用生产 PG。
+
+作用域接线审计：原 local_identity 输入是 authority.profile_id（目录路径），直接照搬会使同库同 store 在两个本地目录产生不同创建 ID，违背既定稳定 store_id 的跨实例身份约束。PG 持久化 local 创建命名空间将使用数据库目标/Schema 的不含凭据摘要加 store_id，回执相应采用此命名空间；公开 actor/ref 的 Profile 授权协议保留，文件和秘密继续使用 DatabaseScope.profile_home。这是落实已定隔离设计，未引入账号系统。Profile 创建/克隆须在发布 staging 前分配新 PG store_id，不能把源配置身份复制为新空间；已有 Profile 重命名保持 store_id。后续真实 PG 仍需验证相同请求跨实例与 epoch 竞争。
+
+上述初版命名空间在后续资源审计中进一步修正：持久化 local/API 身份只取稳定 store_id，不再包含连接目标 URL 摘要，避免 DNS/连接地址切换让同一逻辑空间无法续接。数据库目标/Schema 的摘要只用于资源 identity、同连接目标校验与移动 guard；各表仍由实际数据库、Schema、store_id 的作用域键隔离，外部 ID 本来允许在独立空间相同。公开 actor/ref 授权协议保持原样；此项仍不涉及账号扩展或旧 PG 格式兼容，工厂尚未启用、无真实 PG 数据可迁移。
+
+上述命名空间已接到 local、Bot、cron、Kanban、A2A、hosted 的创建 ID 推导及 local 回执恢复/结束列表。Core 实际两个不同本地 home、同目标/Schema/store 的 owner 先后创建相同请求，续接原 ID 和消息；另一个 store 同请求保持隔离。新 Profile staging 在发布前给已配置（包括未激活）的 PG 设置分配新 store_id，重置复制来的 .file-store-id；managed 层若不允许独立 ID 则拒绝发布。Native profile rekey 同事务改 local receipt 的 route/entry/origin，保留创建命名空间、策略、提示；使用现有命名空间函数正确处理名为 main 的 Profile（main~）。未将此处理扩展成文件迁移或账号改造。
+
+API Responses 已在组合入口按拥有 Profile 选择存储；PG 使用 caller-owned API resource 持有 session acquisition，关闭 API 不关闭其他调用方的共享 SessionStore。缓存构造在锁外，关停先标关闭、drain 后在 worker close，迟到构造拒绝发布并释放；原 SQLite 默认/按 Profile 路径保留。普通 response admission 重查在同一 Response 事务连接解析/修复，先比较 scoped 数据库 identity，禁止另取 Session Connection。Run store 的路由、显式 scope、PG epoch 恢复以及其余 API bind/turn/effects 仍待接线；工厂未启用。
+
+标准 runner 五文件合计 86 passed / 2 failed，264.8s，exit 1；其中新 acquisition 3、本地创建 5、原 alias retry 31、bot chat 36 通过。两个 client env 用例预期 /client/bin 而实际 PATH 首段为 Windows 盘符 D。将 48 个修改中的生产模块从 HEAD 4e5a339721 提取到隔离 overlay、原测试放在原 tests/gateway 下保留 conftest，原两个失败均复现（0 passed / 2 failed / 11 deselected，exit 1，task17-client-env-baseline.log）；未改这些平台断言或客户端环境实现。临时测试文件已移除，离线通过不代表 PG 验证。
+
+Gateway fallback 契约首轮 1 passed / 2 failed（有效 save/open 红灯；旧 mirror 首轮因 SQLite 专用 helper 自身失败而未导入，改为观察实际文件打开后验证无读取），实施后联同原 recovery/fast save/transactions/acquisition 五文件 38 passed，5.3s，exit 0（task17-gateway-boundary-tests.log）。新资源、作用域、Worker guard 与 CLI/ACP 读侧九文件 72 passed，5.6s，exit 0（task17-acquire-reader-tests.log）。结算契约首轮 1 passed / 3 failed，其中一项测试误假定 discard 必有 result，按原 SQLite 约定改查 interrupted 终态；其余两项有效 Core 读连接/SQL 红灯，实施后与 private terminal retries 共 8 passed，4.1s，exit 0。
+
+普通 Native owner 创建/恢复及受影响 SQLite 八文件最新 47 passed，10.2s，exit 0（task17-authority-readers-tests.log）。冷历史授权/压缩/原 history mount 五文件 32 passed / 2 Linux-only skipped，16.8s，exit 0（task17-history-tests.log；随后测试扩展仍须新证据）。最新 quick ruff 通过，health 曾报 facade 行数和 sibling Any/捕获日志三项，已整改，待复验；不能计为已通过。独立 PG 配置仍缺，246 个真实 PG 定义尚未执行。恢复点保持 Task 17 in_progress、未提交，不提前进入 Task 18。
+
+扩展 submit 幂等、current history leaf 和 PG 打开失败四类入口后，最新四文件 60 passed，4.5s，exit 0（task17-entry-errors-tests.log）。扩大到 hermes_db 与原 authority/mutation 七文件共 83 files、489 passed / 1 failed / 3 Linux-only skipped，58.6s，exit 1（task17-runtime-regression.log）。唯一失败为原 shared_authority_peer 的 unsupported envelope ACKed；按 systematic-debugging 比较 HEAD 4e5a339721 原测试和 110 个改动生产模块的原源码，在子进程用隔离 source loader 保留 canonical __file__/资源路径后完全复现同一堆栈（0 passed / 1 failed / 1 deselected，exit 1，task17-authority-baseline.log），未更改该信任规则，临时测试已移除。最新 health 尚有 api_server facade 增长 1 行需在后续 API 接线中收口，不计为已通过。
+
+Profile 克隆两项有效红灯（所有 ID 仍 source-store），实施后两项通过；原 Profile 三文件 115 passed / 9 failed / 4 platform skipped，48.5s 左右，exit 1（task17-profile-identity-tests.log）。九个失败含 WinError 1314、换行/权限及 .bat 名称假设，在 HEAD 原 Profile 测试及源码 loader 下逐项复现（0 passed / 9 failed，exit 1，task17-profile-baseline.log），原 conftest 保留，临时测试已删除。两种 Native local rekey 先错误导入测试 helper，修正后得到 5 passed / 2 route 不变 failed 的有效红灯；实现后含 routing/authority/克隆四文件 22 passed，4.9s，exit 0（task17-local-rename-tests.log）。
+
+Responses 资源选择及原 Profile/off-loop 三文件最新 11 passed，4.3s，exit 0（task17-api-resources-tests.log）；新增普通 admission lookup 期间禁止第二个 Session read，仍完成原回执修复，并拒绝另一 store。第一轮 disconnect 发现将 root response 引用设 None 破坏原 fixture 的二次 close，已改为保留关闭对象、状态阻止重新获取，复验通过。最新 ruff/health 两项通过，140 code files、0 blocking / 0 advisory，exit 0（task17-quick-check.log）；不代表完整 14 checks 已跑。随后跨 home 冷历史测试发现 Native binding 中仍使用公开 Profile 路径：1 passed / 1 permission_denied failed；已改为作用域内 store_id 命名空间并保持主体核对，当前回归中，需更新最新证据。真实 PG 仍无证据，246 项定义未执行。
+
+冷历史跨 home 修正后，owner/mutation receipts/portability/原 history mount 四文件 41 passed，16.6s，exit 0（task17-history-scope-tests.log）；当前绑定还要求规范 JSON 列表，拒绝其他格式。Gateway shutdown 在现有所有 producer/worker quiesce 检查之后，按顺序释放 delivery handle、SQLite/Native registries 和 PG Engine；Profile unserve/删除/snapshot 改为 scoped 双 registry 释放，不销毁其他 Profile 的共享 Engine。原 quiesce、unserve、snapshot guard 与当前 Native owner/acquisition 五文件 28 passed，4.4s，exit 0（task17-shutdown-tests.log）。新增 scoped close 契约与最新 ruff/health 待复验。Task 17 当前恢复点：先完成这些复验，再继续 Run store、API bind/turn、Worker owner RPC/CoreEffect、剩余普通直连/文件门槛审计和 PG surface 定义；仍未提交，工厂未启用。
+
+上述 scoped close、当前绑定格式及单连接 API 契约最新四文件 12 passed，4.5s，exit 0（task17-latest-contracts.log）；ruff/health 最新 143 code files、0 blocking / 0 advisory，exit 0（31.2s，task17-quick-check.log）。随后 Responses 资源接线发现选择阶段会调用 Native 构造维护事务，已让 API 组合延迟该维护到首次持久化 worker 事务，成功提交后才记完成，失败/未知提交仍可幂等重查。测试在 prewarmed session resource 上禁止选择阶段 _write，真实 get/put/准入修复仍通过；受影响 response/resource/fault/off-loop 四文件 25 passed，6.4s，exit 0（task17-api-deferred-tests.log）。该后续改动尚须最新静态检查；Native registry miss 的 Schema 检查也须由启动 prewarm/owner 线程承担，不能据此声称所有 PG I/O 已在 worker。下一步继续 Run 资源按服务器 scope/home 绑定及 canonical/epoch 恢复，不使用远端 PID 推断终止；不改动冻结迁移来掩盖缺失证据。
+
+Run 资源契约先 2 missing-module failed，ProfileRunStores/open_run_store 实现后 2 passed，2.1s，exit 0（task17-run-resources-tests.log）。按真实服务器 home 绑定 API scope，后台 update_status 必须用已捕获的显式 scope，未知 scope 拒绝，不从当前环境猜归属；SQLite 多 Profile 原有 launch runs 文件保留，PG 按本 Profile 的 session resource 打开，失败不转内存。已接 _initialize_run_state、状态持久化和关闭；Native run_admission 从 scoped 当前/退休 canonical 回执读取，PG 保留记录没有 canonical 证据时不使用本机 PID/birth 推断远端终止。原 API Run/轮询/导入隔离及新资源四文件 68 passed，11.3s，exit 0（task17-run-api-tests.log）。尚需 Native HTTP Run 恢复/unknown 行为证据、PG API auth namespace 稳定绑定、其余 API bind/turn 与 Worker 接线；不把这轮 SQLite API 回归当真实 PG 通过。
+
+PG API auth 幂等 namespace 已以 database_identity 替代可变 Profile 标签，保留认证密钥哈希；Room grant 的签名作用域维持原规则。跨 home/标签测试保留同 store 身份，另一 store 不共享，连同原 Run 和 response Profile 三文件 69 passed，11.5s，exit 0（task17-run-namespace-tests.log）。Responses 缓存在 scoped registry force-close 后能重开新 generation；资源/Run/off-loop 三文件 13 passed，28.7s，exit 0（task17-api-generations-tests.log）。最新 ruff/health 在这些生产改动后 147 code files、0 blocking / 0 advisory，exit 0（33.1s，task17-quick-check.log）。随后新增 Native Run poll：由真实 Core epoch recover 将 started 变 unknown，普通 run_projection 返回 unknown；没有 canonical 准入证据的保留 Run 不凭本机 PID 改写 running，测试禁止调用 _owner_alive，四项通过，14.3s，exit 0（task17-run-recovery-tests.log）。这是 Core 离线证据，未执行真实 PostgreSQL 或完整 Native HTTP 运行链路。
+
+Task 17 新恢复点（2026-11-07）：当前 PG 持久化命名空间已校正为仅依赖稳定 store_id（pg-store:<store_id>），不依赖本机 home、Profile 标签或 DSN/DNS；资源连接身份仍保留 target/schema 用于连接和移动校验。更正后三个文件 14 passed，4.5s（task17-stable-scope-final-tests.log）。Native API 绑定从原 _execute_write 缺失红灯起步，补齐 epoch→独占映射→根锁下的当前绑定、声明键、路由与源身份事务；不导入 SQLite 原始 key 历史格式。随后普通 API 准入在 retry_terminal_admission 的 _read_ctx 红灯，已接 Native 退休身份重放及 CoreEffect 事务内单目标校验/设置保存。API 绑定及原 SQLite 幂等/压缩/续接十二文件 31 passed，10.4s，exit 0（task17-api-admission-regression.log），含删除后原身份重放但不复活会话。中间两次新测试错误（错误访问 owner.runtime、将 outcome 误写对象）已修正为公开能力/合法 completed 值。当前继续策略刷新、API 启动恢复/媒体、Worker owner RPC 及剩余调用审计；Task 17 未提交、工厂守卫仍保留，246 项已有真实 PG 定义未执行；不能声称完整 Native HTTP/PG 链路通过。
+
+Task 17 媒体/Worker 恢复点：API 设置读取、queued 恢复 selector、策略 picks/refresh 提交已分派到 Native 能力。API 单目标校验另加按 store_id+request hash 锁定的永久控制行，位于 epoch→共享映射→请求身份→根锁顺序，避免不同会话根上的并发同 key 同时通过；不改冻结 Schema、不把整个 store 的普通写入串行化，真实竞争用例仍待 PG。Native 终态 API 正文维护按 128 行分批、每批单连接；消息/媒体引用检查使用 scoped 仓储与原文件身份/捕获租约，当前 Profile 不匹配时不收集。新 API 媒体实际图片契约通过，删除后回收、不删除仍被终态 API 持有的图片、压缩后原请求可重放；中间测试误读公开行中不暴露的 payload_digest，改由精确重放验证。扩大媒体回归 52 passed / 3 failed，20.8s（task17-api-media-regression.log），首次通过 PYTHONPATH 的覆盖因标准 runner 清理环境而无效，task17-media-baseline.log 撤销为 HEAD 证据；已改用显式 pytest -p 在 conftest 前加载 131 个 canonical HEAD 模块并断言实际 loader，三项再次复现（3 passed / 同 3 failed，5.3s，task17-media-baseline-corrected.log）：Windows WinError 1314 符号链接权限、测试使用正斜杠拆分本机路径、Windows 长路径 capture replace。未修改这些原基线或放松保护。
+
+受管 Worker recall 现在是认证 worker.recall 只读 RPC，携带已采用执行的身份/epoch/generation，仅允许现有工具参数，worker 不收到 DSN/schema/store_id/数据库路径；owner 绑定所属 home 后解析显式 Profile 并执行搜索或读会话，不再由 worker 私开 SQLite。该读取不消耗持久化序号；失败/未确认写入仍拒绝继续读。普通无 db 的受管 worker 明确拒绝，不回落本地。worker claim origin/verify、私有 admission-worker 预留与 loss、child.reserve CoreEffect、委派持久化/完成事件读取和 execution tip 均接 Native 能力，OS proof 保持在数据库事务外。首轮 recall/原采用与回执五文件 20 passed / 6 平台 skipped，3.5s（task17-worker-recall-tests.log）；新 owner 预留→采用→消息→子任务精确回执→容量拒绝→丢失 unknown 的双后端契约连同 recall/API media 三文件 5 passed，2.5s（task17-worker-owner-contracts.log）。OS proof 在该存储契约中固定为预先已验证输入，不能当真实子进程/PG 证据。首轮静态检查发现两个测试问题：共享 fixture 导入触发 F811/noqa、未用变量，已移入 conftest 并修正，待复验。下一步 Worker 扩大回归/静态检查、普通 API 持久化/资源首次打开线程边界、producer CoreEffect/hosted rooms 与普通入口审计；Task 17 未提交、工厂守卫仍保留。
+
+Task 17 后续验证：扩大 Worker/委派十文件 31 passed / 8 平台 skipped，126.1s（task17-worker-regression.log）；该轮静态检查 167 文件 ruff/health 通过。公共 POST /api/sessions 的源 SQLite 原子创建已移入 api_server_session_create sibling，Native 当前库创建/标题冲突回滚/退休拒绝均为连接内 Core 操作；API 两类认证 wrapper 统一将 StorageError 与 UnknownCommitError 映射为明确 503，不泄漏驱动异常。缓存读取失效 Native handle 会重开，Run 替换代次后释放旧 OwnedApiStore。实际 aiohttp HTTP 测试在显式离线工厂 seam 下使用 Native Responses/Run/owner，创建/重名/标题冲突/不可达/真实提交后确认丢失/删除后拒绝均通过，连同原创建和 Run 三文件 7 passed，3.4s（task17-api-http-session-tests.log）；首轮测试遗漏 seam，正确被生产工厂守卫拒绝，已只修正测试。未连接 PG，不把 Core HTTP 证据称为真实 PG 证据。
+
+producer 接线继续：队列编辑的取消/重放绑定、自动任务合并及 FIFO tail CAS、消息 /retry 的 transcript rewrite 与路由 memory fence 均组合为显式 CoreEffect；Source sqlite3 回调保留原路径。新双后端事务契约证明 FIFO 改变则合并整体拒绝，容量拒绝则重写不发生，接受后消息重写与准入一同提交，精确重试不重复修改；连同原队列/automation retry 三文件 13 passed，4.9s（task17-producer-effect-contracts.log）。初测误用不存在的 ordered_active_message_ids，已按真实 get_active_message_ids 改正。原普通 daemon automation 两项失败；HEAD pytest loader 下同样失败，原 stderr 解码又触发 UnicodeDecodeError。保留原环境的原始字节探针已定位在 automation_peer.py 第 2 行 import asyncio / _overlapped 的 Windows WinError 10106，尚未进入任何 Hermes 应用代码（task17-automation-raw-probe.log），不修改无关主机环境。临时 pytest plugin/probe 已移回被忽略的 .build/postgresql，未加入源码。
+
+Kanban 独立本地账本继续用 SQLite；其 owner_admitted 对 Native 保存 storage_backend/store_id/profile_home/认证 principal，不伪造 state.db 数据路径。重查从配置重新选择并核对 stable store_id，不直接调用 SQLite，不凭本地 PID 推断 PG 远端 owner 消失；配置不匹配/不可达时保持暂停。新 Native 作用域/PID 禁止探针及原 reclaim/wait、producer 四文件 23 passed / 2 平台 skipped，4.8s（task17-kanban-owner-tests.log）。Bot/A2A 当前 generation selector 与 messaging pick 也已接 Native 能力。最新 ruff/health 在这些生产改动后 176 code files、0 blocking / 0 advisory，33.2s（task17-quick-check.log），最后新增 Kanban 契约尚需静态复验。当前仍为 Task 17 未提交恢复点；继续剩余直连/文件门槛/私有 SQL/HostedRoom 与 Native surface PG 定义审计。遵循原同步接口设计，不扩大为整条 Agent 异步重构；现有 write/维护/首次打开的 off-loop 边界须保留和测试。Tasks 4–16 的 246 项真实 PG 定义未执行，工厂守卫仍在，最终 verification/review 未执行。
+
+Task 17 最新恢复点：工具侧最后三处普通直连（process_registry_results._owns_result、kanban_tools._persisted_session_id、cronjob_tools._run_session_usage）均改为配置选择的 open_session_store；受管 Worker 使用认证 worker.read 的三种固定操作 result.owns/session.persisted/cron.usage，不能提交 SQL、数据库路径、Schema 或 store_id，也不消耗写回执序号。owner 复用已采用身份/epoch 校验并绑定所属 home，纯读取业务集中在 tools/session_store_reads.py。Worker recall/closed reads 与原来源/工具四文件 12 passed，3.3s（task17-worker-tool-read-tests.log）；最新 ruff/health 180 code files、0 blocking / 0 advisory，33.1s（task17-quick-check.log）。Task 17 仍未提交、工厂守卫保留。下一步先完成 HostedRoom 与主会话后端的边界适配：计划明确独立 room 数据库不迁移，但其主会话的创建/读取/准入必须 Native；当前 CanonicalHostedRoomService 仍取 db.db_path、其 owner/task 授权 SQL 与会话事务共连接，尚不能在 PG 上运行。必须在记录具体调整及影响后实施，不能伪造 Native db_path、放开授权或把会话写回 SQLite。继续其余 Source 专属直连门槛审计、surface PG 用例和 Task 17 全量所需验证，再创建该 task 的本地 commit。真实 PG 仍未配置/未执行，最终 verification/review 仍待 Task 18。
+
+Task 17 执行调整（已先说明影响）：HostedRoom 的既有同 SQLite 连接假设不适用于 PG，按布局设计新节拆分为独立本地房间协调与 Native 主库准入。PG 模式按 stable store_id 摘要命名新的 Profile 本地房间库，仅房间表/owner KV/本地 room epoch；旧 SQLite/standalone 任务不导入，避免在新 canonical 账本重复执行。跨库提交使用本地房间栅栏→PG 的固定顺序，保持房间状态到规范准入提交返回；桥接读事务无跨库双写。影响：房间协调仍属独立本机持久化，本轮不支持其多副本共享，主会话/消息/规范队列仍全部 PG；SQLite 模式行为和原数据保持。下一步先实现/验证该边界，再继续调用审计。另新增 Native resume 设置刷新测试首轮错误期待 CLI 在同一会话换模型，已按原缓存/恢复语义改正为刷新 max_turns、保留既有 model/prompt/history，四项通过，4.7s（task17-policy-refresh-tests.log）。默认 PG 测试配置最新探测仍不存在，未连真实 PG。
+
+Task 17 HostedRoom 实现恢复点：新增 session_hosted_storage.RoomCoordination，在 PG 模式使用 hosted-pg-<sha256(store_id)>.db 保存独立本地房间协调、owner KV 与节点 room epoch，文件不含规范会话/消息/准入表。构造与本地 read/write 检查 Native epoch；Native 暂停旧 standalone 导入，SQLite 原导入保持。Canonical service 的 room SQL 改走该协调资源，Source 分支仍用原 SessionDB 事务。新边界首轮 db_path AttributeError 红灯，接线后与原 service 两文件 7 passed，4.4s（task17-hosted-coordination-tests.log）。
+
+Native HostedRoomAuthorityRPC 的创建标签、历史/准入与远程绑定 KV 均接 scoped 能力；本地 HostedAdmissionFence 在持久化 worker 中先取得 SQLite BEGIN IMMEDIATE，再借用 PG Connection，通过 CoreEffect 检查被锁定的 owner/member/task，保持到规范提交返回。SessionAuthority 私有 _write_context 只用于这项已授权 producer 的同线程栅栏，不是客户端字段。附件准备使用显式 room_db_path，转送字节走原 attested 路径，不能回落 Native db_path。真实提交后注入 UnknownCommitError 的 Core 契约证明本地锁在 PG 借用前持有、未知结果后释放、原身份重试只有一行，授权撤销不产生准入；两项通过，3.5s（task17-hosted-submit-tests.log）。期间附件准备残留 db_path 红灯已修正。扩大十一文件 86 passed / 2 failed / 1 platform skip，209.2s（task17-hosted-regression.log）：一项为测试替身缺新 room_db_path，已按真实接口修正；另一项普通 SQLite daemon 的两个成员未全部结算尚在定位。更新后附件/Native 两文件 4 passed，4.6s（task17-hosted-followup-tests.log）。最新 ruff/health 在跨 Profile binding 之后 186 code files、0 blocking / 0 advisory，36.4s；随后本地 epoch 检查和测试替身改动仍需复验。
+
+当前调试恢复点：普通 daemon 用已校验的 workspace 内 --basetemp 重跑仍超时（task17-hosted-daemon-short-path.log；1 failed / 1 deselected，约 55s；runner 总111s）。保留的独立测试数据在 .build/postgresql/task17-hosted-temp，Root canonical admission 已 terminal/completed，但房间任务/另一个 Profile 没有完成；不能据此归为基线。正在以显式 pytest plugin 对父进程及真实 daemon 子进程加载 HEAD 137 个原始 production 模块，sitecustomize 为 gateway.run/hosted service 写入进程独立源码标记，日志 task17-hosted-daemon-head.log，临时 plugin tests/gateway/_task17_hosted_head_plugin.py 必须在结束后移回 .build，不能提交。HEAD baseline 独立路径 .build/postgresql/task17-hosted-head-temp，仍在运行（完成后更新真实证据）。Task 17 未提交，PG 工厂守卫保留；真实 PG 和最终 review/verification 都未执行。
+
+Task 17 恢复证据更新：HostedRoom 原 daemon 在显式 HEAD loader 下，父进程与真实子进程均加载 HEAD 137 个 production 模块并有逐进程源码标记，仍相同 member task 超时：0 passed / 1 failed / 1 deselected（task17-hosted-daemon-head.log；测试55.35s，runner约112s）。先前未定基线现已建立；具体根因仍未证明，不能直接归为 Windows。临时 plugin 已移回 .build/postgresql。附件 mock 增加显式 room_db_path 后，Native bridge/原附件四项通过。media 的初轮 PYTHONPATH 基线无效（runner清环境），已改显式 pytest -p、断言 BaselineSource，实际131个 HEAD production 模块；3 passed / 相同3 failed，5.3s（task17-media-baseline-corrected.log）。automation 原启动环境在 import asyncio/_overlapped、进入 Hermes 前 WinError10106，原始 bytes 探针见 task17-automation-raw-probe.log；保留限制，未放松测试。
+
+Task 17 最新实现/验证：Native viewer close CAS、活动列表、故障结算 unknown 恢复、延后模型选择及其精确回执/CAS 已接线；viewer/HTTP/原生命周期三文件22 passed（20.3s），结算三文件13 passed（4.8s），deferred/原行为/HTTP四文件8 passed / 1 Linux-only skipped（5.9s）。HTTP history 的 StorageError 不回落空历史，UnknownCommit 返回503及 x-should-retry:false；默认API会话命名空间使用 pg-store:stable-store-id。quick ruff/health 最新202文件、0 blocking / 0 advisory，34.7s；之后新增修改须复验。
+
+Bot Chat 原准入查询/标题让位、automation completion、ACP结束列表与分组 roster 改为 Native scoped 能力；房间路径显式选独立协调资源。当前格式JSON导入或本轮Agent创建的无路由本地会话保留续接：新增 Native current-history claim（gateway.native_history.v1），在 epoch→映射→根锁内重新授权、检查队列/Worker/租约/压缩并提交路由/策略，不读取旧SQLite或接受 legacy_session_id。恢复/压缩检查持久化 claim 证明，保留原ID/消息/提示，不拷贝或改写前缀。首轮恢复暴露 identity 仍只认派生ID，补原生claim校验后又遗漏导入，均已修正；最新Bot/当前历史重启恢复/普通创建三文件13 passed，5.2s（task17-bot-native-tests.log）。扩大76文件Bot/local/ACP/分组回归仍在执行（task17-bot-local-regression.log），不能计为通过。发现Web只读打开仍以文件是否存在为门槛、timeline与CLI代理有私有SQL，正在适配并补契约。Task17仍in_progress/未提交，工厂守卫仍在；246项真实PG定义未执行，Task18 verification/review未开始。
+
+Task17 工厂接通恢复点：常规 source 专用接口差集检查（实际导入MRO）剩余项已逐一分流：SQLite物理FTS/vacuum/旧profile/ACP-cwd修复不在Native执行；项目发现的缺失repo-root更新是当前元数据行为，新增scoped Core更新，保持已记录root。额外发现run_runtime启动恢复/idle exit和webhook投递查询/终态直接SQL，已补 Native RuntimeRecovery 与JSON文本路径选择，保留当前epoch/精确generation/终态/后继队列拒绝；相关六文件18 passed，12.5s（task17-startup-webhook-tests.log）。Native current-history policy补保存reasoning/service tier/API mode，提示和原消息不改。
+
+Web浏览现在按配置打开Native、timeline和标题查询走公开接口，离线metadata/import使用CoreEffect和当前epoch，不凭本机文件推断PG状态；owner-backfill/FTS进度只在SQLite执行。ACP对StorageError明确失败，不把消息读取失败恢复为空历史。Web/ACP修正测试JSON格式后新契约3 passed，2.2s；后续ACP/项目根目录/原行为四文件41 passed / 2平台skipped，10.5s。76文件扩大回归最终499 passed / 6 failed / 7平台skipped，267.7s；失败两文件bot_authority/local_automation的raw stderr证实均在fixture第2行import asyncio/_overlapped、任何Hermes代码前 WinError10106（task17-bot-launcher-probe.log），临时探针已移回.build。全区域计划命令已启动，CLI/Gateway/TUI/ACP共4105文件、约27313项，尚未结束（task17-full-surfaces.log），不能计为通过。
+
+普通消费者接线后，factory.acquire_db 的开发期统一拒绝已替换为Native registry acquisition：仅显式PG配置启用，缺驱动/未初始化/不可达均返回typed StorageError且不回落；不自动执行DDL，不管理数据库服务。不可达契约现以构造边界注入具体失败，避免离线测试DNS/连接外部地址。工厂接通后全部离线存储+db_setup 93文件514 passed、0 failed，97.5s（task17-factory-contracts.log）；随后实际acquire_db（不替换factory）共享/释放和当前策略保真两文件8 passed，12.0s（task17-native-factory-test.log）。真实PG新增surface定义包括普通配置工厂/CLI/oneshot/Agent/TUI/ACP、Gateway+实际HTTP session创建+单连接池Responses/Run回执、Worker私有owner操作、HostedRoom隔离、当前历史重启与webhook JSON/终态；尚未执行，也未证明模型端到端推理。Task17仍in_progress/未提交，静态检查曾发现测试name-ladder，已改table dispatch待复验；真实PG与最终verification/review仍未执行。
+
+Task17 最新恢复点（2026-11-07 05:57 Asia/Shanghai）：真实HTTP→Gateway authority→真实Agent→记录型本机模型服务→Native Core消息/终态链路已通过，包括同幂等键不重复调用模型和第二轮携带首轮历史。首轮测试工具集为空，使现有fake provider把主请求分类为aux并回答Fake title；改用既有file工具集后通过，不替换Agent/authority执行（task17-acp-full-http-regression.log）。该日志为PM新 full-test-env（postgresql/messaging/acp + dev/test）下95文件417 passed / 2 failed / 38平台skipped，185.4s；剩余两失败在显式HEAD loader（150 production模块，loader断言）均复现：MCP路径JSON转义与不存在的/tmp，0 passed / 2 same failed / 30 deselected，48.3s（task17-acp-head-baseline.log）。临时plugin已移回.build。原忙时接收测试只更新生产读取的新runtime_calls mock seam，该文件最新通过，未给生产增加None库兼容。
+
+本任务全部14 staged检查已通过：218 code files，0 blocking / 0 advisory，exit0（task17-staged-checks.log）。随后独立房间文件作用域审计补数据库目标/Schema/store_id摘要，复用排除用户口令的resource_key；相同store_id/home切换目标不复用房间协调文件，凭据轮换仍用原文件，不迁移文件。Native桥/附件受影响两文件5 passed，40.7s（task17-hosted-scope-tests.log）；此后两代码文件和文档需重新暂存/静态复验。完整四区域回归仍在执行（session35135，task17-full-surfaces.log），目前有缺可选依赖、Windows fixture、超时与其他尚待判定失败，不能宣称全通过。该轮使用原api-test-env；ACP缺依赖已由上述新PM环境全区域复验覆盖。原索引零字节孤立锁已验证无持有者后备份，首次staged检查因锁未执行，不能计证据；以后Git状态读取必须 --no-optional-locks，避免受限只读状态刷新留下新锁。用户.gitignore和multi-user-web-chat.md仍未暂存。
+
+新增PG surface现有10项定义（含参数展开），与前246项合计256项均未执行。--collect-only标准runner报告0 tests ran、exit1（task17-pg-surface-collection.log），不计通过，也不是PG证据。Task17仍in_progress/未提交，HEAD仍4e5a339721；本轮没有推送/发布/合并。下一步完成当前全区域失败归类/受影响整改、最新静态检查后保存Task17检查点；Task18最终verification-before-completion/code-review仍未开始。没有真实PG配置/连接证据，不称完整后端已通过。
+
+Task17 扩大回归整改恢复点（06:20 Asia/Shanghai）：全四区域仍在执行（session35135，约27313项），最新已超过19000 passed；失败仍含已确认环境/平台项及未归类项，不计完整通过。发现新增worker.read/worker.recall漏登记 canonical wire，已新增 contracts/canonical_worker_reads.py，声明闭合回忆选项、固定read操作和标量结果；同步生成apps/shared TypeScript/OpenRPC。真实worker read/recall、旧canonical协议与生成制品六文件12 passed，8.7s（task17-worker-wire-tests.log）。该修正及两制品尚未暂存，不应把此前14项通过套用到它们。
+
+旧测试composition seam同步：busy接收patch新runtime_calls读取点；Hosted附件mock补显式room_db_path；API能力测试操作实际被包裹的SQLite Run store；Kanban producer的no-listing探针只patch新的producer seam，不拦authority合法的pending列表。媒体/API/Kanban三文件126 passed，123.8s（task17-surface-seam-tests.log），API大测试文件后续仅调整为原行数，正在复验capability用例。shutdown spool两处acquire fake补公开可选path参数；原spool/恢复26项通过。连同group controls三文件合计32 passed / 1 failed，120.2s；group目录缓存相同失败在断言HEAD loader下0 passed / 1 same failed / 6 deselected（task17-group-cache-head.log，20.8s），未改缓存实现或断言，临时plugin已移回.build。
+
+最新已暂存的房间资源隔离改动ruff/health通过，218 code files，128.1s（task17-latest-staged-checks.log）；其后的worker契约/生成制品/部分测试调整须重新暂存、检查。完整HTTP模型流程新增system prompt前缀不变断言正在复验（session34231，task17-http-prefix-tests.log），前一轮真实Agent幂等/续接已通过。默认PG配置最新探测仍不存在，未连接真实PG；256项PG定义无执行证据。Task17仍in_progress，尚未创建本task commit，HEAD仍4e5a339721；Task18 verification/review未开始。索引可能有只读git状态刷新留下的零字节锁，Git读取用--no-optional-locks；清理前核对时间/持有者，保留备份。用户两文件仍不暂存。下一步收齐全区域结果、优先整改新接线引入问题，再做最新静态检查及Task17本地commit。
+
+Task17 补充最新证据：HTTP真实Agent第二轮system prompt与第一轮完全一致，同幂等键仍只执行一次；最新prefix/capability两文件2 passed，21.8s（task17-http-prefix-tests.log）。shared metrics busy同类stub改到runtime_calls读取点后10 passed，21.3s（task17-metrics-seam-tests.log）。默认Profile消息页的120 vs1失败，在已断言HEAD loader下仍2 passed / 1 same failed（task17-message-page-head.log；测试9.3s、runner26.2s），未修改这项业务或断言，临时plugin已移回.build。关闭spool/恢复fake的显式可选path契约复验已通过26项。
+
+Task17 最新恢复点（2026-11-07 06:49 Asia/Shanghai）：清单中的 achievements dashboard 扫描器改为统一只读 open_session_store，检查点绑定不含凭据的存储身份，后台扫描使用 spawn_context_thread 继承发起 Profile。通过真实 dashboard discovery/mount 加载的 Native 作用域/故障/线程契约与原 SQLite 统计两文件16 passed，2.2s（task17-achievements-tests.log）。首轮语料误用 create_session(title=...)，随后相同内容/时间戳被既有显示去重，均已仅修正测试；最终不同内容但相同元数据指纹验证切换 store 后重算。该插件是 Task1 契约清单已有消费者，不新增插件能力。
+
+原全四区域回归 session35135 已 exit1，无最终完整汇总；日志最后约89.9%、30035 passed / 516 failed，不能作为完整执行或通过证据，未完成部分不计通过。已确认并整改的本任务 mock/wire 问题各有上述复验，其他失败含平台/环境及尚未归类项，不能全部归为基线。正在新 full-test-env 单独补跑366文件 TUI（task17-tui-full.log）。最新14项 staged 检查 health 为226 files、0 blocking / 0 advisory；ruff 两处测试导入写法未通过（task17-final-staged-checks.log），现已修正。重跑14项全部通过，229 code files、0 blocking / 0 advisory，exit0（task17-final-checks-retry.log）；随后下述三文件边界修正须重新检查。Task17 仍 in_progress/未提交；256项真实PG未执行，最终 verification/review 尚未开始。
+
+剩余调用核对：13个 Native 缺省同名方法调用均为 SQLite 专用迁移/FTS/物理维护；检查又发现 console optimize/repair 和 sessions_adopt 的前置后端门槛遗漏。三个有效红灯后补齐 PG 拒绝，原文件不变、不打开旧SQLite；受影响三文件19 passed / 2 Linux-only skipped，3.6s（task17-file-boundaries-tests.log）。prune_advisor 由 should_ask 的 PG gate 挡住，transcript rebuild 由能力检测挡住；Discord recovery 与 retaindb 使用各自独立本地账本，符合范围排除，不替换为主会话库。
+
+Task17 离线实现检查点：14项完整检查后，最后控制台/adopt 三文件变更重新暂存并通过 ruff/health，231 code files、0 blocking / 0 advisory，exit0（task17-file-boundary-checks.log）。全部代码已接线，普通工厂可显式选择PG；本地commit仅保存实现，不代表交付验收。状态置 verification_pending，严格 completed 仍3/18。TUI补跑仍在执行，原四区域回归未完整结束且有未归类失败；这些限制及256项真实PG未执行均带入 Task18，继续不依赖数据库的文档、安装制品和审查工作。
 
 ## Task 18：完成配置文档、最终验证与代码审查
 

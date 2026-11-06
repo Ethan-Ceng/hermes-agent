@@ -8,6 +8,8 @@ so the API edge admits the turn through the same door as ``bot_relay.deliver``
 session as an API conversation (``run_api_turn``) would be a second writer and is refused
 (``permission_denied``) by design. Without an authority the legacy live-owner mailbox applies.
 """
+
+from hermes_db.health import profile_home_for_store
 import asyncio
 import logging
 from pathlib import Path
@@ -105,7 +107,7 @@ def _reset_local_title_owner(db, title, include_hidden, source=None):
     if (row is None or row.get('end_reason') != 'session_reset' or row.get('archived')
             or (row.get('hidden') and not include_hidden) or (source and row.get('source') != source)):
         return []
-    from hermes_state_local import local_receipt
+    from hermes_db.local_access import local_receipt
     try:
         lineage = local_receipt(db, row['id']).get('lineage') or []
     except RuntimeStoreError:
@@ -136,7 +138,7 @@ async def admit_peer_turn(runner, session_id, message, author):
     tip = bot_chat_tip(authority, session_id)
     if tip is None:
         return None
-    home = Path(authority.db.db_path).parent.resolve()
+    home = profile_home_for_store(authority.db)
     from gateway.session_bot import displaceable_bot_chat
     if displaceable_bot_chat(authority, authority.db.get_session_by_title('Bot Chat') or tip) is not None:
         # The title is held by an API conversation no FIFO can own (#140769, MSG-21): the owner

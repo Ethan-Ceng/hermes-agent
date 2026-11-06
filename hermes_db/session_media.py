@@ -12,6 +12,19 @@ def collect(store):
     collect_scope(store._transactions, store.scope, store._profile)
 
 
+def release(store, references, *, retain_history):
+    from hermes_db.repositories import file_grants
+    with store._profile.activate(), store._write() as conn:
+        sessions.lock_store(conn, store.scope, exclusive=True)
+        mentions, _ = _history(conn, store.scope, references) if retain_history else (set(), set())
+        if mentions is None:
+            return 0
+        _, pins = file_grants.pins(conn, store.scope)
+        mentions.update(reference["path"] for reference in pins)
+        candidates = [(str(index), reference) for index, reference in enumerate(references)]
+        return len(_collect_media(conn, store.scope, candidates, mentions))
+
+
 def collect_scope(transactions, scope, profile):
     from hermes_db.repositories import archive_refs, file_grants
     with profile.activate(), transactions.write() as conn:

@@ -14,10 +14,8 @@ import asyncio
 from dataclasses import asdict
 from functools import partial
 
-from hermes_state_runtime import (
-    STEERING, RuntimeStoreError, check_replaced_input, find_session_admission, get_session_admission,
-    replacement_binding, retire_replaced_input, revert_steer_input, steer_replayed, steer_session_input,
-)
+from hermes_state_runtime import STEERING, RuntimeStoreError, check_replaced_input, replacement_binding, retire_replaced_input, steer_replayed
+from hermes_db.runtime_calls import find_session_admission, get_session_admission, revert_steer_input, steer_session_input
 
 # A steer carries plain text and its presentation only. Attachments, finite runs, classic-CLI turns,
 # native envelopes and automation rows are whole turns: neither verb may drop what they carry.
@@ -41,11 +39,11 @@ def _interactive(authority, session_id):
     counts, a write). Under WAL it takes the lock-free reader pool, as ``_pending_rows`` does there."""
     sources = authority.launch_sources
     if session_id not in sources:
-        with authority.db._read_ctx() as conn:
-            found = conn.execute('SELECT source FROM sessions WHERE id=?', (session_id,)).fetchone()
+        from hermes_db.authority_access import session_launch_source
+        found = session_launch_source(authority.db, session_id)
         if found is None:
             return False
-        sources[session_id] = found[0]
+        sources[session_id] = found
     return sources[session_id] in _INTERACTIVE_SOURCES
 
 
@@ -225,10 +223,18 @@ async def replace_queued(connection, ref, params):
     elif (receipt.status, receipt.outcome) != ('terminal', 'cancelled'):
         raise RuntimeStoreError('admission_conflict')  # that request id names other work
     binding = replacement_binding(actor.subject, ref.session_id, request.request_id)
+    retire = partial(retire_replaced_input, admission_id=old_id, binding=binding)
+    replay = partial(check_replaced_input, admission_id=old_id, binding=binding)
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(authority.db):
+        from hermes_db.operations import runtime_queue
+        from hermes_db.operations.effects import CoreEffect
+        retire = CoreEffect(lambda conn, scope: runtime_queue.retire_replaced_input(conn, scope, old_id, binding,
+            target_session_id=ref.session_id))
+        replay = CoreEffect(lambda conn, scope: runtime_queue.check_replaced_input(conn, scope, old_id, binding))
     try:
         admitted = await authority.submit(actor, request, queue_while_restarting=connection._operator is True,
-                                          _authorize_write=partial(retire_replaced_input, admission_id=old_id, binding=binding),
-                                          _replay_guard=partial(check_replaced_input, admission_id=old_id, binding=binding))
+                                          _authorize_write=retire, _replay_guard=replay)
     finally:
         old = get_session_admission(authority.db, admission_id=old_id)
         if old_id in authority.cancel_obligations and (old['status'], old['outcome']) == ('terminal', 'cancelled'):

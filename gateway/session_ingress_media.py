@@ -5,6 +5,8 @@ and upload limits. Its flat age-based cleanup skips this retained subdirectory:
 native bytes are released by ``release_admission_media`` once their row is
 terminal and no live native input or retained API image context still holds them.
 """
+
+from hermes_db.health import profile_home_for_store
 from collections import Counter
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -210,10 +212,9 @@ def reconcile_native_retry(db, *, principal_id, session_id, request_id, payload,
     the fingerprint recorded at ingress (``ingress_fingerprint``); a changed resend, or a row
     committed before fingerprints, is compared exactly as above."""
     fresh = payload.get('native_text_v1', {}).get('media') or []
-    with db._read_ctx() as conn:
-        row = conn.execute('SELECT status, payload_json FROM session_admissions WHERE principal_id=? AND '
-                           'target_session_id=? AND request_id=?', (principal_id, session_id, request_id)).fetchone()
-    retained = json.loads(row[1]) if row is not None else {}
+    from hermes_db.runtime_calls import find_session_admission
+    row = find_session_admission(db, principal_id=principal_id, session_id=session_id, request_id=request_id)
+    retained = row['payload'] if row is not None else {}
     recorded = retained.get('native_text_v1', {}).get('ingress_sha256')
     if recorded is not None and recorded == ingress_fingerprint(payload, raw):
         resolved = retained
@@ -224,7 +225,7 @@ def reconcile_native_retry(db, *, principal_id, session_id, request_id, payload,
             return payload
         resolved = {**payload, 'native_text_v1': {**payload['native_text_v1'], 'media': committed}}
     committed = resolved['native_text_v1'].get('media', [])
-    if committed and row[0] != 'terminal':
+    if committed and row['status'] != 'terminal':
         # A live row still executes these bytes, so they must verify (a terminal one is digest evidence).
         restore_native_media(committed)
     kept = {reference['path'] for reference in committed}
@@ -437,7 +438,7 @@ def release_admission_media(db, admission_id):
     files can collect independently; physical aliases and uncertain stat results
     retain conservatively. A shared hardlink can consequently retain an extra old alias.
     """
-    from hermes_state_runtime import get_session_admission
+    from hermes_db.runtime_calls import get_session_admission
     row = get_session_admission(db, admission_id=admission_id)
     if row is None or row['status'] != 'terminal':
         return 0
@@ -467,23 +468,28 @@ def sweep_settled_media(db, *, now=None):
     import time
     from agent.provider_media import MEDIA_CACHE_MAX_AGE_HOURS
     now = time.time() if now is None else now
-    if now - _last_sweep.get(db.db_path, 0) < _SWEEP_INTERVAL_S:
+    from hermes_db.health import storage_identity, is_postgresql_store
+    key = storage_identity(db)
+    if now - _last_sweep.get(key, 0) < _SWEEP_INTERVAL_S:
         return 0
-    _last_sweep[db.db_path] = now
-    with db._read_ctx() as conn:
-        rows = conn.execute("""SELECT json_extract(payload_json, '$.attachments_v1.media', '$.native_text_v1.media')
-            FROM session_admissions WHERE status='terminal' AND (json_type(payload_json, '$.attachments_v1.media')
-            IS NOT NULL OR json_type(payload_json, '$.native_text_v1.media') IS NOT NULL)""").fetchall()
+    _last_sweep[key] = now
+    if is_postgresql_store(db):
+        from hermes_db.runtime_access import runtime_for_store
+        references = runtime_for_store(db).settled_native_media()
+    else:
+        with db._read_ctx() as conn:
+            rows = conn.execute("""SELECT json_extract(payload_json, '$.attachments_v1.media', '$.native_text_v1.media')
+                FROM session_admissions WHERE status='terminal' AND (json_type(payload_json, '$.attachments_v1.media')
+                IS NOT NULL OR json_type(payload_json, '$.native_text_v1.media') IS NOT NULL)""").fetchall()
+        references = [reference for (encoded,) in rows for group in json.loads(encoded) for reference in group or []]
     cutoff = now - MEDIA_CACHE_MAX_AGE_HOURS * 3600
     stale = {}
-    for (encoded,) in rows:
-        attachments, native = json.loads(encoded)
-        for reference in (attachments or []) + (native or []):
-            try:
-                if Path(reference['path']).stat(follow_symlinks=False).st_mtime < cutoff:
-                    stale[reference['path']] = reference
-            except OSError:
-                continue
+    for reference in references:
+        try:
+            if Path(reference['path']).stat(follow_symlinks=False).st_mtime < cutoff:
+                stale[reference['path']] = reference
+        except OSError:
+            continue
     return release_unheld_media(db, list(stale.values()), retain_history=False) if stale else 0
 
 
@@ -497,9 +503,9 @@ def collect_unheld_api_images(db):
     ``db``: a sweep whose database belongs to another profile would see every image here as
     unowned, so it collects nothing."""
     from hermes_constants import get_hermes_home
-    if Path(db.db_path).resolve().parent != get_hermes_home().resolve():
+    if profile_home_for_store(db) != get_hermes_home().resolve():
         logger.warning(
-            'Skipped retained API image collection: %s is not the active profile store', db.db_path)
+            'Skipped retained API image collection: %s is not the active profile store', profile_home_for_store(db))
         return 0
     root = _media_root()
     try:
@@ -553,6 +559,13 @@ def release_unheld_media(db, references, *, retain_history=True):
     references = _collectable(references or (), root)
     if not references:
         return 0
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(db):
+        from hermes_constants import get_hermes_home
+        from hermes_db.runtime_access import runtime_for_store
+        if profile_home_for_store(db) != get_hermes_home().resolve():
+            return 0
+        return runtime_for_store(db).release_media(references, retain_history=retain_history)
     seen, last_id = set(), 0
     if retain_history:
         with db._read_ctx() as conn:

@@ -25,6 +25,17 @@ def require_epoch(conn, scope, epoch):
         raise RuntimeStoreError("stale_epoch")
 
 
+def lock_api_request(conn, scope, request_id):
+    import hashlib
+    # Different targets have different root locks. This stable control row
+    # serializes their single-target API guard without serializing the store.
+    key = "hermes:api-request-lock:" + hashlib.sha256(request_id.encode()).hexdigest()
+    conn.execute(upsert(state_meta).values(store_id=scope.require_store_id(), key=key)
+        .on_conflict_do_nothing(index_elements=list(state_meta.primary_key.columns)))
+    conn.execute(select(state_meta.c.key).where(state_meta.c.store_id == scope.require_store_id(),
+        state_meta.c.key == key).with_for_update()).one()
+
+
 def lock_target(conn, scope, session_id):
     from hermes_db.repositories.lineage import runtime_targets
     from hermes_db.tables.conversations import sessions as session_table

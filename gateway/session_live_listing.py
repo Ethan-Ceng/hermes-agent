@@ -41,6 +41,10 @@ def _store_facts(db, session_ids):
     ``target_ended_at`` is the local receipt target's ``ended_at`` (``closed_and_unviewed``'s read):
     SQLite extracts the target from the receipt, so no receipt is parsed in Python. A malformed or
     non-local receipt reads as no target, as ``_local_target`` does."""
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(db):
+        from hermes_db.runtime_access import runtime_for_store
+        return runtime_for_store(db).live_store_facts(session_ids)
     from hermes_state_local import POLICY_PREFIX
     ids = json.dumps(list(session_ids))
     with db._read_ctx() as conn:

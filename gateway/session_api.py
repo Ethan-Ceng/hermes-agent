@@ -9,16 +9,15 @@ from gateway.config import Platform
 from gateway.session import SessionEntry, SessionSource, _is_path_unsafe
 from gateway.session_contract import SessionRef
 from hermes_state_runtime import RuntimeStoreError, _epoch, _json
+from hermes_db.health import is_postgresql_store, persisted_profile_id
 
 from hermes_state_local import API_BINDING_PREFIX as _BINDING_PREFIX, API_DECLARED_PREFIX as _DECLARED_PREFIX
 
 
 def declared_api_session(db, key):
-    with db._read_ctx() as conn:
-        row = conn.execute('SELECT value FROM state_meta WHERE key=?',
-                           (_DECLARED_PREFIX + key,)).fetchone()
-    if row:
-        return row[0]
+    saved = db.get_meta(_DECLARED_PREFIX + key)
+    if saved is not None or is_postgresql_store(db):
+        return saved
     # Earlier releases kept no declared-key registry: the declared key itself sat in
     # ``sessions.session_key`` (#139835). The pre-binding lookup finds that conversation, and
     # ``bind_api_steps`` adopts it under the same key, so later requests hit the registry.
@@ -36,6 +35,12 @@ def implicit_api_session(db, session_id, request_id=None):
     never come here."""
     from hermes_state_mutation_retirement import first_generation
     from hermes_state_terminal import identity_key
+    if is_postgresql_store(db):
+        from hermes_db.operations.effects import CoreEffect
+        from hermes_db.repositories import runtime
+        pinned = None if not request_id else CoreEffect(
+            lambda conn, scope, sid: runtime.meta(conn, scope, identity_key('api', sid, request_id)) is not None)
+        return db.first_generation(partial(api_generation_id, session_id), pinned=pinned)[1]
     pinned = None if not request_id else lambda conn, sid: conn.execute(
         'SELECT 1 FROM state_meta WHERE key=?', (identity_key('api', sid, request_id),)).fetchone() is not None
     return first_generation(db, partial(api_generation_id, session_id), pinned=pinned)[1]
@@ -70,6 +75,8 @@ def hosted_member_session(db, identity):
     a deleted one stays retired, so the room's next task moves to the next generation. A room
     retry is replayed by the run's Idempotency-Key, never by this id, so nothing pins it."""
     from hermes_state_mutation_retirement import first_generation
+    if is_postgresql_store(db):
+        return db.first_generation(lambda n: room_session_id(identity, n))
     return first_generation(db, lambda n: room_session_id(identity, n))
 
 
@@ -189,7 +196,7 @@ def bind_api_steps(authority, session_id, *, hosted_dispatch=None, declared_key=
     now = _now()
     entry = SessionEntry(route, session_id, now, now, origin=source, platform=Platform.API_SERVER,
                          transport_profile=transport_profile)
-    receipt = {'profile_id': authority.profile_id, 'session_id': session_id,
+    receipt = {'profile_id': persisted_profile_id(authority), 'session_id': session_id,
                'route': route, 'entry': entry.to_dict()}
     if declared_key:
         receipt['declared_key'] = declared_key
@@ -197,6 +204,14 @@ def bind_api_steps(authority, session_id, *, hosted_dispatch=None, declared_key=
         receipt.update(storage_source=storage_source, room_identity=room_identity)
         if room_generation:
             receipt['room_generation'] = room_generation
+
+    if is_postgresql_store(authority.db):
+        from hermes_db.operations.effects import CoreEffect
+        from hermes_db.runtime_access import runtime_for_store
+        yield partial(runtime_for_store(authority.db).bind_api_session, epoch=authority.epoch,
+            receipt=receipt, storage_source=storage_source, title=title, walked_from=walked_from,
+            guard=CoreEffect(lambda conn, scope: authority._require_admission_open()))
+        return restore_api_session(authority, session_id)
 
     def write(conn):
         _epoch(conn, authority.epoch)
@@ -291,21 +306,17 @@ def reopen_api_session(authority, ref):
 def api_storage_source(db, session_id, fallback):
     if fallback != 'api_server':
         return fallback
-    with db._read_ctx() as conn:
-        saved = conn.execute('SELECT value FROM state_meta WHERE key=?',
-                             (_BINDING_PREFIX + session_id,)).fetchone()
-    return json.loads(saved[0]).get('storage_source', fallback) if saved else fallback
+    saved = db.get_meta(_BINDING_PREFIX + session_id)
+    return json.loads(saved).get('storage_source', fallback) if saved else fallback
 
 
 def restore_api_session(authority, session_id):
     from gateway.session_authority import LiveSession
-    with authority.db._read_ctx() as conn:
-        saved = conn.execute('SELECT value FROM state_meta WHERE key=?',
-                             (_BINDING_PREFIX + session_id,)).fetchone()
+    saved = authority.db.get_meta(_BINDING_PREFIX + session_id)
     if saved is None:
         raise RuntimeStoreError('not_found')
-    receipt = json.loads(saved[0])
-    if receipt['profile_id'] != authority.profile_id:
+    receipt = json.loads(saved)
+    if receipt['profile_id'] != persisted_profile_id(authority):
         raise RuntimeStoreError('profile_mismatch')
     entry = SessionEntry.from_dict(receipt['entry'])
     source = entry.origin
@@ -329,9 +340,13 @@ def restore_api_session(authority, session_id):
         store._ensure_loaded_locked()
         current = store._entries.get(entry.session_key)
         if current is not None and current.session_id not in authority.db.get_compression_lineage(session_id):
-            with authority.db._read_ctx() as conn:
-                if not _heal_replacement(conn, session_id, current.session_id):
+            if is_postgresql_store(authority.db):
+                if authority.db.get_meta(_BINDING_PREFIX + current.session_id) is not None:
                     raise RuntimeStoreError('admission_conflict')
+            else:
+                with authority.db._read_ctx() as conn:
+                    if not _heal_replacement(conn, session_id, current.session_id):
+                        raise RuntimeStoreError('admission_conflict')
         store._entries[entry.session_key] = current if current is not None and current.session_id == target else entry
     from gateway.session_history_mount import is_history_mount
     live = authority.sessions.get(session_id)

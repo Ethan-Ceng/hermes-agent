@@ -15,6 +15,23 @@ def is_postgresql_store(store):
     return isinstance(scope, DatabaseScope) and scope.store_id is not None
 
 
+def storage_identity(store):
+    if is_postgresql_store(store):
+        from hermes_db.move_values import resource_key
+        return ("postgresql", resource_key(store._transactions), store.scope.require_store_id())
+    return Path(store.db_path).resolve()
+
+
+def own_profile_for_store(store):
+    return store._own_profile if is_postgresql_store(store) else store._own_profile_name()
+
+
+def persisted_profile_id(authority):
+    if is_postgresql_store(authority.db):
+        return "pg-store:" + authority.db.scope.require_store_id()
+    return authority.profile_id
+
+
 def configured_probe(home):
     from hermes_cli.config_backend import ConfigBackendUnavailable
     from hermes_cli.db_setup import resolve_db_configuration

@@ -61,7 +61,7 @@ def boot_db(monkeypatch):
     import hermes_state_registry
 
     def use(db):
-        monkeypatch.setattr(hermes_state_registry, "acquire", lambda: db)
+        monkeypatch.setattr(hermes_state_registry, "acquire", lambda _path=None: db)
         monkeypatch.setattr(hermes_state_registry, "release_or_close", lambda _db: None)
 
     return use

@@ -24,7 +24,7 @@ def test_authorized_upload_send_download_and_task_consumption(tmp_path):
     from gateway.session_hosted_attachments import append_user_event
     append_user_event(service, room_id='room', event_id='event', payload={'text':'read', 'attachments':manifest}, gateway_id='gateway', epoch=1)
     bound = [{**manifest[0], 'event_id': 'event'}]
-    rpc = SimpleNamespace(authority=SimpleNamespace(db=SimpleNamespace(db_path=service.db_path)), room_id='room', member_id='member')
+    rpc = SimpleNamespace(room_db_path=service.db_path, room_id='room', member_id='member')
     payload = submission_payload(rpc, 'read it', bound)
     path = Path(payload['text'].split('file: ')[1].split('\n')[0])
     assert path.read_bytes() == b'committed bytes'

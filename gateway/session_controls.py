@@ -1,4 +1,6 @@
 """Authenticated WS projection of the gateway authority; no TUI execution fallback."""
+
+from hermes_db.health import persisted_profile_id
 import asyncio
 import logging
 import re
@@ -229,6 +231,8 @@ class AuthorityConnection:
                     'cron.cancel': self.cron_cancel, 'cron.recover': self.cron_recover,
                     'worker.register': self.worker_register, 'worker.adopt': self.worker_adopt,
                     'worker.persist': self.worker_persist,
+                    'worker.recall': self.worker_recall,
+                    'worker.read': self.worker_read,
                     'setup.status': self.setup_status, 'setup.runtime_check': self.setup_runtime_check,
                     'session.resume': self.resume, 'session.detach': self.detach,
                     'prompt.submit': self.submit,
@@ -436,6 +440,14 @@ class AuthorityConnection:
         from gateway.session_worker import worker_request
         return await worker_request(self, ref, params, operation='persist')
 
+    async def worker_recall(self, ref, params):
+        from gateway.session_worker_recall import worker_recall
+        return await worker_recall(self, ref, params)
+
+    async def worker_read(self, ref, params):
+        from gateway.session_worker_reads import worker_read
+        return await worker_read(self, ref, params)
+
     async def slash_exec(self, ref, params):
         from gateway.session_commands import execute_command
         return await execute_command(self, ref, params)
@@ -487,7 +499,7 @@ class AuthorityConnection:
         from gateway.session_local_title import resolve_titled_session, title_new_session
         from gateway.session_policy import BYPASS_FIELDS
         from gateway.session_runtime_workers import tracked_write
-        from hermes_state_local import commit_local_session
+        from hermes_db.local_access import commit_local_session
         # Bot Mode's forever-chat mint: born hidden from the sidebar. `follow_profile_config` stays in
         # the frozen request: the policy re-reads the profile's current route every turn.
         hidden = params.pop('hidden', False)
@@ -509,7 +521,7 @@ class AuthorityConnection:
                 from gateway.session_local_recovery import local_identity
                 from gateway.session_policy import render_launch_skills
                 params.setdefault('request_id', uuid.uuid4().hex)
-                sid = local_identity(self.authority.profile_id, self.actor.subject, params['request_id'])
+                sid = local_identity(persisted_profile_id(self.authority), self.actor.subject, params['request_id'])
                 if self.authority.db.get_session(sid) is None:
                     skills_prompt = await asyncio.to_thread(render_launch_skills, params, sid)
             # Host-bound client values apply only over the gateway's own ticketed attach (run_api).
@@ -526,7 +538,7 @@ class AuthorityConnection:
             # `--accept-hooks`: record this launch's consent; ``resume`` below registers the hooks.
             if params.get('accept_hooks') is True:
                 from gateway.session_policy import accept_launch_hooks, restore_policy
-                from hermes_state_local import local_receipt
+                from hermes_db.local_access import local_receipt
                 policy = restore_policy(local_receipt(self.authority.db, ref.session_id)['policy'])
                 await asyncio.to_thread(accept_launch_hooks, policy)
             if title:
@@ -876,7 +888,7 @@ class AuthorityConnection:
     async def cancel(self, ref, params):
         admission_id = params.get('admission_id')
         receipt = await self.authority.receipt(self.actor, ref, admission_id)
-        from hermes_state_runtime import get_session_admission
+        from hermes_db.runtime_calls import get_session_admission
         # A transferred steer also reads started (as its receiving claim): only its own claim is stopped here;
         # the transfer is refused below and settles with that claim.
         if receipt.status == 'started' and get_session_admission(

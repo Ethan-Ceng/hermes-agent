@@ -4,7 +4,7 @@ import builtins
 
 import pytest
 
-from hermes_db.errors import StorageClosedError, StorageDriverError, StorageNotReadyError
+from hermes_db.errors import StorageClosedError, StorageDriverError, StorageSchemaError
 from hermes_db.factory import acquire_db
 from hermes_db.scope import DatabaseScope
 from hermes_db.settings import DatabaseSettings, PostgresSettings
@@ -31,10 +31,14 @@ def test_sqlite_handles_share_registry_and_release_independently(tmp_path):
         assert reopened.sessions.get_session("s")["id"] == "s"
 
 
-def test_postgres_incomplete_backend_never_opens_sqlite(tmp_path):
+def test_postgres_uninitialized_backend_never_opens_sqlite(tmp_path, monkeypatch):
     pytest.importorskip("psycopg", reason="optional postgresql extra")
     settings = DatabaseSettings("postgresql", PostgresSettings("postgresql://localhost/unused", "hermes"))
-    with pytest.raises(StorageNotReadyError):
+    from hermes_db import native_registry
+    def uninitialized(settings, scope):
+        raise StorageSchemaError('schema is not initialized')
+    monkeypatch.setattr(native_registry, '_construct_store', uninitialized)
+    with pytest.raises(StorageSchemaError):
         acquire_db(settings, DatabaseScope(tmp_path, "stable"))
     assert not (tmp_path / "state.db").exists()
 

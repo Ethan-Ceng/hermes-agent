@@ -30,6 +30,14 @@ class SessionTitles:
             raise ValueError("Invalid automatic title source")
         return titles.set_title(self._transactions, self.scope, session_id, title, source)
 
+    def displace_bot_chat(self, session_id, title):
+        with self._write() as conn:
+            repo.lock_store(conn, self.scope, exclusive=True)
+            repo.lock_session(conn, self.scope, session_id)
+            return repo.update_session(conn, self.scope, session_id,
+                {"title": encode_text(title), "title_search": title, "title_source": "user", "hidden": 0},
+                sessions.c.title == encode_text("Bot Chat")) > 0
+
     def get_session_title(self, session_id):
         row = self.get_session(session_id)
         return row["title"] if row else None

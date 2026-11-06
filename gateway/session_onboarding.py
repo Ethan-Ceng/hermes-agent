@@ -10,6 +10,8 @@ toolset fold-in (``run_turn``), the scripted greeting and name card and the per-
 """
 from __future__ import annotations
 
+from hermes_db.health import profile_home_for_store
+
 import asyncio
 import logging
 import threading
@@ -150,7 +152,7 @@ async def _create_chat(connection):
     from gateway.session_local import stage_local_session
     from gateway.session_local_recovery import restore_local_session
     from gateway.session_runtime_workers import tracked_write
-    from hermes_state_local import commit_local_session
+    from hermes_db.local_access import commit_local_session
     authority = connection.authority
     staged = stage_local_session(authority, connection.actor, {'source': 'gui', 'request_id': uuid.uuid4().hex},
                                  client_local=connection.native_owner,
@@ -227,7 +229,7 @@ def _discard_unfinished_runs(db, stored_ids, discards):
     ``replaced`` so it is never resumed."""
     from pathlib import Path
     from agent.onboarding_record import delete_chat
-    sessions_dir = Path(db.db_path).parent / 'sessions'
+    sessions_dir = profile_home_for_store(db) / 'sessions'
     deleted = []
     for old in stored_ids:
         with discards.lock:

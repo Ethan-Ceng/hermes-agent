@@ -5,6 +5,16 @@ from hermes_db.repositories import retirement_housekeeping, sessions
 
 
 class SessionHousekeeping:
+    def session_is_empty(self, session_id):
+        from sqlalchemy import select
+        from hermes_db.tables.conversations import sessions as table
+        with self._read() as conn:
+            child = table.alias("child")
+            has_child = select(child.c.id).where(child.c.store_id == self.scope.require_store_id(),
+                child.c.parent_session_id == table.c.id).exists()
+            return conn.scalar(select(table.c.id).where(table.c.store_id == self.scope.require_store_id(),
+                table.c.id == session_id, table.c.title.is_(None), ~housekeeping._has_messages(self.scope), ~has_child)) is not None
+
     def prune_empty_ghost_sessions(self, sessions_dir=None):
         with self._write() as conn:
             ids = housekeeping.prune_ghosts(conn, self.scope)

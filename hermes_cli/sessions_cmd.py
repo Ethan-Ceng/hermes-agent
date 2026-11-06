@@ -1441,10 +1441,11 @@ def cmd_sessions(args, sessions_parser=None):
     # A served-profile process has no single default home: pass the store path explicitly.
     path = get_hermes_home() / "state.db"
     try:
-        db = SessionDB(db_path=path, read_only=observational)
+        from hermes_db.access import open_session_store, session_store_exists
+        db = open_session_store(db_path=path, read_only=observational)
     except Exception as e:
         # mode=ro cannot create the store; a reader on a fresh profile reports empty rather than failing.
-        if observational and not path.exists():
+        if observational and not session_store_exists(path):
             return _print_empty_store(action, args)
         print("Could not open your session history database. "
               "Run: hermes sessions repair to fix it (a backup is made first).")

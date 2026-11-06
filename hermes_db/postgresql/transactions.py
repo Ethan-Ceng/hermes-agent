@@ -6,7 +6,8 @@ from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError, IntegrityError, TimeoutError as PoolTimeout
 
 from hermes_db.errors import (
-    RetryableStorageError, StorageBusyError, StorageConflictError, StorageUnavailableError, StorageWriteError, UnknownCommitError,
+    RetryableStorageError, StorageBusyError, StorageConflictError, StorageQueryTimeoutError, StorageUnavailableError,
+    StorageWriteError, UnknownCommitError,
 )
 from hermes_db.tables.metadata import SCHEMA
 
@@ -36,7 +37,7 @@ class Transactions:
                 yield conn.execution_options(schema_translate_map={SCHEMA: self.schema})
         except DBAPIError as error:
             if getattr(error.orig, "sqlstate", None) == "57014":
-                raise TimeoutError("Session database query deadline exceeded") from None
+                raise StorageQueryTimeoutError("Session database query deadline exceeded") from None
             raise StorageUnavailableError("Session database read unavailable") from None
         except PoolTimeout:
             raise StorageUnavailableError("Session database pool wait timed out") from None

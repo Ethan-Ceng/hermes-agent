@@ -149,11 +149,11 @@ def provenance_meta(db_path: Path, acp_session_id: str, session_id: str) -> dict
     """``_meta.hermes.sessionProvenance`` for the editor's id, the logical session's current
     compression tip and its lineage (``acp_adapter/provenance.py``). Blocking."""
     from acp_adapter.provenance import session_provenance_meta
-    from hermes_state import SessionDB
-    if not Path(db_path).exists():
+    from hermes_db.access import open_session_store, session_store_exists
+    if not session_store_exists(db_path):
         return None
     try:
-        with SessionDB(db_path=db_path, read_only=True) as db:
+        with open_session_store(db_path=db_path, read_only=True) as db:
             return session_provenance_meta(db, acp_session_id, db.get_compression_tip(session_id) or session_id)
     except sqlite3.Error:
         # Best-effort, as main's ``_provenance_meta``: an unreadable store must not fail the attach.

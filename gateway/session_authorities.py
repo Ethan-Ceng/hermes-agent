@@ -194,7 +194,8 @@ def authority_for_home(runner, home):
     registry = getattr(runner, 'session_authorities', None)
     if registry is None:
         authority = getattr(runner, 'session_authority', None)
-        if authority is not None and Path(authority.db.db_path).resolve().parent == Path(home).resolve():
+        from hermes_db.health import profile_home_for_store
+        if authority is not None and profile_home_for_store(authority.db) == Path(home).resolve():
             return authority
         return None
     return registry.for_home(home)
@@ -258,12 +259,11 @@ def admission_owner(authority, session_id):
     """The admission identity a physical store row answers to: its compression root, then the
     local creation id a canonical reset forks under (a reset child is not a compression child, so
     ``logical_owner`` alone stops at the child and misses the conversation's admissions)."""
-    from hermes_state_local import local_lineage_owner
+    from hermes_db.authority_access import local_lineage_owner
     sid = authority.logical_owner(session_id)
     if not sid:
         return sid
-    with authority.db._read_ctx() as conn:
-        return local_lineage_owner(conn, sid)
+    return local_lineage_owner(authority.db, sid)
 
 
 def holds_admission(authority, session_id) -> bool:
@@ -271,6 +271,10 @@ def holds_admission(authority, session_id) -> bool:
     retained (retiring) store that cannot answer counts as holding one: startup auto-resume fails
     closed for that entry instead of stopping the boot or resuming a turn that FIFO may own."""
     try:
+        from hermes_db.health import is_postgresql_store
+        if is_postgresql_store(authority.db):
+            from hermes_db.runtime_access import runtime_for_store
+            return runtime_for_store(authority.db).holds_admissions([session_id, admission_owner(authority, session_id)])
         return bool(authority.db._read_one(
             'SELECT 1 FROM session_admissions WHERE target_session_id IN (?,?) LIMIT 1',
             (session_id, admission_owner(authority, session_id))))

@@ -258,7 +258,8 @@ def _uses_room_run_auth(self, request: web.Request) -> bool:
 
 def _initialize_run_state(self, *, store_factory) -> None:
     """Initialize adapter-owned durable and live ``/v1/runs`` state."""
-    self._run_idempotency_store = store_factory()
+    from hermes_db.run_resources import ProfileRunStores
+    self._run_idempotency_store = ProfileRunStores(store_factory)
     self._run_owner_pid = os.getpid()
     try:
         from gateway.status import get_process_start_time
@@ -330,7 +331,8 @@ def _set_run_status(self, run_id: str, status: str, **fields: Any) -> dict[str, 
             "output", "error", "usage", "pending_steer", "session_id", "shutdown_requested_at"}))
     if run_id in self._run_idempotency_ids and should_persist:
         try:
-            self._run_idempotency_store.update_status(run_id, current)
+            from gateway.platforms.api_server_storage_resources import persist_run_status
+            persist_run_status(self, run_id, current)
         except Exception:
             logger.exception("[api_server] failed to persist idempotent run status %s", run_id)
     return current
@@ -425,7 +427,8 @@ def _run_idempotency_scope(self, request: web.Request, *, _api_server) -> str:
             "room_id", "home_install_id", "authority_gateway_id", "authority_epoch",
             "member_id", "target_install_id", "target_profile"))
     else:
-        parts = (_api_server._api_request_profile.get() or "default",
+        from gateway.platforms.api_server_storage_resources import api_profile_namespace
+        parts = (api_profile_namespace(self, _api_server._api_request_profile.get() or "default"),
                  self._expected_api_key() or "unauthenticated-test-listener")
     return hashlib.sha256("\0".join(map(str, parts)).encode()).hexdigest()
 
@@ -473,12 +476,13 @@ def _durable_run_status(self, request: web.Request, run_id: str) -> dict[str, An
     if record is None:
         return None
     status = dict(record["status"])
-    if status.get("status") not in TERMINAL_STATUSES and not _owner_alive(
+    from gateway.platforms.api_server_storage_resources import native_run_scope, persist_run_status
+    if status.get("status") not in TERMINAL_STATUSES and not native_run_scope(self, scope) and not _owner_alive(
         int(record.get("owner_pid") or 0), int(record.get("owner_started") or 0)):
         status.update(
             status="interrupted", error="The gateway restarted before this run settled.",
             last_event="run.interrupted", updated_at=time.time())
-        self._run_idempotency_store.update_status(run_id, status)
+        persist_run_status(self, run_id, status, scope=scope)
     self._run_statuses[run_id] = status
     self._run_idempotency_ids.add(run_id)
     self._run_owners[run_id] = scope
@@ -627,9 +631,12 @@ async def _resolve_live_session_id(self, session_id: str) -> str:
     resolver = getattr(db, "resolve_resume_session_id", None) if db is not None else None
     if not callable(resolver):
         return session_id
+    from hermes_db.errors import StorageError
     try:
         resolved = await asyncio.to_thread(resolver, session_id)
         return str(resolved) if resolved else session_id
+    except StorageError:
+        raise
     except Exception:
         logger.debug("/v1/runs live-session resolve failed for %s", session_id, exc_info=True)
         return session_id

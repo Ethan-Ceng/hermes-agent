@@ -1078,10 +1078,14 @@ def _persisted_session_id(session_id: Optional[str]) -> Optional[str]:
     if not session_id:
         return None
     try:
-        from hermes_state import SessionDB
+        from agent.runtime_session_store import call_off_event_loop, current_worker_store
+        worker = current_worker_store()
+        if worker is not None:
+            return call_off_event_loop(worker.owner_read, 'session.persisted', session_id=session_id)
+        from hermes_db.access import open_session_store
         from hermes_constants import get_hermes_home
 
-        state = SessionDB(db_path=get_hermes_home() / "state.db", read_only=True)
+        state = open_session_store(get_hermes_home() / "state.db", read_only=True)
     except Exception:  # state.db may not exist for a CLI/dashboard invocation
         logger.debug("Could not open state.db to verify Kanban provenance", exc_info=True)
         return None
@@ -1170,7 +1174,7 @@ def _live_tui_session_key(session_key: str, profile: Optional[str]) -> str:
         except Exception:
             db_path = None
     try:
-        from hermes_state_registry import acquire, release_or_close
+        from hermes_db.access import release_session_store as release_or_close, acquire_sessions as acquire
         db = acquire(db_path)
         try:
             return db.resolve_resume_session_id(session_key) or session_key

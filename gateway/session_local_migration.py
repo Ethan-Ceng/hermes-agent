@@ -5,6 +5,8 @@ native control ticket, or the owner signed in to the Webapp: gateway.owner_ident
 The historical ID becomes the stable logical owner without copying its messages.
 Compression and reset may later advance the physical target, never FIFO identity.
 """
+
+from hermes_db.health import profile_home_for_store
 from dataclasses import asdict, replace
 from datetime import datetime
 import json
@@ -56,6 +58,10 @@ def resolve_local_target(authority, actor, sid):
     if row is None:
         raise RuntimeStoreError('not_found')
     from hermes_state_local import POLICY_PREFIX
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(db):
+        from gateway.session_native_history import resolve_native_target
+        return resolve_native_target(authority, actor, row)
     with db._read_ctx() as conn:
         from hermes_state_local_migration import LEGACY_PREFIX
         bound = conn.execute('SELECT 1 FROM state_meta WHERE key IN (?,?)',
@@ -175,10 +181,16 @@ def follow_bot_chat(authority, session_id, policy, live, picked=()):
         titled = db.get_session_by_title('Bot Chat')
         if titled is None:
             return policy
-        from hermes_state_local import local_conversation_ids
-        with db._read_ctx() as conn:
-            if titled['id'] not in local_conversation_ids(conn, session_id):
+        from hermes_db.health import is_postgresql_store
+        if is_postgresql_store(db):
+            from hermes_db.local_access import local_receipt
+            if titled['id'] not in local_receipt(db, session_id).get('lineage', [session_id]):
                 return policy
+        else:
+            from hermes_state_local import local_conversation_ids
+            with db._read_ctx() as conn:
+                if titled['id'] not in local_conversation_ids(conn, session_id):
+                    return policy
     live = present_sections(live)
     config = json.loads(policy.config_json)
     model = config.get('model') if isinstance(config.get('model'), dict) else {}
@@ -241,6 +253,9 @@ def adopts_client_history(authority, actor, row):
     native owner adoption requires, and only when it validates for that owner. A read-only view of it
     already open (a metadata read came first) is promoted in place (restore_local_session); a session
     this authority serves any other way is left alone."""
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(authority.db):
+        return False  # Pre-authority client labels are a SQLite compatibility path.
     from gateway.session_history_mount import is_history_mount
     from hermes_state_local_migration import client_history_row, validate_legacy_row
     live = authority.sessions.get(row['id'])
@@ -266,7 +281,7 @@ def adopt_legacy_session(authority, actor, row):
     from gateway.run import _load_gateway_config, _resolve_gateway_model
     from gateway.session_policy import build_policy, bind_launch_key
     from gateway.session_local_recovery import restore_local_session
-    from hermes_state_local import commit_local_session
+    from hermes_db.local_access import commit_local_session
     from hermes_cli.active_sessions import active_session_liveness_guard, ActiveSessionRegistryError
 
     request_id = 'legacy:' + row['id']
@@ -332,7 +347,7 @@ def adopt_legacy_session(authority, actor, row):
                'legacy_session_id': row['id'], 'lineage': [row['id']]}
     try:
         # Same lock order as old Bot Chat: mailbox (if any), liveness, SQLite.
-        with active_session_liveness_guard(row['id'], registry_home=Path(authority.db.db_path).parent) as active:
+        with active_session_liveness_guard(row['id'], registry_home=profile_home_for_store(authority.db)) as active:
             if active:
                 raise RuntimeStoreError('runtime_coordination_required')
             commit_local_session(authority.db, epoch=authority.epoch, receipt=receipt)

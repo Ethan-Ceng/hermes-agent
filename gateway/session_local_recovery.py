@@ -3,14 +3,16 @@ import asyncio
 import contextlib
 import json
 import logging
-from pathlib import Path
+from hermes_db.health import is_postgresql_store, storage_identity, persisted_profile_id
 
 from gateway.config import Platform
 from gateway.session import SessionEntry, SessionSource
 from gateway.session_contract import SessionRef
 from hermes_state_keys import local_identity
-from hermes_state_local import POLICY_PREFIX, local_receipt
-from hermes_state_runtime import RuntimeStoreError, list_session_admissions
+from hermes_state_local import POLICY_PREFIX
+from hermes_db.local_access import local_receipt
+from hermes_state_runtime import RuntimeStoreError
+from hermes_db.runtime_calls import list_session_admissions
 
 
 def local_adapter_map(authority):
@@ -78,6 +80,8 @@ def _with_untracked_compression(authority, sid, receipt):
     (``session_local_adoption``); a sync restore on the loop that still finds it hands it to a tracked
     worker, which publishes the session once it commits, and refuses this read.
     """
+    if is_postgresql_store(authority.db):
+        return receipt  # Native compression advances the receipt in its original transaction.
     from hermes_state_local_lineage import adopt_untracked_compression, adoptable_compression
     with authority.db._read_ctx() as conn:
         if adoptable_compression(conn, receipt) is None:
@@ -112,10 +116,15 @@ def _checked_entry(authority, receipt, source, route):
 def owned_receipt(authority, sid):
     """*sid*'s stored receipt with its LOCAL source, route and entry, once all are this owner's."""
     receipt = local_receipt(authority.db, sid)
-    if receipt['profile_id'] != authority.profile_id:
+    if receipt['profile_id'] != persisted_profile_id(authority):
         raise RuntimeStoreError('profile_mismatch')
-    chat_id = (receipt['legacy_session_id'] if 'legacy_session_id' in receipt else
-               local_identity(receipt['profile_id'], receipt['principal_id'], receipt['request_id']))
+    if is_postgresql_store(authority.db):
+        from hermes_db.local_access import validate_local_lineage
+        validate_local_lineage(authority.db, receipt)
+        chat_id = receipt['session_id']
+    else:
+        chat_id = (receipt['legacy_session_id'] if 'legacy_session_id' in receipt else
+                   local_identity(receipt['profile_id'], receipt['principal_id'], receipt['request_id']))
     if receipt['session_id'] != sid or sid != chat_id:
         raise ValueError('identity mismatch')
     source = local_source(authority, chat_id, receipt['principal_id'])
@@ -141,6 +150,8 @@ def _stray_route_target(authority, receipt, session_id):
     refuses: it is not provably a stray."""
     if not session_id or session_id in receipt.get('lineage', [receipt['session_id']]):
         return False
+    if is_postgresql_store(authority.db):
+        return False  # Native routing and receipt advance together; never heal a foreign target.
     with authority.db._read_ctx() as conn:
         if not unused_session(conn, session_id):
             return False
@@ -163,9 +174,8 @@ def restore_local_session(authority, sid):
         if adopted is not receipt:  # re-read after a catch-up: check the copy that will be served
             receipt, entry = adopted, _checked_entry(authority, adopted, source, route)
         target = entry.session_id
-        from hermes_state_local_lineage import validate_local_lineage
-        with authority.db._read_ctx() as conn:
-            validate_local_lineage(conn, receipt)
+        from hermes_db.local_access import validate_local_lineage
+        validate_local_lineage(authority.db, receipt)
     except _CatchUpPending:
         raise
     except (KeyError, TypeError, ValueError, AttributeError) as exc:
@@ -392,7 +402,7 @@ def reset_local_session(store, old_entry, session_id, now, display_name):
         is_fresh_reset=True)
     db = store._db_for_key(old_entry.session_key)
     epochs = getattr(store, '_local_authority_epochs', None) or {}
-    epoch = epochs.get(Path(db.db_path).resolve(), store._local_authority_epoch) if db is not None else store._local_authority_epoch
+    epoch = epochs.get(storage_identity(db), store._local_authority_epoch) if db is not None else store._local_authority_epoch
     reset_local_target(db, epoch=epoch,
                        parent_session_id=old_entry.session_id, entry=entry.to_dict())
     store._entries[old_entry.session_key] = entry
@@ -431,6 +441,8 @@ def release_handed_off_receipts(db, *, epoch):
     restores from its route like any other platform session, and move the rest of its conversation
     there with it (``hand_off_conversations``). Only receipts whose CURRENT target a messaging lane
     now holds: any other refused receipt stays as it is, logged when it is touched."""
+    if is_postgresql_store(db):
+        return  # Native takeover releases moved receipts in the routing transaction.
     from gateway.session_route_recovery import _messaging_platform
     from hermes_state_local import hand_off_conversations, moved_receipts
     from hermes_state_runtime import _epoch
@@ -446,6 +458,9 @@ def release_handed_off_receipts(db, *, epoch):
 
 
 def local_receipt_ids(authority):
+    if is_postgresql_store(authority.db):
+        from hermes_db.runtime_access import runtime_for_store
+        return runtime_for_store(authority.db).local_receipt_ids()
     from gateway.session_viewer_close import CLOSE_PREFIX
     start = len(POLICY_PREFIX) + 1
     with authority.db._read_ctx() as conn:

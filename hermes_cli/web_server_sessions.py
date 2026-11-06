@@ -1,6 +1,8 @@
 """Read-only session browsing, latest-descendant lookup and owner maintenance.
 """
 
+from hermes_db.health import profile_home_for_store
+
 import logging
 import asyncio
 import time
@@ -117,7 +119,7 @@ def _session_mutation_context(request, profile):
     from gateway.session_authorities import authority_for_home
     runner = getattr(request.app.state, 'gateway_runner', None)
     owner = authority_for_home(runner, home) if runner is not None else None
-    if owner is None and home.resolve() == Path(authority.db.db_path).parent.resolve():
+    if owner is None and home.resolve() == profile_home_for_store(authority.db):
         owner = authority
     if owner is None:
         raise HTTPException(status_code=403, detail='profile_mismatch')
@@ -158,24 +160,28 @@ def _mutate_offline_store(profile, actor, params):
     second writer beside it); revision/generation/idle guards are the gateway's own.
     """
     from fastapi import HTTPException
-    from hermes_state_runtime import begin_runtime_epoch, mutate_runtime_session
+    from hermes_db.runtime_calls import begin_runtime_epoch, mutate_runtime_session
 
     def run():
         db = _open_session_db_for_profile(profile, read_only=False)
         try:
             write_guard = None
             if params['operation'] == 'import':
-                normalized, errors = db._validate_import_payload(params['payload']['sessions'])
+                from hermes_db.authority_access import validate_import, import_history_effect
+                normalized, errors = validate_import(db, params['payload']['sessions'])
                 if errors:
                     raise HTTPException(status_code=400, detail={'errors': errors})
-                from functools import partial
-                from hermes_state_mutation_binding import import_history_control
-                write_guard = partial(import_history_control, actor=actor,
-                                      session_ids=tuple(item['session']['id'] for item in normalized))
-            with db._read_ctx() as conn:
-                row = conn.execute('SELECT epoch FROM runtime_epoch WHERE singleton=1').fetchone()
+                write_guard = import_history_effect(db, actor, tuple(item['session']['id'] for item in normalized))
+            from hermes_db.health import is_postgresql_store
+            if is_postgresql_store(db):
+                from hermes_db.runtime_access import runtime_for_store
+                current = runtime_for_store(db).current_epoch()
+            else:
+                with db._read_ctx() as conn:
+                    row = conn.execute('SELECT epoch FROM runtime_epoch WHERE singleton=1').fetchone()
+                    current = row[0] if row else None
             # The reservation held here is the ownership lock begin_runtime_epoch requires.
-            epoch = row[0] if row else begin_runtime_epoch(db, instance_id='dashboard-offline')
+            epoch = current if current is not None else begin_runtime_epoch(db, instance_id='dashboard-offline')
             return mutate_runtime_session(db, epoch=epoch, principal_id=actor.subject,
                 expected_generation=params.get('expected_generation'), _authorize_write=write_guard,
                 **{key: params[key] for key in ('session_id', 'request_id', 'expected_revision',
@@ -357,7 +363,11 @@ def _open_session_db_at_path(db_path: Path, *, read_only: bool):
     from fastapi import HTTPException
     from hermes_state import SessionDB
     from hermes_state_errors import is_transient_sqlite_error
-    from hermes_state_registry import acquire
+    from hermes_db.access import acquire_sessions as acquire
+    from hermes_cli.db_setup import session_backend
+
+    if session_backend(db_path.resolve().parent) == 'postgresql':
+        return acquire(db_path)
 
     if not read_only:
         return acquire(db_path)

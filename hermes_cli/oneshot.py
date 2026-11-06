@@ -347,10 +347,13 @@ def _create_session_db_for_oneshot():
     SQLite store itself or ``session_search`` is advertised but always unavailable. The registry
     handle is the one in-process tools (delegation, goals) acquire during the run, so the process
     holds one writer; ``_close_agent``'s ``close()`` releases the refcount."""
+    from hermes_db.errors import StorageError
     try:
-        from hermes_state_registry import acquire
+        from hermes_db.access import acquire_sessions as acquire
 
         return acquire()
+    except StorageError:
+        raise
     except Exception as exc:
         logging.debug("SQLite session store not available for oneshot mode: %s", exc)
         return None

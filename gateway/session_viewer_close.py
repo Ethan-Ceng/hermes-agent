@@ -13,6 +13,8 @@ Each stored close carries its own operation id, and every delete is compare-and-
 record under the owner-epoch fence: a cancelled older close, a reattach or a stale owner can only
 remove the record it saw, never a newer close stored since.
 """
+
+from hermes_db.health import profile_home_for_store
 import asyncio
 import contextlib
 import json
@@ -23,7 +25,7 @@ from functools import partial
 from pathlib import Path
 
 from gateway.session_history_mount import is_history_mount
-from hermes_state_local import local_receipt
+from hermes_db.local_access import local_receipt
 from hermes_state_mutation_retirement import VIEWER_CLOSE_PREFIX
 from hermes_state_runtime import RuntimeStoreError
 
@@ -44,6 +46,10 @@ def _physical_target(authority, session_id):
 
 
 def _busy(authority, session_id, target):
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(authority.db):
+        from hermes_db.runtime_access import runtime_for_store
+        return runtime_for_store(authority.db).viewer_busy(session_id, target)
     with authority.db._read_ctx() as conn:
         return conn.execute(_BUSY_SQL, (session_id, session_id, target)).fetchone() is not None
 
@@ -109,6 +115,10 @@ async def _store_and_settle(authority, session_id, live, close):
 
 def _persist_close(authority, session_id, record):
     from hermes_state_runtime import _epoch
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(authority.db):
+        from hermes_db.runtime_access import runtime_for_store
+        return runtime_for_store(authority.db).store_viewer_close(epoch=authority.epoch, session_id=session_id, record=record)
 
     def write(conn):
         _epoch(conn, authority.epoch)
@@ -128,6 +138,10 @@ def forget_persisted_close(authority, session_id, record):
         return conn.execute('DELETE FROM state_meta WHERE key=? AND value=?',
                             (CLOSE_PREFIX + session_id, record)).rowcount
     try:
+        from hermes_db.health import is_postgresql_store
+        if is_postgresql_store(authority.db):
+            from hermes_db.runtime_access import runtime_for_store
+            return runtime_for_store(authority.db).forget_viewer_close(epoch=authority.epoch, session_id=session_id, record=record)
         return bool(authority.db._execute_write(write))
     except RuntimeStoreError as exc:
         logger.info('Stored close for %s left in place: %s', session_id, exc)
@@ -150,8 +164,12 @@ def rearm_persisted_closes(authority):
     """Boot/serve recovery, after the local sessions are restored: every stored close whose session
     is mounted with no viewer goes back to ``pending_closes``. The caller schedules the drain, whose
     idle point (after any queued turn; never past an ``unknown`` one) completes it. Returns the ids."""
-    with authority.db._read_ctx() as conn:
-        stored = conn.execute('SELECT key, value FROM state_meta WHERE key LIKE ?', (CLOSE_PREFIX + '%',)).fetchall()
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(authority.db):
+        stored = authority.db.list_meta_prefix(CLOSE_PREFIX)
+    else:
+        with authority.db._read_ctx() as conn:
+            stored = conn.execute('SELECT key, value FROM state_meta WHERE key LIKE ?', (CLOSE_PREFIX + '%',)).fetchall()
     armed = []
     for key, record in stored:
         session_id = key[len(CLOSE_PREFIX):]
@@ -186,7 +204,7 @@ def orphan_close_grace(authority, *, startup=False):
     from gateway.session_local import profile_env_scope
     from utils import is_truthy_value
     default = DEFAULT_CONFIG['sessions']['orphan_end_grace_s']
-    home = Path(authority.db.db_path).resolve().parent
+    home = profile_home_for_store(authority.db)
     # A dropped socket detaches outside the RPC's owner scope: expand ``${VAR}`` against this profile.
     with profile_env_scope(home):
         config = load_user_config_effective(home / 'config.yaml')
@@ -243,10 +261,16 @@ def _idle_s(authority, session_id):
     # writer's non-reentrant lock. Nested inside this block it would wait on the lock this thread
     # already holds — a boot-time self-deadlock the watchdog can only answer by killing the gateway.
     target = _physical_target(authority, session_id)
-    with authority.db._read_ctx() as conn:
-        row = conn.execute(f'SELECT {_sql_session_last_active("s")} FROM sessions s WHERE s.id = ?',
-                           (target,)).fetchone()
-    return time.time() - row[0] if row and row[0] else 0.0
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(authority.db):
+        from hermes_db.runtime_access import runtime_for_store
+        active = runtime_for_store(authority.db).session_last_active(target)
+    else:
+        with authority.db._read_ctx() as conn:
+            row = conn.execute(f'SELECT {_sql_session_last_active("s")} FROM sessions s WHERE s.id = ?',
+                               (target,)).fetchone()
+        active = row[0] if row else None
+    return time.time() - active if active else 0.0
 
 
 def arm_startup_orphan_closes(authority, session_ids):
@@ -330,7 +354,7 @@ async def _resolve_abandoned_unknown(authority, session_id, live, close):
     transcript boundary written) and the drain moves on; a queued successor still runs before the
     close. A viewer back first cancels the close and keeps the decision. Returns whether the
     close may go on to its idle check (no ``unknown`` turn is left)."""
-    from hermes_state_runtime import list_session_admissions
+    from hermes_db.runtime_calls import list_session_admissions
     rows = await asyncio.to_thread(list_session_admissions, authority.db, session_id=session_id)
     unknown = [row for row in rows if row['status'] == 'unknown']
     if not unknown:

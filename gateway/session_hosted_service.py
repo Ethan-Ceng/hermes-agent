@@ -26,7 +26,9 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
     def __init__(self, authority, loop):
         self.authority, self.loop = authority, loop
         self.member_rpcs = {}
-        super().__init__(None, db_path=authority.db.db_path)
+        from gateway.session_hosted_storage import RoomCoordination
+        self._coordination = RoomCoordination(authority)
+        super().__init__(None, db_path=self._coordination.path)
 
     def _make_rpc(self, server):
         # Member-specific canonical transports retain exact durable history. They
@@ -94,7 +96,7 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
 
 
     def bindings(self):
-        with self.authority.db._read_ctx() as conn:
+        with self._coordination.read() as conn:
             owned = {r[0][len(_OWNER):] for r in conn.execute(
                 'SELECT key FROM state_meta WHERE key LIKE ?', (_OWNER + '%',))}
         return tuple(b for b in super().bindings() if b.room_id in owned)
@@ -110,6 +112,8 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
                 or not isinstance(room_id, str) or len(room_id) > 128
                 or not IDENTIFIER_RE.fullmatch(room_id)):
             raise RuntimeStoreError('invalid_params')
+        if conn is not None:
+            self._coordination.check_epoch()
         def write(conn):
             _epoch(conn, self.authority.epoch)
             key = _OWNER + room_id
@@ -125,10 +129,10 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
             if row is None or not same_owner(row[0], actor_subject):
                 raise RuntimeStoreError('permission_denied')
             return True
-        return write(conn) if conn is not None else self.authority.db._execute_write(write)
+        return write(conn) if conn is not None else self._coordination.write(write)
 
     def _owner(self, room_id):
-        with self.authority.db._read_ctx() as conn:
+        with self._coordination.read() as conn:
             row = conn.execute('SELECT value FROM state_meta WHERE key=?', (_OWNER + room_id,)).fetchone()
         if row is None:
             raise RuntimeStoreError('permission_denied')
@@ -192,7 +196,7 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
                                                        else {'running', 'stopping'}))
                 return True
             def authorize(operation, identity, generation):
-                with self.authority.db._read_ctx() as conn:
+                with self._coordination.read() as conn:
                     return authorized(conn, operation, identity, generation)
             def authorize_write(conn, identity, generation):
                 # Raise to refuse rather than return False: a guard that only returns False
@@ -203,9 +207,12 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
             principal = SessionActor(owner, self.authority.profile_id,
                 frozenset({'session:create', 'session:read', 'session:submit', 'session:control', 'session:approve'}),
                 'hosted:' + binding.room_id + ':' + member)
+            if self._coordination.native:
+                from gateway.session_hosted_storage import HostedAdmissionAuthorizer
+                authorize_write = HostedAdmissionAuthorizer(self._coordination, authorized)
             self.member_rpcs[key] = HostedRoomAuthorityRPC(self.authority, self.loop,
                 room_id=binding.room_id, member_id=member, profile=profile, principal=principal, authorize=authorize,
-                authorize_write=authorize_write)
+                authorize_write=authorize_write, room_db_path=self.db_path)
         return self.member_rpcs[key]
 
     def check_admission(self, ref, row):
@@ -261,7 +268,9 @@ async def _ensure_hosted_service(runner, authority):
         if service is None:
             loop = asyncio.get_running_loop()
             from gateway.hosted_rooms_gateway_import import import_standalone_rooms
-            await asyncio.to_thread(import_standalone_rooms, Path(authority.db.db_path), runtime_epoch=authority.epoch)
+            from hermes_db.health import is_postgresql_store
+            if not is_postgresql_store(authority.db):
+                await asyncio.to_thread(import_standalone_rooms, Path(authority.db.db_path), runtime_epoch=authority.epoch)
             service = await asyncio.to_thread(CanonicalHostedRoomService, authority, loop)
             authority.hosted_room_service = service
         if not getattr(service, '_transport_installed', False):

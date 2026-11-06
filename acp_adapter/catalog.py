@@ -2,7 +2,7 @@
 import json
 from pathlib import Path
 
-from hermes_state import SessionDB
+from hermes_db.access import open_session_store, session_store_exists
 from acp_adapter.session import (
     _normalize_cwd_for_compare, _parse_model_config, _session_info, _updated_at_sort_key,
 )
@@ -10,12 +10,12 @@ from acp_adapter.session import (
 
 def read_catalog_rows(path):
     path = Path(path)
-    if not path.exists():
+    if not session_store_exists(path):
         return {}
     from hermes_cli.gateway_session_store import SurfaceLabelReader
     # The owner stores an editor thread as ``local`` with ``created_source='acp'``; the surface
     # reader matches both labels in SQL, before the LIMIT.
-    with SessionDB(db_path=path, read_only=True) as db:
+    with open_session_store(db_path=path, read_only=True) as db:
         rows = SurfaceLabelReader(db).list_sessions_rich(source="acp", limit=1000)
         return {str(row["id"]): dict(row) for row in rows}
 
@@ -26,9 +26,7 @@ def _local_owners(db):
     on the creation id. Legacy reset histories have no receipt and stay independent chats."""
     from hermes_state_local import POLICY_PREFIX
     owners = {}
-    with db._read_ctx() as conn:
-        rows = conn.execute('SELECT value FROM state_meta WHERE key GLOB ?', (POLICY_PREFIX + '*',)).fetchall()
-    for (raw,) in rows:
+    for _, raw in db.list_meta_prefix(POLICY_PREFIX):
         try:
             receipt = json.loads(raw)
         except (TypeError, ValueError):
@@ -43,9 +41,9 @@ def _local_owners(db):
 
 def read_local_owners(path):
     path = Path(path)
-    if not path.exists():
+    if not session_store_exists(path):
         return {}
-    with SessionDB(db_path=path, read_only=True) as db:
+    with open_session_store(db_path=path, read_only=True) as db:
         return _local_owners(db)
 
 
@@ -54,9 +52,9 @@ def logical_session_id(path, session_id):
     reset advance the physical transcript, never the session identity (the local receipt's owner,
     else ``SessionAuthority.logical_owner``'s compression root)."""
     path = Path(path)
-    if not path.exists():
+    if not session_store_exists(path):
         return session_id
-    with SessionDB(db_path=path, read_only=True) as db:
+    with open_session_store(db_path=path, read_only=True) as db:
         lineage = db.get_compression_lineage(session_id)
         root = lineage[0] if lineage else session_id
         return _local_owners(db).get(root, root)

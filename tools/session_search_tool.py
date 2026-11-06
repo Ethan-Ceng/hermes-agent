@@ -439,12 +439,12 @@ def _resolve_profile_db(profile: str):
     if profile is None or not str(profile).strip():
         return None
     from hermes_cli import profiles as profiles_mod
-    from hermes_state import SessionDB
+    from hermes_db.access import open_session_store
     canon = profiles_mod.normalize_profile_name(profile)
     profiles_mod.validate_profile_name(canon)
     if not profiles_mod.profile_exists(canon):
         raise ValueError(f"profile '{canon}' does not exist")
-    return SessionDB(db_path=profiles_mod.get_profile_dir(canon) / "state.db", read_only=True)
+    return open_session_store(profiles_mod.get_profile_dir(canon) / "state.db", read_only=True)
 
 
 def _read_session(db, session_id: str, head: int = 20, tail: int = 10, link_profile: str | None = None) -> str:
@@ -610,8 +610,16 @@ def session_search(query: str = "", role_filter: str | None = None, limit: int |
     """Run session search, closing DBs opened here. Positional order is frozen for old callers;
     new parameters are appended after ``detail``."""
     from hermes_constants import get_hermes_home
-    from hermes_state import SessionDB, format_session_db_unavailable
-    from hermes_state_registry import release_or_close
+    from hermes_state import format_session_db_unavailable
+    from hermes_db.access import open_session_store
+    from agent.runtime_session_store import RuntimeSessionStore, is_worker_process
+    if isinstance(db, RuntimeSessionStore):
+        return db.session_recall(query=query, role_filter=role_filter, limit=limit, current_session_id=current_session_id,
+            session_id=session_id, around_message_id=around_message_id, window=window, sort=sort,
+            profile=profile, detail=detail, after=after, before=before, exclude_session_ids=exclude_session_ids)
+    if is_worker_process():
+        return tool_error("Session recall requires an authenticated owner handle", success=False)
+    from hermes_db.access import release_session_store as release_or_close
     owned_dbs: list[Any] = []
     # A raw `@session:<profile>/<id>` link as session_id: ids never contain "/", so
     # split on it and adopt the embedded profile only when none was passed.
@@ -631,16 +639,9 @@ def session_search(query: str = "", role_filter: str | None = None, limit: int |
     if profile_db is not None:
         db, current_session_id = profile_db, None
         owned_dbs.append(profile_db)
-    # A managed worker's handle is a RuntimeSessionStore: it mirrors the owner's write and lineage
-    # surface, not the FTS read API, and every read is an owner RPC. Handing it here made recall in a
-    # worker fail with `'RuntimeSessionStore' object has no attribute 'search_messages'` (#141705), so
-    # recall opens its own read-only handle — the same one the no-db path below uses.
-    from agent.runtime_session_store import RuntimeSessionStore
-    if isinstance(db, RuntimeSessionStore):
-        db = None
     if db is None:
         db = _quiet(
-            lambda: SessionDB(db_path=get_hermes_home() / "state.db", read_only=True),
+            lambda: open_session_store(get_hermes_home() / "state.db", read_only=True),
             None, "SessionDB unavailable for session_search",
         )
         if db is None:

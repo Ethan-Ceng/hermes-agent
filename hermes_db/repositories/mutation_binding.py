@@ -1,16 +1,34 @@
 """Existing control ownership over current rows, scoped to the selected store."""
 
+import json
+
 from hermes_db.repositories import runtime, sessions
-from hermes_state_mutation_binding import BINDING_PREFIX, _bindings_agree, _history_row, _owner_user, binding_names
-from hermes_state_runtime import RuntimeStoreError, _json
+from hermes_state_mutation_binding import BINDING_PREFIX, _bindings_agree, _history_row, _owner_user
+from hermes_state_runtime import RuntimeStoreError
 
 
 def history_binding(conn, scope, session_id):
     return runtime.meta(conn, scope, BINDING_PREFIX + session_id)
 
 
+def binding_names(saved, scope, subject):
+    from gateway.owner_identity import same_owner
+    try:
+        value = json.loads(saved)
+    except (TypeError, ValueError):
+        return False
+    if not isinstance(value, list) or len(value) != 2:
+        return False
+    namespace, owner = value
+    return namespace == "store:" + scope.require_store_id() and same_owner(owner, subject)
+
+
+def _binding(scope, actor):
+    return json.dumps(["store:" + scope.require_store_id(), actor.subject], ensure_ascii=True, separators=(",", ":"))
+
+
 def import_history_control(conn, scope, actor, session_ids):
-    binding = _json([actor.profile_id, actor.subject])
+    binding = _binding(scope, actor)
     for sid in session_ids:
         if sessions.raw_session(conn, scope, sid) is None:
             runtime.set_meta(conn, scope, BINDING_PREFIX + sid, binding)
@@ -23,7 +41,7 @@ def authorize_history(conn, scope, actor, session_id, *, claim=False):
         return False
     saved = history_binding(conn, scope, session_id)
     if saved is not None:
-        if not binding_names(saved, actor.profile_id, actor.subject):
+        if not binding_names(saved, scope, actor.subject):
             raise RuntimeStoreError("permission_denied")
         return True
     if not _history_row(row):
@@ -33,7 +51,7 @@ def authorize_history(conn, scope, actor, session_id, *, claim=False):
     if "session:create" not in actor.capabilities:
         raise RuntimeStoreError("permission_denied")
     if claim:
-        runtime.set_meta(conn, scope, BINDING_PREFIX + session_id, _json([actor.profile_id, actor.subject]))
+        runtime.set_meta(conn, scope, BINDING_PREFIX + session_id, _binding(scope, actor))
     return True
 
 

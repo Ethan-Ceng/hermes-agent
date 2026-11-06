@@ -1,4 +1,6 @@
 """Profile forwarding through the canonical owner, with exact conversation identity."""
+
+from hermes_db.health import persisted_profile_id
 import asyncio
 from contextvars import ContextVar
 from dataclasses import asdict, replace
@@ -55,10 +57,9 @@ def storage_source(db, source, session_id, fallback):
     if not str(source.chat_id).startswith('local-'):
         # An adopted pre-authority row keeps its historical id as the route (session_local_migration).
         from hermes_state_local_migration import LEGACY_PREFIX
-        with db._read_ctx() as conn:
-            if conn.execute('SELECT 1 FROM state_meta WHERE key=?', (LEGACY_PREFIX + str(source.chat_id),)).fetchone() is None:
-                return fallback
-    from hermes_state_local import local_receipt
+        if db.get_meta(LEGACY_PREFIX + str(source.chat_id)) is None:
+            return fallback
+    from hermes_db.local_access import local_receipt
     receipt = local_receipt(db, source.chat_id)
     if session_id not in receipt.get('lineage', [receipt['session_id']]):
         raise RuntimeStoreError('admission_conflict')
@@ -94,7 +95,7 @@ async def forward(connection, params):
     from gateway.session_local_recovery import local_identity, restore_local_session
     from gateway.session_local import stage_local_session
     from gateway.session_runtime_workers import tracked_write
-    from hermes_state_local import commit_local_session, local_receipt
+    from hermes_db.local_access import commit_local_session, local_receipt
     from hermes_state_mutation_retirement import first_generation
     from hermes_state_terminal import identity_key
     # A context whose session the user deleted continues on its next generation (the deleted id
@@ -104,8 +105,16 @@ async def forward(connection, params):
     request_id = lambda n: base if n == 0 else f'{base}:{n}'
     pinned = lambda conn, sid: conn.execute('SELECT 1 FROM state_meta WHERE key=?', (
         identity_key(actor.subject, sid, params['input_id']),)).fetchone() is not None
-    generation, sid = first_generation(
-        authority.db, lambda n: local_identity(authority.profile_id, actor.subject, request_id(n)), pinned=pinned)
+    derive = lambda n: local_identity(persisted_profile_id(authority), actor.subject, request_id(n))
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(authority.db):
+        from hermes_db.operations.effects import CoreEffect
+        from hermes_db.repositories import runtime
+        pinned = CoreEffect(lambda conn, scope, sid:
+            runtime.meta(conn, scope, identity_key(actor.subject, sid, params['input_id'])) is not None)
+        generation, sid = authority.db.first_generation(derive, pinned=pinned)
+    else:
+        generation, sid = first_generation(authority.db, derive, pinned=pinned)
     key = request_id(generation)
     authority._require_admission_open()
     if authority.db.get_session(sid) is not None:

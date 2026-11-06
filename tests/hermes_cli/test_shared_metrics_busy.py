@@ -209,11 +209,11 @@ def test_a_busy_message_saved_behind_a_pause_is_not_dropped(rows, monkeypatch, r
     row. When this process later runs that row (a ``session_busy`` pause lifting), it counts as
     ``queued`` with its wait; after a restart the next process runs it and nothing is counted."""
     import gateway.session_authority  # binds the real reader before the patch below
-    import hermes_state_runtime
+    from hermes_db import runtime_calls
     from gateway.session_ingress import admit_message
     from hermes_state_runtime import RuntimeStoreError
 
-    monkeypatch.setattr(hermes_state_runtime, "get_session_admission",
+    monkeypatch.setattr(runtime_calls, "get_session_admission",
                         lambda db, admission_id: {"status": "queued"})
     authority, replies = _PausingAuthority(), []
 

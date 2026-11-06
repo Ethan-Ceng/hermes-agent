@@ -1,11 +1,4 @@
-"""Recall in a gateway-managed worker (#141705).
-
-The worker's agent is constructed with ``session_db=RuntimeSessionStore`` (``agent/managed_worker.py``),
-a facade over the owner's RPC that mirrors the write and lineage surface but not the FTS read API.
-Handing it to ``session_search`` made every recall inside a worker answer
-``'RuntimeSessionStore' object has no attribute 'search_messages'``; recall now opens its own read-only
-handle on the profile's state DB, the same one the no-db path uses.
-"""
+"""Managed recall uses its authenticated owner; ordinary handles stay scoped as given."""
 import json
 
 import pytest
@@ -32,19 +25,23 @@ def _seed(path, session_id, content):
     return db
 
 
-def _worker_store(home):
-    """The real facade, with a no-op owner RPC: only the capability matters here."""
-    return RuntimeSessionStore(lambda method, **params: {}, {"session_id": "worker-s"}, home / "outbox")
-
-
-def test_worker_recall_reads_the_state_db_instead_of_the_store(home):
+def test_worker_recall_uses_owner_rpc_without_opening_a_local_store(home, monkeypatch):
     db = _seed(home, "worker-s", "the zanzibar rollout is blocked on the store")
+    calls = []
+
+    def owner(method, **params):
+        calls.append((method, params))
+        return session_search(db=db, **params['options'])
+
+    store = RuntimeSessionStore(owner, {"session_id": "worker-s", "epoch": 1}, home / "outbox")
+    monkeypatch.setattr('hermes_db.access.open_session_store', lambda *args, **kwargs: pytest.fail('worker opened a database'))
     try:
-        store = _worker_store(home)
-        # The capability the worker's handle lacks — the AttributeError the report quotes.
-        assert not hasattr(store, "search_messages")
         payload = json.loads(session_search(query="zanzibar", db=store))
+        assert calls[0][0] == 'worker.recall'
+        assert calls[0][1]['epoch'] == 1
+        assert store.journal['next_sequence'] == 1 and not store.journal['pending']
     finally:
+        store.close()
         db.close()
     assert payload["success"] is True, payload
     assert [r["session_id"] for r in payload["results"]] == ["worker-s"]

@@ -589,8 +589,8 @@ def _session_db(*, read_only: bool = True):
     reads attach ``read_only`` so they never add a writer connection beside it (#100896).
     Mutating commands pass ``read_only=False``.
     """
-    from hermes_state import SessionDB
-    return closing(SessionDB(read_only=read_only))
+    from hermes_db.access import open_session_store
+    return closing(open_session_store(read_only=read_only))
 
 
 def _sessions_list(_engine: HermesConsoleEngine, args: list[str]) -> str:
@@ -700,6 +700,10 @@ def _sessions_optimize(_engine: HermesConsoleEngine, args: list[str]) -> None:
     # --force is parsed HERE: the refusal below points at it, and a hint the surface cannot
     # accept would make this command refuse forever whenever a gateway is running.
     ns = _parse("sessions optimize", args, (("--force",), dict(action="store_true")))
+    from hermes_constants import get_hermes_home
+    from hermes_cli.sessions_storage import refuse_configured_physical_maintenance
+    if refuse_configured_physical_maintenance(get_hermes_home(), "optimize"):
+        return 1
     with _session_db(read_only=False) as db:
         from hermes_state_holders import held_store_refusal
         refusal = None if ns.force else held_store_refusal(
@@ -714,6 +718,10 @@ def _sessions_repair(_engine: HermesConsoleEngine, args: list[str]) -> int | Non
     ns = _parse(
         "sessions repair", args, (("--check-only",), dict(action="store_true")),
         (("--no-backup",), dict(action="store_true")))
+    from hermes_constants import get_hermes_home
+    from hermes_cli.sessions_storage import refuse_configured_physical_maintenance
+    if refuse_configured_physical_maintenance(get_hermes_home(), "repair"):
+        return 1
     from hermes_state import DEFAULT_DB_PATH
     from hermes_state_repair import _db_opens_cleanly, repair_state_db_schema
     db_path = DEFAULT_DB_PATH

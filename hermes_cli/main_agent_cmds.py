@@ -120,15 +120,16 @@ def cmd_tools(args):
 def cmd_insights(args):
     db = None
     try:
-        from hermes_state import SessionDB
+        from hermes_db.access import open_session_store
         from agent.insights import InsightsEngine
         from hermes_cli.config import get_hermes_home
         path = get_hermes_home() / "state.db"
-        if not path.exists():
+        from hermes_db.access import session_store_exists
+        if not session_store_exists(path):
             from agent.i18n import t
             print(f"  {t('cli.insights.no_session_data')}")
             return
-        db = SessionDB(db_path=path, read_only=True)
+        db = open_session_store(db_path=path, read_only=True)
         engine = InsightsEngine(db)
         report = engine.generate(days=args.days, source=args.source)
         print(engine.format_terminal(report))

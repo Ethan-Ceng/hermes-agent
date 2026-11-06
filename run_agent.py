@@ -287,24 +287,6 @@ class AIAgent(
         from agent.agent_init import init_agent
         init_agent(self, **init_kwargs)
 
-    def _get_session_db_for_recall(self):
-        """SessionDB for recall, opening the default state DB when no ``session_db`` was passed so the
-        advertised ``session_search`` tool stays usable."""
-        # Persistence-isolated forks (background review) must not lazily open the canonical state DB —
-        # that would re-arm the flush to write the fork's harness turn into the user's real session.
-        if getattr(self, "_persist_disabled", False):
-            return None
-        if self._session_db is not None:
-            return self._session_db
-        try:
-            from hermes_state_registry import acquire
-
-            self._session_db = acquire()
-            self._owns_session_db = True  # we opened it, so close() must release it
-            return self._session_db
-        except Exception:
-            logger.debug("SessionDB unavailable for recall", exc_info=True)
-            return None
 
     def _session_row_model_config(self) -> Any:
         """``model_config`` for the lazily created session row: the init config plus a live /yolo toggled
@@ -1028,7 +1010,7 @@ class AIAgent(
             self._owns_session_db = False
             # Shared instances no-op on close(); release the refcount so the registry closes on the last caller.
             # See #90837.
-            from hermes_state_registry import release_or_close
+            from hermes_db.access import release_session_store as release_or_close
             release_or_close(session_db)
 
     def _hydrate_todo_store(self, history: list[dict[str, Any]]) -> None:

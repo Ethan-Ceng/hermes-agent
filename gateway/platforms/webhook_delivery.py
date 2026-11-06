@@ -86,7 +86,11 @@ def retained_destination(adapter, chat_id):
         WHERE json_extract(payload_json, '$.native_text_v1.source.chat_id')=?
           AND json_extract(payload_json, '$.native_text_v1.source.platform')='webhook'
           AND json_extract(payload_json, '$.native_text_v1.automation') IS NULL"""
-    rows = [row for authority in candidates for row in authority.db._read_all(query, (chat_id,))]
+    from hermes_db.health import is_postgresql_store
+    from hermes_db.runtime_access import runtime_for_store
+    rows = [row for authority in candidates for row in (
+        runtime_for_store(authority.db).webhook_payloads(chat_id) if is_postgresql_store(authority.db)
+        else authority.db._read_all(query, (chat_id,)))]
     if len(rows) != 1:
         raise RuntimeStoreError('not_found')
     payload = json.loads(rows[0]['payload_json'])

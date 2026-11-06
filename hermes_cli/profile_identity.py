@@ -116,11 +116,12 @@ def _purge_profile_identity(canon: str, live_mux: bool) -> bool:
 
     from hermes_cli.profiles import get_profile_dir
     from hermes_constants import get_default_hermes_root
-    from hermes_state_registry import acquire, release_or_close
+    from hermes_db.access import release_session_store as release_or_close, acquire_sessions as acquire
     root = get_default_hermes_root()
     purged = True
     for db_path in (root / "state.db", get_profile_dir(canon) / "state.db"):
-        if not db_path.exists():
+        from hermes_db.access import session_store_exists
+        if not session_store_exists(db_path):
             continue
         db = None
         try:
@@ -215,12 +216,13 @@ def _migrate_profile_identity(old_canon: str, new_canon: str, live_mux: bool) ->
         return False
 
     from hermes_cli.profiles import get_profile_dir
-    from hermes_state_registry import acquire, release_or_close
+    from hermes_db.access import release_session_store as release_or_close, acquire_sessions as acquire
     from hermes_constants import get_default_hermes_root
     root = get_default_hermes_root()
     migrated = checkpoint_migrated
     for db_path in (root / "state.db", get_profile_dir(new_canon) / "state.db"):
-        if not db_path.exists():
+        from hermes_db.access import session_store_exists
+        if not session_store_exists(db_path):
             continue
         db = None
         try:

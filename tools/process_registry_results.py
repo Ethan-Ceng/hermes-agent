@@ -73,11 +73,15 @@ def _owns_result(owner: str, parent: str | None) -> bool:
         return False
     if owner == parent:
         return True
-    from hermes_state import SessionDB
+    from agent.runtime_session_store import call_off_event_loop, current_worker_store
+    worker = current_worker_store()
+    if worker is not None:
+        return call_off_event_loop(worker.owner_read, 'result.owns', owner=owner, parent=parent)
+    from hermes_db.access import open_session_store
 
     # Pure lineage read on the hot path of every retained-result load; a writable open here
     # was one more writer handle per call inside the gateway (#100896).
-    db = SessionDB(read_only=True)
+    db = open_session_store(read_only=True)
     try:
         return db.get_compression_tip(parent) == owner
     finally:

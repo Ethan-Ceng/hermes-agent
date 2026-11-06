@@ -112,6 +112,10 @@ def compact_settled_api_payloads(db, admission_id=None):
 
     ``payload_digest`` is untouched, so an exact retry still matches. Queued/started/unknown rows
     are never rewritten: they may still execute."""
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(db):
+        from hermes_db.runtime_access import runtime_for_store
+        return runtime_for_store(db).compact_api_payloads(admission_id)
     import json
     from hermes_state_runtime import _json
     # LIKE, not instr(): SQLite LIKE is ASCII case-insensitive, as ``_data_url_bytes`` is.

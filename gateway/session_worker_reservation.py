@@ -75,6 +75,12 @@ def reserve_admission_worker(authority, *, admission_id, process, principal_id, 
     authority._require_admission_open()
     pid, birth = verify_worker_identity(process, hello)
     secret = secrets.token_urlsafe(32)
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(authority.db):
+        from hermes_db.runtime_access import runtime_for_store
+        return runtime_for_store(authority.db).reserve_admission_worker(epoch=authority.epoch,
+            admission_id=admission_id, principal_id=principal_id, worker_subject=worker_subject,
+            identity=dict(profile_id=authority.profile_id, pid=pid, birth=birth, secret=secret))
 
     def write(conn):
         _epoch(conn, authority.epoch)
@@ -116,6 +122,12 @@ def lose_admission_worker(authority, row, scope):
     This also fences a result already in the pipe at loss/shutdown. Retention
     requires a still-started admission even when the generation has not changed.
     """
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(authority.db):
+        from hermes_db.runtime_access import runtime_for_store
+        return runtime_for_store(authority.db).lose_admission_worker(epoch=scope['epoch'],
+            admission_id=row['admission_id'], execution_id=scope['execution_id'], generation=scope['generation'])
+
     def write(conn):
         _epoch(conn, scope['epoch'])
         current = _admission(conn, row['admission_id'])

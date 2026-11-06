@@ -33,6 +33,8 @@ def admit(conn, scope, *, epoch, principal_id, session_id, request_id, payload, 
     digest = admission_fingerprint(canonical_target=session_id, payload={"input": json.loads(encoded), "intent": intent})
     repo.require_epoch(conn, scope, epoch)
     sessions.lock_store(conn, scope)
+    if principal_id == "api":
+        repo.lock_api_request(conn, scope, request_id)
     retired = _retired_replay(conn, scope, principal_id, session_id, request_id, digest)
     if retired is not None:
         return retired
@@ -162,6 +164,22 @@ def settle_transfers(conn, scope, epoch, generation, transfers, outcome, target_
         values = {"outcome": "steered" if outcome == "completed" else "interrupted"} if delivered else {
             "status": "queued", "outcome": None, "generation": None}
         conn.execute(session_admissions.update().where(*conditions).values(**values))
+
+
+def mark_unknown(conn, scope, *, epoch, admission_id, generation, transfers=None):
+    repo.require_epoch(conn, scope, epoch)
+    sessions.lock_store(conn, scope, exclusive=True)
+    row, _ = repo.lock_admission(conn, scope, admission_id)
+    if row["owner_epoch"] != epoch or row["generation"] != generation:
+        raise RuntimeStoreError("stale_generation")
+    if row["status"] in {"terminal", "unknown"}:
+        return row["status"]
+    if row["status"] != "started":
+        raise RuntimeStoreError("stale_generation")
+    repo.update(conn, scope, admission_id, status="unknown")
+    settle_transfers(conn, scope, epoch, generation, transfers, "unknown", row["target_session_id"])
+    sessions.update_session(conn, scope, row["target_session_id"], {"runtime_revision": session_table.c.runtime_revision + 1})
+    return "unknown"
 
 
 def steer(conn, scope, *, epoch, admission_id, generation):

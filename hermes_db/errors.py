@@ -17,6 +17,10 @@ class StorageUnavailableError(StorageError):
     """A connection or bounded pool wait failed."""
 
 
+class StorageQueryTimeoutError(StorageUnavailableError, TimeoutError):
+    """The backend cancelled a read at its configured deadline."""
+
+
 class StorageSchemaError(StorageError):
     """The selected schema is absent or incompatible."""
 

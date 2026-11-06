@@ -10,6 +10,21 @@ from hermes_db.tables.gateway import compression_locks
 from hermes_db.values import decode_text, encode_text, explicit_fork
 
 
+def lineage(conn, scope, session_id):
+    from hermes_db.repositories.messages import resume_lineage
+    if sessions.raw_session(conn, scope, session_id) is None:
+        return []
+    result = [resume_lineage(conn, scope, session_id)[0]]
+    while True:
+        found = children(conn, scope, result[-1])
+        if not found:
+            return result
+        child = found[0]["id"]
+        if child in result:
+            raise RuntimeError("Compression lineage contains a cycle")
+        result.append(child)
+
+
 def cooldown_row(conn, scope, session_id):
     row = sessions.raw_session(conn, scope, session_id)
     return {"session_exists": row is not None,

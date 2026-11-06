@@ -10,9 +10,17 @@ from hermes_db.repositories import runtime as repo
 from hermes_db.tables.runtime import session_admissions
 from hermes_db.runtime_workers import RuntimeWorkers
 from hermes_db.runtime_terminal import RuntimeTerminal
+from hermes_db.runtime_local import RuntimeLocal
+from hermes_db.runtime_history import RuntimeHistory
+from hermes_db.runtime_api import RuntimeApi
+from hermes_db.runtime_media import RuntimeMedia
+from hermes_db.runtime_viewer import RuntimeViewer
+from hermes_db.runtime_policy import RuntimePolicy
+from hermes_db.runtime_bot import RuntimeBot
+from hermes_db.runtime_recovery import RuntimeRecovery
 
 
-class PostgresRuntimeStore(RuntimeWorkers, RuntimeTerminal):
+class PostgresRuntimeStore(RuntimeWorkers, RuntimeTerminal, RuntimeLocal, RuntimeHistory, RuntimeApi, RuntimeMedia, RuntimeViewer, RuntimePolicy, RuntimeBot, RuntimeRecovery):
     def __init__(self, session_store):
         self._store = session_store
         from hermes_db.delegation_store import AsyncDelegationStore
@@ -35,6 +43,17 @@ class PostgresRuntimeStore(RuntimeWorkers, RuntimeTerminal):
     def begin_epoch(self, *, instance_id):
         with self._write() as conn:
             return operations.begin_epoch(conn, self.scope, instance_id)
+
+    def check_epoch(self, epoch):
+        with self._store._read() as conn:
+            repo.require_epoch(conn, self.scope, epoch)
+
+    def current_epoch(self):
+        from sqlalchemy import select
+        from hermes_db.tables.runtime import runtime_epoch
+        with self._store._read() as conn:
+            return conn.scalar(select(runtime_epoch.c.epoch).where(runtime_epoch.c.store_id == self.scope.require_store_id(),
+                runtime_epoch.c.singleton == 1))
 
     def mutate_session(self, **kwargs):
         from hermes_db.operations.mutations import mutate
@@ -98,6 +117,10 @@ class PostgresRuntimeStore(RuntimeWorkers, RuntimeTerminal):
     def resolve_unknown(self, **kwargs):
         with self._write() as conn:
             return operations.resolve_unknown(conn, self.scope, **kwargs)
+
+    def mark_unknown(self, **kwargs):
+        with self._write() as conn:
+            return operations.mark_unknown(conn, self.scope, **kwargs)
 
     def rehome_inputs(self, **kwargs):
         with self._write() as conn:

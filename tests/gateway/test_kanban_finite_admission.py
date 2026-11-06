@@ -152,7 +152,7 @@ def test_retry_of_pre_finite_kanban_admission_returns_original_receipt(kanban_ow
     """An attempt admitted before cards were finite keeps its committed payload on retry: the
     upgraded run_task must return the original receipt, not admission_conflict. The retry reads
     that payload by its exact admission key, never by listing the session's admissions."""
-    import hermes_state_runtime
+    from hermes_db import runtime_calls
     from gateway.session_kanban import run_task
     from hermes_state_runtime import list_session_admissions
 
@@ -173,7 +173,7 @@ def test_retry_of_pre_finite_kanban_admission_returns_original_receipt(kanban_ow
             monkeypatch.setattr(authority, 'submit', pre_finite_submit)
             first = await run_task(owner.connection, owner.params)
             monkeypatch.setattr(authority, 'submit', real_submit)
-            monkeypatch.setattr(hermes_state_runtime, 'list_session_admissions', no_listing)
+            monkeypatch.setattr(runtime_calls, 'list_session_admissions', no_listing)
             retry = await run_task(owner.connection, owner.params)
             assert retry == first
             rows = list_session_admissions(authority.db, session_id=first['session_id'], pending_only=False)

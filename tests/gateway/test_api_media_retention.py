@@ -61,7 +61,8 @@ def test_hosted_batch_total_is_rejected_before_any_capture(tmp_path, monkeypatch
         manifest.append({key: saved[key] for key in ('attachment_id', 'kind', 'name', 'size', 'mime')})
     store.commit_message(room_id='room', event_id='source', manifest=manifest, recipient_member_ids=['member'])
     bound = [{**item, 'event_id': 'source'} for item in manifest]
-    rpc = SimpleNamespace(authority=SimpleNamespace(db=SimpleNamespace(db_path=db_path)), room_id='room', member_id='member')
+    rpc = SimpleNamespace(authority=SimpleNamespace(db=SimpleNamespace(db_path=db_path)),
+        room_db_path=db_path, room_id='room', member_id='member')
     monkeypatch.setattr(base, 'get_inbound_media_max_bytes', lambda: 3072)
     with pytest.raises(RuntimeStoreError, match='invalid_params'):
         submission_payload(rpc, 'read', bound)

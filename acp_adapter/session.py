@@ -7,6 +7,8 @@ survive process restarts and appear in ``session_search``; ``load_session`` /
 from __future__ import annotations
 
 from hermes_constants import get_hermes_home, translate_cwd_for_wsl_backend, windows_path_to_wsl
+from hermes_db.errors import StorageError
+from hermes_db.health import is_postgresql_store
 
 import copy
 import json
@@ -245,9 +247,9 @@ class SessionManager:
 
     def _catalog_rows(self) -> dict[str, dict[str, Any]]:
         from acp_adapter.catalog import read_catalog_rows
-        from pathlib import Path
 
-        path = Path(self._db_instance.db_path) if self._db_instance is not None else get_hermes_home() / "state.db"
+        from hermes_db.health import profile_home_for_store
+        path = profile_home_for_store(self._db_instance) / "state.db" if self._db_instance is not None else get_hermes_home() / "state.db"
         return read_catalog_rows(path)
 
     def update_cwd(self, session_id: str, cwd: str) -> Optional[SessionState]:
@@ -324,14 +326,18 @@ class SessionManager:
         acquire, so the ACP server holds ONE writer on state.db instead of two (#100896)."""
         if self._db_instance is None:
             try:
-                from hermes_state_registry import acquire
+                from hermes_db.access import acquire_sessions as acquire
                 self._db_instance = acquire(get_hermes_home() / "state.db")
+            except StorageError:
+                raise
             except Exception:
                 logger.debug("SessionDB unavailable for ACP persistence", exc_info=True)
         if self._db_instance is not None and not self._cwd_backfilled:
             # Rows minted before the adapter wrote the cwd column still carry the workspace
             # in model_config; one idempotent UPDATE per process repairs them (#115705).
             self._cwd_backfilled = True
+            if is_postgresql_store(self._db_instance):
+                return self._db_instance
             try:
                 repaired = self._db_instance.backfill_acp_session_cwd()
                 if repaired:
@@ -364,6 +370,8 @@ class SessionManager:
             else:
                 try:
                     db.update_session_meta(state.session_id, json.dumps(session_meta), model_str)
+                except StorageError:
+                    raise
                 except Exception:
                     logger.debug("Failed to update ACP session metadata", exc_info=True)
                 # The create branch above is not the live path: an agent that owns
@@ -397,6 +405,8 @@ class SessionManager:
             # Unconditional because an existence probe would fail OPEN on DB error and can
             # race a concurrent archive_and_compact. Still rolls back on mid-rewrite failure.
             db.replace_messages(state.session_id, state.history, active_only=True)
+        except StorageError:
+            raise
         except Exception:
             logger.warning("Failed to persist ACP session %s", state.session_id, exc_info=True)
 
@@ -451,6 +461,8 @@ class SessionManager:
             return None
         try:
             row = db.get_session(session_id)
+        except StorageError:
+            raise
         except Exception:
             logger.debug("Failed to query DB for ACP session %s", session_id, exc_info=True)
             return None
@@ -463,6 +475,8 @@ class SessionManager:
         if row.get("ended_at") is not None:
             try:
                 db.reopen_session(session_id)
+            except StorageError:
+                raise
             except Exception:
                 logger.debug("Failed to reopen ACP session %s", session_id, exc_info=True)
 
@@ -473,6 +487,8 @@ class SessionManager:
         # ``user;user`` violation in state.db would otherwise re-fire the pre-request repair every request.
         try:
             history = db.get_messages_as_conversation(session_id, repair_alternation=True)
+        except StorageError:
+            raise
         except Exception:
             logger.warning("Failed to load messages for ACP session %s", session_id, exc_info=True)
             history = []

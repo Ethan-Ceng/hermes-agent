@@ -30,8 +30,14 @@ def physical_target(conn, scope, session_id):
 def validate_local_receipt(conn, scope, receipt, session_id):
     from hermes_state_keys import local_identity
 
-    if receipt["session_id"] != session_id or session_id != local_identity(
-            receipt["profile_id"], receipt["principal_id"], receipt["request_id"]):
+    if receipt["session_id"] != session_id:
+        raise RuntimeStoreError("storage_unavailable")
+    if "history_session_id" in receipt:
+        from hermes_db.operations.current_history import CLAIM_PREFIX, claim_value
+        from hermes_db.repositories.runtime import meta
+        if receipt["history_session_id"] != session_id or meta(conn, scope, CLAIM_PREFIX + session_id) != claim_value(receipt):
+            raise RuntimeStoreError("storage_unavailable")
+    elif session_id != local_identity(receipt["profile_id"], receipt["principal_id"], receipt["request_id"]):
         raise RuntimeStoreError("storage_unavailable")
     lineage = receipt.get("lineage", [session_id])
     if not isinstance(lineage, list) or not lineage or len(set(lineage)) != len(lineage) or lineage[0] != session_id or lineage[-1] != receipt["entry"]["session_id"]:

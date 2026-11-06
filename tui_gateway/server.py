@@ -315,11 +315,14 @@ def _launch_state_db_path() -> Path:
 def _get_db():
     global _db, _db_error
     if _db is None:
-        from hermes_state_registry import acquire
+        from hermes_db.access import acquire_sessions as acquire
+        from hermes_db.errors import StorageError
         try:
             # Launch home, never the context-local override (#102526); resolved at first
             # use, not import time (#112692). See _launch_state_db_path.
             _db, _db_error = acquire(_launch_state_db_path()), None
+        except StorageError:
+            raise
         except Exception as exc:
             _db_error = str(exc)
             logger.warning("TUI session store unavailable — continuing without state.db features: %s", exc)
@@ -352,7 +355,7 @@ def _open_profile_session_db(profile_home):
     """Open a DEDICATED handle on ``profile_home``'s ``state.db`` — FAIL CLOSED: a silent fallback to the
     launch ``state.db`` would bleed rows into the wrong profile's store exactly when the profile store is
     briefly unopenable (locked, mid-restore); callers let the error abort the build (→ ``agent_error``)."""
-    from hermes_state_registry import acquire
+    from hermes_db.access import acquire_sessions as acquire
     db_path = Path(profile_home) / "state.db"
     try:
         return acquire(db_path)
@@ -370,7 +373,7 @@ def _bootstrap_served_profile_store(db_path: Path) -> None:
             return
     except FileNotFoundError:
         pass
-    from hermes_state_registry import acquire, release_or_close
+    from hermes_db.access import release_session_store as release_or_close, acquire_sessions as acquire
     release_or_close(acquire(db_path))
 
 
@@ -390,7 +393,7 @@ def _profile_db(params: dict | None = None, *, writer: bool = False):
     else:
         try:
             if writer:
-                from hermes_state_registry import acquire
+                from hermes_db.access import acquire_sessions as acquire
                 db = acquire(Path(profile_home) / "state.db")
             else:
                 from hermes_cli.web_server_sessions import _open_session_db_at_path

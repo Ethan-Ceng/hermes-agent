@@ -3,6 +3,10 @@
 Public callers name a persisted job, never supply agent policy or arbitrary jobs.
 The ordinary admission ledger owns execution; the scheduler owns final delivery.
 """
+
+from hermes_db.health import persisted_profile_id
+
+from hermes_db.health import profile_home_for_store
 import asyncio
 from contextvars import ContextVar
 from dataclasses import asdict, replace
@@ -13,19 +17,20 @@ import threading
 
 from gateway.session_contract import SessionActor, SessionRef
 from hermes_state_keys import CRON_PRINCIPAL_ID, cron_request_id
-from hermes_state_runtime import RuntimeStoreError, admit_session_input, get_session_admission
+from hermes_state_runtime import RuntimeStoreError
+from hermes_db.runtime_calls import admit_session_input, get_session_admission
 
 _execution: ContextVar[tuple | None] = ContextVar('cron_owner_execution', default=None)
 _owners = {}
 
 
 def bind_owner(authority):
-    home = Path(authority.db.db_path).resolve().parent
+    home = profile_home_for_store(authority.db)
     _owners[home] = (os.getpid(), authority, asyncio.get_running_loop())
 
 
 def unbind_owner(authority):
-    home = Path(authority.db.db_path).resolve().parent
+    home = profile_home_for_store(authority.db)
     bound = _owners.get(home)
     if bound is not None and bound[1] is authority:
         del _owners[home]
@@ -118,7 +123,7 @@ def _create(authority, actor, params):
             or not request_id or len(request_id) > 256 or (extra is not None and not isinstance(extra, str))):
         raise RuntimeStoreError('invalid_params')
     execution_id, request_id = request_id, cron_request_id(jid, request_id)
-    sid = local_identity(authority.profile_id, actor.subject, request_id)
+    sid = local_identity(persisted_profile_id(authority), actor.subject, request_id)
     if authority.db.get_session(sid) is not None:
         return restore_local_session(authority, sid), request_id
     if ':' in execution_id:
@@ -172,8 +177,8 @@ async def operation(authority, name, params, actor=None):
                 or (params['extra_prompt'] is not None and not isinstance(params['extra_prompt'], str))):
             raise RuntimeStoreError('invalid_params')
         request_id = cron_request_id(params['job_id'], params['request_id'])
-        sid = local_identity(authority.profile_id, actor.subject, request_id)
-        from hermes_state_runtime import list_session_admissions
+        sid = local_identity(persisted_profile_id(authority), actor.subject, request_id)
+        from hermes_db.runtime_calls import list_session_admissions
         rows = list_session_admissions(authority.db, session_id=sid, pending_only=False)
         from gateway.owner_identity import same_owner
         row = next((r for r in rows if r['request_id'] == request_id and same_owner(r['principal_id'], actor.subject)), None)
@@ -203,7 +208,7 @@ async def operation(authority, name, params, actor=None):
         if isinstance(ref, dict):
             # The creation commit waits on the writer off the owner loop, like session.create (N50).
             from gateway.session_local_recovery import restore_local_session
-            from hermes_state_local import commit_local_session
+            from hermes_db.local_access import commit_local_session
             await tracked_write(authority, partial(commit_local_session, authority.db, epoch=authority.epoch, receipt=ref))
             ref = restore_local_session(authority, ref['session_id'])
         receipt = await tracked_write(authority, partial(
@@ -298,8 +303,8 @@ async def execute(authority, ref, row, policy):
     try:
         from cron.cancellation import CancelRequest, _CombinedCancelEvent
 
-        db_path = await asyncio.to_thread(Path(authority.db.db_path).resolve)
-        with _profile_runtime_scope(db_path.parent):
+        home = profile_home_for_store(authority.db)
+        with _profile_runtime_scope(home):
             # The forwarded ``cron.cancel`` carries no reason, so the operator's marker is read here
             # first: a stopped agent run reports "cancelled on request", not a lost fire claim.
             stop = _CombinedCancelEvent(CancelRequest(execution_id), cancel)

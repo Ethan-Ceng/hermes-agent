@@ -11,7 +11,10 @@ from functools import partial
 
 from gateway.session_messaging_picks import CHAT_PICKS, is_chat_pick
 from hermes_state_mutation_guards import MUTATION_GUARD_REFUSALS
-from hermes_state_runtime import RuntimeStoreError, mutate_runtime_session
+from hermes_state_runtime import RuntimeStoreError
+from hermes_db.runtime_calls import mutate_runtime_session
+from hermes_db.health import is_postgresql_store
+from hermes_db.runtime_access import effect_for_store
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +34,11 @@ def _authorize_import(authority, actor, ref, params):
         raise RuntimeStoreError('permission_denied')
     from hermes_state_mutations import validate_action
     validate_action('import', params['payload'])
-    normalized, errors = authority.db._validate_import_payload(params['payload']['sessions'])
+    if is_postgresql_store(authority.db):
+        from hermes_db.portability_values import values
+        normalized, errors = values._validate_import_payload(params['payload']['sessions'])
+    else:
+        normalized, errors = authority.db._validate_import_payload(params['payload']['sessions'])
     if errors:
         raise RuntimeStoreError('invalid_params')
     return tuple(item['session']['id'] for item in normalized)
@@ -40,7 +47,7 @@ def _authorize_import(authority, actor, ref, params):
 def _authorize_control(authority, actor, ref, params, owner=None):
     """Control authorization; True when the session is cold history the write must claim. *owner* is
     ``_owner_ref``'s answer when the caller already resolved it (one read per mutation, not two)."""
-    from hermes_state_mutation_retirement import has_mutation_receipt
+    from hermes_db.authority_access import has_mutation_receipt
     if actor.profile_id != authority.profile_id or ref.profile_id != authority.profile_id:
         raise RuntimeStoreError('profile_mismatch')
     if 'session:control' not in actor.capabilities:
@@ -51,11 +58,8 @@ def _authorize_control(authority, actor, ref, params, owner=None):
     if not has_mutation_receipt(authority.db, actor.subject, ref.session_id, params['request_id']):
         ref = owner or _owner_ref(authority, ref, params)
         if ref.session_id not in authority.sessions:
-            from hermes_state_mutation_binding import authorize_history
-            with authority.db._read_ctx() as conn:
-                from gateway.session_local_migration import require_history_claim
-                require_history_claim(authority, conn, actor, ref.session_id)
-                cold_history = authorize_history(conn, actor, ref.session_id)
+            from hermes_db.authority_access import authorize_history
+            cold_history = authorize_history(authority, actor, ref.session_id)
         if not cold_history:
             operation = params.get('operation')
             if operation in {'delete', 'archive', 'sidebar'}:
@@ -94,9 +98,8 @@ def _owner_ref(authority, ref, params):
     if params.get('operation') not in _OWNER_AUTHORIZED:
         return ref
     from gateway.session_contract import SessionRef
-    from hermes_state_local import local_lineage_owner
-    with authority.db._read_ctx() as conn:
-        owner = local_lineage_owner(conn, ref.session_id)
+    from hermes_db.authority_access import local_lineage_owner
+    owner = local_lineage_owner(authority.db, ref.session_id)
     if owner == ref.session_id and params.get('operation') == 'delete':
         from gateway.session_route_recovery import messaging_owner_ref
         return messaging_owner_ref(authority, ref)
@@ -179,8 +182,16 @@ async def _mutate_session(authority, actor, ref, params, *, commit_lock=None, ow
         if not authorize_history(conn, actor, ref.session_id, claim=True):
             raise RuntimeStoreError('permission_denied')
 
+    def authorize_core(conn, scope):
+        from hermes_db.repositories.mutation_binding import authorize_history, import_history_control
+        if operation == 'import':
+            import_history_control(conn, scope, actor, imported_ids)
+        elif not authorize_history(conn, scope, actor, ref.session_id, claim=True):
+            raise RuntimeStoreError('permission_denied')
+
     return await write_mutation(authority, ref, params, editor_servers, principal_id=actor.subject,
-                                authorize_write=authorize_write if cold_history or operation == 'import' else None,
+                                authorize_write=effect_for_store(authority.db, authorize_write, authorize_core)
+                                    if cold_history or operation == 'import' else None,
                                 commit_lock=commit_lock)
 
 
@@ -226,7 +237,8 @@ async def write_mutation(authority, ref, params, editor_servers, *, principal_id
     fields = dict(epoch=authority.epoch, principal_id=principal_id, session_id=ref.session_id,
                   request_id=params['request_id'], expected_revision=params['expected_revision'],
                   expected_generation=params.get('expected_generation'), operation=operation,
-                  payload=params['payload'], _live_guard=live_guard)
+                  payload=params['payload'], _live_guard=effect_for_store(authority.db, live_guard,
+                      lambda conn, scope, targets: live_guard(targets)))
 
     async def prepare_only():
         # Its own BEGIN IMMEDIATE, so off the loop like the commit below.
@@ -368,7 +380,7 @@ def _project_committed(authority, ref, operation, result):
         evict(authority.sessions[ref.session_id].route)
         # Publish the prepared entry, not just its target ID, so fresh-reset and
         # per-session counters match cold recovery in this process too.
-        from hermes_state_local import local_receipt
+        from hermes_db.local_access import local_receipt
         from gateway.session import SessionEntry
         store = authority.runner.session_store
         with store._lock:
@@ -399,7 +411,8 @@ def retire_live_sessions(authority, session_ids, *, require_fence=False):
         # A failure surfaces after the rest of the cleanup: an exact retry replays the
         # committed receipt and repeats this fence.
         routing = getattr(store, '_routing_db', None)
-        if session_ids and routing is not None and routing.db_path != authority.db.db_path:
+        from hermes_db.health import storage_identity
+        if session_ids and routing is not None and storage_identity(routing) != storage_identity(authority.db):
             try:
                 from gateway.session import _session_key_namespace
                 from hermes_state_mutation_retirement import expiring_retirements

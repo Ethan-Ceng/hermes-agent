@@ -779,7 +779,8 @@ def _admit_api_agent_request(handler):
         token = _api_agent_request_reservation.set(reservation)
         self._pending_agent_requests += 1
         try:
-            return await handler(self, request, *args, **kwargs)
+            from gateway.platforms.api_server_storage_resources import call_with_storage_errors
+            return await call_with_storage_errors(handler, self, request, *args, **kwargs)
         finally:
             _release_pending_api_work(self, reservation)
             _api_agent_request_reservation.reset(token)
@@ -800,7 +801,8 @@ def _require_auth(handler):
         auth_err = self._check_auth(request)
         if auth_err:
             return auth_err
-        return await handler(self, request, *args, **kwargs)
+        from gateway.platforms.api_server_storage_resources import call_with_storage_errors
+        return await call_with_storage_errors(handler, self, request, *args, **kwargs)
     return _wrapped
 
 
@@ -1079,11 +1081,8 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
         self._app: Optional[web.Application] = None
         self._runner: Optional[web.AppRunner] = None
         self._site: Optional[web.TCPSite] = None
-        from hermes_constants import get_hermes_home
-        self._response_store = ResponseStore()  # this home's; a /p/<profile>/ route gets its own
-        self._response_store_home = str(get_hermes_home())
-        self._response_stores: dict[str, ResponseStore] = {}
-        self._response_store_lock = threading.Lock()
+        from gateway.platforms.api_server_storage_resources import initialize_response_state
+        initialize_response_state(self, ResponseStore)
         _api_runs._initialize_run_state(self, store_factory=RunIdempotencyStore)
         self._session_db: Optional[Any] = None  # explicit override (tests/manual wiring)
         self._session_dbs: dict[str, Any] = {}  # per-profile-home SessionDB cache
@@ -1678,15 +1677,8 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
     def _current_response_store(self) -> ResponseStore:
         """Responses state of the routed profile's home. Conversation names are client-chosen, so one
         shared store let any profile's key read, chain onto and overwrite another's (#84253)."""
-        from hermes_constants import get_hermes_home
-        home = get_hermes_home()
-        if str(home) == self._response_store_home:
-            return self._response_store
-        with self._response_store_lock:
-            store = self._response_stores.get(str(home))
-            if store is None:
-                store = self._response_stores[str(home)] = ResponseStore(db_path=str(home / "response_store.db"))
-            return store
+        from gateway.platforms.api_server_storage_resources import current_response_store
+        return current_response_store(self)
 
     # -- Session DB -------------------------------------------------------------------
 
@@ -1696,7 +1688,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
         if self.gateway_runner is not None:
             from gateway.platforms.api_server_store import selected_session_db
             return selected_session_db(self, home)
-        from hermes_state_registry import acquire
+        from hermes_db.access import acquire_sessions as acquire
         key = str(home)
         with self._session_db_cache_lock:
             if self._session_db_cache_closed:
@@ -1713,7 +1705,8 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
         ``_shared_registry_owned``) without telling this cache; serving that handle would keep
         raising ``StateDbReplacedError`` after a recreate, so drop it and let the caller reopen."""
         db = self._session_dbs.get(key)
-        if db is not None and getattr(db, "_shared_registry_owned", True) is False:
+        from hermes_db.access import session_store_is_live
+        if db is not None and not session_store_is_live(db):
             del self._session_dbs[key]
             return None
         return db
@@ -1729,7 +1722,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
             if db is shared_db:
                 continue
             try:
-                from hermes_state_registry import release_or_close
+                from hermes_db.access import release_session_store as release_or_close
                 release_or_close(db)
             except Exception:
                 logger.debug("Failed to close API-server SessionDB", exc_info=True)
@@ -1743,9 +1736,12 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
             return selected_session_db(self, get_hermes_home())
         if self._session_db is not None:
             return self._session_db
+        from hermes_db.errors import StorageError
         try:
             from hermes_constants import get_hermes_home
             return self._open_and_cache_session_db(get_hermes_home())
+        except StorageError:
+            raise
         except Exception as e:
             logger.debug("SessionDB unavailable for API server: %s", e)
             return None
@@ -1759,6 +1755,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
             return selected_session_db(self, get_hermes_home())
         if self._session_db is not None:
             return self._session_db
+        from hermes_db.errors import StorageError
         try:
             from hermes_constants import get_hermes_home
             home = get_hermes_home()
@@ -1775,6 +1772,8 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
                 if cached is not None:
                     return cached
                 return await asyncio.to_thread(self._open_and_cache_session_db, home)
+        except StorageError:
+            raise
         except Exception as e:
             logger.debug("SessionDB unavailable for API server: %s", e)
             return None
@@ -2612,29 +2611,9 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
                 "updated_at": time.time()}}
         title = body.get("title")
 
-        def _atomic(conn):
-            from hermes_state_mutation_retirement import create_conflict
-            if conflict := create_conflict(conn, session_id):  # one BEGIN IMMEDIATE write: a racing create sees the row
-                return None, conflict
-            conn.execute(
-                """INSERT INTO sessions (
-                   id, source, model, model_config, system_prompt, started_at
-                ) VALUES (?, ?, ?, ?, ?, ?)""",
-                (session_id, source, model_name, json.dumps(model_config) if model_config else None,
-                 system_prompt, time.time()))
-            if title is not None:
-                clean_title = db.sanitize_title(str(title))
-                if clean_title:
-                    try:
-                        db._resolve_title_conflict(conn, session_id, clean_title)
-                    except ValueError as exc:  # the DB's uniqueness rule; undo the INSERT
-                        conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
-                        return None, f"title:{exc}"
-                conn.execute("UPDATE sessions SET title = ? WHERE id = ?", (clean_title, session_id))
-            session_row = conn.execute("SELECT * FROM sessions WHERE id = ?", (session_id,)).fetchone()
-            return (dict(session_row) if session_row else {
-                "id": session_id, "source": source, "model": model_name, "title": title}), None
-        session, err = await asyncio.to_thread(db._execute_write, _atomic)
+        from gateway.platforms.api_server_session_create import create_row
+        session, err = await asyncio.to_thread(create_row, db, session_id, source, model_name,
+                                              model_config, system_prompt, title)
         if isinstance(err, tuple):  # a live row, or a deleted id's fence: refused now, not on every turn
             return _error_response(f"{err[1]}: {session_id}", 409, code=err[0])
         if err and err.startswith("title:"):
@@ -2934,7 +2913,8 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
         db = await self._ensure_session_db_async()
         if db is None:
             return None
-        home = Path(db.db_path).parent
+        from hermes_db.health import profile_home_for_store
+        home = profile_home_for_store(db)
         from tools.bot_live_delivery import deliver_to_live_owner, find_canonical_live_owner
 
         def _admit() -> Optional[dict[str, Any]]:
@@ -4071,9 +4051,8 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
         """
         self._mark_disconnected()
         # getattr: disconnect() tolerates bare __new__ fixtures (pinned in test_api_server_run_idempotency).
-        routed = getattr(self, "_response_stores", {})
-        stores = [s for s in (getattr(self, "_response_store", None), *list(routed.values())) if s is not None]
-        routed.clear()
+        from gateway.platforms.api_server_storage_resources import drain_response_stores
+        stores = drain_response_stores(self)
         for store in stores:
             try:
                 await asyncio.to_thread(store.close)  # a persistence worker may hold its lock

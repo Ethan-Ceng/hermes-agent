@@ -6,6 +6,8 @@ right after it, ``manage_router`` (mutation/detail) much later.  web_server-owne
 helpers are reached via the late-binding seam so monkeypatching keeps working.
 """
 
+from hermes_db.health import profile_home_for_store
+
 import asyncio
 import json
 import re
@@ -207,7 +209,7 @@ def get_sessions(
             # the cron-jobs section (source=cron) into two independent lists.
             source_list = _csv(sources)
             include_subagents, exclude_list = subagent_listing_scope(
-                Path(db.db_path).parent, source=source or None, sources=source_list or None,
+                profile_home_for_store(db), source=source or None, sources=source_list or None,
                 exclude_sources=_csv(exclude_sources) or None)
             scope = dict(
                 source=source or None, sources=source_list or None,
@@ -237,7 +239,9 @@ def get_sessions(
                 _strip_session_list_rows(sessions)
             # ``storage`` tells an empty page apart from an unreadable store (#72046); same
             # ``{profile: "corrupt"}`` shape as the /api/profiles/sessions* lists.
-            storage = {row_profile: STORAGE_CORRUPT} if storage_state(db.db_path) == STORAGE_CORRUPT else {}
+            from hermes_db.health import is_postgresql_store
+            corrupt = not is_postgresql_store(db) and storage_state(db.db_path) == STORAGE_CORRUPT
+            storage = {row_profile: STORAGE_CORRUPT} if corrupt else {}
             return {"sessions": sessions, "total": total, "limit": limit, "offset": offset,
                     "storage": storage}
         finally:
@@ -791,7 +795,7 @@ def _timeline_session_id(db, session_id: str, owner: str) -> str:
     # Durable jump addresses are exact ids, never title/prefix guesses. A NULL
     # legacy owner belongs to this profile's store, just like /messages pages.
     def owned(sid):
-        row = db._read_one("SELECT profile_name FROM sessions WHERE id = ?", (sid,))
+        row = db.get_session(sid)
         return row is not None and row["profile_name"] in (None, owner)
 
     if not owned(session_id):
@@ -910,6 +914,10 @@ async def backfill_session_owner_profiles(body: SessionOwnerBackfill, request: R
 
     with http_failure(
         "POST /api/sessions/owner-backfill failed", 500, detail="Internal server error"):
+        from hermes_cli.db_setup import session_backend
+        from hermes_cli.web_server_sessions import _session_db_path_for_profile
+        if session_backend(_session_db_path_for_profile(body.profile).resolve().parent) == 'postgresql':
+            return {'ok': True, 'stamped': 0, 'profile': stamp}
         owner_db = _owner_db_for(request, body.profile)
         if owner_db is not None:
             # A live gateway owns this store: it is the only writer (the offline maintenance lock

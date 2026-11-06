@@ -11,6 +11,17 @@ from hermes_db.values import encode_config, encode_text, model_config
 
 
 class SessionMetadata:
+    def backfill_repo_roots(self, cwd_to_root):
+        pairs = [(cwd, root) for cwd, root in cwd_to_root.items() if cwd and root]
+        if not pairs:
+            return
+        with self._write() as conn:
+            repo.lock_store(conn, self.scope, exclusive=True)
+            for cwd, root in pairs:
+                conn.execute(sessions.update().where(sessions.c.store_id == self.scope.require_store_id(),
+                    sessions.c.cwd == cwd, (sessions.c.git_repo_root.is_(None) | (sessions.c.git_repo_root == '')))
+                    .values(git_repo_root=root))
+
     def update_system_prompt(self, session_id, system_prompt):
         self._assert_open()
         operations.set_prompt(self._transactions, self.scope, session_id, system_prompt)

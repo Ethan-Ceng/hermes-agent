@@ -3,6 +3,11 @@
 The mailbox is a delivery receipt, not an execution queue. A committed canonical
 admission is the only consumer; unknown execution is never retried as inference.
 """
+
+from hermes_db.health import persisted_profile_id, is_postgresql_store
+from hermes_db.runtime_access import runtime_for_store
+
+from hermes_db.health import profile_home_for_store
 import asyncio
 from functools import partial
 import logging
@@ -14,7 +19,8 @@ from agent.turn_author import parse_turn_author
 from gateway.session_contract import SessionActor, SessionRef
 from gateway.config import Platform
 from gateway.platforms.event import MessageEvent
-from hermes_state_runtime import RuntimeStoreError, get_session_admission
+from hermes_state_runtime import RuntimeStoreError
+from hermes_db.runtime_calls import get_session_admission
 from tools.bot_failure_reasons import HELD_NOT_SENT, UNKNOWN
 from tools.bot_live_delivery import _TERMINAL, _delivery_id, _read
 logger = logging.getLogger(__name__)
@@ -156,9 +162,7 @@ def _pin_committed(authority, record, request_id):
     if _admission_at(authority, record['session_id'], request_id) is not None:
         return True
     from hermes_state_mutation_retirement import RETIRED_PREFIX
-    with authority.db._read_ctx() as conn:
-        return conn.execute('SELECT 1 FROM state_meta WHERE key=?',
-                            (RETIRED_PREFIX + record['session_id'],)).fetchone() is not None
+    return authority.db.get_meta(RETIRED_PREFIX + record['session_id']) is not None
 
 
 def _legacy_order(path, record):
@@ -171,7 +175,7 @@ def _legacy_order(path, record):
 def _home(authority, actor, profile):
     from gateway.session_authorities import served_profile_name
     from tools.bot_mode_probe import _handle, _hermes_root, _roster
-    home = Path(authority.db.db_path).parent.resolve()
+    home = profile_home_for_store(authority.db)
     name = served_profile_name(home)
     handle = _handle(name, [n for n, _d in _roster(_hermes_root(home))]) if name == 'default' else name
     if actor.profile_id != authority.profile_id or profile not in (name, handle):
@@ -235,11 +239,10 @@ def displaceable_bot_chat(authority, row, subject=None):
         if candidate is None or str(candidate.get('chat_id') or '').startswith('local-'):
             return None
         chat_id = str(candidate.get('chat_id') or '')
-        with db._read_ctx() as conn:
-            if conn.execute('SELECT 1 FROM state_meta WHERE key IN (?,?)',
-                            (POLICY_PREFIX + (chat_id or candidate['id']),
-                             LEGACY_PREFIX + (chat_id or candidate['id']))).fetchone():
-                return None
+        if db.get_meta(POLICY_PREFIX + (chat_id or candidate['id'])) is not None:
+            return None
+        if not is_postgresql_store(db) and db.get_meta(LEGACY_PREFIX + (chat_id or candidate['id'])) is not None:
+            return None
     # Only the tip is adopted (``_target``), so only the tip decides: a root the owner could adopt
     # above a tip nobody can would otherwise hold the title and refuse every delivery.
     return None if _kept_local_history(db, tip, subject) else row['id']
@@ -283,6 +286,11 @@ def _kept_local_history(db, row, subject=None):
     label) is not: kept, it held the title and refused every delivery for good (#141243, #143715).
     *subject* None: the row's own ``auth:v1`` or owner-label stamp is the adopter, as a peer DM's
     turn enters the chat."""
+    if row is None:
+        return False
+    if is_postgresql_store(db):
+        from gateway.session_native_history import resumable_current_row
+        return resumable_current_row(row, subject)
     from gateway.owner_identity import host_owner_subject, same_owner
     from gateway.session_identity import parse_authenticated_subject
     from hermes_state_local_migration import LEGACY_LOCAL_SOURCES, legacy_account_label, validate_legacy_row
@@ -328,6 +336,8 @@ def _displace_bot_chat(db, sid):
     name = f'Bot Chat ({label} {sid})'
     if len(name) > db.MAX_TITLE_LENGTH:
         name = name[:db.MAX_TITLE_LENGTH - 2] + '…)'
+    if is_postgresql_store(db):
+        return db.displace_bot_chat(sid, name)
 
     def write(conn):
         return conn.execute("UPDATE sessions SET title=?, title_source=?, hidden=0 WHERE id=? AND title='Bot Chat'",
@@ -348,7 +358,7 @@ async def _create_bot_chat(authority, actor, *, displace=None):
     from gateway.session_local_recovery import restore_local_session
     from gateway.session_local_title import title_new_session
     from gateway.session_runtime_workers import tracked_write
-    from hermes_state_local import commit_local_session
+    from hermes_db.local_access import commit_local_session
     lock = getattr(authority, '_titled_create_lock', None)
     if lock is None:
         lock = authority._titled_create_lock = asyncio.Lock()
@@ -391,7 +401,7 @@ def _bot_chat_creation_id(authority, actor):
     from gateway.session_local_recovery import local_identity
     from gateway.session_route_recovery import _messaging_platform
     from hermes_state_mutation_retirement import first_generation
-    base = 'bot-chat:' + authority.profile_id
+    base = 'bot-chat:' + persisted_profile_id(authority)
     request_id = lambda generation: base if generation == 0 else f'{base}:{generation}'
 
     def spent(conn, sid):
@@ -399,8 +409,19 @@ def _bot_chat_creation_id(authority, actor):
         # Handed off (``/handoff``), it is a messaging lane's conversation: its receipt went with it,
         # and a reset's head carried its name there (``hermes_state_local.hand_off_conversations``).
         return row is not None and (bool(row[0]) or _messaging_platform(row[1]) is not None)
-    generation, _sid = first_generation(
-        authority.db, lambda n: local_identity(authority.profile_id, actor.subject, request_id(n)), spent=spent)
+    derive = lambda n: local_identity(persisted_profile_id(authority), actor.subject, request_id(n))
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(authority.db):
+        from hermes_db.operations.effects import CoreEffect
+        from hermes_db.repositories import sessions
+
+        def native_spent(conn, scope, sid):
+            row = sessions.raw_session(conn, scope, sid)
+            return row is not None and (bool(row['title']) or _messaging_platform(row['source']) is not None)
+
+        generation, _sid = authority.db.first_generation(derive, spent=CoreEffect(native_spent))
+    else:
+        generation, _sid = first_generation(authority.db, derive, spent=spent)
     return request_id(generation)
 
 
@@ -470,6 +491,8 @@ def _retry_admission(authority, record):
 
 
 def _admission_at(authority, session_id, request_id):
+    if is_postgresql_store(authority.db):
+        return runtime_for_store(authority.db).request_admission_id(session_id, request_id)
     with authority.db._read_ctx() as conn:
         row = conn.execute('SELECT admission_id FROM session_admissions WHERE target_session_id=? AND request_id=?',
                            (session_id, request_id)).fetchone()
@@ -673,7 +696,7 @@ def relay_operation(connection, operation, params):
     authority, actor = connection.authority, connection.actor
     from gateway.session_authorities import require_serving, served_profile_name
     require_serving(authority)  # the outbox/roster/replies belong to the home's next owner
-    home = Path(authority.db.db_path).parent.resolve()
+    home = profile_home_for_store(authority.db)
     name = served_profile_name(home)
     _home(authority, actor, name)
     if 'session:control' not in actor.capabilities:
@@ -726,7 +749,7 @@ async def _migrate(authority, actor, home, root):
 
 async def recover_bot_deliveries(authority):
     """Rebuild derivative replies and queued legacy admissions at owner startup."""
-    home = Path(authority.db.db_path).parent.resolve()
+    home = profile_home_for_store(authority.db)
     async with mailbox_lock(authority):
         root, records, _ = await _scan_owner_receipts(authority, home)
         for path, record in records:
@@ -755,9 +778,7 @@ async def recover_bot_deliveries(authority):
         if target is None:
             return
         from hermes_state_local import POLICY_PREFIX
-        with authority.db._read_ctx() as conn:
-            bound = conn.execute('SELECT 1 FROM state_meta WHERE key=?',
-                (POLICY_PREFIX + (target.get('chat_id') or target['id']),)).fetchone()
+        bound = authority.db.get_meta(POLICY_PREFIX + (target.get('chat_id') or target['id']))
         if not bound:
             return  # Unowned history requires a native ticket, never the first remote sender.
         actor = SessionActor(target['user_id'], authority.profile_id,
@@ -920,10 +941,13 @@ async def _settle(connection, params):
 def _not_sent_record(authority, actor, home, key, message, author, category):
     """The never-admitted id's terminal receipt, in ``refuse_pin``'s shape. Refuses (unknown) when
     the FIFO holds a ``bot:<id>`` row anyway or there is no Bot Chat to name."""
-    with authority.db._read_ctx() as conn:
-        admitted = conn.execute('SELECT 1 FROM session_admissions WHERE request_id=?', ('bot:' + key,)).fetchone()
+    if is_postgresql_store(authority.db):
+        admitted = runtime_for_store(authority.db).has_request('bot:' + key)
+    else:
+        with authority.db._read_ctx() as conn:
+            admitted = conn.execute('SELECT 1 FROM session_admissions WHERE request_id=?', ('bot:' + key,)).fetchone() is not None
     row = authority.db.get_session_by_title('Bot Chat')
-    if admitted is not None or row is None:
+    if admitted or row is None:
         raise RuntimeStoreError('unknown_execution')
     from gateway.session_automation import automation_notification_metadata
     record = dict(delivery_id=key, profile_home=str(home), session_id=authority.db.get_compression_tip(row['id']),

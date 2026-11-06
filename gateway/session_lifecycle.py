@@ -108,11 +108,11 @@ class SessionLifecycleMixin:
         if origin is None or getattr(origin, "platform", None) is None or origin.platform.value != "local":
             return None
         db = self._db_for_key(entry.session_key)
-        if db is None or getattr(db, "_read_ctx", None) is None:
+        if db is None or not callable(getattr(db, "get_meta", None)):
             return None
         import sqlite3
 
-        from hermes_state_local import local_receipt
+        from hermes_db.local_access import local_receipt
         from hermes_state_runtime import RuntimeStoreError
         try:
             receipt = local_receipt(db, str(origin.chat_id))
@@ -131,17 +131,15 @@ class SessionLifecycleMixin:
         if origin is None or getattr(origin, "platform", None) is None or origin.platform.value != "api_server":
             return False
         db = self._db_for_key(entry.session_key)
-        if db is None or getattr(db, "_read_ctx", None) is None:
+        if db is None or not callable(getattr(db, "get_meta", None)):
             return False
         import json
         import sqlite3
 
         from hermes_state_local import API_BINDING_PREFIX
         try:
-            with db._read_ctx() as conn:
-                saved = conn.execute("SELECT value FROM state_meta WHERE key=?",
-                                     (API_BINDING_PREFIX + str(origin.chat_id),)).fetchone()
-            return saved is not None and json.loads(saved[0])["entry"]["session_key"] == entry.session_key
+            saved = db.get_meta(API_BINDING_PREFIX + str(origin.chat_id))
+            return saved is not None and json.loads(saved)["entry"]["session_key"] == entry.session_key
         except (sqlite3.Error, ValueError, KeyError, TypeError):
             return False
 

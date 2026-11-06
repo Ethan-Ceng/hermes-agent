@@ -1866,14 +1866,14 @@ def _open_cron_session_db(job: dict):
         raise WorkerPersistenceError('worker_cron_registration_required')
     _session_db_timeout = _get_session_db_timeout()
     try:
-        from hermes_state_registry import acquire
+        from hermes_db.access import acquire_sessions as acquire
 
         def acquire_store():
             if owner is None:
                 return acquire()
             db = acquire(Path(owner[0].db.db_path))
             if db is not owner[0].db:
-                from hermes_state_registry import release_or_close
+                from hermes_db.access import release_session_store as release_or_close
                 release_or_close(db)
                 raise RuntimeError('cron requires the canonical owner store')
             return db
@@ -2205,7 +2205,7 @@ def _finalize_cron_session(session_db, agent, job_id: str, job_name: str, cron_s
     except (Exception, KeyboardInterrupt) as e:
         logger.debug("Job '%s': failed to end session: %s", job_id, e)
     try:
-        from hermes_state_registry import release_or_close
+        from hermes_db.access import release_session_store as release_or_close
         release_or_close(_session_db)
     except (Exception, KeyboardInterrupt) as e:
         logger.debug("Job '%s': failed to close SQLite session store: %s", job_id, e)

@@ -487,6 +487,29 @@ def _db_flush_failed(agent, e: Exception, batch_rows: list[dict[str, Any]], adop
 class SessionPersistenceMixin:
     """Session DB flush and trajectory persistence (see module docstring)."""
 
+    def _get_session_db_for_recall(self):
+        """SessionDB for recall, opening the default state DB when no ``session_db`` was passed so the
+        advertised ``session_search`` tool stays usable."""
+        # Persistence-isolated forks (background review) must not lazily open the canonical state DB —
+        # that would re-arm the flush to write the fork's harness turn into the user's real session.
+        if getattr(self, "_persist_disabled", False):
+            return None
+        if self._session_db is not None:
+            return self._session_db
+        from hermes_db.errors import StorageError
+        try:
+            from hermes_db.access import acquire_sessions as acquire
+
+            self._session_db = acquire()
+            self._owns_session_db = True  # we opened it, so close() must release it
+            return self._session_db
+        except StorageError:
+            raise
+        except Exception:
+            logger.debug("SessionDB unavailable for recall", exc_info=True)
+            return None
+
+
     def _apply_persist_user_message_override(self, messages: list[dict]) -> None:
         """Rewrite the current-turn user message in place: some paths send an API-only variant that must not
         leak into transcripts or resumed history."""

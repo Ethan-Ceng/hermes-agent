@@ -7,7 +7,8 @@ A later ``session/load`` + prompt reopens the row (``session_local_recovery.reop
 """
 import logging
 
-from hermes_state_local import POLICY_PREFIX, end_idle_local_session, local_receipt
+from hermes_state_local import POLICY_PREFIX
+from hermes_db.local_access import end_idle_local_session, local_receipt
 from hermes_state_runtime import RuntimeStoreError
 
 ACP_END_REASON = 'acp_disconnect'
@@ -66,7 +67,5 @@ async def reopen_if_reattached(authority, session_id, ended):
 
 def end_idle_acp_sessions(authority):
     """Gateway shutdown: every ACP session nobody is viewing, attached this run or not."""
-    with authority.db._read_ctx() as conn:
-        ids = [row[0][len(POLICY_PREFIX):] for row in conn.execute(
-            'SELECT key FROM state_meta WHERE key LIKE ?', (POLICY_PREFIX + '%',))]
+    ids = [key[len(POLICY_PREFIX):] for key, _ in authority.db.list_meta_prefix(POLICY_PREFIX)]
     return sum(end_idle_acp_session(authority, sid) for sid in ids)

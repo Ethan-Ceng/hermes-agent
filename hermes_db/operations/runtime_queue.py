@@ -87,3 +87,21 @@ def check_replaced_input(conn, scope, admission_id, binding):
     saved = repo.meta(conn, scope, binding)
     if saved is None or json.loads(saved) != admission_id:
         raise RuntimeStoreError("admission_conflict")
+
+
+def replace_automation(conn, scope, admission_id, session_id, replaced, *, fold=False, skip=()):
+    from gateway.session_automation import _FOLDED_TEXT, _descriptor
+    row = repo.admission(conn, scope, admission_id)
+    if row is None or row["target_session_id"] != session_id or row["status"] != "queued":
+        raise RuntimeStoreError("stale_generation")
+    if fold:
+        later = conn.scalars(select(session_admissions.c.admission_id).where(
+            repo.target_where(scope, session_id), session_admissions.c.status == "queued", session_admissions.c.seq > row["seq"]))
+        if any(other not in skip for other in later):
+            raise RuntimeStoreError("stale_generation")
+        payload = json.loads(row["payload_json"])
+        payload["text"] = _FOLDED_TEXT
+        _descriptor(payload).pop("identities", None)
+        repo.update(conn, scope, admission_id, payload_json=json.dumps(payload, separators=(",", ":"), ensure_ascii=False))
+    repo.update(conn, scope, admission_id, status="terminal", outcome="cancelled")
+    replaced[:] = [admission_id]

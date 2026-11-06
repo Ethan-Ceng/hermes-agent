@@ -7,6 +7,15 @@ verification. Real PG executes the same contracts in postgresql/ separately.
 import pytest
 
 
+@pytest.fixture
+def unavailable_native(monkeypatch):
+    from hermes_db import native_registry
+    from hermes_db.errors import StorageUnavailableError
+    def unavailable(*args):
+        raise StorageUnavailableError('test storage unavailable')
+    monkeypatch.setattr(native_registry, '_construct_store', unavailable)
+
+
 def _offline_engine(sa, tmp_path, name):
     from sqlalchemy.sql.dml import Insert
     from hermes_db.tables.conversations import messages
@@ -89,6 +98,22 @@ def core_pair(tmp_path):
 
 
 @pytest.fixture
+def native_registry(core_pair, monkeypatch):
+    from hermes_db import native_registry
+    from hermes_db.session_store import PostgresSessionStore
+    opened = []
+
+    def construct(settings, scope):
+        store = PostgresSessionStore(core_pair[0]._transactions, scope)
+        opened.append(store)
+        return store
+
+    monkeypatch.setattr(native_registry, "_construct_store", construct)
+    yield native_registry, opened
+    native_registry.close_all()
+
+
+@pytest.fixture
 def runtime(store, tmp_path):
     from hermes_state import SessionDB
     if isinstance(store, SessionDB):
@@ -97,3 +122,30 @@ def runtime(store, tmp_path):
         return SQLiteRuntime(store, DatabaseScope(tmp_path))
     from hermes_db.runtime_store import PostgresRuntimeStore
     return PostgresRuntimeStore(store)
+
+
+@pytest.fixture
+def api_owner(core_pair, monkeypatch):
+    from types import SimpleNamespace
+    from gateway.config import GatewayConfig
+    from gateway.session import SessionStore
+    from gateway.session_authority import SessionAuthority
+    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from hermes_db.runtime_store import PostgresRuntimeStore
+    db, other = core_pair
+    home = db.scope.profile_home
+    home.mkdir(parents=True)
+    token = set_hermes_home_override(home)
+    monkeypatch.setattr(SessionStore, "_open_session_db_for_active_scope", lambda self, **kw: db)
+    store = SessionStore(home / "sessions", GatewayConfig())
+    store._db = db
+    runner = SimpleNamespace(session_store=store, _session_db=db, adapters={}, _draining=False,
+        config=GatewayConfig(), _adapter_for_source=lambda source: None)
+    runtime = PostgresRuntimeStore(db)
+    epoch = runtime.begin_epoch(instance_id="api-owner")
+    authority = SessionAuthority(runner, profile_id=str(home), instance_id="api-owner", db=db, epoch=epoch)
+    runner.session_authority = authority
+    try:
+        yield authority, db, other
+    finally:
+        reset_hermes_home_override(token)

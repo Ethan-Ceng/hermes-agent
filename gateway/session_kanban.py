@@ -1,4 +1,6 @@
 """Trusted dispatcher claims enter the ordinary owner's durable admission queue."""
+
+from hermes_db.health import persisted_profile_id
 import asyncio
 import contextlib
 from contextlib import closing
@@ -77,17 +79,22 @@ async def run_task(connection, params):
     from gateway.session_local import create_local_session
     from gateway.session_contract import Submission
     from gateway.session_local_recovery import local_identity
-    from hermes_state_local import local_receipt
+    from hermes_db.local_access import local_receipt
     from gateway.session_policy import restore_policy
     authority = connection.authority
     # Resolved off-loop up front: no await separates the saved-claim check from session
     # creation. The Kanban claim check and its marker share one off-loop transaction; a
     # concurrent retry of the same attempt meets that marker (same session) or a stale claim.
-    owner_db = str(await asyncio.to_thread(Path(authority.db.db_path).resolve))
+    from hermes_db.health import is_postgresql_store, profile_home_for_store
+    if is_postgresql_store(authority.db):
+        owner_storage = {'storage_backend': 'postgresql', 'store_id': authority.db.scope.require_store_id(),
+                         'profile_home': str(profile_home_for_store(authority.db)), 'principal_id': connection.actor.subject}
+    else:
+        owner_storage = {'db': str(await asyncio.to_thread(Path(authority.db.db_path).resolve))}
     # The dispatcher attempt is the durable request identity, including after the
     # task closes. Retry checks the saved claim, never reinterprets updated cards.
     request_id = 'kanban:' + json.dumps([params.get('board'), params.get('task_id'), params.get('run_id')], separators=(',', ':'))
-    sid = local_identity(authority.profile_id, connection.actor.subject, request_id)
+    sid = local_identity(persisted_profile_id(authority), connection.actor.subject, request_id)
     saved = local_receipt(authority.db, sid) if authority.db.get_session(sid) is not None else None
     if saved:
         policy = restore_policy(saved['policy'])
@@ -125,7 +132,7 @@ async def run_task(connection, params):
                 if not (task and task.status == 'running' and task.current_run_id == params['run_id'] and task.claim_lock == params['claim_lock']):
                     raise RuntimeStoreError('stale_kanban_claim')
                 kb._append_event(conn, task.id, 'owner_admitted',
-                    {'db': owner_db, 'session_id': ref.session_id,
+                    {**owner_storage, 'session_id': ref.session_id,
                      'request_id': request_id, 'pid': os.getpid(), 'birth': worker_birth(psutil.Process())},
                     run_id=task.current_run_id)
     from gateway.session_runtime_workers import tracked_write
@@ -135,7 +142,7 @@ async def run_task(connection, params):
     # card (approvals.single_query_mode applies). Never unattended: that is `-z`'s auto-approval.
     # A retry of an attempt admitted before cards were finite resubmits its committed payload,
     # so the store returns the original receipt instead of admission_conflict.
-    from hermes_state_runtime import find_session_admission
+    from hermes_db.runtime_calls import find_session_admission
     committed = None if not saved else await asyncio.to_thread(find_session_admission, authority.db,
         principal_id=connection.actor.subject, session_id=ref.session_id, request_id=request_id)
     payload: dict = {'text': f'work kanban task {params["task_id"]}'}

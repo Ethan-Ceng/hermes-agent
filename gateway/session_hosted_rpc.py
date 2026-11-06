@@ -5,6 +5,8 @@ its principal and current-membership check; neither is taken from RPC payloads.
 """
 from __future__ import annotations
 
+from hermes_db.health import persisted_profile_id
+
 import asyncio
 from dataclasses import asdict, replace
 from functools import partial
@@ -14,7 +16,8 @@ import json
 from gateway.hosted_room_driver import TaskIdentity
 from gateway.owner_identity import same_owner
 from gateway.session_contract import SessionRef, Submission
-from hermes_state_runtime import RuntimeStoreError, list_session_admissions
+from hermes_state_runtime import RuntimeStoreError
+from hermes_db.runtime_calls import list_session_admissions
 
 _RESULTLESS_OUTCOMES = frozenset({'interrupted', 'cancelled'})
 # Encoded receipts per ``results`` read; under the 512 KiB private-socket response line.
@@ -25,17 +28,19 @@ class HostedRoomAuthorityRPC:
     accepts_attachments = True  # submit resolves event-bound bytes per member
 
     def __init__(self, authority, loop, *, room_id, member_id, profile, principal,
-                 authorize, authorize_write=None, timeout=30):
+                 authorize, authorize_write=None, timeout=30, room_db_path=None):
         self.authority, self.loop = authority, loop
         self.room_id, self.member_id, self.profile = room_id, member_id, profile
         self.principal, self.authorizer, self.timeout = principal, authorize, timeout
         self.authorize_write = authorize_write
+        from hermes_db.health import is_postgresql_store
+        self.room_db_path = room_db_path if is_postgresql_store(authority.db) else authority.db.db_path
         self.callbacks = {}
         binding = json.dumps([room_id, member_id, profile], separators=(',', ':'))
         self.creation_id = 'hosted:' + hashlib.sha256(binding.encode()).hexdigest()
         from gateway.session_local_recovery import local_identity
         self.ref = SessionRef(authority.profile_id, local_identity(
-            authority.profile_id, principal.subject, self.creation_id))
+            persisted_profile_id(authority), principal.subject, self.creation_id))
 
     def _call(self, operation, **params):
         try:
@@ -84,7 +89,7 @@ class HostedRoomAuthorityRPC:
         from gateway.session_local import stage_local_session
         from gateway.session_local_recovery import restore_local_session
         from gateway.session_runtime_workers import tracked_write
-        from hermes_state_local import commit_local_session
+        from hermes_db.local_access import commit_local_session
         from agent.skill_utils import parse_config_string_list
         private = {}
         config = _load_gateway_config()
@@ -106,6 +111,12 @@ class HostedRoomAuthorityRPC:
                 commit_local_session, self.authority.db, epoch=self.authority.epoch, receipt=staged))
             restore_local_session(self.authority, staged['session_id'])
         from hermes_state_runtime import _epoch
+        from hermes_db.health import is_postgresql_store
+        if is_postgresql_store(self.authority.db):
+            from hermes_db.runtime_access import runtime_for_store
+            await tracked_write(self.authority, partial(runtime_for_store(self.authority.db).label_hosted_session,
+                epoch=self.authority.epoch, session_id=self.ref.session_id, title=f'Group: {self.room_id}'))
+            return await self._resume(params)
         def label(conn):
             _epoch(conn, self.authority.epoch)
             conn.execute('UPDATE sessions SET title=?, hidden=1 WHERE id=?',
@@ -166,10 +177,17 @@ class HostedRoomAuthorityRPC:
             payload = await asyncio.to_thread(prepare_before_submit, partial(
                 submission_payload, self, params['prompt'], params.get('attachments')))
             authorize_write = self.authorize_write
+            context = None
+            from gateway.session_hosted_storage import HostedAdmissionAuthorizer
+            if isinstance(authorize_write, HostedAdmissionAuthorizer):
+                fence = authorize_write.for_task(task, generation)
+                authorize_write, context = fence.effect(), fence.context
+            elif authorize_write is not None:
+                callback = authorize_write
+                authorize_write = lambda conn: callback(conn, task, generation)
             receipt = await self.authority.submit(self.principal, Submission(
                 request_id, self.ref, payload, 'queue'),
-                _authorize_write=(lambda conn: authorize_write(conn, task, generation))
-                if authorize_write is not None else None)
+                _authorize_write=authorize_write, _write_context=context)
         self.callbacks[receipt.admission_id] = params['on_terminal']
         if receipt.status in {'queued', 'started'}:
             waiter = self.authority.waiters.get(receipt.admission_id)

@@ -30,7 +30,7 @@ def _frozen_cwd(db, session_id) -> str:
     row's cwd is main's stamp, which for a classic ``-w`` session is the repo root, not the tree."""
     import sqlite3
 
-    from hermes_state_local import local_receipt
+    from hermes_db.local_access import local_receipt
     from hermes_state_runtime import RuntimeStoreError
     try:
         return str(local_receipt(db, session_id)["policy"].get("cwd") or "").strip()
@@ -44,8 +44,8 @@ def recreate_resumed_tui_worktree(args) -> None:
     if not getattr(args, "resume", None) or getattr(args, "worktree", False):
         return
     cwd = ""
-    from hermes_cli.main import _session_db
-    with _session_db() as db:  # a store error is swallowed: nothing to recreate
+    from hermes_cli.main_session_storage import read_session_store
+    with read_session_store() as db:  # a store error is swallowed: nothing to recreate
         cwd = (_frozen_cwd(db, args.resume)
                or ((db.get_session(args.resume) or {}).get("cwd") or "").strip())
     if not cwd or os.path.isdir(cwd):

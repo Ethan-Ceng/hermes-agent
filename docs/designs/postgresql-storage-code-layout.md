@@ -272,3 +272,23 @@ Task 16 的显式身份/健康在 `health.py`、`session_health.py`；归档引�
 ## Task 1 实施契约
 
 2026-11-06：已建立 [业务契约与消费者清单](../plans/postgresql-session-storage-contracts.md)。后续表、操作和接线以该清单的作用域键、原子边界、保真编码和方法归属为检查依据。PG 仍未实现或验证。
+
+## Task 17 入口接线实施中
+
+2026-11-07：普通获取/释放落在 `hermes_db/access.py`，Native registry 按进程、连接配置和不可变 scope 共享 store，`SessionResource` 各自持有 acquisition。`runtime_access.py`/`runtime_calls.py` 按后端调用完整运行能力；local、history 和 terminal boundary 使用命名操作及显式 CoreEffect，不转换 SQLite SQL。PG local/API 持久化命名空间采用稳定 store_id，连接目标/Schema 摘要用于资源匹配和移动 guard；公开 Profile 授权协议与本地文件 home 分离。Profile 克隆在发布 staging 前分配新 PG 身份，原 Profile 改名保留稳定身份。
+
+`agent/session_persistence.py` 拥有懒 recall 获取，`hermes_cli/main_session_storage.py` 拥有启动只读 lookup，`gateway/run_session_storage.py` 拥有 runner 借用句柄缓存与关闭。`hermes_db/api_resources.py` 和 `gateway/platforms/api_server_storage_resources.py` 管理 Responses 所属 Profile 的资源；准入重查复用 Responses 当前事务连接。Gateway 通过已有 quiesce 护栏后释放投递 handle、两个 registry 和 PG Engine；单个 Profile unserve 只关闭该 home 的资源。
+
+Task 17 的 `runtime_api.py` / `operations/api_binding.py` 组合当前 API 绑定与准入设置，`runtime_media.py` 组合 scoped 媒体持有/分批终态正文维护。`operations/worker_reservation.py` 实施私有 managed-worker 预留/loss；`worker_access.py` 负责 owner claim 的后端派发。受管 compute 的 recall 通过 `gateway/session_worker_recall.py` 认证只读 RPC，数据库选择与命名 Profile 解析在 owner，读取不消耗写入回执序号，不能由 worker 本地打开 SQLite 代替 PG。API 请求身份控制锁按 store_id+request hash 保存于现有 state_meta，先于会话根锁取得；终态/删除不回收该锁目标。
+
+### Task 17：独立 HostedRoom 协调与 PG 主库边界
+
+协调文件名的摘要包含已规范化的数据库目标、Schema 与 store_id，复用 `resource_key`；用户/口令不参与文件身份。相同本地 home/store_id 改指不同目标或 Schema 时得到独立协调库，凭据轮换保留原协调库。此调整仅收紧独立房间文件的作用域，不改变规范会话命名空间或迁移文件。
+
+现有 canonical room service 在主 SQLite 文件中保存房间所有者/任务，用同一连接在提交会话准入时检查成员与 task generation。PG 主库没有 hosted_room 表；这项共连接假设必须拆开。独立房间数据库继续采用本地 SQLite，PG 模式在 Profile home 中按上述资源身份摘要命名新的 hosted 协调文件；其中只有房间协调表、owner KV 和本地房间运行 epoch，不创建 sessions/messages/session_admissions。SQLite 模式继续使用原文件和事务。PG 新空间不导入旧房间任务，防止旧任务对全新准入账本重复执行；原 SQLite/standalone 数据保持原位。
+
+Native 房间提交先在持久化 worker 线程取得本地协调库的写入栅栏，核对 owner、成员、房间 authority/task generation，再借用 PG 连接提交规范准入。锁顺序固定为本地房间栅栏→PG epoch/映射/根；PG 事务内只检查这次已锁定的房间状态，禁止反向新借 SQLite 锁。房间栅栏保持到 PG 提交结果返回后释放，该桥接上下文本身只读房间数据，不制造跨库双写原子性承诺。PG 的 epoch/CoreEffect 和稳定请求回执继续决定 canonical 接受与重放；本地协调文件的 epoch 在该节点服务准备阶段更新，过期服务拒绝控制。
+
+这属于解除主库依赖的执行调整，独立房间元数据仍依赖本机文件；本轮不增加房间 PG Schema、旧数据导入、跨节点房间协调或独立数据库的多副本保证。后续必须用行为契约验证本地房间授权回滚、PG 提交确认丢失后的同身份查询，以及房间成员/任务变更无法跨过准入栅栏。
+
+此处记录已落位代码，不代表 Task 17 已完成。普通资源获取、Run 路由/恢复、API/Worker CoreEffect 和关停释放已接入，显式 PG 配置由工厂获取 Native 资源；启动仍只检查 Schema，不执行 DDL。当前格式历史续接使用 Native claim，在一个受栅栏保护的事务中提交策略与路由，保留原消息和提示前缀，不调用 SQLite 旧格式采用。真实 PG surface 验证尚未执行；状态与最新命令证据以实施计划为准。

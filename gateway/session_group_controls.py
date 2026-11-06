@@ -1,4 +1,6 @@
 """Profile-owned room controls over the canonical hosted service."""
+
+from hermes_db.health import profile_home_for_store
 import asyncio
 import logging
 import os
@@ -60,7 +62,8 @@ async def dispatch_group_control(connection, method, params):
     if method not in _FIELDS or not isinstance(params, dict) or set(params) - (_FIELDS[method] | {'profile'}):
         raise RuntimeStoreError('invalid_params')
     home = Path(authority.profile_id)
-    db_path = await asyncio.to_thread(Path(authority.db.db_path).resolve)
+    from gateway.session_hosted_storage import coordination_path
+    db_path = await asyncio.to_thread(coordination_path(authority.db).resolve)
     if db_path.parent != await asyncio.to_thread(home.resolve):
         raise RuntimeStoreError('profile_mismatch')
     from hermes_cli.profiles import profile_matches_home
@@ -92,7 +95,8 @@ async def dispatch_group_control(connection, method, params):
 def _group(authority, actor, method, params, *, host_scope=False):
     from gateway import hosted_rooms as rooms
     from gateway.hosted_room_context import room_context, set_room_context
-    db_path = authority.db.db_path
+    from gateway.session_hosted_storage import coordination_path
+    db_path = coordination_path(authority.db)
     gateway_id = rooms.local_authority_gateway_id()
     service = getattr(authority, 'hosted_room_service', None)
     room_authorizer = getattr(service, 'authorize_room', None)
@@ -321,11 +325,15 @@ def _bot_sessions(authority, actor):
     Discovery is read-only: no legacy restore/unarchive or new SessionDB handle."""
     from tui_gateway.profile_roster_cache import cached_reader_session_fields
     operator = 'session:operator' in actor.capabilities
-    return cached_reader_session_fields(Path(authority.db.db_path).parent, (actor.subject, operator),
+    return cached_reader_session_fields(profile_home_for_store(authority.db), (actor.subject, operator),
                                         lambda: _read_bot_sessions(authority.db, actor.subject, operator))
 
 
 def _read_bot_sessions(db, subject, operator):
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(db):
+        from hermes_db.runtime_access import runtime_for_store
+        return runtime_for_store(db).bot_sessions(subject, operator)
     from hermes_state_local_migration import LEGACY_PREFIX
     from hermes_state_sessions import INTERNAL_LISTING_SOURCES
     hidden_sources = ','.join('?' * len(INTERNAL_LISTING_SOURCES))

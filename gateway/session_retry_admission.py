@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
 from hermes_state_runtime import RuntimeStoreError
+from hermes_db.errors import StorageError
 
 _bound: ContextVar[Optional[RetryRewrite]] = ContextVar('retry_rewrite', default=None)
 
@@ -37,13 +38,21 @@ class RetryRewrite:
     applied: bool = False
     taken: bool = field(default=False, repr=False)
 
-    def guard(self, conn):
+    def guard(self, conn, scope=None):
         self.applied = False  # the writer may retry the whole transaction
         try:
-            self.write(conn)
-        except (RuntimeStoreError, sqlite3.OperationalError):
+            if scope is None:
+                self.write(conn)
+            else:
+                from hermes_db.operations.effects import invoke
+                invoke(self.write, conn, scope)
+        except (RuntimeStoreError, StorageError, sqlite3.OperationalError):
             raise  # gate refusals and writer contention keep their own handling
         except Exception as exc:
+            if scope is not None:
+                from sqlalchemy.exc import DBAPIError
+                if isinstance(exc, DBAPIError):
+                    raise
             raise RetryRewriteRefused(str(exc)) from exc
         self.applied = True
 
@@ -71,6 +80,15 @@ def compose(rewrite: Optional[RetryRewrite], authorize):
     """``authorize`` (the admission gate) first, then the rewrite, in one write transaction."""
     if rewrite is None:
         return authorize
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(rewrite.db):
+        from hermes_db.operations.effects import CoreEffect, invoke
+
+        def native(conn, scope):
+            invoke(authorize, conn, scope)
+            rewrite.guard(conn, scope)
+
+        return CoreEffect(native)
 
     def guard(conn):
         authorize(conn)

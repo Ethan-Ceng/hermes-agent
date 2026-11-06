@@ -511,25 +511,25 @@ def _run_session_usage(job_id: str, execution_id: Optional[str]) -> dict[str, An
     import sqlite3
 
     from hermes_constants import get_hermes_home
-    from hermes_state import SessionDB
+    from agent.runtime_session_store import call_off_event_loop, current_worker_store
+    from hermes_db.access import open_session_store
+    from hermes_db.errors import StorageError
     # A missing or locked state.db costs the notice its usage line, never the completion.
     try:
-        db = SessionDB(db_path=get_hermes_home() / "state.db", read_only=True)
-    except (sqlite3.Error, OSError):
+        worker = current_worker_store()
+        if worker is not None:
+            return call_off_event_loop(worker.owner_read, 'cron.usage', job_id=job_id, execution_id=execution_id)
+        db = open_session_store(get_hermes_home() / "state.db", read_only=True)
+    except (StorageError, sqlite3.Error, OSError):
         return {}
     try:
-        run = next((r for r in db.list_cron_job_runs(job_id, limit=50)
-                    if r.get("cron_execution_id") == execution_id), None)
-        if run is None:
-            return {}
-        rows = [db.get_session(sid) or {} for sid in db.get_compression_chain(run["id"])]
-    except sqlite3.Error as exc:
+        from tools.session_store_reads import cron_run_usage
+        return cron_run_usage(db, job_id, execution_id)
+    except (StorageError, sqlite3.Error) as exc:
         logger.debug("cronjob run: run-session usage lookup failed for %s: %s", job_id, exc)
         return {}
     finally:
         db.close()
-    model = next((r["model"] for r in reversed(rows) if r.get("model")), None)
-    return {"api_calls": sum(int(r.get("api_call_count") or 0) for r in rows), **({"model": model} if model else {})}
 
 
 def _manual_run_completion(

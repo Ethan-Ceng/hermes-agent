@@ -5448,6 +5448,46 @@ export interface CanonicalBotCancelResult {
   status: 'cancelled' | 'stopping' | 'finished'
   receipt_status: string
 }
+export interface WorkerRecallParams {
+  profile_id: string
+  session_id: string
+  execution_id: string
+  generation: number
+  pid: number
+  birth: number
+  secret: string
+  epoch: number
+  options: WorkerRecallOptions
+}
+export interface WorkerRecallOptions {
+  query?: string
+  role_filter?: string | null
+  limit?: number | null
+  current_session_id?: string | null
+  session_id?: string | null
+  around_message_id?: number | null
+  window?: number
+  sort?: string | null
+  profile?: string | null
+  detail?: string
+  after?: string | null
+  before?: string | null
+  exclude_session_ids?: string[] | null
+}
+export type WorkerRecallResult = string
+export interface WorkerReadParams {
+  profile_id: string
+  session_id: string
+  execution_id: string
+  generation: number
+  pid: number
+  birth: number
+  secret: string
+  epoch: number
+  operation: 'result.owns' | 'session.persisted' | 'cron.usage'
+  payload: Record<string, string>
+}
+export type WorkerReadResult = boolean | string | Record<string, unknown> | null
 /** ``answers`` rides only on a reconnect replay (locks the server already accepted; null = skipped). */
 export interface ClarifyRequestParams {
   session_id: string
@@ -7014,6 +7054,10 @@ export interface CanonicalRpcMethods {
   'worker.adopt': { params: WorkerScopeParams; result: WorkerExecution }
   /** Sequence-fenced typed persistence write from an adopted worker. */
   'worker.persist': { params: WorkerPersistParams; result: WorkerPersistResult }
+  /** Read fixed tool metadata through the authenticated adopted execution owner. */
+  'worker.read': { params: WorkerReadParams; result: WorkerReadResult }
+  /** Read session history through the authenticated adopted execution owner. */
+  'worker.recall': { params: WorkerRecallParams; result: WorkerRecallResult }
   /** Register a compute worker execution on an idle session. */
   'worker.register': { params: WorkerRegisterParams; result: WorkerExecution }
 }
@@ -7067,6 +7111,8 @@ export const CANONICAL_RPC_METHODS = [
   'shell.exec',
   'worker.adopt',
   'worker.persist',
+  'worker.read',
+  'worker.recall',
   'worker.register'
 ] as const satisfies readonly CanonicalRpcMethod[]
 

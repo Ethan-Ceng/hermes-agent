@@ -1,7 +1,10 @@
 """Exact execution results commit with settlement, before delivery/publication."""
 from contextvars import ContextVar
 
-from hermes_state_runtime import RuntimeStoreError, _admission, _epoch, settle_session_input
+from hermes_state_runtime import RuntimeStoreError, _admission, _epoch
+from hermes_db.runtime_calls import settle_session_input
+from hermes_db.health import is_postgresql_store
+from hermes_db.runtime_access import runtime_for_store, effect_for_store
 
 execution_result: ContextVar[dict | None] = ContextVar("execution_result", default=None)
 from hermes_state_terminal import RESULT_PREFIX as _RESULT_PREFIX, load_result
@@ -77,6 +80,29 @@ def finish_result(db, *, epoch, row, response, outcome, result=None, prepared=No
     `prepared` is ``prepare_result``'s output computed before the caller took a lock.
     `transfers` are the queued steers handed to this claim; they settle in the same write.
     """
+    replay = _completion_replay(db, epoch, row)
+    if replay is not None:
+        return replay
+    outcome, stored = prepared or prepare_result(row, response, outcome, result)
+    from gateway.session_settlement_recovery import gateway_refusal_boundary, owner_stop_notice
+    notice, display_metadata = owner_stop_notice(result, outcome, row), None
+    if notice is None and (refusal := gateway_refusal_boundary(result, outcome)) is not None:
+        notice, display_metadata = refusal
+    write = None
+    if notice is not None:
+        def boundary(conn, current):
+            return close_discarded_turn(db, conn, row, notice,
+                replace_after=row.get('transcript_mark'), display_metadata=display_metadata)
+        write = effect_for_store(db, boundary, lambda conn, scope, current: boundary(conn, current))
+    settled = settle_session_input(db, epoch=epoch, admission_id=row['admission_id'],
+        generation=row['generation'], outcome=outcome, result=stored, _transfers=transfers,
+        _terminal_write=write)
+    return settled, response
+
+
+def _completion_replay(db, epoch, row):
+    if is_postgresql_store(db):
+        return runtime_for_store(db).completion_replay(epoch=epoch, row=row)
     with db._read_ctx() as conn:
         _epoch(conn, epoch)
         current = _admission(conn, row['admission_id'])
@@ -89,27 +115,11 @@ def finish_result(db, *, epoch, row, response, outcome, result=None, prepared=No
                 raise RuntimeStoreError('storage_unavailable')
             result = load_result(saved[0])
             return dict(current), result['result'].get('final_response') or ''
-    outcome, stored = prepared or prepare_result(row, response, outcome, result)
-    # A turn the owner's restart/stop interrupted: its reason commits as a Hermes transcript notice
-    # in this same write, so a viewer that reconnects after the restart reads why (#134889 GW-21);
-    # the live ``message.complete.warning`` carries the same copy. A retry that finds the row
-    # terminal returns above, so the notice is written once.
-    # A gateway-owned refusal (a message typed into a cron session) commits its explanation and
-    # error card as the transcript's failed-turn boundary in this same write too: the admission
-    # result is not history, so a reopened chat would otherwise show nothing about the refusal.
-    from gateway.session_settlement_recovery import gateway_refusal_boundary, owner_stop_notice
-    notice, display_metadata = owner_stop_notice(result, outcome, row), None
-    if notice is None and (refusal := gateway_refusal_boundary(result, outcome)) is not None:
-        notice, display_metadata = refusal
-    write = None if notice is None else (lambda conn, _current: close_discarded_turn(
-        db, conn, row, notice, replace_after=row.get('transcript_mark'), display_metadata=display_metadata))
-    settled = settle_session_input(db, epoch=epoch, admission_id=row['admission_id'],
-        generation=row['generation'], outcome=outcome, result=stored, _transfers=transfers,
-        _terminal_write=write)
-    return settled, response
 
 
 def admission_result(db, admission_id):
+    if is_postgresql_store(db):
+        return runtime_for_store(db).current_result(admission_id)
     with db._read_ctx() as conn:
         row = _admission(conn, admission_id)
         if row['status'] != 'terminal':
@@ -145,6 +155,9 @@ def close_discarded_turn(db, conn, row, notice=None, *, replace_after=None, disp
 
     ``display_metadata`` (``{error, error_surface}``) rides the boundary so a reopened chat redraws
     the turn's error card from history (``agent.conversation_loop._failed_turn_display_metadata``)."""
+    if is_postgresql_store(db):
+        from hermes_db.operations.terminal_boundary import close_discarded
+        return close_discarded(conn, db.scope, row, notice, replace_after=replace_after, display_metadata=display_metadata)
     import time
     from agent.turn_failure_copy import FAILED_TURN_DISPLAY_KIND, PARTIAL_FAILED_TURN_NOTICE
     from hermes_state_local_lineage import local_physical_target

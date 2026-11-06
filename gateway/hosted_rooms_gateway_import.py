@@ -170,6 +170,9 @@ def import_after_ready(authorities) -> None:
     The service's driver re-reads its bindings each tick and is woken for the claimed rooms."""
     import threading
     for authority in authorities:
+        from hermes_db.health import is_postgresql_store
+        if is_postgresql_store(authority.db):
+            continue
         service = getattr(authority, "hosted_room_service", None)
         if service is None or getattr(service, "_ready_import_started", False):
             continue

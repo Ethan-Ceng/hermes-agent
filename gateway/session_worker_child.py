@@ -10,7 +10,8 @@ leave the parent's journal pending and refuse every later write of its turn.
 import secrets
 from functools import partial
 
-from hermes_state_runtime import RuntimeStoreError, apply_worker_receipt
+from hermes_state_runtime import RuntimeStoreError
+from hermes_db.runtime_calls import apply_worker_receipt
 from hermes_state_runtime_workers import CHILD_SEPARATOR, descendant_range
 
 _DEFAULTS = {'max_concurrent_children': 10, 'max_spawn_depth': 1}
@@ -29,9 +30,14 @@ def delegation_limits(authority, execution_id, session_id):
     from gateway.session_policy import policy_for_source, profile_config
     root = execution_id.split(CHILD_SEPARATOR, 1)[0]
     if root != execution_id:
-        with authority.db._read_ctx() as conn:
-            row = conn.execute('SELECT session_id FROM worker_executions WHERE execution_id=?', (root,)).fetchone()
-        session_id = row[0] if row else session_id
+        from hermes_db.health import is_postgresql_store
+        if is_postgresql_store(authority.db):
+            from hermes_db.runtime_access import runtime_for_store
+            session_id = runtime_for_store(authority.db).worker_session(root) or session_id
+        else:
+            with authority.db._read_ctx() as conn:
+                row = conn.execute('SELECT session_id FROM worker_executions WHERE execution_id=?', (root,)).fetchone()
+            session_id = row[0] if row else session_id
     live = authority.sessions.get(authority.logical_owner(session_id))
     policy = policy_for_source(authority.runner, live.source) if live is not None else None
     config = policy.config(authority) if policy is not None else profile_config(authority)
@@ -75,10 +81,10 @@ async def worker_child_request(connection, ref, params):
     from gateway.session_worker import _SCOPE, _claim, _verify
     if set(params) != _SCOPE | {'epoch', 'sequence', 'operation', 'payload'}:
         raise RuntimeStoreError('invalid_params')
-    claim = _claim(connection, ref, params)
+    claim = await asyncio.to_thread(_claim, connection, ref, params)
     if 'worker:adopt' not in connection.actor.capabilities:
         raise RuntimeStoreError('permission_denied')
-    _verify(connection, ref, params, claim)
+    await asyncio.to_thread(_verify, connection, ref, params, claim)
     authority = connection.authority
 
     def reserve():
@@ -88,9 +94,16 @@ async def worker_child_request(connection, ref, params):
             limits = delegation_limits(authority, params['execution_id'], params['session_id'])
         except RuntimeStoreError as exc:
             refused = exc.reason
-        handler = partial(reserve_child_execution, epoch=params['epoch'], execution_id=params['execution_id'],
+        reservation = reserve_child_execution
+        from hermes_db.health import is_postgresql_store
+        if is_postgresql_store(authority.db):
+            from hermes_db.operations.worker_children import reservation_effect
+            reservation = reservation_effect
+        handler = partial(reservation, epoch=params['epoch'], execution_id=params['execution_id'],
                           identity={key: params[key] for key in ('profile_id', 'pid', 'birth')},
                           principal=connection.actor.subject, limits=limits, refused=refused)
+        if is_postgresql_store(authority.db):
+            handler = handler()
         return apply_worker_receipt(authority.db, **{key: params[key] for key in (
             'epoch', 'execution_id', 'session_id', 'generation', 'sequence', 'operation', 'payload')},
             handlers={'child.reserve': handler})

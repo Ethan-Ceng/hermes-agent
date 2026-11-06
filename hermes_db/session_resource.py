@@ -10,6 +10,10 @@ class SessionResource:
         return self._handle.scope
 
     @property
+    def is_open(self):
+        return self._handle.is_open
+
+    @property
     def runtime(self):
         return self._handle.runtime
 

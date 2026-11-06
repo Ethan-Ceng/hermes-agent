@@ -11,6 +11,8 @@ import threading
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, Optional
 from utils import atomic_json_write
+from hermes_db.errors import StorageError, StorageUnavailableError
+from hermes_db.health import is_postgresql_store
 
 if TYPE_CHECKING:
     from gateway.session import SessionEntry, SessionSource
@@ -97,19 +99,24 @@ class SessionPersistenceMixin:
         that the multiplexed inbound path already performs actually reach session storage.
         """
         from hermes_state import _default_db_path
-        from hermes_state_registry import acquire
+        from hermes_db.access import acquire_sessions
+        from hermes_cli.db_setup import session_backend
 
         path = Path(db_path) if db_path is not None else Path(_default_db_path())
+        native = session_backend(path.resolve().parent) == "postgresql"
 
         def _open():
             try:
-                return acquire(path)  # process-wide registry: one writer per path
+                return acquire_sessions(path)
             except Exception as e:
-                if not _is_live_system_guard(e):
+                if not native and not _is_live_system_guard(e):
                     print(f"[gateway] Warning: SQLite session store unavailable, falling back to JSONL: {e}")
                 raise
 
-        return self._db_handle_cache.get(path, _open, non_cacheable=_is_live_system_guard)
+        handle = self._db_handle_cache.get(path, _open, raise_on_error=native, non_cacheable=_is_live_system_guard)
+        if native and handle is None:
+            raise StorageUnavailableError("Session storage is unavailable; retry after recovery")
+        return handle
 
     def _pinned_db(self):
         """Return the explicitly pinned DB (``store._db = x``), else ``_DB_UNPINNED``."""
@@ -149,6 +156,8 @@ class SessionPersistenceMixin:
             if home is None:
                 return self._db
             return self._open_session_db_for_active_scope(db_path=home / "state.db")
+        except StorageError:
+            raise
         except Exception:
             return None
 
@@ -209,6 +218,8 @@ class SessionPersistenceMixin:
                 return self._db
             try:
                 return self._open_session_db_for_active_scope(db_path=routing_home / "state.db")
+            except StorageError:
+                raise
             except Exception:
                 return None
         home = self._profile_home_for_key(session_key)
@@ -221,6 +232,8 @@ class SessionPersistenceMixin:
             return None
         try:
             return self._open_session_db_for_active_scope(db_path=home / "state.db")
+        except StorageError:
+            raise
         except Exception:
             return None  # same contract as ``_db``: a failed open degrades to JSONL fallback
 
@@ -250,7 +263,7 @@ class SessionPersistenceMixin:
         would strand secondary profiles' handles with their WAL lock held ('database is locked' on
         restart). Drained under the lock, closed outside it; a pinned handle is the pinner's."""
         def _close(db) -> None:
-            from hermes_state_registry import release_or_close  # shared instances no-op on close()
+            from hermes_db.access import release_session_store as release_or_close
             try:
                 release_or_close(db)
             except Exception as exc:
@@ -325,7 +338,11 @@ class SessionPersistenceMixin:
                 if entry is not None:
                     self._entries[key] = entry
             return True
+        except StorageError:
+            raise
         except Exception as e:
+            if is_postgresql_store(self._routing_db):
+                raise
             logger.warning("gateway.session: state.db routing load failed: %s", e)
             return False
 
@@ -404,6 +421,8 @@ class SessionPersistenceMixin:
         """Legacy import: sessions.json fills only keys the DB lacks. Lock held. Returns how many
         mirror entries it skipped as retired routes."""
         from gateway.session import SessionEntry
+        if is_postgresql_store(self._routing_db):
+            return 0
         sessions_file = self.sessions_dir / "sessions.json"
         retired = 0
         if not sessions_file.exists():
@@ -464,6 +483,8 @@ class SessionPersistenceMixin:
                 elif verdict is not None:
                     self._entries[key] = verdict
                     recovered_keys += 1
+        except StorageError:
+            raise
         except Exception as exc:
             logger.warning("gateway.session: stale-entry pruning skipped due to DB error: %s", exc)
             return
@@ -556,7 +577,11 @@ class SessionPersistenceMixin:
             return
         try:
             durable = loader(scope=self._routing_scope())
+        except StorageError:
+            raise
         except Exception as exc:
+            if is_postgresql_store(self._routing_db):
+                raise
             logger.warning("gateway.session: recovered state.db routing load failed: %s", exc)
             return
         current = self._entries_as_dicts()
@@ -603,7 +628,11 @@ class SessionPersistenceMixin:
                     # age out (a prune's), and the next start's legacy import would restore it.
                     if retired:
                         data = {k: v for k, v in data.items() if k not in retired}
+                except StorageError:
+                    raise
                 except Exception as exc:
+                    if is_postgresql_store(self._routing_db):
+                        raise
                     logger.warning("gateway.session: state.db routing save failed: %s", exc)
             if getattr(self, "_write_sessions_json", True) or not db_saved:
                 try:
@@ -665,7 +694,11 @@ class SessionPersistenceMixin:
                     saver(session_key, entry_json, scope=self._routing_scope())
                     fast_persisted[session_key] = (revision, entry_json)
                 return
+            except StorageError:
+                raise
             except Exception as exc:
+                if is_postgresql_store(self._routing_db):
+                    raise
                 logger.warning(
                     "gateway.session: single-entry routing save failed for %r (%s); falling back "
                     "to full index rewrite", session_key, exc)

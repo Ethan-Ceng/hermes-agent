@@ -44,16 +44,24 @@ def settle_recovered_unattended(db, epoch) -> int:
     from agent.turn_failure_copy import AUTOMATION_INTERRUPTED_NOTICE
     from gateway.session_ingress_media import release_admission_media
     from gateway.session_results import close_discarded_turn
-    from hermes_state_runtime import RuntimeStoreError, _row, resolve_unknown_session_input
-    with db._read_ctx() as conn:
-        rows = [_row(r) for r in conn.execute(
-            "SELECT * FROM session_admissions WHERE status='unknown' ORDER BY seq").fetchall()]
+    from hermes_state_runtime import RuntimeStoreError, _row
+    from hermes_db.runtime_calls import resolve_unknown_session_input
+    from hermes_db.health import is_postgresql_store
+    from hermes_db.runtime_access import effect_for_store, runtime_for_store
+    if is_postgresql_store(db):
+        rows = runtime_for_store(db).unknown_inputs()
+    else:
+        with db._read_ctx() as conn:
+            rows = [_row(r) for r in conn.execute(
+                "SELECT * FROM session_admissions WHERE status='unknown' ORDER BY seq").fetchall()]
     settled = 0
     for row in _unattended_unknown(rows):
         try:
             resolve_unknown_session_input(
                 db, epoch=epoch, admission_id=row['admission_id'], generation=row['generation'],
-                _terminal_write=lambda conn, lost: close_discarded_turn(db, conn, lost, AUTOMATION_INTERRUPTED_NOTICE))
+                _terminal_write=effect_for_store(db,
+                    lambda conn, lost: close_discarded_turn(db, conn, lost, AUTOMATION_INTERRUPTED_NOTICE),
+                    lambda conn, scope, lost: close_discarded_turn(db, conn, lost, AUTOMATION_INTERRUPTED_NOTICE)))
         except RuntimeStoreError as exc:
             logger.warning('Lost automation admission %s left unknown: %s', row['admission_id'], exc.reason)
             continue
@@ -71,7 +79,8 @@ async def settle_unattended_unknown(authority, ref) -> bool:
     import asyncio
 
     from agent.turn_failure_copy import AUTOMATION_INTERRUPTED_NOTICE
-    from hermes_state_runtime import RuntimeStoreError, list_session_admissions
+    from hermes_state_runtime import RuntimeStoreError
+    from hermes_db.runtime_calls import list_session_admissions
     rows = await asyncio.to_thread(list_session_admissions, authority.db, session_id=ref.session_id)
     settled = False
     for row in _unattended_unknown(rows):

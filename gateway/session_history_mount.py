@@ -12,6 +12,7 @@ app's self-labelled chat (``mobile``, ``ios``) for its native owner; anyone else
 """
 
 from hermes_state_runtime import RuntimeStoreError
+from hermes_db.health import is_postgresql_store, own_profile_for_store
 
 # Never a lane key, so no lane publishing a conversation takes this mount over.
 _ROUTE_PREFIX = 'history:'
@@ -20,11 +21,11 @@ _ROUTE_PREFIX = 'history:'
 def _reader(authority, actor, sid):
     """The importer an import binding names, else the profile's owner: its native peer (the evidence
     legacy adoption takes) or an operator. Knowing an old id is not ownership."""
-    from hermes_state_mutation_binding import binding_names, history_binding
-    with authority.db._read_ctx() as conn:
-        binding = history_binding(conn, sid)
+    from hermes_state_mutation_binding import BINDING_PREFIX
+    from hermes_db.authority_access import history_binding_names
+    binding = authority.db.get_meta(BINDING_PREFIX + sid)
     if binding is not None:
-        return binding_names(binding, actor.profile_id, actor.subject)
+        return history_binding_names(authority.db, binding, actor)
     return ('session:operator' in actor.capabilities
             or getattr(authority, '_native_legacy_transports', {}).get(actor.transport_id) == actor)
 
@@ -35,12 +36,11 @@ def mount_history(authority, actor, sid):
     from hermes_state_local_migration import LEGACY_LOCAL_SOURCES
     row = authority.db.get_session(sid)
     if (row['source'] in LEGACY_LOCAL_SOURCES | {'local'}
-            or row.get('profile_name') not in (None, '', authority.db._own_profile_name() or 'default')
+            or row.get('profile_name') not in (None, '', own_profile_for_store(authority.db) or 'default')
             or not _reader(authority, actor, sid)):
         return False
-    with authority.db._read_ctx() as conn:
-        if conn.execute('SELECT 1 FROM state_meta WHERE key=?', (API_BINDING_PREFIX + sid,)).fetchone():
-            return False  # restore_api_session's
+    if authority.db.get_meta(API_BINDING_PREFIX + sid) is not None:
+        return False  # restore_api_session's
     authority._require_admission_open()
     from gateway.session_authority import LiveSession
     authority.sessions.setdefault(sid, LiveSession(None, _ROUTE_PREFIX + sid))
@@ -57,6 +57,9 @@ def require_history_leaf(authority, sid):
     chain nothing else hangs off (as #140692 by @pnpwin did for subagents)."""
     if not is_history_mount(authority.sessions[sid]):
         return
+    if is_postgresql_store(authority.db):
+        from hermes_db.runtime_access import runtime_for_store
+        return runtime_for_store(authority.db).require_history_leaf(sid)
     from hermes_state_mutation_guards import delete_targets
     chain = set(authority.db.get_compression_lineage(sid))
     with authority.db._read_ctx() as conn:

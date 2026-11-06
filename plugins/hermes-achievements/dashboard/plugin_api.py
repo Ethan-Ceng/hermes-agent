@@ -222,6 +222,10 @@ def session_fingerprint(meta: dict[str, Any]) -> dict[str, Any]:
     return {"last_active": meta.get("last_active"), "started_at": meta.get("started_at"), "model": meta.get("model"), "title": meta.get("title") or meta.get("preview") or "Untitled"}
 
 
+def _checkpoint_matches(checkpoint: dict[str, Any], identity: str) -> bool:
+    return int(checkpoint.get("schema_version") or 0) == _CHECKPOINT_SCHEMA_VERSION and checkpoint.get("storage_identity") == identity
+
+
 def _cache_is_fresh(now: int) -> bool:
     return _SNAPSHOT_CACHE is not None and (now - _SNAPSHOT_CACHE_AT) <= SNAPSHOT_TTL_SECONDS
 
@@ -555,18 +559,20 @@ def scan_sessions(limit: Optional[int] = None, progress_callback: Optional[Any] 
     intermediate snapshots.
     """
     try:
-        from hermes_state import SessionDB
+        from hermes_db.access import open_session_store
+        from hermes_db.health import storage_identity
 
         # The scan only reads. A writable open here was a second writer connection (schema
         # init, write lock, close-time checkpoint) beside the dashboard's own store on every
         # scan, and counted toward the "live SessionDB handles" precursor (#100896).
-        db = SessionDB(read_only=True)
+        db = open_session_store(db_path=get_hermes_home() / "state.db", read_only=True)
     except Exception as exc:
         return {"sessions": [], "aggregate": {}, "error": f"Could not open SessionDB: {exc}", "scan_meta": _scan_meta("failed", 0)}
 
     previous_checkpoint = load_checkpoint()
     previous_sessions = previous_checkpoint["sessions"]  # load_checkpoint guarantees a dict
-    checkpoint_is_current = int(previous_checkpoint.get("schema_version") or 0) == _CHECKPOINT_SCHEMA_VERSION
+    identity = str(storage_identity(db))
+    checkpoint_is_current = _checkpoint_matches(previous_checkpoint, identity)
     reused = rescanned = 0
     db_limit = -1 if (limit is None or limit <= 0) else int(limit)
     try:
@@ -610,7 +616,7 @@ def scan_sessions(limit: Optional[int] = None, progress_callback: Optional[Any] 
                     progress_callback(list(sessions), idx, total_sessions)
                 except Exception:
                     pass  # Advisory — a broken publisher must never abort the scan.
-        _write_json(CHECKPOINT_FILE, {"schema_version": _CHECKPOINT_SCHEMA_VERSION, "generated_at": int(time.time()), "sessions": checkpoint_sessions})
+        _write_json(CHECKPOINT_FILE, {"schema_version": _CHECKPOINT_SCHEMA_VERSION, "storage_identity": identity, "generated_at": int(time.time()), "sessions": checkpoint_sessions})
     finally:
         db.close()
     return {
@@ -806,11 +812,12 @@ def _run_scan_and_update_cache(publish_partial_snapshots: bool = True) -> None:
 def _start_background_scan() -> None:
     """Kick off a daemon-thread scan unless one is already running (idempotent)."""
     global _BACKGROUND_SCAN_THREAD
+    from agent.memory_provider import spawn_context_thread
     with _BACKGROUND_SCAN_LOCK:
         existing = _BACKGROUND_SCAN_THREAD
         if existing is not None and existing.is_alive():
             return
-        thread = threading.Thread(target=_run_scan_and_update_cache, kwargs={"publish_partial_snapshots": True}, name="hermes-achievements-scan", daemon=True)
+        thread = spawn_context_thread(target=_run_scan_and_update_cache, kwargs={"publish_partial_snapshots": True}, name="hermes-achievements-scan", daemon=True)
         _BACKGROUND_SCAN_THREAD = thread
         thread.start()
 

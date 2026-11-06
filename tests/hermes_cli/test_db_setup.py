@@ -3,7 +3,7 @@
 import pytest
 
 from hermes_cli.db_setup import open_profile_db, resolve_db_configuration
-from hermes_db.errors import StorageConfigurationError, StorageNotReadyError
+from hermes_db.errors import StorageConfigurationError, StorageUnavailableError
 
 
 def _profile(tmp_path, name, store="store-a", secret="a-secret"):
@@ -82,10 +82,14 @@ def test_deferred_sqlite_reads_remain_bound_to_the_owning_profile(tmp_path):
     assert get_hermes_home() == caller_home
 
 
-def test_postgres_entry_is_fail_closed_during_development(tmp_path):
+def test_postgres_entry_is_fail_closed_when_unavailable(tmp_path, monkeypatch):
     pytest.importorskip("psycopg", reason="optional postgresql extra")
     home = _profile(tmp_path, "pg")
-    with pytest.raises(StorageNotReadyError):
+    from hermes_db import native_registry
+    def unavailable(settings, scope):
+        raise StorageUnavailableError('test storage unavailable')
+    monkeypatch.setattr(native_registry, '_construct_store', unavailable)
+    with pytest.raises(StorageUnavailableError):
         open_profile_db(home)
     assert not (home / "state.db").exists()
 

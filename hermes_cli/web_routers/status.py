@@ -490,6 +490,9 @@ def _fts_rebuild_status() -> Optional[dict[str, Any]]:
     """Deferred FTS rebuild progress of this home's state.db (read-only open), or None."""
     from hermes_state import SessionDB as _SDB
     from hermes_constants import get_hermes_home as _ghh
+    from hermes_cli.db_setup import session_backend
+    if session_backend(_ghh()) == 'postgresql':
+        return None
     _db_path = _ghh() / "state.db"
     if not _db_path.exists():
         return None

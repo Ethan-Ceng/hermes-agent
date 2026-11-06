@@ -1,0 +1,163 @@
+"""Ordinary configured entry points on real PostgreSQL, including a one-connection pool."""
+
+from dataclasses import replace
+import json
+
+import pytest
+
+pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
+
+
+@pytest.fixture
+def surface_config(postgres_test_config, postgres_schema, tmp_path):
+    import hermes_yaml as yaml
+    from hermes_db.schema import upgrade_schema
+    from hermes_db.access import close_session_resources
+    settings = replace(postgres_test_config.settings, schema=postgres_schema, pool_size=1,
+        max_overflow=0, connection_budget=1, pool_timeout_seconds=2)
+    upgrade_schema(settings)
+    homes = [tmp_path / 'first', tmp_path / 'second']
+    config = {'platform_toolsets': {'cli': []}, 'model': {'provider': 'custom', 'default': 'm',
+        'base_url': 'http://provider.invalid/v1'}, 'storage': {'session': {'backend': 'postgresql'}}}
+    options = {key: getattr(settings, key) for key in settings.__dataclass_fields__ if key != 'dsn'}
+    for home, store_id in zip(homes, ('surface-one', 'surface-two')):
+        home.mkdir()
+        config['storage']['session']['postgresql'] = {**options, 'store_id': store_id}
+        (home / 'config.yaml').write_text(yaml.safe_dump(config), encoding='utf-8')
+        (home / '.env').write_text('HERMES_POSTGRES_DSN=' + json.dumps(settings.dsn) + '\n', encoding='utf-8')
+    try:
+        yield homes
+    finally:
+        close_session_resources()
+
+
+def test_configured_factory_cli_and_oneshot_retain_independent_scope(surface_config):
+    from hermes_cli.db_setup import open_profile_db
+    from hermes_cli.main_session_storage import read_session_store
+    from hermes_cli.oneshot import _create_session_db_for_oneshot
+    from hermes_constants import set_hermes_home_override, reset_hermes_home_override
+    first, second = surface_config
+    for home, text in ((first, 'one'), (second, 'two')):
+        with open_profile_db(home) as handle:
+            handle.sessions.create_session('same', 'cli')
+            handle.sessions.append_message('same', 'user', text)
+    token = set_hermes_home_override(first)
+    try:
+        with read_session_store() as reader:
+            assert reader.get_messages_as_conversation('same')[0]['content'] == 'one'
+        db = _create_session_db_for_oneshot()
+        try:
+            assert db.get_messages_as_conversation('same')[0]['content'] == 'one'
+        finally:
+            db.close()
+    finally:
+        reset_hermes_home_override(token)
+    assert all(not (home / 'state.db').exists() for home in surface_config)
+
+
+@pytest.mark.parametrize('surface', ['agent_recall', 'tui', 'acp'])
+def test_agent_tui_and_acp_open_the_configured_scope(surface_config, monkeypatch, surface):
+    from hermes_cli.db_setup import open_profile_db
+    from hermes_constants import set_hermes_home_override, reset_hermes_home_override
+    from acp_adapter.session import SessionManager
+    from tui_gateway import server
+    from run_agent import AIAgent
+    home = surface_config[0]
+    with open_profile_db(home) as handle:
+        handle.sessions.create_session('retained', 'acp')
+        handle.sessions.append_message('retained', 'user', 'prefix')
+    agent = object.__new__(AIAgent)
+    agent._session_db = None
+    monkeypatch.setattr(server, '_db', None)
+    monkeypatch.setattr(server, '_launch_state_db_path', lambda: home / 'state.db')
+    opens = {'agent_recall': agent._get_session_db_for_recall, 'tui': server._get_db, 'acp': SessionManager()._get_db}
+    token = set_hermes_home_override(home)
+    try:
+        db = opens[surface]()
+        assert db.scope.store_id == 'surface-one'
+        assert db.get_messages_as_conversation('retained')[0]['content'] == 'prefix'
+        db.close()
+    finally:
+        reset_hermes_home_override(token)
+
+
+@pytest.mark.asyncio
+async def test_gateway_api_responses_and_run_receipts_share_one_connection(surface_config):
+    from aiohttp import web
+    from aiohttp.test_utils import TestClient, TestServer
+    from gateway.config import PlatformConfig
+    from gateway.run import GatewayRunner
+    from gateway.session_authority import initialize_session_authority
+    from gateway.platforms.api_server import APIServerAdapter
+    from gateway.platforms.api_server_response_admissions import _lookup_admission
+    from gateway.session_api_turn import admit_api_turn
+    from hermes_db.runtime_access import runtime_for_store
+    from hermes_constants import set_hermes_home_override, reset_hermes_home_override
+    home = surface_config[0]
+    token = set_hermes_home_override(home)
+    adapter = None
+    try:
+        runner = GatewayRunner()
+        owner = await initialize_session_authority(runner, profile_id=str(home), instance_id='pg-surface')
+        runner.session_authority = owner
+        adapter = APIServerAdapter(PlatformConfig(enabled=True))
+        adapter.gateway_runner, adapter._session_db, adapter._api_key = runner, owner.db, 'test-key'
+        runner._adapter_for_source = lambda source: adapter
+        app = web.Application()
+        app.router.add_post('/api/sessions', adapter._handle_create_session)
+        async with TestClient(TestServer(app)) as client:
+            created = await client.post('/api/sessions', json={'id': 'http-session'},
+                headers={'Authorization': 'Bearer test-key'})
+            assert created.status == 201, await created.text()
+        args = dict(session_id='api-target', request_id='durable-request', user_message='hello', conversation_history=[])
+        admitted = admit_api_turn(adapter, **args)[2]
+        assert admit_api_turn(adapter, **args)[2]['admission_id'] == admitted['admission_id']
+        responses = adapter._response_store
+        responses.bind_request_key('response-key', 'fingerprint')
+        found = responses.atomically(_lookup_admission, owner, responses, ('response-key', 'fingerprint'), 'durable-request')
+        assert found[2]['admission_id'] == admitted['admission_id']
+        claim = runtime_for_store(owner.db).claim_input(epoch=owner.epoch, session_id='api-target')
+        runtime_for_store(owner.db).settle_input(epoch=owner.epoch, admission_id=admitted['admission_id'],
+            generation=claim['generation'], outcome='completed', result={'final_response': 'ok'})
+        runs = adapter._run_idempotency_store
+        runs.reserve('api-scope', 'client-key', 'digest', 'run-id', {'status': 'queued'})
+        runs.update_status('run-id', {'status': 'completed'}, scope='api-scope')
+        assert runs.status_for_run('api-scope', 'run-id')['status']['status'] == 'completed'
+        assert not (home / 'state.db').exists()
+    finally:
+        if adapter is not None:
+            adapter._response_store.close()
+            adapter._run_idempotency_store.close()
+        reset_hermes_home_override(token)
+
+
+@pytest.mark.asyncio
+async def test_worker_private_owner_receipts_on_real_postgresql(pg_store, pg_runtime, monkeypatch):
+    from tests.hermes_db.contracts.test_worker_owner_wiring import test_owner_reserves_adopts_persists_and_fences_worker_with_child
+    await test_owner_reserves_adopts_persists_and_fences_worker_with_child(pg_store, pg_runtime, monkeypatch)
+
+
+@pytest.mark.asyncio
+async def test_hosted_coordination_owns_no_postgresql_transcript_files(pg_pair, monkeypatch):
+    from tests.hermes_db.contracts.test_hosted_native_coordination import test_native_hosted_room_ownership_uses_scoped_local_coordination_only
+    await test_native_hosted_room_ownership_uses_scoped_local_coordination_only(pg_pair, monkeypatch)
+
+
+@pytest.mark.asyncio
+async def test_current_history_claim_survives_owner_restart(pg_pair, monkeypatch):
+    from tests.hermes_db.contracts.test_bot_native_storage import test_current_history_resume_keeps_prefix_and_restores_after_owner_restart
+    await test_current_history_resume_keeps_prefix_and_restores_after_owner_restart(pg_pair, monkeypatch)
+
+
+@pytest.mark.asyncio
+async def test_webhook_startup_queries_and_terminal_fences_use_real_postgresql(pg_pair, monkeypatch):
+    from tests.hermes_db.contracts.test_gateway_authority import _owner_at
+    from tests.hermes_db.contracts.test_native_startup_webhook import test_native_webhook_delivery_queries_and_finalization_do_not_cross_stores
+    async with _owner_at(pg_pair[0], monkeypatch, 'webhook-owner') as (owner, _actor):
+        test_native_webhook_delivery_queries_and_finalization_do_not_cross_stores((owner, *pg_pair))
+
+
+@pytest.mark.asyncio
+async def test_http_agent_retry_and_continuation_with_single_pg_connection(surface_config):
+    from tests.hermes_db.contracts.test_native_http_turn import exercise_http_turns
+    await exercise_http_turns(surface_config[0])

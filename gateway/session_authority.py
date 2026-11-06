@@ -22,11 +22,8 @@ from gateway.session_events import SessionEvents
 from gateway.session_pending_controls import PendingControls
 from gateway.session_producer_lifecycle import drop_producer_turn, mark_producer_admission
 from hermes_cli.observability.shared_metrics_busy import busy_row_settled
-from hermes_state_runtime import (
-    STEERING, RuntimeStoreError, admit_session_input, begin_runtime_epoch,
-    cancel_session_input, claim_session_input, get_session_admission,
-    list_session_admissions, recover_session_inputs, resolve_unknown_session_input,
-)
+from hermes_state_runtime import STEERING, RuntimeStoreError
+from hermes_db.runtime_calls import admit_session_input, begin_runtime_epoch, cancel_session_input, claim_session_input, get_session_admission, list_session_admissions, recover_session_inputs, resolve_unknown_session_input
 
 # Capped backoff for a claim refused by transient storage (writer lock, full disk).
 _CLAIM_RETRY_MIN_S, _CLAIM_RETRY_MAX_S = 0.25, 5.0
@@ -212,10 +209,11 @@ class SessionAuthority:
             if row is None:
                 raise RuntimeStoreError('not_found')
             from hermes_state_local import POLICY_PREFIX
-            with self.db._read_ctx() as conn:
+            from hermes_db.health import is_postgresql_store
+            local = self.db.get_meta(POLICY_PREFIX + ref.session_id)
+            if not local and not is_postgresql_store(self.db):
                 from hermes_state_local_migration import LEGACY_PREFIX
-                local = conn.execute('SELECT 1 FROM state_meta WHERE key IN (?,?)',
-                    (POLICY_PREFIX + ref.session_id, LEGACY_PREFIX + ref.session_id)).fetchone()
+                local = self.db.get_meta(LEGACY_PREFIX + ref.session_id)
             if local or str(row.get('chat_id') or '').startswith('local-'):
                 from gateway.session_local_recovery import restore_local_session
                 restore_local_session(self, ref.session_id)
@@ -252,11 +250,8 @@ class SessionAuthority:
     def _admission_gate(self, authorize=None, *, queue_only=False):
         """The admission gate re-checked inside an off-loop write transaction (with the caller's
         own guard), so a drain that began while the write waited on the writer still refuses it."""
-        def guard(conn):
-            self._require_admission_open(queue_only=queue_only)
-            if authorize is not None:
-                authorize(conn)
-        return guard
+        from gateway.session_storage_effects import admission_gate
+        return admission_gate(self, authorize, queue_only=queue_only)
 
     def logical_owner(self, session_id):
         """The FIFO/admission identity of a route: the root of its compression lineage.
@@ -603,6 +598,11 @@ class SessionAuthority:
         if (scope := _lease_scope.get()) is not None:
             scope.write_started = True
         native_write_started.set(True)  # shielded from here: a cancelled caller may still commit
+        from hermes_db.health import is_postgresql_store
+        if fence is not None and is_postgresql_store(self.db):
+            from hermes_db.operations.effects import CoreEffect
+            route_fence = fence
+            fence = CoreEffect(lambda conn, scope: route_fence())
         return await tracked_write(self, partial(
             self._admit_native_write, principal_id='messaging:' + identity, session_id=ref.session_id,
             request_id=request_id, payload=payload,
@@ -692,7 +692,7 @@ class SessionAuthority:
         return results
 
     async def submit(self, actor: SessionActor, request: Submission, *, _authorize_write=None, queue_while_restarting=False,
-                     _replay_guard=None, _kanban_card=None):
+                     _replay_guard=None, _kanban_card=None, _write_context=None):
         """``queue_while_restarting``: the caller is an interactive client attached to a restart's
         after-turn wait, which commits the input queued for the next owner. Machine callers (a2a,
         kanban, hosted rooms) keep the plain ``runtime_draining`` refusal and retry against the next
@@ -709,10 +709,10 @@ class SessionAuthority:
             with capture_lease():  # captured bytes are held from capture until commit or refusal
                 return await self._submit(actor, request, _authorize_write=_authorize_write,
                                           queue_only=queue_while_restarting is True, _replay_guard=_replay_guard,
-                                          _kanban_card=_kanban_card)
+                                          _kanban_card=_kanban_card, _write_context=_write_context)
 
     async def _submit(self, actor, request, *, _authorize_write=None, queue_only=False, _replay_guard=None,
-                      _kanban_card=None):
+                      _kanban_card=None, _write_context=None):
         self._require_admission_open(queue_only=queue_only)
         if (request.intent != 'queue' or not {'text'} <= set(request.payload) <= {
                 'text', 'attachments', 'finite', 'unattended', 'surface', 'voice_context', 'interrupted',
@@ -728,7 +728,7 @@ class SessionAuthority:
         def admitted():
             # The exact durable identity (authenticated principal + target + request id); the
             # attachment fields it yields still pass the full payload-digest comparison below.
-            from hermes_state_runtime import find_session_admission
+            from hermes_db.runtime_calls import find_session_admission
             return find_session_admission(self.db, principal_id=actor.subject,
                                           session_id=request.ref.session_id, request_id=request.request_id)
         payload = {'text': request.payload['text'], **finite, **admit_surface(request.payload),
@@ -748,10 +748,11 @@ class SessionAuthority:
                 'principal_id': actor.subject}
         def admit():
             try:
-                return admit_session_input(self.db, epoch=self.epoch, principal_id=actor.subject,
-                                           session_id=request.ref.session_id, request_id=request.request_id,
-                                           payload=payload, intent=request.intent, _replay_guard=_replay_guard,
-                                           _authorize_write=self._admission_gate(_authorize_write, queue_only=queue_only))
+                with _write_context() if _write_context is not None else contextlib.nullcontext():
+                    return admit_session_input(self.db, epoch=self.epoch, principal_id=actor.subject,
+                                               session_id=request.ref.session_id, request_id=request.request_id,
+                                               payload=payload, intent=request.intent, _replay_guard=_replay_guard,
+                                               _authorize_write=self._admission_gate(_authorize_write, queue_only=queue_only))
             except Exception:
                 self._release_refused_capture(request, payload)
                 raise
@@ -771,8 +772,13 @@ class SessionAuthority:
         drop_capture_lease()  # its own lease must not keep the refused bytes from collection
         from hermes_state_media import collect_retired_media, retire_media
         try:
-            self.db._execute_write(lambda conn: retire_media(conn, {'attachments_v1': {'media': media}}))
-            collect_retired_media(self.db)
+            from hermes_db.health import is_postgresql_store
+            if is_postgresql_store(self.db):
+                from hermes_db.runtime_access import runtime_for_store
+                runtime_for_store(self.db).retire_refused_media(media)
+            else:
+                self.db._execute_write(lambda conn: retire_media(conn, {'attachments_v1': {'media': media}}))
+                collect_retired_media(self.db)
         except Exception:
             import logging
             logging.getLogger(__name__).exception(
@@ -892,13 +898,18 @@ class SessionAuthority:
         # result the answer is normally already the transcript tail, so the closer is a no-op.
         from gateway.session_results import close_discarded_turn
         from gateway.session_runtime_workers import tracked_write
+        from hermes_db.runtime_access import effect_for_store
+
+        def discarded(conn, lost):
+            return close_discarded_turn(self.db, conn, lost, None if (
+                prepared is not None and lost['owner_epoch'] == self.epoch) else notice)
+
         return await tracked_write(self, partial(
             resolve_unknown_session_input, self.db, epoch=self.epoch, admission_id=admission_id,
             generation=generation, _captured=prepared,
             # ``notice`` says the turn was interrupted: only when that is the outcome, never beside a
             # captured result this resolution commits as the turn's own answer.
-            _terminal_write=lambda conn, lost: close_discarded_turn(self.db, conn, lost, None if (
-                prepared is not None and lost['owner_epoch'] == self.epoch) else notice)),
+            _terminal_write=effect_for_store(self.db, discarded, lambda conn, scope, lost: discarded(conn, lost))),
             then=partial(self._resolved_unknown, ref, admission_id, prepared, captured))
 
     async def _resolved_unknown(self, ref, admission_id, prepared, captured, row):
@@ -1409,6 +1420,9 @@ def backfill_legacy_session_owners(db):
     and never overwrites an owner, so every start runs it. A store outside the profile tree has
     no derivable owner and keeps NULL.
     """
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(db):
+        return 0
     import logging
     stamp = db._own_profile_name()
     if not stamp:
@@ -1427,6 +1441,9 @@ def backfill_compression_created_sources(db):
     """List conversations compressed before write-time stamping under their surface again: a chain
     root without a created_source takes its nearest stamped continuation's. Idempotent and never
     overwrites a known value, so every start runs it, like the owner backfill above."""
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(db):
+        return 0
     import logging
     try:
         stamped = db.stamp_legacy_compression_chains()
@@ -1448,8 +1465,8 @@ async def initialize_session_authority(runner, *, profile_id, instance_id, db=No
         db = getattr(runner._session_db, '_db', runner._session_db)
     # Resolved off-loop before any state is published: the rest of the bring-up runs without
     # yielding, so no other task observes a half-registered authority.
-    from pathlib import Path
-    db_key = await asyncio.to_thread(Path(db.db_path).resolve)
+    from hermes_db.health import storage_identity
+    db_key = await asyncio.to_thread(storage_identity, db)
     epoch = await asyncio.to_thread(begin_runtime_epoch, db, instance_id=instance_id)
     # Hot-serve builds a profile while the loop serves the others: both writes stay off it.
     await asyncio.to_thread(recover_session_inputs, db, epoch=epoch)

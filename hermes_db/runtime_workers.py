@@ -4,6 +4,29 @@ from hermes_db.operations import workers
 
 
 class RuntimeWorkers:
+    def worker_session(self, execution_id):
+        from hermes_db.repositories.workers import execution
+        with self._store._read() as conn:
+            row = execution(conn, self.scope, execution_id)
+            return row["session_id"] if row else None
+
+    def reserve_admission_worker(self, **kwargs):
+        from hermes_db.operations.worker_reservation import reserve
+        with self._write() as conn:
+            return reserve(conn, self.scope, **kwargs)
+
+    def lose_admission_worker(self, **kwargs):
+        from hermes_db.operations.worker_reservation import lose
+        with self._write() as conn:
+            return lose(conn, self.scope, **kwargs)
+
+    def delegation_event(self, session_id, execution_id, delegation_id):
+        import json
+        from hermes_db.repositories.delegations import owned
+        with self._store._read() as conn:
+            row = owned(conn, self.scope, session_id, execution_id, delegation_id)
+            return json.loads(row["event_json"]) if row["delivery_state"] == "pending" else None
+
     def register_worker(self, **kwargs):
         with self._write() as conn:
             return workers.register(conn, self.scope, **kwargs)
@@ -29,6 +52,24 @@ class RuntimeWorkers:
         from hermes_db.repositories.workers import retry_target
         with self._store._read() as conn:
             return retry_target(conn, self.scope, params)
+
+    def verify_worker_claim(self, params, claim, *, active_epoch=None):
+        import hmac
+        from hermes_db.repositories import runtime, workers as repo
+        from hermes_state_runtime import RuntimeStoreError, _secret_digest
+        with self._store._read() as conn:
+            target = repo.retry_target(conn, self.scope, params)
+            row = repo.execution(conn, self.scope, params["execution_id"])
+            if row is None:
+                raise RuntimeStoreError("not_found")
+            if row["session_id"] != target or not hmac.compare_digest(row["adoption_digest"], _secret_digest(claim)):
+                raise RuntimeStoreError("permission_denied")
+            if type(params["generation"]) is not int or row["generation"] != params["generation"]:
+                raise RuntimeStoreError("stale_generation")
+            if active_epoch is not None:
+                runtime.require_epoch(conn, self.scope, active_epoch)
+                if params["epoch"] != active_epoch or row["owner_epoch"] != active_epoch or row["status"] != "running":
+                    raise RuntimeStoreError("stale_generation")
 
     def persist_delegation(self, *, owner, **kwargs):
         from hermes_db.operations.worker_delegations import handlers

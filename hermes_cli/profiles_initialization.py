@@ -62,6 +62,9 @@ def finish_profile_layout(profile_dir: Path, *, no_skills: bool, clone_all: bool
     if not clone_all:
         _migrate_profile_config_if_outdated(profile_dir)
 
+    from hermes_cli.profile_storage import fork_storage_identity
+    fork_storage_identity(profile_dir)
+
     # Description last, so a partial-create failure doesn't strand a description file.
     if description and description.strip():
         with contextlib.suppress(Exception):  # non-fatal — `hermes profile describe` works later

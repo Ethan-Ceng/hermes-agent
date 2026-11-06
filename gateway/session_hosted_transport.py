@@ -231,6 +231,10 @@ def install_hosted_transport(server, authority, loop, *, attest):
             raise RuntimeStoreError('profile_mismatch')
         binding = {'source_home': envelope['source_home'], 'selector': selector,
                    'target_home': authority.profile_id}
+        from hermes_db.health import is_postgresql_store
+        if is_postgresql_store(authority.db):
+            del binding['target_home']
+            binding['target_store_id'] = authority.db.scope.require_store_id()
         attested = _attest(binding, operation, params)
         binding['owner'] = attested['owner']
         principal = _principal(authority, binding)
@@ -248,7 +252,11 @@ def install_hosted_transport(server, authority, loop, *, attest):
             if old is not None and old[0] != encoded:
                 raise RuntimeStoreError('permission_denied')
             conn.execute('INSERT OR IGNORE INTO state_meta(key,value) VALUES(?,?)', (key, encoded))
-        authority.db._execute_write(persist)
+        if is_postgresql_store(authority.db):
+            from hermes_db.runtime_access import runtime_for_store
+            runtime_for_store(authority.db).persist_hosted_binding(epoch=authority.epoch, key=key, value=encoded)
+        else:
+            authority.db._execute_write(persist)
         if operation == 'submit':
             rpc.hosted_attachment_data = _attachment_data(binding, attested, params)
             # Only the source's durable, attested text may become the admitted input.
@@ -275,18 +283,16 @@ def check_remote_hosted_admission(authority, ref, row):
 
 
 def _check_remote_hosted_admission(authority, ref, row):
-    with authority.db._read_ctx() as conn:
-        stored = conn.execute('SELECT value FROM state_meta WHERE key=?',
-                              (_BINDING + ref.session_id,)).fetchone()
+    stored = authority.db.get_meta(_BINDING + ref.session_id)
     if stored is None:
         return False
     try:
-        binding = json.loads(stored[0])
+        binding = json.loads(stored)
         identity, generation = json.loads(row['request_id'][7:])
         if (not row['request_id'].startswith('hosted:')
                 or not same_owner(row['principal_id'], _principal(authority, binding).subject)
                 or ref.profile_id != authority.profile_id
-                or binding.get('target_home') != authority.profile_id):
+                or not _target_matches(authority, binding)):
             raise ValueError('binding mismatch')
         params = {'task': identity, 'execution_generation': generation}
         attested = _attest(binding, 'execute', params)
@@ -304,6 +310,13 @@ def _check_remote_hosted_admission(authority, ref, row):
     # storage fault of this destination, not a revoked source binding.
     verify_attested_documents(attested['attachments'], attested.get('attachment_digests'))
     return True
+
+
+def _target_matches(authority, binding):
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(authority.db):
+        return binding.get('target_store_id') == authority.db.scope.require_store_id()
+    return binding.get('target_home') == authority.profile_id
 
 
 class HostedRoomOwnerRPC(HostedRoomAuthorityRPC):

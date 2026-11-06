@@ -103,7 +103,7 @@ def prepare_before_submit(prepare):
 def submission_payload(rpc, prompt, attachments=None):
     """Resolve only event-bound, member-authorized bytes, never a caller path."""
     return bound_submission_payload(
-        rpc.authority.db.db_path, room_id=rpc.room_id, member_id=rpc.member_id, prompt=prompt,
+        rpc.room_db_path, room_id=rpc.room_id, member_id=rpc.member_id, prompt=prompt,
         attachments=attachments, transferred=getattr(rpc, 'hosted_attachment_data', None))
 
 
@@ -118,7 +118,9 @@ def bound_submission_payload(db_path, *, room_id, member_id, prompt, attachments
     # Each bound file is captured on its own, so the admission-wide cap is enforced here,
     # before any member is materialized.
     validate_media_batch_size(item['size'] for item in manifest)
-    store = HostedRoomAttachmentStore(db_path)
+    if transferred is None and db_path is None:
+        raise RuntimeStoreError('permission_denied')
+    store = HostedRoomAttachmentStore(db_path) if transferred is None else None
     references = []
     if transferred is not None and [item for item, data in transferred] != manifest:
         raise RuntimeStoreError('permission_denied')

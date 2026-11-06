@@ -30,11 +30,11 @@ _TERMINAL = frozenset({"settled", "failed", "cancelled", "ambiguous"})
 
 def _bot_chat_tip(home: Path) -> str | None:
     """Current Bot Chat tip id, or None when the profile has no store or no Bot Chat yet."""
-    from hermes_state import SessionDB
+    from hermes_db.access import open_session_store, session_store_exists
 
-    if not (home / 'state.db').is_file():
+    if not session_store_exists(home / 'state.db'):
         return None
-    db = SessionDB(db_path=home / 'state.db', read_only=True)
+    db = open_session_store(db_path=home / 'state.db', read_only=True)
     try:
         row = db.get_session_by_title('Bot Chat')
         return db.get_compression_tip(row['id']) if row else None

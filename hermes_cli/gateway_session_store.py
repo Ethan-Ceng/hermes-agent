@@ -86,12 +86,15 @@ class GatewaySessionStore:
         first start, after the CLI's startup maintenance probe) is retried on the next read."""
         if self._reader is None:
             from hermes_constants import get_hermes_home
+            from hermes_db.access import open_session_store, session_store_exists
+            from hermes_db.errors import StorageError
             path = get_hermes_home() / "state.db"
-            if not path.exists():
+            if not session_store_exists(path):
                 return None
             try:
-                from hermes_state import SessionDB
-                self._reader = SurfaceLabelReader(SessionDB(db_path=path, read_only=True))
+                self._reader = SurfaceLabelReader(open_session_store(db_path=path, read_only=True))
+            except StorageError:
+                raise
             except Exception as exc:  # health: allow BLE001 -- reads find nothing; retried on the next read
                 logger.debug("read-only state.db unavailable: %s", exc)
         return self._reader
@@ -274,9 +277,8 @@ class GatewaySessionStore:
         db = self._db()
         if db is None or not title:
             return None
-        with db._read_ctx() as conn:
-            row = conn.execute("SELECT id FROM sessions WHERE title = ? AND id != ?", (title, session_id)).fetchone()
-        return row[0] if row else None
+        row = db.get_session_by_title(title)
+        return row['id'] if row and row['id'] != session_id else None
 
     def _leave(self, session_id):
         """Drop this viewer's subscription record and return its id. The connection's SessionState holds
@@ -341,12 +343,16 @@ class GatewaySessionStore:
         if db is None:
             return False
         try:
-            with db._read_ctx() as conn:
-                empty = conn.execute(
-                    "SELECT 1 FROM sessions WHERE id = ? AND title IS NULL"
-                    " AND NOT EXISTS (SELECT 1 FROM messages WHERE messages.session_id = sessions.id)"
-                    " AND NOT EXISTS (SELECT 1 FROM sessions child WHERE child.parent_session_id = sessions.id)",
-                    (session_id,)).fetchone()
+            from hermes_db.health import is_postgresql_store
+            if is_postgresql_store(db):
+                empty = db.session_is_empty(session_id)
+            else:
+                with db._read_ctx() as conn:
+                    empty = conn.execute(
+                        "SELECT 1 FROM sessions WHERE id = ? AND title IS NULL"
+                        " AND NOT EXISTS (SELECT 1 FROM messages WHERE messages.session_id = sessions.id)"
+                        " AND NOT EXISTS (SELECT 1 FROM sessions child WHERE child.parent_session_id = sessions.id)",
+                        (session_id,)).fetchone()
         except Exception as exc:  # health: allow BLE001 -- a failed probe keeps the row (never deletes on doubt)
             logger.debug("empty-session probe failed: %s", exc)
             return False

@@ -87,7 +87,7 @@ def pin_launch_store():
     reference, so the synchronous ``SessionStore`` open inside ``GatewayRunner()`` on the loop is a
     registry hit instead of the schema setup. None when the open fails: the store's own open then
     reports and backs off exactly as before."""
-    from hermes_state_registry import acquire
+    from hermes_db.access import acquire_sessions as acquire
     try:
         return acquire()
     except Exception:
@@ -97,8 +97,8 @@ def pin_launch_store():
 
 def unpin_launch_store(db):
     if db is not None:
-        from hermes_state_registry import release
-        release(db)
+        from hermes_db.access import release_session_store as release_or_close
+        release_or_close(db)
 
 
 def _store_open_failure(runner, home):
@@ -220,8 +220,8 @@ def release_unknown_turn_markers(runner):
         return
     for authority in _authorities(runner):
         with owner_scope(authority):
-            unknown = {row['target_session_id'] for row in authority.db._read_all(
-                "SELECT DISTINCT target_session_id FROM session_admissions WHERE status='unknown'")}
+            from hermes_db.authority_access import pending_target_ids
+            unknown = pending_target_ids(authority.db, ('unknown',))
             if not unknown:
                 continue
             for entry in store.list_sessions():
@@ -677,8 +677,8 @@ async def recover_profile_native_sessions(runner, authority):
     """Bind one authority's queued native rows to the adapters connected now."""
     from gateway.session_authorities import owner_scope
     with owner_scope(authority):
-        pending = {row['target_session_id'] for row in authority.db._read_all(
-            "SELECT DISTINCT target_session_id FROM session_admissions WHERE status IN ('queued','unknown')")}
+        from hermes_db.authority_access import pending_target_ids
+        pending = pending_target_ids(authority.db, ('queued', 'unknown'))
         bindings = [(owner, entry.origin, runner._adapter_for_source(entry.origin))
                     for entry in runner.session_store.list_sessions() if entry.origin is not None
                     for owner in [authority.logical_owner(entry.session_id)] if owner in pending]

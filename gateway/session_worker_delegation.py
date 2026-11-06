@@ -194,7 +194,14 @@ def persist_worker_delegation(db, *, epoch, execution_id, session_id, generation
     Gateway calls this ONLY after its ordinary worker claim verification. The
     verified process identity is deliberately separate from the operation payload.
     """
-    from hermes_state_runtime import apply_worker_receipt
+    from hermes_db.runtime_calls import apply_worker_receipt
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(db):
+        from hermes_db.operations.worker_delegations import verify_owner
+        from hermes_db.runtime_access import runtime_for_store
+        owner = verify_owner(execution_id, worker_pid, worker_birth)
+        return runtime_for_store(db).persist_delegation(owner=owner, epoch=epoch, execution_id=execution_id,
+            session_id=session_id, generation=generation, sequence=sequence, operation=operation, payload=payload)
     handlers = worker_delegation_handlers(execution_id, worker_pid, worker_birth)
     return apply_worker_receipt(db, epoch=epoch, execution_id=execution_id, session_id=session_id,
                                 generation=generation, sequence=sequence, operation=operation,
@@ -207,11 +214,11 @@ async def worker_delegation_request(connection, ref, params):
     from gateway.session_worker import _SCOPE, _claim, _verify
     if set(params) != _SCOPE | {'epoch', 'sequence', 'operation', 'payload'}:
         raise RuntimeStoreError('invalid_params')
-    claim = _claim(connection, ref, params)
+    claim = await asyncio.to_thread(_claim, connection, ref, params)
     authority = connection.authority
     if 'worker:adopt' not in connection.actor.capabilities:
         raise RuntimeStoreError('permission_denied')
-    _verify(connection, ref, params, claim)
+    await asyncio.to_thread(_verify, connection, ref, params, claim)
 
     def persist_and_publish():
         result = persist_worker_delegation(authority.db,
@@ -219,9 +226,15 @@ async def worker_delegation_request(connection, ref, params):
                                            'sequence', 'operation', 'payload')},
             worker_pid=params['pid'], worker_birth=params['birth'])
         if params['operation'] == 'delegation.complete':
-            with authority.db._read_ctx() as conn:
-                row = _owned(conn, ref.session_id, params['execution_id'], params['payload']['event']['delegation_id'])
-                event = json.loads(row['event_json']) if row['delivery_state'] == 'pending' else None
+            from hermes_db.health import is_postgresql_store
+            if is_postgresql_store(authority.db):
+                from hermes_db.runtime_access import runtime_for_store
+                event = runtime_for_store(authority.db).delegation_event(
+                    ref.session_id, params['execution_id'], params['payload']['event']['delegation_id'])
+            else:
+                with authority.db._read_ctx() as conn:
+                    row = _owned(conn, ref.session_id, params['execution_id'], params['payload']['event']['delegation_id'])
+                    event = json.loads(row['event_json']) if row['delivery_state'] == 'pending' else None
             if event is not None:
                 from tools.process_registry import process_registry
                 # Queueing after commit can repeat after a lost ACK. Existing

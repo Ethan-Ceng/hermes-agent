@@ -36,6 +36,11 @@ def defer_pick(authority, actor, ref, params):
                                        expected_generation=params.get('expected_generation'))
     pick = {'principal_id': actor.subject, 'request_id': params['request_id'], 'payload': params['payload'],
             'application_id': 'deferred-pick:' + params['request_id']}
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(authority.db):
+        from hermes_db.runtime_access import runtime_for_store
+        return runtime_for_store(authority.db).defer_pick(epoch=authority.epoch, session_id=ref.session_id,
+            key=key, digest=digest, operation=operation, pick=pick, shown=shown)
 
     def write(conn):
         _epoch(conn, authority.epoch)
@@ -48,15 +53,7 @@ def defer_pick(authority, actor, ref, params):
             raise RuntimeStoreError('not_found')
         stored = conn.execute('SELECT value FROM state_meta WHERE key=?', (_PREFIX + ref.session_id,)).fetchone()
         current = json.loads(stored[0]) if stored else {}
-        if operation == 'reasoning':
-            current.get('payload', {}).pop('reasoning', None)  # this level is newer than the one picked with the model
-            value, picked = {**current, 'reasoning': pick}, {'effort': params['payload']['effort']}
-        else:
-            # A level picked with this model is newer than one deferred before it, which it drops: the
-            # slot never holds both, so committing the slot's level never strips the model's own.
-            older = 'reasoning' in current and 'reasoning' not in params['payload']
-            value = {**pick, **({'reasoning': current['reasoning']} if older else {})}
-            picked = {'model': shown or params['payload']['model']}
+        value, picked = deferred_value(current, operation, pick, shown)
         result = {'session_id': ref.session_id, 'operation': operation, 'status': 'deferred', **picked,
                   'revision': row[0], 'execution_generation': row[1]}
         conn.execute('INSERT INTO state_meta(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',
@@ -66,16 +63,35 @@ def defer_pick(authority, actor, ref, params):
     return authority.db._execute_write(write)
 
 
+def deferred_value(current, operation, pick, shown):
+    if operation == 'reasoning':
+        current.get('payload', {}).pop('reasoning', None)
+        return {**current, 'reasoning': pick}, {'effort': pick['payload']['effort']}
+    older = 'reasoning' in current and 'reasoning' not in pick['payload']
+    return {**pick, **({'reasoning': current['reasoning']} if older else {})}, {'model': shown or pick['payload']['model']}
+
+
+def _compare_pick(authority, key, raw, value):
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(authority.db):
+        from hermes_db.runtime_access import runtime_for_store
+        return runtime_for_store(authority.db).compare_deferred_pick(key=key, expected=raw, value=value)
+
+    def write(conn):
+        if value is None:
+            return conn.execute('DELETE FROM state_meta WHERE key=? AND value=?', (key, raw)).rowcount
+        return conn.execute('UPDATE state_meta SET value=? WHERE key=? AND value=?', (value, key, raw)).rowcount
+
+    return authority.db._execute_write(write)
+
+
 async def reask_on_attach(authority, ref, live):
     """A guarded pick asked only the viewers present at its boundary (and an owner restart drops
     the stream): a newly attached viewer gets the ask again, re-checked at the next boundary."""
     import asyncio
 
-    def read():
-        with authority.db._read_ctx() as conn:
-            return conn.execute('SELECT value FROM state_meta WHERE key=?', (_PREFIX + ref.session_id,)).fetchone()
-    stored = await asyncio.to_thread(read)
-    if stored is not None and 'awaiting_confirm' in json.loads(stored[0]):
+    stored = await asyncio.to_thread(authority.db.get_meta, _PREFIX + ref.session_id)
+    if stored is not None and 'awaiting_confirm' in json.loads(stored):
         live.reask_pick = True
         authority._schedule(ref)
 
@@ -86,7 +102,7 @@ async def _commit(authority, ref, entry, operation):
     import asyncio
     from gateway.session_mutations import write_mutation
     from hermes_state_mutation_guards import MUTATION_GUARD_REFUSALS
-    from hermes_state_mutation_retirement import has_mutation_receipt
+    from hermes_db.authority_access import has_mutation_receipt
     if await asyncio.to_thread(has_mutation_receipt, authority.db, entry['principal_id'], ref.session_id,
                                entry['application_id']):
         return {'status': 'replayed'}  # committed before a restart, not yet removed: never apply it twice
@@ -122,12 +138,7 @@ async def _commit_level(authority, ref, key, raw, pick):
         logger.warning('Deferred reasoning pick on %s not applied: %s', ref.session_id, result['reason'])
     rest = _json(pick) if 'application_id' in pick else None
 
-    def settle(conn):
-        if rest is None:
-            conn.execute('DELETE FROM state_meta WHERE key=? AND value=?', (key, raw))
-        else:
-            conn.execute('UPDATE state_meta SET value=? WHERE key=? AND value=?', (rest, key, raw))
-    await asyncio.to_thread(authority.db._execute_write, settle)
+    await asyncio.to_thread(_compare_pick, authority, key, raw, rest)
     return rest
 
 
@@ -137,13 +148,9 @@ async def apply_deferred_pick(authority, ref, live):
     import asyncio
     key = _PREFIX + ref.session_id
 
-    def read():
-        with authority.db._read_ctx() as conn:
-            return conn.execute('SELECT value FROM state_meta WHERE key=?', (key,)).fetchone()
-    stored = await asyncio.to_thread(read)
-    if stored is None:
+    raw = await asyncio.to_thread(authority.db.get_meta, key)
+    if raw is None:
         return
-    raw = stored[0]
     pick = json.loads(raw)
     if 'reasoning' in pick:
         raw = await _commit_level(authority, ref, key, raw, pick)
@@ -164,9 +171,7 @@ async def apply_deferred_pick(authority, ref, live):
         # pending, marked as asked, and the owner's confirmation exchange goes to every viewer; the
         # confirmed resend (``payload.confirm``) commits it through session.mutate.
         from hermes_state_runtime import _json
-        await asyncio.to_thread(authority.db._execute_write, lambda conn: conn.execute(
-            'UPDATE state_meta SET value=? WHERE key=? AND value=?',
-            (_json({**pick, 'awaiting_confirm': result['confirm']}), key, raw)))
+        await asyncio.to_thread(_compare_pick, authority, key, raw, _json({**pick, 'awaiting_confirm': result['confirm']}))
         current = await asyncio.to_thread(authority.db.get_session, ref.session_id) or {}
         provider = json.loads(current.get('model_config') or '{}').get('provider')
         # The committed selection rides along, so a viewer that declines paints it back.
@@ -174,8 +179,7 @@ async def apply_deferred_pick(authority, ref, live):
             **result, 'payload': pick['payload'], 'committed_model': current.get('model'),
             **({'committed_provider': provider} if provider else {})}, event_type='session.updated')
         return
-    await asyncio.to_thread(authority.db._execute_write, lambda conn: conn.execute(
-        'DELETE FROM state_meta WHERE key=? AND value=?', (key, raw)))
+    await asyncio.to_thread(_compare_pick, authority, key, raw, None)
     if result.get('status') == 'refused':
         logger.warning('Deferred model pick on %s not applied: %s', ref.session_id, result.get('reason'))
         # Named for the viewers that showed "applies from your next message": the target that was

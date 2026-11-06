@@ -8,6 +8,8 @@ calling session. The creation flags (request_json), the model route and a commit
 pick stay; a session with a turn running or queued keeps the policy that turn was admitted under. A Bot Chat an
 earlier build committed frozen follows its profile from the open on (``follow_bot_chat``).
 """
+
+from hermes_db.health import profile_home_for_store
 import asyncio
 import json
 import logging
@@ -140,8 +142,8 @@ def _prepare(authority, session_id, mcp_only=False, adopt_only=False):
     of a frozen Bot Chat alone, without the config-derived settings (a later open on the same attachment)."""
     from gateway.run import _load_gateway_config
     from gateway.session_policy import SURFACES, restore_policy
-    from hermes_state_local import local_receipt
-    from hermes_state_mutation_prepared import policy_picks
+    from hermes_db.local_access import local_receipt
+    from hermes_db.authority_access import policy_picks
     from tools.terminal_scope import build_profile_terminal_scope
     generation = authority.db.get_session(session_id)['runtime_generation']
     stored = local_receipt(authority.db, session_id)['policy']
@@ -149,7 +151,7 @@ def _prepare(authority, session_id, mcp_only=False, adopt_only=False):
     # A bypass launch never reads the profile; cron, Kanban and room routes are not resumed CLI sessions.
     if old.ignore_user_config or old.source not in SURFACES:
         return None
-    home = Path(authority.db.db_path).resolve().parent
+    home = profile_home_for_store(authority.db)
     terminal = {} if mcp_only or adopt_only else build_profile_terminal_scope(home)
     live, picked = _load_gateway_config(home / 'config.yaml'), policy_picks(authority.db, session_id)
     base = old
@@ -218,7 +220,7 @@ async def commit_refresh(authority, ref, *, mcp_only=False, adopt_only=False):
 
 async def _commit_refresh(authority, ref, mcp_only, adopt_only=False):
     from gateway.session_runtime_workers import tracked_write
-    from hermes_state_mutation_prepared import commit_refreshed_policy
+    from hermes_db.authority_access import commit_refreshed_policy
     prepared = await asyncio.to_thread(_prepare, authority, ref.session_id, mcp_only, adopt_only)
     # An MCP-only refresh never runs follow_bot_chat: it neither settles nor commits an adoption, so it
     # leaves a pending one for the next open.
@@ -265,7 +267,7 @@ def drop_session_terminal(authority, ref):
     isolation): the terminal tool reuses one by key whatever backend built it. A profile-shared one stays.
     Its recorded cwd (keyed by its route or task id) goes too: it wins over the new binding's directory."""
     from gateway.session_authorities import owner_scope
-    from hermes_state_local import local_receipt
+    from hermes_db.local_access import local_receipt
     from tools.terminal_tool import _qualify_task_key, clear_session_cwd
     from tools.terminal_tool_lifecycle import cleanup_vm
     ids = {ref.session_id, local_receipt(authority.db, ref.session_id)['entry']['session_id']}

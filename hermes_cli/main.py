@@ -23,6 +23,7 @@ except ModuleNotFoundError as exc:
 # from the checkout, then rerun the command (this module may itself be one of the new files).
 # ``_early_recovery`` is stdlib-only and imported unguarded on purpose: same package
 # dir, so if IT can't import nothing in hermes_cli can.
+from hermes_cli.main_session_storage import read_session_store
 from hermes_cli import _early_recovery as _early_recovery_mod
 
 if _early_recovery_mod.restore_interrupted_pull():
@@ -1297,32 +1298,6 @@ def _resolve_workspace_key() -> Optional[str]:
         return None
 
 
-@contextlib.contextmanager
-def _session_db():
-    """Yield a read-only ``SessionDB`` (lazy import, so test patches on ``hermes_state``
-    intercept). Every caller is a lookup (last session, title → id, recorded cwd), so it
-    never opens a writer beside the one the CLI acquires from the registry a moment later.
-    Open failures yield None and any error raised by the ``with`` body is swallowed —
-    callers fall through to their ``return None``."""
-    db = None
-    try:
-        from hermes_state import SessionDB
-
-        db = SessionDB(db_path=get_hermes_home() / "state.db", read_only=True)
-    except Exception:
-        pass
-    try:
-        # Gateway rows the CLI/TUI created are labelled ``local``; source-scoped lookups read main's labels.
-        from hermes_cli.gateway_session_store import SurfaceLabelReader
-        yield SurfaceLabelReader(db) if db is not None else None  # body errors (incl. AttributeError on a None db) are swallowed
-    except Exception:
-        pass
-    finally:
-        if db is not None:
-            try:
-                db.close()
-            except Exception:
-                pass
 
 
 def _latest_session_id(use_tui: bool) -> Optional[str]:
@@ -1345,7 +1320,7 @@ def _resolve_last_session(source: str = "cli") -> Optional[str]:
     if source == "cli":
         from agent.session_source import CLI_FAMILY_SOURCES
         source = sorted(CLI_FAMILY_SOURCES)
-    with _session_db() as db:
+    with read_session_store() as db:
         ws_key = _resolve_workspace_key()
         if ws_key:
             sessions = db.search_sessions(source=source, limit=1, workspace_key=ws_key, skip_launch_stubs=True)
@@ -1363,7 +1338,7 @@ def _resolve_session_by_name_or_id(name_or_id: str) -> Optional[str]:
     A compression root is followed forward to its latest continuation so an
     old root ID (exit summary, notes) resumes at the live tip.
     """
-    with _session_db() as db:
+    with read_session_store() as db:
         # Exact session ID first, then title (with auto-latest for lineage).
         session = db.get_session(name_or_id)
         resolved_id = session["id"] if session else db.resolve_session_by_title(name_or_id)
@@ -1555,7 +1530,7 @@ def _resolve_chat_session_args(args, use_tui: bool) -> None:
         and not getattr(args, "no_restore_cwd", False)
         and not getattr(args, "worktree", False)
     ):
-        with _session_db() as db:  # never let cwd-restore break a resume
+        with read_session_store() as db:  # never let cwd-restore break a resume
             _saved_cwd = ((db.get_session(args.resume) or {}).get("cwd") or "").strip()
             if _saved_cwd and not os.path.isdir(_saved_cwd):
                 print(f"⚠ session's recorded dir is gone ({_saved_cwd}); staying in {os.getcwd()}")

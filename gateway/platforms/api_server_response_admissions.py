@@ -34,7 +34,14 @@ def _lookup_admission(authority, store, durable_key, request_id):
     loss between the authority commit and pointer commit is repaired from that exact request id.
     """
     from gateway.session_contract import SessionRef
-    from hermes_state_runtime import get_session_admission, _row
+    from hermes_db.health import is_postgresql_store, storage_identity
+    if is_postgresql_store(authority.db):
+        if store.database_identity != storage_identity(authority.db):
+            raise RuntimeStoreError('profile_mismatch')
+        row = store.resolve_request_admission(durable_key[0], request_id)
+        return None if row is None else (authority, SessionRef(authority.profile_id, row['target_session_id']), row)
+    from hermes_state_runtime import _row
+    from hermes_db.runtime_calls import get_session_admission
     admission_id = store.request_admission(durable_key[0])
     if admission_id:
         row = get_session_admission(authority.db, admission_id=admission_id)

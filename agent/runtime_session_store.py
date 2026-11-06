@@ -33,6 +33,13 @@ def is_worker_process():
     return _worker_process
 
 
+def current_worker_store():
+    if not is_worker_process():
+        return None
+    from tools.async_delegation_worker import worker_ledger
+    return worker_ledger().store
+
+
 
 def apply_row_annotations(messages, annotations):
     """Mirror the owner's in-place row stamps onto the worker's dicts (None = the owner popped it)."""
@@ -311,6 +318,18 @@ class RuntimeSessionStore(RuntimeSessionCompressionMixin, RuntimeSessionLifecycl
     def _session(self, session_id):
         if session_id != self.scope['session_id']:
             raise WorkerPersistenceError('permission_denied')
+
+    def session_recall(self, **options):
+        return self._read_rpc('worker.recall', options=options)
+
+    def owner_read(self, operation, **payload):
+        return self._read_rpc('worker.read', operation=operation, payload=payload)
+
+    def _read_rpc(self, method, **params):
+        with self.lock:
+            if self.failure or self.journal['pending']:
+                raise WorkerPersistenceError(self.failure or 'pending_receipt')
+            return self.rpc(method, **self.scope, **params)
 
     def _apply(self, operation, payload):
         with self.lock:
