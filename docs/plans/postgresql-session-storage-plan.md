@@ -306,7 +306,7 @@ python scripts/check
 
 ## Task 6：实现会话生命周期、提示快照、用量与查询
 
-状态：in_progress
+状态：verification_pending（离线实现与契约已通过；真实 PG 行锁/事务/隔离验收待配置）
 
 ### 目标
 
@@ -343,11 +343,15 @@ python scripts/check
 
 ### 执行结果
 
-未开始；未修改本任务业务代码。
+离线实现检查点：新增会话/提示/用量与有界列表仓储、短事务、构造/生命周期操作、元数据/标题/Topic 门面及有序后台用量 writer。22 项共享契约分别在原 SQLite 和隔离 Core 路径执行，覆盖首次结束、父链/分支继承、标题优先级/唯一性/转移、模型与原文快照、全部计费维度、NULL 计数、Topic 和列表过滤。补充跨 store 与事务回滚、拥有者 Profile/秘密上下文、未知提交不重放测试。契约清单逐方法核对；三项导出/删除保护的归属纠正为 Task 12，未删除功能。
+
+初始未发布 revision 同步为 26 表/15 索引：补齐 SQLite 按需创建的两张 Telegram 表、工具快照归属外键、标题唯一约束、用量同时间排序、消息预览投影列（写入在 Task 7）。普通写入持谱系映射共享锁，父链归并持独占锁；控制键不可被后续清理。读取使用短 REPEATABLE READ 快照，写入使用同根行锁；配置入口与实际事务均应用 lock/statement timeout。PG 工厂仍禁止生产启用，待完整能力接线。
 
 ### 验证证据
 
-未执行。实施时记录实际命令、退出码、数据库/解释器版本、关键结果、执行时间及偏差。
+2026-11-06：首次共享契约执行 11 SQLite passed / 11 Core fixture error（实现缺失，exit 1）；实现后两文件 22 passed。列表共享契约首次 11 passed/1 failed（测试误把 JSON 路径当字面键），按原 SQLite 路径语义修正后 12 passed。均用 scripts/run_tests.sh，PM Python 3.14.9。未连接真实 PG；Core 使用隔离 SQLite 的离线 SQLAlchemy 执行，不计 PG 验证。
+
+最新离线回归：`HERMES_PYTHON=.build/postgresql/test-env/Scripts/python.exe`，`bash scripts/run_tests.sh tests/hermes_db tests/hermes_cli/test_db_setup.py tests/hermes_cli/test_db_commands.py`：exit 0，18 文件、114 passed、0 failed，15.2 秒；日志 `.build/postgresql/task6-tests.log`。真实 PG 28 项用例由默认 integration 过滤排除，不计通过。默认独立 PG 配置文件仍不存在。`PYTHONUTF8=1`，PM Python 执行 `scripts/check --staged --base HEAD`：exit 0，14 checks ok，health 39 文件、0 blocking/0 advisory（日志 `.build/postgresql/task6-checks.log`）。
 
 ## Task 7：实现完整消息写入与历史读取
 
@@ -974,3 +978,4 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 - Task 4 检查点 commit 47aa7638dc；Task 5 当前有 59 项离线测试与 staged 14 项静态检查通过，PG 的 6 项测试未执行，不计通过。下一步完成 Task 6 的主题方法，不启用 PG 生产写入。
 - Task 5 新增 transcript_roots（稳定行锁目标）及 sessions.lineage_root_id；消息 UID 不能加唯一约束，多个物理副本是既有语义。初始 revision 冻结 24 表/13 索引，后续任务变更表形状须同步修订未发布的初始 revision 并验证，已发布后只能新增 revision。
 - 当前未完成最终 verification-before-completion/code-review；全功能完成后统一执行并整改，绝不把这些局部结果当作完整后端通过。
+- Task 6 离线检查点：114 tests/14 checks passed，状态 verification_pending。当前 26 表/15 索引已同步冻结初始 revision；后台作用域、短事务与失败分型已有离线契约。下一步 Task 7 完整消息编解码、UID/显示代表、行重写、计数/revision 与 watermark；工厂继续拒绝 PG 生产启用。Task 12 必须保留谱系控制键与根行。真实 PG 28 项未执行。

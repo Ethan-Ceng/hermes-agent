@@ -32,11 +32,14 @@ sessions = scoped_table(
         scoped_fk(("lineage_root_id",), "transcript_roots", ("root_id",), ondelete="RESTRICT"),
         scoped_fk(("parent_session_id",), "sessions", ("id",), ondelete="RESTRICT"),
         scoped_fk(("system_prompt_hash",), "system_prompts", ("hash",), ondelete="RESTRICT"),
+        scoped_fk(("tool_names",), "system_prompts", ("hash",), ondelete="RESTRICT"),
     ),
 )
 Index("ix_sessions_store_source_started", sessions.c.store_id, sessions.c.source, sessions.c.started_at.desc(), sessions.c.id)
 Index("ix_sessions_store_parent", sessions.c.store_id, sessions.c.parent_session_id)
 Index("ix_sessions_store_root", sessions.c.store_id, sessions.c.lineage_root_id)
+Index("uq_sessions_store_title", sessions.c.store_id, sessions.c.title, unique=True,
+      postgresql_where=sessions.c.title.is_not(None), sqlite_where=sessions.c.title.is_not(None))
 
 messages = scoped_table(
     "messages", Column("id", BigInteger, Identity(), nullable=False),
@@ -47,7 +50,7 @@ messages = scoped_table(
                   "absorbed_message_uids", "tool_call_uids", "tool_call_uid"),
     *[Column(name, LargeBinary) for name in ("content", "reasoning", "reasoning_content", "reasoning_details",
                                            "codex_reasoning_items", "codex_message_items", "api_content", "display_identity")],
-    Column("display_order", BigInteger), Column("search_content", Text),
+    Column("display_order", BigInteger), Column("search_content", Text), Column("preview_text", LargeBinary),
     *zero_columns("observed", nullable=True), *zero_columns("_compressed_summary", "compacted"),
     Column("active", BigInteger, nullable=False, server_default="1"),
     key=("id",), constraints=(scoped_fk(("session_id",), "sessions", ("id",), ondelete="RESTRICT"),),
@@ -61,6 +64,7 @@ session_model_usage = scoped_table(
     *[Column(name, Text, nullable=False, server_default="") for name in (
         "billing_provider", "billing_base_url", "billing_mode", "task")],
     *zero_columns("api_call_count", "input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens", "reasoning_tokens"),
+    Column("usage_order", BigInteger, nullable=False, server_default="0"),
     Column("estimated_cost_usd", Double, nullable=False, server_default="0"),
     Column("actual_cost_usd", Double, nullable=False, server_default="0"),
     *text_columns("cost_status", "cost_source"), Column("first_seen", Double), Column("last_seen", Double),

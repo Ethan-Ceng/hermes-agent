@@ -56,6 +56,7 @@ def _resolve_settings(config, home):
         raise StorageConfigurationError("PostgreSQL DSNs belong in profile secrets; configure dsn_env")
     options = {key: pg[key] for key in (
         "pool_size", "max_overflow", "pool_timeout_seconds", "connect_timeout_seconds", "connection_budget",
+        "write_lock_timeout_seconds", "statement_timeout_seconds",
     ) if key in pg}
     settings = PostgresSettings(dsn=get_secret(env_name) or "", schema=pg.get("schema", ""), **options)
     return DatabaseSettings(backend, settings), scope

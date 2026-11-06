@@ -35,16 +35,19 @@ def check_schema(settings: PostgresSettings) -> None:
         raise StorageSchemaError("PostgreSQL session schema is incompatible; inspect hermes db status and run the explicit upgrade")
 
 
-def _prepare_schema(conn, schema):
+def _prepare_schema(conn, settings):
     from sqlalchemy import text
     from sqlalchemy.schema import CreateSchema
 
+    schema = settings.schema
     locked = conn.scalar(text("SELECT pg_try_advisory_xact_lock(hashtextextended(:key, 0))"),
                          {"key": f"hermes-session-schema:{schema}"})
     if not locked:
         raise StorageSchemaError("Another process is upgrading this PostgreSQL schema")
-    conn.execute(text("SELECT set_config('lock_timeout', '10000', true)"))
-    conn.execute(text("SELECT set_config('statement_timeout', '60000', true)"))
+    conn.execute(text("SELECT set_config('lock_timeout', :timeout, true)"),
+                 {"timeout": str(max(1, int(settings.write_lock_timeout_seconds * 1000)))})
+    conn.execute(text("SELECT set_config('statement_timeout', :timeout, true)"),
+                 {"timeout": str(max(1, int(settings.statement_timeout_seconds * 1000)))})
     exists = conn.scalar(text("SELECT EXISTS (SELECT 1 FROM pg_namespace WHERE nspname=:schema)"), {"schema": schema})
     if not exists:
         conn.execute(CreateSchema(schema))
@@ -67,7 +70,7 @@ def upgrade_schema(settings: PostgresSettings) -> dict:
     config.attributes["schema"] = settings.schema
     try:
         with get_engine(settings).begin() as conn:
-            _prepare_schema(conn, settings.schema)
+            _prepare_schema(conn, settings)
             config.attributes["connection"] = conn
             command.upgrade(config, "head")
     except CommandError:

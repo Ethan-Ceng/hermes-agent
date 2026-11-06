@@ -15,6 +15,8 @@ SESSION_STORAGE_CONFIG = {
             "max_overflow": 5,
             "pool_timeout_seconds": 30,
             "connect_timeout_seconds": 10,
+            "write_lock_timeout_seconds": 10,
+            "statement_timeout_seconds": 60,
             # Per process; deployments budget the sum over processes and replicas.
             "connection_budget": 10,
         },

@@ -27,3 +27,19 @@ class StorageNotReadyError(StorageError):
 
 class StorageClosedError(StorageError):
     """A released database handle was used."""
+
+
+class StorageWriteError(StorageError):
+    """A write transaction failed and was rolled back."""
+
+
+class StorageConflictError(StorageWriteError):
+    """A database constraint refused the operation."""
+
+
+class RetryableStorageError(StorageWriteError):
+    """PostgreSQL confirmed a serialization/deadlock rollback."""
+
+
+class UnknownCommitError(StorageError):
+    """The client cannot determine whether COMMIT reached the server."""

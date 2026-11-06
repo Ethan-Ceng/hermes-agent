@@ -13,7 +13,7 @@ def settings(postgres_test_config, postgres_schema):
 
 
 def test_upgrade_is_repeatable_and_all_tables_exist(settings, postgres_engine):
-    from sqlalchemy import inspect
+    from sqlalchemy import ForeignKeyConstraint, inspect
     from hermes_db.schema import check_schema, schema_status, upgrade_schema
     from hermes_db.tables import load_metadata
 
@@ -22,8 +22,18 @@ def test_upgrade_is_repeatable_and_all_tables_exist(settings, postgres_engine):
     assert first["ready"]
     assert upgrade_schema(settings) == first
     check_schema(settings)
-    actual = set(inspect(postgres_engine).get_table_names(schema=settings.schema))
-    assert {table.name for table in load_metadata().tables.values()} <= actual
+    inspector = inspect(postgres_engine)
+    actual = set(inspector.get_table_names(schema=settings.schema))
+    for table in load_metadata().tables.values():
+        assert table.name in actual
+        columns = {column["name"] for column in inspector.get_columns(table.name, schema=settings.schema)}
+        assert set(table.c.keys()) <= columns
+        actual_fks = {(tuple(fk["constrained_columns"]), fk["referred_table"], tuple(fk["referred_columns"]))
+                      for fk in inspector.get_foreign_keys(table.name, schema=settings.schema)}
+        expected_fks = {(tuple(constraint.column_keys), constraint.referred_table.name,
+                         tuple(element.column.name for element in constraint.elements))
+                        for constraint in table.constraints if isinstance(constraint, ForeignKeyConstraint)}
+        assert expected_fks == actual_fks
 
 
 def test_same_ids_are_isolated_and_foreign_keys_cannot_cross_stores(settings, postgres_engine):

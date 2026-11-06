@@ -1,8 +1,8 @@
 """Routes and coordination rows survive independently of prunable transcripts."""
 
-from sqlalchemy import BigInteger, Column, Double, Index, LargeBinary, Text
+from sqlalchemy import BigInteger, Column, Double, Index, LargeBinary, Text, UniqueConstraint
 
-from hermes_db.tables.metadata import scoped_table, text_columns, zero_columns
+from hermes_db.tables.metadata import scoped_fk, scoped_table, text_columns, zero_columns
 
 gateway_routing = scoped_table("gateway_routing", Column("scope", Text, nullable=False, server_default=""),
     Column("session_key", Text, nullable=False), Column("entry_json", Text, nullable=False),
@@ -53,3 +53,24 @@ delivery_obligations = scoped_table(
 )
 Index("ix_deliveries_store_state", delivery_obligations.c.store_id, delivery_obligations.c.state,
       delivery_obligations.c.updated_at)
+
+telegram_dm_topic_mode = scoped_table("telegram_dm_topic_mode",
+    Column("profile_name", Text, nullable=False, server_default="default"),
+    *text_columns("chat_id", "user_id", nullable=False),
+    Column("enabled", BigInteger, nullable=False, server_default="1"),
+    Column("activated_at", Double, nullable=False), Column("updated_at", Double, nullable=False),
+    Column("has_topics_enabled", BigInteger), Column("allows_users_to_create_topics", BigInteger),
+    Column("capability_checked_at", Double), *text_columns("intro_message_id", "pinned_message_id"),
+    key=("profile_name", "chat_id"))
+telegram_dm_topic_bindings = scoped_table("telegram_dm_topic_bindings",
+    Column("profile_name", Text, nullable=False, server_default="default"),
+    *text_columns("chat_id", "thread_id", "user_id", "session_key", "session_id", nullable=False),
+    Column("managed_mode", Text, nullable=False, server_default="auto"),
+    Column("linked_at", Double, nullable=False), Column("updated_at", Double, nullable=False),
+    key=("profile_name", "chat_id", "thread_id"), constraints=(
+        scoped_fk(("session_id",), "sessions", ("id",), ondelete="CASCADE"),
+        UniqueConstraint("store_id", "session_id", name="uq_topic_binding_store_session"),
+    ))
+Index("ix_topic_binding_store_user", telegram_dm_topic_bindings.c.store_id,
+      telegram_dm_topic_bindings.c.profile_name, telegram_dm_topic_bindings.c.user_id,
+      telegram_dm_topic_bindings.c.chat_id)

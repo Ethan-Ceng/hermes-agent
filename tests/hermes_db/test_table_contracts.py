@@ -27,6 +27,7 @@ def test_fresh_sqlite_business_fields_are_not_lost_in_pg_metadata(tmp_path):
 
     metadata = load_metadata()
     with SessionDB(db_path=tmp_path / "reference.db") as reference:
+        reference.apply_telegram_topic_migration()
         names = {row[0] for row in reference._conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         for table in metadata.tables.values():
             if table.name in names:

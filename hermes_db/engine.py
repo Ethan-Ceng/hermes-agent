@@ -70,6 +70,10 @@ def read_connection(settings: PostgresSettings):
         raise StorageUnavailableError("PostgreSQL connection unavailable or pool wait timed out") from None
     try:
         with conn:
+            conn.execute(sqlalchemy.text("SELECT set_config('lock_timeout', :lock_timeout, true), "
+                                         "set_config('statement_timeout', :statement_timeout, true)"),
+                         {"lock_timeout": str(max(1, int(settings.write_lock_timeout_seconds * 1000))),
+                          "statement_timeout": str(max(1, int(settings.statement_timeout_seconds * 1000)))})
             yield conn
     except sqlalchemy.exc.DBAPIError:
         raise StorageUnavailableError("PostgreSQL read failed") from None

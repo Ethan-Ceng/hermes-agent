@@ -1,0 +1,73 @@
+"""Transaction phase errors must not turn unknown commits into blind retries."""
+
+from contextlib import contextmanager
+from types import SimpleNamespace
+
+import pytest
+
+sa = pytest.importorskip("sqlalchemy", reason="optional postgresql extra")
+
+from hermes_db.errors import RetryableStorageError, StorageConflictError, StorageWriteError, UnknownCommitError
+from hermes_db.postgresql.transactions import Transactions
+
+
+class DriverFailure(Exception):
+    def __init__(self, state):
+        super().__init__("private connection details")
+        self.sqlstate = state
+
+
+class Connection:
+    dialect = SimpleNamespace(name="sqlite")
+
+    def execution_options(self, **kwargs):
+        return self
+
+
+class FailingEngine:
+    def __init__(self, commit_error=None):
+        self.commit_error = commit_error
+        self.closed = False
+
+    @contextmanager
+    def begin(self):
+        try:
+            yield Connection()
+            if self.commit_error:
+                raise self.commit_error
+        finally:
+            self.closed = True
+
+
+@pytest.mark.parametrize("state", [None, "08006", "57014"])
+def test_commit_failure_is_unknown_and_body_is_not_replayed(state):
+    engine = FailingEngine(sa.exc.OperationalError(None, None, DriverFailure(state)))
+    transactions = Transactions(engine, schema="hermes")
+    writes = []
+    with pytest.raises(UnknownCommitError) as error:
+        with transactions.write():
+            writes.append("write")
+    assert writes == ["write"]
+    assert engine.closed
+    assert "private connection details" not in str(error.value)
+    assert error.value.__suppress_context__
+
+
+@pytest.mark.parametrize("state", ["40001", "40P01"])
+def test_confirmed_rollback_is_distinct_from_an_unknown_commit(state):
+    engine = FailingEngine(sa.exc.OperationalError(None, None, DriverFailure(state)))
+    with pytest.raises(RetryableStorageError):
+        with Transactions(engine, schema="hermes").write():
+            pass
+    assert engine.closed
+
+
+def test_body_and_constraint_failures_close_the_connection():
+    engine = FailingEngine()
+    with pytest.raises(StorageWriteError):
+        with Transactions(engine, schema="hermes").write():
+            raise sa.exc.OperationalError(None, None, DriverFailure("22000"))
+    assert engine.closed
+    with pytest.raises(StorageConflictError):
+        with Transactions(engine, schema="hermes").write():
+            raise sa.exc.IntegrityError(None, None, DriverFailure("23505"))
