@@ -12,8 +12,8 @@
 
 - 整体状态：`IN_PROGRESS`，不表示完整后端已通过验证。
 - 当前阶段：M1 基础。
-- 当前任务：Task 2（可选依赖与 PM 锁）。
-- 已完成：1 / 18。
+- 当前任务：Task 3（配置/工厂/资源生命周期）。
+- 已完成：2 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：真实 PG 验证时需用户提供本地测试配置，实际版本、权限和扩展由 Task 4 检查；当前没有连接数据库。
 - 最近更新时间：2026-11-06（Asia/Shanghai）。
@@ -127,7 +127,7 @@ python scripts/check
 
 ## Task 2：声明 PostgreSQL 运行依赖并锁定
 
-状态：in_progress
+状态：completed
 
 ### 目标
 
@@ -163,15 +163,15 @@ python scripts/check
 
 ### 执行结果
 
-未开始；未修改本任务业务代码。
+声明 postgresql opt-in extra（SQLAlchemy>=2.0.44,<3、psycopg>=3.3,<4、Alembic>=1.17,<2），binary 按支持平台启用；登记 PM anchors、包发现与迁移资源。新增 hermes_db 无驱动导入入口和 SQLite 隔离启动/同步 PG dialect 测试。
 
 ### 验证证据
 
-未执行。实施时记录实际命令、退出码、数据库/解释器版本、关键结果、执行时间及偏差。
+2026-11-06：项目 `python -m pm.cli lock`（hermes pm lock 同一入口）初次 exit 1：Android 无 psycopg-binary wheel；修正 binary 平台标记后 exit 0，二次检查锁已 current（exit 0）。官方兼容性：[SQLAlchemy](https://docs.sqlalchemy.org/en/20/intro.html)、[psycopg](https://www.psycopg.org/psycopg3/docs/basic/install.html)、[Alembic](https://alembic.sqlalchemy.org/en/latest/front.html)。PM `python -m pm.build_env --source . --out .build/postgresql/test-env --extra postgresql --group dev --group test` exit 0。Python 3.14.9，SQLAlchemy 2.1.6、psycopg 3.3.7、Alembic 1.20.1 实际导入通过，无网络连接。标准 runner `tests/pm/test_extras.py` 19 passed；新 optional_dependencies 首次 1 passed/1 failed（测试误传 str 给原 SessionDB），改为 Path 后重跑 2 passed/0 skipped（exit 0）。SQLite 测试子进程主动屏蔽三种 PG 模块后完成真实临时库写读。制品内容在 Task 18 验证；未连接真实 PG。
 
 ## Task 3：实现配置解析、工厂和资源生命周期
 
-状态：pending
+状态：in_progress
 
 ### 目标
 
@@ -960,6 +960,7 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 
 ## 恢复点
 
-- 分支 feat/postgresql-session-storage；Task 1 完成，接 Task 2。
+- 分支 feat/postgresql-session-storage；Tasks 1–2 完成，Task 3 in_progress。Task 1 commit b7648f08ee。
+- 测试解释器 .build/postgresql/test-env/Scripts/python.exe（PM 构建，postgresql + dev/test）；调用标准 runner 时显式指定 HERMES_PYTHON。
 - 原 .gitignore 修改不纳入提交；原 docs/designs 三文件与实施计划作为本功能基线随 Task 1 提交。
 - PostgreSQL 连接配置尚未提供；Task 4 真实环境和后续 PG 并发验收不可标通过。按用户要求继续不依赖数据库的工作。

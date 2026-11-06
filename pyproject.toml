@@ -223,6 +223,16 @@ dependencies = [
   "nemo-relay>=0.11,<0.12; ((sys_platform == 'darwin' and platform_machine == 'arm64') or (sys_platform == 'linux' and platform_machine == 'x86_64' and 'android' not in platform_release) or (sys_platform == 'linux' and platform_machine == 'aarch64' and 'android' not in platform_release) or (sys_platform == 'win32' and platform_machine == 'AMD64') or (sys_platform == 'win32' and platform_machine == 'ARM64')) and python_version >= '3.14'",]
 
 [project.optional-dependencies]
+# Session storage is opt-in; SQLite starts without this stack. Ranges are
+# bounded to the selected major versions and resolved exactly in uv.lock.
+postgresql = [
+  "SQLAlchemy>=2.0.44,<3",
+  "psycopg>=3.3,<4",
+  # Other hosts use psycopg's Python implementation with administrator-provided
+  # libpq. Binary wheels do not cover Android, PyPy, or Windows ARM64.
+  "psycopg[binary]>=3.3,<4; platform_python_implementation == 'CPython' and ((sys_platform == 'linux' and platform_machine in 'x86_64 aarch64') or sys_platform == 'darwin' or (sys_platform == 'win32' and platform_machine == 'AMD64'))",
+  "alembic>=1.17,<2",
+]
 # High-performance event loop — uvloop replaces the stdlib asyncio loop with
 # a libuv-backed implementation for ~2-4x throughput on uvicorn.  Gated as an
 # optional extra because libuv's ./configure does not run on Android/Termux
@@ -593,7 +603,7 @@ hermes-acp = "acp_adapter.entry:main"
 # build with --all-extras and pass --no-extra for each of these, so their
 # closures never ship. KittenTTS pulls torch, transformers and spaCy through
 # misaki[en]: installed when the user picks it, not preinstalled.
-opt-in-extras = ["kittentts"]
+opt-in-extras = ["kittentts", "postgresql"]
 
 # Per-extra platform gates (settled 2026-09-02): an extra listed here is
 # only installable on platforms matching the marker. pm consults this
@@ -687,6 +697,8 @@ exclude-newer-package = { certifi = false }
 
 [tool.setuptools.packages.find]
 include = [
+  "hermes_db",
+  "hermes_db.*",
   "agent",
   "agent.*",
   "tools",
@@ -713,6 +725,7 @@ include = [
 ]
 
 [tool.setuptools.package-data]
+hermes_db = ["migrations/*.ini", "migrations/*.mako", "migrations/versions/*.py"]
 hermes_cli = [
   "observability/schemas/*.json",
   "data/*.json",
