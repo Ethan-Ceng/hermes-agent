@@ -268,8 +268,12 @@ def compute_obligation_id(session_key: str, message_ref: str, content: str) -> s
 
 
 def record_obligation(*, obligation_id: str, session_key: str, platform: str, chat_id: str,
-                      thread_id: Optional[str], content: str, adapter_profile: Optional[str] = None) -> None:
+                      thread_id: Optional[str], content: str, adapter_profile: Optional[str] = None):
     """Record a final response as owed to the platform (state='pending')."""
+    from gateway.delivery_backend import postgres_ledger
+    if (ledger := postgres_ledger()) is not None:
+        return ledger.record_obligation(obligation_id=obligation_id, session_key=session_key, platform=platform,
+            chat_id=chat_id, thread_id=thread_id, content=content, adapter_profile=adapter_profile)
     now, (pid, started) = time.time(), _owner_stamp()
     with _DB_LOCK, _transaction() as conn:
         conn.execute(
@@ -292,6 +296,10 @@ def record_crash_left_reply(*, obligation_id: str, session_key: str, platform: s
     claims it, and 'attempting', because a streamed reply may already be on screen: it is
     redelivered once, with the recovered marker. A no-op when the same reply was already ledgered
     since *since* (the turn start), and idempotent across boots that die before their sweep."""
+    from gateway.delivery_backend import postgres_ledger
+    if (ledger := postgres_ledger()) is not None:
+        return ledger.record_crash_left_reply(obligation_id=obligation_id, session_key=session_key, platform=platform,
+            chat_id=chat_id, thread_id=thread_id, content=content, since=since, adapter_profile=adapter_profile)
     now = time.time()
     with _DB_LOCK, _transaction() as conn:
         conn.execute(
@@ -325,6 +333,9 @@ def release_runtime_claim(obligation_id: str, error: str = "") -> bool:
     Runtime recovery claims before clearing ``resume_pending`` so two reconnect paths cannot send the
     same row; if the flag cannot be cleared no send was attempted and the claim must not consume the
     redelivery budget. Fail-closed to the exact current process instance and ``attempting`` state."""
+    from gateway.delivery_backend import postgres_ledger
+    if (ledger := postgres_ledger()) is not None:
+        return ledger.release_runtime_claim(obligation_id, error)
     pid, started = _owner_stamp()
     if started is None:
         return False
@@ -341,6 +352,9 @@ def release_runtime_claim(obligation_id: str, error: str = "") -> bool:
 
 
 def _update_state(obligation_id: str, state: str, error: str = "") -> None:
+    from gateway.delivery_backend import postgres_ledger
+    if (ledger := postgres_ledger()) is not None:
+        return ledger._mark(obligation_id, state, error)
     with _DB_LOCK, _transaction() as conn:
         conn.execute(
             """UPDATE delivery_obligations
@@ -385,6 +399,9 @@ def sweep_recoverable(now: Optional[float] = None, *, deliverable_platforms: Opt
     timer does once the wait has passed. A legacy row without ``adapter_profile`` is normalised to
     ``'default'`` on claim or adoption (the caller only accepts such rows when it is not multiplexed),
     because the runtime sweep matches profiles exactly and could otherwise never claim it."""
+    from gateway.delivery_backend import postgres_ledger
+    if (ledger := postgres_ledger()) is not None:
+        return ledger.sweep_recoverable(now, deliverable_platforms=deliverable_platforms, deliverable_targets=deliverable_targets)
     now, (pid, started) = now if now is not None else time.time(), _owner_stamp()
     claimed: list[dict[str, Any]] = []
     with _DB_LOCK, _transaction() as conn:
@@ -458,6 +475,9 @@ def sweep_failed_for_runtime(platform: str, now: Optional[float] = None, *,
     past their ``retry_not_before`` deadline, same attempts/staleness bounds, every update guarded by the
     prior owner stamp and ``failed`` state. Claimed rows always carry a marker (the failed send's ack is not safe to
     infer): the reconnect one, or the rate-limit one for a flood-refused row."""
+    from gateway.delivery_backend import postgres_ledger
+    if (ledger := postgres_ledger()) is not None:
+        return ledger.sweep_failed_for_runtime(platform, now, profile=profile)
     now, (pid, started) = now if now is not None else time.time(), _owner_stamp()
     if started is None:  # PID alone cannot distinguish this process from a stale row left after PID
         return []        # reuse; runtime replay is optional, so fail closed (startup recovery remains).
@@ -510,6 +530,9 @@ def pending_retries(now: Optional[float] = None) -> list[dict[str, Any]]:
     earliest deadline (``not_before``). The runner arms one redelivery timer per entry, so a row adopted
     at boot, skipped because its wait had not passed, or rejected again is never stranded. Rows past the
     attempts cap or stale cutoff are left for the sweeps to abandon."""
+    from gateway.delivery_backend import postgres_ledger
+    if (ledger := postgres_ledger()) is not None:
+        return ledger.pending_retries(now)
     now, (pid, started) = now if now is not None else time.time(), _owner_stamp()
     if started is None:
         return []

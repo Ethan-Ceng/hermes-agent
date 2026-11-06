@@ -12,7 +12,7 @@
 
 - 整体状态：`IN_PROGRESS`，不表示完整后端已通过验证。
 - 当前阶段：M3 完整接入（离线实现）；M1/M2 的真实 PG 验证尚未完成。
-- 当前任务：Task 14（对外投递义务账本）；Tasks 4–13 等待真实 PG 配置。
+- 当前任务：Task 15（PG 搜索与中文查询契约）；Tasks 4–14 等待真实 PG 配置。
 - 已完成：3 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：真实 PG 验证时需用户提供本地测试配置，实际版本、权限和扩展由 Task 4 检查；当前没有连接数据库。
@@ -748,7 +748,7 @@ Task 13 离线检查点：整改后 14 staged 检查通过（9 code files，0 bl
 
 ## Task 14：实现对外投递义务账本
 
-状态：in_progress
+状态：verification_pending
 
 ### 目标
 
@@ -784,15 +784,21 @@ Task 13 离线检查点：整改后 14 staged 检查通过（9 code files，0 bl
 
 ### 执行结果
 
-未开始；未修改本任务业务代码。
+从 Task 13 本地 commit ad0750dc13 继续。已读取现有 ledger 的创建、领取、重试/限流、清理及普通生产调用：账本属于 launch/process home，adapter_profile 区分被服务 bot，不能改为当前 turn 的 home。PG 表已有 owner_instance_id/claim_token/claim_expires_at；将用实例和原子 token 条件替代跨主机 PID 推断。先建立内容/限流预算共享契约及过期接管拒绝旧 owner 的 Core 契约；尚未实现 PG ledger 或改普通调用。
+
+首批 Core ledger/仓储/事务已实现普通 record、显式不可变 DeliveryClaim、原子领取/限流等待采用、runtime 重试/未发送释放和终态条件写入；不查本地 PID。每个发送 await 必须携带当次 claim，不能只按 obligation_id 取最新 token，否则同实例的新领取也可能被旧回调覆盖。PG 同 id record 不替换现有领取或重置已花预算，与“旧持有者不得覆盖新领取”的计划要求对齐；普通网关调用仍待改为携带 proof 并按 process home 选择后端，尚不启用工厂。
 
 ### 验证证据
 
-未执行。实施时记录实际命令、退出码、数据库/解释器版本、关键结果、执行时间及偏差。
+test_delivery_obligations.py 首轮测试把同 id 改 content 误当实际幂等输入，核对 compute_obligation_id 的 content 输入及现有 INSERT OR REPLACE 后修正为相同请求。有效红灯 SQLite 1 passed/Core missing-interface 1 failed + 1 setup error；首批实现并以显式 claim 测试后 3 passed / 0 failed，1.9s，exit 0。静态检查正在执行。crash-left、完整恢复/清理边界、所有普通调用、PG 并发及故障用例仍未完成；Task 14 in_progress，未提交。
+
+Task 14 离线检查点：已补齐 crash-left 同回复去重登记、重试/陈旧上限、终态优先有界清理，以及所有普通账本函数的按后端派发。新增 gateway/delivery_backend.py 仅按 get_process_hermes_home 解析配置，持有进程/配置/作用域绑定 handle 并在退出释放；PG 未就绪/失败不回落 SQLite。工厂完整启用及网关 quiesce 后显式关闭由 Task 17 收口。普通 producer 捕获当次 DeliveryClaim，启动和 runtime 恢复的确认/未发送释放也携带该凭据；不按 id 借用后续 token。已有 best-effort 投递语义保留：数据库不可用时发送仍可能发生，不能承诺外部 exactly-once；领取 TTL 到期接管也不推断远程 PID 生死。
+
+新增 crash-left 契约先 5 passed / Core 缺接口 1 failed，补齐后通过；当前 11 项离线投递契约覆盖 process home、adapter profile、跨 store、迟到/同实例旧 token、限流采用、未发送退款、预算、清理、事务回滚、真实提交后注入 ack 丢失，并在发送回调断言没有活动写事务。scripts/run_tests.sh tests/hermes_db 加投递/最终流式回复六个现有测试文件：66 files，430 passed / 0 failed，39.0s，exit 0；另连接泄露/单连接 2 passed，1.4s。日志 .build/postgresql/task14-tests.log。默认运行器排除了 integration，PG 文件显示的估算数量不是 PG 通过。新增 11 项真实 PG 定义（含三个屏障并发竞争）未执行；合计 201 项真实 PG 定义仍无执行证据。测试配置文件再次核对不存在。Task 14 保持 verification_pending，不能称 PG 投递后端已通过；下一任务 Task 15 可独立推进。
 
 ## Task 15：实现 PG 搜索与中文查询契约
 
-状态：pending
+状态：in_progress
 
 ### 目标
 
@@ -1081,3 +1087,5 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 - Task 11 commit fa346a033c；Task 12 已有 3 个公开导出/目标探针和 5 项离线契约通过，未提交。下一步完整 retirement/idle/租约 guard + Native 删除事务，随后 mutation receipts/rewrites/portability；123 项真实 PG 验证仍待配置，completed 仍 3/18。
 
 - Task 12 Native 删除阶段已有 35 项受影响测试通过；工作区仍为未提交的 Task 12 实现。下一步 housekeeping/retirement expiry、canonical mutation guards/receipts 与重写/导出。完整 media/spillover 退休和 terminal private APIs 尚未接入，不能宣称 Task 12 完成。
+
+Task 14 恢复点：14 staged 检查通过（11 code files，0 blocking / 0 advisory，exit 0），日志 .build/postgresql/task14-checks.log；离线实现已就位，PG 仍 verification_pending。Task 15 已置为 in_progress，从固定语料及现有纯查询规则开始；Task 17 需在网关 quiesce 后调用 close_delivery_handles。
