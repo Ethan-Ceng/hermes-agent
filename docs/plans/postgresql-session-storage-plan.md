@@ -12,7 +12,7 @@
 
 - 整体状态：`IN_PROGRESS`，不表示完整后端已通过验证。
 - 当前阶段：M2 业务语义（离线实现）；M1 的真实 PG 验证尚未完成。
-- 当前任务：Task 11（路由、会话代次与整理状态）；Tasks 4–10 等待真实 PG 配置。
+- 当前任务：Task 12（删除、退休墓碑与会话重写）；Tasks 4–11 等待真实 PG 配置。
 - 已完成：3 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：真实 PG 验证时需用户提供本地测试配置，实际版本、权限和扩展由 Task 4 检查；当前没有连接数据库。
@@ -571,7 +571,7 @@ Worker 发布将 execution 的物理目标和 admission lineage 同事务推进�
 
 ## Task 11：实现路由、会话代次与整理状态
 
-状态：in_progress
+状态：verification_pending
 
 ### 目标
 
@@ -606,15 +606,20 @@ Worker 发布将 execution 的物理目标和 admission lineage 同事务推进�
 
 ### 执行结果
 
-从 Task 10 离线检查点继续。先建立路由作用域/心跳/交接状态共享契约；业务删除入口需要复用 Task 12 墓碑事务，不能先做不受保护的删除。
+从 Task 10 commit 0b0ea642f4 继续。已完成路由 scope/退休栅栏、心跳、hygiene 原子计数、交接状态 CAS、peer 自愈/重定向、reset 边界恢复、孤立会话报告/采用、从 Local 当前目标转到 messaging lane 的谱系/标题/receipt 结算、profile 精确重命名和候选整理选择。首批 routing 3 passed/4 missing-interface failed、peers 4 passed/4 missing-interface failed、rekey 2 passed/3 missing-interface failed 建立红灯依据，随后分组测试 15 与 13 项通过。新增代次契约发现 Task 6 的 source/key 缺少既有 strip 语义，已补齐并验证。所有查询、相关子查询和冲突检测带 store_id；profile 重命名不改 stable store_id。
+
+依赖核对：prune_never_active_keyed_sessions 会调用删除/账本退休，本接口归属修正到 Task 12，复用完整墓碑事务；Task 11 已提供候选选择。功能保留，不添加占位删除。PG 固定完整 Schema，不移植 SQLite 可选列/旧表探测、旧 sessions.json 导入或数据库文件维护。
 
 ### 验证证据
 
-未执行。实施时记录实际命令、退出码、数据库/解释器版本、关键结果、执行时间及偏差。
+- PM Python 3.14.9、scripts/run_tests.sh：整轮 tests/hermes_db + SQLite rekey/orphan/compression/turn-lease/Worker regressions，51 files / 321 passed / 0 failed，34.5s，exit 0，日志 .build/postgresql/task11-tests.log。随后当前 topic 身份与冲突、投递行归属契约补充验证：test_gateway_rekey.py 10 passed / 0 failed，exit 0。
+- Task 11 审计清单 27 个公开接口均存在；prune_never_active_keyed_sessions 明确归 Task 12。当前无 SQLite 文件维护调用；未改 SQLite 实现。source/key strip 代次红灯 19 passed/1 failed 已修复，routing + sessions 31 passed。
+- ruff/health 已通过；全量 staged scripts/check --staged --base HEAD 14 checks 通过，0 blocking/0 advisory，exit 0，日志 .build/postgresql/task11-checks.log。
+- 新增 21 项真实 PG 路由/交接竞争/hygiene 并发累加/陈旧路由快照竞争用例未执行；累计 123 项真实 PG 验证待配置，不能计入通过。Schema 仍为 26 表/18 索引，无新依赖。
 
 ## Task 12：实现删除、退休墓碑与会话重写
 
-状态：pending
+状态：in_progress
 
 ### 目标
 
@@ -635,6 +640,8 @@ Worker 发布将 execution 的物理目标和 admission lineage 同事务推进�
 
 ### 实施步骤
 
+补充责任：prune_never_active_keyed_sessions 从 Task 11 转入，在完整退休/删除事务建立后接入；profile rekey 的 namespace 退休栅栏也在墓碑主题审计，防止改名后旧路由恢复。
+
 1. 覆盖谱系删除、墓碑、终态回执、路由退休、分支/回退/重写及当前消息显示代表更新。
 2. 区分业务删除与可清理缓存；必要的 state_meta 栅栏和回执不随会话正文清空。
 3. 在新库中验证现有导出、复制等普通功能；不增加 SQLite 整库导入、旧 Schema 升级或旧导出格式兼容任务。
@@ -650,7 +657,7 @@ Worker 发布将 execution 的物理目标和 admission lineage 同事务推进�
 
 ### 执行结果
 
-未开始；未修改本任务业务代码。
+从 Task 11 离线检查点继续。先建立删除目标闭包、idle/unknown/租约护栏与不可复活墓碑契约；再接入退休终态回执、会话动作幂等、重写/分支及当前普通导出复制。所有控制键/稳定根/代次行的保留需显式验证。
 
 ### 验证证据
 
@@ -1024,3 +1031,7 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 - Task 8 commit 5b68f4ebd6；Task 9 检查点：186 项整轮局部回归、后续 14 项受影响测试与 14 项 staged 检查通过，状态 verification_pending。当前 26 表/18 索引，回执投影与候选标题均同步冻结 revision。下一步 Task 10 租约/压缩/尾部与 held coverage，复用 leases/append/title 的连接内操作；补齐压缩 Worker handlers。75 项真实 PG 未执行，工厂与普通入口仍未启用/接线。严格 completed 仍 3/18。
 
 - Task 10 离线检查点：270 项整轮回归、随后 16 项受影响测试与 14 项 staged 检查通过，verification_pending；26 表/18 索引。下一步 Task 11 路由/心跳/代次/交接和整理状态；复用 root/map 锁与 PG TTL-only holder 规则。新增 27 项真实 PG 用例，合计 102 项未验证，默认配置仍不存在；PG 工厂仍拒绝生产启用。严格 completed 为 3/18。
+
+- Task 10 commit 0b0ea642f4；Task 11 正在实现/验证，当前未提交。prune_never_active_keyed_sessions 已明确归 Task 12；没有删除功能缩水或无保护先行删除。Task 11 新增 21 项 PG 用例，仍未连接 PG。
+
+- Task 11 离线检查点：321 项整轮回归、随后 10 项受影响测试、27 个公开接口核对及 14 项 staged 检查通过，verification_pending。当前 26 表/18 索引；新增 21 项真实 PG 用例，合计 123 项未执行。下一步 Task 12，从删除目标/租约/账本拒绝护栏和永久/可过期墓碑开始；保留 lineage-map-lock、transcript_roots、conversation_generations 与幂等身份。

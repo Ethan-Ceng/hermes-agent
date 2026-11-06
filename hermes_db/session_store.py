@@ -19,12 +19,16 @@ from hermes_db.session_message_results import SessionMessageResults
 from hermes_db.session_leases import SessionLeases
 from hermes_db.session_compression import SessionCompression
 from hermes_db.session_compression_state import SessionCompressionState
+from hermes_db.session_gateway import SessionGateway
+from hermes_db.session_heartbeats import SessionHeartbeats
+from hermes_db.session_handoffs import SessionHandoffs
+from hermes_db.session_gateway_peers import SessionGatewayPeers
 
 
 class PostgresSessionStore(SessionMetadata, SessionQueries, SessionTitles, SessionTopics, SessionUsage,
                            SessionMessages, SessionMessageReads, SessionMessageEdits, SessionMessageLookup,
                            SessionMessageReactions, SessionMessageResults, SessionLeases, SessionCompression,
-                           SessionCompressionState):
+                           SessionCompressionState, SessionGateway, SessionHeartbeats, SessionHandoffs, SessionGatewayPeers):
     def __init__(self, transactions, scope):
         from hermes_constants import profile_name_for_home
         from hermes_db.usage_writer import UsageWriter

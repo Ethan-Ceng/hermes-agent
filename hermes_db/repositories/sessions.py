@@ -128,9 +128,10 @@ def bump_generation(conn, scope, row, reason):
     from hermes_state_common import _RESET_END_REASONS
     from hermes_db.tables.gateway import conversation_generations as generations
 
-    if reason not in _RESET_END_REASONS or not row.get("source") or not row.get("session_key"):
+    source, key = (str(row.get(name) or "").strip() for name in ("source", "session_key"))
+    if reason not in _RESET_END_REASONS or not source or not key:
         return
-    statement = insert(generations).values(store_id=scope.require_store_id(), source=row["source"],
-                                           session_key=row["session_key"], generation=1)
+    statement = insert(generations).values(store_id=scope.require_store_id(), source=source,
+                                           session_key=key, generation=1)
     conn.execute(statement.on_conflict_do_update(index_elements=list(generations.primary_key.columns),
                                                  set_={"generation": generations.c.generation + 1}))
