@@ -10,6 +10,7 @@ import pytest
 def _offline_engine(sa, tmp_path, name):
     from sqlalchemy.sql.dml import Insert
     from hermes_db.tables.conversations import messages
+    from hermes_db.tables.runtime import session_admissions
     from hermes_db.tables.metadata import SCHEMA
 
     engine = sa.create_engine(f"sqlite:///{tmp_path / name}").execution_options(schema_translate_map={SCHEMA: None})
@@ -26,6 +27,9 @@ def _offline_engine(sa, tmp_path, name):
         if isinstance(statement, Insert) and statement.table is messages and "id" not in statement.compile().params:
             row_id = conn.scalar(sa.select(sa.func.coalesce(sa.func.max(messages.c.id), 0) + 1))
             statement = statement.values(id=row_id)
+        if isinstance(statement, Insert) and statement.table is session_admissions and "seq" not in statement.compile().params:
+            sequence = conn.scalar(sa.select(sa.func.coalesce(sa.func.max(session_admissions.c.seq), 0) + 1))
+            statement = statement.values(seq=sequence)
         return statement, multiparams, params
 
     return engine
@@ -77,3 +81,14 @@ def core_pair(tmp_path):
         for store in stores:
             store.close()
         engine.dispose()
+
+
+@pytest.fixture
+def runtime(store, tmp_path):
+    from hermes_state import SessionDB
+    if isinstance(store, SessionDB):
+        from hermes_db.legacy_sqlite import SQLiteRuntime
+        from hermes_db.scope import DatabaseScope
+        return SQLiteRuntime(store, DatabaseScope(tmp_path))
+    from hermes_db.runtime_store import PostgresRuntimeStore
+    return PostgresRuntimeStore(store)

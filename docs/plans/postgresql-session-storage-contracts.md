@@ -417,16 +417,16 @@
 | [rehome_queued_inputs](../../hermes_state_runtime.py#L385) | 8 |
 | [retarget_local_automation](../../hermes_state_runtime.py#L416) | 8 |
 | [recover_session_inputs](../../hermes_state_runtime.py#L453) | 8 |
-| [mutation_receipt_key](../../hermes_state_runtime.py#L467) | 8 |
-| [replay_mutation_receipt](../../hermes_state_runtime.py#L478) | 8 |
-| [mutate_runtime_session](../../hermes_state_runtime.py#L489) | 8 |
-| [import_legacy_session_admissions](../../hermes_state_runtime.py#L611) | 8 |
+| [mutation_receipt_key](../../hermes_state_runtime.py#L467) | 12 |
+| [replay_mutation_receipt](../../hermes_state_runtime.py#L478) | 12 |
+| [mutate_runtime_session](../../hermes_state_runtime.py#L489) | 12 |
+| [import_legacy_session_admissions](../../hermes_state_runtime.py#L611) | SQLite 专属（PG 不实现旧队列导入；Task 17 禁止调用） |
 | [resolve_unknown_session_input](../../hermes_state_runtime.py#L657) | 8 |
-| [register_worker_execution](../../hermes_state_runtime.py#L734) | 8 |
-| [adopt_worker_execution](../../hermes_state_runtime.py#L765) | 8 |
-| [row_annotations](../../hermes_state_runtime.py#L821) | 8 |
-| [mutate_worker_execution](../../hermes_state_runtime.py#L925) | 8 |
-| [apply_worker_receipt](../../hermes_state_runtime.py#L953) | 8 |
+| [register_worker_execution](../../hermes_state_runtime.py#L734) | 9 |
+| [adopt_worker_execution](../../hermes_state_runtime.py#L765) | 9 |
+| [row_annotations](../../hermes_state_runtime.py#L821) | 9 |
+| [mutate_worker_execution](../../hermes_state_runtime.py#L925) | 9 |
+| [apply_worker_receipt](../../hermes_state_runtime.py#L953) | 9 |
 | [runtime_lineage](../../hermes_state_runtime_workers.py#L5) | 9 |
 | [worker_states](../../hermes_state_runtime_workers.py#L26) | 9 |
 | [discard_orphan_workers_on_reset](../../hermes_state_runtime_workers.py#L33) | 9 |
@@ -827,3 +827,13 @@ $pgTestConfig = Join-Path $env:LOCALAPPDATA 'HermesTests/postgresql.yaml'
 批量 flush 保留逻辑身份，提交确认后才发布物理行戳与 CAS digest；未知提交不重放。保留显式 chunk_rows 的分块提交业务契约，不承诺跨块全量回滚。替换、撤回、反应已读和异步结果去重在短事务内完成；回放只投影，不重组历史提示。archive_and_compact 的完整算法/验证归属 Task 10；该接口仍是必需功能。
 
 2026-11-06：148 项离线回归与 14 项 staged 检查通过，47 项真实 PG 测试未执行。Core fixture 的 IDENTITY 模拟仅用于离线顺序契约，不是 PostgreSQL 验证。PG 工厂保持拒绝启用，等待完整接线和真实验收。
+
+## Task 8 准入/终态检查点
+
+PostgresRuntimeStore 实现 epoch、准入去重/摘要冲突、FIFO、容量、generation、取消、steer/revert、队列迁移、unknown 恢复/显式解除及终态结果。私有授权、replay、claim 和终态回调需显式 CoreEffect，收到同一 scoped Core Connection；不能接收原 sqlite3 回调。Task 17 必须逐一替换消费者，PG 工厂继续关闭。
+
+锁顺序为 store 的 epoch 共享锁→谱系映射→按序根锁。运行范围含 Local reset 的逻辑 owner 与物理 transcript。transcript_mark 在该范围内取 MAX(id)，不依赖无关空间的 sequence；根锁先于消息 ID 分配。收尾/unknown/recover 先取得短映射独占栅栏，再锁根并退休跨根子执行，避免与子写入竞争。没有 SKIP LOCKED 跳过队头，也没有自动重放未知提交。
+
+Worker 登记/采用/回执接口归 Task 9；完整会话 mutation 及 receipt runner 归 Task 12，与原计划删除/重写主题对齐。旧队列导入仅保留 SQLite，PG 明确不实现历史格式接入。当前业务功能未缩减。
+
+2026-11-06：166 项离线回归通过；后续受影响 18 项、依赖隔离 14 项和提交确认丢失 1 项通过。14 staged 检查通过，新增测试后的 ruff/health 亦通过。CoreEffect 失败全部回滚，确认丢失后同请求查询/重放只得到既有准入，没有再次执行效果。新增 12 PG 用例未执行，合计 59 项 PG 待验。

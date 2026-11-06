@@ -12,7 +12,7 @@
 
 - 整体状态：`IN_PROGRESS`，不表示完整后端已通过验证。
 - 当前阶段：M2 业务语义（离线实现）；M1 的真实 PG 验证尚未完成。
-- 当前任务：Task 7（完整消息写入与历史读取）；Tasks 4–6 等待真实 PG 配置。
+- 当前任务：Task 8（准入队列、epoch 与终态事务）；Tasks 4–7 等待真实 PG 配置。
 - 已完成：3 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：真实 PG 验证时需用户提供本地测试配置，实际版本、权限和扩展由 Task 4 检查；当前没有连接数据库。
@@ -407,7 +407,7 @@ Core 离线 fixture 在测试中模拟 SQLite 缺少的复合键 IDENTITY，仅�
 
 ## Task 8：实现准入队列、epoch 与终态事务
 
-状态：pending
+状态：verification_pending（离线准入/终态实现与契约通过；真实 PG 竞争/故障待配置）
 
 ### 目标
 
@@ -446,11 +446,21 @@ Core 离线 fixture 在测试中模拟 SQLite 缺少的复合键 IDENTITY，仅�
 
 ### 执行结果
 
-未开始；未修改本任务业务代码。
+从 Task 7 commit 22c6fb7924 开始。先固定 epoch/去重/FIFO/代次/unknown 共享契约；连接级旧 SQLite 回调不能原样交给 PG，必须转为显式 Core 事务效果并在锁内执行。
+
+已实现 PostgresRuntimeStore、scoped epoch 与准入仓储、FIFO/容量/摘要冲突、领取/generation、取消/steer/revert、重定向、恢复 unknown、显式解除 unknown、终态结果与 Worker 收尾。私有回调必须是显式 CoreEffect，在拥有者 Profile/秘密上下文和同一事务内执行；失败回滚，已接受请求重放绕过新准入授权。读取/约束均带 store_id。
+
+epoch 行共享锁先于映射和根锁，启动更新 epoch 等待旧写入结束；普通账本事务按序锁运行范围内全部根（包含 Local reset 后物理目标），不使用 SKIP LOCKED 跳过队头。终态/unknown 收尾及启动恢复使用短映射独占栅栏，先等子 Worker 写入完成，再退休跨根子任务；不跨外部效果持锁。transcript_mark 改为当前逻辑执行及其物理谱系范围的 MAX(id)，不受其他 store/谱系 sequence 干扰；根锁先于分配/领取，保留“本轮行位于 mark 之后”的业务用途。
+
+清单的 Worker 接口改归 Task 9，完整 revision-fenced mutate/receipt runner 改归 Task 12（覆盖其中的删除/重写/准备发布动作），消除清单粗归属造成的反向依赖。Task 8 保留准入/领取/终态回调边界。import_legacy_session_admissions 明确 SQLite 专属，PG 新库不实现旧队列导入；Task 17 接线须禁止调用。业务范围没有删减。
 
 ### 验证证据
 
-未执行。实施时记录实际命令、退出码、数据库/解释器版本、关键结果、执行时间及偏差。
+2026-11-06，PM Python 3.14.9 + scripts/run_tests.sh：首次基础共享契约 SQLite 3 passed/Core 3 fixture error（缺模块，exit 1）；实现后 6 passed。扩展后 Runtime 两文件 16 passed，覆盖 FIFO/容量/去重、unknown、steer、rehome、跨 store、压缩子段互斥、reset 后 mark 和授权/终态回滚。新增测试曾因插入位置造成 NameError，已修正并复验；lint 的 pairwise/unused/next 建议已整改。
+
+一轮 `bash scripts/run_tests.sh tests/hermes_db tests/hermes_state/test_runtime_admission.py tests/hermes_cli/test_db_setup.py tests/hermes_cli/test_db_commands.py`：exit 0，26 文件、166 passed/0 failed，18.7 秒（`.build/postgresql/task8-tests.log`）。终态锁顺序/generation 整改后受影响三文件 18 passed，exit 0，7.8 秒（task8-affected.log）；SQLite fixture 可选依赖隔离补测两文件 14 passed，exit 0，26.9 秒；增加提交确认丢失/同请求查询及精确重放测试 1 passed，exit 0，10.9 秒，无事务效果重放。
+
+`PYTHONUTF8=1`、PM Python 执行 `scripts/check --staged --base HEAD`：exit 0，14 checks ok、0 blocking/0 advisory（task8-checks.log）；后增确认丢失测试及 fixture 调整的最新 ruff/health 两项也通过。真实 PG 新增 12 用例（6 共享/4 隔离与效果/2 多连接竞争），均未执行；合计 59 PG 用例默认 integration 排除，不计通过。Core fixture 的序号模拟不能验证 PG 锁或提交顺序。
 
 ## Task 9：实现 Worker 回执与异步委派存储
 
@@ -928,6 +938,7 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 | 2026-11-06 | 排除旧数据迁移与回迁 | 用户明确“不需要兼容旧数据，也就是不迁移数据” | Schema 从空库设计；不增加历史导入任务 |
 | 2026-11-06 | 测试目录使用 tests/hermes_db/ | tests/AGENTS.md 要求镜像源包目录 | 更正此前设计中的 tests/db/ |
 | 2026-11-06 | 修正三个导出/删除探针归属为 Task 12，archive_and_compact 为 Task 10 | 与原计划的删除、完整压缩操作责任对齐 | 保留全部功能；在相应主题验证，不以未实现壳函数占位 |
+| 2026-11-06 | Worker 接口归 Task 9，revision-fenced 会话动作/回执归 Task 12；旧队列导入留 SQLite | 清单粗归属与原计划主题不符；Task 8 不反向依赖尚未实施的删除/重写 | 功能范围不变，保持 8→9→10→11→12 依赖；PG 不增旧格式兼容 |
 
 ## 最终验证
 
@@ -989,3 +1000,4 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 - 当前未完成最终 verification-before-completion/code-review；全功能完成后统一执行并整改，绝不把这些局部结果当作完整后端通过。
 - Task 6 离线检查点：114 tests/14 checks passed，状态 verification_pending。当前 26 表/15 索引已同步冻结初始 revision；后台作用域、短事务与失败分型已有离线契约。下一步 Task 7 完整消息编解码、UID/显示代表、行重写、计数/revision 与 watermark；工厂继续拒绝 PG 生产启用。Task 12 必须保留谱系控制键与根行。真实 PG 28 项未执行。
 - Task 6 commit 7fd192bb81；Task 7 离线检查点 148 tests/14 checks passed，状态 verification_pending。当前 26 表/17 索引；42 个消息主题接口已核对。下一步 Task 8 队列、epoch、generation 与终态事务。archive_and_compact 在 Task 10 实施。真实 PG 47 项未执行，严格 completed 数仍为 3/18；不启用生产 PG 工厂。
+- Task 7 commit 22c6fb7924；Task 8 离线准入/终态检查点：一轮 166 passed、后续受影响 18/依赖隔离 14/提交确认丢失 1 passed；14 staged checks 与最新 ruff/health 通过。下一步 Task 9 Worker 登记/采用/序列回执和异步委派（复用 worker_retirement）。Scope/epoch→映射→根锁顺序不得反转。59 项真实 PG 未执行；完整会话动作及 mutation receipt runner 在 Task 12，旧队列导入仅 SQLite，Task 17 须适配 CoreEffect。
