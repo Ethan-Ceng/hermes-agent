@@ -12,7 +12,7 @@
 
 - 整体状态：`IN_PROGRESS`，不表示完整后端已通过验证。
 - 当前阶段：M3 完整接入（离线实现）；M1/M2 的真实 PG 验证尚未完成。
-- 当前任务：Task 13（API 响应续接与 Run 幂等）；Tasks 4–12 等待真实 PG 配置。
+- 当前任务：Task 14（对外投递义务账本）；Tasks 4–13 等待真实 PG 配置。
 - 已完成：3 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：真实 PG 验证时需用户提供本地测试配置，实际版本、权限和扩展由 Task 4 检查；当前没有连接数据库。
@@ -693,7 +693,7 @@ chat picks、canonical import、prompt refresh 和当前 Cron/外部快照/skill
 
 ## Task 13：实现 API 响应续接与 Run 幂等存储
 
-状态：in_progress
+状态：verification_pending（离线实现与检查已通过；真实 PG 未执行）
 
 ### 目标
 
@@ -728,15 +728,27 @@ API 续接和重放可跨服务重启恢复，作用域完整且故障不会降�
 
 ### 执行结果
 
-未开始；未修改本任务业务代码。
+从 Task 12 本地 commit dfd78f3515 继续。已核对现有 ResponseStore 的 5 表和 RunIdempotencyStore 事务/保留语义；PG 固定 Schema 已包含这些表。新增 repositories/api.py、operations/api.py 与 PostgresResponseStore：双作用域限定、正文 LRU/命名会话、不可变回执、模型标签、准入绑定、输出索引及同库终态结算；close 不关闭共享 SessionStore，短事务不回落内存。atomically/off_loop 在当前线程复用本次事务 Connection，调用方只能组合本存储的同步数据库动作。生产接线统一留 Task 17，工厂仍不启用半成品 PG。
+
+新增 PostgresRunIdempotencyStore 及 api_runs 仓储的首批预留/查询/保留期实现；未决状态不按年龄清除，授权保留期限只延长。PG update_status 要求显式 scope，避免同 store 的同名 run 跨 API 作用域更新；Task 17 接线须从现有 _run_owners 传入。后续还须避免在持有 Response 事务时另取 Session/Runtime Connection（尤其 pool_size=1），并将 PG Run 恢复接 canonical/epoch 证据，不能依本地 PID 推断远端执行已结束。
+
+结算改为同库窄列联结，只读 admission status/terminal meta key，不水合大请求或转为 JSONB。先结算身份再淘汰正文，零正文容量也受 settled 身份上限约束。resolve_request_admission 在 Responses 当前 Connection 上修复丢失导数指针，校验原始 principal/request，过期或冲突身份不重新准入；Task 17 的 _lookup_admission 必须使用此入口，不能绕回 SQLite helper 或另借连接。Run scope、同库原始身份、未知提交后原 key 查询和后台拥有者 Profile 已有离线契约；未增加账号系统。
 
 ### 验证证据
 
-未执行。实施时记录实际命令、退出码、数据库/解释器版本、关键结果、执行时间及偏差。
+scripts/run_tests.sh（PM Python 3.14.9）test_api_responses.py：首轮 SQLite 2 passed/Core 2 missing-module failed；首批实现后 4 passed / 0 failed，2.5s，exit 0。只验证初始 LRU/回执/标签/输出顺序和重开；终态结算边界、作用域/故障/并发、全部 Run 语义和真实 PG 仍未验证。Task 13 未提交，保持 in_progress。
+
+Run 首轮 2 passed/Core 2 missing-module failed，首批实现后与 Responses 10 passed。零正文容量结算顺序先 1 passed/1 failed，整改后两文件 12 passed。补同库退休结算/指针修复后 17 passed；后续 off-loop Profile/父子生命周期及断线不回落内存覆盖，scope_faults 8 passed，4.1s，exit 0。PG 入口新增 17 项定义（含 3 项 barrier 并发），尚未执行；与前序合计 190 项待真实 PG。整轮离线回归进行中，最新完整静态检查未执行；此前 ruff/health 9 files / 0 blocking / 0 advisory。
+
+整轮首次结果：61 files / 356 passed / 2 failed / 3 collection errors，45.2s，exit 1；全部失败来自四个既有 gateway API 文件缺 aiohttp，日志 `.build/postgresql/task13-tests.log`，不能记作整轮通过。正在用 PM 新建 `.build/postgresql/api-test-env`（postgresql + messaging extras、dev/test groups），保留原环境，不用 raw pip/uv；完成后重跑受影响 API 回归。Task 13 仍 in_progress，未提交。
+
+PM 新环境构建成功（`.build/postgresql/task13-env.log`）；四个受影响 gateway API 文件重跑 12 passed / 0 failed，5.7s，exit 0，日志 `.build/postgresql/task13-api-tests.log`。原轮 356 项通过与这次重跑分别记证据，没有把缺依赖轮写成完整通过。接下来运行 Task 13 暂存快照完整静态检查；真实 PG 190 项仍未执行。
+
+Task 13 离线检查点：整改后 14 staged 检查通过（9 code files，0 blocking / 0 advisory，exit 0），日志 `.build/postgresql/task13-checks.log`。数据层接口全部落位；API 路由/authority 接线和 PG Run 恢复的 epoch 证据按总计划在 Task 17 完成。50+123+17 共 190 项真实 PG 定义未执行，不能宣称 API PG 后端已通过。下一任务为 Task 14。
 
 ## Task 14：实现对外投递义务账本
 
-状态：pending
+状态：in_progress
 
 ### 目标
 
