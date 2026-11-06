@@ -4,11 +4,13 @@ import json
 
 from sqlalchemy import and_, literal, func, select
 
-from hermes_db.repositories import sessions
+from hermes_db.repositories import runtime, sessions
 from hermes_db.repositories.gateway import marker
 from hermes_db.tables.conversations import sessions as session_table
 from hermes_db.tables.gateway import delivery_obligations, gateway_heartbeats, gateway_routing
 from hermes_db.tables.gateway import telegram_dm_topic_bindings as bindings, telegram_dm_topic_mode as modes
+from hermes_db.tables.runtime import state_meta
+from hermes_state_mutation_retirement import ROUTE_FENCE_PREFIX
 
 
 def rekey(conn, scope, old_name, new_name):
@@ -31,7 +33,27 @@ def rekey(conn, scope, old_name, new_name):
         counts[label] = _namespace_column(conn, scope, table, old_ns, new_ns)
     counts["sessions_origin_json"] = _session_origins(conn, scope, old, new)
     counts["gateway_routing"] = _routes(conn, scope, old, new, old_ns, new_ns)
+    counts["gateway_retired_routes"] = _retired_routes(conn, scope, old, new)
     return counts
+
+
+def _retired_routes(conn, scope, old, new):
+    prefix, replacement = ROUTE_FENCE_PREFIX + old + ":", ROUTE_FENCE_PREFIX + new + ":"
+    rows = conn.execute(select(state_meta.c.key, state_meta.c.value).where(state_meta.c.store_id == scope.require_store_id(),
+        state_meta.c.key.startswith(prefix, autoescape=True))).all()
+    for key, raw in rows:
+        new_key = replacement + key[len(prefix):]
+        target_raw = runtime.meta(conn, scope, new_key)
+        prior, target = marker(raw), marker(target_raw)
+        if target_raw is None or prior is None:
+            runtime.set_meta(conn, scope, new_key, raw)
+        elif target is not None:
+            value = {"retired_at": max(prior["retired_at"], target["retired_at"])}
+            if prior.get("expires") and target.get("expires"):
+                value["expires"] = True
+            runtime.set_meta(conn, scope, new_key, json.dumps(value))
+        # Old keys still fence late writes carrying the pre-rename route.
+    return len(rows)
 
 
 def _assert_no_collision(conn, scope, old, new, old_ns, new_ns):

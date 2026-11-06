@@ -85,7 +85,9 @@ def reconcile_orders(conn, scope, session_id):
             identity = uids.get(row["message_uid"], identity)
         elif row["message_uid"]:
             uids.setdefault(row["message_uid"], identity)
-        first.setdefault(identity, row["id"])
+        # Rewrites keep their old display slot beside an archived twin. New
+        # generations join the identity's existing slot rather than moving it.
+        first.setdefault(identity, row["display_order"] if row["display_order"] is not None else row["id"])
         if identity != row["display_identity"] or first[identity] != row["display_order"]:
             changes.append((row["id"], identity, first[identity]))
     for row_id, identity, order in changes:

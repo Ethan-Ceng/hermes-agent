@@ -11,8 +11,8 @@
 ## 当前进度
 
 - 整体状态：`IN_PROGRESS`，不表示完整后端已通过验证。
-- 当前阶段：M2 业务语义（离线实现）；M1 的真实 PG 验证尚未完成。
-- 当前任务：Task 12（删除、退休墓碑与会话重写）；Tasks 4–11 等待真实 PG 配置。
+- 当前阶段：M3 完整接入（离线实现）；M1/M2 的真实 PG 验证尚未完成。
+- 当前任务：Task 13（API 响应续接与 Run 幂等）；Tasks 4–12 等待真实 PG 配置。
 - 已完成：3 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：真实 PG 验证时需用户提供本地测试配置，实际版本、权限和扩展由 Task 4 检查；当前没有连接数据库。
@@ -619,7 +619,7 @@ Worker 发布将 execution 的物理目标和 admission lineage 同事务推进�
 
 ## Task 12：实现删除、退休墓碑与会话重写
 
-状态：in_progress
+状态：verification_pending（离线实现与检查已通过；真实 PG 未执行）
 
 ### 目标
 
@@ -642,6 +642,8 @@ Worker 发布将 execution 的物理目标和 admission lineage 同事务推进�
 
 补充责任：prune_never_active_keyed_sessions 从 Task 11 转入，在完整退休/删除事务建立后接入；profile rekey 的 namespace 退休栅栏也在墓碑主题审计，防止改名后旧路由恢复。
 
+依赖审计补正：archive_sessions 与其 list_prune_candidates 选择器统一在 Task 16；跨 Profile adopt/move 及 delete_gateway_routing_rows 与该调用方的文件引用、维护/修复命令和其余 profile_repair 接口统一在 Task 16。Task 12 保留同会话分支复制、当前 JSON 导入导出和完整删除/重写。这里调整的是落位顺序，未减少接口或业务范围；Task 16 必须核对共享文件指针的持有者，不能搬移正文后清理仍被目标引用的文件，也不增加 SQLite 旧数据自动迁移。
+
 1. 覆盖谱系删除、墓碑、终态回执、路由退休、分支/回退/重写及当前消息显示代表更新。
 2. 区分业务删除与可清理缓存；必要的 state_meta 栅栏和回执不随会话正文清空。
 3. 在新库中验证现有导出、复制等普通功能；不增加 SQLite 整库导入、旧 Schema 升级或旧导出格式兼容任务。
@@ -657,15 +659,41 @@ Worker 发布将 execution 的物理目标和 admission lineage 同事务推进�
 
 ### 执行结果
 
-从 Task 11 离线检查点继续。先建立删除目标闭包、idle/unknown/租约护栏与不可复活墓碑契约；再接入退休终态回执、会话动作幂等、重写/分支及当前普通导出复制。所有控制键/稳定根/代次行的保留需显式验证。
+从 Task 11 commit fa346a033c 继续。已建立并实现 assert_export_safe/assert_exports_safe/get_session_delete_targets：导出限额包括归档物理行；默认删除探针包含 Local receipt 谱系和递归 delegate marker，普通 branch/compression 子会话不由默认探针串入；所有选择按 store_id 隔离。tests/hermes_db/contracts/test_retirement_guards.py 首轮有效红灯为 2 passed/3 missing-interface failed，实现后 5 passed，exit 0。Task 12 仍 in_progress，尚未提交。
+
+Native delete_session/delete_sessions 已接入同一完整短事务：映射/根锁 → queued/running/unknown 拒绝 → terminal admission/worker 身份退休 → mutation 内容裁剪 → 路由/Local policy/API binding/永久墓碑 → 正文/旁表删除及提示 GC；默认物理删除保留独立分支，显式 chain 删除支持整链租约跳过和请求计数；expected ids/display snapshot 在事务内复核。提交后才发事件并清理当前会话缓存文件，路径限制在明确 sessions_dir 内，支持字面特殊字符。
+
+契约复现并整改两个物理父删除边界：显示谱系不能把永久锁根当作存在的会话行；失去物理父连接后的兄弟会话不能共用 pinned/archive/turn lease 域。现在在原映射栅栏内把存活组件重新绑定到各自根，旧根行/控制键/代次行仍保留。这个重绑定只发生在显式拓扑断开后，不把旧 holder 延续到已经独立的会话；正常压缩的稳定根语义不变。Native root/frame/回执跨 store 契约通过。
+
+canonical mutation 已提供作用域内 epoch/revision/generation 护栏、确定性 request/digest 回执及重放优先、删除 owner 闭包和 metadata 动作。跨 owner 压缩边界红灯发现遍历不能越过外域节点后再进入同域，已改为逐边检查。预备 model/reasoning/workspace/editor_mcp/edit_policy 在同一事务复核 Local receipt、物理目标 revision 和运行/租约状态后提交；模型变更保持提示、工具快照及消息原文不变。新增 policy picks/配置刷新入口，分支显式继承 picks，不实现旧 receipt 格式回退。
+
+新增 canonical branch/reset/rewind/compress，复用同连接的压缩发布、归档与消息回退；分支复制精确列、独立 Local 路由/策略/锁根和 picks。reset 可带 queued follower 发布新目标，unknown/running 护栏保持；预备动作会复核当前物理目标的 revision。调用者 prepared 数据在事务前复制，不暴露未提交的物理 stamp。逐行 prune 在写入前复核全部行的 CAS，仅变更行归档一份旧正文、保留原行和显示槽；公共 rewind 规划复用只依赖公开读写接口的纯算法。
+
+新增 housekeeping：空会话及未准入 seed 补偿、never-active 带租约跳过/路由计数、terminal 身份/结果/worker 墓碑到期；派生 Bot Chat/A2A/API id 和走过的代次栅栏永久保留。私有 terminal retry 校验原始 digest/epoch，worker tombstone 额外验证 adoption proof，删除后的结果只留回复与用量。profile rekey 审计补齐 namespace 栅栏：复制到新 namespace，与现有栅栏合并时永久优先，旧键继续拒绝迟到路由；保持 store_id 不变。
+
+退休文件现已记录持久候选后再清除正文，在提交后的拥有者 Profile 中复核生存 transcript/已准入输入、本地 capture lease 和文件身份再清理；共享 branch 指针仍保留。清理失败保留候选供重试。普通当前 JSON 导出/导入已保留 prompt、消息 UID/归档状态，并重置运行路由/活动；整批验证、墓碑拒绝和无环父图重建已覆盖，未添加 SQLite 整库或旧格式迁移。
+
+chat picks、canonical import、prompt refresh 和当前 Cron/外部快照/skill/工作区投影已实现。Cron 新库路径只读当前 scheduler 准入及其 policy 身份，不实现旧 timestamp id 扫描。其余跨 Profile 修复/搬移、archive_sessions 与选择器按依赖归 Task 16，见上方责任补正。
+
+最终接口核对：归属调整后的 28 个公开 SessionDB 方法均存在。Task 12 离线实现已落位，真实 PG 并发、故障和重启验证尚未执行；PG 工厂仍不启用。
 
 ### 验证证据
 
-未执行。实施时记录实际命令、退出码、数据库/解释器版本、关键结果、执行时间及偏差。
+- scripts/run_tests.sh（PM Python 3.14.9）：retirement_guards 5 passed；Native retirement 初始红灯 4 passed/5 missing-interface failed。实现后 8 passed/1 lineage failed，修正实际存活祖先后与 compression_metadata/worker_compression 21 passed。
+- 补充 verified-delete CAS、故障回滚和缓存路径约束后，retirement_rewrites 13 passed。新增孤立兄弟隔离用例先 1 passed/1 failed（pinned 串入）；在同一根/映射事务内重绑定组件后，retirement_rewrites + compression_leases + gateway_peers 35 passed / 0 failed，15.0s，exit 0。
+- mutation_receipts 外域节点边界先 1 passed/1 failed，逐边整改后与 retirement_rewrites 共 22 passed。prepared_mutations 首轮 SQLite 2 passed/Core 2 failed（prepare 未实现），实现后与 mutation_receipts 共 11 passed / 0 failed，10.6s，exit 0。prompt/tool/message 中 NUL 原文及策略准备后 revision 改变拒绝已覆盖。
+- mutation_transcript 初始实现缺口及两处测试误用（私有 lineage、append 非 runtime revision）已整改，14 passed，包含压缩原位/轮换、后继目标 revision 复核及精确重试。prune_rewrites 首轮缺接口及测试 snapshot/原文断言修正后 6 passed；与 messages、compression_archive 共 44 passed / 0 failed，10.5s，exit 0。追加 append 后显示槽保持测试也已通过。ruff 一处 UTC 测试写法已修正；health 24 files / 0 blocking / 0 advisory。
+- terminal_retries 先 2 passed / 2 missing-interface failed，实现后 4 passed，4.5s。housekeeping 先 3 passed / 3 missing-interface failed，实现后与 terminal_retries、gateway_peers 21 passed；补 never-active 和 generation walk 后 housekeeping 9 passed，8.6s。rekey 栅栏测试修正 save 的 None 返回值误用后有效红灯：新 namespace 未拒绝旧 id；整改后 rekey 11 passed。
+- retired_files 2 failed（最后持有者删除后文件未清理），实现后与 retirement_rewrites/mutation_receipts 共 24 passed，36.8s。当前 portability 修正测试 API/timing 字段误用后 6 passed。整轮 contracts：34 files / 271 passed / 0 failed，31.2s，exit 0，日志 `.build/postgresql/task12-contracts.log`。
+- 新增 PG retirement/rewrites 入口：41 项定义（共享契约、故障、作用域和 3 项 barrier 并发），均未执行；加前序 123 项为 164 项待真实 PG 验证。这里的定义数量不是验证通过数量。
+- session_controls 初轮 4 passed / 2 missing-interface failed，补齐 chat pick 和 refresh 后与 portability 12 passed；补当前 Cron/外部快照/skill/cwd 后 16 passed / 0 failed，6.3s。最新 ruff/health：46 files / 0 blocking / 0 advisory。新增这 8 项 PG 共享契约后，Task 12 PG 定义 49 项、总计 172 项，仍均未执行。
+- Task 12 整轮离线检查点：全部 hermes_db 加 SQLite runtime_mutations/terminal_retirement/retired_fence_outlives_horizon/export_timings/import_keep_flags，58 files / 372 passed / 0 failed，46.6s，exit 0；日志 `.build/postgresql/task12-tests.log`。PG 文件由默认 marker 排除，没有连接数据库；不能把其发现项算作 PG passed。14 staged 检查通过，日志 `.build/postgresql/task12-checks.log`。
+- 后续审计新增空压缩祖先与后继保护红灯 1 failed：sweep 会删除仍承载后继租约的根。现在按实际存活压缩组件检查 turn/compression guard 和 executing/unknown ledger；受影响 housekeeping/retirement/leases/peers 45 passed，14.1s，exit 0，日志 `.build/postgresql/task12-sweep-lease.log`；补 Worker 存活/终态释放断言后 1 passed，2.7s。新增对应 PG 用例后 Task 12 定义 50 项、总计 173 项，均待真实 PG 配置。整改后完整 14 staged 检查再次通过（47 code files，0 blocking / 0 advisory，exit 0），日志 `.build/postgresql/task12-final-checks.log`。本提交为 Task 12 离线恢复点；不等于真实后端验证完成。
+- 前次 ruff/health 局部检查通过；最新预备策略修改后的检查、完整 Task 12 验证与 commit 尚未到达。未连接 PG，123 项前序真实 PG 用例仍待配置，新 retirement 用例尚未接到 PG 入口。
 
 ## Task 13：实现 API 响应续接与 Run 幂等存储
 
-状态：pending
+状态：in_progress
 
 ### 目标
 
@@ -822,6 +850,8 @@ API 续接和重放可跨服务重启恢复，作用域完整且故障不会降�
 1. 用显式 scope/profile_home 与数据库健康接口替代 db_path.parent、state.db 文件存在性和 sqlite_master 探测。
 2. 工具结果清理通过会话存储查询引用；数据库不可读时保留文件，不能因本地无 state.db 得出无引用结论。
 3. 移除 PG 路径的 _conn 直读，状态展示使用后端查询；SQLite backup/repair/recovery 保持本地专属，PG 命令清楚报告支持范围。
+
+责任补正（Task 12 审计）：list_prune_candidates/archive_sessions 与其他 retention/maintenance 选择器在本任务完成；adopt_session_lineage_from、export_session_for_move/import_moved_session/delete_moved_session/delete_gateway_routing_rows 和其余 Profile repair 调用方一并核对。仅支持当前新数据业务，不加入 SQLite 旧格式/旧文件升级；跨 store 复制必须处理共享文件引用保留，不能把数据库行搬走等同于文件迁移完成。
 
 ### 验证方式
 
@@ -1035,3 +1065,7 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 - Task 10 commit 0b0ea642f4；Task 11 正在实现/验证，当前未提交。prune_never_active_keyed_sessions 已明确归 Task 12；没有删除功能缩水或无保护先行删除。Task 11 新增 21 项 PG 用例，仍未连接 PG。
 
 - Task 11 离线检查点：321 项整轮回归、随后 10 项受影响测试、27 个公开接口核对及 14 项 staged 检查通过，verification_pending。当前 26 表/18 索引；新增 21 项真实 PG 用例，合计 123 项未执行。下一步 Task 12，从删除目标/租约/账本拒绝护栏和永久/可过期墓碑开始；保留 lineage-map-lock、transcript_roots、conversation_generations 与幂等身份。
+
+- Task 11 commit fa346a033c；Task 12 已有 3 个公开导出/目标探针和 5 项离线契约通过，未提交。下一步完整 retirement/idle/租约 guard + Native 删除事务，随后 mutation receipts/rewrites/portability；123 项真实 PG 验证仍待配置，completed 仍 3/18。
+
+- Task 12 Native 删除阶段已有 35 项受影响测试通过；工作区仍为未提交的 Task 12 实现。下一步 housekeeping/retirement expiry、canonical mutation guards/receipts 与重写/导出。完整 media/spillover 退休和 terminal private APIs 尚未接入，不能宣称 Task 12 完成。

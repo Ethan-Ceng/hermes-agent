@@ -96,11 +96,12 @@ class SessionCompressionState:
             return state.finalize_orphans(conn, self.scope)
 
     def get_compression_lineage(self, session_id):
+        from hermes_db.repositories.messages import resume_lineage
         with self._read() as conn:
             row = sessions.raw_session(conn, self.scope, session_id)
             if row is None:
                 return []
-            result = [row["lineage_root_id"]]
+            result = [resume_lineage(conn, self.scope, session_id)[0]]
             while True:
                 children = state.children(conn, self.scope, result[-1])
                 if not children:

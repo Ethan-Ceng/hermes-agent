@@ -9,9 +9,10 @@ from hermes_db.operations import runtime_queue
 from hermes_db.repositories import runtime as repo
 from hermes_db.tables.runtime import session_admissions
 from hermes_db.runtime_workers import RuntimeWorkers
+from hermes_db.runtime_terminal import RuntimeTerminal
 
 
-class PostgresRuntimeStore(RuntimeWorkers):
+class PostgresRuntimeStore(RuntimeWorkers, RuntimeTerminal):
     def __init__(self, session_store):
         self._store = session_store
         from hermes_db.delegation_store import AsyncDelegationStore
@@ -34,6 +35,37 @@ class PostgresRuntimeStore(RuntimeWorkers):
     def begin_epoch(self, *, instance_id):
         with self._write() as conn:
             return operations.begin_epoch(conn, self.scope, instance_id)
+
+    def mutate_session(self, **kwargs):
+        from hermes_db.operations.mutations import mutate
+        with self._write() as conn:
+            result, event = mutate(conn, self.scope, **kwargs)
+        if event is not None:
+            from hermes_db.events import emit_deleted
+            emit_deleted(self._store._profile, event[0], reason=event[1], primary=kwargs["session_id"])
+            if event[1] == "delete":
+                self._store.collect_retired_media()
+        return result
+
+    def policy_picks(self, session_id):
+        from hermes_db.operations.mutation_policy import picks
+        with self._store._read() as conn:
+            return picks(conn, self.scope, session_id)
+
+    def commit_refreshed_policy(self, **kwargs):
+        from hermes_db.operations.mutation_policy import refresh
+        with self._write() as conn:
+            return refresh(conn, self.scope, **kwargs)
+
+    def prepare_chat_pick(self, **kwargs):
+        from hermes_db.operations.chat_pick import prepare
+        with self._store._read() as conn:
+            return prepare(conn, self.scope, **kwargs)
+
+    def commit_chat_pick(self, **kwargs):
+        from hermes_db.operations.chat_pick import commit
+        with self._write() as conn:
+            return commit(conn, self.scope, **kwargs)
 
     def admit_input(self, **kwargs):
         with self._write() as conn:

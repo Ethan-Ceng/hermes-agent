@@ -52,6 +52,20 @@ def test_core_profile_rekey_never_treats_another_store_as_collision(core_pair):
     assert second.get_session("same")["profile_name"] == "old"
 
 
+def test_core_profile_rekey_retains_permanent_namespace_retirement_fences(core_pair, monkeypatch):
+    import time
+    first, second = core_pair
+    for store in core_pair:
+        store.retire_gateway_routes(["retired"], namespace="old_%")
+        store.retire_gateway_routes(["retired"], namespace="new", expiring=["retired"])
+    first.rekey_profile_state("old_%", "new")
+    later = time.time() + 8 * 86400
+    monkeypatch.setattr(time, "time", lambda: later)
+    routes = {"agent:new:chat": '{"session_id":"retired"}', "agent:old_%:chat": '{"session_id":"retired"}'}
+    assert first.replace_gateway_routing_entries(routes) == set(routes)
+    assert second.replace_gateway_routing_entries({"agent:new:other": '{"session_id":"retired"}'}) == set()
+
+
 def test_profile_rekey_moves_current_topic_identity_and_binding_namespace(store):
     store.apply_telegram_topic_migration()
     store.create_session("s", "telegram", profile_name="old", session_key="agent:old:chat")

@@ -23,12 +23,20 @@ from hermes_db.session_gateway import SessionGateway
 from hermes_db.session_heartbeats import SessionHeartbeats
 from hermes_db.session_handoffs import SessionHandoffs
 from hermes_db.session_gateway_peers import SessionGatewayPeers
+from hermes_db.session_retirement import SessionRetirement
+from hermes_db.session_rewrites import SessionRewrites
+from hermes_db.session_housekeeping import SessionHousekeeping
+from hermes_db.session_portability import SessionPortability
+from hermes_db.session_prompt_refresh import SessionPromptRefresh
+from hermes_db.session_portability_queries import SessionPortabilityQueries
 
 
 class PostgresSessionStore(SessionMetadata, SessionQueries, SessionTitles, SessionTopics, SessionUsage,
                            SessionMessages, SessionMessageReads, SessionMessageEdits, SessionMessageLookup,
                            SessionMessageReactions, SessionMessageResults, SessionLeases, SessionCompression,
-                           SessionCompressionState, SessionGateway, SessionHeartbeats, SessionHandoffs, SessionGatewayPeers):
+                           SessionCompressionState, SessionGateway, SessionHeartbeats, SessionHandoffs, SessionGatewayPeers,
+                           SessionRetirement, SessionRewrites, SessionHousekeeping, SessionPortability, SessionPromptRefresh,
+                           SessionPortabilityQueries):
     def __init__(self, transactions, scope):
         from hermes_constants import profile_name_for_home
         from hermes_db.usage_writer import UsageWriter

@@ -49,3 +49,9 @@ class SessionCompression:
         with self._read() as conn:
             rows = messages.select_rows(conn, self.scope, [session_id], table.c.active == 1)
             return Coverage(rows).mismatches(held)
+
+    def held_row_mismatches(self, conn, session_id, held):
+        from hermes_db.compression_coverage import Coverage
+        from hermes_db.repositories import messages
+        from hermes_db.tables.conversations import messages as table
+        return Coverage(messages.select_rows(conn, self.scope, [session_id], table.c.active == 1)).mismatches(held)

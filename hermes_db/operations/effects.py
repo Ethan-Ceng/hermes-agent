@@ -18,4 +18,4 @@ def invoke(effect, conn, scope, *args):
         return
     if not isinstance(effect, CoreEffect):
         raise TypeError("PostgreSQL transaction callbacks require an explicit CoreEffect")
-    effect.apply(conn, scope, *args)
+    return effect.apply(conn, scope, *args)
