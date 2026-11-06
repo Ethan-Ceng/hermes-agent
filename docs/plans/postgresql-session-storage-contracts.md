@@ -758,3 +758,31 @@
 2026-11-06：Python 3.12.10 AST 读取当前源码，递归解析 SessionDB MRO 声明，扫描生产导入/属性使用与现有测试引用；手工核对门面外 runtime/worker、API 两存储、delivery ledger、直接 SQL 和路径依赖。未运行数据库，未更改业务行为。
 
 本基线方法 250 个，显式主库/辅助存储依赖消费者文件 258 个。数量仅为审计结果，不作为测试断言；声明和静态匹配不等于运行证据。后续每主题实施须将新增动态消费记录补到本清单。
+
+
+## 真实 PostgreSQL 测试配置（Task 4）
+
+配置保存在仓库外的本地文件，不把 DSN 放进聊天、Git 或命令行。示意（将占位值替换到本地文件）：
+
+```yaml
+purpose: hermes-postgresql-tests
+database: independent_hermes_tests
+dsn: postgresql+psycopg://TEST_USER:TEST_PASSWORD@TEST_HOST/independent_hermes_tests?sslmode=require
+```
+
+仅接受声明的独立测试库，拒绝 postgres/template0/template1；连接后再次核对 current_database。采用 PostgreSQL >=15 的开发验收下限（实际可支持范围仍待真实实例验证），管理员预先准备 pg_trgm 和创建临时 Schema 的权限，测试不安装扩展或管理服务。池预算 2，连接/池等待 5 秒。
+
+每轮在随机 hermes_test_<uuid> Schema 写入归属 COMMENT。已存在命名空间一律拒绝；清理前核对本轮 marker，不匹配时拒绝 DROP，即使测试本体失败也只清理本轮拥有的命名空间。正式业务 Schema 不作为测试目标。
+
+runner 对自定义参数采用显式 `--` 透传（无需修改凭据环境变量白名单）：
+
+```powershell
+$env:HERMES_PYTHON = 'D:/AI/hermes-agent/.build/postgresql/test-env/Scripts/python.exe'
+$testRunner = 'D:/Programs/Git/bin/bash.exe'
+$pgTestConfig = Join-Path $env:LOCALAPPDATA 'HermesTests/postgresql.yaml'
+& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql -- -m integration --postgres-test-config $pgTestConfig -s
+```
+
+测试参数只传文件路径。显式选择集成测试而缺配置/配置错误/连接失败时失败，普通运行按仓库默认 marker 排除 integration；不以 skip 充当真实 PG 通过。环境测试输出 server_version_num、psycopg 版本、pg_trgm 所在 schema 与当前连接 TLS 参数，不输出 DSN。
+
+2026-11-06：默认示例位置不存在，用户尚未提供测试配置；真实版本、权限、扩展、TLS 和 Schema DDL 均未验证。

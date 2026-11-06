@@ -12,7 +12,7 @@
 
 - 整体状态：`IN_PROGRESS`，不表示完整后端已通过验证。
 - 当前阶段：M1 基础。
-- 当前任务：Task 4（真实 PG 测试配置与环境检查）。
+- 当前任务：Task 5（新库 Schema 与显式版本管理；Task 4 等待真实 PG 配置）。
 - 已完成：3 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：真实 PG 验证时需用户提供本地测试配置，实际版本、权限和扩展由 Task 4 检查；当前没有连接数据库。
@@ -69,7 +69,7 @@ $pgTestConfig = Join-Path $env:LOCALAPPDATA 'HermesTests\postgresql.yaml'
 
 ```powershell
 & $testRunner scripts/run_tests.sh tests/hermes_db
-& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql -m integration --postgres-test-config $pgTestConfig
+& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql -- -m integration --postgres-test-config $pgTestConfig
 python scripts/check
 ```
 
@@ -217,7 +217,7 @@ python scripts/check
 
 ## Task 4：接通真实 PostgreSQL 测试配置与环境检查
 
-状态：in_progress
+状态：verification_pending（测试入口已实现；真实 PG 配置未提供，不能标 completed）
 
 ### 目标
 
@@ -245,7 +245,7 @@ python scripts/check
 ### 验证方式
 
 - `& $testRunner scripts/run_tests.sh tests/hermes_db/test_test_config.py`
-- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_environment.py -m integration --postgres-test-config $pgTestConfig`
+- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_environment.py -- -m integration --postgres-test-config $pgTestConfig`
 
 ### 完成条件
 
@@ -253,15 +253,15 @@ python scripts/check
 
 ### 执行结果
 
-未开始；未修改本任务业务代码。
+已实现 --postgres-test-config 路径参数、安全 YAML 读取与目的/独立数据库核对、显式集成 opt-in 和网络 marker、版本/权限/扩展/TLS 探针、唯一临时 Schema 创建和 marker 归属清理。管理员准备 pg_trgm；测试不安装数据库或扩展。配置示例与正确 runner 自定义参数透传已写入 contracts。
 
 ### 验证证据
 
-未执行。实施时记录实际命令、退出码、数据库/解释器版本、关键结果、执行时间及偏差。
+2026-11-06，PM Python 3.14.9：`scripts/run_tests.sh tests/hermes_db/test_test_config.py` 初次 10 passed（exit 0），新增非法 DSN 情况后最新 11 passed/0 skipped（exit 0）；UTF-8 `scripts/check --staged --base HEAD` 全部 14 checks 通过（0 blocking/0 advisory）。显式 `scripts/run_tests.sh tests/hermes_db/postgresql/test_environment.py -- -m integration` exit 1，0 passed/1 fixture error，清楚要求 --postgres-test-config，证明缺配置没有被 skip 当作通过；无真实连接尝试。默认示例文件 LOCALAPPDATA/HermesTests/postgresql.yaml 不存在。真实 PG 版本/权限/扩展/TLS/DDL 未验证，任务保持 verification_pending。
 
 ## Task 5：创建新库 Schema 与显式版本管理
 
-状态：pending
+状态：in_progress（仅推进不依赖真实 PG 的表定义、迁移和命令工作；集成验证等待 Task 4）
 
 ### 目标
 
@@ -290,7 +290,7 @@ python scripts/check
 ### 验证方式
 
 - `& $testRunner scripts/run_tests.sh tests/hermes_cli/test_db_commands.py`
-- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_schema.py -m integration --postgres-test-config $pgTestConfig`
+- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_schema.py -- -m integration --postgres-test-config $pgTestConfig`
 
 ### 完成条件
 
@@ -335,7 +335,7 @@ python scripts/check
 ### 验证方式
 
 - `& $testRunner scripts/run_tests.sh tests/hermes_db/contracts/test_sessions.py tests/hermes_db/contracts/test_prompts_usage.py`
-- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_sessions.py -m integration --postgres-test-config $pgTestConfig`
+- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_sessions.py -- -m integration --postgres-test-config $pgTestConfig`
 
 ### 完成条件
 
@@ -379,7 +379,7 @@ python scripts/check
 ### 验证方式
 
 - `& $testRunner scripts/run_tests.sh tests/hermes_db/contracts/test_messages.py`
-- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_messages.py -m integration --postgres-test-config $pgTestConfig`
+- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_messages.py -- -m integration --postgres-test-config $pgTestConfig`
 
 ### 完成条件
 
@@ -426,7 +426,7 @@ python scripts/check
 ### 验证方式
 
 - `& $testRunner scripts/run_tests.sh tests/hermes_db/contracts/test_runtime.py tests/hermes_state/test_runtime_admission.py`
-- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_runtime.py -m integration --postgres-test-config $pgTestConfig`
+- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_runtime.py -- -m integration --postgres-test-config $pgTestConfig`
 
 ### 完成条件
 
@@ -469,7 +469,7 @@ python scripts/check
 ### 验证方式
 
 - `& $testRunner scripts/run_tests.sh tests/hermes_db/contracts/test_workers.py`
-- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_workers.py -m integration --postgres-test-config $pgTestConfig`
+- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_workers.py -- -m integration --postgres-test-config $pgTestConfig`
 
 ### 完成条件
 
@@ -513,7 +513,7 @@ python scripts/check
 ### 验证方式
 
 - `& $testRunner scripts/run_tests.sh tests/hermes_db/contracts/test_compression_leases.py tests/hermes_state/test_compression_watermark_commit.py tests/hermes_state/test_compression_lease_refresh_before_publish.py tests/hermes_state/test_session_turn_lease.py`
-- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_compression_leases.py -m integration --postgres-test-config $pgTestConfig`
+- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_compression_leases.py -- -m integration --postgres-test-config $pgTestConfig`
 
 ### 完成条件
 
@@ -556,7 +556,7 @@ python scripts/check
 ### 验证方式
 
 - `& $testRunner scripts/run_tests.sh tests/hermes_db/contracts/test_routing.py`
-- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_routing.py -m integration --postgres-test-config $pgTestConfig`
+- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_routing.py -- -m integration --postgres-test-config $pgTestConfig`
 
 ### 完成条件
 
@@ -600,7 +600,7 @@ python scripts/check
 ### 验证方式
 
 - `& $testRunner scripts/run_tests.sh tests/hermes_db/contracts/test_retirement_rewrites.py tests/hermes_state/test_terminal_retirement.py tests/hermes_state/test_retired_fence_outlives_horizon.py`
-- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_retirement_rewrites.py -m integration --postgres-test-config $pgTestConfig`
+- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_retirement_rewrites.py -- -m integration --postgres-test-config $pgTestConfig`
 
 ### 完成条件
 
@@ -643,7 +643,7 @@ python scripts/check
 ### 验证方式
 
 - `& $testRunner scripts/run_tests.sh tests/gateway/test_api_idempotency_after_delete.py tests/gateway/test_api_server_response_store_profile_scope.py tests/gateway/test_api_idempotency_namespace.py`
-- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_api_stores.py -m integration --postgres-test-config $pgTestConfig`
+- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_api_stores.py -- -m integration --postgres-test-config $pgTestConfig`
 
 ### 完成条件
 
@@ -685,7 +685,7 @@ API 续接和重放可跨服务重启恢复，作用域完整且故障不会降�
 
 ### 验证方式
 
-- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_deliveries.py -m integration --postgres-test-config $pgTestConfig`
+- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_deliveries.py -- -m integration --postgres-test-config $pgTestConfig`
 - `& $testRunner scripts/run_tests.sh tests/gateway/test_delivery_ledger.py tests/gateway/test_delivery_ledger_producer.py tests/gateway/test_delivery_ledger_process_home.py`
 - 手工故障注入：领取后退出、发送后回执未提交、重启恢复；记录发送次数与持久状态，不产生额外自动重放。
 
@@ -730,7 +730,7 @@ API 续接和重放可跨服务重启恢复，作用域完整且故障不会降�
 ### 验证方式
 
 - `& $testRunner scripts/run_tests.sh tests/hermes_db/contracts/test_search.py tests/hermes_state/test_search_or_relaxed_fallback.py`
-- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_search.py -m integration --postgres-test-config $pgTestConfig`
+- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_search.py -- -m integration --postgres-test-config $pgTestConfig`
 - 在测试 Schema 对固定大样本执行 EXPLAIN (ANALYZE, BUFFERS)，记录数据规模、计划及查询耗时；不先承诺吞吐倍数。
 
 ### 完成条件
@@ -777,7 +777,7 @@ API 续接和重放可跨服务重启恢复，作用域完整且故障不会降�
 ### 验证方式
 
 - `& $testRunner scripts/run_tests.sh tests/gateway/test_readiness.py`
-- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_health_archive_refs.py -m integration --postgres-test-config $pgTestConfig`
+- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_health_archive_refs.py -- -m integration --postgres-test-config $pgTestConfig`
 - 手工验证 PG 模式本地没有 state.db 时健康判断正确，引用中的工具归档不会被过期清理。
 
 ### 完成条件
@@ -826,7 +826,7 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 ### 验证方式
 
 - `& $testRunner scripts/run_tests.sh tests/hermes_cli tests/gateway tests/tui_gateway tests/acp_adapter`
-- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_surface_flow.py -m integration --postgres-test-config $pgTestConfig`
+- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql/test_surface_flow.py -- -m integration --postgres-test-config $pgTestConfig`
 - 手工依次验证 CLI、网页与消息入口在同一授权逻辑空间创建/续接会话，重启恢复及不同空间同名 ID 隔离；测试不用真实用户数据。
 
 ### 完成条件
@@ -873,7 +873,7 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 ### 验证方式
 
 - `& $testRunner scripts/run_tests.sh tests/hermes_db tests/hermes_state tests/gateway tests/hermes_cli tests/tui_gateway tests/acp_adapter`
-- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql -m integration --postgres-test-config $pgTestConfig`
+- `& $testRunner scripts/run_tests.sh tests/hermes_db/postgresql -- -m integration --postgres-test-config $pgTestConfig`
 - `python scripts/check`
 - `& $testRunner scripts/run_tests.sh tests/hermes_db/test_distribution.py`
 - 手工运行新库初始化、两空间同 ID 隔离、模型/工具回合、压缩/删除/重试、进程重启、断连、无本地 state.db 以及池关闭；记录实际结果。
@@ -960,10 +960,13 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 
 ## 恢复点
 
-- 分支 feat/postgresql-session-storage；Tasks 1–3 完成，Task 4 in_progress。Task 1 commit b7648f08ee，Task 2 commit bb221ec7d8。
+- 分支 feat/postgresql-session-storage；Tasks 1–3 完成；Task 4 实现可供集成验证，verification_pending；Task 5 继续离线工作。Tasks 1–3 commits：b7648f08ee、bb221ec7d8、a7afe899c9。
 - 测试解释器 .build/postgresql/test-env/Scripts/python.exe（PM 构建，postgresql + dev/test）；调用标准 runner 时显式指定 HERMES_PYTHON。
 - 原 .gitignore 修改不纳入提交；原 docs/designs 三文件与实施计划作为本功能基线随 Task 1 提交。
 - PostgreSQL 连接配置尚未提供；Task 4 真实环境和后续 PG 并发验收不可标通过。按用户要求继续不依赖数据库的工作。
 
 - Task 3 已通过 37 项当前局部测试与 staged 全部 14 静态检查。旧 SQLite 注册表两个 Windows 基线失败见 Task 3 证据。
 - 后续完整静态检查使用 PYTHONUTF8=1 与 scripts/check --staged，排除被忽略的临时测试环境/缓存归档；不修改用户 .gitignore。
+
+- 执行偏差：按用户明确要求，缺真实 PG 配置时继续不依赖 DB 的实现。Task 4 和后续需要真实 PG 的任务可记录 verification_pending，不能标 completed；后续依赖先满足代码/接口，真实验收仍须按依赖顺序补齐。每 task 本地 commit 可以保存实现检查点，但不代表真实 PG 已验证。
+- Task 4 的真实测试配置格式/命令见 contracts；没有读取用户业务凭据、没有连接 PG、没有创建数据库服务或扩展。
