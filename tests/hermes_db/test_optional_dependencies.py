@@ -44,6 +44,6 @@ with SessionDB(db_path=Path(sys.argv[1])) as db:
         [sys.executable, "-c", script, str(tmp_path / "state.db")],
         cwd=Path(__file__).resolve().parents[2],
         env={**os.environ, "HERMES_HOME": str(tmp_path)},
-        capture_output=True, text=True, timeout=60,
+        capture_output=True, text=True, timeout=60, check=False,
     )
     assert result.returncode == 0, result.stderr

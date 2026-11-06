@@ -12,8 +12,8 @@
 
 - 整体状态：`IN_PROGRESS`，不表示完整后端已通过验证。
 - 当前阶段：M1 基础。
-- 当前任务：Task 3（配置/工厂/资源生命周期）。
-- 已完成：2 / 18。
+- 当前任务：Task 4（真实 PG 测试配置与环境检查）。
+- 已完成：3 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：真实 PG 验证时需用户提供本地测试配置，实际版本、权限和扩展由 Task 4 检查；当前没有连接数据库。
 - 最近更新时间：2026-11-06（Asia/Shanghai）。
@@ -171,7 +171,7 @@ python scripts/check
 
 ## Task 3：实现配置解析、工厂和资源生命周期
 
-状态：in_progress
+状态：completed
 
 ### 目标
 
@@ -209,15 +209,15 @@ python scripts/check
 
 ### 执行结果
 
-未开始；未修改本任务业务代码。
+已实现 driver-free contracts/scope/settings/errors、acquire_db/DatabaseHandle、SQLite registry/运行接口适配、延迟调用拥有者 Profile 绑定、进程与连接配置维度 Engine 复用和关闭、配置/秘密组合入口。storage.session 默认 SQLite，PG 显式 schema/store_id/DSN 秘密名称，池与连接等待/总预算校验；DSN 不出现在设置和池键 repr。DEFAULT_CONFIG 自动登记根键，OPTIONAL_ENV_VARS 登记 DSN。PG 完整实现之前工厂明确 StorageNotReadyError，绝不部分写 PG/SQLite。
 
 ### 验证证据
 
-未执行。实施时记录实际命令、退出码、数据库/解释器版本、关键结果、执行时间及偏差。
+2026-11-06，PM Python 3.14.9：标准 runner `tests/hermes_db tests/hermes_cli/test_db_setup.py` 最新 37 passed/0 skipped（exit 0）。包括真实临时 SQLite 读写/共享释放、持有句柄在异 Profile 调用的 resume 限额、秘密上下文恢复、同步驱动缺失和假连接异常脱敏、Barrier 竞争的实际 SQLAlchemy Engine 复用。首次 Task 3 测试 32 passed/2 failed 是测试引用不存在的 scope seam 和错误的配置路由 seam，已修正并通过。计划回归 `tests/gateway/test_config_secret_scope.py` 31 passed；`tests/hermes_state/test_shared_session_db_registry.py` 13 passed/2 failed/3 posix skipped。两失败均为现有 TestMultiGenerationTeardownBarrier 删除打开文件的 WinError 32，在 bb221ec7d8 隔离源码基线（.build/postgresql/task3-base）用同一 runner/解释器 `-k TestMultiGenerationTeardownBarrier` 复现相同 2 failed/1 passed（exit 1），不是新工厂的回归，保留最终验收限制。`scripts/check --only ruff,health --base HEAD` exit 0，0 blocking/0 advisory。全工作区检查受忽略目录中的 PM cache/venv 归档和 Windows 默认 GBK 解码影响，改用 UTF-8 `scripts/check --staged --base HEAD` 验证拟提交内容；exit 0，14 checks 全部通过。未连接真实 PG，schema 检查在 Task 5 接通，PG 仍拒绝启用。
 
 ## Task 4：接通真实 PostgreSQL 测试配置与环境检查
 
-状态：pending
+状态：in_progress
 
 ### 目标
 
@@ -960,7 +960,10 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 
 ## 恢复点
 
-- 分支 feat/postgresql-session-storage；Tasks 1–2 完成，Task 3 in_progress。Task 1 commit b7648f08ee。
+- 分支 feat/postgresql-session-storage；Tasks 1–3 完成，Task 4 in_progress。Task 1 commit b7648f08ee，Task 2 commit bb221ec7d8。
 - 测试解释器 .build/postgresql/test-env/Scripts/python.exe（PM 构建，postgresql + dev/test）；调用标准 runner 时显式指定 HERMES_PYTHON。
 - 原 .gitignore 修改不纳入提交；原 docs/designs 三文件与实施计划作为本功能基线随 Task 1 提交。
 - PostgreSQL 连接配置尚未提供；Task 4 真实环境和后续 PG 并发验收不可标通过。按用户要求继续不依赖数据库的工作。
+
+- Task 3 已通过 37 项当前局部测试与 staged 全部 14 静态检查。旧 SQLite 注册表两个 Windows 基线失败见 Task 3 证据。
+- 后续完整静态检查使用 PYTHONUTF8=1 与 scripts/check --staged，排除被忽略的临时测试环境/缓存归档；不修改用户 .gitignore。
