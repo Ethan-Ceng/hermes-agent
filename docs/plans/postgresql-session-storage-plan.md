@@ -12,7 +12,7 @@
 
 - 整体状态：`IN_PROGRESS`，不表示完整后端已通过验证。
 - 当前阶段：M2 业务语义（离线实现）；M1 的真实 PG 验证尚未完成。
-- 当前任务：Task 8（准入队列、epoch 与终态事务）；Tasks 4–7 等待真实 PG 配置。
+- 当前任务：Task 9（Worker 回执与异步委派）；Tasks 4–8 等待真实 PG 配置。
 - 已完成：3 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：真实 PG 验证时需用户提供本地测试配置，实际版本、权限和扩展由 Task 4 检查；当前没有连接数据库。
@@ -464,7 +464,7 @@ epoch 行共享锁先于映射和根锁，启动更新 epoch 等待旧写入结�
 
 ## Task 9：实现 Worker 回执与异步委派存储
 
-状态：pending
+状态：verification_pending（离线主题实现/契约与检查通过；真实 PG 回执/竞争待配置）
 
 ### 目标
 
@@ -499,11 +499,21 @@ epoch 行共享锁先于映射和根锁，启动更新 epoch 等待旧写入结�
 
 ### 执行结果
 
-未开始；未修改本任务业务代码。
+从 Task 8 commit 5b68f4ebd6 继续。先固定 Worker assignment/sequence/adoption 与重复回执契约；复用已实现的短事务、消息操作和 worker_retirement。保持所有者 RPC，不给 Worker 增加主库直连能力。
+
+离线主题实现覆盖 Worker 登记/采用、assignment/epoch/generation/sequence/摘要、同事务操作与回执、重复重放、父子执行退休、构造/元数据/提示/工具快照/用量/消息/turn lease 的闭合集合。连接级 DML 观察只覆盖 handler，回执自身写入不会推进只读业务 revision；事务失败不发布注释或部分写入。所有 Worker 回执先取得短映射独占栅栏，避免创建子根/全局标题操作在持根锁后升级。
+
+补齐 Worker 委派闭合操作与 Owner 委派存储：dispatch/partial child/complete/read/claim/ack/drop/defer/release、pending/orphan/failure 查询、恢复 CAS、再投递预算和有界清理。PID/birth 验证与恢复提示的文件/进程 I/O 在数据事务外；恢复比较 owner/state/时间及 JSON 快照，不覆盖后续真实完成。PG 缺少应有的委派记录时明确拒绝领取，不走旧“未持久化事件可直接投递”的许可分支；SQLite 行为保留。普通消费入口接线仍归 Task 17。
+
+初始未发布 Schema 同步为 26 表/18 索引。worker_receipts 增 read_snapshot/title_candidate 投影，前者收尾时不解析包含 NUL 的完整提示 JSON，后者为候选标题保存精确回执授权；子执行改用转义前缀与 pattern 索引，不依赖 PG 文本语言环境的范围排序。抽出标题与追加的连接内操作；构造时回收被 keep-existing 忽略的新提示快照。压缩专用 Worker handlers 在 Task 10 随完整压缩事务接入，不提供空壳。
 
 ### 验证证据
 
-未执行。实施时记录实际命令、退出码、数据库/解释器版本、关键结果、执行时间及偏差。
+2026-11-06，PM Python 3.14.9 + scripts/run_tests.sh：首批共享契约 SQLite 3 passed/Core 3 failed（缺接口，exit 1）；实现后 6 passed。扩展元数据和标题回归三文件 34 passed；委派共享 4 passed；子预留/回执故障/跨 store 3 passed；Owner 恢复/预算/清理与构造回归三文件 31 passed。
+
+整轮 `bash scripts/run_tests.sh tests/hermes_db tests/hermes_state/test_runtime_worker.py tests/hermes_state/test_runtime_worker_metadata.py tests/hermes_state/test_worker_lineage_exclusion.py tests/hermes_state/test_runtime_worker_children.py`：exit 0，34 文件、186 passed/0 failed，45.6 秒（`.build/postgresql/task9-tests.log`）。随后补 Worker 租约、重复用量及新代次拒绝旧回执，受影响两文件 14 passed/0 failed，exit 0，4.6 秒。
+
+`PYTHONUTF8=1`、PM Python 执行 `scripts/check --staged --base HEAD`：exit 0，14 checks ok，health 28 文件、0 blocking/0 advisory（task9-checks.log）。未执行真实 PG；新增 Worker/委派 16 个 PG 用例，合计 75 个 PG 用例按默认 integration marker 排除，不能计通过。独立 PG 配置仍不存在；不存在真实驱动、锁竞争或吞吐验证证据。普通入口与 Worker RPC 消费接线在 Task 17，当前不能把此开发检查点当作可用 PG 生产模式。
 
 ## Task 10：实现租约、压缩与谱系提交
 
@@ -1001,3 +1011,4 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 - Task 6 离线检查点：114 tests/14 checks passed，状态 verification_pending。当前 26 表/15 索引已同步冻结初始 revision；后台作用域、短事务与失败分型已有离线契约。下一步 Task 7 完整消息编解码、UID/显示代表、行重写、计数/revision 与 watermark；工厂继续拒绝 PG 生产启用。Task 12 必须保留谱系控制键与根行。真实 PG 28 项未执行。
 - Task 6 commit 7fd192bb81；Task 7 离线检查点 148 tests/14 checks passed，状态 verification_pending。当前 26 表/17 索引；42 个消息主题接口已核对。下一步 Task 8 队列、epoch、generation 与终态事务。archive_and_compact 在 Task 10 实施。真实 PG 47 项未执行，严格 completed 数仍为 3/18；不启用生产 PG 工厂。
 - Task 7 commit 22c6fb7924；Task 8 离线准入/终态检查点：一轮 166 passed、后续受影响 18/依赖隔离 14/提交确认丢失 1 passed；14 staged checks 与最新 ruff/health 通过。下一步 Task 9 Worker 登记/采用/序列回执和异步委派（复用 worker_retirement）。Scope/epoch→映射→根锁顺序不得反转。59 项真实 PG 未执行；完整会话动作及 mutation receipt runner 在 Task 12，旧队列导入仅 SQLite，Task 17 须适配 CoreEffect。
+- Task 8 commit 5b68f4ebd6；Task 9 检查点：186 项整轮局部回归、后续 14 项受影响测试与 14 项 staged 检查通过，状态 verification_pending。当前 26 表/18 索引，回执投影与候选标题均同步冻结 revision。下一步 Task 10 租约/压缩/尾部与 held coverage，复用 leases/append/title 的连接内操作；补齐压缩 Worker handlers。75 项真实 PG 未执行，工厂与普通入口仍未启用/接线。严格 completed 仍 3/18。

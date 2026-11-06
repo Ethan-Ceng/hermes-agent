@@ -1,6 +1,6 @@
 """Scoped epoch, input FIFO, worker identity, and durable terminal metadata."""
 
-from sqlalchemy import BigInteger, CheckConstraint, Column, Identity, Index, Text, UniqueConstraint
+from sqlalchemy import BigInteger, CheckConstraint, Column, Identity, Index, LargeBinary, Text, UniqueConstraint
 
 from hermes_db.tables.metadata import scoped_fk, scoped_table
 
@@ -37,12 +37,17 @@ worker_executions = scoped_table(
     ),
 )
 Index("ix_workers_store_session_status", worker_executions.c.store_id, worker_executions.c.session_id, worker_executions.c.status)
+Index("ix_workers_store_execution_prefix", worker_executions.c.store_id, worker_executions.c.execution_id,
+      postgresql_ops={"execution_id": "text_pattern_ops"})
 worker_receipts = scoped_table(
     "worker_receipts", Column("execution_id", Text, nullable=False), Column("sequence", BigInteger, nullable=False),
     Column("payload_digest", Text, nullable=False), Column("result_json", Text, nullable=False),
+    Column("read_snapshot", BigInteger, nullable=False, server_default="0"),
+    Column("title_candidate", LargeBinary),
     key=("execution_id", "sequence"), constraints=(
         scoped_fk(("execution_id",), "worker_executions", ("execution_id",), ondelete="RESTRICT"),
         CheckConstraint("sequence > 0", name="sequence"),
+        CheckConstraint("read_snapshot IN (0,1)", name="read_snapshot"),
     ),
 )
 state_meta = scoped_table("state_meta", Column("key", Text, nullable=False), Column("value", Text), key=("key",))

@@ -26,12 +26,6 @@ ISOLATION = [
 ]
 
 
-@pytest.fixture
-def pg_runtime(pg_store):
-    from hermes_db.runtime_store import PostgresRuntimeStore
-    return PostgresRuntimeStore(pg_store)
-
-
 @pytest.mark.parametrize("contract", CONTRACTS, ids=lambda fn: fn.__name__.removeprefix("test_"))
 def test_shared_runtime_contract_on_postgresql(pg_store, pg_runtime, contract):
     contract(pg_store, pg_runtime)

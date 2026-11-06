@@ -16,13 +16,6 @@ def json_value(conn, column, key):
     return cast(column, JSON)[key].as_string()
 
 
-def json_key_exists(conn, column, key):
-    if conn.dialect.name == "sqlite":
-        return func.json_type(column, "$." + json.dumps(key)).is_not(None)
-    from sqlalchemy.dialects.postgresql import JSONB
-    return cast(column, JSONB).op("?")(key)
-
-
 def json_path_value(conn, column, path):
     if conn.dialect.name == "sqlite":
         return func.json_extract(column, "$." + path)

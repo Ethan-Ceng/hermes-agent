@@ -837,3 +837,13 @@ PostgresRuntimeStore 实现 epoch、准入去重/摘要冲突、FIFO、容量、
 Worker 登记/采用/回执接口归 Task 9；完整会话 mutation 及 receipt runner 归 Task 12，与原计划删除/重写主题对齐。旧队列导入仅保留 SQLite，PG 明确不实现历史格式接入。当前业务功能未缩减。
 
 2026-11-06：166 项离线回归通过；后续受影响 18 项、依赖隔离 14 项和提交确认丢失 1 项通过。14 staged 检查通过，新增测试后的 ruff/health 亦通过。CoreEffect 失败全部回滚，确认丢失后同请求查询/重放只得到既有准入，没有再次执行效果。新增 12 PG 用例未执行，合计 59 项 PG 待验。
+
+## Task 9 Worker/委派检查点
+
+Worker assignment、私密采用、顺序/摘要回执与所有写入同事务；闭合构造/提示/工具/sidecar/用量/元数据/消息/turn lease 操作已实现。回执自身不推进只读 revision，handler 的 Core DML 在当前连接观察，事务结束后移除监听。重复回执不重复消息或用量，新执行代次拒绝旧结果；子预留和父结束收尾具备故障/隔离契约。托管 Worker 仍经 Owner RPC，未增加 Worker 主库连接；实际消费者在 Task 17 接线。
+
+worker_receipts.read_snapshot 标识需要退休的读取副本，title_candidate BYTEA 保存标题重试授权；不对含 NUL 提示/结果的完整 JSON 做 JSONB 元数据解析。初始冻结 revision 为 26 表/18 索引。子执行查询使用转义前缀与 text_pattern_ops，不把语言环境相关的文本范围当作子代证明。标题/追加的连接内方法已抽出，构造忽略的新快照及时回收。
+
+委派 Worker handlers 与 Owner ledger 均 scoped，覆盖 dispatch/partial/complete/read/投递领取与结算/恢复 CAS/清理。进程身份与恢复文件 I/O 在事务外；CAS 比较原 owner、状态、时间和 JSON，防止恢复覆盖已完成结果。PG 缺失应有记录时拒绝领取，不采用 SQLite 的历史未持久化事件许可。SQLite 原路径保留。跨节点实例/租约身份在 Task 10 继续验证，不以本地 PID 推断远端进程死亡。
+
+2026-11-06：34 文件整轮 186 passed，后续 Worker 租约/重复用量/代次两文件 14 passed，14 staged 检查通过。75 个真实 PG 用例未执行；工厂与普通入口仍未启用，不是完整后端通过声明。

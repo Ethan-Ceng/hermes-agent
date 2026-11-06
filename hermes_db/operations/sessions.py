@@ -64,6 +64,8 @@ def create_on_connection(conn, scope, session_id, source, *, own_profile=None, *
                        lineage_root_id=parent["lineage_root_id"] if continuation else session_id)
         conn.execute(insert(sessions).values(**encoded))
     _stamp_surface(conn, scope, session_id)
+    if values.get("system_prompt") is not None:
+        prompts.prune_prompts(conn, scope)
     return session_id
 
 

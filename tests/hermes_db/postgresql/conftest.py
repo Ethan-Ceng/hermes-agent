@@ -23,3 +23,9 @@ def pg_store(postgres_test_config, postgres_schema, tmp_path):
         yield store
     finally:
         store.close()
+
+
+@pytest.fixture
+def pg_runtime(pg_store):
+    from hermes_db.runtime_store import PostgresRuntimeStore
+    return PostgresRuntimeStore(pg_store)

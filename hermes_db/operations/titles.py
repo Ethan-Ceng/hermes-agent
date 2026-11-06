@@ -11,26 +11,29 @@ BOT_TITLE = "Bot Chat"
 
 
 def set_title(transactions, scope, session_id, title, source):
+    with transactions.write() as conn:
+        return bool(set_title_on_connection(conn, scope, session_id, title, source))
+
+
+def set_title_on_connection(conn, scope, session_id, title, source):
     from hermes_state_titles import SessionTitlesMixin
 
     title = SessionTitlesMixin.sanitize_title(title)
-    with transactions.write() as conn:
-        repo.lock_store(conn, scope, exclusive=True)
-        row = repo.lock_session(conn, scope, session_id)
-        if row is None:
-            return False
-        current = decode_text(row["title"])
-        if current == BOT_TITLE and row["hidden"] and title != BOT_TITLE:
-            if source == "user":
-                raise ValueError("The canonical Bot Chat cannot be renamed")
-            return False
-        if source != "user" and current is not None and RANK.get(row["title_source"], 2 if row["title_source"] is None else 0) >= RANK[source]:
-            return False
-        if title:
-            _free_title(conn, scope, row, title)
-        repo.update_session(conn, scope, session_id, {"title": encode_text(title), "title_search": title,
-                                                      "title_source": source if title else None})
-    return True
+    repo.lock_store(conn, scope, exclusive=True)
+    row = repo.lock_session(conn, scope, session_id)
+    if row is None:
+        return set()
+    current = decode_text(row["title"])
+    if current == BOT_TITLE and row["hidden"] and title != BOT_TITLE:
+        if source == "user":
+            raise ValueError("The canonical Bot Chat cannot be renamed")
+        return set()
+    if source != "user" and current is not None and RANK.get(row["title_source"], 2 if row["title_source"] is None else 0) >= RANK[source]:
+        return set()
+    conflict = _free_title(conn, scope, row, title) if title else None
+    repo.update_session(conn, scope, session_id, {"title": encode_text(title), "title_search": title,
+                                                  "title_source": source if title else None})
+    return {session_id, *([conflict] if conflict else [])}
 
 
 def _free_title(conn, scope, target, title):
@@ -48,7 +51,7 @@ def _free_title(conn, scope, target, title):
         if not ancestor:
             values["title_source"] = None
         repo.update_session(conn, scope, conflict["id"], values)
-        return
+        return conflict["id"]
     raise ValueError("Title is already in use by another session")
 
 

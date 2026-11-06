@@ -8,15 +8,23 @@ from hermes_db.operations import runtime as operations
 from hermes_db.operations import runtime_queue
 from hermes_db.repositories import runtime as repo
 from hermes_db.tables.runtime import session_admissions
+from hermes_db.runtime_workers import RuntimeWorkers
 
 
-class PostgresRuntimeStore:
+class PostgresRuntimeStore(RuntimeWorkers):
     def __init__(self, session_store):
         self._store = session_store
+        from hermes_db.delegation_store import AsyncDelegationStore
+        self._delegations = AsyncDelegationStore(session_store)
 
     @property
     def scope(self):
         return self._store.scope
+
+    @property
+    def delegations(self):
+        self._store._assert_open()
+        return self._delegations
 
     @contextmanager
     def _write(self):

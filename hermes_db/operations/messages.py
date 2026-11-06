@@ -63,12 +63,17 @@ def append(transactions, scope, session_id, batch, *, single=False, **guards):
     _stamp_logical_identities(batch)
     work = deepcopy(batch)
     with transactions.write() as conn:
-        transcript_guards.check(conn, scope, session_id, **guards)
-        fresh = work if single else transcript_repair.resolve_batch(conn, scope, session_id, work)
-        inserted, tools = insert_rows(conn, scope, session_id, fresh, keep_all_reasoning=single)
-        repo.bump_counters(conn, scope, session_id, inserted, tools)
+        inserted = append_on_connection(conn, scope, session_id, work, single=single, **guards)
     _publish_stamps(batch, work)
     return work[0]["_row_id"] if single else inserted
+
+
+def append_on_connection(conn, scope, session_id, batch, *, single=False, **guards):
+    transcript_guards.check(conn, scope, session_id, **guards)
+    fresh = batch if single else transcript_repair.resolve_batch(conn, scope, session_id, batch)
+    inserted, tools = insert_rows(conn, scope, session_id, fresh, keep_all_reasoning=single)
+    repo.bump_counters(conn, scope, session_id, inserted, tools)
+    return inserted
 
 
 def _publish_stamps(batch, work):
