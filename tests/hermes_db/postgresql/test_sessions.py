@@ -1,7 +1,5 @@
 """Run shared session contracts on a real, explicitly configured PG service."""
 
-from dataclasses import replace
-
 import pytest
 
 from tests.hermes_db.contracts import test_sessions as session_contracts
@@ -34,26 +32,6 @@ CONTRACTS = [
     query_contracts.test_origin_lookup_never_selects_another_sender,
     query_contracts.test_late_parent_fill_joins_an_empty_placeholder_to_its_compression_lineage,
 ]
-
-
-@pytest.fixture
-def pg_store(postgres_test_config, postgres_schema, tmp_path):
-    from hermes_db.engine import get_engine
-    from hermes_db.schema import upgrade_schema
-    from hermes_db.scope import DatabaseScope
-    from hermes_db.session_store import PostgresSessionStore
-    from hermes_db.postgresql.transactions import Transactions
-
-    settings = replace(postgres_test_config.settings, schema=postgres_schema)
-    upgrade_schema(settings)
-    transactions = Transactions(get_engine(settings), settings.schema,
-                                 lock_timeout=settings.write_lock_timeout_seconds,
-                                 statement_timeout=settings.statement_timeout_seconds)
-    store = PostgresSessionStore(transactions, DatabaseScope(tmp_path, "contract-store"))
-    try:
-        yield store
-    finally:
-        store.close()
 
 
 @pytest.mark.parametrize("contract", CONTRACTS, ids=lambda fn: fn.__name__.removeprefix("test_"))

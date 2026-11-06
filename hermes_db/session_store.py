@@ -10,9 +10,17 @@ from hermes_db.session_queries import SessionQueries
 from hermes_db.session_titles import SessionTitles
 from hermes_db.session_topics import SessionTopics
 from hermes_db.session_usage import SessionUsage
+from hermes_db.session_messages import SessionMessages
+from hermes_db.session_message_reads import SessionMessageReads
+from hermes_db.session_message_edits import SessionMessageEdits
+from hermes_db.session_message_lookup import SessionMessageLookup
+from hermes_db.session_message_reactions import SessionMessageReactions
+from hermes_db.session_message_results import SessionMessageResults
 
 
-class PostgresSessionStore(SessionMetadata, SessionQueries, SessionTitles, SessionTopics, SessionUsage):
+class PostgresSessionStore(SessionMetadata, SessionQueries, SessionTitles, SessionTopics, SessionUsage,
+                           SessionMessages, SessionMessageReads, SessionMessageEdits, SessionMessageLookup,
+                           SessionMessageReactions, SessionMessageResults):
     def __init__(self, transactions, scope):
         from hermes_constants import profile_name_for_home
         from hermes_db.usage_writer import UsageWriter

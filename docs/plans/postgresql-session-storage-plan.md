@@ -12,7 +12,7 @@
 
 - 整体状态：`IN_PROGRESS`，不表示完整后端已通过验证。
 - 当前阶段：M2 业务语义（离线实现）；M1 的真实 PG 验证尚未完成。
-- 当前任务：Task 6（会话生命周期、提示快照、用量与查询）；Tasks 4–5 等待真实 PG 配置。
+- 当前任务：Task 7（完整消息写入与历史读取）；Tasks 4–6 等待真实 PG 配置。
 - 已完成：3 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：真实 PG 验证时需用户提供本地测试配置，实际版本、权限和扩展由 Task 4 检查；当前没有连接数据库。
@@ -355,7 +355,7 @@ python scripts/check
 
 ## Task 7：实现完整消息写入与历史读取
 
-状态：pending
+状态：verification_pending（离线实现/共享契约通过；真实 PG 竞争与驱动验收待配置）
 
 ### 目标
 
@@ -391,11 +391,19 @@ python scripts/check
 
 ### 执行结果
 
-未开始；未修改本任务业务代码。
+从 Task 6 检查点 7fd192bb81 继续。先建立共享消息契约，再实现原文编解码、事务写入/修订、稳定身份与回放。真实 PG 验证仍未具备配置。
+
+已实现消息仓储、完整操作与 reads/edits/lookup/reactions/results 主题门面。纯编解码、显示去重及 conversation 投影复用既有业务规则，不执行 SQLite SQL。新 BYTEA 正文带明确文本/二进制标签，原文中的 NUL/Unicode 与结构化内容、API/推理旁路保真；预览/搜索是分离投影。批次全部写入或回滚；与当前 SQLite 相同，显式 chunk_rows 允许逐块提交，跨块工具 UID 先分配，不能把整个分块导入视为单事务。
+
+消息追加、替换、重写、watermark 共享谱系根锁；显示身份/顺序、计数、revision 与正文同事务维护。调用者的物理行戳只在提交确认后发布，逻辑 UID 在事务前分配并在未知提交时保留；不自动重放。实现 CAS winner 采用、可恢复撤回、反应已读、结果通知幂等和有界 Todo 恢复。新增两条显示索引并同步冻结 revision，当前 26 表/17 索引。
+
+审计清单 Task 7 的 42 方法均有实现。archive_and_compact 的归属修正为 Task 10，与完整压缩发布/尾部合并算法一并实施，不以接口空壳提前满足 Task 7。该功能未被移除；消息读取已支持 compacted 历史。普通 PG 工厂仍保持关闭门禁。
 
 ### 验证证据
 
-未执行。实施时记录实际命令、退出码、数据库/解释器版本、关键结果、执行时间及偏差。
+2026-11-06：首次 6 共享消息契约为 SQLite 6 passed/Core 6 failed（缺接口，exit 1）；实现后 12 passed。扩展后全部 contracts 一轮 79 passed。最新标准 runner：`HERMES_PYTHON=.build/postgresql/test-env/Scripts/python.exe`，`bash scripts/run_tests.sh tests/hermes_db tests/hermes_cli/test_db_setup.py tests/hermes_cli/test_db_commands.py`：exit 0，22 文件、148 passed、0 failed，18.6 秒；日志 `.build/postgresql/task7-tests.log`。`PYTHONUTF8=1`，PM Python 执行 `scripts/check --staged --base HEAD`：exit 0，14 checks ok，health 22 文件、0 blocking/0 advisory；日志 `.build/postgresql/task7-checks.log`。
+
+Core 离线 fixture 在测试中模拟 SQLite 缺少的复合键 IDENTITY，仅用于顺序契约；不能证明 PG sequence/提交顺序。新增 PG 消息共享契约 16 项、同 schema 隔离 1 项、两项根锁阻塞实测（pg_blocking_pids）；均未执行。目前全部真实 PG 47 用例按默认 integration marker 排除，不能计 passed。原 SQLite 共享路径、未知提交确认丢失的受控离线注入、所有权/CAS/回滚/显示边界已有测试；实际 PG DDL、锁/连接故障待配置。
 
 ## Task 8：实现准入队列、epoch 与终态事务
 
@@ -919,6 +927,7 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 | --- | --- | --- | --- |
 | 2026-11-06 | 排除旧数据迁移与回迁 | 用户明确“不需要兼容旧数据，也就是不迁移数据” | Schema 从空库设计；不增加历史导入任务 |
 | 2026-11-06 | 测试目录使用 tests/hermes_db/ | tests/AGENTS.md 要求镜像源包目录 | 更正此前设计中的 tests/db/ |
+| 2026-11-06 | 修正三个导出/删除探针归属为 Task 12，archive_and_compact 为 Task 10 | 与原计划的删除、完整压缩操作责任对齐 | 保留全部功能；在相应主题验证，不以未实现壳函数占位 |
 
 ## 最终验证
 
@@ -979,3 +988,4 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 - Task 5 新增 transcript_roots（稳定行锁目标）及 sessions.lineage_root_id；消息 UID 不能加唯一约束，多个物理副本是既有语义。初始 revision 冻结 24 表/13 索引，后续任务变更表形状须同步修订未发布的初始 revision 并验证，已发布后只能新增 revision。
 - 当前未完成最终 verification-before-completion/code-review；全功能完成后统一执行并整改，绝不把这些局部结果当作完整后端通过。
 - Task 6 离线检查点：114 tests/14 checks passed，状态 verification_pending。当前 26 表/15 索引已同步冻结初始 revision；后台作用域、短事务与失败分型已有离线契约。下一步 Task 7 完整消息编解码、UID/显示代表、行重写、计数/revision 与 watermark；工厂继续拒绝 PG 生产启用。Task 12 必须保留谱系控制键与根行。真实 PG 28 项未执行。
+- Task 6 commit 7fd192bb81；Task 7 离线检查点 148 tests/14 checks passed，状态 verification_pending。当前 26 表/17 索引；42 个消息主题接口已核对。下一步 Task 8 队列、epoch、generation 与终态事务。archive_and_compact 在 Task 10 实施。真实 PG 47 项未执行，严格 completed 数仍为 3/18；不启用生产 PG 工厂。

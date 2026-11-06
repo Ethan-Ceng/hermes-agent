@@ -58,6 +58,8 @@ messages = scoped_table(
 Index("ix_messages_store_session_id", messages.c.store_id, messages.c.session_id, messages.c.id)
 Index("ix_messages_store_session_time", messages.c.store_id, messages.c.session_id, messages.c.timestamp, messages.c.id)
 Index("ix_messages_store_session_uid", messages.c.store_id, messages.c.session_id, messages.c.message_uid)
+Index("ix_messages_store_display_order", messages.c.store_id, messages.c.session_id, messages.c.display_order)
+Index("ix_messages_store_display_identity", messages.c.store_id, messages.c.session_id, messages.c.display_identity)
 
 session_model_usage = scoped_table(
     "session_model_usage", Column("session_id", Text, nullable=False), Column("model", Text, nullable=False),

@@ -7,6 +7,30 @@ verification. Real PG executes the same contracts in postgresql/ separately.
 import pytest
 
 
+def _offline_engine(sa, tmp_path, name):
+    from sqlalchemy.sql.dml import Insert
+    from hermes_db.tables.conversations import messages
+    from hermes_db.tables.metadata import SCHEMA
+
+    engine = sa.create_engine(f"sqlite:///{tmp_path / name}").execution_options(schema_translate_map={SCHEMA: None})
+
+    @sa.event.listens_for(engine, "connect")
+    def foreign_keys(dbapi_connection, connection_record):
+        dbapi_connection.execute("PRAGMA foreign_keys=ON")
+
+    @sa.event.listens_for(engine, "before_execute", retval=True)
+    def offline_identity(conn, statement, multiparams, params, execution_options):
+        # SQLite has no IDENTITY on a composite primary key. This harness-only
+        # allocator enables sequential contracts; it proves no PG sequence or
+        # concurrency behavior. Production never uses this hook.
+        if isinstance(statement, Insert) and statement.table is messages and "id" not in statement.compile().params:
+            row_id = conn.scalar(sa.select(sa.func.coalesce(sa.func.max(messages.c.id), 0) + 1))
+            statement = statement.values(id=row_id)
+        return statement, multiparams, params
+
+    return engine
+
+
 @pytest.fixture(params=["sqlite", "core"])
 def store(request, tmp_path):
     if request.param == "sqlite":
@@ -19,10 +43,9 @@ def store(request, tmp_path):
     from hermes_db.session_store import PostgresSessionStore
     from hermes_db.scope import DatabaseScope
     from hermes_db.tables import load_metadata
-    from hermes_db.tables.metadata import SCHEMA
     from hermes_db.postgresql.transactions import Transactions
 
-    engine = sa.create_engine(f"sqlite:///{tmp_path / 'core.db'}").execution_options(schema_translate_map={SCHEMA: None})
+    engine = _offline_engine(sa, tmp_path, "core.db")
     with engine.begin() as conn:
         conn.exec_driver_sql("PRAGMA foreign_keys=ON")
         load_metadata().create_all(conn)
@@ -40,10 +63,9 @@ def core_pair(tmp_path):
     from hermes_db.session_store import PostgresSessionStore
     from hermes_db.scope import DatabaseScope
     from hermes_db.tables import load_metadata
-    from hermes_db.tables.metadata import SCHEMA
     from hermes_db.postgresql.transactions import Transactions
 
-    engine = sa.create_engine(f"sqlite:///{tmp_path / 'isolated.db'}").execution_options(schema_translate_map={SCHEMA: None})
+    engine = _offline_engine(sa, tmp_path, "isolated.db")
     with engine.begin() as conn:
         conn.exec_driver_sql("PRAGMA foreign_keys=ON")
         load_metadata().create_all(conn)
