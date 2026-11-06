@@ -11,8 +11,8 @@
 ## 当前进度
 
 - 整体状态：`IN_PROGRESS`，不表示完整后端已通过验证。
-- 当前阶段：M1 基础。
-- 当前任务：Task 5（新库 Schema 与显式版本管理；Task 4 等待真实 PG 配置）。
+- 当前阶段：M2 业务语义（离线实现）；M1 的真实 PG 验证尚未完成。
+- 当前任务：Task 6（会话生命周期、提示快照、用量与查询）；Tasks 4–5 等待真实 PG 配置。
 - 已完成：3 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：真实 PG 验证时需用户提供本地测试配置，实际版本、权限和扩展由 Task 4 检查；当前没有连接数据库。
@@ -261,7 +261,7 @@ python scripts/check
 
 ## Task 5：创建新库 Schema 与显式版本管理
 
-状态：in_progress（仅推进不依赖真实 PG 的表定义、迁移和命令工作；集成验证等待 Task 4）
+状态：verification_pending（Schema/迁移/命令实现已完成离线验证；真实 PG DDL 等待 Task 4）
 
 ### 目标
 
@@ -298,15 +298,15 @@ python scripts/check
 
 ### 执行结果
 
-未开始；未修改本任务业务代码。
+已声明 24 个 Core 业务表（含稳定谱系 transcript_roots）、完整 store_id 复合键/引用、Double/Bytea 保真字段及索引；现有新 SQLite 主库字段覆盖检查通过。声明 Alembic 初始冻结 revision（不导入可变当前 metadata）、显式 schema 事务锁、非空无版本拒绝、未知版本和连接/池超时错误，以及 hermes db status/upgrade 的顶层 CLI 接线。SQLite 业务触发器与后续 Operation 落位已登记 contracts。PG 工厂仍拒绝完整启用。
 
 ### 验证证据
 
-未执行。实施时记录实际命令、退出码、数据库/解释器版本、关键结果、执行时间及偏差。
+2026-11-06，PM Python 3.14.9：标准 runner `tests/hermes_db/test_table_contracts.py tests/hermes_cli/test_db_commands.py` 初次 8 passed；`tests/hermes_db tests/hermes_cli/test_db_setup.py tests/hermes_cli/test_db_commands.py` 57 passed（exit 0），6 个 PG integration 测试按默认 marker deselected，不计通过。新增池超时/真实配置消费检查后受影响两文件重跑 8 passed。迁移资源由真实 Alembic ScriptDirectory 找到 required head。DDL 只编译/冻结，未在 PG 执行。静态检查首次 14 项中仅 Ruff 的三个 RUF015 测试迭代写法不合规，已修正，最新 UTF-8 `scripts/check --staged --base HEAD` 全部 14 项通过，health 0 blocking/0 advisory。最终完整离线局部回归同上命令 59 passed/0 failed（exit 0）；PG 集成 6 项 deselected，不计通过。真实空库 upgrade、重复升级、并发锁、跨 store FK 和权限场景均待 Task 4 配置，不能标 completed。
 
 ## Task 6：实现会话生命周期、提示快照、用量与查询
 
-状态：pending
+状态：in_progress
 
 ### 目标
 
@@ -960,7 +960,7 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 
 ## 恢复点
 
-- 分支 feat/postgresql-session-storage；Tasks 1–3 完成；Task 4 实现可供集成验证，verification_pending；Task 5 继续离线工作。Tasks 1–3 commits：b7648f08ee、bb221ec7d8、a7afe899c9。
+- 分支 feat/postgresql-session-storage；Tasks 1–3 完成；Task 4 实现可供集成验证，verification_pending；Task 5 离线 Schema/迁移/CLI 检查点已完成，verification_pending；Task 6 继续离线实现。Tasks 1–3 commits：b7648f08ee、bb221ec7d8、a7afe899c9。
 - 测试解释器 .build/postgresql/test-env/Scripts/python.exe（PM 构建，postgresql + dev/test）；调用标准 runner 时显式指定 HERMES_PYTHON。
 - 原 .gitignore 修改不纳入提交；原 docs/designs 三文件与实施计划作为本功能基线随 Task 1 提交。
 - PostgreSQL 连接配置尚未提供；Task 4 真实环境和后续 PG 并发验收不可标通过。按用户要求继续不依赖数据库的工作。
@@ -970,3 +970,7 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 
 - 执行偏差：按用户明确要求，缺真实 PG 配置时继续不依赖 DB 的实现。Task 4 和后续需要真实 PG 的任务可记录 verification_pending，不能标 completed；后续依赖先满足代码/接口，真实验收仍须按依赖顺序补齐。每 task 本地 commit 可以保存实现检查点，但不代表真实 PG 已验证。
 - Task 4 的真实测试配置格式/命令见 contracts；没有读取用户业务凭据、没有连接 PG、没有创建数据库服务或扩展。
+
+- Task 4 检查点 commit 47aa7638dc；Task 5 当前有 59 项离线测试与 staged 14 项静态检查通过，PG 的 6 项测试未执行，不计通过。下一步完成 Task 6 的主题方法，不启用 PG 生产写入。
+- Task 5 新增 transcript_roots（稳定行锁目标）及 sessions.lineage_root_id；消息 UID 不能加唯一约束，多个物理副本是既有语义。初始 revision 冻结 24 表/13 索引，后续任务变更表形状须同步修订未发布的初始 revision 并验证，已发布后只能新增 revision。
+- 当前未完成最终 verification-before-completion/code-review；全功能完成后统一执行并整改，绝不把这些局部结果当作完整后端通过。

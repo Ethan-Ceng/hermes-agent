@@ -786,3 +786,22 @@ $pgTestConfig = Join-Path $env:LOCALAPPDATA 'HermesTests/postgresql.yaml'
 测试参数只传文件路径。显式选择集成测试而缺配置/配置错误/连接失败时失败，普通运行按仓库默认 marker 排除 integration；不以 skip 充当真实 PG 通过。环境测试输出 server_version_num、psycopg 版本、pg_trgm 所在 schema 与当前连接 TLS 参数，不输出 DSN。
 
 2026-11-06：默认示例位置不存在，用户尚未提供测试配置；真实版本、权限、扩展、TLS 和 Schema DDL 均未验证。
+
+
+## 初始 Schema 与触发器落位（Task 5）
+
+初始业务元数据共 24 表：原主库去除 SQLite schema_version，加上投递、6 个 API 表，以及 transcript_roots。Alembic 的版本表为共享 schema 级控制元数据，不是 store 业务行。所有业务主键/唯一键/外键/索引包含 store_id。消息 UID 是逻辑身份，可以有多个物理副本；messages 上使用 (store_id,session_id,message_uid) 普通索引，禁止额外施加 UID 唯一约束。
+
+新增 transcript_roots 的理由：不存在或已删除的会话不能只靠 SELECT FOR UPDATE 串行化。每个稳定谱系根先创建持久控制行；sessions.lineage_root_id 引用它。压缩子段复用根，独立 fork/reset 的根分配由相应操作定义，正文清理不删除控制根。投递新增实例/claim token/到期字段，用于后续 Task 14 的跨节点领取栅栏。原文消息/提示使用 BYTEA，搜索投影单独存储。
+
+| SQLite 业务触发器 | PG 保留位置 |
+| --- | --- |
+| sessions_runtime_ledger_delete_guard | 作用域 RESTRICT 外键阻止未退休账本的正文删除；Task 12 原子退休后删除 |
+| messages_transcript_revision_update | Task 7 所有追加/替换/修订操作在同一事务维护 revision，Task 12 重写路径同样纳入 |
+| messages_message_uid_insert | Task 7 当前写入者显式分配/携带 UID；不开发旧写入者格式补齐 |
+| messages_display_order_insert/visibility_update/identity_update/identity_delete | Task 7 消息与 Task 12 重写操作在谱系锁内维护完整显示代表/顺序 |
+| FTS 同步与引擎维护触发器 | Task 15 的 PG 搜索投影/索引；SQLite 专属保留 |
+
+上述操作尚未完成，不因表已声明而认为这些业务不变量已实现。PG 工厂保持拒绝启用，直到 Tasks 6–17 完整接通。
+
+初始 revision 冻结 PostgreSQL DDL，不在升级时导入当前 Table 元数据；显式 upgrade 取得 schema 级事务 advisory lock，以短锁等待/语句超时执行全事务 DDL。拒绝接管非空无版本 schema，未知版本明确失败。普通 status/check_schema 只读取，不自动建表。初始 downgrade 不对外提供，数据备份和回退由管理员管理，未宣称可迁回 SQLite。

@@ -400,6 +400,7 @@ from hermes_cli.subcommands.secrets import build_secrets_parser
 from hermes_cli.subcommands.codex_runtime import build_codex_runtime_parser
 from hermes_cli.subcommands.egress import build_egress_parser
 from hermes_cli.subcommands.migrate import build_migrate_parser
+from hermes_cli.db_parser import build_db_parser
 from hermes_cli.subcommands.checkpoints import build_checkpoints_parser
 from hermes_cli.subcommands.bundles import build_bundles_parser
 from hermes_cli.subcommands.curator import build_curator_parser
@@ -2728,15 +2729,13 @@ def cmd_console(args):
     return run_console_repl()
 
 
-# Top-level subcommands known WITHOUT plugin discovery (which costs 500ms+ of
-# eager plugin imports). Keep in sync with the add_parser calls in
-# _build_cli_parser: a missing entry only costs a one-time discovery; an extra
-# entry would let a plugin command silently fail to parse.
+# Built-in names skip plugin discovery (~500ms); keep these in sync with
+# _build_cli_parser. Unknown names still trigger discovery for plugin commands.
 _BUILTIN_SUBCOMMANDS = frozenset(
     {
         "acp", "approvals", "auth", "backup", "bundles", "checkpoints", "codex-runtime", "completion",
         "computer-use", "connectors",
-        "config", "console", "cron", "curator", "dashboard", "serve", "debug", "doctor",
+        "config", "console", "cron", "curator", "dashboard", "serve", "db", "debug", "doctor",
         "dump", "egress", "fallback", "gateway", "hooks", "import", "insights",
         "gui", "desktop", "kanban", "login", "logout", "logs", "lsp", "mcp", "memory", "migrate", "moa",
         "journey", "memory-graph", "learning",
@@ -3288,6 +3287,7 @@ def _build_cli_parser():
     # OUTBOUND egress firewall; ``hermes proxy`` (gateway group) is the INBOUND one.
     build_egress_parser(subparsers)
     build_migrate_parser(subparsers)
+    build_db_parser(subparsers)
     build_codex_runtime_parser(subparsers)
     build_gateway_parser(
         subparsers, cmd_gateway=cmd_gateway, cmd_proxy=cmd_proxy, cmd_gateway_enroll=cmd_gateway_enroll
