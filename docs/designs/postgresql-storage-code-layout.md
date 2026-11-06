@@ -1,0 +1,268 @@
+# PostgreSQL 数据库层的代码组织与调用设计
+
+## 状态与范围
+
+- 日期：2026-11-06。
+- 状态：DESIGN_READY，代码结构设计已收敛，尚未实施。
+- 命名已确定：数据库层包为 `hermes_db`，数据仓储为 `repositories/`；沿用 SQLAlchemy Core 推荐方案。
+- 承接 [SQLite 源码调研](sqlite-postgresql-research.md) 与 [接入草案](postgresql-session-storage.md)。
+- 本轮只补充设计文档；示例均为拟定接口，不是可直接启用的代码。
+- 沿用已确认范围：完整会话、运行账本、API 续接与幂等；不安装或管理 PostgreSQL。
+- 已确认：新 PG 库启动，不兼容或迁移旧数据；保留 SQLite 可选运行模式。
+- 采用共享 Schema + 稳定 store_id；示例中的 store_id 表示服务端确定的持久化作用域，不等于浏览器传入的 user_id。账号/租户授权映射后续单列。
+- 关联 [实施计划](../plans/postgresql-session-storage-plan.md)：全部任务 pending，本轮仍未改业务代码。
+
+## 1. 推荐的落地方式
+
+新增 `hermes_db` 包，集中管理后端选择、连接池、表定义、SQL 查询和完整存储事务。保留现有 Agent 会话调用方式，使用已有 `session_db=` 参数注入会话存储。
+
+命名按职责区分：`hermes_db` 表示整个数据库层，`repositories/` 表示数据仓储，`operations/` 表示完整业务事务，`tables/` 表示 Core 表定义。若后续正式选择完整 ORM，其映射模型放在 `models/`；当前不创建这一目录。工作区文件、附件及对象存储由各自的文件存储能力负责。
+
+推荐 SQLAlchemy Core：用 `Table/Column` 定义表，用 `select/insert/update` 组织 SQL，用 `Engine/Connection` 执行。这里没有 ORM 映射对象和长寿命 ORM Session；业务调用者得到普通记录或现有 dict。
+
+如果最终选择完整 ORM，同样只由 Repository 使用映射模型与短寿命 Session；CLI、Web、Agent 的依赖方向不变。此次优先 Core，是因为 Hermes 现有复杂操作以显式 SQL、条件更新和多表事务为主，尚无需要整体改为对象关系模型的证据。
+
+Core 与 ORM 的连接/事务对应关系见 [SQLAlchemy 官方事务教程](https://docs.sqlalchemy.org/en/20/tutorial/dbapi_transactions.html)。这不是将原 SQL 字符串交给 SQLAlchemy 后就自动兼容 PG。
+
+## 2. 文件放在哪里
+
+以下是目标职责目录。按实际迁移主题逐步添加，不先创建所有空模块或未使用接口。
+
+```text
+hermes-agent/
+├── hermes_state.py                 # 第一阶段仍为现有 SQLite SessionDB
+├── hermes_state_*.py               # 现有 SQLite 实现、维护与恢复
+├── hermes_state_registry.py        # 保留 SQLite 文件代次与共享句柄管理
+│
+├── hermes_db/                     # 新的数据库层包
+│   ├── contracts.py               # 业务可见的存储接口，按实际消费者定义
+│   ├── scope.py                   # 不可变的存储作用域
+│   ├── settings.py                # 已解析配置的数据结构，不在这里读全局环境
+│   ├── errors.py                  # 后端无关的业务错误与故障分类
+│   ├── factory.py                 # acquire_db：选择 SQLite / PostgreSQL 实现
+│   ├── handle.py                  # DatabaseHandle：接口持有与释放
+│   ├── engine.py                  # 每进程连接池、复用与应用关闭时释放
+│   ├── session_store.py           # PG 会话门面，保留已用业务方法名/返回语义
+│   │
+│   ├── tables/                    # SQLAlchemy MetaData、表与约束
+│   │   ├── metadata.py
+│   │   ├── conversations.py        # sessions/messages/prompts/usage
+│   │   ├── runtime.py              # admissions/workers/leases/receipts
+│   │   ├── gateway.py              # routing/generations/delivery 等
+│   │   └── api.py                  # responses/run idempotency 等
+│   │
+│   ├── repositories/              # 数据仓储：实际 SQL 与行映射
+│   │   ├── sessions.py
+│   │   ├── messages.py
+│   │   ├── runtime.py
+│   │   ├── gateway.py
+│   │   └── api.py
+│   │
+│   ├── operations/                # 完整存储操作与事务边界
+│   │   ├── sessions.py             # 创建/分支/生命周期等
+│   │   ├── messages.py             # 追加/批量追加/重写等
+│   │   ├── runtime.py              # 准入/领取/终态/恢复
+│   │   ├── compression.py         # 压缩事务、尾部保留与发布
+│   │   ├── retirement.py           # 删除、墓碑与终态重放
+│   │   └── api.py                  # 响应续接与幂等操作
+│   │
+│   ├── postgresql/
+│   │   ├── transactions.py         # 写事务、锁定次序、冲突分类
+│   │   └── search.py               # PG 全文/trigram/CJK 搜索实现
+│   │
+│   ├── migrations/                # Alembic 显式版本迁移
+│   │   ├── env.py
+│   │   └── versions/
+│   │
+│   └── legacy_sqlite.py            # 接入现有 SessionDB 与 SQLite 运行函数
+│
+├── hermes_cli/db_setup.py          # 拟定：现有 Profile 配置/秘密到工厂的桥接
+└── tests/hermes_db/                # 镜像源包：业务契约 + PG 集成测试
+```
+
+没有为每张表创建一套 Service/Repository/DAO，也没有增加通用 CRUD 基类。`operations` 中只放确有多步骤规则和事务要求的操作；简单查询由门面直接调用 Repository，避免无意义的转发层。
+
+新包不对搬动的内部模块建立 re-export 兼容壳。第一阶段保留 SQLite 原模块的实际实现；将来真的移动内部符号时，按仓库规则同时更新所有引用与文档。
+
+## 3. 模块怎样依赖
+
+```mermaid
+flowchart TD
+    A[CLI / Web / 桌面 / Gateway 组合入口] --> B[Profile 配置与秘密解析]
+    B --> C[hermes_db.factory.acquire_db]
+    C --> D[现有 SQLite 实现]
+    C --> E[PG SessionStore 与运行存储]
+    F[Agent 与入口业务] --> G[存储接口 contracts]
+    G -. 实际注入 .-> E
+    E --> H[完整操作 operations]
+    E --> I[简单查询 repositories]
+    H --> I
+    H --> J[事务与锁策略]
+    I --> K[表定义 tables]
+    I --> L[SQLAlchemy Connection]
+    J --> L
+    L --> M[Engine / psycopg / PostgreSQL]
+```
+
+依赖规则：
+
+1. `contracts/scope/errors` 不依赖 SQLAlchemy、Web、Gateway 或 Agent。
+2. `tables` 只定义数据库结构，不导入 Repository、配置入口或 Agent，不在 import 时建立连接。
+3. Repository 依赖表定义和 SQLAlchemy；显式接收本次操作的 Connection 与作用域，不自行 commit，不自行读取 Profile 配置。
+4. Operation 组合 Repository 和事务/锁策略；同一业务操作的所有 SQL 使用同一个 Connection。
+5. 会话门面保持简短，复杂行为放对应 Operation；不向现有 `hermes_state.py` 添加 PG 分支。
+6. Factory 是知道具体实现的组合位置；普通业务代码不导入 PG 驱动或具体 Repository。
+7. `legacy_sqlite.py` 需要构造旧实现时使用调用时导入，避免旧 facade/sibling 导入链形成新循环。
+8. `hermes_cli/db_setup.py` 只桥接现有配置与秘密解析；数据库层核心不反向导入 CLI、Gateway 或应用启动对象。
+
+这些是模块导入规则，不要求给每个小类都设计抽象基类。Protocol 只覆盖真实消费接口；247 个方法声明中的 SQLite 修复/维护方法不应全部变成跨后端公共协议。
+
+## 4. 入口如何取得和调用存储
+
+现有 [run_agent.py](../../run_agent.py):272 已有 `session_db=` 注入参数；[agent/agent_init.py](../../agent/agent_init.py):1096 将其保存到 Agent。调用方注入时，Agent 通常不拥有数据库句柄的关闭权，可以沿用这一生命周期。
+
+拟定组合示例：
+
+```python
+from hermes_db.factory import acquire_db
+
+# 位于入口的组合/初始化代码；resolved_settings 和 scope 已由服务端解析。
+with acquire_db(resolved_settings, scope) as db:
+    agent = AIAgent(session_db=db.sessions, **agent_options)
+    # 运行 Agent；退出时按现有生命周期先停止 Agent 再释放 db。
+```
+
+上层调用保持接近现状：
+
+```python
+db.sessions.create_session(session_id, source="web", model=model)
+db.sessions.append_message(session_id, role="user", content=text)
+history = db.sessions.get_messages(session_id)
+```
+
+这里 `db` 是 `DatabaseHandle` 轻量作用域句柄，`db.sessions` 是业务会话接口。它不代表持有一条数据库连接，也不代表一个用户常驻一个服务。现有 `SessionDB` 的业务方法名继续保留，不因包命名变化而改名。
+
+完整工厂接入后，CLI、Web、TUI、ACP 和 Agent 的默认懒打开路径都要使用同一后端选择。显式 SQLite 修复、离线导入源读取等工具仍可以打开 SQLite 文件；普通会话路径不能在 PG 已选定后绕回旧注册表。
+
+## 5. SQLAlchemy 具体怎样调用
+
+### 5.1 Repository 中执行 SQL
+
+以下示例展示查询与归属过滤，不代表最终完整表结构或账号授权模型。
+
+```python
+# hermes_db/repositories/sessions.py
+from sqlalchemy import select
+from hermes_db.tables.conversations import sessions
+
+
+def get_session(conn, scope, session_id):
+    statement = select(sessions).where(
+        sessions.c.store_id == scope.store_id,
+        sessions.c.id == session_id,
+    )
+    row = conn.execute(statement).mappings().one_or_none()
+    return None if row is None else dict(row)
+```
+
+`conn.execute(select/insert/update(...))` 就是 Core 模式下的 SQLAlchemy 调用入口。参数由表达式绑定；返回值在数据层转换为现有调用者需要的 dict/记录，不返回 Connection、Result 或 ORM 实体。
+
+表定义与数据库迁移分开：`hermes_db/tables/` 是当前结构描述，`hermes_db/migrations/versions/` 中的 Alembic revision 是如何把已存在数据库升级到该结构的版本历史。应用普通启动检查版本，不让每个 Pod 自动无序执行 DDL，也不对生产库用 `create_all()` 代替版本迁移。
+
+### 5.2 事务由完整操作拥有
+
+追加消息不是只有一条 INSERT。需要保留现有写入保护、消息身份、计数、显示顺序及触发器承担的规则。拟定操作结构如下：
+
+```python
+# hermes_db/operations/messages.py
+# 事务接口和辅助函数为设计示意，规则清单需依据现有实现补齐。
+def append_message(transactions, repositories, scope, command):
+    prepared = prepare_message(command)  # 编码与身份准备在进入事务前完成
+    with transactions.write() as conn:
+        lock_transcript(conn, scope, command.session_id)
+        check_write_guards(conn, scope, command)
+        message_id = repositories.messages.insert(conn, scope, prepared)
+        repositories.sessions.apply_message_counters(conn, scope, prepared)
+        return message_id
+```
+
+`transactions.write()` 内部使用 SQLAlchemy 的事务上下文，正常完成提交，异常回滚；PG 锁定和可重试冲突政策另行实现。Repository 中的写入形态例如：
+
+```python
+result = conn.execute(
+    insert(messages).values(**values).returning(messages.c.id)
+)
+message_id = result.scalar_one()
+```
+
+示例没有声称已解决所有锁和触发器行为；发布前必须把完整操作中的全部规则纳入同一事务或明确的数据库约束。
+
+读操作在短连接范围内执行并完整取出结果后释放。写操作可以用 `Engine.begin()` 等方式界定事务；具体行为见 [SQLAlchemy Engine 与事务文档](https://docs.sqlalchemy.org/en/20/core/connections.html)。模型请求、终端执行和网络投递都在事务外进行，不占用连接等待整轮聊天。
+
+### 5.3 为什么 Repository 不自行提交
+
+如果 `messages.insert()` 自己提交，而计数或回执随后失败，会留下不完整结果。因此 Repository 接收外部 Connection，提交权属于完整 Operation。
+
+也不能在一个 Operation 中调用另一个会自行开启事务的公开会话方法。需要复用时调用接收当前 Connection 的内部函数，确保原子边界不被拆开。
+
+ORM 变体的规则一样：由 Operation 使用 `session_factory.begin()` 建立一次短 Session，Repository 使用该 Session，完成时转成业务记录。ORM Session 不按聊天会话缓存，也不跨并发任务共享，见 [SQLAlchemy Session 生命周期与并发说明](https://docs.sqlalchemy.org/en/20/orm/session_basics.html)。这是备选说明，本建议仍采用 Core。
+
+## 6. 运行账本的调用必须单独接线
+
+当前不仅有 SessionDB 方法。[gateway/session_authority.py](../../gateway/session_authority.py):26、622、1155 还直接调用 `admit_session_input(db, ...)`、`claim_session_input(db, ...)` 等函数，它们内部仍然执行 SQLite SQL。
+
+因此不能把一个 PG SessionStore 传给这些旧函数就算完成适配。拟定把运行持久化调用收敛为：
+
+```python
+db.runtime.admit_input(epoch=epoch, session_id=session_id, **request_options)
+db.runtime.claim_input(epoch=epoch, session_id=session_id, **claim_options)
+db.runtime.settle_input(epoch=epoch, admission_id=admission_id, **result_options)
+```
+
+PG 实现进入 `hermes_db/operations/runtime.py`，在同一事务中组合会话、准入、Worker 与墓碑查询；SQLite 实现调用现有对应函数。`db.sessions` 和 `db.runtime` 共用连接资源与作用域，但不会互相调用各自的公开方法来拼事务。
+
+API 响应、Run 幂等和投递账本按相同原则接入，实际迁移消费者时再加入对应接口。不把全部表简单装进一个无边界的 SessionDB，也不漏掉门面之外的 SQL。
+
+受管 compute Worker 继续使用 [agent/runtime_session_store.py](../../agent/runtime_session_store.py) 通过所有者 RPC 提交持久化。该边界用于执行代次和回执控制；本次不会因为接入 PG 就给所有 Worker 发放主库直连权限。
+
+## 7. SQLite 与 PG 如何共存
+
+| 事项 | 第一阶段 SQLite | 第一阶段 PostgreSQL |
+| --- | --- | --- |
+| 会话存储 | 现有 SessionDB | 新 SQLAlchemy Core 会话门面与操作 |
+| 运行操作 | 现有 runtime 函数，由消费接口接入 | 新运行 Operation |
+| 资源管理 | 继续由现有文件注册表处理代次、引用与关闭 | Engine 每进程复用，短连接/短事务 |
+| 搜索 | 现有 FTS5/CJK | PG 搜索适配 |
+| 修复、WAL、文件探测 | 保留本地实现 | 对应 PG 健康与模式检查 |
+| 行为验证 | 原行为基准和 SQLite 专属测试 | 同一业务契约及真实 PG 并发/故障测试 |
+
+这意味着第一阶段并非立即让 SQLite 也改走 SQLAlchemy。先保持其已验证实现，再逐步共享真正通用的编解码和查询；是否进一步统一 SQLite 的 SQL 层，要由维护收益和验证证据决定。
+
+Factory 只在打开逻辑存储时选择一次后端，选定 PG 后某方法未完成应显式阻止启用，不能调用一半 PG 再回 SQLite。完整生产切换必须在全部约定能力接通后进行。
+
+## 8. 对象生命周期和隔离
+
+| 对象 | 生命周期 | 约束 |
+| --- | --- | --- |
+| Engine/连接池 | 每个应用进程、连接配置维度复用 | 不每用户/每请求建池；在应用关闭时统一释放 |
+| 数据库作用域句柄 DatabaseHandle | 按消费者持有，可被明确拥有它的后台任务使用 | 绑定不可变 scope，不通过修改全局 user/profile 切换身份 |
+| Connection/事务 | 一次短数据库操作 | 不跨线程、并发任务或模型调用共享 |
+| 返回记录 | 已独立取出的 dict/数据记录 | 不依赖连接仍存活，不触发懒加载 |
+
+不同用户可以复用相同 Engine，但每条查询和完整事务必须带正确的服务器端归属。连接池共享不意味着数据可见性共享。不得用可变全局 `search_path` 或 `os.environ` 作为并发请求切换租户的机制。
+
+## 9. 接入顺序和验收
+
+1. 先确认作用域、接口与已有返回契约，再建配置桥接、工厂及生命周期；不先改变业务行为。
+2. 完成会话读写与消息旁路字段；Agent 通过现有注入参数使用新存储。
+3. 将 authority 的运行函数调用迁移为运行接口，验证队列、epoch、代次、压缩和删除终态。
+4. 接通 API 辅助存储、搜索、归档引用、健康检查及新库 Schema 初始化；不包含历史数据导入。
+5. 所有普通入口统一使用工厂，检查隐藏直连与降级路径，再允许完整 PG 后端启用。
+
+代码落位已拆成 [可恢复实施计划](../plans/postgresql-session-storage-plan.md)。两个后端要通过同一业务契约，PG 需真实数据库证明并发和失败语义；只验证 Repository 基础读写不能作为完成依据。
+
+本次文档自检覆盖本地引用存在性、示例定位与源码事实；没有创建上述代码目录，没有增加驱动，没有执行测试或迁移。
+
+## Task 1 实施契约
+
+2026-11-06：已建立 [业务契约与消费者清单](../plans/postgresql-session-storage-contracts.md)。后续表、操作和接线以该清单的作用域键、原子边界、保真编码和方法归属为检查依据。PG 仍未实现或验证。
