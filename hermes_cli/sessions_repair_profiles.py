@@ -84,7 +84,10 @@ class _Session:
         ``state.db`` yet reads as empty; an apply run opens it for real when a move lands there."""
         path = store.db_path
         if path not in self._dbs:
-            if self.read_only:
+            from hermes_cli.db_setup import open_profile_sessions, session_backend
+            if session_backend(store.home) == "postgresql":
+                self._dbs[path] = open_profile_sessions(store.home, read_only=self.read_only)
+            elif self.read_only:
                 from hermes_state import SessionDB
                 self._dbs[path] = SessionDB(path, read_only=True) if path.exists() else _EMPTY_STORE
             else:
@@ -94,11 +97,12 @@ class _Session:
 
     def close(self) -> None:
         from hermes_state_registry import release_or_close
+        from hermes_db.session_resource import SessionResource
         for db in self._dbs.values():
             if db is _EMPTY_STORE:
                 continue
             with contextlib.suppress(Exception):
-                release_or_close(db) if not self.read_only else db.close()
+                db.close() if self.read_only or isinstance(db, SessionResource) else release_or_close(db)
         self._dbs.clear()
 
 
@@ -305,9 +309,14 @@ class RepairPlan:
 
     def _move_routing_row(self, session: _Session, store: Store, routing_store: Store,
                           row: dict[str, Any]) -> dict[str, int]:
-        adopted = session.db(routing_store).insert_gateway_routing_rows_if_absent(
+        from hermes_db.errors import StorageConfigurationError
+        from hermes_db.health import is_postgresql_store
+        source, target = session.db(store), session.db(routing_store)
+        if is_postgresql_store(source) != is_postgresql_store(target):
+            raise StorageConfigurationError("Routing repair cannot cross SQLite/PostgreSQL backends")
+        adopted = target.insert_gateway_routing_rows_if_absent(
             [(row["scope"], row["session_key"], row["entry_json"], row["updated_at"])])
-        deleted = session.db(store).delete_gateway_routing_rows([(row["scope"], row["session_key"])])
+        deleted = source.delete_gateway_routing_rows([(row["scope"], row["session_key"])])
         return {"routing_adopted": adopted, "routing_deleted": deleted}
 
     def _scan_voice_modes(self, session: _Session, store: Store) -> None:
@@ -361,7 +370,10 @@ class RepairPlan:
     def apply(self, session: _Session, *, snapshot: Callable[[Store], Optional[str]]) -> dict[str, Any]:
         """Run every repairable fix; snapshots every store first. Fixes are independent and each
         re-checks its precondition, so a partial run leaves a state the next run completes."""
-        snapshots = {s.profile: snapshot(s) for s in self.stores if s.db_path.exists()}
+        from hermes_cli.db_setup import session_backend
+        snapshots = {s.profile: ("PostgreSQL backup is operator-managed; no local database snapshot"
+            if session_backend(s.home) == "postgresql" else snapshot(s))
+            for s in self.stores if session_backend(s.home) == "postgresql" or s.db_path.exists()}
         totals: dict[str, int] = {}
         failures: list[dict[str, str]] = []
         for finding in self.repairable:
@@ -406,6 +418,12 @@ class _MoveBatch:
         if self._result is not None:
             return self._result
         src_db, dst_db = session.db(self.src), session.db(self.dst)
+        from hermes_db.errors import StorageConfigurationError
+        from hermes_db.health import is_postgresql_store
+        if is_postgresql_store(src_db) != is_postgresql_store(dst_db):
+            self._errors.update({sid: StorageConfigurationError("Profile moves cannot cross SQLite/PostgreSQL backends") for sid in self.ids})
+            self._result = {}
+            return self._result
         from hermes_state_profile_repair import SessionLedgeredError
         payloads: dict[str, Optional[dict[str, Any]]] = {}
         for sid in self.ids:

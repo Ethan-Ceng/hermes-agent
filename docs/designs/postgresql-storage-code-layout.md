@@ -242,6 +242,10 @@ Task 15 的 PG 搜索由 `session_search.py` 组合纯 `search_query.py`、`sear
 
 Factory 只在打开逻辑存储时选择一次后端，选定 PG 后某方法未完成应显式阻止启用，不能调用一半 PG 再回 SQLite。完整生产切换必须在全部约定能力接通后进行。
 
+Task 16 的显式身份/健康在 `health.py`、`session_health.py`；归档引用由原消息事务写入 `spillover_names`，roster 写入有界 BYTEA `roster_preview`，Alembic `0003_archive_refs` 只回填当前 PG 行。维护选择器在 `repositories/retention.py`，归档/剪枝/孤儿关闭在 `operations/maintenance.py`。Insights/Web 分析使用命名 `repositories/insights.py`、`analytics.py`，不提供 SQL 字符串翻译器。
+
+当前 PG Profile 移动和采用在 `session_profile_moves.py` 与 `operations/profile_move.py`、`adoption.py`，限定同连接目标/共享 Schema、不同 store_id；移动回执和源摘要决定重复导入/删除。`operations/file_grants.py` 与 scoped state_meta 授权保留原物理 home 的文件，目标最后引用消失后撤销授权，由本地 owner 标记匹配的清理器回收；未知归属/引用保持文件，不执行文件迁移。跨 SQLite/PG 修复不复制数据。`session_resource.py` 只管理调用方的 DatabaseHandle 释放，不持有 Connection。原 SQLite 只读读取/本地维护保留，PG 缺文件不代表空库；PG 文件备份明确排除数据库，实例备份/恢复归操作者。Task 17 尚需统一所有普通获取点后才启用工厂。
+
 ## 8. 对象生命周期和隔离
 
 | 对象 | 生命周期 | 约束 |

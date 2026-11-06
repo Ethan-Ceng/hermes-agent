@@ -10,6 +10,11 @@ from hermes_state_gateway import SessionGatewayMixin
 class SessionGateway:
     session_gateway_runtime = staticmethod(SessionGatewayMixin.session_gateway_runtime)
 
+    def purge_profile_state(self, profile):
+        from hermes_db.operations.profile_purge import purge
+        with self._write() as conn:
+            return purge(conn, self.scope, profile)
+
     def rekey_profile_state(self, old_name, new_name):
         from hermes_db.operations.gateway_rekey import rekey
         with self._write() as conn:

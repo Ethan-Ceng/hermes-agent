@@ -2186,10 +2186,10 @@ def cmd_config(args):
 
 def cmd_backup(args):
     """Back up Hermes home directory to a zip file."""
-    from hermes_cli import backup
+    from hermes_cli import backup, backup_storage
 
     if getattr(args, "quick", False):
-        backup.run_quick_backup(args)
+        backup_storage.run_quick_backup(args)
     elif not backup.run_backup(args):
         raise SystemExit(1)  # archive written but incomplete: never shell-success for a timer
 

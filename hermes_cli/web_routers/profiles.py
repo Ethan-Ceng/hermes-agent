@@ -280,11 +280,15 @@ def _read_profile_db(name: str, home, errors: Optional[list[dict[str, str]]],
     gets the missing declared tables/columns ONCE from the open helper, and only while no gateway
     owns it; an owned store is reported in ``errors`` with the restart remedy (#140315)."""
     db_path = Path(home) / "state.db"
-    if not db_path.exists():
-        return None
     db = None
     try:
-        db = _open_session_db_at_path(db_path, read_only=True)
+        from hermes_cli.db_setup import open_profile_sessions, session_backend
+        if session_backend(Path(home)) == "postgresql":
+            db = open_profile_sessions(Path(home), read_only=True)
+        elif db_path.exists():
+            db = _open_session_db_at_path(db_path, read_only=True)
+        else:
+            return None
         return fn(db)
     except Exception as exc:
         # An open that dies on a damaged file never reaches SessionDB's read helpers.
@@ -302,8 +306,9 @@ def _corrupt_profile_stores(targets) -> dict[str, str]:
     """``{profile: "corrupt"}`` for every scanned profile whose state.db this process has latched
     as structurally corrupt (``hermes_state_health``). Lets Desktop tell an empty or partial list
     from a damaged store, including when some reads still succeed (#72046)."""
+    from hermes_cli.db_setup import session_backend
     return {name: STORAGE_CORRUPT for name, home in targets
-            if storage_state(Path(home) / "state.db") == STORAGE_CORRUPT}
+            if session_backend(Path(home)) == "sqlite" and storage_state(Path(home) / "state.db") == STORAGE_CORRUPT}
 
 
 # Sidebar scan cache TTL: short enough that the UI never shows meaningfully stale data, long
@@ -330,6 +335,8 @@ def _sidebar_db_fingerprint(db_path: Path):
 
 
 def _sidebar_profile_cache_get(key):
+    if key is None:
+        return None
     with _SIDEBAR_PROFILE_CACHE_LOCK:
         value = _SIDEBAR_PROFILE_CACHE.get(key)
         if value is None:
@@ -339,6 +346,8 @@ def _sidebar_profile_cache_get(key):
 
 
 def _sidebar_profile_cache_put(key, value):
+    if key is None:
+        return
     db_path, fingerprint = key[:2]
     snapshot = copy.deepcopy(value)
     with _SIDEBAR_PROFILE_CACHE_LOCK:
@@ -360,6 +369,14 @@ def _sidebar_profile_cache_clear():
 
 def _profile_state_db(home) -> Path:
     return Path(home) / "state.db"
+
+
+def _sidebar_store_cache_key(home):
+    from hermes_cli.db_setup import session_backend
+    if session_backend(Path(home)) == "postgresql":
+        return None
+    path = _profile_state_db(home)
+    return str(path), _sidebar_db_fingerprint(path)
 
 
 def _slice_has_rows(slices: dict[str, Any]) -> bool:
@@ -578,13 +595,11 @@ def get_profiles_sessions_sidebar(
         if recents_scope != "all" and name != recents_scope:
             continue
         scanned.append((name, home))
-        db_path = _profile_state_db(home)
-        if not db_path.exists():
-            continue
+        store_cache_key = _sidebar_store_cache_key(home)
         recents_subagents = subagent_listing_scope(home, exclude_sources=recents_exclude_list or None)
-        profile_cache_key = (str(db_path), _sidebar_db_fingerprint(db_path), cap["recents"],
+        profile_cache_key = (*store_cache_key, cap["recents"],
                              tuple(recents_exclude_list), cap["cron"], cap["messaging"],
-                             tuple(messaging_exclude_list), recents_subagents[0])
+                             tuple(messaging_exclude_list), recents_subagents[0]) if store_cache_key is not None else None
         slices = _sidebar_profile_cache_get(profile_cache_key)
         if slices is None:
             slices = _read_profile_db(

@@ -39,3 +39,12 @@ def preview_text(row):
 
 def _nonempty(text):
     return text.encode("utf-8") if text.strip("\t\n\r ") else None
+
+
+def roster_preview(row):
+    if row["role"] not in ("user", "assistant") or row.get("content") is None:
+        return None
+    text = " ".join(str(row["content"] or "").split()).strip()
+    if not text:
+        return None
+    return (text[:80] + "..." if len(text) > 80 else text).encode("utf-8")

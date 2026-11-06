@@ -53,6 +53,8 @@ messages = scoped_table(
                                            "codex_reasoning_items", "codex_message_items", "api_content", "display_identity")],
     Column("display_order", BigInteger), Column("search_content", Text), Column("preview_text", LargeBinary),
     Column("search_document", Text), Column("search_grams", ARRAY(Text).with_variant(JSON, "sqlite")),
+    Column("spillover_names", ARRAY(Text).with_variant(JSON, "sqlite")),
+    Column("roster_preview", LargeBinary),
     *zero_columns("observed", nullable=True), *zero_columns("_compressed_summary", "compacted"),
     Column("active", BigInteger, nullable=False, server_default="1"),
     key=("id",), constraints=(scoped_fk(("session_id",), "sessions", ("id",), ondelete="RESTRICT"),),
@@ -65,6 +67,8 @@ Index("ix_messages_store_display_identity", messages.c.store_id, messages.c.sess
 Index("ix_messages_search_trgm", messages.c.search_document, postgresql_using="gin",
       postgresql_ops={"search_document": "gin_trgm_ops"}).ddl_if(dialect="postgresql")
 Index("ix_messages_search_grams", messages.c.search_grams, postgresql_using="gin").ddl_if(dialect="postgresql")
+Index("ix_messages_store_spillover_refs", messages.c.store_id, messages.c.id,
+      postgresql_where=messages.c.spillover_names.is_not(None)).ddl_if(dialect="postgresql")
 
 message_search_chunks = scoped_table("message_search_chunks", Column("message_id", BigInteger, nullable=False),
     Column("chunk", BigInteger, nullable=False), Column("search_vector", TSVECTOR().with_variant(Text, "sqlite"), nullable=False),

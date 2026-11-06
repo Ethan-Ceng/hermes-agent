@@ -215,6 +215,9 @@ def _session_left_live_context(db, session_id: str) -> bool:
 def _get_message_storage_state(db, message_id) -> Optional[dict[str, Any]]:
     """Owning session and visibility flags for *message_id* (None if missing/error)."""
     def _lookup():
+        from hermes_db.health import is_postgresql_store
+        if is_postgresql_store(db):
+            return db.message_storage_state(message_id)
         with db._lock:
             return db._conn.execute(
                 "SELECT session_id, active, compacted FROM messages WHERE id = ?", (message_id,)).fetchone()

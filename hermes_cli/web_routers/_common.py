@@ -228,9 +228,13 @@ def corrupt_store_as_status(db_path):
     payload, warning once per store per :data:`_CORRUPT_STORE_WARN_INTERVAL_S`.
     Busy/locked and every other error propagate unchanged."""
     from hermes_state_errors import StateDbReplacedError, classify_persistence_error, is_malformed_db_error
+    from hermes_db.errors import StorageError
 
     try:
         yield
+    except StorageError as exc:
+        raise HTTPException(status_code=503, detail={"error": "session_storage_unavailable",
+            "message": "Session storage is unavailable; check backend configuration and connectivity."}) from exc
     except (sqlite3.DatabaseError, StateDbReplacedError) as exc:
         if not isinstance(exc, StateDbReplacedError) and not is_malformed_db_error(exc):
             raise

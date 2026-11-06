@@ -36,8 +36,9 @@ def reserved_profile_homes(runner):
 
 
 async def _build_profile_authority(runner, name, home, *, register):
-    """One profile's authority against its own ``state.db``; raises when that store is unusable."""
+    """One profile's authority against its own store; raises when that store is unusable."""
     from gateway.run import _profile_runtime_scope
+    from hermes_db.health import profile_home_for_store
     from gateway.session_authority import initialize_session_authority
     registry = runner.session_authorities
     instance_id = runner.session_runtime_descriptor['instance_id']
@@ -47,7 +48,7 @@ async def _build_profile_authority(runner, name, home, *, register):
     with _profile_runtime_scope(home, hydrate_secrets=False):
         if db is None:
             raise RuntimeError(_store_open_failure(runner, home))
-        if (await asyncio.to_thread(Path(db.db_path).resolve)).parent != home:
+        if await asyncio.to_thread(profile_home_for_store, db) != home:
             raise RuntimeError(f'session authority database does not belong to the reserved profile {home}')
         registry.add(home, None, name=name)
         try:
@@ -561,7 +562,8 @@ async def recover_bot_mailbox(authority):
     try:
         await recover_bot_deliveries(authority)
     except MailboxUnusable as exc:
-        logger.warning('Bot Chat recovery skipped for %s: %s', authority.db.db_path, exc)
+        from hermes_db.health import profile_home_for_store
+        logger.warning('Bot Chat recovery skipped for %s: %s', profile_home_for_store(authority.db), exc)
 
 
 async def start_gateway_runtime_api(runner):

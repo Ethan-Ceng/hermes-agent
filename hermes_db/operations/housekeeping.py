@@ -1,6 +1,7 @@
 """Sweep candidates are checked and retired on the same mapping/root fence."""
 
 from sqlalchemy import select
+import time
 
 from hermes_db.operations import retirement, retirement_guards as guards
 from hermes_db.repositories import gateway, gateway_peers, retirement as targets, retirement_housekeeping as repo, sessions
@@ -43,6 +44,16 @@ def delete_empty(conn, scope):
     ids = prunable(conn, scope, ids)
     retirement.delete_rows(conn, scope, ids)
     repo.prune(conn, scope)
+    return ids
+
+
+def prune_ghosts(conn, scope):
+    sessions.lock_store(conn, scope, exclusive=True)
+    ids = conn.execute(select(table.c.id).where(table.c.store_id == scope.require_store_id(),
+        table.c.source == "tui", table.c.title.is_(None), table.c.ended_at.is_not(None),
+        table.c.started_at < time.time() - 86400, ~_has_messages(scope))).scalars().all()
+    ids = prunable(conn, scope, ids)
+    retirement.delete_rows(conn, scope, ids)
     return ids
 
 

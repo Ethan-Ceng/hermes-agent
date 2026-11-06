@@ -6,7 +6,7 @@ from hermes_db.engine import get_engine, read_connection, require_postgresql_dri
 from hermes_db.errors import StorageSchemaError, StorageUnavailableError
 from hermes_db.settings import PostgresSettings
 
-REQUIRED_REVISION = "0002_search_projection"
+REQUIRED_REVISION = "0003_archive_refs"
 
 
 def _revision(conn, schema):

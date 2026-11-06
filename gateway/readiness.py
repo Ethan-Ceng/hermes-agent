@@ -27,6 +27,10 @@ def _probe_state_db(home: Path) -> dict[str, Any]:
     the latch here is what makes readiness and ``/api/status`` agree with the session list
     (#72046). ``detail="corrupt"`` is the one reason string consumers key off."""
     from hermes_state_health import STORAGE_CORRUPT, note_storage_error, storage_state
+    from hermes_db.health import configured_probe
+
+    if (probe := configured_probe(home)) is not None:
+        return probe
 
     path = home / "state.db"
     if not path.exists():

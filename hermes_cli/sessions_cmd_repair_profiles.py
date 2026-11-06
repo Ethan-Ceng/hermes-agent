@@ -90,7 +90,7 @@ def cmd_repair_profiles(args) -> int:
         if not getattr(args, "yes", False) and not as_json:
             from hermes_cli.sessions_cmd import _confirm_or_exit_code
             refused = _confirm_or_exit_code(
-                f"\nApply {len(repairable)} repair(s)? A snapshot of every store is taken first. [y/N] ",
+                f"\nApply {len(repairable)} repair(s)? SQLite stores get local snapshots; PostgreSQL backups are operator-managed. [y/N] ",
                 declined="Aborted — nothing was changed.")
             if refused is not None:
                 return refused

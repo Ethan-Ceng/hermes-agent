@@ -37,11 +37,19 @@ def text_rows(conn, scope, session_ids=None):
 
 
 def retire_spillover(conn, scope, session_ids):
+    from hermes_db.file_scope import identity, owner_id
     from tools.tool_result_storage import spillover_names_in_text
+    root = scope.profile_home / "cache" / "spillover"
+    owner = owner_id(scope.profile_home, create=True)
     for start in range(0, len(session_ids), 1000):
         for content, api in text_rows(conn, scope, session_ids[start:start + 1000]):
             for name in spillover_names_in_text(content, api):
-                _candidate(conn, scope, SPILLOVER_PREFIX + name, name)
+                try:
+                    stamp = identity(root / name)
+                except OSError:
+                    stamp = None
+                _candidate(conn, scope, SPILLOVER_PREFIX + name,
+                    {"name": name, "owner": owner, "identity": stamp})
 
 
 def candidates(conn, scope, prefix):

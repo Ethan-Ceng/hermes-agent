@@ -48,3 +48,19 @@ def test_core_retired_media_keeps_live_input_then_releases_under_own_profile(cor
     store.delete_session("held")
     assert not path.exists()
     assert not Path(other.scope.profile_home / "cache" / "documents").exists()
+
+
+def test_core_delayed_spillover_candidate_does_not_unlink_a_replacement(core_pair):
+    store = core_pair[0]
+    root = store.scope.profile_home / "cache" / "spillover"
+    root.mkdir(parents=True)
+    path = root / "reused.txt"
+    path.write_text("original", encoding="utf-8")
+    for sid in ("one", "two"):
+        store.create_session(sid, "cli")
+        store.append_message(sid, "tool", str(path))
+    store.delete_session("one")
+    path.unlink()
+    path.write_text("fresh replacement with another identity", encoding="utf-8")
+    store.delete_session("two")
+    assert path.read_text(encoding="utf-8") == "fresh replacement with another identity"

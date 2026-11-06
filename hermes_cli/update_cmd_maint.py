@@ -123,6 +123,9 @@ def _print_fts_optimize_available_notice() -> None:
         from hermes_state import SessionDB
     except Exception:
         return
+    from hermes_cli.db_setup import session_backend
+    if session_backend(get_hermes_home()) == "postgresql":
+        return
     db_path = get_hermes_home() / "state.db"
     if not db_path.exists():
         return

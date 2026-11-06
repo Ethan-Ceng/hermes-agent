@@ -104,6 +104,14 @@ def referenced_spillover_names(spill_dir) -> set | None:
     ``set()`` when no database exists (no sessions → nothing references anything), ``None``
     when the reference set is UNKNOWN (unreadable / truncated query) so callers fail closed
     and keep the files; a plain read-only connection is enough, the write path owns the locks."""
+    from hermes_cli.config_backend import ConfigBackendUnavailable
+    from hermes_db.archive_refs import for_profile
+    try:
+        selected, names = for_profile(spill_dir.parent.parent)
+        if selected:
+            return names
+    except (ConfigBackendUnavailable, Exception):  # health: allow BLE001 -- unknown backend/references preserve files
+        return None
     db_path = spill_dir.parent.parent / "state.db"
     if not db_path.exists():
         return set()
@@ -150,6 +158,9 @@ def cleanup_spillover_cache(max_age_hours: int | None = None) -> int:
             pass
     if not expired:
         return 0
+    from hermes_db.archive_refs import cleanup_if_postgresql
+    if (removed := cleanup_if_postgresql(get_spillover_dir().parent.parent, expired, cutoff=cutoff)) is not None:
+        return removed
     referenced = referenced_spillover_names(get_spillover_dir())
     removed = 0
     for f in expired:

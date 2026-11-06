@@ -7,6 +7,12 @@ from hermes_db.tables.conversations import messages, sessions
 
 
 class SessionQueries:
+    def get_session_rich_row(self, session_id, compact_rows=False):
+        self.flush_for_read()
+        with self._read() as conn:
+            rows = queries.hydrate(conn, self.scope, [session_id], compact=compact_rows)
+            return rows[0] if rows else None
+
     def get_session_list_row(self, session_id):
         fields = ("id", "source", "title", "started_at", "ended_at", "message_count", "model", "hidden", "archived")
         with self._read() as conn:

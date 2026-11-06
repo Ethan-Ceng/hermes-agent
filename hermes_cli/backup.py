@@ -616,6 +616,8 @@ def run_backup(args) -> bool:
 
 def _run_backup_locked(args, hermes_root: Path) -> bool:
     """Write a full backup while the cross-process backup slot is held."""
+    from hermes_cli.backup_storage import full_backup_notice
+    full_backup_notice(hermes_root)
     out_path = _resolve_backup_output_path(args.output)
     scan_started = time.monotonic()
     logger.info("backup phase=scan status=started")
@@ -1427,6 +1429,7 @@ def _create_quick_snapshot_locked(
         return None
 
     # Write manifest
+    from hermes_cli.backup_storage import snapshot_storage
     meta = {
         "id": snap_id,
         "timestamp": ts,
@@ -1436,6 +1439,7 @@ def _create_quick_snapshot_locked(
         "files": manifest,
         "failed_dbs": failed_dbs,
         "oversized_skipped": oversized_skipped,
+        "session_storage": snapshot_storage(home, manifest),
     }
     with open(staging_dir / "manifest.json", "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
@@ -2030,19 +2034,6 @@ def prune_quick_snapshots(
 ) -> int:
     """Manually prune quick snapshots. Returns count deleted."""
     return _prune_quick_snapshots(_quick_snapshot_root(hermes_home), keep=keep)
-
-
-def run_quick_backup(args) -> None:
-    """CLI entry point for hermes backup --quick."""
-    label = getattr(args, "label", None)
-    snap_id = create_quick_snapshot(label=label)
-    if snap_id:
-        print(f"State snapshot created: {snap_id}")
-        snaps = list_quick_snapshots()
-        print(f"  {len(snaps)} snapshot(s) stored in {display_hermes_home()}/state-snapshots/")
-        print(f"  Restore with: /snapshot restore {snap_id}")
-    else:
-        print("No state files found to snapshot.")
 
 
 # ---------------------------------------------------------------------------

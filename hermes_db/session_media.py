@@ -8,21 +8,47 @@ from hermes_state_media import PREFIX, SPILLOVER_PREFIX
 
 
 def collect(store):
-    with store._profile.activate(), store._write() as conn:
+    _release_foreign(store)
+    collect_scope(store._transactions, store.scope, store._profile)
+
+
+def collect_scope(transactions, scope, profile):
+    from hermes_db.repositories import archive_refs, file_grants
+    with profile.activate(), transactions.write() as conn:
         # Local unlink is short; the mapping fence prevents an accepted input or
         # branch from publishing a new reference between the check and unlink.
         # Candidates were committed by the earlier deletion transaction, so a
         # failed cleanup keeps them available for the next pass.
-        sessions.lock_store(conn, store.scope, exclusive=True)
-        refs, spills = media.candidates(conn, store.scope, PREFIX), media.candidates(conn, store.scope, SPILLOVER_PREFIX)
+        sessions.lock_store(conn, scope, exclusive=True)
+        refs, spills = media.candidates(conn, scope, PREFIX), media.candidates(conn, scope, SPILLOVER_PREFIX)
         if not refs and not spills:
             return
-        mentions, names = _history(conn, store.scope, [value for _, value in refs])
-        if mentions is None:
+        mentions, _ = _history(conn, scope, [value for _, value in refs])
+        names = archive_refs.referenced_names(conn, scope)
+        if mentions is None or names is None:
             return
-        done = _collect_spills(store.scope.profile_home / "cache" / "spillover", spills, names)
-        done.extend(_collect_media(conn, store.scope, refs, mentions))
-        media.forget(conn, store.scope, done)
+        _, pinned = file_grants.pins(conn, scope)
+        mentions.update(reference["path"] for reference in pinned)
+        done = _collect_spills(scope, spills, names)
+        done.extend(_collect_media(conn, scope, refs, mentions))
+        media.forget(conn, scope, done)
+
+
+def _release_foreign(store):
+    from hermes_db.errors import StorageError
+    from hermes_db.file_scope import owner_id
+    from hermes_db.operations.file_grants import release_unused
+    from hermes_db.profile_context import OwnedProfileContext
+    try:
+        with store._profile.activate(), store._write() as conn:
+            origins = release_unused(conn, store.scope)
+        for scope, identity in origins:
+            if identity is not None and owner_id(scope.profile_home) == identity:
+                collect_scope(store._transactions, scope, OwnedProfileContext(scope))
+    except (StorageError, ValueError, TypeError, KeyError):
+        # Grants and retirement candidates are durable; a later owned sweep
+        # retries without guessing that unreachable references have vanished.
+        return
 
 
 def _history(conn, scope, references):
@@ -37,16 +63,19 @@ def _history(conn, scope, references):
     for content, api in media.text_rows(conn, scope):
         text = content.decode("utf-8", "replace") if isinstance(content, bytes) else str(content)
         spill_names |= spillover_names_in_text(text, api)
-        mentioned.update(raw for needle, raw in needles.items() if needle in text)
+        mentioned.update(raw for needle, raw in needles.items() if needle in text or needle in (api or ""))
         matched += int("spillover" in text or bool(needles))
         if matched > 20000:
             return None, None
     return mentioned, spill_names
 
 
-def _collect_spills(root, candidates, referenced):
-    done, root = [], root.resolve()
-    for key, name in candidates:
+def _collect_spills(scope, candidates, referenced):
+    from hermes_db.file_scope import identity, owner_id
+    done, root = [], (scope.profile_home / "cache" / "spillover").resolve()
+    owner = owner_id(scope.profile_home)
+    for key, reference in candidates:
+        name = reference["name"]
         # Names come from the existing pointer parser; still require an exact
         # basename so a corrupt control row cannot unlink outside its cache.
         if not isinstance(name, str) or Path(name).name != name or name in (".", ".."):
@@ -55,6 +84,15 @@ def _collect_spills(root, candidates, referenced):
         if name in referenced or not path.resolve().is_relative_to(root):
             continue
         try:
+            if not path.exists():
+                done.append(key)
+                continue
+            if owner is None or reference["owner"] != owner:
+                continue
+            if identity(path) != reference["identity"]:
+                # The retired generation is already gone; never unlink its replacement.
+                done.append(key)
+                continue
             path.unlink(missing_ok=True)
         except OSError:
             continue

@@ -12,6 +12,7 @@ from hermes_db.settings import DatabaseSettings, PostgresSettings
 
 @contextmanager
 def _owning_profile(home):
+    from hermes_cli.config_backend import ConfigBackendUnavailable
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
     from agent.secret_scope import (
         build_profile_secret_scope, current_secret_scope_home, reset_secret_scope, set_secret_scope,
@@ -24,6 +25,8 @@ def _owning_profile(home):
         if bound is None or Path(bound).resolve() != home:
             secret_token = set_secret_scope(build_profile_secret_scope(home), profile_home=str(home))
         yield
+    except ConfigBackendUnavailable:
+        raise StorageConfigurationError("Session storage configuration is unavailable") from None
     finally:
         if secret_token is not None:
             reset_secret_scope(secret_token)
@@ -37,15 +40,20 @@ def _section(config, name):
     return value
 
 
+def _backend(session):
+    backend = session.get("backend", "sqlite")
+    if backend not in ("sqlite", "postgresql"):
+        raise StorageConfigurationError("storage.session.backend must be sqlite or postgresql")
+    return backend
+
+
 def _resolve_settings(config, home):
     from agent.secret_scope import get_secret
 
     session = _section(_section(config, "storage"), "session")
-    backend = session.get("backend", "sqlite")
+    backend = _backend(session)
     if backend == "sqlite":
         return DatabaseSettings(), DatabaseScope(home)
-    if backend != "postgresql":
-        raise StorageConfigurationError("storage.session.backend must be sqlite or postgresql")
     pg = _section(session, "postgresql")
     scope = DatabaseScope(home, pg.get("store_id"))
     scope.require_store_id()
@@ -79,3 +87,25 @@ def open_profile_db(profile_home: Path | None = None):
     settings, scope = resolve_db_configuration(profile_home)
     with _owning_profile(scope.profile_home):
         return acquire_db(settings, scope)
+
+
+def session_backend(profile_home: Path | None = None):
+    """Driver/secret-free backend selection for file-tooling and cache boundaries."""
+    from hermes_constants import get_hermes_home
+    from hermes_cli.config_effective import load_user_config_effective
+    home = Path(profile_home if profile_home is not None else get_hermes_home()).resolve()
+    with _owning_profile(home):
+        config = load_user_config_effective(home / "config.yaml", fail_closed=True)
+        return _backend(_section(_section(config, "storage"), "session"))
+
+
+def open_profile_sessions(profile_home: Path | None = None, *, read_only=False):
+    """Caller-owned resource; SQLite observational opens retain their no-DDL contract."""
+    from hermes_db.factory import acquire_db
+    from hermes_db.session_resource import SessionResource
+    settings, scope = resolve_db_configuration(profile_home)
+    if read_only and settings.backend == "sqlite":
+        from hermes_state import SessionDB
+        return SessionDB(db_path=scope.profile_home / "state.db", read_only=True)
+    with _owning_profile(scope.profile_home):
+        return SessionResource(acquire_db(settings, scope))

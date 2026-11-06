@@ -31,14 +31,8 @@ class SessionMessageLookup:
                 messages.c.id == int(row_id), messages.c.active == 1))
 
     def get_messages_around(self, session_id, around_message_id, window=5):
-        window = max(0, window)
         with self._read() as conn:
-            if repo.one(conn, self.scope, session_id, around_message_id) is None:
-                return {"window": [], "messages_before": 0, "messages_after": 0}
-            before = repo.select_rows(conn, self.scope, [session_id], messages.c.id <= around_message_id, limit=window + 1, latest=True)
-            after = repo.select_rows(conn, self.scope, [session_id], messages.c.id > around_message_id, limit=window)
-        return {"window": [codec._row_to_message_dict(row, warn_context="get_messages_around", summary_flag=False)
-                            for row in [*before, *after]], "messages_before": len(before) - 1, "messages_after": len(after)}
+            return around(conn, self.scope, session_id, around_message_id, window)
 
     def has_platform_message_id(self, session_id, platform_message_id):
         with self._read() as conn:
@@ -90,3 +84,13 @@ class SessionMessageLookup:
                     break
                 current = child["id"]
             return best or initial
+
+
+def around(conn, scope, session_id, anchor_id, window):
+    window = max(0, window)
+    if repo.one(conn, scope, session_id, anchor_id) is None:
+        return {"window": [], "messages_before": 0, "messages_after": 0}
+    before = repo.select_rows(conn, scope, [session_id], messages.c.id <= anchor_id, limit=window + 1, latest=True)
+    after = repo.select_rows(conn, scope, [session_id], messages.c.id > anchor_id, limit=window)
+    return {"window": [codec._row_to_message_dict(row, warn_context="get_messages_around", summary_flag=False)
+        for row in [*before, *after]], "messages_before": len(before) - 1, "messages_after": len(after)}

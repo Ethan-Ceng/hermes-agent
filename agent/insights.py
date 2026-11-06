@@ -163,6 +163,9 @@ class InsightsEngine:
 
     def __init__(self, db):
         self.db = db
+        from hermes_db.health import is_postgresql_store
+        if is_postgresql_store(db):
+            return
         self._conn = db._conn
         try:
             self._has_assistant_calls_index = bool(self._conn.execute(
@@ -188,6 +191,9 @@ class InsightsEngine:
 
     def _query(self, base: str, cutoff: float, source: Optional[str]) -> list:
         """Rows of ``<base>_WITH_SOURCE`` or ``<base>_ALL`` (instance attrs, so the unpinned fallback applies)."""
+        from hermes_db.health import is_postgresql_store
+        if is_postgresql_store(self.db):
+            return self.db.insights_rows(base, cutoff, source)
         if not source:
             return self._conn.execute(getattr(self, base + "_ALL"), (cutoff,)).fetchall()
         params = (cutoff, source, source) if self._local_surfaces else (cutoff, source)

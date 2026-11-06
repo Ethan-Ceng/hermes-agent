@@ -404,6 +404,9 @@ class SurfaceLabelReader:
     def _has_created_source_column(self) -> bool:
         """Read-only opens don't migrate, so ``created_source`` may be missing. Only "present" is
         cached: a lock or I/O error is not proof of absence, and another connection may add it."""
+        from hermes_db.health import is_postgresql_store
+        if is_postgresql_store(self._wrapped):
+            return True
         if not self._has_column:
             rows = self._wrapped._read_all("PRAGMA table_info(sessions)")
             self._has_column = any(row[1] == "created_source" for row in rows)

@@ -269,17 +269,21 @@ def _render_cron(ctx):
 
 def _render_sessions(ctx):
     _section("Sessions")
+    from hermes_cli.db_setup import open_profile_sessions, session_backend
+    postgresql = session_backend(get_hermes_home()) == "postgresql"
+    storage_failed = False
     # Gateway session count: state.db is the source of truth; fall back to sessions.json for
     # pre-migration installs.
     try:
         from hermes_state import SessionDB
-        db = SessionDB(db_path=get_hermes_home() / "state.db", read_only=True)
+        db = open_profile_sessions(get_hermes_home(), read_only=True) if postgresql else SessionDB(db_path=get_hermes_home() / "state.db", read_only=True)
         try:
             gateway_rows = db.list_gateway_sessions(active_only=True) or []
         finally:
             db.close()
     except Exception:
         gateway_rows = []
+        storage_failed = True
 
     if gateway_rows:
         _kv("Active:", f"{len(gateway_rows)} session(s)")
@@ -287,6 +291,8 @@ def _render_sessions(ctx):
         if freshest > 0:
             from hermes_cli.timefmt import relative_time
             print(f"  Last activity:{relative_time(freshest):>13}")
+    elif postgresql:
+        _kv("Active:", "(PostgreSQL storage unavailable)" if storage_failed else 0)
     elif not (sessions_file := get_hermes_home() / "sessions" / "sessions.json").exists():
         _kv("Active:", 0)
     else:

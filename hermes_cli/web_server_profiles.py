@@ -379,6 +379,9 @@ def _aux_usage_rows(db, cutoff: float) -> list[dict[str, Any]]:
 
     See #23270.
     """
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(db):
+        return db.analytics_rows("auxiliary", cutoff)
     try:
         cur = db._conn.execute("""
             SELECT u.model,

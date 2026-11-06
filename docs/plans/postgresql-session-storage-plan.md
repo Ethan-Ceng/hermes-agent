@@ -12,11 +12,11 @@
 
 - 整体状态：`IN_PROGRESS`，不表示完整后端已通过验证。
 - 当前阶段：M3 完整接入（离线实现）；M1/M2 的真实 PG 验证尚未完成。
-- 当前任务：Task 16（文件身份、健康与归档引用）；Tasks 4–15 等待真实 PG 配置。
+- 当前任务：Task 17（统一普通入口与运行能力接线）；Tasks 4–16 等待真实 PG 配置。
 - 已完成：3 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：真实 PG 验证时需用户提供本地测试配置，实际版本、权限和扩展由 Task 4 检查；当前没有连接数据库。
-- 最近更新时间：2026-11-06（Asia/Shanghai）。
+- 最近更新时间：2026-11-07（Asia/Shanghai）。
 
 ## 已确定的实施边界
 
@@ -847,7 +847,7 @@ Task 15 离线检查点：scripts/run_tests.sh tests/hermes_db tests/hermes_stat
 
 ## Task 16：替换文件身份、健康与归档引用依赖
 
-状态：in_progress
+状态：verification_pending（离线实现/契约和静态检查就位；真实 PG 与已证明的主机基线限制保留）
 
 ### 目标
 
@@ -888,15 +888,47 @@ PG 不以本地文件充当数据库身份或健康依据；归档引用清理�
 
 ### 执行结果
 
-未开始；未修改本任务业务代码。
+从 Task 15 commit 4f22e0ef39 继续。首批实现显式 profile_home/health、按配置的 PG readiness 和有界 spillover 名称投影查询；普通过期清理在作用域映射锁内完成引用检查及短本地 unlink，PG 配置/连接/引用未知时保留文件，不以缺少 state.db 推断无引用。为避免清理扫描大量正文，新增原消息事务同步的 spillover_names 派生列及 planned Alembic 0003，INSERT SELECT 克隆保留该列。0003、归档/移动、消费者状态/分析/本地维护尚待完成。
 
 ### 验证证据
 
-未执行。实施时记录实际命令、退出码、数据库/解释器版本、关键结果、执行时间及偏差。
+首轮 4 failed：health/archive_refs 模块缺失三项及 readiness 将 PG 不可达误报本地未初始化一项。实现后 4 passed；联合原 readiness 为 6 passed / 1 failed。showlocals 确认 state_db/session_store/config/model 均 ok，C 盘实际 463002247168 used / 47931084800 free（约 90.6%），原磁盘降级阈值 90% 导致整体 degraded；在项目 D 盘隔离 basetemp 复验中，不更改阈值或伪造主机。ruff/health 首批 12 files，0 blocking / 0 advisory，exit 0；完整 Task 16 未完成，不提交、不进入 Task 17。
+
+Task 16 过程证据：原 readiness 以已核对项目 D:/AI/hermes-agent/.build/postgresql/task16-readiness-temp 为 basetemp 后 3 passed / 0 failed，1.3s，证明 C 盘真实容量阈值触发而非 PG 接线回归。health/引用/驱动可选/迁移发现/既有删除文件契约合计 11 passed，4.8s。工具结果原文件 57 passed / 1 failed（Windows shlex 引号断言）；用 4f22e0ef39 的源码只读副本及原测试副本仅重定向模块导入，scripts/run_tests.sh 再现同一失败，日志 .build/postgresql/task16-tool-baseline.log，未修改原断言或路径转义。
+
+新增 retention 共享契约先 SQLite 3 passed / Core 缺接口 3 failed，原生活动/筛选/完整压缩链选择器和同事务 archive/prune 实现后 6 passed / 0 failed，4.7s。任务仍 in_progress；自动维护、Profile 修复/移动、跨 store 文件保留、其余 file identity/分析/命令消费者和真实 PG 定义尚待完成。当前 REQUIRED_REVISION=0003_archive_refs；001/002 冻结，003 仅为当前新 PG 数据回填名称投影，不读取 SQLite 数据。
+
+Task 16 维护补充：自动归档/孤儿关闭新契约先 8 passed / Core 缺接口 2 failed；实现中误把 titles 导入到 repositories 导致 5 setup errors，纠正到 operations 后 10 passed。新增自动 prune/跨 scope 节流时测试块插入位置不当导致 12 passed / 1 failed，移回原孤儿测试后，retention 13 + health/refs 5 共 18 passed / 0 failed，8.6s，exit 0。自动维护在同一映射/排序 root 事务内节流、数据清理及写状态，保持原来的已关闭孤儿完整保留窗口；心跳和 TTL 租约/运行账本保护活动会话，未知执行不关闭。PG 不执行物理 VACUUM；接纳原参数但 vacuumed=false，实例维护归用户。最新 ruff/health 18 files，0 blocking / 0 advisory，exit 0。仍有 Profile 移动/归档文件保留和消费者接线未完成。
+
+Task 16 Profile 移动实施约束（编码前记录）：仅当前 PG 导出在同一连接目标/共享 Schema、不同 store_id 间移动；拒绝 SQLite 原始 payload、跨后端和同 store_id 自移动，保留 SQLite 原模式。准备快照带服务端随机凭据和正文/提示/用量摘要；目标需匹配已提交移动回执才能把同名 id 判为 present，源删除前重新核对数据未增长且目标已确认。父节点先删导致的受控 parent/root/generation 重定位不算新正文，保持现有 parents-first 批处理。源作用域仍保留删除/路由墓碑，不自动复活已删除 id。
+
+文件不复制或迁移：采用 state_meta 内的作用域化引用授权，所有者与接收 store 的查询均显式带作用域并校验随机凭据。复合操作按 store_id 排序获取所有映射锁；分支/压缩及再次移动可保留原物理 home 的引用。目标最后一份引用清除后以独立短操作撤销授权，再由原 home 的受管清理回收；未知/截断引用保留文件和授权，避免永久无条件 pin 或跨 store 无作用域扫描。需要同 Schema 的直接引用授权是既定共享 Schema 与“跨 store 移动不能误删文件”要求的落地，不增加文件迁移、账号或数据库服务管理。
+
+新移动契约首轮误调用不存在的 get_session_tool_names，已改为核对公开会话的工具 pin hash；SQLite roundtrip 基线随后 1 passed，Core 移动接口尚缺（-k sqlite 也选中了拒绝 SQLite 的 Core 用例，所以该次同时 1 failed）。待实现后统一复验。roster 新增原消息事务写入的 ≤83 字预览 BYTEA 投影，避免每次轮询加载整个正文；SQLite/Core 预览及迁移发现 9 passed，25.3s。003 同时添加该列并回填当前 PG 行，尚无真实 PG 执行。
+
+Task 16 移动/文件检查点（2026-11-07）：当前 PG 移动使用摘要、随机票据、目标回执及源删除时重新核对；实现内层同连接跨 scope 操作和按 store_id 排序映射锁，未知提交不盲重放。第一轮实现暴露工具 pin 被 create_session 的 prompt GC 提前删除、测试未完成目标确认却期望增长拒绝，以及源文件回收未纳入保留授权三个问题，均已整改。最新 Profile 移动 9 passed，含 parents-first、目标冲突、源增长、全代消息/提示/工具 pin/用量、二次移动、分支最后引用回收、事务回滚和真实 Core 提交后注入 ack 丢失。再加 health/引用及既有退休文件，共 20 passed / 0 failed，10.6s，exit 0。延迟 spillover 候选记录本地 owner UUID 和 lstat 身份，同名替换不删；TTL 清理取得引用锁后重查 mtime。没有文件字节迁移；远程或未知文件所有者继续延后回收。
+
+当前数据 Profile 修复新增作用域化 labels/parents/routes/topic evidence 与事务，并支持同共享 Schema 当前 PG 谱系采用，保持所有历史代、重置导入的运行字段、归档但不删除 donor，摘要不一致时不退休 donor。目标无采用回执的同 id 视为无关记录，拒绝以计数相同推断身份；这是 PG 新数据下对原计数护栏的收紧，影响仅是冲突数据需显式处理，不覆盖或隐藏已有对话。修复/采用契约 7 passed / 0 failed，4.1s，exit 0。
+
+Insights 和 Web 用量/模型分析改为 PG 显式命名 Core 查询，完整 join 含 store_id；不把 SQLite SQL 字符串转译给 PG。每日统计用主机每行本地日历转换，避免 DST 窗口只套当前固定偏移。测试初次误传 create_session(billing_provider) 导致 4 fixture failures；纠正后发现 tool_calls 本来是 Text，而实现误作 BYTEA 解码，以及工具/技能断言用了错误公开字段，已纠正。最新标准 runner：analytics 契约、两个现有模型归因/去重及原 Insights 共 42 passed / 0 failed，8.2s，exit 0。最新 ruff/health 在新增分析/修复前为 33 code files、0 blocking / 0 advisory；新内容仍需复查。Task 16 未提交；下一恢复点为 CLI 本地维护支持边界、Web/TUI 文件存在性/缓存和 Profile repair 打开/跨后端护栏，再添加真实 PG 定义和统一局部验证。真实 PG 仍 211 项未执行。
+
+Task 16 最新离线整轮：标准 runner 执行 tests/hermes_db 及 db_setup/db_commands、Insights、模型分析、Web sidebar、Profile repair、TUI roster、物理维护/状态相关 18 个既有文件，共 86 files、613 passed / 0 failed，63.3s，exit 0（.build/postgresql/task16-tests.log）。新增 SurfaceLabelReader 原先仍查 SQLite PRAGMA，消费者契约曾 75 passed / 1 failed，改为 PG 当前 Schema 能力后新消费者 4 passed。Ruff 首次未使用变量和 health 的未使用 table 导入遮蔽已修正，最新 ruff/health 66 code files、0 blocking / 0 advisory，exit 0。
+
+本地文件维护扩展回归：126 passed、5 failed、1 teardown error、15 平台 skipped，exit 1（task16-file-maintenance-tests.log）。对 HEAD 4f22e0ef39 的 backup.py 只读副本运行原 test_backup.py，仅重定向模块；放在原 tests/hermes_cli 目录保持同 conftest 后，同样 5 failed / 1 passed / 1 teardown error（86 deselected，4.7s，exit 1；task16-backup-baseline-in-tests.log）。失败为 Windows wrapper 名称、路径分隔符、两处 CRLF 字节断言、POSIX mode 断言，以及测试将全局 monotonic 替为有限 iterator 使 teardown StopIteration；未修改这些基线或断言，最终验收须保留限制。临时基线测试已删除，用户文件保留。
+
+新增真实 PG 定义 29 项，含维护/修复/移动/采用/分析/引用共享契约、当前 0002→0003 派生列回填、提交确认丢失、移动与追加竞争、用 pg_blocking_pids 证明确实等待引用发布映射锁的回收竞争。未执行，合计 240 项真实 PG 定义无证据，配置默认文件仍不存在。一次标准 runner --collect-only -m integration 返回 exit 1（0 tests ran，task16-pg-collection.log），不能计通过。物理维护提示已核对实际命令为 hermes db status/upgrade；文件备份输出与 quick manifest 明确 PG 数据库未包含，数据库服务和备份/恢复由操作者管理。Task 16 继续完成 staged 全检查后保存本地检查点，再推进 Task 17；真实 PG 状态将保持 verification_pending。
+
+Task 17 额外审计点：Profile 克隆必须给新 PG Profile 分配新的稳定 store_id，不能照抄源身份；本地 .file-store-id 同样不能作为新 Profile 的文件所有者身份复用。重命名原 Profile 则保持 store_id。此项来自本任务新增文件所有权与既定 Profile 隔离的交集，不扩展账号或文件迁移。
+
+Task 16 公开能力收口：首次 14 staged 检查通过后，对 SessionDB/PostgresSessionStore 的公开方法做实际导入/MRO 差集核对，发现当前业务的 meta KV、rich row、Kanban 谱系归属、ghost prune、profile purge，以及 Task 15 漏掉的 anchored view/recent-user 方法。先行共享契约为 SQLite 5 passed / Core missing-interface 5 failed（task16-audit-red.log），补齐后 36 项导航/退休受影响测试通过，随后含跨 scope meta/终态投递保留的最新六文件 45 passed / 0 failed，8.2s。pure around helper 被两种阅读组合复用，整个 anchored read 保持同一 read snapshot；Profile purge 只清理当前名字的 bookkeeping，保持消息历史和 delivered 状态。旧数据 backfill/retag/stamp、FTS rebuilding 与物理 SQLite size/vacuum 继续本地专属，由 Task 17 在调用点分流，不伪造 PG 方法。新 PG 定义加 6 项，Task 16 合计 35 项、全计划 246 项未执行。不能以早一轮 613 项离线通过覆盖后续代码；最新受影响验证与最终 staged 证据分别记录。
+
+最后的配置/物理提示和 quick CLI E2E：tests/hermes_cli/test_backup_storage.py、test_db_setup.py 与新文件消费者 18 passed，8.9s；真实临时 home 的 quick backup 产出 manifest.session_storage={backend:postgresql,included:false}，没有 state.db 或 PG 连接。为遵守 backup.py 的 file cap，将原 run_quick_backup 移到现有主题 sibling backup_storage.py，唯一 main 调用点同时调整，没有 re-export shim。新增 _owning_profile 将 ConfigBackendUnavailable 转为脱敏 StorageConfigurationError，避免 daemon/RPC 直接 SystemExit。
+
+Task 16 最终 staged 全部 14 检查通过，76 code files、0 blocking / 0 advisory，exit 0（task16-final-checks.log）。代码离线检查点可保存，真实 PG 仍 verification_pending；严格完成数不变为 3/18。恢复点：本任务本地 commit 后立即进入 Task 17，从资源获取/运行接口注入开始，工厂仍拒绝 PG 生产启用；先把普通入口、CoreEffect、API 的 scope/回执和关停资源接齐。无 PG 配置时继续离线接线，不对 246 个真实 PG 定义宣称成功。
 
 ## Task 17：统一 CLI、Web、Gateway、TUI、ACP 与 Agent 接线
 
-状态：pending
+状态：in_progress
 
 ### 目标
 

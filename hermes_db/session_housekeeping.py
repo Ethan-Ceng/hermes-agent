@@ -5,6 +5,12 @@ from hermes_db.repositories import retirement_housekeeping, sessions
 
 
 class SessionHousekeeping:
+    def prune_empty_ghost_sessions(self, sessions_dir=None):
+        with self._write() as conn:
+            ids = housekeeping.prune_ghosts(conn, self.scope)
+        self._after_session_delete(ids, reason="ghost_prune", sessions_dir=sessions_dir)
+        return len(ids)
+
     def delete_empty_sessions(self, sessions_dir=None):
         with self._write() as conn:
             ids = housekeeping.delete_empty(conn, self.scope)

@@ -77,7 +77,10 @@ async def update_config_raw(body: RawConfigUpdate, profile: Optional[str] = None
         raise HTTPException(status_code=400, detail=f"Invalid YAML: {e}")
 
 
-def _rows(db, sql: str, cutoff: float) -> list[dict[str, Any]]:
+def _rows(db, kind: str, sql: str, cutoff: float) -> list[dict[str, Any]]:
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(db):
+        return db.analytics_rows(kind, cutoff)
     return [dict(r) for r in db._conn.execute(sql, (cutoff,)).fetchall()]
 
 
@@ -88,7 +91,7 @@ def _get_usage_analytics(days: int = 30, profile: Optional[str] = None):
     try:
         cutoff = time.time() - (days * 86400)
         # Local calendar day, per-row (DST-correct), the same day /insights uses (agent/insights.py).
-        daily = _rows(db, """
+        daily = _rows(db, "daily", """
             SELECT date(started_at, 'unixepoch', 'localtime') as day,
                    SUM(input_tokens) as input_tokens,
                    SUM(output_tokens) as output_tokens,
@@ -102,7 +105,7 @@ def _get_usage_analytics(days: int = 30, profile: Optional[str] = None):
             GROUP BY day ORDER BY day
         """, cutoff)
 
-        by_model = _rows(db, """
+        by_model = _rows(db, "by_model", """
             SELECT model,
                    SUM(input_tokens) as input_tokens,
                    SUM(output_tokens) as output_tokens,
@@ -120,7 +123,7 @@ def _get_usage_analytics(days: int = 30, profile: Optional[str] = None):
         aux_rows = _aux_usage_rows(db, cutoff)
         by_model = _merge_aux_into_by_model(by_model, aux_rows)
 
-        totals = _rows(db, """
+        totals = _rows(db, "totals", """
             SELECT SUM(input_tokens) as total_input,
                    SUM(output_tokens) as total_output,
                    SUM(cache_read_tokens) as total_cache_read,
@@ -284,7 +287,7 @@ def _attach_tool_calls(db, cutoff: float, raw_rows: list[dict[str, Any]]) -> Non
     back to any card of that model when the pair has no per-call row (route
     switched after the last call). Never zeroes the metric (#71778).
     """
-    pair_rows = _rows(db, """
+    pair_rows = _rows(db, "tool_calls", """
         SELECT model, billing_provider, SUM(COALESCE(tool_call_count, 0)) as tool_calls
         FROM sessions WHERE started_at > ? AND model IS NOT NULL AND model != ''
         GROUP BY model, billing_provider
@@ -318,7 +321,7 @@ def _get_models_analytics(days: int = 30, profile: Optional[str] = None):
         # grouping it attributed the whole session to it (#71778). Insights
         # (_compute_model_breakdown) reads the same table.
         try:
-            cur = db._conn.execute("""
+            raw_rows = _rows(db, "models_main", """
                 SELECT u.model,
                        u.billing_provider,
                        SUM(u.input_tokens) as input_tokens,
@@ -337,14 +340,13 @@ def _get_models_analytics(days: int = 30, profile: Optional[str] = None):
                       AND u.task = ''
                 GROUP BY u.model, u.billing_provider
                 ORDER BY SUM(u.input_tokens) + SUM(u.output_tokens) DESC
-            """, (cutoff,))
-            raw_rows = [dict(r) for r in cur.fetchall()]
+            """, cutoff)
         except sqlite3.OperationalError:
             raw_rows = []  # pre-v17 DB without session_model_usage
         if not raw_rows:
             # No per-call rows in the window (pre-table DB): fall back to the
             # sessions aggregate, which for those sessions is the only source.
-            raw_rows = _rows(db, """
+            raw_rows = _rows(db, "models_fallback", """
                 SELECT model,
                        billing_provider,
                        SUM(input_tokens) as input_tokens,
@@ -390,7 +392,7 @@ def _get_models_analytics(days: int = 30, profile: Optional[str] = None):
             for row in rows
         ]
 
-        totals = _rows(db, """
+        totals = _rows(db, "model_totals", """
             SELECT SUM(input_tokens) as total_input,
                    SUM(output_tokens) as total_output,
                    SUM(cache_read_tokens) as total_cache_read,

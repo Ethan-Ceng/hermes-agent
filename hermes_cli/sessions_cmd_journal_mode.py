@@ -40,6 +40,10 @@ def _refusal(target: str, current: str, *, on_cross_vm_fs: bool) -> Optional[str
 
 
 def cmd_set_journal_mode(args) -> int:
+    from hermes_cli.sessions_storage import refuse_configured_physical_maintenance
+    from hermes_constants import get_hermes_home
+    if not getattr(args, "db", None) and refuse_configured_physical_maintenance(get_hermes_home(), "set-journal-mode"):
+        return 1
     from hermes_state import _default_db_path
     from hermes_state_holders import describe_holder_pid, foreign_state_db_holders
     from hermes_state_wal import (_path_on_cross_vm_fs, _set_journal_mode_no_wait, is_sqlite_wal_reset_vulnerable,

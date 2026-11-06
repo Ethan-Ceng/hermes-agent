@@ -124,6 +124,9 @@ def _write_output(output, text, summary) -> None:
 # -- handlers that must run BEFORE SessionDB() is opened ----------------------
 
 def _cmd_repair(args):
+    from hermes_cli.sessions_storage import refuse_configured_physical_maintenance
+    if refuse_configured_physical_maintenance(get_hermes_home(), "repair"):
+        return 1
     from hermes_state import DEFAULT_DB_PATH as db_path, SessionDB
     from hermes_state_repair import _db_opens_cleanly, repair_state_db_schema
     if not db_path.exists():
@@ -985,6 +988,9 @@ def _print_size_change(db, before_mb, prefix=""):
 
 
 def _cmd_optimize(db, args):
+    from hermes_cli.sessions_storage import refuse_physical_maintenance
+    if refuse_physical_maintenance(db, "optimize"):
+        return 1
     before_mb = _size_mb(db.db_path)
     print("Optimizing session store (FTS merge + VACUUM)…")
     try:
@@ -997,6 +1003,9 @@ def _cmd_optimize(db, args):
 
 
 def _cmd_clean_markers(db, args):
+    from hermes_cli.sessions_storage import refuse_physical_maintenance
+    if refuse_physical_maintenance(db, "clean-markers"):
+        return 1
     print(f"{'Dry run — scanning' if args.dry_run else 'Scanning'} for stale tool-call marker rows (#78148)…")
     report = db.purge_stale_tool_call_markers(dry_run=args.dry_run, backup=not args.no_backup)
     if report["rows_affected"] == 0:
@@ -1063,6 +1072,9 @@ class _OptimizeProgress:
 
 
 def _cmd_optimize_storage(db, args):
+    from hermes_cli.sessions_storage import refuse_physical_maintenance
+    if refuse_physical_maintenance(db, "optimize-storage"):
+        return 1
     db_path = db.db_path
     if not db.fts_optimize_available():
         print("Search index is already on the compact layout — nothing to do.")
@@ -1343,7 +1355,10 @@ def _cmd_stats(db, args):
     for src in ("cli", "telegram", "discord", "whatsapp", "slack"):
         if (c := reader.session_count(source=src)) > 0:
             print(f"  {src}: {c} sessions")
-    if db.db_path.exists():
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(db):
+        print(f"Storage: PostgreSQL (store_id={db.scope.store_id})")
+    elif db.db_path.exists():
         print(f"Database size: {_size_mb(db.db_path):.1f} MB")
 
 

@@ -3,8 +3,9 @@
 from sqlalchemy import and_, func, insert, or_, select
 
 from hermes_db.message_codec import codec, decoded_row, stored_values
-from hermes_db.message_preview import preview_text
+from hermes_db.message_preview import preview_text, roster_preview
 from hermes_db.search_projection import content_text, projection
+from hermes_db.archive_projection import spillover_names
 from hermes_db.repositories import sessions as session_repo
 from hermes_db.tables.conversations import messages, sessions
 
@@ -40,6 +41,8 @@ def insert_row(conn, scope, row):
     values = stored_values(row)
     values.update(store_id=scope.require_store_id(), preview_text=preview_text(row), search_content=content_text(row))
     values["search_document"], values["search_grams"] = projection(row)
+    values["spillover_names"] = spillover_names(row)
+    values["roster_preview"] = roster_preview(row)
     row_id = conn.scalar(insert(messages).values(**values).returning(messages.c.id))
     identity = row["display_identity"]
     order = conn.scalar(select(func.min(messages.c.display_order)).where(where(scope, [row["session_id"]]),
@@ -60,6 +63,10 @@ def update_row(conn, scope, session_id, row_id, values):
     changes.update(display_identity=row["display_identity"], preview_text=preview_text(row), search_content=content_text(row))
     if {"content", "role", "tool_name", "tool_calls"}.intersection(values):
         changes["search_document"], changes["search_grams"] = projection(row)
+    if {"content", "api_content"}.intersection(values):
+        changes["spillover_names"] = spillover_names(row)
+    if {"content", "role"}.intersection(values):
+        changes["roster_preview"] = roster_preview(row)
     result = conn.execute(messages.update().where(where(scope, [session_id]), messages.c.id == row_id).values(**changes))
     reconcile_orders(conn, scope, session_id)
     bump_revision(conn, scope, session_id)

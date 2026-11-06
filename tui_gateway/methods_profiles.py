@@ -109,6 +109,9 @@ def _clean_revisions(raw: dict) -> dict:
 def _latest_message_preview(db, session_id):
     """≤80-char excerpt of the NEWEST active user/assistant message, or "" (roster semantics).
     Same query shape as ``SessionDB.latest_message_row_id``; keep them in step."""
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(db):
+        return db.latest_message_preview(session_id)
     try:
         with db._lock:
             row = db._conn.execute(
@@ -139,6 +142,11 @@ def _resurrect_recoverable_canonical(db, profile_path, session_id):
         from hermes_state_registry import acquire
         if (tip.get("end_reason") or "") not in SessionDB.RECOVERABLE_END_REASONS:
             return False
+        from hermes_db.health import is_postgresql_store
+        if is_postgresql_store(db):
+            from hermes_cli.db_setup import open_profile_sessions
+            with open_profile_sessions(Path(profile_path)) as wdb:
+                return bool(wdb.unarchive_recoverable_session(session_id))
         wdb = acquire(Path(profile_path) / "state.db")
         try:
             return bool(wdb.unarchive_recoverable_session(session_id))
@@ -153,9 +161,10 @@ def _live_count_field(db, session_id) -> dict:
 
     The denormalized ``message_count`` also counts folded rows (orphaned compaction marks, full
     rewinds, model-only rows), which once made the roster wait for history no reader serves."""
+    from hermes_db.errors import StorageError
     try:
         return {"live_message_count": db.display_message_count(str(session_id))}
-    except sqlite3.Error:
+    except (sqlite3.Error, StorageError):
         return {}
 
 
@@ -236,7 +245,10 @@ def _profile_session_fields(row, profile_path):
     def _read() -> dict:
         db_path = Path(profile_path) / "state.db"
         db = None
-        if _try(db_path.exists, False):
+        from hermes_cli.db_setup import open_profile_sessions, session_backend
+        if session_backend(Path(profile_path)) == "postgresql":
+            db = _try(lambda: open_profile_sessions(Path(profile_path), read_only=True), None)
+        elif _try(db_path.exists, False):
             db = _try(lambda: _lazy("hermes_state", "SessionDB")(db_path=db_path, read_only=True), None)
         try:
             last, worker = _latest_profile_session_rows(db)
@@ -251,7 +263,8 @@ def _profile_session_fields(row, profile_path):
     # 5s per connection — so they are reused while that store has not moved (#117257).
     from tui_gateway.profile_roster_cache import cached_session_fields
 
-    row.update(cached_session_fields(profile_path, _read))
+    from hermes_cli.db_setup import session_backend
+    row.update(_read() if session_backend(Path(profile_path)) == "postgresql" else cached_session_fields(profile_path, _read))
 
 
 def _profile_ui_meta_fields(row: dict, profile_dir) -> None:
