@@ -5,6 +5,10 @@ description: "What to do when Hermes says another process holds an old copy of t
 
 # Session storage recovery
 
+This guide covers the default SQLite backend. For explicit PostgreSQL storage,
+use [PostgreSQL session storage](./postgresql-session-storage.md); local WAL
+repair and file backups do not operate on the PostgreSQL database.
+
 Hermes keeps every conversation in one SQLite file per profile, `state.db`, with two
 sidecar files SQLite manages itself: `state.db-wal` (the write-ahead log) and `state.db-shm`.
 Several Hermes processes can share that file safely — the gateway, the Desktop app, the

@@ -23,7 +23,10 @@ def local_snapshot(conn, scope, session_id):
     targets = sorted({session_id, target})
     retirement_guards.lock_targets(conn, scope, targets)
     retirement_guards.require_unleased(conn, scope, targets, allow_queued=True)
-    return {"receipt": saved, "target": target,
+    members = retirement.compression_members(conn, scope, [target])
+    revisions = dict(conn.execute(select(table.c.id, table.c.transcript_revision).where(
+        table.c.store_id == scope.require_store_id(), table.c.id.in_(members))).tuples().all())
+    return {"receipt": saved, "target": target, "transcript_revisions": revisions,
             "target_revision": sessions.raw_session(conn, scope, target)["runtime_revision"]}
 
 

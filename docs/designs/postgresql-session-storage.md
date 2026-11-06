@@ -44,7 +44,7 @@
 
 SQLAlchemy Core 提供 SQL 表达式、表定义、连接与事务能力，完整 ORM 是其上独立的一层。参考 [Core 官方文档](https://docs.sqlalchemy.org/en/20/core/index.html) 和 [连接与连接池](https://docs.sqlalchemy.org/en/20/core/connections.html)。
 
-## 拟定配置入口
+## 配置入口
 
 行为放在当前 Profile 的 config.yaml 中：
 
@@ -80,7 +80,7 @@ HERMES_POSTGRES_DSN=postgresql+psycopg://user:password@host:5432/hermes
 
 ## 接入边界
 
-数据库层统一命名为 `hermes_db`：`tables/` 定义 SQLAlchemy Core 表，`repositories/` 封装数据仓储查询与写入，`operations/` 组织完整业务事务，`engine.py` 管理连接池，`migrations/` 保存版本迁移。工厂入口拟定为 `acquire_db`，配置桥接位于 `hermes_cli/db_setup.py`。具体依赖和调用示例见 [数据库层代码组织设计](postgresql-storage-code-layout.md)。当前推荐 Core，`models/` 仅在后续正式选择完整 ORM 时使用。
+数据库层统一命名为 `hermes_db`：`tables/` 定义 SQLAlchemy Core 表，`repositories/` 封装数据仓储查询与写入，`operations/` 组织完整业务事务，`engine.py` 管理连接池，`migrations/` 保存版本迁移。工厂入口为 `acquire_db`，配置桥接位于 `hermes_cli/db_setup.py`。具体依赖和调用示例见 [数据库层代码组织设计](postgresql-storage-code-layout.md)。本轮已选定 Core，不引入完整 ORM。
 
 ```text
 CLI / Webapp / Gateway / Agent
@@ -123,9 +123,9 @@ PostgreSQL 实例由用户配置。本轮不连接用户数据库，也不管理
 - SQLite 模式的现有契约继续通过。
 - 配置入口、秘密解析、Schema 版本、诊断及文档与实现一致。
 
-## 后续工作
+## 实施状态
 
-以上为接入设计，尚未引入 ORM、驱动或运行配置项。[实施计划](../plans/postgresql-session-storage-plan.md) 已按完整会话能力拆分为待执行任务；开始编码前建立独立普通 Git 分支，逐步交付后端契约、Schema、查询、运行事务、搜索、入口接线及验证，不能把计划完成当作已经支持 PostgreSQL。
+2026-11-07：Tasks 1–17 的实现检查点已在独立普通分支保存，包含 Core/同步驱动/Alembic、作用域配置、完整账本与普通入口接线。Task18 正在补发行验证、文档和审查。[实施计划](../plans/postgresql-session-storage-plan.md) 是状态和证据来源：真实PG尚未连接，迁移/并发/故障验收未执行，扩大回归存在失败及未完成部分，不得宣称完整后端已通过或可合并。
 
 ## Task 1 实施契约
 

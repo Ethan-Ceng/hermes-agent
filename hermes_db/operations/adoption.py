@@ -3,7 +3,7 @@
 import json
 import time
 
-from hermes_db.move_values import digest, snapshot_digest
+from hermes_db.move_values import digest, recipient_snapshot_digest, snapshot_digest
 from hermes_db.operations import file_grants, portability, retirement_guards as guards
 from hermes_db.portability_values import values
 from hermes_db.repositories import messages, profile_move, runtime, sessions
@@ -20,7 +20,9 @@ def _receipt(conn, scope, source, sid):
 
 
 def _remember(conn, scope, source, sid, snapshot):
-    runtime.set_meta(conn, scope, _key(source, sid), json.dumps({"digest": snapshot_digest(snapshot)}))
+    local = profile_move.snapshot(conn, scope, sid)
+    runtime.set_meta(conn, scope, _key(source, sid), json.dumps({"digest": snapshot_digest(snapshot),
+        "recipient_digest": recipient_snapshot_digest(local, len(snapshot["messages"]))}))
 
 
 def _existing_matches(conn, target, source, sid, snapshot):
@@ -29,15 +31,16 @@ def _existing_matches(conn, target, source, sid, snapshot):
         return False
     local = profile_move.snapshot(conn, target, sid)
     return (local is not None and len(local["messages"]) >= len(snapshot["messages"])
-        and receipt["digest"] == snapshot_digest(snapshot))
+        and receipt["digest"] == snapshot_digest(snapshot)
+        and receipt.get("recipient_digest") == recipient_snapshot_digest(local, len(snapshot["messages"])))
 
 
 def adopt(conn, target, source, sid, *, retire_donor):
     file_grants.lock_scopes(conn, [target, source], receivers=[source])
-    ids = messages.resume_lineage(conn, source, sid)
-    if not ids:
+    if sessions.raw_session(conn, source, sid) is None:
         return {"ok": False, "adopted": False, "donor_retired": False,
             "error": f"session {sid!r} not found in donor store"}
+    ids = messages.resume_lineage(conn, source, sid)
     for scope in sorted([target, source], key=lambda value: value.require_store_id()):
         guards.lock_targets(conn, scope, ids)
     guards.require_unleased(conn, source, ids)

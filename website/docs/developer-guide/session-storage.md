@@ -1,8 +1,11 @@
 # Session Storage
 
-Hermes Agent uses a SQLite database (`~/.hermes/state.db`) to persist session
+Hermes Agent defaults to a profile-local SQLite database to persist session
 metadata, full message history, and model configuration across CLI and gateway
-sessions. This replaces the earlier per-session JSONL file approach.
+sessions. Explicit PostgreSQL selection uses `hermes_db`, shared schema tables
+scoped by stable `store_id`, and the same canonical owner/worker boundary. See
+[PostgreSQL session storage](../user-guide/postgresql-session-storage.md) for
+configuration, schema administration, and the current verification limits.
 
 The profile's gateway is the **only writer of canonical sessions**: `hermes chat`,
 the TUI, Desktop (local), the API server, ACP, cron, Bot Chat and Kanban workers are
@@ -11,7 +14,10 @@ clients that admit input to its session authority over `/api/ws` (see
 workers write through that owner (`RuntimeSessionStore` RPC), never by opening
 `state.db` for transcript writes themselves.
 
-Source files: `hermes_state.py` (facade) plus the `hermes_state_*.py` siblings (schema, fts, search, compression, portability, gateway, ...)
+SQLite source: `hermes_state.py` and its topic siblings. Backend selection and
+resource ownership: `hermes_cli/db_setup.py`, `hermes_db/factory.py`, and
+`hermes_db/access.py`. PostgreSQL tables, repositories, operations, short
+transactions, and Alembic revisions live in `hermes_db/`.
 
 ## Hermes home and profile isolation
 

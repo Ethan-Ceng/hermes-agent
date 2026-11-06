@@ -6,10 +6,10 @@ import json
 from pathlib import Path
 import uuid
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 
 from hermes_db.errors import StorageConfigurationError, RetryableStorageError
-from hermes_db.move_values import imported_key, prepared_key, snapshot_digest
+from hermes_db.move_values import imported_key, prepared_key, recipient_snapshot_digest, snapshot_digest
 from hermes_db.operations import file_grants, retirement, retirement_guards as guards, sessions as lifecycle
 from hermes_db.repositories import messages as transcript, profile_move as repo, prompts, runtime, sessions
 from hermes_db.scope import DatabaseScope
@@ -57,10 +57,11 @@ def validate(payload, scope, binding):
 
 def _present(conn, scope, source, sid, digest, count):
     receipt = _meta(conn, scope, imported_key(source.store_id, sid))
-    if not receipt or receipt["digest"] != digest or sessions.raw_session(conn, scope, sid) is None:
+    if not receipt or receipt["digest"] != digest:
         return False
-    actual = conn.scalar(select(func.count()).select_from(messages).where(transcript.where(scope, [sid])))
-    return actual >= count
+    local = repo.snapshot(conn, scope, sid)
+    return (local is not None and len(local["messages"]) >= count
+        and receipt.get("recipient_digest") == recipient_snapshot_digest(local, count))
 
 
 def _source_scope(conn, proof, sid):
@@ -89,7 +90,9 @@ def import_snapshot(conn, scope, payload, profile_name, binding):
     guards.require_unleased(conn, source, members)
     _copy(conn, scope, payload, profile_name)
     file_grants.transfer(conn, source, scope, payload)
-    _put(conn, scope, imported_key(source.store_id, sid), {"digest": proof["digest"], "source_store_id": source.store_id})
+    recipient = recipient_snapshot_digest(repo.snapshot(conn, scope, sid), len(payload["messages"]))
+    _put(conn, scope, imported_key(source.store_id, sid), {"digest": proof["digest"], "source_store_id": source.store_id,
+        "recipient_digest": recipient})
     _confirm(conn, source, scope, sid, ticket)
     return "imported"
 

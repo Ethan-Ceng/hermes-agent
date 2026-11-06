@@ -25,6 +25,14 @@ def snapshot_digest(snapshot):
     return digest({**data, "session": {name: value for name, value in snapshot["session"].items() if name not in ignored}})
 
 
+def recipient_snapshot_digest(snapshot, message_count):
+    # Normal appends may extend a verified copy. Rewrites, prompt changes, or
+    # other metadata/usage changes require retaining the donor for reconciliation.
+    growth = {"last_active", "message_count", "tool_call_count", "transcript_revision"}
+    return snapshot_digest({**snapshot, "messages": snapshot["messages"][:message_count],
+        "session": {key: value for key, value in snapshot["session"].items() if key not in growth}})
+
+
 def prepared_key(sid):
     return PREPARED + digest(sid)
 
