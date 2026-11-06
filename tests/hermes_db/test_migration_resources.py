@@ -17,7 +17,7 @@ def test_alembic_can_discover_the_required_frozen_revision():
     config.set_main_option("script_location", str(directory).replace("%", "%%"))
     script = ScriptDirectory.from_config(config)
     assert script.get_heads() == [REQUIRED_REVISION]
-    assert script.get_revision(REQUIRED_REVISION).down_revision is None
+    assert list(script.walk_revisions())[-1].down_revision is None
 
 
 def test_upgrade_pool_timeout_is_a_redacted_storage_failure(monkeypatch):

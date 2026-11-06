@@ -238,6 +238,8 @@ API 响应、Run 幂等和投递账本按相同原则接入，实际迁移消费
 
 这意味着第一阶段并非立即让 SQLite 也改走 SQLAlchemy。先保持其已验证实现，再逐步共享真正通用的编解码和查询；是否进一步统一 SQLite 的 SQL 层，要由维护收益和验证证据决定。
 
+Task 15 的 PG 搜索由 `session_search.py` 组合纯 `search_query.py`、`search_projection.py`、`postgresql/search.py` 及 `repositories/search_context.py`。消息的派生 document/短字数组在普通写入时同步，分块 `message_search_chunks` 向量由 Alembic 安装的触发器在原事务中维护，包含直接 SQL 克隆；删除通过 scoped FK 级联。全文使用每块 GIN，短字数组和 pg_trgm 服务候选后复核。GIN 为非唯一派生索引，作用域由查询、主键及 FK 保证，不增加 btree_gin 依赖。启动不创建索引/函数，不改会话 search_path。真实 PG 语义及性能证据见实施计划，未验证部分保持 pending。
+
 Factory 只在打开逻辑存储时选择一次后端，选定 PG 后某方法未完成应显式阻止启用，不能调用一半 PG 再回 SQLite。完整生产切换必须在全部约定能力接通后进行。
 
 ## 8. 对象生命周期和隔离

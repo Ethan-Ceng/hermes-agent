@@ -19,7 +19,12 @@ def test_every_database_key_and_reference_carries_store_identity():
                 assert constraint.elements[0].parent.name == "store_id", constraint.name
                 assert constraint.elements[0].column.name == "store_id", constraint.name
         for index in table.indexes:
-            assert next(iter(index.columns)).name == "store_id", index.name
+            # GIN has native tsvector/array/trgm classes; store predicates join
+            # the scoped B-tree index. Unique identities always include store.
+            if index.dialect_options["postgresql"].get("using") == "gin":
+                assert not index.unique
+            else:
+                assert next(iter(index.columns)).name == "store_id", index.name
 
 
 def test_fresh_sqlite_business_fields_are_not_lost_in_pg_metadata(tmp_path):

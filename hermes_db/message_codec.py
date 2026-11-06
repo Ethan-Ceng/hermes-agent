@@ -39,7 +39,7 @@ class MessageCodec:
 
 codec = MessageCodec()
 TEXT_COLUMNS = ("reasoning", "reasoning_content", "reasoning_details", "codex_reasoning_items", "codex_message_items", "api_content")
-INTERNAL_COLUMNS = ("store_id", "search_content", "preview_text")
+INTERNAL_COLUMNS = ("store_id", "search_content", "preview_text", "search_document", "search_grams")
 
 
 def content_to_bytes(value):

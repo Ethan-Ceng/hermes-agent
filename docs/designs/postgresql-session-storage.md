@@ -130,3 +130,9 @@ PostgreSQL 实例由用户配置。本轮不连接用户数据库，也不管理
 ## Task 1 实施契约
 
 2026-11-06：已建立 [业务契约与消费者清单](../plans/postgresql-session-storage-contracts.md)。后续表、操作和接线以该清单的作用域键、原子边界、保真编码和方法归属为检查依据。PG 仍未实现或验证。
+
+## Task 15 搜索实现选择
+
+新增 Schema revision `0002_search_projection`：全文分块向量、pg_trgm 和单字/双字候选数组配合精确复核。采用分块是为了让派生全文索引不因单个 tsvector 的 1 MB/词位置限制拒绝大消息写入；短语另做词边界复核，覆盖块边界和重复词位置上限。[PostgreSQL 全文限制](https://www.postgresql.org/docs/current/textsearch-limitations.html)
+
+分块属于可再生派生数据，由对象全限定、`search_path=pg_catalog` 的 invoker 触发器在原消息事务内同步，不改变规范消息、提示词或工具快照。依然只要求管理员预备 pg_trgm；不安装数据库服务或扩展。默认工具正文搜索保留 8192 字投影，显式 tool 搜索保留全正文路径。PG 片段无 SQLite 的高亮标记，默认排序按匹配单元覆盖数、时间和物理 id 稳定排列；时间排序及分页继续提供。固定语料、长消息和实际查询计划仍需真实 PG 执行，离线规划/SQL 编译通过不等于兼容性验收完成。

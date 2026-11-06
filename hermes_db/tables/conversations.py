@@ -1,6 +1,7 @@
 """Conversation, exact transcript, prompt snapshots, and multidimensional usage."""
 
-from sqlalchemy import BigInteger, Column, Double, Identity, Index, LargeBinary, Text
+from sqlalchemy import BigInteger, Column, Double, Identity, Index, JSON, LargeBinary, Text
+from sqlalchemy.dialects.postgresql import ARRAY, TSVECTOR
 
 from hermes_db.tables.metadata import scoped_fk, scoped_table, text_columns, zero_columns
 
@@ -51,6 +52,7 @@ messages = scoped_table(
     *[Column(name, LargeBinary) for name in ("content", "reasoning", "reasoning_content", "reasoning_details",
                                            "codex_reasoning_items", "codex_message_items", "api_content", "display_identity")],
     Column("display_order", BigInteger), Column("search_content", Text), Column("preview_text", LargeBinary),
+    Column("search_document", Text), Column("search_grams", ARRAY(Text).with_variant(JSON, "sqlite")),
     *zero_columns("observed", nullable=True), *zero_columns("_compressed_summary", "compacted"),
     Column("active", BigInteger, nullable=False, server_default="1"),
     key=("id",), constraints=(scoped_fk(("session_id",), "sessions", ("id",), ondelete="RESTRICT"),),
@@ -60,6 +62,14 @@ Index("ix_messages_store_session_time", messages.c.store_id, messages.c.session_
 Index("ix_messages_store_session_uid", messages.c.store_id, messages.c.session_id, messages.c.message_uid)
 Index("ix_messages_store_display_order", messages.c.store_id, messages.c.session_id, messages.c.display_order)
 Index("ix_messages_store_display_identity", messages.c.store_id, messages.c.session_id, messages.c.display_identity)
+Index("ix_messages_search_trgm", messages.c.search_document, postgresql_using="gin",
+      postgresql_ops={"search_document": "gin_trgm_ops"}).ddl_if(dialect="postgresql")
+Index("ix_messages_search_grams", messages.c.search_grams, postgresql_using="gin").ddl_if(dialect="postgresql")
+
+message_search_chunks = scoped_table("message_search_chunks", Column("message_id", BigInteger, nullable=False),
+    Column("chunk", BigInteger, nullable=False), Column("search_vector", TSVECTOR().with_variant(Text, "sqlite"), nullable=False),
+    key=("message_id", "chunk"), constraints=(scoped_fk(("message_id",), "messages", ("id",), ondelete="CASCADE"),))
+Index("ix_message_search_chunks_fts", message_search_chunks.c.search_vector, postgresql_using="gin").ddl_if(dialect="postgresql")
 
 session_model_usage = scoped_table(
     "session_model_usage", Column("session_id", Text, nullable=False), Column("model", Text, nullable=False),

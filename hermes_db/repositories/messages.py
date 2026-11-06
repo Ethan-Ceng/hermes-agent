@@ -4,6 +4,7 @@ from sqlalchemy import and_, func, insert, or_, select
 
 from hermes_db.message_codec import codec, decoded_row, stored_values
 from hermes_db.message_preview import preview_text
+from hermes_db.search_projection import content_text, projection
 from hermes_db.repositories import sessions as session_repo
 from hermes_db.tables.conversations import messages, sessions
 
@@ -37,7 +38,8 @@ def visible():
 
 def insert_row(conn, scope, row):
     values = stored_values(row)
-    values.update(store_id=scope.require_store_id(), preview_text=preview_text(row), search_content=_search_text(row))
+    values.update(store_id=scope.require_store_id(), preview_text=preview_text(row), search_content=content_text(row))
+    values["search_document"], values["search_grams"] = projection(row)
     row_id = conn.scalar(insert(messages).values(**values).returning(messages.c.id))
     identity = row["display_identity"]
     order = conn.scalar(select(func.min(messages.c.display_order)).where(where(scope, [row["session_id"]]),
@@ -45,18 +47,6 @@ def insert_row(conn, scope, row):
     conn.execute(messages.update().where(where(scope, [row["session_id"]]), messages.c.id == row_id)
                  .values(display_order=min(row_id, order) if order is not None else row_id))
     return row_id
-
-
-def _search_text(row):
-    value = codec._decode_content(row["content"])
-    if isinstance(value, str):
-        return value.replace("\x00", "")
-    if isinstance(value, (list, dict)):
-        import json
-        return json.dumps(value, ensure_ascii=True)
-    if isinstance(value, bytes):
-        return value.decode("utf-8", "replace").replace("\x00", "")
-    return str(value) if value is not None else ""
 
 
 def update_row(conn, scope, session_id, row_id, values):
@@ -67,7 +57,9 @@ def update_row(conn, scope, session_id, row_id, values):
     row["display_identity"] = codec._display_identity(codec._display_dedupe_key(row))
     encoded = stored_values(row)
     changes = {name: encoded[name] for name in values}
-    changes.update(display_identity=row["display_identity"], preview_text=preview_text(row), search_content=_search_text(row))
+    changes.update(display_identity=row["display_identity"], preview_text=preview_text(row), search_content=content_text(row))
+    if {"content", "role", "tool_name", "tool_calls"}.intersection(values):
+        changes["search_document"], changes["search_grams"] = projection(row)
     result = conn.execute(messages.update().where(where(scope, [session_id]), messages.c.id == row_id).values(**changes))
     reconcile_orders(conn, scope, session_id)
     bump_revision(conn, scope, session_id)

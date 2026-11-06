@@ -29,6 +29,7 @@ from hermes_db.session_housekeeping import SessionHousekeeping
 from hermes_db.session_portability import SessionPortability
 from hermes_db.session_prompt_refresh import SessionPromptRefresh
 from hermes_db.session_portability_queries import SessionPortabilityQueries
+from hermes_db.session_search import SessionSearch
 
 
 class PostgresSessionStore(SessionMetadata, SessionQueries, SessionTitles, SessionTopics, SessionUsage,
@@ -36,7 +37,7 @@ class PostgresSessionStore(SessionMetadata, SessionQueries, SessionTitles, Sessi
                            SessionMessageReactions, SessionMessageResults, SessionLeases, SessionCompression,
                            SessionCompressionState, SessionGateway, SessionHeartbeats, SessionHandoffs, SessionGatewayPeers,
                            SessionRetirement, SessionRewrites, SessionHousekeeping, SessionPortability, SessionPromptRefresh,
-                           SessionPortabilityQueries):
+                           SessionPortabilityQueries, SessionSearch):
     def __init__(self, transactions, scope):
         from hermes_constants import profile_name_for_home
         from hermes_db.usage_writer import UsageWriter

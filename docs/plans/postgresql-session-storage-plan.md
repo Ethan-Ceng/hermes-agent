@@ -12,7 +12,7 @@
 
 - 整体状态：`IN_PROGRESS`，不表示完整后端已通过验证。
 - 当前阶段：M3 完整接入（离线实现）；M1/M2 的真实 PG 验证尚未完成。
-- 当前任务：Task 15（PG 搜索与中文查询契约）；Tasks 4–14 等待真实 PG 配置。
+- 当前任务：Task 16（文件身份、健康与归档引用）；Tasks 4–15 等待真实 PG 配置。
 - 已完成：3 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：真实 PG 验证时需用户提供本地测试配置，实际版本、权限和扩展由 Task 4 检查；当前没有连接数据库。
@@ -798,7 +798,7 @@ Task 14 离线检查点：已补齐 crash-left 同回复去重登记、重试/�
 
 ## Task 15：实现 PG 搜索与中文查询契约
 
-状态：in_progress
+状态：verification_pending
 
 ### 目标
 
@@ -834,15 +834,20 @@ Task 14 离线检查点：已补齐 crash-left 同回复去重登记、重试/�
 
 ### 执行结果
 
-未开始；未修改本任务业务代码。
+从 Task 14 commit 31ca64409e 继续。按固定语料先验证查询语法、可见性、投影及放宽规则。PG 使用 simple 全文 GIN、pg_trgm GIN 与单字/双字数组 GIN 投影：短 CJK/短子串先查数组候选，再做精确子串复核；不依赖默认英文词干或无界短词 LIKE。新增可再生投影列及 Alembic 0002，不修改冻结 0001；压缩的全列 INSERT SELECT 会保留投影，普通修改同步更新。GIN 非唯一索引不要求 store_id 为首列（不额外要求 btree_gin 扩展），每条业务查询与所有唯一约束仍显式带 store_id。此项属于既定“必要 CJK 投影”的实现细节，未扩展产品范围。离线语法/投影与 SQLite 基线验证和真实 PG 行为验证分别记录。参考官方 [GIN 全文索引](https://www.postgresql.org/docs/current/textsearch-indexes.html) 与 [pg_trgm 索引限制](https://www.postgresql.org/docs/current/pgtrgm.html)。
 
 ### 验证证据
 
-未执行。实施时记录实际命令、退出码、数据库/解释器版本、关键结果、执行时间及偏差。
+初轮固定语料因误传 SQLite 不支持的 create_session(started_at) 有两项 fixture 错误，已改为读取实际 session.started_at 建时间边界；PG 纯规划/投影两项缺模块为有效红灯。纯规划和 SQLite 语料随后 4 passed。新增消息投影/剪枝/参数化、约束与压缩克隆回归 35 passed / 0 failed，12.6s，exit 0。最后一次 SQL 参数断言原先未考虑 substring 参数转小写，核对绑定值后修正断言并通过。当前完整 hermes_db 回归正在运行；新增 PG 搜索用例尚未连接执行，不能称搜索语义或查询计划达标。
+
+
+Task 15 实施细化：针对官方 tsvector <1 MB、位置上限 16383 和每 lexeme 256 位置限制，0002 新增 store/message/chunk 主键及级联 FK 的 message_search_chunks，由限定 search_path=pg_catalog 且对象全限定的 invoker 触发器在原消息事务内生成分块向量，直接 INSERT SELECT 克隆同样覆盖。查询 AND/NOT 在整条消息的 chunks 上判定；长短语用 GIN 数组候选加词边界复核，避免分块/重复词位置上限漏召回。另保留 pg_trgm/短字数组索引，普通工具正文只投影 8192 字，显式 tool 查询沿用全正文扫描。search_content 的结构化 Unicode 投影保持原字符，避免显式工具 CJK 查询落在 ASCII 转义串上。新增 PG 大消息、回滚、当前 PG 0001→0002 派生投影回填、隔离及 10,000 样本计划/索引大小证据采集用例，全部未运行。这里的升级仅是本功能新 PG Schema 演进，不读取 SQLite 旧数据。参考 [PostgreSQL 全文限制](https://www.postgresql.org/docs/current/textsearch-limitations.html)。
+
+Task 15 离线检查点：scripts/run_tests.sh tests/hermes_db tests/hermes_state/test_search_or_relaxed_fallback.py：63 files，384 passed / 0 failed，100.7s，exit 0（.build/postgresql/task15-tests.log）。Unicode 全正文调整后受影响 64 passed，11.4s；减少非内容更新的重复投影后，消息/Worker/剪枝/压缩/搜索 62 passed，12.2s，exit 0（task15-final-affected.log、task15-sync-tests.log）。最新 14 staged 检查通过，16 code files，0 blocking / 0 advisory，exit 0（task15-final-checks.log）。10 项真实 PG 搜索用例未执行，合计 211 项真实 PG 定义仍无执行证据，查询耗时/索引大小未取得。状态为 verification_pending；工厂未提前启用。下一项 Task 16 继续独立工作，不将 integration 的默认排除当作成功。
 
 ## Task 16：替换文件身份、健康与归档引用依赖
 
-状态：pending
+状态：in_progress
 
 ### 目标
 
