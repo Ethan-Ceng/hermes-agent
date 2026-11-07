@@ -11,11 +11,12 @@ delivery obligations, and API response/run continuation and idempotency records.
 The gateway remains the owner of canonical session writes; managed workers use
 its authenticated RPC interface.
 
-The implementation has offline contract coverage. **Real PostgreSQL acceptance
-has not been run for this implementation.** The test preflight requires PostgreSQL
-15 or newer; no particular server version is yet certified by execution evidence.
-See the repository's PostgreSQL implementation plan for the current verification
-status before deploying it.
+Real database acceptance has passed on PostgreSQL 17.11 with `pg_trgm` 1.6,
+including the current schema, concurrent writes, runtime receipts, and API
+continuation. Independent source-bundle tests also initialize and reopen the
+database outside the development import path. The test preflight requires
+PostgreSQL 15 or newer; other server versions have not been verified here.
+See the repository's PostgreSQL implementation plan for the overall release gates.
 
 ## Prepare the profile
 

@@ -330,7 +330,8 @@ def test_config_get_voice_reports_the_sessions_own_voice_mode(tmp_path):
 def test_voice_record_follows_the_sessions_gateway_voice_mode(tmp_path):
     """T9: push-to-talk (``voice.record``) gates on the session's gateway voice mode, the state
     Ink's ``/voice on`` sets through slash.exec, not the sidecar's process-global HERMES_VOICE."""
-    with owner(tmp_path) as (home, _peer, desc):
+    # The state gate must not download optional audio dependencies in the daemon.
+    with owner(tmp_path, config={'security': {'allow_lazy_installs': False}}) as (home, _peer, desc):
         async def probe():
             async with websocket(home, desc) as ws:
                 sid = (await rpc(ws, 'session.create', request_id='rec', source='tui', toolsets=[]))['result']['session_id']

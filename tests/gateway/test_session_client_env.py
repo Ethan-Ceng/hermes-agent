@@ -2,6 +2,7 @@
 (``client_env``) and apply to that session only; an auto-started gateway stops inheriting them from
 whichever client started it."""
 import json
+import os
 import sqlite3
 import time
 from types import SimpleNamespace
@@ -9,6 +10,12 @@ from types import SimpleNamespace
 import pytest
 
 _CONFIG = 'platform_toolsets: {cli: []}\nmodel: {provider: custom, default: m, base_url: http://x.invalid/v1}\n'
+
+
+def _selected_toolchain_path(path):
+    # The installed Hermes launcher may precede either session's toolchain.
+    return tuple(entry for entry in path.split(os.pathsep)
+                 if entry in {'/client/bin', '/daemon/bin'})
 
 
 async def _owner(home, monkeypatch):
@@ -317,7 +324,7 @@ async def test_configured_toolchain_names_a_local_client_omitted_never_leak_from
     from tools.process_registry import ProcessRegistry
     home = _home(tmp_path, _CONFIG + 'terminal: {client_env_passthrough: [GEM_HOME]}\n')
     monkeypatch.setenv('GEM_HOME', '/alpha')
-    monkeypatch.setenv('PATH', '/daemon/bin:/usr/bin:/bin')
+    monkeypatch.setenv('PATH', os.pathsep.join(['/daemon/bin', '/usr/bin', '/bin']))
     owner, connection = await _owner(home, monkeypatch)
 
     def seen(policy):
@@ -325,14 +332,14 @@ async def test_configured_toolchain_names_a_local_client_omitted_never_leak_from
             envs = (_make_run_env({}), ProcessRegistry._spawn_env({}), _build_child_env(
                 rpc_endpoint='s', rpc_token='t', tmpdir=str(tmp_path), child_python=sys.executable))
             backend = _make_run_env({'GEM_HOME': '/configured'})['GEM_HOME']  # terminal.env still wins
-        return [env.get('GEM_HOME') for env in envs], envs[0]['PATH'].split(':')[0], backend
+        return [env.get('GEM_HOME') for env in envs], _selected_toolchain_path(envs[0]['PATH']), backend
     try:
         _, mine = _create(owner, connection.actor, home, 'a', client_env={'GEM_HOME': '/a', 'PATH': '/client/bin'})
         _, other = _create(owner, connection.actor, home, 'b', client_env={'PATH': '/client/bin'})
         _, bare = _create(owner, connection.actor, home, 'c', client_env={})
-        assert seen(mine) == (['/a'] * 3, '/client/bin', '/configured')
-        assert seen(other) == ([None] * 3, '/client/bin', '/configured')
-        assert seen(bare) == ([None] * 3, '/daemon/bin', '/configured')
+        assert seen(mine) == (['/a'] * 3, ('/client/bin',), '/configured')
+        assert seen(other) == ([None] * 3, ('/client/bin',), '/configured')
+        assert seen(bare) == ([None] * 3, ('/daemon/bin',), '/configured')
         assert _make_run_env({})['GEM_HOME'] == '/alpha'  # messaging/cron/Desktop: the gateway's own
     finally:
         await connection.close()
@@ -361,13 +368,13 @@ async def test_host_values_apply_only_over_a_gateway_proven_local_attach(tmp_pat
     for name in ('gateway', 'client'):
         (home / f'{name}.json').write_text(json.dumps([{'role': 'user', 'content': name}]))
     monkeypatch.setenv('HERMES_PREFILL_MESSAGES_FILE', str(home / 'gateway.json'))
-    monkeypatch.setenv('PATH', '/daemon/bin:/usr/bin:/bin')
+    monkeypatch.setenv('PATH', os.pathsep.join(['/daemon/bin', '/usr/bin', '/bin']))
     monkeypatch.delenv('NVM_DIR', raising=False)
     owner, remote = await _owner(home, monkeypatch)  # an attach without the gateway's own ticket
     local = AuthorityConnection(owner, object(), {'user_id': 'owner', 'native_bootstrap': True})
     monkeypatch.setattr(session_policy, 'policy_for_source', lambda runner, source: restore_policy(
         local_receipt(owner.db, source.chat_id)['policy']))
-    sent = {'PATH': '/client/bin:/usr/bin', 'NVM_DIR': '/client/nvm', 'HERMES_ENABLE_PROJECT_PLUGINS': '1',
+    sent = {'PATH': os.pathsep.join(['/client/bin', '/usr/bin']), 'NVM_DIR': '/client/nvm', 'HERMES_ENABLE_PROJECT_PLUGINS': '1',
             'HERMES_PREFILL_MESSAGES_FILE': str(home / 'client.json'),
             'HERMES_EPHEMERAL_SYSTEM_PROMPT': 'P', 'HERMES_INFERENCE_PROVIDER': 'openrouter'}
 
@@ -378,18 +385,18 @@ async def test_host_values_apply_only_over_a_gateway_proven_local_attach(tmp_pat
         policy = restore_policy(local_receipt(owner.db, ref.session_id)['policy'])
         with policy_scope(policy, authority=owner):
             run = _make_run_env({})
-            seen = (run['PATH'].split(':')[0], run.get('NVM_DIR'), _turn_prompt(owner, policy),
+            seen = (_selected_toolchain_path(run['PATH']), run.get('NVM_DIR'), _turn_prompt(owner, policy),
                     resolve_requested_provider())
         return policy, seen, session_prefill(owner, policy, ref.session_id), local_session_info(owner, ref)
     try:
         policy, seen, prefill, info = await create(local, 'here')
         assert policy.client_env() == sent
-        assert seen == ('/client/bin', '/client/nvm', 'P', 'openrouter')
+        assert seen == (('/client/bin',), '/client/nvm', 'P', 'openrouter')
         assert prefill == [{'role': 'user', 'content': 'client'}]
         assert 'project plugins' in info['config_warning']
         policy, seen, prefill, info = await create(remote, 'there')
         assert policy.client_env() == {'HERMES_EPHEMERAL_SYSTEM_PROMPT': 'P', 'HERMES_INFERENCE_PROVIDER': 'openrouter'}
-        assert seen == ('/daemon/bin', None, 'P', 'openrouter')
+        assert seen == (('/daemon/bin',), None, 'P', 'openrouter')
         assert prefill == [{'role': 'user', 'content': 'gateway'}]
         assert 'not attached to this gateway locally' in info['config_warning']
         assert 'project plugins' not in info['config_warning']

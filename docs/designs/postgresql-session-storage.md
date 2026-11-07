@@ -1,13 +1,13 @@
-# PostgreSQL 会话存储接入设计草案
+# PostgreSQL 会话存储接入设计
 
 ## 状态与范围
 
-- 状态：DESIGN_READY（实施范围和架构已收敛，详细接口与真实数据库行为按计划验证）
-- 更新时间：2026-11-06
+- 状态：IMPLEMENTED_VERIFYING（完整接线与真实PG主题验收已通过，总体门禁按实施计划完成）
+- 更新时间：2026-11-07
 - 已确认：第一步覆盖完整会话存储，包括消息、系统提示快照、模型用量、执行准入、队列、Worker 回执、压缩和租约。
 - 已确认：PostgreSQL 实例由用户管理；本任务不安装、启动或运维数据库，也不要求用户提供连接密码。
 - 已确认：使用新 PostgreSQL 库，不兼容旧数据，不做 SQLite 历史数据导入、跨后端双写或回迁。
-- 当前交付：数据层核查、配置契约和接入方案；尚未实现 PostgreSQL 后端，以下配置不能直接启用现有程序的 PostgreSQL 存储。
+- 当前交付：hermes_db完整后端、配置工厂、显式初始化和普通入口已实现；PostgreSQL17.11/pg_trgm1.6实库验收及独立source-bundle初始化通过。Schema当前为0004，最终回归与审查状态以实施计划为准。
 - 配置文件、用户 Markdown、工作区和其他独立 SQLite 数据库不在本阶段迁移范围。
 
 后续源码深查见 [SQLite → PostgreSQL 调研报告](sqlite-postgresql-research.md)。其中补充了完整会话需要接入的 API 响应/幂等存储、同文件按需创建的投递账本，以及单一运行所有者与文件路径耦合；“其他独立 SQLite”不应据此排除这些会话关联记录。PG 采用共享 Schema 与稳定 store_id，具体任务见 [实施计划](../plans/postgresql-session-storage-plan.md)。

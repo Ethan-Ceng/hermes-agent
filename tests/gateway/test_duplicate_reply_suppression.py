@@ -34,6 +34,7 @@ class StubAdapter(BasePlatformAdapter):
     def __init__(self):
         super().__init__(PlatformConfig(enabled=True, token="fake"), Platform.DISCORD)
         self.sent = []
+        self.reply_sent = asyncio.Event()
 
     async def connect(self, *, is_reconnect: bool = False):
         return True
@@ -43,6 +44,7 @@ class StubAdapter(BasePlatformAdapter):
 
     async def send(self, chat_id, content, reply_to=None, metadata=None):
         self.sent.append({"chat_id": chat_id, "content": content})
+        self.reply_sent.set()
         return SendResult(success=True, message_id="msg1")
 
     async def send_typing(self, chat_id, metadata=None):
@@ -104,10 +106,10 @@ class TestBaseInterruptSuppression:
         # The in-band pending-drain now hands off to a fresh task instead
         # of recursing (#17758).  Wait for that task to finish before
         # checking the sent list.
-        for _ in range(200):
-            if any(s["content"] == pending_response for s in adapter.sent):
-                break
-            await asyncio.sleep(0.01)
+        await asyncio.wait_for(adapter.reply_sent.wait(), timeout=15)
+        drain = adapter._session_tasks.get(session_key)
+        if drain is not None:
+            await asyncio.wait_for(asyncio.shield(drain), timeout=15)
         await adapter.cancel_background_tasks()
 
         # The stale response should NOT have been sent.

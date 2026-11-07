@@ -130,6 +130,7 @@ def test_detached_restart_all_never_runs_the_host_gateway_in_the_caller(monkeypa
     monkeypatch.setattr(gw, "_wait_for_api_server_port_free", lambda **k: None)
     monkeypatch.setattr(gw, "_discard_dead_host_record", lambda: False)
     monkeypatch.setattr(gw, "_installed_service_kind_for", lambda windows: None)
+    monkeypatch.setattr(gw, "supports_systemd_services", lambda: False)
     monkeypatch.setattr(gw, "get_python_path", lambda: sys.executable)
     monkeypatch.setattr(gw, "run_gateway", lambda **k: pytest.fail("the caller became the host gateway"))
     launched = []

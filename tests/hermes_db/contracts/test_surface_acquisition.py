@@ -13,6 +13,27 @@ def _profile(home, store_id):
     (home / ".env").write_text("HERMES_POSTGRES_DSN=postgresql://unused/db\n")
 
 
+@pytest.mark.parametrize("shared", [False, True])
+def test_sqlite_default_redirect_retains_the_live_continuation(tmp_path, monkeypatch, shared):
+    import hermes_state
+    from hermes_db.access import acquire_sessions, open_session_store, release_session_store, session_store_exists
+
+    target = tmp_path / "redirected" / "state.db"
+    with hermes_state.SessionDB(target) as seed:
+        seed.create_session("original", "tui")
+        seed.end_session("original", "compression")
+        seed.create_session("continued", "tui", parent_session_id="original")
+        seed.append_message("continued", "assistant", "preserved continuation")
+    monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", target)
+    assert session_store_exists()
+    store = acquire_sessions() if shared else open_session_store(read_only=True)
+    try:
+        assert store.resolve_resume_session_id("original") == "continued"
+        assert store.get_messages_as_conversation("continued")[0]["content"] == "preserved continuation"
+    finally:
+        release_session_store(store)
+
+
 def test_ordinary_pg_opens_without_a_local_file_and_retains_scope(native_registry, core_pair, monkeypatch):
     from hermes_db import factory
     from hermes_db.access import acquire_sessions, open_session_store, session_store_exists

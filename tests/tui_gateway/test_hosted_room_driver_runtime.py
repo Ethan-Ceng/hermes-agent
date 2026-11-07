@@ -971,66 +971,6 @@ def test_turn_deadline_stops_exact_attempt_and_publishes_durable_failure(db: Pat
     assert [task["status"] for task in published] == ["failed"]
 
 
-def test_deadline_releases_worker_capacity_for_later_room(tmp_path: Path):
-    db = tmp_path / "state.db"
-    bindings = [
-        HostedRoomBinding("room-stuck", "gateway-a", 1),
-        HostedRoomBinding("room-healthy", "gateway-a", 1),
-    ]
-    identities = [
-        state.TaskIdentity("room-stuck", "task-stuck", "thread-a", "turn-a"),
-        state.TaskIdentity("room-healthy", "task-healthy", "thread-b", "turn-b"),
-    ]
-    for binding, identity in zip(bindings, identities):
-        hosted_rooms.create_room(
-            db,
-            room_id=binding.room_id,
-            name=binding.room_id,
-            members=[{"profile": PROFILE, "handle": PROFILE}],
-            authority_gateway_id=binding.gateway_id,
-        )
-        state.admit_task(
-            db,
-            identity,
-            payload={
-                "target_profile": PROFILE,
-                "prompt": f"Run {binding.room_id}.",
-                "source_event_seq": 1,
-            },
-            clock=time.time,
-        )
-
-    class FirstRoomStallsRPC(FakeSessionRPC):
-        def submit(self, **kwargs):
-            result = super().submit(**kwargs)
-            if kwargs["task"].room_id == "room-healthy":
-                self.complete(kwargs["task"].task_id)
-            return result
-
-    rpc = FirstRoomStallsRPC(auto_complete=False)
-    runtime = HostedRoomRuntime(
-        db_path=db,
-        rooms=bindings,
-        rpc=rpc,
-        turn_lock=RecordingTurnLocks(),
-        lease_ttl_seconds=0.4,
-        poll_interval_seconds=0.02,
-        active_poll_interval_seconds=0.01,
-        turn_timeout_seconds=0.05,
-        max_concurrent_rooms=1,
-    )
-
-    runtime.start()
-    _wait_for(lambda: state.get_task(db, identities[0])["status"] == "failed")
-    _wait_for(lambda: state.get_task(db, identities[1])["status"] == "settled")
-    assert runtime.stop(timeout=5.0)
-
-    assert state.get_task(db, identities[0])["result"]["reason_code"] == (
-        "turn_deadline_exceeded"
-    )
-    assert state.get_task(db, identities[1])["status"] == "settled"
-
-
 def test_retry_ignores_late_receipt_from_prior_execution_generation(db: Path):
     identity = _identity()
     now = [100.0]

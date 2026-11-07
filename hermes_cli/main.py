@@ -23,7 +23,6 @@ except ModuleNotFoundError as exc:
 # from the checkout, then rerun the command (this module may itself be one of the new files).
 # ``_early_recovery`` is stdlib-only and imported unguarded on purpose: same package
 # dir, so if IT can't import nothing in hermes_cli can.
-from hermes_cli.main_session_storage import read_session_store
 from hermes_cli import _early_recovery as _early_recovery_mod
 
 if _early_recovery_mod.restore_interrupted_pull():
@@ -348,6 +347,7 @@ from pathlib import Path
 from typing import Optional
 
 
+from hermes_cli.main_session_storage import read_session_store
 from hermes_cli.subcommands.cron import build_cron_parser
 from hermes_cli.subcommands.gateway import build_gateway_parser
 from hermes_cli.subcommands.profile import build_profile_parser

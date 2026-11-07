@@ -23,7 +23,7 @@ def acquire_sessions(db_path=None):
     settings, scope = resolve_db_configuration(path.resolve().parent)
     if settings.backend == "sqlite":
         from hermes_state_registry import acquire
-        return acquire(path)
+        return acquire(None if db_path is None else path)
     return SessionResource(acquire_db(settings, scope))
 
 
@@ -36,7 +36,7 @@ def open_session_store(db_path=None, *, read_only=False):
     settings, scope = resolve_db_configuration(path.resolve().parent)
     if settings.backend == "sqlite":
         from hermes_state import SessionDB
-        return SessionDB(db_path=path, read_only=read_only)
+        return SessionDB(db_path=None if db_path is None else path, read_only=read_only)
     return SessionResource(acquire_db(settings, scope))
 
 
@@ -44,7 +44,10 @@ def session_store_exists(db_path=None):
     """Whether to attempt an open; PG reachability is determined by that open."""
     from hermes_cli.db_setup import session_backend
     path = _path(db_path)
-    return session_backend(path.resolve().parent) == "postgresql" or path.exists()
+    if session_backend(path.resolve().parent) == "postgresql":
+        return True
+    from hermes_state import _default_db_path
+    return (Path(_default_db_path()) if db_path is None else path).exists()
 
 
 def release_session_store(store):

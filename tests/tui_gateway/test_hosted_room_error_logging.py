@@ -25,7 +25,7 @@ def test_submit_error_log_contains_task_and_safe_reason_only(db, monkeypatch, ca
         raise error
 
     monkeypatch.setattr(rpc, 'submit', refuse)
-    runtime = _runtime(db, rpc)
+    runtime = _runtime(db, rpc, lease_ttl_seconds=30)
     with caplog.at_level(logging.WARNING, logger='tui_gateway.hosted_room_driver'):
         runtime._process_room(BINDING)
         runtime._record_error('worker cycle failed: PRIVATE_SECRET_SENTINEL')
@@ -51,7 +51,7 @@ def test_legal_long_wait_can_complete_without_stop_or_resubmit(db, monkeypatch, 
         rpc.states[sid]['pending_approval'] = {
             'request_id': 'approval-1', 'command': 'read-only fixture', 'choices': ['once', 'deny']}
     actions = []
-    runtime = _runtime(db, rpc, turn_timeout_seconds=7200,
+    runtime = _runtime(db, rpc, turn_timeout_seconds=7200, lease_ttl_seconds=30,
                        pending_action=lambda room, member, action: actions.append(action))
     monkeypatch.setattr(runtime._wake, 'wait', lambda timeout: None)
 

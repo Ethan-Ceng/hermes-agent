@@ -10,17 +10,17 @@
 
 ## 当前进度
 
-- 整体状态：`IN_PROGRESS`，恢复真实PG验收，最终门禁尚未通过。
-- 当前阶段：M1–M3真实PG验收通过，进入M4发行模式与最终门禁。
-- 当前任务：Task 18（in_progress：发行实库初始化、整体回归/构建与最终独立审查）。
+- 整体状态：`FAILED`（最终宽回归仍有非WSL平台验证缺口；PG后端业务验收已通过）。
+- 当前阶段：M1–M3及M4后端/发行/静态验收通过，最终入口平台门禁待收口。
+- 当前任务：Task 18（in_progress：保存验证检查点；7项WSL既有启动页失败需适用平台证据）。
 - 已完成：17 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：用户已填写根.env并启用pg_trgm；PG17.11、扩展1.6(public)、CREATE权限和测试Schema归属/清理均已实测，连接TLS=false。继续按任务依赖顺序验收，不读取/改写既有业务表。
 - 最近更新时间：2026-11-07（Asia/Shanghai）。
 
-配置文件补充交付：按用户后续要求，在根 .env.example 维护 PostgreSQL 连接秘密示例，并生成被 Git 忽略的项目根 .env，当前仅有待填写的 HERMES_POSTGRES_DSN 空值，不写入或覆盖实际 Profile 凭据，不切换运行后端。示例说明 Profile .env 与 config.yaml 的边界及 URL 编码。项目实际 load_env_file 解析检查通过；标准 scripts/run_tests.sh tests/hermes_cli/test_db_setup.py -- --tb=short 得到10 passed、0 failed、4.1s（.build/postgresql/env-example-config-tests.log）。真实PG仍未连接，任务状态及验收结论不变；填写本地连接串后才可继续准备实库验证配置。
+配置文件补充交付（历史检查点，用户现已填写并启用）：按用户后续要求，在根 .env.example 维护 PostgreSQL 连接秘密示例，并生成被 Git 忽略的项目根 .env；生成时 HERMES_POSTGRES_DSN 为空，不覆盖实际 Profile 凭据或切换后端。示例说明 Profile .env 与 config.yaml 的边界及 URL 编码。项目实际 load_env_file 解析检查通过；标准 scripts/run_tests.sh tests/hermes_cli/test_db_setup.py -- --tb=short 得到10 passed、0 failed、4.1s（.build/postgresql/env-example-config-tests.log）。此后实库证据以顶部进度和 Task18 最新记录为准。
 
-最新恢复点（用户已完成连接配置）：只读探测实际数据库hermes_agent、PG17.11、非只读副本、可创建Schema、现有28张用户表；未读取业务内容或修改既有表。pg_trgm服务端文件可用、默认版本1.6，installed_version为空；本次连接ssl=false。根.env经实际secret parser读取，生成.build/postgresql/private/acceptance-postgresql.yaml，仅在被忽略目录存放秘密，不输出DSN或提交凭据。此前“尚未提供配置/从未连接PG”均为历史检查点；当前阻塞已变为缺少扩展，不能继续沿用旧原因。
+连接准备历史检查点：只读探测实际数据库hermes_agent、PG17.11、非只读副本、可创建Schema、现有28张用户表；未读取业务内容或修改既有表。首次探测扩展未启用，随后由用户启用pg_trgm1.6。本次连接ssl=false。根.env经实际secret parser读取，生成.build/postgresql/private/acceptance-postgresql.yaml，仅在被忽略目录存放秘密，不输出DSN或提交凭据。此前缺配置/缺扩展均已解除。
 
 ## 已确定的实施边界
 
@@ -60,7 +60,7 @@
 
 ## 公共验证命令与环境
 
-下列命令是未来实施时执行的 PowerShell 命令，本次没有运行。postgresql extra、测试文件和测试配置选项由对应任务创建后才可使用。
+下列为计划的标准 PowerShell 调用；实际执行的环境、完整选项和结果见最终验证。postgresql extra、测试文件和配置选项均已由对应任务创建。
 
 ```powershell
 hermes pm lock
@@ -1117,6 +1117,34 @@ Task18 安装验证调整：PM requirements 首次收到裸 Windows 路径被 PE
 
 状态：in_progress（真实PG配置和扩展阻塞已解除；继续发行与最终门禁）
 
+Task18当前恢复点（2026-11-07）：Task17 commit2192e598eb已保存并刷新独立distribution-source载荷；pyproject/uv.lock自原发行环境构建未变，两套PM环境复用。新增installed-PG实际初始化/重复upgrade/单连接重开/请求精确重试/store隔离/NUL配置与消息用例，与原两种发行资源测试合计3 passed、8.4s（pg-task18-distribution-real-initialization.log）；当前统一后端纯契约+实库+发行参数全轮运行中。PM install_node_sidecar构建独立TypeScript6.0.3工具，生成gateway-contract严格单文件typecheck exit0（pg-generated-typescript-final.log），不外推完整前端构建。
+
+真实Linux补验：只读发现现有Ubuntu-26.04 WSL，无安装系统组件/数据库；在/tmp/hermes-pg-verify-2192e598eb创建同commit普通临时副本，PM build_env准备postgresql/messaging/acp+dev/test环境成功（pg-task18-linux-pm-build.log）。完整Source SQLite tests/hermes_state在该真实平台执行中（pg-task18-linux-sqlite-regression.log），下一步四入口完整回归。原Windows失败和旧未完整回归日志继续保留为历史证据，不用跨平台运行伪造Windows通过。
+
+Task18新失败如实记录：统一后端109文件795 passed/0 assertion failed/38 setup errors、430.0s、exit1（pg-task18-complete-backend-final.log）。后半程9个PG文件在首次连接前失败，随后只读原始driver诊断返回FATAL database system is not yet accepting connections / Consistent recovery state has not been yet reached（pg-task18-connection-cause-probe.log），SQLSTATE=None；未观察到原因，不归咎连接池或代码，也未操作服务。此前284实库通过保留为当时证据，当前不可宣称最新统一整轮全绿。Linux Source211文件1536 passed/0 assertion failed/16平台skip，只有296项大文件在300秒runner上限被杀（pg-task18-linux-sqlite-regression.log）；正在-j1/--file-timeout900低并发复验该文件，不改业务断言。全分支14静态检查已通过、488代码文件0 blocking/0 advisory（pg-task18-whole-feature-checks.log，102.6s）。继续独立工作并等实例恢复；数据库服务仍由用户管理。
+
+Linux Source补验收口：上述唯一超时文件在-j1、--file-timeout900的实际执行238.8秒内296 passed/0 failed、exit0（pg-task18-linux-sqlite-large-file.log）；其余210文件原轮1536 passed/16平台skip。因此同commit211文件逐文件隔离的完整结果合计1832 passed、0 assertion failure、16平台skip；原整轮exit1与超时不抹去。四入口4105文件在-j6/--file-timeout1200下运行中（pg-task18-linux-all-surfaces.log），不改测试的业务断言或伪装平台。现有Ubuntu可见RAM31.2GiB，经hermes_platform.host.facts实测。已异步询问操作者数据库是否维护/恢复；无服务重启、数据库参数变更或业务表操作。
+
+Task18最新后端恢复点：实例自行恢复后只读重探成功，未操作服务，恢复原因未知；用户答复“本地实例，应该正常”。标准runner同一完整后端集合重新执行109文件833 passed/0 failed/0 skipped、537.8s、exit0（pg-task18-complete-backend-recovered.log），包含546纯契约、285真实PG及2发行模式项。增强后的独立source-bundle初始化/重复upgrade/归属检查/NUL消息和配置/第二OS进程重启/epoch递增/同admission精确重放，与两项发行测试最后单独复验3 passed、17.3s、exit0（pg-task18-distribution-process-restart-final.log）。原795 passed/38 setup errors仍保留为真实历史，不用最新通过改写旧退出状态。
+
+Task18入口测试整改：宽负载暴露duplicate reply两秒轮询不稳定，改为实际send事件及drain完成等待，原stale零投递/当前恰好一次断言保留；压缩journey在功能起点同样2失败，旧测试硬认PRESSURE_1一定移除，改为核对实际压缩替换集合非空且FOLLOWER请求不回流，FIFO/单continuation/回执/前缀断言保留。修正后连周边5文件14 passed、22.8s（pg-task18-linux-entry-fixture-fixes.log），同样两文件在功能起点生产代码3 passed、23.5s（pg-task18-linux-corrected-tests-on-base.log）。PATH两失败在Linux功能起点原样复现；安装Hermes启动器允许合法前缀，测试改os.pathsep并要求client/daemon标志仅保留所选一方，保留GEM_HOME/NVM和连接locality隔离；当前13 passed、68.2s（pg-task18-linux-client-env-corrected.log）。独立Reviewer核对三处测试未削弱核心不变量；四区域整轮仍运行，已出现的语音RPC超时正在隔离复验，不提前算整轮通过。
+
+Task18实际兼容性整改：补跑15个Agent/tools/Cron/PM消费者时Kanban live continuation一项失败；原功能起点该项1 passed（pg-task18-linux-kanban-baseline.log）。git历史05afea65f4及hermes_state._default_db_path明确DEFAULT_DB_PATH显式重定向优先；新统一access把None变成home/state.db丢失该契约。新增两项真实SQLite契约有效2 red（pg-task18-sqlite-default-redirect-red.log）。第一尝试共同_path直接用legacy默认使PG入口两失败，已拒绝该方案并保留日志。正确实现先按owning profile选择后端，仅SQLite分支将None交还原SessionDB/registry，exists同样只在SQLite查legacy路径；显式参数继续Path归一化，PG不读取全局SQLite默认来决定scope。独立审查确认边界；Windows两文件64 passed（pg-task18-sqlite-default-scope-fixed.log，随后显式Path/exists断言微调），最新Linux两文件64 passed、27.0s（pg-task18-linux-default-scope-fixed.log）。发行载荷以2192e598eb为基底仅叠加当前access.py；完整后端835项在pg-task18-final-access-backend.log重新执行，旧833不是该生产修正后的最终证据。
+
+Task18测试运行前置及夹具收口：Windows三项修正14 passed/2 Linux平台skip、39.7s（pg-task18-windows-fixture-corrections.log）；最新全分支14静态检查491文件0/0（pg-task18-fixture-corrections-checks.log），其后access和CLI夹具改动仍需复查。宽回归中PM插件/源码测试缺PATH中的uv，使用PM已有uv-0.13.5后login provenance和memory dependency两文件12 passed、6.6s（pg-task18-linux-pm-uv-recheck.log），无安装或代码变更。doctor/无服务restart/systemd unit三项在功能起点有效复现（pg-task18-linux-cli-failures-baseline.log）；分别修正gh可达性夹具、仅目标无服务用例的service探测、which只模拟node，保留所有业务断言。doctor68 passed/8平台skip、service113 passed/3平台skip；restart第二次准确夹具5 passed（pg-task18-linux-restart-fixture-corrected.log），首轮误补到另一用例未生效的失败保留。voice原始current反复20秒超时，base全文件12 passed；没有足够证据把它称基线失败。该状态RPC测试明确security.allow_lazy_installs=false后4.9s通过（pg-task18-linux-voice-no-lazy.log），避免无关音频依赖懒安装；完整文件仍需复验，不把音频硬件支持当作本轮结论。oneshot测试改为patch实际统一acquisition seam，保留session_db注入断言；尚待复验。
+
+Task18门禁最新边界：补齐PM Node26.12.1（pg-task18-linux-pm-node.log）和已有uv后，对截至原整轮89%观测到的41失败文件启动标准runner -j4/timeout1200集中复验（pg-task18-linux-failed-files-recheck.log，文件清单pg-task18-observed-failed-files.json）。原整轮仍继续，不把尚未执行或修正前失败计成通过。最新全分支静态496文件出现1 blocking/0 advisory：test_gateway_service.py新增保存resolver的一行使旧超长文件2928>2927（pg-task18-final-scope-checks.log）；已移除同一初始化段不必要空行保持原文件行数，未加豁免，pg-task18-final-static-recheck.log重新执行中。独立Reviewer已读access、四CLI和voice最终diff，未发现不变量削弱，整体结论仍待最终证据。
+
+Task18最终后端及启动修正：最新完整后端109文件835 passed/0 failed/0 skipped、866.3s、exit0（pg-task18-final-access-backend.log），包含新增两项默认重定向契约，原833检查点被此轮更新。其后发现main.py新增存储导入位于_early_recovery恢复之前，entry spy有效失败列出main_session_storage/hermes_db等先加载模块；已移到恢复/fast-version之后普通导入组，保持启动恢复最先执行。update_finish测试临时复制名单补hermes_db，未修改真实更新生命周期。最新Linux恢复/更新完成/日志夹具3文件58 passed/2平台skip、33.2s（pg-task18-linux-launch-order-fixed.log）；主代码和独立发行载荷同步该修正后，真实PG入口10项与发行3项合计13 passed、21.7s（pg-task18-final-pg-installed-readers.log），Windows CLI四文件47 passed、9.9s（pg-task18-final-cli-launch-readers.log）。首轮错误把PG专属conftest选项传给CLI两个文件，导致usage error/未执行，保留pg-task18-final-launch-pg-distribution.log；后续分目录命令已正确复验，不把usage error当业务失败或通过。
+
+Task18入口整轮收口：Linux首次固定集合4105文件完整结束，35749 passed/54 failed/206 errors/517平台skip，4715.9s、exit1（pg-task18-linux-all-surfaces.log），另列6个pass-on-retry文件；不能改称全绿。原41失败文件补齐Node/uv后566 passed/27 failed/1 collection error/13 skip、264.1s；25文件使用PM新建no-install-project且补keychain的独立解释器后645 passed/21 failed/3 skip、109.9s（pg-task18-linux-clean-consumer-recheck.log）。独立解释器使原8项更新repair closure失败全部14 passed，说明先前editable开发包影响临时源码夹具；keychain缺依赖同样解除，vault CLI 3 passed。余下21失败中，main早期导入1项及update临时源码缺新包11项已由上述58项复验关闭；hosted-room日志/长等待三处仅将非本测试目标的0.4秒lease改30秒，保留固定错误码/私密正文不入日志和合法长等待无重复提交断言。Worker容量测试从原超长文件移到test_hosted_room_worker_capacity.py，用冻结wall_clock及仅stuck提交后推进的monotonic取代0.05秒真实截止；真实单worker调度/停止/失败原因及后续settled仍执行，原3文件45 passed（pg-task18-linux-room-clock-fixtures.log），最新全部调整由无重试生命周期复验覆盖。
+
+当前平台/稳定性限制：WSL私有启动页7项在功能起点与当前均有效复现（pg-task18-linux-host-and-poller-baseline.log）；生产政策明确WSL向Windows浏览器不能打开该用户专属页面，因此打印一次性链接。没有修改该无关政策、假冒is_wsl或降低权限断言；已询问是否有非WSL测试环境，尚无此平台证据。通知poller停止在当前曾重复失败，基线通过，诊断join wrapper一次通过并不能证明修复；未改生产或用断言豁免，后续pg-task18-linux-lifecycle-final-no-retry.log禁用自动重试复验原6 flaky文件、通知poller及最终房间夹具。此前496文件全静态已再次14项通过、0/0（pg-task18-final-static-recheck.log，121.1s）；main/新房间测试后的最后全分支检查pg-task18-final-launch-checks.log仍在执行。当前保持Task18 in_progress/总体IN_PROGRESS，最终门禁不能因后端835项通过而提前关闭。
+
+Task18本地检查点最终证据：无诊断插件、--file-retries0、-j2的生命周期10文件794 passed/0 failed/2平台skip、136.8s、exit0（pg-task18-linux-lifecycle-final-no-retry.log）；包含原6 flaky文件、实际通知poller与最终房间时钟/租约夹具。关闭所选当前复验缺口，但没有定位/修复所有原始负载波动的根因，旧flaky历史保留。最终全分支14检查通过、500代码文件0 blocking/0 advisory、93.1s（pg-task18-final-launch-checks.log），此后仅计划与审查记录更新。独立Reviewer已核对上述日志及main恢复顺序、SQLite默认隔离、发行归属和受控时钟，未发现未处理的确定blocking/major生产缺陷；总体仍CHANGES_REQUIRED，因为缺非WSL适用平台证据，不宣称整分支可合并。恢复点：Task18检查点提交标题`fix(storage): preserve sqlite defaults and startup recovery`，父提交2192e598eb，该本地提交包含本记录；不推送/发布/合并。17/18完成，等待可用非WSL平台后按原测试执行7项私有启动页及必要回归，继续最终审查，不重做已通过的PG业务实现。
+
+数据库就绪恢复点：随后只读探测成功，max_connections100、当前role无限制(-1)、role连接8/全实例12（pg-task18-readiness-reprobe.log）；不支持“池耗尽”假设，服务此前为何进入恢复尚无证据。未执行服务操作，正在-j2重新运行相同完整后端集合（pg-task18-complete-backend-recovered.log），复核恢复后整轮稳定结果。
+
 ### 目标
 
 以最新证据判定完整 PG 会话后端是否达到交付条件。
@@ -1156,7 +1184,7 @@ Task18 安装验证调整：PM requirements 首次收到裸 Windows 路径被 PE
 
 ### 执行结果
 
-从 Task17 检查点 f874e6be49 继续配置/部署文档、PM非editable安装制品、最新验证和高风险审查。真实PG配置仍缺，256项真实PG未执行；四区域回归exit1且未完整结束。初始门禁为 FAILED（已执行回归存在失败），真实PG迁移/并发同时有外部阻塞；不得进入 READY_TO_MERGE。按用户缺DB时继续独立工作的要求，先完成离线部分。使用 verification-before-completion 与 code-review；后者要求高风险优先独立Reviewer，已安排 hermes_db 核心阶段性审查，不替代未通过门禁或完整验证。
+历史起点：从 Task17 检查点 f874e6be49 继续配置/部署文档、尝试安装制品、最新验证和高风险审查；非Nix wheel拒绝后采用独立source-bundle/PM editable环境（不是开发目录）。当时真实PG配置仍缺，256项真实PG未执行；四区域回归exit1且未完整结束，初始门禁FAILED。按用户缺DB时继续独立工作的要求完成离线部分并安排高风险独立Reviewer，不替代未通过门禁。以下早期执行记录保留，当前结论以顶部进度、最新恢复点和最终验证为准。
 
 文档新增 website/docs/user-guide/postgresql-session-storage.md，覆盖PM extra、Profile秘密引用/schema/store_id、显式初始化、pg_trgm管理员准备、连接池预算、故障/未知提交及本地文件边界；开发指南与SQLite恢复页已链接。测试前置要求PG15+，尚无真实版本实测，不宣称支持矩阵通过。非Nix wheel构建按既定守卫失败后，使用f874e6be49独立source-bundle及PM分别构建bundle-pg-env/bundle-sqlite-env成功；制品测试首轮独立目录参数被pytest误判为测试路径，改option=value；第二轮错误要求未使用的revision模板，修正为当前env/config/revision资源，最终2 passed、8.7s（task18-distribution-tests.log）。该证据不含真实Schema初始化，也不代表Nix/uv2nix构建。
 
@@ -1200,54 +1228,55 @@ Task18 安装验证调整：PM requirements 首次收到裸 Windows 路径被 PE
 
 ### 执行命令
 
-2026-11-07，PowerShell；所有pytest调用经标准runner、PM Python 3.14.9，HERMES_PYTHON=.build/postgresql/full-test-env/Scripts/python.exe。运行日志保存在被忽略的 .build/postgresql，结果在本计划留存：
+2026-11-07，PowerShell及真实WSL Ubuntu-26.04；所有pytest调用经标准runner、PM Python 3.14.9。Windows HERMES_PYTHON=.build/postgresql/full-test-env/Scripts/python.exe；Linux为/tmp/hermes-pg-verify-2192e598eb/.build/linux-test-env/bin/python。日志保存在被忽略的 .build/postgresql，秘密只传私有配置文件路径：
 
 ```text
-D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db tests/hermes_state -- --tb=short
-D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts/test_review_data_safety.py tests/hermes_db/contracts/test_profile_moves.py tests/hermes_db/contracts/test_profile_repair.py tests/hermes_db/contracts/test_mutation_transcript.py tests/hermes_db/contracts/test_prepared_mutations.py -- --tb=short
-D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/test_distribution.py -- --tb=short --hermes-distribution-source=D:/AI/hermes-agent/.build/postgresql/distribution-source --hermes-sqlite-python=D:/AI/hermes-agent/.build/postgresql/bundle-sqlite-env/Scripts/python.exe --hermes-postgresql-python=D:/AI/hermes-agent/.build/postgresql/bundle-pg-env/Scripts/python.exe
+D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db -j 2 -- -m "not live" --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml --hermes-distribution-source=D:/AI/hermes-agent/.build/postgresql/distribution-source --hermes-sqlite-python=D:/AI/hermes-agent/.build/postgresql/bundle-sqlite-env/Scripts/python.exe --hermes-postgresql-python=D:/AI/hermes-agent/.build/postgresql/bundle-pg-env/Scripts/python.exe --tb=short
+D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/test_distribution.py tests/hermes_db/postgresql/test_distribution_initialization.py -j 2 -- -m "not live" --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml --hermes-distribution-source=D:/AI/hermes-agent/.build/postgresql/distribution-source --hermes-sqlite-python=D:/AI/hermes-agent/.build/postgresql/bundle-sqlite-env/Scripts/python.exe --hermes-postgresql-python=D:/AI/hermes-agent/.build/postgresql/bundle-pg-env/Scripts/python.exe --tb=short
+bash scripts/run_tests.sh tests/hermes_state -j 12 -- --tb=short
+bash scripts/run_tests.sh tests/hermes_state/test_hermes_state.py -j 1 --file-timeout 900 -- --tb=short
+bash scripts/run_tests.sh tests/hermes_cli tests/gateway tests/tui_gateway tests/acp_adapter -j 6 --file-timeout 1200 -- --tb=short
 PM python scripts/check --staged --base ff09cead02e906a4b1da909268c2cc58ec6e144d
 ```
 
-制品载荷由 git archive f874e6be49 导出，PM `-m pm.build_env --source .build/postgresql/distribution-source --out .build/postgresql/bundle-pg-env --extra postgresql` 和默认无extra的bundle-sqlite-env分别构建；随后仅叠加四个已验证的审查整改模块。最后制品probe使用-I、临时cwd/home并核对导入属于独立载荷，开发源码不作为该子进程的导入来源。
+制品载荷由 git archive 2192e598eb完整刷新，随后仅有界同步本任务验证过的hermes_db/access.py与hermes_cli/main.py，access副本SHA256与开发文件相同。PM `-m pm.build_env --source .build/postgresql/distribution-source --out .build/postgresql/bundle-pg-env --extra postgresql` 和默认无extra的bundle-sqlite-env分别构建。依赖清单和锁未变，两PM环境复用，安装是editable指向该独立载荷，不是开发源码。probe使用-I、临时cwd/home、导入路径断言及真实第二进程。该证据覆盖仓库支持的source-bundle模式，不等于Nix/wheel构建。Linux最终解释器另由PM --no-install-project、postgresql/messaging/acp/keychain+dev/test构建，避免更新测试的临时源码被已安装开发项目干扰。
 
 ### 当前结果
 
-- 单元/SQLite扩大回归：307文件2224 passed、9 failed、1 teardown error、130 skipped、359.4s、exit1（task18-storage-regression.log，整改前）。已执行，未通过；不将未隔离的失败全归为基线。
-- 审查整改：七项新契约先6有效failed/1正常追加passed；主Agent复验5文件41 passed、11.4s，独立Reviewer再跑41 passed、11.7s，均exit0（task18-review-fix-tests.log、task18-core-review-recheck.log）。
-- 整改后全部离线后端/制品：98文件522 passed、0 failed、50.3s、exit0（task18-final-db-contracts.log），包括两套实际制品；默认过滤掉的真实PG定义未运行，不计通过。
-- PostgreSQL 实库环境：PG17.11、pg_trgm1.6/public、CREATE权限、TLS=false已有实测；标准环境1 passed、测试Schema归属与清理通过。原迁移5项及新增初始化/启动/CLI/health5项合计10 passed。缺扩展已解决，不能继续当作当前阻塞；当前继续Task6业务验收。
-- 普通入口扩大回归：Task17 四区域4105文件大回归exit1且无完整汇总，最后观察30035 passed/516 failed；单独TUI补跑亦exit1且无完整汇总，最后1427 passed/0 observed failed。未完成部分不计通过。
-- 静态检查：Task18首轮仅ruff的subprocess.check显式性未过，已修正；相对功能起点ff09cead02e9的最新全部14项通过，474 code files、0 blocking / 0 advisory、exit0（task18-feature-checks.log）。随后仅验证记录/设计说明更新，不改变代码。
-- 类型/生成制品：Worker wire/OpenRPC/TypeScript真实生成及契约12 passed；未运行TypeScript编译或完整前端构建，没有这些检查通过证据。
-- 构建：PM独立source-bundle两套环境成功；最新制品2 passed、3.0s、exit0（task18-distribution-final-tests.log），包含无PG extra的SQLite读写和显式PG缺驱动失败、PG包迁移链/资源加载。非Nix wheel被仓库发行守卫拒绝；没有Nix/uv2nix发行构建证据。
-- 新库 Schema 初始化/升级：真实PG与安装模式均未执行；制品revision图可加载不能替代实际迁移。
+- 全后端：最新109文件835 passed/0 failed/0 skipped、866.3s、exit0（pg-task18-final-access-backend.log），包括548纯契约、285真实PG及2发行模式项。其后仅生产main导入位置调整，受影响真实PG/发行13项和Windows CLI47项再通过。此前38 setup errors有明确服务恢复状态拒绝连接证据，原失败记录保留。
+- SQLite：真实Linux Source211文件两轮1832 passed/0 assertion failure/16平台skip；唯一大文件从默认300s超时到-j1/900s下296 passed，原整轮exit1不改写。早期Windows扩大回归9失败/1error已在功能起点同代码来源复现，详见历史日志，不能说Windows全绿。
+- PostgreSQL 实库环境：PG17.11、pg_trgm1.6/public、CREATE权限、TLS=false实测；测试仅用随机且核对归属的Schema，未操作现有28张业务表。Task4–17全部主题实库证据见各任务。
+- 普通入口扩大回归：Linux4105文件完整首轮35749 passed/54 failed/206 errors/517skip，4715.9s、exit1；44个失败文件及6 flaky逐项补依赖/基线/整改复验。最新无自动重试生命周期10文件794 passed/0 failed/2skip，136.8s；恢复/finish/日志58 passed/2skip，33.2s；其他收口记录见Task18。尚余7项非WSL私有启动页在当前与基线同样失败，原整轮不称全绿，原波动根因不称全部已修。
+- 静态检查：最终全分支相对功能起点ff09cead02e9的14项通过、500 code files、0 blocking/0 advisory、93.1s（pg-task18-final-launch-checks.log）。此后只更新验证与审查文档。
+- 类型/生成制品：Worker wire/OpenRPC/TypeScript生成及契约已验证；PM TypeScript6.0.3对生成gateway-contract独立strict编译exit0（pg-generated-typescript-final.log）。不外推完整前端构建。
+- 构建/发行：PM独立source-bundle两环境成功；最终刷新载荷后，发行+实际初始化3项与真实PG入口10项合计13 passed、21.7s、exit0（pg-task18-final-pg-installed-readers.log），包括无PG extra的SQLite真实写读、显式PG缺驱动报错、PG迁移资源及真实初始化/跨进程恢复。非Nix wheel被仓库既定守卫拒绝，不伪装Nix，不声明Nix/uv2nix构建通过。
+- 新库 Schema 初始化/升级：0001–0004真实新库和当前PG演进/回填均已通过；显式初始化可重复，启动/health只检查扩展和revision；缺依赖清晰失败，不安装服务或扩展。
 - 旧数据迁移：不适用，用户已明确排除。
-- 手工/主流程：Task17实际HTTP→Gateway authority→真实Agent→本机模型服务→Native Core的幂等/两轮续接/提示前缀不变已通过；它是离线Core证据，不是真实PG主流程或外部平台投递证据。
-- 代码审查：独立阶段性审查发现2 major/1 minor，整改后独立复查在离线范围关闭；整体CHANGES_REQUIRED，未审完/未验证范围及门禁见 docs/reviews/postgresql-core-review.md。
+- 主流程：Task17真实PG入口10项及全部PG主题已通过，包括HTTP→Gateway authority→Agent→本机模型服务的幂等/两轮续接/提示前缀不变；不外推外部真实平台投递。
+- 代码审查：四份阶段性独立报告中的数据保全/压缩/计数/投影问题已整改并有实库证据；最新总审查核对main恢复顺序、默认路径和测试时钟，未发现未处理的确定blocking/major生产缺陷。仍CHANGES_REQUIRED：非WSL适用平台证据缺失、原宽轮/波动历史保留，见docs/reviews/postgresql-session-storage-review.md。
 
 ### 验收标准
 
-- [ ] 新空 PG Schema 可以由明确管理命令初始化；重复执行安全，应用仅检查版本。
-- [ ] 默认 SQLite 保持现有行为；缺 PG extra 的本地安装可运行。
-- [ ] 当前会话接口、完整消息、提示快照、用量、压缩、删除与搜索符合契约。
-- [ ] 不同 store_id 使用相同业务键不串数据，数据库约束与所有查询均带归属。
-- [ ] 重复请求无额外执行；FIFO、旧代次、unknown、Worker 回执和未知提交语义成立。
-- [ ] 压缩竞争不分叉、不丢并发尾部、不改变既有提示与工具前缀。
-- [ ] API 续接/幂等与投递账本可重启恢复；删除后旧请求不复活。
-- [ ] 无本地 state.db 时 PG 健康和归档引用判断正确；PG 故障不降级写本地或内存。
+- [x] 新空 PG Schema 可以由明确管理命令初始化；重复执行安全，应用仅检查版本。
+- [x] 默认 SQLite 行为与无 PG extra 安装已在上述范围验证；跨平台基线限制单列。
+- [x] 当前会话接口、完整消息、提示快照、用量、压缩、删除与搜索符合契约。
+- [x] 不同 store_id 使用相同业务键不串数据，数据库约束与所有查询遵守归属。
+- [x] 重复请求无额外执行；FIFO、旧代次、unknown、Worker 回执和未知提交语义成立。
+- [x] 压缩竞争不分叉、不丢并发尾部、不改变既有提示与工具前缀。
+- [x] API 续接/幂等与投递账本可重启恢复；删除后旧请求不复活。
+- [x] 无本地 state.db 时 PG 健康和归档引用判断正确；PG 故障不降级写本地或内存。
 - [ ] 全部普通入口接入统一工厂、作用域和资源释放；保留的 SQLite 直连仅用于明确本地功能。
-- [ ] 实际 PG 版本、扩展、连接池预算和测试秘密准备方式有文档及验证证据。
+- [x] 实际 PG 版本、扩展、连接池预算和测试秘密准备方式有文档及验证证据。
 - [x] 不安装数据库实例，不实施历史数据导入、不发布 K8s；仅按用户明确授权逐task本地commit，不推送/发布/合并。
 - [ ] 真实 PG、SQLite 回归、scripts/check 及代码审查通过，所有任务有最新证据。
 
 ### 未通过项目
 
-真实PG已通过主题及最新完成数量见顶部进度和各task实库记录；未完成主题、并发/故障/重启及真实查询计划继续按顺序验收。完整SQLite/入口回归未通过，部分失败待归类，四区域/TUI完整执行证据缺失。Nix发行及TypeScript编译未验证，不能因离线检查点将未验收任务计为completed。
+真实PG/安装模式完整集合及最终静态、受影响整改/生命周期复验已通过。原四入口宽轮exit1保留；7项WSL私有启动页在功能起点相同失败，仍缺非WSL适用平台执行证据。原6 flaky与poller曾失败、当前禁重试通过，未宣称定位所有历史波动根因。历史Windows基线失败不宣称解决。完整前端及Nix/uv2nix发行构建不在已有通过证据范围内。
 
 ### 最终状态
 
-上次完整门禁为FAILED；当前IN_PROGRESS恢复验证，独立审查整体仍CHANGES_REQUIRED，不能宣称READY_TO_MERGE。最新严格completed数量以顶部当前进度为准；继续当前任务及后续业务/并发/故障，并完成入口失败归类/对应平台回归。用户已准备扩展，未由应用安装或管理数据库服务。原SQLite七文件9失败/1error已在功能起点复现；用户工作区文件继续保留，秘密配置不暂存。
+FAILED / CHANGES_REQUIRED。后端完整835项、最新静态和受影响整改通过，仍缺7项非WSL适用平台证据，不能宣称READY_TO_MERGE。17/18 completed，Task18保存本地验证检查点并等待适用平台继续验收；无需再提供PG配置或重做已通过主题。用户已准备扩展，未由应用安装或管理数据库服务；用户工作区文件继续保留，秘密配置不暂存。下列旧恢复点保留为历史，不代表当前缺配置或只完成3项。
 
 
 ## 恢复点

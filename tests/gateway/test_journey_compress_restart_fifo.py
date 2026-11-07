@@ -23,6 +23,16 @@ from tests.waiting import async_wait_until
 FOLLOWERS = ('FOLLOWER_1', 'FOLLOWER_2', 'FOLLOWER_3')
 
 
+def _summarized_pressure_contents(requests, compacted):
+    boundary = next(i for i, row in enumerate(requests) if row['model'] == 'summary')
+    previous = next(row for row in reversed(requests[:boundary]) if row['model'] == 'original')
+    retained = {str(content) for _, _, content in compacted}
+    return {str(message['content']) for message in json.loads(previous['wire'])
+        if message['role'] in ('user', 'assistant')
+        and str(message.get('content', '')).startswith(('PRESSURE_', 'ACK_PRESSURE_'))
+        and str(message['content']) not in retained}
+
+
 class CompactingModel(BaseHTTPRequestHandler):
     """Summarizes on the `summary` model; the first post-summary turn request parks until released."""
 
@@ -194,11 +204,13 @@ def test_followers_survive_compression_and_restart_in_order_exactly_once(tmp_pat
         order = [r['text'] for r in peer.requests if r['model'] == 'original' and r['text'] in FOLLOWERS]
         assert order == list(FOLLOWERS), order
         assert executed(compacting['text'][:12]) == before['compacting_requests'], 'compacted turn replayed'
+        summarized = _summarized_pressure_contents(peer.requests, before['compacted'])
+        assert summarized, 'compression must replace old pressure history'
         for name in FOLLOWERS:
             wire = next(r['wire'] for r in peer.requests if r['text'] == name)
-            # protect_first_n keeps PRESSURE_0 verbatim; the compacted middle is only inside the summary.
+            # Protected first/tail messages stay verbatim; only the replaced middle must be absent.
             turns = [str(m.get('content', '')) for m in json.loads(wire)]
-            assert 'SUMMARY_RETAINED_FACTS' in wire and not any(t.startswith('PRESSURE_1 ') for t in turns), name
+            assert 'SUMMARY_RETAINED_FACTS' in wire and not summarized.intersection(turns), name
         settled = admissions()
         assert {r['target_session_id'] for r in settled} == {sid}
         assert [r['request_id'] for r in settled][-3:] == list(FOLLOWERS)
