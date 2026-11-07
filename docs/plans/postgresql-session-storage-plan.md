@@ -18,6 +18,8 @@
 - 执行前置条件：真实 PG 验证时需用户提供本地测试配置，实际版本、权限和扩展由 Task 4 检查；当前没有连接数据库。
 - 最近更新时间：2026-11-07（Asia/Shanghai）。
 
+配置文件补充交付：按用户后续要求，在根 .env.example 维护 PostgreSQL 连接秘密示例，并生成被 Git 忽略的项目根 .env，当前仅有待填写的 HERMES_POSTGRES_DSN 空值，不写入或覆盖实际 Profile 凭据，不切换运行后端。示例说明 Profile .env 与 config.yaml 的边界及 URL 编码。项目实际 load_env_file 解析检查通过；标准 scripts/run_tests.sh tests/hermes_cli/test_db_setup.py -- --tb=short 得到10 passed、0 failed、4.1s（.build/postgresql/env-example-config-tests.log）。真实PG仍未连接，任务状态及验收结论不变；填写本地连接串后才可继续准备实库验证配置。
+
 ## 已确定的实施边界
 
 1. 数据库包命名 `hermes_db`，使用 SQLAlchemy Core + 同步 psycopg；表定义、数据仓储、完整操作、事务与连接资源分别组织。
