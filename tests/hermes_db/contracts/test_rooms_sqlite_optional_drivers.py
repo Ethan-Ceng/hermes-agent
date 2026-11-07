@@ -47,6 +47,12 @@ assert checkpoint.snapshot(room_id='room', latest_seq=1).events[0]['payload']['t
 router = RouterCalls(source, clock=lambda:10)
 assert router._claim(('room','source'))
 router._release(('room','source'))
+from gateway.hosted_room_attachments import HostedRoomAttachmentStore
+files = HostedRoomAttachmentStore(source)
+saved = files.put(room_id='room', upload_id='upload', kind='file', name='exact.bin', mime='application/octet-stream', data=b'\x00\xffexact')
+manifest = [{key:saved[key] for key in ('attachment_id','kind','name','size','mime')}]
+files.commit_message(room_id='room', event_id='file-event', manifest=manifest, recipient_member_ids=['ops'])
+assert files.read(room_id='room', event_id='file-event', attachment_id=saved['attachment_id'], recipient_member_id='ops').data == b'\x00\xffexact'
 print('SQLITE_ROOMS_STANDALONE_OK')
 '''
     env = child_env()

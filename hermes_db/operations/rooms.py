@@ -63,14 +63,6 @@ def _publication_fields(room_id, event_id, kind, actor, gateway, epoch, cursor):
     return room_id, event_id, kind, normalized, actor_json, gateway, native._require_positive_int(epoch, "authority_epoch")
 
 
-def _require_attachment_adapter(payload):
-    from gateway.hosted_room_attachments import validate_manifest
-    manifest = validate_manifest(payload.get("attachments", []))
-    if manifest:
-        from hermes_db.errors import StorageNotReadyError
-        raise StorageNotReadyError("PG room attachment publication requires the room_attachments adapter (Task14)")
-
-
 def append_event(store, *, room_id, event_id, kind, actor, payload, authority_gateway_id=None, authority_epoch=None,
                  now=None, expected_latest_seq=None, control_reserve=False):
     room_id, event_id, kind, normalized, actor_json, gateway, epoch = _publication_fields(
@@ -92,7 +84,9 @@ def append_event(store, *, room_id, event_id, kind, actor, payload, authority_ga
         if expected_latest_seq is not None and room["next_seq"] - 1 != expected_latest_seq:
             raise native.EventCursorConflictError("room changed before event publication")
         if kind in {"message.user", "message.member"}:
-            _require_attachment_adapter(resolved)
+            from hermes_db.operations.room_attachment_commits import retain_message_attachments
+            retain_message_attachments(conn, store, room_id=room_id, event_id=event_id,
+                manifest=resolved.get("attachments", []), now=timestamp)
         row = append_on_connection(conn, store, room, event_id=event_id, kind=kind, actor_json=actor_json,
             payload_json=payload_json, epoch=epoch, now=timestamp, allow_control=kind in native._CONTROL_EVENT_KINDS
             or (control_reserve and normalized["kind"] == "gateway"))

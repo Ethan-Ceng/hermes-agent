@@ -11,8 +11,8 @@
 
 - 整体状态：`IN_PROGRESS`。
 - 当前阶段：房间附件元数据领域实施。
-- 当前任务：Task 13已completed，下一项Task 14（pending；Task13提交标题 `feat(storage): persist scoped room policy and router claims`）。
-- 已完成：13 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前任务：Task 14（completed；正在创建本地任务提交，随后进入Task15）。
+- 已完成：14 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-08（Asia/Shanghai）。
@@ -820,7 +820,7 @@ SQLite：`scripts/run_tests.sh tests/tui_gateway/test_hosted_room_router_authori
 
 ## Task 14：统一房间附件元数据与配额
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -843,6 +843,7 @@ SQLite：`scripts/run_tests.sh tests/tui_gateway/test_hosted_room_router_authori
 1. 实现scoped元数据、幂等、引用和配额，使用范围锁保护并发上限。
 2. 保留blob准备/提交/清理和重启对账，DB失败不能误删唯一附件内容。
 3. 关联房间事件和退役护栏，保持路径/ACL/内容去重边界。
+4. 实际协议细化：Native put/commit/sweep在SQLite事务内执行文件IO，PG不能照搬。持久namespace区分同Profile的不同数据集；复用PM文件门闩保护候选/清扫的本地竞争，配额/引用仍为scoped SQL事务，文件校验全部移到连接外。cleanup job与最后引用删除同事务；未知COMMIT不删除候选文件。不存在的quarantine/disband_fences仅是旧SDK可选读取协议，当前仓库没有写入者，不创建占位业务表；已有权威/退役护栏在实际Core消费者验证。
 
 ### 验证方式
 
@@ -855,11 +856,21 @@ SQLite：`scripts/run_tests.sh tests/tui_gateway/test_hosted_room_router_authori
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+已完成0022显式namespace/blob/attachment/cleanup迁移及具名Core操作，保留原纯验证、ACL、内容文件、上传幂等、逻辑/物理配额、引用计数、commit/abort/retain和member/viewer/range协议。非空manifest的严格retention在实际room append同一事务中执行，出版失败完整回滚。实际CanonicalService的普通Send和非空附件Send、任务冻结manifest、member materialization、viewer下载及服务重开均已实测；原SQLite连接在PG明确拒绝。
+
+所有文件准备、校验、删除和文件锁等待在数据库连接外。持久namespace区分同Profile的不同数据集；捕获资源逐操作核对namespace，旧句柄拒绝新数据集，已删除内容根不被清扫回调重建。复用PM本地跨进程文件门闩，配额/引用仍由scoped SQL短事务保护；清扫先等待未决store写事务结束，再开新读快照核对live blobs。最后引用删除和持久cleanup job同事务；未知COMMIT保留候选，文件删除失败保留job供真实新进程重放。PG不读取旧SQLite内容树。恢复点：本项提交后进入Task15；Task20维护入口和Task22普通daemon/Worker全流程仍须单独闭合。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+`scripts/run_tests.sh tests/hermes_db/postgresql/test_room_attachments.py -j 1 -- -m integration --postgres-test-config=$pgTestConfig` exit1、1 failed（unified-task14-attachments-red.log），实库Schema已初始化、失败为现有Path(RoomStoreRef)拒绝；未把此前房间领域的证据当作附件完成证据。后续必须覆盖真实文件与PG持久化、Scope、跨进程配额、故障窗口、重启和常规Send/非空文件。
+
+首轮实现1 passed（attachments-first）；非空事件出版先红1 failed/1 deselected（publication-red，真实执行到Task11未就绪adapter），接通同事务严格retention后2 passed（publication-first）。当前`... test_room_attachment_faults.py test_room_attachments.py -j 2 -- -m integration --postgres-test-config=$pgTestConfig` exit0、2文件6 passed/无skip/无重试（unified-task14-faults-first.log），包括真实文件成功SQL拒绝后的安全孤儿清扫、实际business COMMIT后确认丢失不删除唯一内容、数据库成功文件删除失败的持久job及真实新进程重放、另一个真实进程读取/提交/恢复同一PNG，以及文件写入/commit校验/读取时连接池checkedout=0。其余上述范围未验证，Task14仍未完成。
+
+最终验证（以上为保留的中间记录）：`scripts/run_tests.sh tests/hermes_db/postgresql/test_room_attachments.py tests/hermes_db/postgresql/test_room_attachment_{faults,guards,service,concurrency,values,limits}.py <其余test_room*.py> tests/hermes_db/postgresql/test_domain_schema.py tests/hermes_db/postgresql/test_schema.py -j 3 -- -m integration --postgres-test-config=$pgTestConfig`（PowerShell数组展开实际21文件，日志unified-task14-pg-final.log），exit0、104 passed、0 failed/skip/retry。新增7文件23项，包括两个真实进程争同一配额、PG实际blocking_pids证据证明清扫等未决COMMIT后保留文件、独立Profile去重/配额/清理隔离、64未提交项限制、NUL二进制/PNG/PDF/zip/Unicode名称字节保真、篡改/范围/权限/退役竞态、代次替换和删除根护栏。所有业务PG fixture/子进程拒绝包括内存/URI/别名在内的SQLite连接。
+
+`scripts/run_tests.sh tests/gateway/test_hosted_room_attachments.py tests/gateway/test_hosted_room_attachment_publication.py tests/gateway/test_hosted_attachment_bridge.py tests/gateway/test_hosted_room_runtime_attachments.py tests/tui_gateway/test_hosted_room_attachment_routes.py -j 3` exit0、46 passed/1 skipped（unified-task14-native-first.log）；skip为当前Windows无权限创建符号链接，篡改检测已执行，不能声称该symlink分支通过。`scripts/run_tests.sh tests/hermes_db/contracts/test_rooms_sqlite_optional_drivers.py -j 1` exit0、1 passed（unified-task14-sqlite-no-pg.log），子进程阻止SQLAlchemy/psycopg/Alembic导入，实际SQLite附件put/commit/read及既有房间业务继续可用。最后PG-only资源护栏补充后专测12 passed（namespace-guards）、限额3 passed（limits）。实际service初轮因fixture仅1个member被原生双成员规则拒绝，修正为ops/review后1 passed（service-followup），不是产品缺陷或有效业务红证据。
+
+`PM Python scripts/check --staged --base abb9f65e5a` exit0、14 checks、health24文件0 blocking/advisory（unified-task14-checks-final.log）。完成提交标题`feat(storage): persist scoped room attachment metadata and quotas`；正式Profile/服务/SQLite数据未触碰，无新依赖。未验证项仍为上述Windows symlink分支、Task20系统维护及Task22全系统强验收，不能据本项宣称全系统PG后端完成。
 
 ## Task 15：统一指标、consent 与 outbox
 
@@ -1354,6 +1365,6 @@ Task 1–9 已完成，Task 10–24 尚未完成；不得宣称全系统PG已完
 
 ## 恢复点
 
-Task 1–13已验收并各自创建本地commit（Task12 `b2680034ba`，Task13标题 `feat(storage): persist scoped room policy and router claims`）。下一项Task14附件：必须闭合HostedRoomAttachmentStore构造、常规Send和非空附件，保留内容文件与重启对账。Task20维护及Task22普通daemon强验收尚未完成。分支仍为 `feat/postgresql-session-storage`，正式实例保持SQLite，未写正式Profile、秘密或业务表。Task13最新14文件81项真实PG/严格SQLite拒绝、两批SQLite89项及14静态checks通过；不能由此宣称全系统PG已完成。
+Task 1–14已验收并各自创建本地commit（Task12 `b2680034ba`，Task13 `abb9f65e5a`，Task14标题 `feat(storage): persist scoped room attachment metadata and quotas`）。下一项Task15指标/consent/outbox；Task14最新21文件104项真实PG、SQLite46 passed/1 symlink skip、无PG依赖子进程1 passed及14静态checks通过。Task20维护及Task22普通daemon强验收尚未完成。分支仍为 `feat/postgresql-session-storage`，正式实例保持SQLite，未写正式Profile、秘密或业务表；不能由此宣称全系统PG已完成。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。
