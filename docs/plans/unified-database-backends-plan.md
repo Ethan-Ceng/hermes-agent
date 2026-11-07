@@ -10,12 +10,12 @@
 ## 当前进度
 
 - 整体状态：`IN_PROGRESS`。
-- 当前阶段：房间领域实施。
-- 当前任务：Task 11（pending；Task 10已完成验证，立即创建本地提交）。
-- 已完成：10 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前阶段：房间 driver 与执行领域实施。
+- 当前任务：Task 12（pending；Task 11已完成验证，立即创建本地提交）。
+- 已完成：11 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
-- 更新时间：2026-11-07（Asia/Shanghai）。
+- 更新时间：2026-11-08（Asia/Shanghai）。
 
 ## 目标、约束与范围变化
 
@@ -645,7 +645,7 @@ SQLite最终证据是前述126文件934 passed、1个/dev/null fixture失败、2
 
 ## Task 11：统一房间元数据、事件与 replica
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -683,11 +683,27 @@ PG房间协调无需local rooms SQLite，旧数据不被隐式导入。
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+已完成房间元数据/事件/副本、私有links/grants/reservations/remote receipts及永久退役的scoped Core实现；新增0019显式迁移，捕获Profile/store/数据库目标引用。已移除原会话阶段独立hosted-pg摘要.db的选择和启动DDL，PG不导入旧SQLite房间；SQLite仍独立可用。提交标题：feat(storage): support scoped room metadata events and replicas。恢复点Task12：将driver/owner/admission/work-record消费者改为typed Core事务；Task13策略/路由、Task14附件和Task22完整daemon仍未完成，不能将本任务元数据合同外推为完整房间或系统PG可用。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+下方保留实施过程、初始失败与局部验证；最终完成证据在本任务末尾。
+
+Task11实施中（前置Task10 commit `297bd9069e`）：新增明确Profile/store引用和具名操作分流、0019房间/事件/永久退役/replica表、scoped Core仓储。普通打开不DDL、不读旧SQLite；私有SQLite连接在PG下明确拒绝。基础创建、只读列表/回放/探测、rename/append、authority CAS、disband/prune均以短store配额锁→房间锁串行化。复用原生验证和DTO，Unicode/NUL名字与JSON以BYTEA保存；回放使用原窗口字节预算和共享纯分页序列化，读取保持现有Transactions的REPEATABLE READ。
+
+`scripts/run_tests.sh tests/hermes_db/postgresql/test_rooms_store.py -j 1 -- -m integration --postgres-test-config=$pgTestConfig` 先2 failed捕获shared-state.db（`unified-task11-rooms-red.log`），基础实现后2 passed（`unified-task11-rooms-first.log`）。不同store同room_id、捕获引用在另一个Profile仍读取原owner、值保真/关闭重开、两个连接seq唯一、authority更新拒绝旧epoch、永久退役重放通过。副本实际业务先因原生连接guard拒绝而1 failed（`unified-task11-replica-red.log`）；适配ingest/checkpoint/promote/demote后，与Schema前向升级两文件8 passed（`unified-task11-replica-first.log`）。原生events/只读路径两文件49 passed（`unified-task11-native-events-first.log`），不伪造平台。
+
+当前恢复点：Task11仍in_progress、无commit。继续房间links/grants/reservations/remote receipts等facade公共API、移除原会话阶段hosted-pg摘要.db协调资源和PG legacy import旁路，补实际子进程重启、配额/确认丢失/副本并发/回滚合同与静态检查。Task12 driver、Task13策略和Task14附件仍未实现；当前非空附件出版明确未就绪，没有跳过登记或用内存持久化。新0019尚未提交，可在同一任务内补齐表与冻结迁移；不能修改已提交0001–0018迁移。
+
+追加进展：links/grants/reservations/remote receipts具名Core已接通，字符串/JSON和远端run/session标识保真，不以绝对路径选store；退休payload清理也删除对应scoped元数据。新0019首版新增grant字段漏引号导致PG保留字语法失败（`unified-task11-metadata-red.log`），修正后业务红测明确到原生接口guard（`unified-task11-metadata-business-red.log`），接通后与Schema两文件9 passed（`unified-task11-metadata-first.log`）。协调壳红测定位hosted-pg摘要.db（`unified-task11-coordination-red.log`）；已改为含非秘密目标指纹的RoomStoreRef、验证canonical PG目标，移除启动SQLite/DDL。房间业务+旧SQLite不导入+协调资源6 passed（`unified-task11-coordination-first.log`）；read/write/admission等driver消费者仍归Task12–13，不声称普通daemon已可启动。
+
+PG事务回调CoreEffect拒绝普通SQLite callback；真实提交后丢确认同event_id只一条、配额控制余量、create/admit同事务回滚、独立真实进程拒绝全部SQLite并读取/追加恢复合计3项通过，与主合同两文件9 passed（`unified-task11-faults-first.log`）。副本降级额外核对原始e730deedd1意图：旧authority即使历史配额耗尽也必须能自我围栏；PG初版重用普通事件配额造成红测（`unified-task11-demotion-red.log`），已恢复该既有降级语义并计入实际字节，正在复验`unified-task11-faults-green.log`。
+
+原生五文件rooms/read/replica/links/gateway-import为70 passed/0 failed、1 POSIX平台skip（`unified-task11-native-metadata-green.log`）。此前命令猜错test_hosted_rooms_legacy_import.py不存在而exit2（`unified-task11-native-metadata.log`），不计通过；实际legacy迁移覆盖在已有test_hosted_rooms.py。部分静态14检查通过、health21文件0 blocking/advisory（`unified-task11-checks-partial.log`），之后新改动仍须全门禁。当前恢复：继续PG元数据consumer/副本并发边界、SQLite无PG依赖安装、所有相关入口与源码检查，完善下一Task12的typed transaction边界；Task11仍未完成、不commit。
+
+最终批次前补充：CPython sqlite3审计事件guard覆盖预存connect别名/直接Connection构造，fixture同时记录被业务捕获的连接尝试并在teardown失败；实际Worker sitecustomize和房间重启子进程同步增强，没有给内存库或URI豁免。增强guard后房间+真实普通/专用/跨Profile Worker四文件14 passed（`unified-task11-audit-guard.log`），无尝试见证文件。SQLite阻止全部PG extra导入的独立事件/replica/private metadata实际读写1 passed（`unified-task11-sqlite-independent.log`）。副本双连接同页竞争只有一方ingest、gap失败检查点不变；retention删除links/reservations且永久保留room_id；存储身份变化拒绝旧引用。PG rooms/faults/Schema/domain Schema四文件最终22 passed/0 failed/0 skipped/无重试（`unified-task11-pg-final.log`，23.0s）。静态progress14 checks ok、health27文件0 blocking/advisory（`unified-task11-checks-progress.log`），之后纯文档和补充边界合同仍需最后静态检查。
+
+Task11最终验证与恢复：原生Windows/PM full-test-env，`scripts/run_tests.sh tests/hermes_db/postgresql/test_room_faults.py tests/hermes_db/postgresql/test_rooms_store.py tests/hermes_db/postgresql/test_schema.py tests/hermes_db/postgresql/test_domain_schema.py -j 3 -- -m integration --postgres-test-config=$pgTestConfig` exit0、22 passed/0 failed/0 skipped/无重试（`unified-task11-pg-final.log`）；上一批增强审计后的真实采用Worker/跨Profile Worker/普通Worker/child及房间四文件14 passed（`unified-task11-audit-guard.log`）。既有SQLite五文件70 passed/1 POSIX平台skip（`unified-task11-native-metadata-green.log`），无PG extra的SQLite实际数据读写与预存别名/直接Connection/内存库/URI审计拒绝独立合同两文件2 passed（`unified-task11-standalone-final.log`）。`PM Python scripts/check --staged --base 297bd9069e`最后exit0、14 checks ok、health28文件0 blocking/advisory（`unified-task11-checks-commit.log`）；之后仅更新账本，diff检查通过。本任务没有推送或触及正式Profile/旧SQLite数据。未验证：POSIX限定合同、driver/admission/work-record整机链路(Task12)、策略/附件(Task13–14)、维护(Task20)、全系统daemon(Task22)与最终独立审查(Task24)。恢复点Task12，前11项均有本地commit。
 
 ## Task 12：统一房间 driver、任务与 work records
 
@@ -704,6 +720,7 @@ PG房间协调无需local rooms SQLite，旧数据不被隐式导入。
 - `tui_gateway/hosted_room_driver.py`
 - `tui_gateway/hosted_room_prepare_stall.py`
 - `hermes_db/operations/room_runs.py`
+- `gateway/session_hosted_storage.py`、`gateway/session_hosted_service.py`（Task11已移除PG SQLite壳；其typed read/write、owner/admission与driver消费者在本任务闭合）
 - `tests/hermes_db/postgresql/test_room_runs.py`
 
 ### 依赖与接口
@@ -716,6 +733,7 @@ PG房间协调无需local rooms SQLite，旧数据不被隐式导入。
 1. 适配admit/start/renew/stop/settle/recover及work record引用，复用房间权限护栏。
 2. 保留单owner、执行代次、未知结果、取消竞争与晚到回执规则。
 3. 调度等待、模型、外部peer访问均在短事务外，不用Python锁充当跨进程租约。
+4. 将CanonicalHostedRoomService/HostedAdmissionFence的旧SQLite事务回调逐项改为具名Core/CoreEffect，并在remote run receipt事务中接通work-record capture；不得用PG连接执行旧SQL字符串或遗留独立SQLite围栏。Task11只完成其元数据原语，不将该消费者接入标为已完成。
 
 ### 验证方式
 

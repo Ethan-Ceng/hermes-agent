@@ -72,5 +72,16 @@ Workspace paths are resolved outside transactions and registered as store-scoped
 file references. Cleanup commits a per-path token before removing files, so a
 concurrent task reference or live parent dependency cannot race the removal.
 Interrupted tokens remain fenced until explicit reconciliation. File content,
-workspace paths and Board configuration stay local; subscriptions, transfer and
-the remaining Kanban consumers are still a separate capability gate.
+workspace paths and Board configuration stay local. The `kanban_workspace`
+capability also reports subscriptions, transfer and the remaining Kanban consumers.
+
+Hosted rooms capture a `RoomStoreRef` containing the owning Profile, stable
+store_id and a nonsecret database-target fingerprint. SQLite locations never
+identify a PG Profile. Core room/event/replica operations hold short scoped locks;
+read snapshots keep the authority and replay cursor consistent. Room limits,
+event byte accounting, idempotency and permanent retired identities remain
+durable. PG never imports the legacy SQLite room dataset or creates a separate
+`hosted-pg-*.db` coordination ledger. Trusted transaction callbacks use `CoreEffect`.
+Driver/admission consumers, policy/router consumers and attachment publication
+are separate integration tasks and must be verified before claiming full rooms
+or full-system PostgreSQL readiness.

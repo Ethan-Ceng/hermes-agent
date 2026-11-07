@@ -1,0 +1,39 @@
+"""SQLite room events, replicas and private metadata work without the PG extras."""
+
+import subprocess
+import sys
+
+
+def test_rooms_sqlite_standalone_without_postgresql_drivers(tmp_path):
+    from tests.gateway.fixtures.local_recovery_probe import child_env
+    code = r'''
+import importlib.abc, sys
+from pathlib import Path
+class BlockDrivers(importlib.abc.MetaPathFinder):
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname.split('.')[0] in {'sqlalchemy', 'psycopg', 'alembic'}:
+            raise ImportError('optional PostgreSQL dependency unavailable')
+sys.meta_path.insert(0, BlockDrivers())
+from gateway import hosted_rooms as rooms, hosted_room_replicas as replicas
+home = Path(sys.argv[1])
+source, target = home / 'source.db', home / 'replica.db'
+rooms.create_room(source, room_id='room', name='SQLite', members=[], authority_gateway_id='gateway-a')
+rooms.append_event(source, room_id='room', event_id='first', kind='message.user', actor={'kind':'user','id':'u'},
+    payload={'text':'中文\u0000', 'zero':0, 'false':False}, authority_gateway_id='gateway-a', authority_epoch=1)
+page = rooms.read_events(source, room_id='room')
+assert page['events'][0]['payload']['false'] is False
+assert replicas.ingest_page(target, room_id='room', room_name='copy', members=[], page=page)['stored_seq'] == 1
+assert replicas.replica_state(target, room_id='room')['last_seq'] == 1
+record = dict(room_id='room', member_id='m', target_url='https://example.test', target_profile='ops', grant='fixture-grant',
+    catalog_json='{}', cancellation_scope_id='scope', trace_id='trace', transport_security='https', status='ready', updated_at=1)
+rooms.upsert_room_link_record(source, record=record, max_links=1)
+assert rooms.list_room_link_records(source)[0]['grant'] == 'fixture-grant'
+assert rooms.room_state(source, room_id='room')['latest_seq'] == 1
+print('SQLITE_ROOMS_STANDALONE_OK')
+'''
+    env = child_env()
+    env.update(HERMES_HOME=str(tmp_path), HOME=str(tmp_path), USERPROFILE=str(tmp_path))
+    result = subprocess.run([sys.executable, "-c", code, str(tmp_path)], env=env, capture_output=True, text=True,
+                            timeout=60, check=False)
+    assert result.returncode == 0, result.stderr
+    assert "SQLITE_ROOMS_STANDALONE_OK" in result.stdout

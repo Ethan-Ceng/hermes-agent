@@ -153,6 +153,8 @@ Task 9 实库探针已发现真实整机依赖：普通 `gateway.run` 启动会�
 
 房间事件序号、权限 epoch、幂等身份和退役墓碑用范围约束及行锁保护。Driver、work records、policy checkpoint 和 router claim 对应同一房间事件谱系；提交时重新核对代次与水位。
 
+Task11接口核对：现有房间函数的db_path是SQLite位置参数，不能从shared-state.db或会话state.db的目录推断PG拥有者。PG延迟调用者捕获明确的Profile/store_id房间引用；旧位置参数在已绑定Profile的PG入口只选当前Profile，不能指定另一个store。所有原生SQLite私有连接在PG下拒绝。原会话阶段`hosted-pg-<digest>.db`独立协调壳须移除；其admission/driver原生SQL消费者在Task12–13逐项端口化，不能用PG连接模拟SQLite执行器。可信事务回调复用已有CoreEffect，权限写入与房间写入使用同一短事务；普通SQLite回调不能被直接拿到PG执行。房间内容配额使用store级短锁和现有统计，控制事件保留原有紧急余量；房间/副本序号使用明确行锁，不把Python锁当多进程租约。
+
 附件只统一元数据、配额、引用和删除状态。文件写入与 DB 不是同一事务，保留准备/提交/清理协议及重启对账；不因换后端移动附件内容或声称多节点共享文件完成。
 
 ### 指标与插件

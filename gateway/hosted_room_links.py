@@ -1,7 +1,7 @@
-"""Private SQLite storage for negotiated hosted-room links.
+"""Private selected-backend storage for negotiated hosted-room links.
 
-Route metadata and its scoped grant share the gateway's private root ``state.db``. SQLite WAL plus
-``BEGIN IMMEDIATE`` owns concurrency; grants are never included in reprs, status payloads, or exception messages.
+SQLite keeps its established root store; PG routes through scoped Core operations. Grants are never
+included in reprs, status payloads, or exception messages.
 """
 
 from __future__ import annotations
@@ -128,7 +128,8 @@ def load_room_links_tolerant(db_path: DbPath) -> tuple[tuple[StoredRoomLink, ...
 
 def save_room_link(db_path: DbPath, link: StoredRoomLink) -> None:
     hosted_rooms.upsert_room_link_record(db_path, record=link.as_record(), max_links=MAX_LINKS)
-    if os.name == "posix":
+    from hermes_db.domains.rooms import is_postgresql_location
+    if os.name == "posix" and not is_postgresql_location(db_path):
         with contextlib.suppress(OSError):
             Path(db_path).chmod(0o600)
 

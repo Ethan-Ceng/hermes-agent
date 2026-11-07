@@ -116,13 +116,14 @@ def run_worker_probe(pg_profiles, tmp_path, monkeypatch, *, owner_module="gatewa
     audit = tmp_path / "audit"
     audit.mkdir()
     (guard / "sitecustomize.py").write_text(
-        "import json, os, sqlite3\nfrom pathlib import Path\n"
+        "import json, os, sqlite3, sys\nfrom pathlib import Path\n"
         f"audit = Path({str(audit)!r})\n"
         "(audit / ('guard-' + str(os.getpid()))).write_text(json.dumps({'pid': os.getpid(), 'parent_pid': os.getppid()}))\n"
         "def reject(*args, **kwargs):\n"
         "    (audit / ('attempt-' + str(os.getpid()))).touch()\n"
         "    raise AssertionError('SQLite connection rejected in PG worker business process')\n"
-        "sqlite3.connect = reject\n", encoding="utf-8")
+        "sqlite3.connect = reject\n"
+        "sys.addaudithook(lambda event, args: reject() if event == 'sqlite3.connect' else None)\n", encoding="utf-8")
     peer = ThreadingHTTPServer(("127.0.0.1", 0), Model)
     peer.requests = []
     thread = threading.Thread(target=peer.serve_forever, daemon=True)

@@ -1,4 +1,4 @@
-"""Independent room coordination beside a configured canonical session backend."""
+"""Room coordination captures the canonical Profile's selected storage target."""
 
 from contextlib import closing, contextmanager
 from pathlib import Path
@@ -10,9 +10,8 @@ from hermes_state_runtime import RuntimeStoreError
 def coordination_path(db):
     if not is_postgresql_store(db):
         return Path(db.db_path)
-    from hermes_db.move_values import digest, resource_key
-    suffix = digest([resource_key(db._transactions), db.scope.require_store_id()])
-    return profile_home_for_store(db) / f"hosted-pg-{suffix}.db"
+    from hermes_db.domains.rooms import room_reference
+    return room_reference(db)
 
 
 class RoomCoordination:
@@ -33,21 +32,9 @@ class RoomCoordination:
             runtime_for_store(self.authority.db).check_epoch(self.authority.epoch)
 
     def _prepare(self):
-        from gateway.hosted_rooms import _connect
-        with closing(_connect(self.path)) as conn, conn:
-            conn.execute("BEGIN IMMEDIATE")
-            conn.execute("CREATE TABLE IF NOT EXISTS state_meta(key TEXT PRIMARY KEY,value TEXT)")
-            conn.execute("CREATE TABLE IF NOT EXISTS runtime_epoch(singleton INTEGER PRIMARY KEY CHECK(singleton=1),"
-                "epoch INTEGER NOT NULL,instance_id TEXT)")
-            saved = conn.execute("SELECT value FROM state_meta WHERE key='hermes:hosted-pg-store'").fetchone()
-            if saved is not None and saved[0] != self.store_id:
-                raise RuntimeStoreError("profile_mismatch")
-            conn.execute("INSERT OR IGNORE INTO state_meta(key,value) VALUES('hermes:hosted-pg-store',?)", (self.store_id,))
-            old = conn.execute("SELECT epoch FROM runtime_epoch WHERE singleton=1").fetchone()
-            if old is not None and old[0] > self.authority.epoch:
-                raise RuntimeStoreError("stale_epoch")
-            conn.execute("INSERT INTO runtime_epoch(singleton,epoch) VALUES(1,?) ON CONFLICT(singleton) "
-                "DO UPDATE SET epoch=excluded.epoch", (self.authority.epoch,))
+        from hermes_db.domains.rooms import capture_room_store
+        if capture_room_store(profile_home_for_store(self.authority.db)) != self.path:
+            raise RuntimeStoreError("profile_mismatch")
 
     @contextmanager
     def read(self):

@@ -22,13 +22,14 @@ def test_real_interactive_worker_and_child_survive_owner_restart(pg_profiles, tm
     guard.mkdir()
     audit.mkdir()
     (guard / "sitecustomize.py").write_text(
-        "import os, sqlite3\nfrom pathlib import Path\n"
+        "import os, sqlite3, sys\nfrom pathlib import Path\n"
         f"audit = Path({str(audit)!r})\n"
         "(audit / ('guard-' + str(os.getpid()))).touch()\n"
         "def reject(*args, **kwargs):\n"
         "    (audit / ('attempt-' + str(os.getpid()))).touch()\n"
         "    raise AssertionError('SQLite rejected in PG business process')\n"
-        "sqlite3.connect = reject\n", encoding="utf-8")
+        "sqlite3.connect = reject\n"
+        "sys.addaudithook(lambda event, args: reject() if event == 'sqlite3.connect' else None)\n", encoding="utf-8")
     root = Path(__file__).resolve().parents[3]
     with pg_profiles("one") as home:
         config = read_user_config_raw(home / "config.yaml")

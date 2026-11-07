@@ -48,6 +48,7 @@ def pg_profiles(postgres_test_config, postgres_schema, tmp_path, monkeypatch):
     from contextlib import contextmanager
     import json
     import sqlite3
+    import sys
     from agent.secret_scope import reset_secret_scope, set_secret_scope
     from hermes_cli.config import atomic_config_write
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
@@ -71,7 +72,18 @@ def pg_profiles(postgres_test_config, postgres_schema, tmp_path, monkeypatch):
             reset_secret_scope(secret_token)
             reset_hermes_home_override(home_token)
 
+    attempts = []
+    enabled = [True]
     def reject(*args, **kwargs):
+        attempts.append(True)
         pytest.fail("PG domain business process must reject every SQLite connection")
+    def audit(event, args):
+        if enabled[0] and event == "sqlite3.connect":
+            reject()
+    sys.addaudithook(audit)
     monkeypatch.setattr(sqlite3, "connect", reject)
-    return owner
+    try:
+        yield owner
+    finally:
+        enabled[0] = False
+        assert not attempts, "PG business code attempted SQLite, even if its caller caught the rejection"

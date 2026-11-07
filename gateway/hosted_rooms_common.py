@@ -14,10 +14,11 @@ import sqlite3
 import time
 from pathlib import Path
 from typing import Any, Callable, Iterator, Mapping
+from hermes_db.domains.rooms import RoomStoreRef
 
 
 IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
-DbPath = Path | str
+DbPath = Path | str | RoomStoreRef
 
 
 def identifier(
