@@ -12,8 +12,8 @@
 
 - 整体状态：`IN_PROGRESS`，恢复真实PG验收，最终门禁尚未通过。
 - 当前阶段：M1真实环境及Schema初始化验收通过，继续M2会话业务实库验收。
-- 当前任务：Task 8（in_progress：准入/FIFO/epoch/终态/竞争真实PG）；Tasks 9–17为verification_pending，Task18最终门禁待补。
-- 已完成：7 / 18。
+- 当前任务：Task 9（in_progress：Worker/委派/回执竞争真实PG）；Tasks 10–17为verification_pending，Task18最终门禁待补。
+- 已完成：8 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：用户已填写根.env并启用pg_trgm；PG17.11、扩展1.6(public)、CREATE权限和测试Schema归属/清理均已实测，连接TLS=false。继续按任务依赖顺序验收，不读取/改写既有业务表。
 - 最近更新时间：2026-11-07（Asia/Shanghai）。
@@ -423,7 +423,7 @@ Task7 完成/恢复点（2026-11-07）：标准runner真实 `tests/hermes_db/pos
 
 ## Task 8：实现准入队列、epoch 与终态事务
 
-状态：in_progress（开始真实PG验收）
+状态：completed
 
 ### 目标
 
@@ -478,9 +478,13 @@ epoch 行共享锁先于映射和根锁，启动更新 epoch 等待旧写入结�
 
 `PYTHONUTF8=1`、PM Python 执行 `scripts/check --staged --base HEAD`：exit 0，14 checks ok、0 blocking/0 advisory（task8-checks.log）；后增确认丢失测试及 fixture 调整的最新 ruff/health 两项也通过。真实 PG 新增 12 用例（6 共享/4 隔离与效果/2 多连接竞争），均未执行；合计 59 PG 用例默认 integration 排除，不计通过。Core fixture 的序号模拟不能验证 PG 锁或提交顺序。
 
+Task8 完成/恢复点（2026-11-07）：真实runtime原12项passed、0 failed、21.9s（pg-task8-runtime-tests.log），包含FIFO、容量原子性、同请求竞争、唯一领取、代次/旧epoch和作用域。补5项真实PG事务错误分型验收全部passed、6.1s（pg-task8-failure-tests.log）：在真实commit返回后注入确认丢失，UnknownCommit后按原请求重查只保留一次准入；真实锁超时回滚无部分准入、pg_sleep被实际statement_timeout取消、关闭本测试拥有的连接产生Unavailable、单连接池耗尽产生Unavailable。前者是实际提交后的确认丢失注入，不伪称物理网络断线；未终止别人的连接或改业务Schema。新增test_transaction_failures.py仅验收，无生产代码变更；严格completed8/18，静态复验后保存Task8并继续Task9。
+
 ## Task 9：实现 Worker 回执与异步委派存储
 
-状态：verification_pending（离线主题实现/契约与检查通过；真实 PG 回执/竞争待配置）
+Task8提交前最新静态证据：14 staged检查全部通过，新增1 code file、0 blocking/0 advisory（pg-task8-failure-checks.log），生产实现未改。新事务故障文件与该任务验证记录一并保存本地commit。
+
+状态：in_progress（开始真实PG验收）
 
 ### 目标
 
