@@ -11,9 +11,9 @@
 ## 当前进度
 
 - 整体状态：`IN_PROGRESS`，恢复真实PG验收，最终门禁尚未通过。
-- 当前阶段：M1真实环境及Schema初始化验收通过，继续M2会话业务实库验收。
-- 当前任务：Task 12（in_progress：删除/墓碑/重写/幂等竞争真实PG）；Tasks 13–17为verification_pending，Task18最终门禁待补。
-- 已完成：11 / 18。
+- 当前阶段：M1/M2主题实库验收通过，继续M3 API/投递/搜索/入口验收。
+- 当前任务：Task 13（in_progress：Responses/Run续接与幂等真实PG）；Tasks 14–17为verification_pending，Task18最终门禁待补。
+- 已完成：12 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：用户已填写根.env并启用pg_trgm；PG17.11、扩展1.6(public)、CREATE权限和测试Schema归属/清理均已实测，连接TLS=false。继续按任务依赖顺序验收，不读取/改写既有业务表。
 - 最近更新时间：2026-11-07（Asia/Shanghai）。
@@ -645,7 +645,7 @@ Task11 完成/恢复点（2026-11-07）：真实 `tests/hermes_db/postgresql/tes
 
 ## Task 12：实现删除、退休墓碑与会话重写
 
-状态：in_progress（开始真实PG验收）
+状态：completed
 
 ### 目标
 
@@ -717,9 +717,11 @@ chat picks、canonical import、prompt refresh 和当前 Cron/外部快照/skill
 - 后续审计新增空压缩祖先与后继保护红灯 1 failed：sweep 会删除仍承载后继租约的根。现在按实际存活压缩组件检查 turn/compression guard 和 executing/unknown ledger；受影响 housekeeping/retirement/leases/peers 45 passed，14.1s，exit 0，日志 `.build/postgresql/task12-sweep-lease.log`；补 Worker 存活/终态释放断言后 1 passed，2.7s。新增对应 PG 用例后 Task 12 定义 50 项、总计 173 项，均待真实 PG 配置。整改后完整 14 staged 检查再次通过（47 code files，0 blocking / 0 advisory，exit 0），日志 `.build/postgresql/task12-final-checks.log`。本提交为 Task 12 离线恢复点；不等于真实后端验证完成。
 - 前次 ruff/health 局部检查通过；最新预备策略修改后的检查、完整 Task 12 验证与 commit 尚未到达。未连接 PG，123 项前序真实 PG 用例仍待配置，新 retirement 用例尚未接到 PG 入口。
 
+Task12 完成/恢复点（2026-11-07）：真实 `test_retirement_rewrites.py` 全部50项passed、0 failed、49.7s（pg-task12-retirement-tests.log）；独立审查修复的准备压缩晚到追加两种模式另在真实PG中2 passed、3.5s（pg-task12-prepared-review-tests.log），均exit0。覆盖完整删除目标、永久墓碑/精确重放、未知执行拒绝、导入/重写/撤销、缓存保真、作用域、故障回滚、并发同branch只发布一次、准入和删除互斥且不复活、pruneCAS只一位winner；准备快照漂移保留晚到正文。无生产改动，严格completed12/18。新review文件剩余移动/采用5项保留到Task16验收；保存本地验证后继续Task13。
+
 ## Task 13：实现 API 响应续接与 Run 幂等存储
 
-状态：verification_pending（离线实现与检查已通过；真实 PG 未执行）
+状态：in_progress（开始真实PG验收）
 
 ### 目标
 
