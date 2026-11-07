@@ -84,8 +84,8 @@ class _Session:
         ``state.db`` yet reads as empty; an apply run opens it for real when a move lands there."""
         path = store.db_path
         if path not in self._dbs:
-            from hermes_cli.db_setup import open_profile_sessions, session_backend
-            if session_backend(store.home) == "postgresql":
+            from hermes_cli.db_setup import open_profile_sessions, storage_backend
+            if storage_backend(store.home) == "postgresql":
                 self._dbs[path] = open_profile_sessions(store.home, read_only=self.read_only)
             elif self.read_only:
                 from hermes_state import SessionDB
@@ -370,10 +370,10 @@ class RepairPlan:
     def apply(self, session: _Session, *, snapshot: Callable[[Store], Optional[str]]) -> dict[str, Any]:
         """Run every repairable fix; snapshots every store first. Fixes are independent and each
         re-checks its precondition, so a partial run leaves a state the next run completes."""
-        from hermes_cli.db_setup import session_backend
+        from hermes_cli.db_setup import storage_backend
         snapshots = {s.profile: ("PostgreSQL backup is operator-managed; no local database snapshot"
-            if session_backend(s.home) == "postgresql" else snapshot(s))
-            for s in self.stores if session_backend(s.home) == "postgresql" or s.db_path.exists()}
+            if storage_backend(s.home) == "postgresql" else snapshot(s))
+            for s in self.stores if storage_backend(s.home) == "postgresql" or s.db_path.exists()}
         totals: dict[str, int] = {}
         failures: list[dict[str, str]] = []
         for finding in self.repairable:

@@ -9,10 +9,10 @@
 
 ## 当前进度
 
-- 整体状态：`PLAN_READY`。
-- 当前阶段：范围纠正、设计与任务拆分完成；尚未开始本计划业务实现。
-- 当前任务：Task 1（pending）。
-- 已完成：0 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 整体状态：`IN_PROGRESS`。
+- 当前阶段：统一配置与基础资源实施。
+- 当前任务：Task 2（pending；Task 1 验收完成）。
+- 已完成：1 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-07（Asia/Shanghai）。
@@ -72,7 +72,7 @@ $pgTestConfig = Join-Path $PWD '.build/postgresql/private/acceptance-postgresql.
 
 ## Task 1：统一 Profile 数据库配置与后端选择
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -110,11 +110,11 @@ $pgTestConfig = Join-Path $PWD '.build/postgresql/private/acceptance-postgresql.
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+统一 storage.backend/storage.postgresql 解析、默认值、作用域错误文本和克隆身份写入；旧 storage.session（含空配置及新旧冲突）明确拒绝。内部选择器改名为 storage_backend，全部生产调用者与既有配置测试同步，无兼容 shim；更新 .env.example 和用户配置示例。正式 Profile、服务及数据未改。提交标题：feat(storage): unify profile database backend selection。恢复点：Task 2；新领域尚未接通，不宣称系统 PG 可用。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+原生 Windows，现有 PM full-test-env（Python 3.14.9）。`scripts/run_tests.sh tests/hermes_cli/test_db_setup.py tests/hermes_db/contracts/test_unified_selection.py -j 2` exit0，15 passed/0 failed，无 skip；日志 `.build/postgresql/unified-task1-selection.log`。新合同在修改前 exit1、5 failed（新顶层配置读为 SQLite、旧配置未拒绝；含尚无新选择器的用例），日志 unified-task1-red.log。独立子进程阻止三个 PG 依赖导入并实际 SQLite 写入/关闭/重开成功；双线程两 Profile 配置及秘密隔离通过。`PM Python scripts/check --staged --base d9984f73af` 最终 exit0、14 checks ok（unified-task1-checks-final.log），初次 ruff 缺显式 check 参数已修正。git diff --check 通过。扩展81文件合同回归仍运行，其最终汇总待补；本任务未运行实库及新领域验收，后续任务负责。
 
 ## Task 2：建立领域存储资源与统一 PG Schema 演进
 
@@ -1194,7 +1194,7 @@ CLI/Gateway/Web/TUI/Desktop/ACP/Agent及后台任务统一接入领域能力。
 
 ### 未通过与未验证
 
-24个任务尚未实施；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
+Task 1 已完成，Task 2–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
 
 ### 最终状态
 
@@ -1202,6 +1202,6 @@ CLI/Gateway/Web/TUI/Desktop/ACP/Agent及后台任务统一接入领域能力。
 
 ## 恢复点
 
-从Task1开始。先确认普通分支和工作区，再按本计划顺序实施；现有运行实例仍保持SQLite，本计划阶段没有写用户配置、秘密或数据库。
+Task 1 配置选择已验收；本地提交后从 Task 2 继续。分支与初始干净工作区已核对，正式实例仍保持 SQLite；开发未写正式 Profile、秘密或业务数据库。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

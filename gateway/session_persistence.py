@@ -100,10 +100,10 @@ class SessionPersistenceMixin:
         """
         from hermes_state import _default_db_path
         from hermes_db.access import acquire_sessions
-        from hermes_cli.db_setup import session_backend
+        from hermes_cli.db_setup import storage_backend
 
         path = Path(db_path) if db_path is not None else Path(_default_db_path())
-        native = session_backend(path.resolve().parent) == "postgresql"
+        native = storage_backend(path.resolve().parent) == "postgresql"
 
         def _open():
             try:

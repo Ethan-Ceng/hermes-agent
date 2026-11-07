@@ -26,7 +26,7 @@ def _owning_profile(home):
             secret_token = set_secret_scope(build_profile_secret_scope(home), profile_home=str(home))
         yield
     except ConfigBackendUnavailable:
-        raise StorageConfigurationError("Session storage configuration is unavailable") from None
+        raise StorageConfigurationError("Profile storage configuration is unavailable") from None
     finally:
         if secret_token is not None:
             reset_secret_scope(secret_token)
@@ -40,21 +40,31 @@ def _section(config, name):
     return value
 
 
-def _backend(session):
-    backend = session.get("backend", "sqlite")
+def _storage(config):
+    storage = _section(config, "storage")
+    if "session" in storage:
+        raise StorageConfigurationError(
+            "storage.session is no longer supported; move backend to storage.backend "
+            "and postgresql to storage.postgresql in config.yaml"
+        )
+    return storage
+
+
+def _backend(storage):
+    backend = storage.get("backend", "sqlite")
     if backend not in ("sqlite", "postgresql"):
-        raise StorageConfigurationError("storage.session.backend must be sqlite or postgresql")
+        raise StorageConfigurationError("storage.backend must be sqlite or postgresql")
     return backend
 
 
 def _resolve_settings(config, home):
     from agent.secret_scope import get_secret
 
-    session = _section(_section(config, "storage"), "session")
-    backend = _backend(session)
+    storage = _storage(config)
+    backend = _backend(storage)
     if backend == "sqlite":
         return DatabaseSettings(), DatabaseScope(home)
-    pg = _section(session, "postgresql")
+    pg = _section(storage, "postgresql")
     scope = DatabaseScope(home, pg.get("store_id"))
     scope.require_store_id()
     env_name = pg.get("dsn_env", "HERMES_POSTGRES_DSN")
@@ -89,14 +99,14 @@ def open_profile_db(profile_home: Path | None = None):
         return acquire_db(settings, scope)
 
 
-def session_backend(profile_home: Path | None = None):
+def storage_backend(profile_home: Path | None = None):
     """Driver/secret-free backend selection for file-tooling and cache boundaries."""
     from hermes_constants import get_hermes_home
     from hermes_cli.config_effective import load_user_config_effective
     home = Path(profile_home if profile_home is not None else get_hermes_home()).resolve()
     with _owning_profile(home):
         config = load_user_config_effective(home / "config.yaml", fail_closed=True)
-        return _backend(_section(_section(config, "storage"), "session"))
+        return _backend(_storage(config))
 
 
 def open_profile_sessions(profile_home: Path | None = None, *, read_only=False):

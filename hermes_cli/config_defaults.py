@@ -5,7 +5,7 @@ docs of config.yaml.
 """
 
 from hermes_cli.config_defaults_auxiliary import _aux
-from hermes_cli.config_defaults_storage import DATABASE_CONFIG, SESSION_STORAGE_CONFIG
+from hermes_cli.config_defaults_storage import DATABASE_CONFIG, STORAGE_CONFIG
 
 #: Image every container terminal backend (docker/modal/daytona, the singularity plugin) uses unless the
 #: user pins one. LEGACY_SANDBOX_IMAGES are the plain defaults that preceded the desktop stack
@@ -30,7 +30,7 @@ DEFAULT_CONFIG = {
     "credential_pool_strategies": {},
     "toolsets": ["hermes-cli"],
     "database": DATABASE_CONFIG,
-    "storage": SESSION_STORAGE_CONFIG,
+    "storage": STORAGE_CONFIG,
     # Server-process fd soft limit (clamped to the hard limit) + glibc arena cap; 0/false/null = off.
     "runtime": {"nofile_soft_limit": 4096, "malloc_arena_max": 4},
     # Global active chat session cap across CLI, TUI/dashboard, and messaging. None/0 = unbounded.

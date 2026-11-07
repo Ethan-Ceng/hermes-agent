@@ -8,8 +8,8 @@ from hermes_db.errors import StorageError
 def _profile(home, store_id):
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text(
-        "storage:\n  session:\n    backend: postgresql\n    postgresql:\n"
-        f"      schema: hermes\n      store_id: {store_id}\n")
+        "storage:\n  backend: postgresql\n  postgresql:\n"
+        f"    schema: hermes\n    store_id: {store_id}\n")
     (home / ".env").write_text("HERMES_POSTGRES_DSN=postgresql://unused/db\n")
 
 

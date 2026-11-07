@@ -85,7 +85,7 @@ def test_connection_failure_is_reported_and_never_changes_backend(tmp_path, monk
 def test_db_command_consumes_the_current_profiles_actual_config(tmp_path, capsys):
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
 
-    (tmp_path / "config.yaml").write_text("storage: {session: {backend: unknown}}\n", encoding="utf-8")
+    (tmp_path / "config.yaml").write_text("storage: {backend: unknown}\n", encoding="utf-8")
     token = set_hermes_home_override(tmp_path)
     try:
         args = _parse("db", "status")

@@ -10,8 +10,8 @@ def test_kanban_native_owner_reads_configured_scope_and_never_inferrs_remote_pid
     db, _other = core_pair
     home = db.scope.profile_home
     home.mkdir(parents=True)
-    (home / "config.yaml").write_text("storage:\n  session:\n    backend: postgresql\n    postgresql:\n"
-        f"      schema: hermes\n      store_id: {db.scope.store_id}\n")
+    (home / "config.yaml").write_text("storage:\n  backend: postgresql\n  postgresql:\n"
+        f"    schema: hermes\n    store_id: {db.scope.store_id}\n")
     (home / ".env").write_text("HERMES_POSTGRES_DSN=postgresql://unused/db\n")
     registry, _opened = native_registry
     monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope))

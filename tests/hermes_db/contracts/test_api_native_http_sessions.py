@@ -18,8 +18,8 @@ async def test_native_http_creation_conflicts_retirement_and_unknown_commit(api_
     monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope))
     owner, db, _other = api_owner
     home = db.scope.profile_home
-    (home / "config.yaml").write_text("storage:\n  session:\n    backend: postgresql\n    postgresql:\n"
-        f"      schema: hermes\n      store_id: {db.scope.store_id}\n")
+    (home / "config.yaml").write_text("storage:\n  backend: postgresql\n  postgresql:\n"
+        f"    schema: hermes\n    store_id: {db.scope.store_id}\n")
     (home / ".env").write_text("HERMES_POSTGRES_DSN=postgresql://unused/db\n")
     adapter = APIServerAdapter(PlatformConfig(enabled=True))
     adapter.gateway_runner, adapter._session_db, adapter._api_key = owner.runner, db, "private-key"

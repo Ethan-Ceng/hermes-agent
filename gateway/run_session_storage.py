@@ -34,11 +34,11 @@ class GatewaySessionStorageMixin:
         """
         from hermes_state import AsyncSessionDB, _default_db_path
         from hermes_db.access import acquire_sessions as acquire
-        from hermes_cli.db_setup import session_backend
+        from hermes_cli.db_setup import storage_backend
         from hermes_db.errors import StorageUnavailableError
         from gateway.session_db_recovery import RecoverableHandleCache
         path = Path(_default_db_path())
-        native = session_backend(path.resolve().parent) == "postgresql"
+        native = storage_backend(path.resolve().parent) == "postgresql"
         cache = getattr(self, "_session_db_handle_cache", None)
         if cache is None:
             # Test runners built with object.__new__ skip __init__.

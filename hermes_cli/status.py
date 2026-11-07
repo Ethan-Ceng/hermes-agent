@@ -269,8 +269,8 @@ def _render_cron(ctx):
 
 def _render_sessions(ctx):
     _section("Sessions")
-    from hermes_cli.db_setup import open_profile_sessions, session_backend
-    postgresql = session_backend(get_hermes_home()) == "postgresql"
+    from hermes_cli.db_setup import open_profile_sessions, storage_backend
+    postgresql = storage_backend(get_hermes_home()) == "postgresql"
     storage_failed = False
     # Gateway session count: state.db is the source of truth; fall back to sessions.json for
     # pre-migration installs.

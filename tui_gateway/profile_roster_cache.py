@@ -73,8 +73,8 @@ def store_signature(profile_path: str | Path) -> Optional[tuple]:
     The pair the change watcher already trusts for ``sessions.changed``. None too while a file's
     mtime is fresh enough that a same-tick, same-size WAL rewrite could still hide behind it.
     """
-    from hermes_cli.db_setup import session_backend
-    if session_backend(Path(profile_path)) == "postgresql":
+    from hermes_cli.db_setup import storage_backend
+    if storage_backend(Path(profile_path)) == "postgresql":
         return None
     base = Path(profile_path)
     parts = [p for p in (_file_parts(base / name) for name in _STORE_FILES) if p is not None]

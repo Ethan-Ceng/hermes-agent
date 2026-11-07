@@ -86,8 +86,8 @@ def native_run_scope(adapter, scope):
 
 
 def api_profile_namespace(adapter, legacy_name):
-    from hermes_cli.db_setup import session_backend
-    if session_backend() != "postgresql":
+    from hermes_cli.db_setup import storage_backend
+    if storage_backend() != "postgresql":
         return legacy_name
     store = adapter._current_response_store()
     return "pg-store:" + store.scope.require_store_id()

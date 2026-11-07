@@ -79,10 +79,10 @@ def _count_status_active_sessions() -> int:
     """Best-effort status garnish. Opens read-only (via the shared stale-schema heal) so
     /api/status never routinely writes to state.db while another Hermes process uses it."""
     from hermes_state import _default_db_path
-    from hermes_cli.db_setup import session_backend
+    from hermes_cli.db_setup import storage_backend
     # The heal helper bootstraps a missing store; this garnish must not — on a fresh install
     # /api/status polls would otherwise create state.db before the user's first session.
-    if session_backend(Path(_default_db_path()).parent) == "sqlite" and not Path(_default_db_path()).exists():
+    if storage_backend(Path(_default_db_path()).parent) == "sqlite" and not Path(_default_db_path()).exists():
         return 0
     db = _open_session_db_for_profile(None, read_only=True)
     try:
@@ -490,8 +490,8 @@ def _fts_rebuild_status() -> Optional[dict[str, Any]]:
     """Deferred FTS rebuild progress of this home's state.db (read-only open), or None."""
     from hermes_state import SessionDB as _SDB
     from hermes_constants import get_hermes_home as _ghh
-    from hermes_cli.db_setup import session_backend
-    if session_backend(_ghh()) == 'postgresql':
+    from hermes_cli.db_setup import storage_backend
+    if storage_backend(_ghh()) == 'postgresql':
         return None
     _db_path = _ghh() / "state.db"
     if not _db_path.exists():

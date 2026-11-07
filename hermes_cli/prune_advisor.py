@@ -146,8 +146,8 @@ def snooze(home: Optional[Path] = None, seconds: float = SNOOZE_SECONDS) -> None
 def should_ask(home: Optional[Path] = None) -> Optional[DiskSnapshot]:
     """The cheap gate every surface runs at session start: the snapshot when the disk is low and
     the user has neither decided nor snoozed, else None. Two syscalls plus one small YAML read."""
-    from hermes_cli.db_setup import session_backend
-    if session_backend(_home(home)) == "postgresql":
+    from hermes_cli.db_setup import storage_backend
+    if storage_backend(_home(home)) == "postgresql":
         return None  # Disk snapshots estimate a local SQLite file only.
     snap = disk_snapshot(home)
     if snap is None or not snap.low:

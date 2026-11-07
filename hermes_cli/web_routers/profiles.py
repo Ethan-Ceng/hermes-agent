@@ -282,8 +282,8 @@ def _read_profile_db(name: str, home, errors: Optional[list[dict[str, str]]],
     db_path = Path(home) / "state.db"
     db = None
     try:
-        from hermes_cli.db_setup import open_profile_sessions, session_backend
-        if session_backend(Path(home)) == "postgresql":
+        from hermes_cli.db_setup import open_profile_sessions, storage_backend
+        if storage_backend(Path(home)) == "postgresql":
             db = open_profile_sessions(Path(home), read_only=True)
         elif db_path.exists():
             db = _open_session_db_at_path(db_path, read_only=True)
@@ -306,9 +306,9 @@ def _corrupt_profile_stores(targets) -> dict[str, str]:
     """``{profile: "corrupt"}`` for every scanned profile whose state.db this process has latched
     as structurally corrupt (``hermes_state_health``). Lets Desktop tell an empty or partial list
     from a damaged store, including when some reads still succeed (#72046)."""
-    from hermes_cli.db_setup import session_backend
+    from hermes_cli.db_setup import storage_backend
     return {name: STORAGE_CORRUPT for name, home in targets
-            if session_backend(Path(home)) == "sqlite" and storage_state(Path(home) / "state.db") == STORAGE_CORRUPT}
+            if storage_backend(Path(home)) == "sqlite" and storage_state(Path(home) / "state.db") == STORAGE_CORRUPT}
 
 
 # Sidebar scan cache TTL: short enough that the UI never shows meaningfully stale data, long
@@ -372,8 +372,8 @@ def _profile_state_db(home) -> Path:
 
 
 def _sidebar_store_cache_key(home):
-    from hermes_cli.db_setup import session_backend
-    if session_backend(Path(home)) == "postgresql":
+    from hermes_cli.db_setup import storage_backend
+    if storage_backend(Path(home)) == "postgresql":
         return None
     path = _profile_state_db(home)
     return str(path), _sidebar_db_fingerprint(path)

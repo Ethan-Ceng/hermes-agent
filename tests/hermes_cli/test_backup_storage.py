@@ -11,7 +11,7 @@ def test_quick_backup_cli_records_external_database_exclusion(tmp_path, monkeypa
     from hermes_cli.config import atomic_config_write
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     monkeypatch.setattr(backup, "get_hermes_home", lambda: tmp_path)
-    atomic_config_write(tmp_path / "config.yaml", {"storage": {"session": {"backend": "postgresql"}}})
+    atomic_config_write(tmp_path / "config.yaml", {"storage": {"backend": "postgresql"}})
     main.cmd_backup(SimpleNamespace(quick=True, label="pg-files"))
     snapshot = next((tmp_path / "state-snapshots").glob("*/manifest.json"))
     manifest = json.loads(snapshot.read_text(encoding="utf-8"))
@@ -29,4 +29,4 @@ def test_session_backend_config_failure_is_a_storage_error_not_daemon_exit(tmp_p
 
     monkeypatch.setattr(config_effective, "load_user_config_effective", unavailable)
     with pytest.raises(StorageConfigurationError, match="configuration is unavailable"):
-        db_setup.session_backend(tmp_path)
+        db_setup.storage_backend(tmp_path)

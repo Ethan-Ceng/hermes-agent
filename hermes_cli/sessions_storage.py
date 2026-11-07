@@ -13,5 +13,5 @@ def refuse_physical_maintenance(store, action):
 
 
 def refuse_configured_physical_maintenance(home, action):
-    from hermes_cli.db_setup import session_backend
-    return _refuse(action) if session_backend(home) == "postgresql" else False
+    from hermes_cli.db_setup import storage_backend
+    return _refuse(action) if storage_backend(home) == "postgresql" else False

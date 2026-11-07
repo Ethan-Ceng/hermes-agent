@@ -25,7 +25,7 @@ class PostgresSettings:
         if not isinstance(self.schema, str) or not re.fullmatch(r"[a-z_][a-z0-9_]{0,62}", self.schema):
             raise StorageConfigurationError("PostgreSQL schema must be an explicit lowercase identifier")
         if self.schema.startswith("pg_") or self.schema == "information_schema":
-            raise StorageConfigurationError("PostgreSQL system schemas cannot hold session storage")
+            raise StorageConfigurationError("PostgreSQL system schemas cannot hold Profile storage")
         for name, minimum in (("pool_size", 1), ("max_overflow", 0),
                               ("connect_timeout_seconds", 1), ("connection_budget", 1)):
             value = getattr(self, name)
@@ -49,6 +49,6 @@ class DatabaseSettings:
 
     def __post_init__(self):
         if self.backend not in ("sqlite", "postgresql"):
-            raise StorageConfigurationError("storage.session.backend must be sqlite or postgresql")
+            raise StorageConfigurationError("storage.backend must be sqlite or postgresql")
         if self.backend == "postgresql" and self.postgresql is None:
             raise StorageConfigurationError("PostgreSQL settings are required")

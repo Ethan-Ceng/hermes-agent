@@ -19,11 +19,11 @@ class DatabaseScope:
             not isinstance(self.store_id, str)
             or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}", self.store_id)
         ):
-            raise StorageConfigurationError("storage.session.postgresql.store_id must be a stable identifier")
+            raise StorageConfigurationError("storage.postgresql.store_id must be a stable identifier")
 
     def require_store_id(self) -> str:
         if self.store_id is None:
-            raise StorageConfigurationError("storage.session.postgresql.store_id is required")
+            raise StorageConfigurationError("storage.postgresql.store_id is required")
         return self.store_id
 
 

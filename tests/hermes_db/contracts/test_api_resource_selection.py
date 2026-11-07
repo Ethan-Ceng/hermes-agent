@@ -10,8 +10,8 @@ from hermes_db.errors import StorageClosedError, StorageError
 def _configure(db):
     home = db.scope.profile_home
     home.mkdir(parents=True, exist_ok=True)
-    (home / "config.yaml").write_text("storage:\n  session:\n    backend: postgresql\n    postgresql:\n"
-        f"      schema: hermes\n      store_id: {db.scope.store_id}\n")
+    (home / "config.yaml").write_text("storage:\n  backend: postgresql\n  postgresql:\n"
+        f"    schema: hermes\n    store_id: {db.scope.store_id}\n")
     (home / ".env").write_text("HERMES_POSTGRES_DSN=postgresql://unused/db\n")
     return home
 

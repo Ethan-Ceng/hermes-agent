@@ -3,7 +3,7 @@
 ## 状态与目标
 
 - 日期：2026-11-07。
-- 状态：DESIGN_READY；本轮是范围修正和实施规划，尚未修改业务实现。
+- 状态：IMPLEMENTING；统一配置已进入实施，各领域以执行账本中的独立证据验收。
 - 用户已明确：SQLite 可选是 `hermes_db` 的后端选择能力；选择 PostgreSQL 后，系统不能仍依赖其他自有 SQLite 数据库才能工作。
 - 承接现有 [会话后端设计](postgresql-session-storage.md)、[代码分层设计](postgresql-storage-code-layout.md) 与 [会话阶段实施记录](../plans/postgresql-session-storage-plan.md)。已有会话后端继续复用，不重做技术选型。
 - 执行账本：[统一数据库后端实施计划](../plans/unified-database-backends-plan.md)。
@@ -63,7 +63,7 @@
 
 ## 配置与选择
 
-目标配置如下，**本计划实施前尚未生效**：
+统一配置如下；Task 1 接通配置选择，各领域 PG 能力按计划逐项实现：
 
 ```yaml
 storage:
@@ -79,7 +79,7 @@ storage:
 
 后端选择提升为 `storage.backend`，覆盖同一 Profile 全部自有数据库。`storage.postgresql` 统一提供连接、Schema、稳定身份与连接预算；DSN 仍只在已有 Profile secret scope 中读取。未配置时为 SQLite，不增加每组件 backend 配置。
 
-当前会话阶段的 `storage.session.*` 尚属开发分支配置。实施时统一更新解析器、默认值、注册、示例、所有测试和调用者；旧嵌套配置要明确报配置错误并给出修改位置，不能被忽略后静默回落 SQLite，也不新增永久双配置模式。
+会话阶段的 `storage.session.*` 属于旧开发分支配置。解析器、默认值、示例、测试和调用者统一采用新键；旧嵌套配置明确报配置错误并给出修改位置，不能被忽略后静默回落 SQLite，也不新增永久双配置模式。
 
 切换后端选择的是独立数据集，不读取旧 SQLite 作为 PG 的备用数据源。PG 缺配置、驱动、权限、扩展、版本或模块表时明确失败；不以自动创建本地库、禁用功能或只存在内存中的队列来继续报告成功。
 

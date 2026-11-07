@@ -2,8 +2,8 @@
 
 
 def snapshot_storage(home, files=()):
-    from hermes_cli.db_setup import session_backend
-    backend = session_backend(home)
+    from hermes_cli.db_setup import storage_backend
+    backend = storage_backend(home)
     if backend == "postgresql":
         print("PostgreSQL session data is excluded from this file backup; database backup and restore are operator-managed.")
     return {"backend": backend, "included": backend == "sqlite" and "state.db" in files}
@@ -12,12 +12,12 @@ def snapshot_storage(home, files=()):
 def full_backup_notice(root):
     from pathlib import Path
     from hermes_constants import named_profile_has_identity
-    from hermes_cli.db_setup import session_backend
+    from hermes_cli.db_setup import storage_backend
     homes = [Path(root)]
     profiles = Path(root) / "profiles"
     if profiles.is_dir():
         homes.extend(path for path in profiles.iterdir() if path.is_dir() and named_profile_has_identity(path))
-    if any(session_backend(home) == "postgresql" for home in homes):
+    if any(storage_backend(home) == "postgresql" for home in homes):
         print("PostgreSQL session data is excluded from this file backup; database backup and restore are operator-managed.")
 
 

@@ -914,9 +914,9 @@ async def backfill_session_owner_profiles(body: SessionOwnerBackfill, request: R
 
     with http_failure(
         "POST /api/sessions/owner-backfill failed", 500, detail="Internal server error"):
-        from hermes_cli.db_setup import session_backend
+        from hermes_cli.db_setup import storage_backend
         from hermes_cli.web_server_sessions import _session_db_path_for_profile
-        if session_backend(_session_db_path_for_profile(body.profile).resolve().parent) == 'postgresql':
+        if storage_backend(_session_db_path_for_profile(body.profile).resolve().parent) == 'postgresql':
             return {'ok': True, 'stamped': 0, 'profile': stamp}
         owner_db = _owner_db_for(request, body.profile)
         if owner_db is not None:

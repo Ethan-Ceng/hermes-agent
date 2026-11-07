@@ -42,9 +42,9 @@ def open_session_store(db_path=None, *, read_only=False):
 
 def session_store_exists(db_path=None):
     """Whether to attempt an open; PG reachability is determined by that open."""
-    from hermes_cli.db_setup import session_backend
+    from hermes_cli.db_setup import storage_backend
     path = _path(db_path)
-    if session_backend(path.resolve().parent) == "postgresql":
+    if storage_backend(path.resolve().parent) == "postgresql":
         return True
     from hermes_state import _default_db_path
     return (Path(_default_db_path()) if db_path is None else path).exists()

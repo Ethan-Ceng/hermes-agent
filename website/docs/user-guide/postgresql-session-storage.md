@@ -33,21 +33,26 @@ proceed if that extension is missing; they do not install extensions.
 
 In the owning profile's `config.yaml`, configure a fresh logical store:
 
+The selection now lives at `storage.backend` and `storage.postgresql`. Older
+development configurations under `storage.session` are rejected with instructions
+to move these keys. Domain adapters are being implemented in the
+[unified backend plan](https://github.com/NousResearch/hermes-agent/blob/main/docs/plans/unified-database-backends-plan.md);
+this configuration change alone does not establish full-system PostgreSQL support.
+
 ```yaml
 storage:
-  session:
-    backend: postgresql
-    postgresql:
-      dsn_env: HERMES_POSTGRES_DSN
-      schema: hermes
-      store_id: personal-main
-      pool_size: 5
-      max_overflow: 5
-      connection_budget: 10
-      pool_timeout_seconds: 30
-      connect_timeout_seconds: 10
-      write_lock_timeout_seconds: 10
-      statement_timeout_seconds: 60
+  backend: postgresql
+  postgresql:
+    dsn_env: HERMES_POSTGRES_DSN
+    schema: hermes
+    store_id: personal-main
+    pool_size: 5
+    max_overflow: 5
+    connection_budget: 10
+    pool_timeout_seconds: 30
+    connect_timeout_seconds: 10
+    write_lock_timeout_seconds: 10
+    statement_timeout_seconds: 60
 ```
 
 Set the connection secret in that profile's `.env` or its existing secret source:

@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 def _pg(monkeypatch, store):
     from hermes_cli import db_setup
-    monkeypatch.setattr(db_setup, "session_backend", lambda home=None: "postgresql")
+    monkeypatch.setattr(db_setup, "storage_backend", lambda home=None: "postgresql")
     monkeypatch.setattr(db_setup, "open_profile_sessions", lambda home=None, **kwargs: store)
     monkeypatch.setattr(store, "close", lambda: None)
 
@@ -48,7 +48,7 @@ def test_core_profile_repair_scan_and_move_batch_work_without_database_files(cor
     from hermes_cli.sessions_repair_profiles import Store, _MoveBatch, _Session
     source, target = core_pair
     homes = {db.scope.profile_home: db for db in core_pair}
-    monkeypatch.setattr(db_setup, "session_backend", lambda home: "postgresql")
+    monkeypatch.setattr(db_setup, "storage_backend", lambda home: "postgresql")
     monkeypatch.setattr(db_setup, "open_profile_sessions", lambda home, **kwargs: homes[home])
     for db in core_pair:
         monkeypatch.setattr(db, "close", lambda: None)

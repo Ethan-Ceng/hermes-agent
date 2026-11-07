@@ -10,9 +10,9 @@ def _profile(tmp_path, name, store="store-a", secret="a-secret"):
     home = tmp_path / name
     home.mkdir()
     (home / "config.yaml").write_text(
-        "storage:\n  session:\n    backend: postgresql\n    postgresql:\n"
-        f"      schema: hermes\n      store_id: {store}\n      pool_size: 2\n"
-        "      max_overflow: 1\n      connection_budget: 3\n", encoding="utf-8")
+        "storage:\n  backend: postgresql\n  postgresql:\n"
+        f"    schema: hermes\n    store_id: {store}\n    pool_size: 2\n"
+        "    max_overflow: 1\n    connection_budget: 3\n", encoding="utf-8")
     (home / ".env").write_text(f"HERMES_POSTGRES_DSN=postgresql://user:{secret}@localhost/db\n", encoding="utf-8")
     return home
 
@@ -58,7 +58,7 @@ def test_missing_profile_secret_does_not_use_another_profiles_process_env(tmp_pa
 def test_default_sqlite_entry_consumes_config_and_owns_its_home(tmp_path):
     home = tmp_path / "sqlite"
     home.mkdir()
-    (home / "config.yaml").write_text("storage: {session: {backend: sqlite}}\n", encoding="utf-8")
+    (home / "config.yaml").write_text("storage: {backend: sqlite}\n", encoding="utf-8")
     with open_profile_db(home) as db:
         assert db.scope.profile_home == home.resolve()
         db.sessions.create_session("s", source="cli")
@@ -95,8 +95,8 @@ def test_postgres_entry_is_fail_closed_when_unavailable(tmp_path, monkeypatch):
 
 
 @pytest.mark.parametrize("config", [
-    "storage: []", "storage: {session: []}", "storage: {session: {backend: unknown}}",
-    "storage: {session: {backend: postgresql, postgresql: {schema: hermes}}}",
+    "storage: []", "storage: {session: []}", "storage: {backend: unknown}",
+    "storage: {backend: postgresql, postgresql: {schema: hermes}}",
 ])
 def test_invalid_config_is_an_error_not_sqlite_fallback(tmp_path, config):
     (tmp_path / "config.yaml").write_text(config, encoding="utf-8")
@@ -110,6 +110,6 @@ def test_dsn_secret_routes_through_config_registry():
     from hermes_cli.config_defaults import OPTIONAL_ENV_VARS
     from hermes_cli.config_env_routing import is_env_setting_key
 
-    assert _validate_config_key("storage.session.postgresql.connection_budget")[0]
+    assert _validate_config_key("storage.postgresql.connection_budget")[0]
     assert is_env_setting_key("HERMES_POSTGRES_DSN")
     assert OPTIONAL_ENV_VARS["HERMES_POSTGRES_DSN"]["password"]

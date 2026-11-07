@@ -67,7 +67,7 @@ def test_pg_open_failure_and_backoff_both_remain_unavailable(tmp_path, monkeypat
     from hermes_db import access
     home = tmp_path / "pg"
     home.mkdir()
-    (home / "config.yaml").write_text("storage: {session: {backend: postgresql}}\n")
+    (home / "config.yaml").write_text("storage: {backend: postgresql}\n")
     store = object.__new__(SessionStore)
     store._db_handle_cache = RecoverableHandleCache()
     attempts = []

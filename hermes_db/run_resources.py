@@ -15,9 +15,9 @@ def _home():
 
 class ProfileRunStores:
     def __init__(self, sqlite_factory):
-        from hermes_cli.db_setup import session_backend
+        from hermes_cli.db_setup import storage_backend
         self._root = _home()
-        self._root_sqlite = session_backend(self._root) == "sqlite"
+        self._root_sqlite = storage_backend(self._root) == "sqlite"
         self._sqlite_factory = sqlite_factory
         self._stores = {self._root: open_run_store(self._root, sqlite_factory, launch=True)}
         self._scopes = {}
@@ -28,13 +28,13 @@ class ProfileRunStores:
             raise StorageClosedError("API Run resources are closed")
 
     def _home_store(self, home):
-        from hermes_cli.db_setup import session_backend
+        from hermes_cli.db_setup import storage_backend
         with self._lock:
             self._require_open()
             found = self._stores.get(home)
             if found is not None and (not isinstance(found, OwnedApiStore) or found.is_open):
                 return found
-        if home != self._root and self._root_sqlite and session_backend(home) == "sqlite":
+        if home != self._root and self._root_sqlite and storage_backend(home) == "sqlite":
             # Original SQLite runs keep their profile-qualified scopes in the launch store.
             candidate = self._home_store(self._root)
             shared = True

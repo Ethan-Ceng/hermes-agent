@@ -245,8 +245,8 @@ def _profile_session_fields(row, profile_path):
     def _read() -> dict:
         db_path = Path(profile_path) / "state.db"
         db = None
-        from hermes_cli.db_setup import open_profile_sessions, session_backend
-        if session_backend(Path(profile_path)) == "postgresql":
+        from hermes_cli.db_setup import open_profile_sessions, storage_backend
+        if storage_backend(Path(profile_path)) == "postgresql":
             db = _try(lambda: open_profile_sessions(Path(profile_path), read_only=True), None)
         elif _try(db_path.exists, False):
             db = _try(lambda: _lazy("hermes_state", "SessionDB")(db_path=db_path, read_only=True), None)
@@ -263,8 +263,8 @@ def _profile_session_fields(row, profile_path):
     # 5s per connection — so they are reused while that store has not moved (#117257).
     from tui_gateway.profile_roster_cache import cached_session_fields
 
-    from hermes_cli.db_setup import session_backend
-    row.update(_read() if session_backend(Path(profile_path)) == "postgresql" else cached_session_fields(profile_path, _read))
+    from hermes_cli.db_setup import storage_backend
+    row.update(_read() if storage_backend(Path(profile_path)) == "postgresql" else cached_session_fields(profile_path, _read))
 
 
 def _profile_ui_meta_fields(row: dict, profile_dir) -> None:
