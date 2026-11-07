@@ -12,8 +12,8 @@
 
 - 整体状态：`IN_PROGRESS`，恢复真实PG验收，最终门禁尚未通过。
 - 当前阶段：M1/M2主题实库验收通过，继续M3 API/投递/搜索/入口验收。
-- 当前任务：Task 15（in_progress：中文/布尔/长正文/真实查询计划PG）；Tasks 16–17为verification_pending，Task18最终门禁待补。
-- 已完成：14 / 18。
+- 当前任务：Task 16（in_progress：健康/文件引用/移动与清理竞争真实PG）；Task17为verification_pending，Task18最终门禁待补。
+- 已完成：15 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：用户已填写根.env并启用pg_trgm；PG17.11、扩展1.6(public)、CREATE权限和测试Schema归属/清理均已实测，连接TLS=false。继续按任务依赖顺序验收，不读取/改写既有业务表。
 - 最近更新时间：2026-11-07（Asia/Shanghai）。
@@ -830,7 +830,7 @@ Task14 完成/恢复点（2026-11-07）：真实 `tests/hermes_db/postgresql/tes
 
 ## Task 15：实现 PG 搜索与中文查询契约
 
-状态：in_progress（开始真实PG验收）
+状态：completed
 
 ### 目标
 
@@ -877,9 +877,11 @@ Task 15 实施细化：针对官方 tsvector <1 MB、位置上限 16383 和每 l
 
 Task 15 离线检查点：scripts/run_tests.sh tests/hermes_db tests/hermes_state/test_search_or_relaxed_fallback.py：63 files，384 passed / 0 failed，100.7s，exit 0（.build/postgresql/task15-tests.log）。Unicode 全正文调整后受影响 64 passed，11.4s；减少非内容更新的重复投影后，消息/Worker/剪枝/压缩/搜索 62 passed，12.2s，exit 0（task15-final-affected.log、task15-sync-tests.log）。最新 14 staged 检查通过，16 code files，0 blocking / 0 advisory，exit 0（task15-final-checks.log）。10 项真实 PG 搜索用例未执行，合计 211 项真实 PG 定义仍无执行证据，查询耗时/索引大小未取得。状态为 verification_pending；工厂未提前启用。下一项 Task 16 继续独立工作，不将 integration 的默认排除当作成功。
 
+Task15 完成/恢复点（2026-11-07）：真实 `test_search.py` 全部10项passed、0 failed、104.7s、exit0（pg-task15-search-tests.log）。覆盖固定中英/短词/布尔/字面量语料、scope、工具默认前缀及显式全文、压缩副本/撤销、10万unique词及晚出现重复短语的大消息、触发器回滚、当前PG revision回填。独立10000行数据本轮批量写入86.865s；EXPLAIN ANALYZE/BUFFERS：单字“龘”和双字“桂林”实际使用ix_messages_search_grams，执行1.368/2.275ms；uniqueprobe使用ix_message_search_chunks_fts等索引，0.620ms。该数据仅本机本轮证据，不外推通用吞吐承诺。搜索GIN索引bytes：grams5537792、trgm5062656、chunks_fts983040；完整计划/索引清单保存在.build/postgresql/pg-task15-search-evidence及汇总pg-task15-search-evidence-summary.json。测试Schema已按归属清理，证据文件保留。无生产变更，严格completed15/18；继续Task16健康/文件引用/移动与清理。
+
 ## Task 16：替换文件身份、健康与归档引用依赖
 
-状态：verification_pending（离线实现/契约和静态检查就位；真实 PG 与已证明的主机基线限制保留）
+状态：in_progress（开始真实PG验收；已证明的原主机基线限制继续保留）
 
 ### 目标
 
