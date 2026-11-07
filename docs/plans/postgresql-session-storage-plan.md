@@ -10,15 +10,17 @@
 
 ## 当前进度
 
-- 整体状态：`FAILED`，最终验收未通过，真实 PG 验证另受外部配置阻塞。
-- 当前阶段：M4 验证/审查检查点；M1–M3 的真实 PG 验证尚未完成。
-- 当前任务：Task 18（blocked：独立PG配置与完整验收证据待补）；Tasks 4–17 为 verification_pending。
+- 整体状态：`FAILED`，最终验收未通过；已取得配置并实际连接PG，当前环境前置被缺少pg_trgm阻塞。
+- 当前阶段：恢复M1真实环境验收；M4离线实现/审查检查点已保存，后续真实业务验证尚未完成。
+- 当前任务：Task 4（blocked：验收数据库尚未启用pg_trgm）；Tasks 5–17为verification_pending，Task18最终门禁待补。
 - 已完成：3 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
-- 执行前置条件：真实 PG 验证时需用户提供本地测试配置，实际版本、权限和扩展由 Task 4 检查；当前没有连接数据库。
+- 执行前置条件：用户已填写根.env；已实际连接PostgreSQL 17.11，CREATE权限存在，服务器提供pg_trgm 1.6但当前库未启用。管理员在验收库启用扩展后，先重跑Task4，再按依赖顺序继续。
 - 最近更新时间：2026-11-07（Asia/Shanghai）。
 
 配置文件补充交付：按用户后续要求，在根 .env.example 维护 PostgreSQL 连接秘密示例，并生成被 Git 忽略的项目根 .env，当前仅有待填写的 HERMES_POSTGRES_DSN 空值，不写入或覆盖实际 Profile 凭据，不切换运行后端。示例说明 Profile .env 与 config.yaml 的边界及 URL 编码。项目实际 load_env_file 解析检查通过；标准 scripts/run_tests.sh tests/hermes_cli/test_db_setup.py -- --tb=short 得到10 passed、0 failed、4.1s（.build/postgresql/env-example-config-tests.log）。真实PG仍未连接，任务状态及验收结论不变；填写本地连接串后才可继续准备实库验证配置。
+
+最新恢复点（用户已完成连接配置）：只读探测实际数据库hermes_agent、PG17.11、非只读副本、可创建Schema、现有28张用户表；未读取业务内容或修改既有表。pg_trgm服务端文件可用、默认版本1.6，installed_version为空；本次连接ssl=false。根.env经实际secret parser读取，生成.build/postgresql/private/acceptance-postgresql.yaml，仅在被忽略目录存放秘密，不输出DSN或提交凭据。此前“尚未提供配置/从未连接PG”均为历史检查点；当前阻塞已变为缺少扩展，不能继续沿用旧原因。
 
 ## 已确定的实施边界
 
@@ -219,7 +221,7 @@ python scripts/check
 
 ## Task 4：接通真实 PostgreSQL 测试配置与环境检查
 
-状态：verification_pending（测试入口已实现；真实 PG 配置未提供，不能标 completed）
+状态：blocked（已取得配置并连通真实PG；验收库缺少pg_trgm，不能标completed）
 
 ### 目标
 
@@ -260,6 +262,8 @@ python scripts/check
 ### 验证证据
 
 2026-11-06，PM Python 3.14.9：`scripts/run_tests.sh tests/hermes_db/test_test_config.py` 初次 10 passed（exit 0），新增非法 DSN 情况后最新 11 passed/0 skipped（exit 0）；UTF-8 `scripts/check --staged --base HEAD` 全部 14 checks 通过（0 blocking/0 advisory）。显式 `scripts/run_tests.sh tests/hermes_db/postgresql/test_environment.py -- -m integration` exit 1，0 passed/1 fixture error，清楚要求 --postgres-test-config，证明缺配置没有被 skip 当作通过；无真实连接尝试。默认示例文件 LOCALAPPDATA/HermesTests/postgresql.yaml 不存在。真实 PG 版本/权限/扩展/TLS/DDL 未验证，任务保持 verification_pending。
+
+Task4 实库恢复验证（2026-11-07）：从用户已配置的.env准备私有测试YAML后，实际只读连接PG17.11；CREATE权限通过、pg_trgm未启用，服务器扩展文件1.6已存在，TLS=false。标准命令 `HERMES_PYTHON=.build/postgresql/full-test-env/Scripts/python.exe D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/postgresql/test_environment.py -j 1 -- -m integration --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml --tb=short` 得0 passed/1 setup error、2.6s、exit1（pg-acceptance-environment-tests.log）；准确失败在pg_support.probe_environment的管理员扩展前置，不是连接或认证失败，未跳过后计通过。只读能力证据为pg-acceptance-preflight.log、pg-acceptance-capabilities.log。fixture在创建本轮Schema前即失败，因此本轮未执行PG DDL、未改业务表，也未安装扩展/服务。依据本任务步骤3，管理员须在验收库执行 `CREATE EXTENSION IF NOT EXISTS pg_trgm;`；不自动替管理员安装。启用后重跑本命令，成功再验证Task5及后续263项验收定义；业务/迁移/并发用例本轮尚未开始。严格completed仍3/18。
 
 ## Task 5：创建新库 Schema 与显式版本管理
 
@@ -1172,7 +1176,7 @@ PM python scripts/check --staged --base ff09cead02e906a4b1da909268c2cc58ec6e144d
 - 单元/SQLite扩大回归：307文件2224 passed、9 failed、1 teardown error、130 skipped、359.4s、exit1（task18-storage-regression.log，整改前）。已执行，未通过；不将未隔离的失败全归为基线。
 - 审查整改：七项新契约先6有效failed/1正常追加passed；主Agent复验5文件41 passed、11.4s，独立Reviewer再跑41 passed、11.7s，均exit0（task18-review-fix-tests.log、task18-core-review-recheck.log）。
 - 整改后全部离线后端/制品：98文件522 passed、0 failed、50.3s、exit0（task18-final-db-contracts.log），包括两套实际制品；默认过滤掉的真实PG定义未运行，不计通过。
-- PostgreSQL 集成、并发、故障与重启：263项定义未执行；没有数据库连接、实际版本、TLS或扩展实测证据。
+- PostgreSQL 实库环境：已实际连接PG17.11，CREATE权限通过，TLS=false，服务器提供pg_trgm1.6但当前验收库未启用；标准环境测试0 passed/1 setup error、exit1（pg-acceptance-environment-tests.log）。263项验收尚未通过，业务/迁移/并发/故障/重启部分仍未开始。
 - 普通入口扩大回归：Task17 四区域4105文件大回归exit1且无完整汇总，最后观察30035 passed/516 failed；单独TUI补跑亦exit1且无完整汇总，最后1427 passed/0 observed failed。未完成部分不计通过。
 - 静态检查：Task18首轮仅ruff的subprocess.check显式性未过，已修正；相对功能起点ff09cead02e9的最新全部14项通过，474 code files、0 blocking / 0 advisory、exit0（task18-feature-checks.log）。随后仅验证记录/设计说明更新，不改变代码。
 - 类型/生成制品：Worker wire/OpenRPC/TypeScript真实生成及契约12 passed；未运行TypeScript编译或完整前端构建，没有这些检查通过证据。
@@ -1203,7 +1207,7 @@ PM python scripts/check --staged --base ff09cead02e906a4b1da909268c2cc58ec6e144d
 
 ### 最终状态
 
-FAILED：已有执行失败，且真实PG验证还受外部配置阻塞。独立审查结论CHANGES_REQUIRED；不得宣称完整后端通过或READY_TO_MERGE。Task18离线实现、制品、审查整改与最终静态/局部复验记录保存为本地检查点，状态blocked，严格completed仍3/18。最新默认独立测试配置探测仍不存在；没有真实连接或安装管理数据库。恢复时先取得独立PG测试配置路径，按Task4的前置探针及后续任务依赖顺序补验，同时完成入口失败归类/对应平台回归。原SQLite七文件的9失败/1error已在功能起点复现；原工作区.gitignore的CRLF导致全工作区diff检查报空白，保持不动，只检查/提交本功能暂存内容。用户.gitignore和multi-user-web-chat.md持续不暂存、不清理。
+FAILED：已有执行失败，且真实PG验收前置被缺少pg_trgm阻塞。独立审查结论CHANGES_REQUIRED；不得宣称完整后端通过或READY_TO_MERGE。Task18离线实现、制品、审查整改与最终静态/局部复验记录已保存，严格completed仍3/18。用户已补连接配置，PG17.11实际连接成功；没有安装管理数据库服务或扩展。恢复时管理员先在验收库启用pg_trgm，再按Task4前置探针及后续任务依赖顺序补验，同时完成入口失败归类/对应平台回归。原SQLite七文件的9失败/1error已在功能起点复现；原工作区.gitignore的CRLF导致全工作区diff检查报空白，保持不动，只检查/提交本功能暂存内容。用户.gitignore和multi-user-web-chat.md持续不暂存、不清理。
 
 
 ## 恢复点
