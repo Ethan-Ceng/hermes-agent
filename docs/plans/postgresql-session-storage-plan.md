@@ -10,12 +10,12 @@
 
 ## 当前进度
 
-- 整体状态：`FAILED`，最终验收未通过；已取得配置并实际连接PG，当前环境前置被缺少pg_trgm阻塞。
-- 当前阶段：恢复M1真实环境验收；M4离线实现/审查检查点已保存，后续真实业务验证尚未完成。
-- 当前任务：Task 4（blocked：验收数据库尚未启用pg_trgm）；Tasks 5–17为verification_pending，Task18最终门禁待补。
-- 已完成：3 / 18。
+- 整体状态：`IN_PROGRESS`，恢复真实PG验收，最终门禁尚未通过。
+- 当前阶段：M1真实环境前置通过，继续Schema/初始化验收；后续真实业务验证按依赖顺序补齐。
+- 当前任务：Task 5（in_progress：真实Schema验收及初始化/启动扩展就绪检查）；Tasks 6–17为verification_pending，Task18最终门禁待补。
+- 已完成：4 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
-- 执行前置条件：用户已填写根.env；已实际连接PostgreSQL 17.11，CREATE权限存在，服务器提供pg_trgm 1.6但当前库未启用。管理员在验收库启用扩展后，先重跑Task4，再按依赖顺序继续。
+- 执行前置条件：用户已填写根.env并启用pg_trgm；PG17.11、扩展1.6(public)、CREATE权限和测试Schema归属/清理均已实测，连接TLS=false。继续按任务依赖顺序验收，不读取/改写既有业务表。
 - 最近更新时间：2026-11-07（Asia/Shanghai）。
 
 配置文件补充交付：按用户后续要求，在根 .env.example 维护 PostgreSQL 连接秘密示例，并生成被 Git 忽略的项目根 .env，当前仅有待填写的 HERMES_POSTGRES_DSN 空值，不写入或覆盖实际 Profile 凭据，不切换运行后端。示例说明 Profile .env 与 config.yaml 的边界及 URL 编码。项目实际 load_env_file 解析检查通过；标准 scripts/run_tests.sh tests/hermes_cli/test_db_setup.py -- --tb=short 得到10 passed、0 failed、4.1s（.build/postgresql/env-example-config-tests.log）。真实PG仍未连接，任务状态及验收结论不变；填写本地连接串后才可继续准备实库验证配置。
@@ -221,7 +221,7 @@ python scripts/check
 
 ## Task 4：接通真实 PostgreSQL 测试配置与环境检查
 
-状态：blocked（已取得配置并连通真实PG；验收库缺少pg_trgm，不能标completed）
+状态：completed
 
 ### 目标
 
@@ -267,7 +267,9 @@ Task4 实库恢复验证（2026-11-07）：从用户已配置的.env准备私有
 
 ## Task 5：创建新库 Schema 与显式版本管理
 
-状态：verification_pending（Schema/迁移/命令实现已完成离线验证；真实 PG DDL 等待 Task 4）
+Task4 完成证据（2026-11-07）：管理员启用pg_trgm后，标准runner真实环境测试1 passed、0 failed、1.6s、exit0（pg-acceptance-environment-enabled.log），实际创建并按归属标记清理唯一Schema；配置/归属保护契约11 passed、1.4s、exit0（pg-acceptance-config-contracts.log）。只读能力记录PG170011/17.11、pg_trgm1.6/public、psycopg3.3.7、SQLAlchemy2.1.6、TLS=false（pg-acceptance-environment-evidence.log）。没有将该项环境通过外推为全部业务通过；严格完成4/18。
+
+状态：in_progress（Task4真实前置已通过；开始真实DDL及用户提出的初始化/启动扩展就绪改进）
 
 ### 目标
 
