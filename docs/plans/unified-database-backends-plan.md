@@ -11,8 +11,8 @@
 
 - 整体状态：`IN_PROGRESS`。
 - 当前阶段：统一配置与基础资源实施。
-- 当前任务：Task 3（pending；Task 1 提交 `41f4258e91`）。
-- 已完成：2 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前任务：Task 4（pending；Task 1 `41f4258e91`，Task 2 `4d9d0c0430`）。
+- 已完成：3 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-07（Asia/Shanghai）。
@@ -168,7 +168,7 @@ $pgTestConfig = Join-Path $PWD '.build/postgresql/private/acceptance-postgresql.
 
 ## Task 3：统一 Agent 验证证据数据库
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -206,11 +206,11 @@ $pgTestConfig = Join-Path $PWD '.build/postgresql/private/acceptance-postgresql.
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+新增0005_verification（冻结DDL）及scoped Core事件/状态/锁表，精确文本用BYTEA；状态引用包含store_id外键。复用现有分类器，记录/编辑/状态入口按统一配置分流；PG以短事务、每store行锁合并编辑、共享完整证明及保留清理，SQLite原生接口继续独立使用。进程内未归因记录增加Profile键。终端消费者明确返回unavailable、编辑消费者记录存储警告，停止读取错误传播；不伪造成功证据。核对fcbdf3c356历史意图并用失败合同发现SQLite单会话上限误删其他会话仍引用的完整证明，已补引用保护，与PG保留规则一致。提交标题：feat(storage): persist verification evidence on selected backend。恢复点：Task 4。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+现有PM解释器/原生Windows：修改前实际PG证据入口测试exit1、1 failed，禁止所有SQLite连接时捕获verification_evidence.db连接（unified-task3-red.log）。`scripts/run_tests.sh tests/agent/test_verification_evidence.py tests/agent/test_verification_evidence_fd_leak.py tests/agent/test_verification_evidence_retention.py -j 3` exit0，66 passed/0 failed，无skip（unified-task3-sqlite-final.log）；共享证明保留新合同修正前1 failed（unified-task3-retention-red.log）。`scripts/run_tests.sh tests/hermes_db/postgresql/test_verification_store.py tests/hermes_db/postgresql/test_schema.py tests/hermes_db/postgresql/test_domain_schema.py -j 3 -- -m integration --postgres-test-config=$pgTestConfig` exit0，12 passed/0 failed/0 skipped（unified-task3-pg-final.log）。独立子进程恢复新增后再运行test_verification_store.py相同PG参数，exit0、3 passed（unified-task3-process.log）：父/子均拒绝所有SQLite连接，子进程恢复证明并写回编辑，父进程读到stale。实测12并发编辑、NUL/Unicode、跨store、引用/上限/过期、终端/停止/编辑入口和缺表错误，无外部模型/网络请求。停止提示及领域合同另有18 passed、2项POSIX平台skip；一次附带marker_schema文件未选中integration，不计实库证据。`PM Python scripts/check --staged --base 4d9d0c0430` 最终exit0、14 checks ok（unified-task3-checks-final.log），diff --check通过。未验证：POSIX适用测试、全系统业务单后端流程和最终审查，留至后续门禁。
 
 ## Task 4：统一 Projects 与发现缓存数据库
 
@@ -1194,7 +1194,7 @@ CLI/Gateway/Web/TUI/Desktop/ACP/Agent及后台任务统一接入领域能力。
 
 ### 未通过与未验证
 
-Task 1–2 已完成，Task 3–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
+Task 1–3 已完成，Task 4–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
 
 ### 最终状态
 
@@ -1202,6 +1202,6 @@ Task 1–2 已完成，Task 3–24 尚未完成；不得宣称全系统PG已完�
 
 ## 恢复点
 
-Task 1–2 配置/领域基础已验收；本地提交后从 Task 3 继续。分支与初始干净工作区已核对，正式实例仍保持 SQLite；开发未写正式 Profile、秘密或业务数据库。
+Task 1–3 配置/领域基础与验证证据已验收；本地提交后从 Task 4 继续。分支与初始干净工作区已核对，正式实例仍保持 SQLite；开发未写正式 Profile、秘密或业务数据库。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

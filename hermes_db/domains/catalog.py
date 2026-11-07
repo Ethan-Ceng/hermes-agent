@@ -15,7 +15,10 @@ KNOWN_DOMAINS = (
     "sessions", "verification", "projects", "cron_executions", "cron_deliveries", "cron_notepad",
     "kanban", "rooms", "room_attachments", "metrics", "plugins", "discord_recovery", "retain_queue", "matrix_crypto",
 )
-POSTGRES_DOMAINS = {"sessions": DomainSpec("0004_model_markers", ("conversations", "runtime", "gateway", "api"))}
+POSTGRES_DOMAINS = {
+    "sessions": DomainSpec("0004_model_markers", ("conversations", "runtime", "gateway", "api")),
+    "verification": DomainSpec("0005_verification", ("verification",)),
+}
 
 
 def require_domain(name):

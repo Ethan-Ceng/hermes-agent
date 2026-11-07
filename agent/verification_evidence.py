@@ -28,7 +28,7 @@ _VERIFY_SCHEMA_VERSION = 1
 # Latest verify-command run per (session, root) whose own exit status the shell hid, with the
 # time it ran. Read by the stop nudge in this same process, so it stays in memory; bounded for
 # long-lived gateways.
-_UNATTRIBUTED_RUNS: dict[tuple[str, str], tuple[str, str]] = {}
+_UNATTRIBUTED_RUNS: dict[tuple[str, str, str], tuple[str, str]] = {}
 _MAX_UNATTRIBUTED_RUNS = 256
 
 _INTERPRETERS = {"python", "python3", "py", "node", "bash", "sh", "ruby", "perl"}
@@ -118,6 +118,10 @@ class VerificationEvidence:
 
 def _utc_now() -> str:
     return datetime.now(UTC).isoformat()
+
+
+def _run_key(session_id, root):
+    return (str(get_hermes_home().resolve()), str(session_id or "default"), str(root))
 
 
 def _db_path() -> Path:
@@ -503,7 +507,8 @@ def _prune_old_events(conn: sqlite3.Connection, *, session_id: str, root: str) -
     conn.execute(
         "DELETE FROM verification_events WHERE session_id = ? AND root = ? AND id NOT IN ("
         " SELECT id FROM verification_events WHERE session_id = ? AND root = ?"
-        " ORDER BY id DESC LIMIT ?)",
+        " ORDER BY id DESC LIMIT ?) AND id NOT IN ("
+        " SELECT last_event_id FROM verification_state WHERE last_event_id IS NOT NULL)",
         (session_id, root, session_id, root, _MAX_EVENTS_PER_SESSION_ROOT),
     )
     conn.execute(
@@ -610,7 +615,7 @@ def record_terminal_result(
     facts = _project_facts(cwd)
     if not facts:
         return None
-    key = (str(session_id or "default"), _root_for(facts, cwd))
+    key = _run_key(session_id, _root_for(facts, cwd))
     evidence = _classify_in_workspace(
         command, facts, cwd=cwd, session_id=session_id, exit_code=exit_code, output=output,
         pipeline_status=pipeline_status,
@@ -633,7 +638,7 @@ def last_unattributed_run(
     unless evidence recorded at ``since`` came after it. ``hermes verify`` usually records
     from its own process, so this process's memory alone cannot know about that run.
     """
-    run = _UNATTRIBUTED_RUNS.get((str(session_id or "default"), str(root)))
+    run = _UNATTRIBUTED_RUNS.get(_run_key(session_id, root))
     if run is None or (since and since >= run[1]):
         return None
     return run[0]
@@ -665,7 +670,16 @@ def _insert_evidence(evidence: VerificationEvidence) -> dict[str, Any]:
     """Insert a classified evidence row and repoint the workspace state."""
     created_at = _utc_now()
     e = evidence
-    _UNATTRIBUTED_RUNS.pop((e.session_id, e.root), None)
+    _UNATTRIBUTED_RUNS.pop(_run_key(e.session_id, e.root), None)
+    from hermes_db.domains.verification import postgres_resource
+
+    resource = postgres_resource()
+    if resource is not None:
+        from hermes_db.operations.verification import record
+        with resource:
+            return record(resource, e.__dict__, created_at,
+                cutoff=(datetime.now(UTC) - timedelta(days=_MAX_EVIDENCE_AGE_DAYS)).isoformat(),
+                per_root_limit=_MAX_EVENTS_PER_SESSION_ROOT, total_limit=_MAX_TOTAL_UNREFERENCED_EVENTS)
     with _DB_LOCK, _transaction() as conn:
         cur = conn.execute(
             "INSERT INTO verification_events("
@@ -717,6 +731,13 @@ def mark_workspace_edited(
     root = _root_for(facts, cwd)
     changed_paths = sorted({str(p) for p in (paths or []) if p})
     edited_at = _utc_now()
+
+    from hermes_db.domains.verification import postgres_resource
+    resource = postgres_resource()
+    if resource is not None:
+        from hermes_db.operations.verification import mark_edited
+        with resource:
+            return mark_edited(resource, sid, root, changed_paths, edited_at)
 
     with _DB_LOCK, _transaction() as conn:
         row = conn.execute(
@@ -775,6 +796,12 @@ def verification_status(*, session_id: str | None, cwd: str | Path | None) -> di
 
     sid = str(session_id or "default")
     root = _root_for(facts, cwd)
+    from hermes_db.domains.verification import postgres_resource
+    resource = postgres_resource()
+    if resource is not None:
+        from hermes_db.operations.verification import status
+        with resource:
+            return status(resource, sid, root)
     with _DB_LOCK, _transaction() as conn:
         state = conn.execute(
             "SELECT last_event_id, last_edit_at, changed_paths_json"

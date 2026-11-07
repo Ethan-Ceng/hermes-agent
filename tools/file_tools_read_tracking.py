@@ -411,6 +411,7 @@ def _mark_verification_stale(task_id: str, resolved_paths: list[str],
     """Best-effort note that successful edits made prior verification stale. cwd: the
     first edited path's recognised project root, else the workspace root, else the first parent."""
     from pathlib import Path
+    from hermes_db.errors import StorageError
 
     paths = [p for p in resolved_paths if p]
     if not paths:
@@ -423,5 +424,7 @@ def _mark_verification_stale(task_id: str, resolved_paths: list[str],
         cwd = (next((c for c in parents if project_facts_for(c)), None)
                or _authoritative_workspace_root(task_id) or parents[0])
         mark_workspace_edited(session_id=session_id or task_id, cwd=cwd, paths=paths)
+    except StorageError as error:
+        logger.warning("Verification evidence could not record the edit: %s", error)
     except Exception:
         logger.debug("verification stale marker failed", exc_info=True)

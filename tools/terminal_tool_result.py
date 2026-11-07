@@ -196,9 +196,13 @@ def _redact_spill_file(path, total_chars, command) -> list[tuple[str, Any]]:
 def _verification_evidence(command, cwd, session_id, returncode, output, pipeline_status=None) -> Optional[dict]:
     with _quiet("verification evidence recording"):
         from agent.verification_evidence import record_terminal_result
-        evidence = record_terminal_result(command=command, cwd=cwd, session_id=session_id,
-                                          exit_code=returncode, output=output,
-                                          pipeline_status=pipeline_status)
+        from hermes_db.errors import StorageError
+        try:
+            evidence = record_terminal_result(command=command, cwd=cwd, session_id=session_id,
+                                              exit_code=returncode, output=output,
+                                              pipeline_status=pipeline_status)
+        except StorageError as error:
+            return {"status": "unavailable", "error": str(error)}
         if evidence:
             return {k: evidence.get(k) for k in ("status", "kind", "scope", "canonical_command")}
     return None
