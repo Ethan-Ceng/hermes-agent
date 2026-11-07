@@ -4,7 +4,7 @@ import time
 
 from hermes_db.message_codec import codec
 from hermes_db.repositories import messages as repo, sessions as session_repo
-from hermes_db.repositories.session_queries import json_value
+from hermes_db.query_projections import display_value
 from hermes_db.tables.conversations import messages
 
 
@@ -57,7 +57,7 @@ class SessionMessageReactions:
             session_repo.lock_session(conn, self.scope, session_id)
             ids = repo.resume_lineage(conn, self.scope, session_id)
             rows = repo.select_rows(conn, self.scope, ids, repo.visible(),
-                                    json_value(conn, messages.c.display_metadata, "reactions").is_not(None))
+                                    display_value(messages.c.display_metadata, "reactions").is_not(None))
             pending = []
             for row in rows:
                 metadata = codec._decode_display_metadata(row["display_metadata"]) or {}

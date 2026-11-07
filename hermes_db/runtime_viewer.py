@@ -1,12 +1,23 @@
 """Viewer-close fences and narrow owner listing reads."""
 
-from sqlalchemy import and_, literal, select
+import json
+
+from sqlalchemy import select
 
 from hermes_db.repositories import runtime, session_queries, sessions
 from hermes_db.tables.conversations import sessions as table
 from hermes_db.tables.runtime import session_admissions, state_meta, worker_executions
 from hermes_db.values import decode_text
 from hermes_state_mutation_retirement import VIEWER_CLOSE_PREFIX
+
+
+def _policy_target(raw):
+    if raw is None:
+        return None
+    record = json.loads(raw)
+    entry = record.get('entry') if isinstance(record, dict) else None
+    target = entry.get('session_id') if isinstance(entry, dict) else None
+    return target if isinstance(target, str) else None
 
 
 class RuntimeViewer:
@@ -41,13 +52,16 @@ class RuntimeViewer:
         fields = ("id", "source", "title", "started_at", "ended_at", "message_count", "model", "hidden", "archived",
             "runtime_revision", "runtime_generation")
         with self._store._read() as conn:
-            meta, target = state_meta.alias("receipt"), table.alias("receipt_target")
-            target_ended = select(target.c.ended_at).select_from(meta.join(target, and_(target.c.store_id == meta.c.store_id,
-                target.c.id == session_queries.json_path_value(conn, meta.c.value, "entry.session_id")))).where(
-                meta.c.store_id == self.scope.require_store_id(), meta.c.key == literal(POLICY_PREFIX) + table.c.id).correlate(table).scalar_subquery()
-            rows = [dict(row) for row in conn.execute(select(*[table.c[name] for name in fields],
-                target_ended.label("target_ended_at")).where(table.c.store_id == self.scope.require_store_id(),
+            rows = [dict(row) for row in conn.execute(select(*[table.c[name] for name in fields]).where(
+                table.c.store_id == self.scope.require_store_id(),
                 table.c.id.in_(session_ids))).mappings()]
+            receipts = conn.execute(select(state_meta.c.key, state_meta.c.value).where(
+                state_meta.c.store_id == self.scope.require_store_id(),
+                state_meta.c.key.in_([POLICY_PREFIX + row['id'] for row in rows])))
+            targets = {key[len(POLICY_PREFIX):]: _policy_target(raw) for key, raw in receipts}
+            ended = dict(conn.execute(select(table.c.id, table.c.ended_at).where(
+                table.c.store_id == self.scope.require_store_id(),
+                table.c.id.in_([target for target in targets.values() if target is not None]))).all())
             pending = conn.execute(select(session_admissions.c.target_session_id, session_admissions.c.admission_id,
                 session_admissions.c.seq, session_admissions.c.status).where(session_admissions.c.store_id == self.scope.require_store_id(),
                 session_admissions.c.target_session_id.in_(session_ids), session_admissions.c.status.in_(("queued", "started", "unknown")))
@@ -55,6 +69,7 @@ class RuntimeViewer:
         by_session = {}
         for row in rows:
             row["title"] = decode_text(row["title"])
+            row['target_ended_at'] = ended.get(targets.get(row['id']))
         for row in pending:
             by_session.setdefault(row["target_session_id"], []).append(dict(row))
         return {row["id"]: row for row in rows}, by_session

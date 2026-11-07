@@ -21,6 +21,14 @@ def encode_config(config):
     return json.dumps(config) if config else None
 
 
+def model_markers(raw):
+    config = model_config(raw)
+    origin = config.get('_delegate_from')
+    return {'delegate_origin': encode_text(origin) if isinstance(origin, str) else None,
+        'has_delegate_marker': int(origin is not None),
+        'has_branch_marker': int(config.get('_branched_from') is not None)}
+
+
 def explicit_fork(row, parent_id=None):
     parent_id = parent_id or row.get("parent_session_id")
     config = model_config(row.get("model_config"))

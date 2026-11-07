@@ -24,7 +24,8 @@ def test_viewer_close_compare_delete_and_live_facts_are_backend_scoped(store, ru
     row = runtime.admit_input(epoch=epoch, principal_id="human", session_id="s", request_id="r", payload={"text": "queued"})
     assert _busy(owner, "s", "s")
     assert _idle_s(owner, "s") >= 0
-    store.set_meta(POLICY_PREFIX + "s", json.dumps({"entry": {"session_id": "target"}}))
+    store.set_meta(POLICY_PREFIX + "s", json.dumps({"entry": {"session_id": "target"},
+        "policy": {"skills_prompt": "before\x00after"}}))
     facts, pending = _store_facts(store, ["s", "absent"])
     assert list(facts) == ["s"] and facts["s"]["title"] == "会话"
     assert facts["s"]["target_ended_at"] == store.get_session("target")["ended_at"]

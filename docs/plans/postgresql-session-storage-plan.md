@@ -11,9 +11,9 @@
 ## 当前进度
 
 - 整体状态：`IN_PROGRESS`，恢复真实PG验收，最终门禁尚未通过。
-- 当前阶段：M1/M2主题实库验收通过，继续M3 API/投递/搜索/入口验收。
-- 当前任务：Task 17（in_progress：普通入口与恢复链路真实PG）；Task18最终门禁待补。
-- 已完成：16 / 18。
+- 当前阶段：M1–M3真实PG验收通过，进入M4发行模式与最终门禁。
+- 当前任务：Task 18（in_progress：发行实库初始化、整体回归/构建与最终独立审查）。
+- 已完成：17 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：用户已填写根.env并启用pg_trgm；PG17.11、扩展1.6(public)、CREATE权限和测试Schema归属/清理均已实测，连接TLS=false。继续按任务依赖顺序验收，不读取/改写既有业务表。
 - 最近更新时间：2026-11-07（Asia/Shanghai）。
@@ -966,7 +966,15 @@ Task 16 最终 staged 全部 14 检查通过，76 code files、0 blocking / 0 ad
 
 ## Task 17：统一 CLI、Web、Gateway、TUI、ACP 与 Agent 接线
 
-状态：in_progress（真实PG入口验收；原跨平台回归限制保留）
+状态：completed（0004全部真实PG及最新离线/变更入口回归通过；整体门禁由Task18完成）
+
+Task17最终完成/恢复点（2026-11-07）：最终统一hex投影版本标准runner实库20文件284 passed / 0 failed、237.4s、exit0（pg-task17-final-hex-postgresql.log），覆盖全部主题含Schema0004新库/当前PG回填、启动依赖、队列/Worker、租约/压缩、删除/路由/API/投递/搜索及10项真实入口。全离线108文件546 passed / 0 failed / 2发行环境参数未提供skip、73.0s（pg-task17-hex-projections-offline.log）；改动的14个既有入口/CLI/工具测试189 passed、74.6s（pg-task17-changed-consumers-final.log）；14静态检查全通过，31代码文件0 blocking/0 advisory（pg-task17-hex-projections-checks.log）。独立审查已核对并关闭NUL/类型比较、SQLite投影键和移动摘要整改，详见docs/reviews/postgresql-surface-projections-review.md；整体保留CHANGES_REQUIRED。恢复点：保存本地Task17 commit，刷新独立source-bundle到该commit后验证实际PG初始化；Task18继续整体门禁，原Windows/Source基线及未完成宽域回归限制不消失。
+
+0004调整补充（冻结前）：真实admit_display→worker_display_kwargs产生的NUL title_preview，同样使display_message_count失败（pg-task17-display-metadata-red.log）。消息display_metadata增加内部display_query JSONB投影：顶层键和值各自先序列化为ASCII JSON字符串，原文仍保留；查询只比较该字符串，不再次解析其内容，避免NUL及键/类型碰撞。中央insert/update及INSERT SELECT克隆保持投影，migration冻结同算法回填。身份比较参数同步编码，model-only的bool/int/字符串true/1语义保持。该列不暴露业务行或参与移动内容摘要。0004尚未提交，仅用于可丢弃测试Schema，扩展后须全量复验；不是改动已交付revision。
+
+Task17设计调整（实施前记录，测试前置错误已更正）：固定路径TEXT投影仍会解码无关NUL，webhook已改scoped水位/128行分批后Python解析；viewer同快照读取请求范围的policy原文和目标，3项真实复验通过。进一步确认模型extra_body.stop=['NUL']是合法API配置，保存后key_scan/deletion两项实库有效红灯（pg-task17-model-options-red.log）；listing最初误传exclude_children参数导致TypeError，不计为有效SQL红灯，已改为include_children=False复验。因此增加当前PG Schema 0004的delegate/branch存在标记和BYTEA委派来源派生列，统一创建/更新时计算，替换模型JSON的固定标记谓词；任意配置路径键扫描改为作用域原文解析。原model_config不变，已有0001–0003冻结，仅回填当前PG库；无SQLite导入、无文本替换、无清洗配置。影响：显式upgrade和发行资源须包含0004，全部真实PG及克隆/移动/导入/回滚需重新验证；不能沿用0003旧绿灯宣称最新迁移通过。
+
+Task17真实PG恢复点：test_surface_flow首轮7 passed/3 failed；HTTP创建503仅整文件出现，单独1 passed，原因待定位；共享Hosted测试mkdir前置条件已修正。新增启动NUL与viewer策略投影两项均红灯，临时脱敏DBAPI观察确认22P05（整payload转JSONB拒绝NUL）和42883（text=jsonb比较）。两处改用既有固定路径TEXT投影，保留原正文/缺失/JSON null语义和store隔离；详见docs/debug/postgresql-surface-projections.md。先复验及同模式审计，Task17未完成，不能跳过失败进入最终门禁。
 
 ### 目标
 
@@ -1107,7 +1115,7 @@ Task18 安装验证调整：PM requirements 首次收到裸 Windows 路径被 PE
 
 ## Task 18：完成配置文档、最终验证与代码审查
 
-状态：blocked
+状态：in_progress（真实PG配置和扩展阻塞已解除；继续发行与最终门禁）
 
 ### 目标
 

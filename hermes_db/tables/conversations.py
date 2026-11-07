@@ -1,7 +1,7 @@
 """Conversation, exact transcript, prompt snapshots, and multidimensional usage."""
 
 from sqlalchemy import BigInteger, Column, Double, Identity, Index, JSON, LargeBinary, Text
-from sqlalchemy.dialects.postgresql import ARRAY, TSVECTOR
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, TSVECTOR
 
 from hermes_db.tables.metadata import scoped_fk, scoped_table, text_columns, zero_columns
 
@@ -21,7 +21,8 @@ sessions = scoped_table(
                   "handoff_state", "handoff_platform", "profile_name", "transport_profile", "tool_names"),
     *[Column(name, LargeBinary) for name in ("system_prompt", "display_name", "title", "last_activity_description",
                                            "handoff_error", "compression_failure_error")],
-    Column("title_search", Text),
+    Column("title_search", Text), Column("delegate_origin", LargeBinary),
+    *zero_columns("has_delegate_marker", "has_branch_marker"),
     *[Column(name, Double) for name in ("ended_at", "last_activity_at", "last_read_at", "estimated_cost_usd",
                                       "actual_cost_usd", "compression_failure_cooldown_until", "compression_recovery_deadline")],
     *zero_columns("runtime_revision", "runtime_generation", "git_metadata_generation", "transcript_revision",
@@ -44,6 +45,7 @@ Index("uq_sessions_store_title", sessions.c.store_id, sessions.c.title, unique=T
 
 messages = scoped_table(
     "messages", Column("id", BigInteger, Identity(), nullable=False),
+    Column("display_query", JSON().with_variant(JSONB, 'postgresql'), nullable=False, server_default='{}'),
     Column("session_id", Text, nullable=False), Column("role", Text, nullable=False),
     Column("timestamp", Double, nullable=False), Column("token_count", BigInteger),
     *text_columns("tool_call_id", "tool_calls", "tool_name", "effect_disposition", "finish_reason",

@@ -9,10 +9,13 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 
 
 @pytest.fixture
-def surface_config(postgres_test_config, postgres_schema, tmp_path):
+def surface_config(postgres_test_config, postgres_schema, tmp_path, monkeypatch):
     import hermes_yaml as yaml
     from hermes_db.schema import upgrade_schema
     from hermes_db.access import close_session_resources
+    import hermes_state
+    # The root isolation fixture pins this constant; exercise call-time profile resolution.
+    monkeypatch.setattr(hermes_state, 'DEFAULT_DB_PATH', hermes_state._IMPORT_DEFAULT_DB_PATH)
     settings = replace(postgres_test_config.settings, schema=postgres_schema, pool_size=1,
         max_overflow=0, connection_budget=1, pool_timeout_seconds=2)
     upgrade_schema(settings)
@@ -99,6 +102,10 @@ async def test_gateway_api_responses_and_run_receipts_share_one_connection(surfa
     try:
         runner = GatewayRunner()
         owner = await initialize_session_authority(runner, profile_id=str(home), instance_id='pg-surface')
+        from hermes_db.health import profile_home_for_store
+        assert profile_home_for_store(owner.db) == home.resolve()
+        from gateway.session_authorities import authority_for_home
+        assert authority_for_home(runner, home) is owner
         runner.session_authority = owner
         adapter = APIServerAdapter(PlatformConfig(enabled=True))
         adapter.gateway_runner, adapter._session_db, adapter._api_key = runner, owner.db, 'test-key'

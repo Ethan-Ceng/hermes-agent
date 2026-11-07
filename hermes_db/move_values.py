@@ -20,7 +20,8 @@ def digest(value):
 def snapshot_digest(snapshot):
     # Parent-first source retirement detaches remaining children. Those map
     # changes must not masquerade as newly generated content in the next move.
-    ignored = {"store_id", "parent_session_id", "lineage_root_id", "runtime_revision", "runtime_generation"}
+    ignored = {"store_id", "parent_session_id", "lineage_root_id", "runtime_revision", "runtime_generation",
+        "delegate_origin", "has_delegate_marker", "has_branch_marker"}
     data = {name: snapshot[name] for name in ("session", "system_prompt", "tool_pin", "messages", "usage")}
     return digest({**data, "session": {name: value for name, value in snapshot["session"].items() if name not in ignored}})
 

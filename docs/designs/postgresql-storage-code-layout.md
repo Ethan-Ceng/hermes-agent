@@ -295,4 +295,10 @@ Native 房间提交先在持久化 worker 线程取得本地协调库的写入�
 
 这属于解除主库依赖的执行调整，独立房间元数据仍依赖本机文件；本轮不增加房间 PG Schema、旧数据导入、跨节点房间协调或独立数据库的多副本保证。后续必须用行为契约验证本地房间授权回滚、PG 提交确认丢失后的同身份查询，以及房间成员/任务变更无法跨过准入栅栏。
 
-此处记录已落位代码，不代表 Task 17 已完成。普通资源获取、Run 路由/恢复、API/Worker CoreEffect 和关停释放已接入，显式 PG 配置由工厂获取 Native 资源；启动仍只检查 Schema，不执行 DDL。当前格式历史续接使用 Native claim，在一个受栅栏保护的事务中提交策略与路由，保留原消息和提示前缀，不调用 SQLite 旧格式采用。真实 PG surface 验证尚未执行；状态与最新命令证据以实施计划为准。
+此处记录已落位代码，不代表 Task 17 已完成。普通资源获取、Run 路由/恢复、API/Worker CoreEffect 和关停释放已接入，显式 PG 配置由工厂获取 Native 资源；启动仍只检查 Schema，不执行 DDL。当前格式历史续接使用 Native claim，在一个受栅栏保护的事务中提交策略与路由，保留原消息和提示前缀，不调用 SQLite 旧格式采用。状态与最新命令证据以实施计划为准。
+
+### 真实PG验收调整：不解析含正文的JSON做标记查询
+
+PG的JSON/JSONB getter会在无关字段也解码NUL，实际模型stop选项可触发列表、删除和配置键扫描失败。0004增加delegate/branch存在标记及BYTEA委派来源投影，随原model_config在同事务创建/更新，克隆复制、导入重算；0001–0003不改，升级分批回填当前PG数据。原配置仍是完整TEXT JSON。任意配置路径扫描和webhook恢复在当前store分批读原文后Python解析；viewer只读取请求session的policy并在同一读快照查询目标。此调整增加派生列和当前PG revision，不迁移SQLite、不清洗提示/正文，不放宽作用域或执行栅栏。
+
+消息display_metadata的title_preview也可合法含NUL，0004冻结前增加内部display_query JSONB投影。顶层键和值分别序列化为ASCII JSON字符串，JSON null仍为null；SQL比较绑定同算法字符串，保持键、值和类型的区分，不对原metadata做字符替换。中央消息insert/update同步派生，INSERT SELECT保留，decoded_row移除内部列；冻结迁移分批回填，内容摘要排除派生字段。原display_metadata、正文、提示和工具快照保持完整。

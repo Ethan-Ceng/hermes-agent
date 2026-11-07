@@ -77,12 +77,20 @@ class SessionMetadata:
             return tip
 
     def session_ids_with_model_config_key(self, key):
-        # JSON text stays byte-stable; PG's expression handles the key as data.
-        from hermes_db.repositories.session_queries import json_path_value
+        from hermes_db.json_paths import path_value
+        found, cursor = [], None
         with self._read() as conn:
-            statement = select(sessions.c.id).where(sessions.c.store_id == self.scope.require_store_id(),
-                json_path_value(conn, sessions.c.model_config, key).is_not(None)).order_by(sessions.c.started_at.desc())
-            return list(conn.execute(statement).scalars())
+            statement = select(sessions.c.id, sessions.c.started_at, sessions.c.model_config).where(
+                sessions.c.store_id == self.scope.require_store_id()).order_by(sessions.c.id).limit(128)
+            while True:
+                page = statement.where(sessions.c.id > cursor) if cursor is not None else statement
+                rows = conn.execute(page).mappings().all()
+                if not rows:
+                    break
+                found.extend((row['started_at'], row['id']) for row in rows
+                    if path_value(model_config(row['model_config']), key) is not None)
+                cursor = rows[-1]['id']
+        return [session_id for _, session_id in sorted(found, key=lambda item: item[0], reverse=True)]
 
     def set_session_yolo(self, session_id, enabled):
         self.patch_session_model_config(session_id, {"yolo_mode": bool(enabled)})

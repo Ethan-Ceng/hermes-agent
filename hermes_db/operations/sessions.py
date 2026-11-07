@@ -7,7 +7,7 @@ from sqlalchemy import insert, or_, select
 
 from hermes_db.repositories import prompts, sessions as repo
 from hermes_db.tables.conversations import sessions
-from hermes_db.values import encode_config, encode_text, explicit_fork, model_config
+from hermes_db.values import encode_config, encode_text, explicit_fork, model_config, model_markers
 
 _CREATION_FIELDS = ("model", "user_id", "session_key", "chat_id", "chat_type", "thread_id", "parent_session_id",
                     "cwd", "profile_name", "transport_profile", "git_repo_root", "origin_json", "display_name")
@@ -64,7 +64,7 @@ def create_on_connection(conn, scope, session_id, source, *, own_profile=None, *
     else:
         encoded.update(store_id=scope.require_store_id(), id=session_id, started_at=time.time(),
                        lineage_root_id=parent["lineage_root_id"] if continuation else session_id)
-        conn.execute(insert(sessions).values(**encoded))
+        conn.execute(insert(sessions).values(**encoded, **model_markers(encoded['model_config'])))
     _stamp_surface(conn, scope, session_id)
     if values.get("system_prompt") is not None:
         prompts.prune_prompts(conn, scope)

@@ -6,7 +6,7 @@ from collections import Counter
 from sqlalchemy import func, or_, select
 
 from hermes_db.repositories import sessions as repo
-from hermes_db.repositories.session_queries import json_value, last_activity
+from hermes_db.repositories.session_queries import last_activity
 from hermes_db.tables.conversations import messages, sessions
 from hermes_state_common import _RECOVERABLE_END_REASONS, _RESET_END_REASONS
 
@@ -83,8 +83,8 @@ def orphan_candidates(conn, scope):
     count = select(func.count()).select_from(messages).where(messages.c.store_id == sessions.c.store_id,
         messages.c.session_id == sessions.c.id).correlate(sessions).scalar_subquery()
     conditions = (sessions.c.store_id == scope.require_store_id(), sessions.c.session_key.is_(None), has_messages(),
-        func.coalesce(sessions.c.source, "") != "tool", json_value(conn, sessions.c.model_config, "_branched_from").is_(None),
-        json_value(conn, sessions.c.model_config, "_delegate_from").is_(None))
+        func.coalesce(sessions.c.source, "") != "tool", sessions.c.has_branch_marker == 0,
+        sessions.c.has_delegate_marker == 0)
     return [dict(row) for row in conn.execute(select(sessions, last_activity(conn).label("last_active"), count.label("actual_count"))
         .where(*conditions).order_by(sessions.c.started_at)).mappings()]
 

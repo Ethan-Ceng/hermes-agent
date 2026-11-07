@@ -1,34 +1,11 @@
 """Bounded session-list selection and detached page hydration."""
 
-import json
-
-from sqlalchemy import JSON, and_, case, cast, exists, func, or_, select
+from sqlalchemy import and_, case, exists, func, or_, select
 
 from hermes_db.repositories import sessions as repo
 from hermes_db.tables.conversations import messages, sessions
 from hermes_db.tables.runtime import session_admissions
 from hermes_db.values import decode_text, preferred_children
-
-
-def json_value(conn, column, key):
-    if conn.dialect.name == "sqlite":
-        return func.json_extract(column, "$." + json.dumps(key))
-    return cast(column, JSON)[key].as_string()
-
-
-def json_path_value(conn, column, path):
-    if conn.dialect.name == "sqlite":
-        return func.json_extract(column, "$." + path)
-    from sqlalchemy.dialects.postgresql import JSONB, JSONPATH
-
-    value = func.jsonb_path_query_first(cast(column, JSONB), cast("$." + path, JSONPATH))
-    return case((value == cast("null", JSONB), None), else_=value)
-
-
-def json_path_text(conn, column, path):
-    if conn.dialect.name == 'sqlite':
-        return func.json_extract(column, '$.' + '.'.join(path))
-    return cast(column, JSON)[tuple(path)].as_string()
 
 
 def filters(conn, scope, *, source=None, sources=None, session_key=None, exclude_sources=None, cwd_prefix=None,
@@ -61,7 +38,7 @@ def filters(conn, scope, *, source=None, sources=None, session_key=None, exclude
     if exclude_children:
         clauses.append(sessions.c.lineage_root_id == sessions.c.id)
         if not include_subagents:
-            clauses.append(json_value(conn, sessions.c.model_config, "_delegate_from").is_(None))
+            clauses.append(sessions.c.has_delegate_marker == 0)
     return clauses
 
 

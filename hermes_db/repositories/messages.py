@@ -6,6 +6,7 @@ from hermes_db.message_codec import codec, decoded_row, stored_values
 from hermes_db.message_preview import preview_text, roster_preview
 from hermes_db.search_projection import content_text, projection
 from hermes_db.archive_projection import spillover_names
+from hermes_db.query_projections import display_projection
 from hermes_db.repositories import sessions as session_repo
 from hermes_db.tables.conversations import messages, sessions
 
@@ -43,6 +44,7 @@ def insert_row(conn, scope, row):
     values["search_document"], values["search_grams"] = projection(row)
     values["spillover_names"] = spillover_names(row)
     values["roster_preview"] = roster_preview(row)
+    values['display_query'] = display_projection(row.get('display_metadata'))
     row_id = conn.scalar(insert(messages).values(**values).returning(messages.c.id))
     identity = row["display_identity"]
     order = conn.scalar(select(func.min(messages.c.display_order)).where(where(scope, [row["session_id"]]),
@@ -60,6 +62,8 @@ def update_row(conn, scope, session_id, row_id, values):
     row["display_identity"] = codec._display_identity(codec._display_dedupe_key(row))
     encoded = stored_values(row)
     changes = {name: encoded[name] for name in values}
+    if 'display_metadata' in values:
+        changes['display_query'] = display_projection(row.get('display_metadata'))
     changes.update(display_identity=row["display_identity"], preview_text=preview_text(row), search_content=content_text(row))
     if {"content", "role", "tool_name", "tool_calls"}.intersection(values):
         changes["search_document"], changes["search_grams"] = projection(row)

@@ -4,7 +4,7 @@ from sqlalchemy import func, select
 
 from hermes_db.message_codec import codec
 from hermes_db.repositories import messages as repo, sessions as session_repo
-from hermes_db.repositories.session_queries import json_value
+from hermes_db.query_projections import display_value, query_token
 from hermes_db.tables.conversations import messages, sessions
 from hermes_db.tables.gateway import conversation_generations
 from hermes_db.values import explicit_fork
@@ -42,7 +42,7 @@ class SessionMessageLookup:
     def has_gateway_input_owner(self, session_id, owner):
         with self._read() as conn:
             return conn.scalar(select(messages.c.id).where(repo.where(self.scope, [session_id]), messages.c.role == "user",
-                messages.c.observed == 0, repo.visible(), json_value(conn, messages.c.display_metadata, "gateway_input_owner") == owner)
+                messages.c.observed == 0, repo.visible(), display_value(messages.c.display_metadata, "gateway_input_owner") == query_token(owner))
                 .limit(1)) is not None
 
     def latest_conversation_boundary(self, session_key, source):

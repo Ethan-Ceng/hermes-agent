@@ -4,7 +4,6 @@ from sqlalchemy import func, or_, select
 
 from hermes_db.repositories import runtime, sessions
 from hermes_db.repositories.gateway import marker
-from hermes_db.repositories.session_queries import json_value
 from hermes_db.tables.conversations import messages, sessions as table
 from hermes_state_local import POLICY_PREFIX
 
@@ -25,13 +24,14 @@ def local_members(conn, scope, session_id):
 def delegate_children(conn, scope, parent_ids):
     seeds = {sid for sid in parent_ids if sid}
     found, frontier = set(seeds), list(seeds)
-    origin = json_value(conn, table.c.model_config, "_delegate_from")
+    origin = table.c.delegate_origin
     while frontier:
         next_frontier = []
         for start in range(0, len(frontier), 1000):
             chunk = frontier[start:start + 1000]
             rows = conn.execute(select(table.c.id).where(table.c.store_id == scope.require_store_id(),
-                or_(origin.in_(chunk), table.c.parent_session_id.in_(chunk) & origin.is_not(None)))).scalars()
+                or_(origin.in_([sid.encode('utf-8') for sid in chunk]),
+                    table.c.parent_session_id.in_(chunk) & (table.c.has_delegate_marker == 1)))).scalars()
             for sid in rows:
                 if sid not in found:
                     found.add(sid)

@@ -146,17 +146,18 @@ def _resume_count(conn, scope, session_id, tip_only, limit=None):
 
 
 def display_ids(conn, scope, session_id, limit=None, offset=0, latest=False):
-    from hermes_db.repositories.session_queries import json_value
+    from hermes_db.query_projections import display_value, query_token
     from agent.context_compressor import MODEL_ONLY_DISPLAY_METADATA_KEY
 
     original = messages.alias("original")
+    model_only = tuple(query_token(value) for value in (True, 1, 'true', '1'))
     copied_tool = select(1).where(original.c.store_id == messages.c.store_id, original.c.session_id == messages.c.session_id,
         original.c.timestamp == messages.c.timestamp, original.c.message_uid == messages.c.message_uid,
         original.c.role == "tool", original.c.active == 0, original.c.compacted == 1,
         original.c.display_order < messages.c.display_order,
-        func.coalesce(cast(json_value(conn, original.c.display_metadata, MODEL_ONLY_DISPLAY_METADATA_KEY), Text), "false").not_in(("true", "1"))).exists()
+        func.coalesce(cast(display_value(original.c.display_metadata, MODEL_ONLY_DISPLAY_METADATA_KEY), Text), "false").not_in(model_only)).exists()
     eligible = [repo.where(scope, [session_id]), repo.visible(),
-        func.coalesce(cast(json_value(conn, messages.c.display_metadata, MODEL_ONLY_DISPLAY_METADATA_KEY), Text), "false").not_in(("true", "1")),
+        func.coalesce(cast(display_value(messages.c.display_metadata, MODEL_ONLY_DISPLAY_METADATA_KEY), Text), "false").not_in(model_only),
         ~((messages.c.role == "tool") & messages.c.message_uid.is_not(None) & copied_tool)]
     ranked = select(messages.c.id, messages.c.display_order,
         func.row_number().over(partition_by=messages.c.display_order, order_by=(messages.c.active.desc(), messages.c.id.desc()))

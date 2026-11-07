@@ -7,7 +7,7 @@ from sqlalchemy import func, select
 from hermes_db.message_codec import codec
 from hermes_db.operations import messages as operations, transcript_guards
 from hermes_db.repositories import messages as repo, sessions as session_repo
-from hermes_db.repositories.session_queries import json_value
+from hermes_db.query_projections import display_value, query_token
 from hermes_db.tables.conversations import messages
 from hermes_state_identity import _uid_list
 
@@ -30,10 +30,10 @@ class SessionMessageResults:
             ids = repo.resume_lineage(conn, self.scope, session_id)
             conditions = [repo.where(self.scope, ids)]
             for key, value in identity.items():
-                column = json_value(conn, messages.c.display_metadata, key)
+                column = display_value(messages.c.display_metadata, key)
                 if key == "delivery_notice":
-                    column = func.coalesce(column, "")
-                conditions.append(column == value)
+                    column = func.coalesce(column, query_token(''))
+                conditions.append(column == query_token(value))
             if "delegation_id" in identity:
                 conditions.append(messages.c.display_kind.in_(("async_delegation_complete", "hidden")))
             row_id = conn.scalar(select(messages.c.id).where(*conditions).limit(1))

@@ -29,7 +29,7 @@ async def test_native_hosted_room_ownership_uses_scoped_local_coordination_only(
     from hermes_state_runtime import RuntimeStoreError
     db, _other = core_pair
     home = db.scope.profile_home
-    home.mkdir(parents=True)
+    home.mkdir(parents=True, exist_ok=True)
     token = set_hermes_home_override(home)
     epoch = PostgresRuntimeStore(db).begin_epoch(instance_id="owner")
     owner = SimpleNamespace(db=db, profile_id=str(home), epoch=epoch)

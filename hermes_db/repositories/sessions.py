@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from hermes_db.tables.conversations import sessions, system_prompts, transcript_roots
 from hermes_db.tables.runtime import state_meta
-from hermes_db.values import decode_text, model_config, preferred_children
+from hermes_db.values import decode_text, model_config, model_markers, preferred_children
 
 _TEXT_BYTES = ("system_prompt", "display_name", "title", "last_activity_description", "handoff_error", "compression_failure_error")
 
@@ -77,7 +77,7 @@ def business_row(row):
     for name in _TEXT_BYTES:
         if name in data:
             data[name] = decode_text(data[name])
-    for name in ("store_id", "lineage_root_id", "title_search"):
+    for name in ("store_id", "lineage_root_id", "title_search", "delegate_origin", "has_delegate_marker", "has_branch_marker"):
         data.pop(name, None)
     config = model_config(data.get("model_config"))
     for name in ("_reset_from", "_branched_from"):
@@ -90,6 +90,8 @@ def business_row(row):
 def update_session(conn, scope, session_id, values, *conditions):
     if not values:
         return 0
+    if 'model_config' in values:
+        values = {**values, **model_markers(values['model_config'])}
     return conn.execute(update(sessions).where(where_session(scope, session_id), *conditions).values(**values)).rowcount
 
 
