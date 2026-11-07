@@ -1354,12 +1354,7 @@ def _resolved_send_config():
 
 
 def _reconcile_store_consent(store: SharedMetricsStore, send_enabled: bool) -> None:
-    from hermes_cli.observability.shared_metrics_sender import reconcile_send_consent
-    from hermes_cli.sqlite_util import write_txn
-
-    with store._connection() as connection:
-        with write_txn(connection):
-            reconcile_send_consent(connection, send_enabled)
+    store.reconcile_send_consent(send_enabled)
 
 
 def enabled() -> bool:
@@ -1387,7 +1382,7 @@ def handles_hook(hook_name: str) -> bool:
     return hook_name in HANDLED_HOOKS and enabled()
 
 
-_consent_reconcile_done = False
+_consent_reconcile_done: set[str] = set()
 
 
 def _reconcile_send_consent_once() -> None:
@@ -1398,10 +1393,11 @@ def _reconcile_send_consent_once() -> None:
     AND consent is off: nothing to protect, and creating ``~/.hermes/telemetry`` for every
     fully-disabled user would be the wrong behaviour change.
     """
-    global _consent_reconcile_done
-    if _consent_reconcile_done:
+    from hermes_constants import hermes_home_key
+    profile_key = hermes_home_key()
+    if profile_key in _consent_reconcile_done:
         return
-    _consent_reconcile_done = True
+    _consent_reconcile_done.add(profile_key)
     try:
         # Lazy: tests patch ``shared_metrics.SharedMetricsStore`` at its origin.
         from hermes_cli.observability.shared_metrics import SharedMetricsStore
@@ -1411,7 +1407,8 @@ def _reconcile_send_consent_once() -> None:
         # Probe WITHOUT constructing a store: the constructor creates the directory and
         # schema as a side effect, which would make the skip below dead code.
         default_path = get_hermes_home() / "telemetry" / "shared_metrics" / "metrics.sqlite3"
-        if not resolved.send and not default_path.exists():
+        from hermes_cli.db_setup import storage_backend
+        if storage_backend() == "sqlite" and not resolved.send and not default_path.exists():
             return
         _reconcile_store_consent(SharedMetricsStore(), resolved.send)
     except Exception:

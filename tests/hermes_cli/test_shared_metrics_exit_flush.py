@@ -139,7 +139,8 @@ def test_sigtermed_kanban_worker_writes_the_open_sessions_summary(metrics_home, 
     handlers = {}
     monkeypatch.setenv("HERMES_KANBAN_TASK", "t-1")
     monkeypatch.setattr(signal, "signal", lambda signum, handler: handlers.__setitem__(signum, handler))
-    monkeypatch.setattr(signal, "alarm", lambda seconds: 0)
+    if hasattr(signal, "alarm"):
+        monkeypatch.setattr(signal, "alarm", lambda seconds: 0)
     for name in ("_arm_exit_watchdog_on_shutdown_signal", "_flush_logging_and_stdio"):
         monkeypatch.setattr(cli, name, lambda: None)
     monkeypatch.setattr(cli, "_interrupt_agent_for_signal", lambda agent, signum: None)

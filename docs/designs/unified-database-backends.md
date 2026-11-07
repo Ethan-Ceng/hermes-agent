@@ -169,6 +169,10 @@ Task14文件边界细化：PG附件在store内持久分配一次内容namespace�
 
 指标保留当前安装/拥有者语义与 consent 状态，不能以换库扩大遥测发送范围。聚合、打包水位与 outbox 去重在一个短事务完成，导出文件及网络发送仍在事务外。
 
+Task15协议核对：`SharedMetricsStore`按显式拥有者Profile选择实现，PG捕获非秘密target/store_id引用，每次短操作重新绑定拥有者并核对配置；指标文件路径不能反推Profile。每Profile的指标范围锁保留原SQLite写事务的聚合、once/day/interval、rollup、打包与claim串行化语义。PG操作同步提交或明确失败，不用内存队列冒充持久化；SQLite原有短busy延迟队列继续只服务SQLite。安装身份、任意state键值、版本和JSON使用无损字节编码，发送字段与内容合同不扩大。
+
+consent的obs/data高水位、前向时钟上限、回拨关闭钳制、完整日期窗口判据保留；启动对账标记按Profile记录，opt-out在PG仍访问实际consent表，不能用不存在metrics.sqlite3跳过。setup/relay/installer改为具名领域操作，安装年龄从所选会话表读取。包插入、水位推进和data mark同事务；文件导出失败从持久包重放。sender沿用实际HTTP/压缩/状态/退避实现，claim token、冻结发送身份、续租与终态CAS由Core完成；POST确认丢失保留at-least-once语义，重发同一字节，不凭客户端错误猜测远端未收到。导出、文件清理、POST与重试等待期间不借用PG连接。
+
 插件增加有真实消费者的可移植持久化协议；通用键值/CAS 与领域队列分别按其需求定义。原 `plugin_db()` 任意 SQLite SQL 接口在 SQLite 模式保留，PG 模式不得打开 SQLite；本仓库插件必须完成协议迁移，不能通过禁用插件功能算通过。外部插件须显式采用协议，遇到不兼容使用给出插件名和具体能力原因，不能吞错后伪装已持久化。
 
 ### Matrix SDK

@@ -26,8 +26,8 @@ class FakeStore:
 class RealBackedStore:
     """A store with a genuine SQLite connection, for consent-state tests.
 
-    The consent edge detector writes to telemetry_state, and it is wrapped in
-    a broad except. Against a stub without _connection it would swallow an
+    The consent edge detector writes via a named store operation and is wrapped in
+    a broad except. Against a stub without that operation it would swallow an
     AttributeError and silently do nothing — which is exactly the failure this
     file needs to be able to catch.
     """
@@ -42,6 +42,9 @@ class RealBackedStore:
 
     def _connection(self):
         return self._real._connection()
+
+    def reconcile_send_consent(self, enabled):
+        return self._real.reconcile_send_consent(enabled)
 
     def create_and_export_package_if_due(self):
         self.exported += 1
@@ -326,7 +329,7 @@ class TestConsentWindows:
             lambda *a, **k: store,
         )
         _set_config(monkeypatch, _config(enabled=False, send=False))
-        monkeypatch.setattr(mod, "_consent_reconcile_done", False)
+        monkeypatch.setattr(mod, "_consent_reconcile_done", set())
 
         # The full lifecycle entry point, with collection OFF.
         mod.observe_lifecycle("finish_task")

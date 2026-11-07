@@ -168,7 +168,7 @@ def _root_store(home: Path) -> Any:
     with _root_stores_lock:
         if home not in _root_stores:
             root = home / "telemetry" / "shared_metrics"
-            _root_stores[home] = SharedMetricsStore(root / "metrics.sqlite3", root / "outbox")
+            _root_stores[home] = SharedMetricsStore(root / "metrics.sqlite3", root / "outbox", profile_home=home)
         return _root_stores[home]
 
 

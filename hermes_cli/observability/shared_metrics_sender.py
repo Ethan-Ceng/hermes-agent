@@ -206,6 +206,12 @@ CONSENT_GATE_SQL = """EXISTS (
 class SharedMetricsSender:
     """Sends exported packages, one bounded pass at a time."""
 
+    def __new__(cls, store, *args, **kwargs):
+        if cls is SharedMetricsSender and store.backend == "postgresql":
+            from hermes_db.metrics_sender import PostgresMetricsSender
+            return object.__new__(PostgresMetricsSender)
+        return object.__new__(cls)
+
     def __init__(
         self,
         store,

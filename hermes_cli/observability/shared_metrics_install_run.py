@@ -120,14 +120,9 @@ def consented_day(home: Path) -> bool:
 
     root = home / "telemetry" / "shared_metrics"
     try:
-        with SharedMetricsStore(root / "metrics.sqlite3", root / "outbox")._connection() as connection:
-            row = connection.execute(
-                "SELECT 1 FROM send_consent_windows WHERE closed_at IS NULL AND opened_at <= ? LIMIT 1",
-                (_today_start(),),
-            ).fetchone()
+        return SharedMetricsStore(root / "metrics.sqlite3", root / "outbox", profile_home=home).consented_day(_today_start())
     except sqlite3.Error:  # a busy store: try again on a later start
         return False
-    return row is not None
 
 
 def _claim_receipt(path: Path) -> Path | None:

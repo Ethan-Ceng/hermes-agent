@@ -27,6 +27,7 @@ POSTGRES_DOMAINS = {
     "kanban_workspace": DomainSpec("0018_kanban_imports", ("kanban", "kanban_artifacts", "kanban_dispatch", "kanban_commands", "kanban_workspaces", "kanban_notify", "kanban_file_jobs")),
     "rooms": DomainSpec("0019_room_events", ("rooms", "room_runs", "room_work", "room_policy")),
     "room_attachments": DomainSpec("0022_room_attachments", ("room_attachments",)),
+    "metrics": DomainSpec("0023_metrics", ("metrics",)),
 }
 
 

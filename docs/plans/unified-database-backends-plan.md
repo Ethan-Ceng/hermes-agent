@@ -10,9 +10,9 @@
 ## 当前进度
 
 - 整体状态：`IN_PROGRESS`。
-- 当前阶段：房间附件元数据领域实施。
-- 当前任务：Task 14（completed；正在创建本地任务提交，随后进入Task15）。
-- 已完成：14 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前阶段：指标、consent与outbox领域实施。
+- 当前任务：Task 15（completed；正在创建本地任务提交，随后进入Task16）。
+- 已完成：15 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-08（Asia/Shanghai）。
@@ -874,7 +874,7 @@ SQLite：`scripts/run_tests.sh tests/tui_gateway/test_hosted_room_router_authori
 
 ## Task 15：统一指标、consent 与 outbox
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -911,11 +911,21 @@ SQLite：`scripts/run_tests.sh tests/tui_gateway/test_hosted_room_router_authori
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+已完成0023迁移、领域表/具名Core操作、SharedMetricsStore与sender工厂分流；聚合、rollup、interval/day/首次使用标记、安装身份、包水位、consent obs/data、outbox claim/续租/token CAS及保留清理使用PG。PG保留Profile内安装身份，以独立metrics范围锁序列化原SQLite写事务语义，不使用连接SQL翻译壳；opaque版本/JSON/state键值按BYTEA保真。指标PG故障直接传播到既有显式best-effort调用边界，不把未落库数据当作持久化成功。文件/POST/重试等待不占连接。恢复点：本项提交后进入Task16；Task20维护、Task21全入口审计、Task22完整daemon单后端及Task23发行/完整用户文档仍待验收。
+
+核对修正：旧启动consent对账为进程全局bool，多个Profile会只对账首个（intent提交5e380d95ba为opt-out仍对账）；改为按拥有者Profile的集合，实库逐Profile关闭窗口。安装年龄PG先查实际scoped sessions，不访问或改写旧state.db。新增接口后SQLite测试RealBackedStore替身补具名reconcile委托，保留真实SQLite窗口断言。现有Windows退出测试在任何产品代码前无条件patch不存在signal.alarm；核对生产逻辑本就按hasattr选择deadman，测试同样只在主机支持alarm时patch，Windows实际指标flush业务继续执行，不增加skip或伪造平台。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+`scripts/run_tests.sh tests/hermes_db/postgresql/test_metrics_store.py -j 1 -- -m integration --postgres-test-config=$pgTestConfig` exit1、2 failed/2 teardown errors（unified-task15-metrics-red.log）：真实PG已初始化，业务构造器尝试SQLite连接，fixture同时记录即使调用方吞错也不可接受的连接尝试；这是Task15独立红证据。尚无完成验证或本地任务commit。
+
+中间记录：metrics-first 2 passed；pg-first 3文件10 passed（窗口on/off/on拒绝期、时钟钳制、opt-out逐Profile、事务回滚/导出失败/未知commit、claim过期及旧token/身份轮换）；process-first 2 passed，真实双进程40增量+1 latch和另一新进程打包、文件失败后新进程恢复。consumers-first 2文件5 passed/1 failed/1 teardown error，失败为测试直接构造原生SQLite SessionDB，修正为已有生产open_session_store工厂；HTTP2项已通过，包括真实202后本地回执丢失、字节相同的再发、持久429退避且POST时池checkedout=0。native-first 196 passed/3 failed/4 skipped（旧接口替身），更新后native-full 631 passed/1 failed/7 skipped（alarm测试），修正后sqlite-followup 8 passed/1 POSIX skip，含阻止所有PG驱动导入的真实SQLite聚合/consent/打包/发送子进程。checks-first报2处新异常边界检查，已改为仅捕获StorageError，最终检查尚未运行。
+
+最终验证（保留以上中间失败）：`scripts/run_tests.sh <PowerShell数组展开test_metrics*.py的6文件> tests/hermes_db/postgresql/test_domain_schema.py tests/hermes_db/postgresql/test_schema.py -j 3 -- -m integration --postgres-test-config=$pgTestConfig` exit0、8文件27 passed/无skip/retry（unified-task15-pg-final.log）。consumer修正先因测试传入create_session不支持的started_at失败1项（consumers-followup），改为实际公开create/get API读取真实时间后已包含在最终4项通过中；旧SQLite取证文件逐字节保留。追加必需的保留窗口/首次使用/时钟修正/导出无连接合同后`... test_metrics_store.py -j 1 -- -m integration --postgres-test-config=$pgTestConfig` exit0、4 passed（retention-latches），PG合计29个独立合同，均在拥有者核验的随机Schema和严格SQLite拒绝下执行。
+
+SQLite完整29文件回归中28文件通过（native-full保留631 passed/1 failed/7 skipped原记录）；修正唯一alarm测试后`... tests/hermes_db/contracts/test_metrics_sqlite_optional_drivers.py tests/hermes_cli/test_shared_metrics_exit_flush.py -j 2` exit0、8 passed/1 POSIX skip（sqlite-followup），其中退出文件7 passed，无新增skip；其余6个原跳过项为原POSIX权限/进程/安装脚本等主机限制，本轮不声称它们在Windows通过。`PM Python scripts/check --staged --base 8eb11259b6`最终exit0、14 checks/health31文件0 blocking/advisory（unified-task15-checks-pass.log）；先前checks-final仅1个未使用测试变量失败，已修正。暂存区diff检查通过。
+
+完成提交标题`feat(storage): persist scoped metrics consent and send outbox`；无新依赖、无遥测内容/授权扩张、无正式Profile/服务变更。未验证项保留上述7个平台skip与后续任务全系统证据，不能由此宣称全系统PG完成。
 
 ## Task 16：提供插件可移植持久化协议
 
@@ -1365,6 +1375,6 @@ Task 1–9 已完成，Task 10–24 尚未完成；不得宣称全系统PG已完
 
 ## 恢复点
 
-Task 1–14已验收并各自创建本地commit（Task12 `b2680034ba`，Task13 `abb9f65e5a`，Task14标题 `feat(storage): persist scoped room attachment metadata and quotas`）。下一项Task15指标/consent/outbox；Task14最新21文件104项真实PG、SQLite46 passed/1 symlink skip、无PG依赖子进程1 passed及14静态checks通过。Task20维护及Task22普通daemon强验收尚未完成。分支仍为 `feat/postgresql-session-storage`，正式实例保持SQLite，未写正式Profile、秘密或业务表；不能由此宣称全系统PG已完成。
+Task 1–15已验收并各自创建本地commit（Task14 `8eb11259b6`，Task15标题 `feat(storage): persist scoped metrics consent and send outbox`）。下一项Task16插件可移植协议。Task15实库8文件27 passed，加上最后保留窗口等独立2项；原生29文件唯一失败已复验修正，无PG依赖SQLite子进程通过；14静态checks通过，保留7个平台skip。Task20维护及Task22普通daemon强验收尚未完成。分支仍为 `feat/postgresql-session-storage`，正式实例保持SQLite，未写正式Profile、秘密或业务表；不能由此宣称全系统PG已完成。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

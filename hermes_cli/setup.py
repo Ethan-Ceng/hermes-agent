@@ -563,10 +563,7 @@ def _record_send_consent_change(*, enabled: bool) -> None:
     and the sender, so wizard, relay and mid-pass callers cannot disagree."""
     try:
         from hermes_cli.observability.shared_metrics import SharedMetricsStore
-        from hermes_cli.observability.shared_metrics_sender import reconcile_send_consent
-        from hermes_cli.sqlite_util import write_txn
-        with SharedMetricsStore()._connection() as connection, write_txn(connection):
-            reconcile_send_consent(connection, enabled)
+        SharedMetricsStore().reconcile_send_consent(enabled)
     except Exception:
         # Never block the wizard on telemetry bookkeeping; the relay reconciles on the next hook.
         logger.debug("Unable to record shared-metrics consent change", exc_info=True)

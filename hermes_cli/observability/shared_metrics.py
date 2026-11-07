@@ -206,10 +206,17 @@ def _ensure_private(path: Path, mode: int) -> None:
 class SharedMetricsStore:
     """Persist allowlisted counters and export immutable delta packages."""
 
+    backend = "sqlite"
+
+    def __new__(cls, database_path=None, outbox_directory=None, *, profile_home=None):
+        from .shared_metrics_storage import postgres_store
+        return postgres_store(cls, profile_home)
+
     def __init__(
-        self, database_path: Path | None = None, outbox_directory: Path | None = None
+        self, database_path: Path | None = None, outbox_directory: Path | None = None, *, profile_home=None
     ) -> None:
-        root = get_hermes_home() / "telemetry" / "shared_metrics"
+        self.profile_home = Path(profile_home) if profile_home is not None else get_hermes_home()
+        root = self.profile_home / "telemetry" / "shared_metrics"
         self.database_path = database_path or root / "metrics.sqlite3"
         self.outbox_directory = outbox_directory or root / "outbox"
         _ensure_private(self.database_path.parent, 0o700)
@@ -219,6 +226,14 @@ class SharedMetricsStore:
         self._deferred: list[Callable[[sqlite3.Connection], None]] = []
         self._deferred_lock = threading.Lock()
         self._drain_at_exit = False
+
+    def reconcile_send_consent(self, send_enabled, *, now=None):
+        from .shared_metrics_storage import reconcile_sqlite
+        return reconcile_sqlite(self, send_enabled, now)
+
+    def consented_day(self, start):
+        from .shared_metrics_storage import consented_day_sqlite
+        return consented_day_sqlite(self, start)
 
     def record_model_call(self, dimensions: dict[str, str], resource: dict[str, str]) -> None:
         """Increment the terminal model-call counter for the current UTC day."""
@@ -510,6 +525,8 @@ class SharedMetricsStore:
     def _connection(
         self, *, busy_timeout_ms: int = _BUSY_TIMEOUT_MS
     ) -> Iterator[sqlite3.Connection]:
+        from .shared_metrics_storage import assert_sqlite
+        assert_sqlite(self.profile_home)
         connection = sqlite3.connect(self.database_path, timeout=busy_timeout_ms / 1000)
         try:
             connection.row_factory = sqlite3.Row
