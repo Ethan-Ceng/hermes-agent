@@ -11,8 +11,8 @@
 
 - 整体状态：`IN_PROGRESS`。
 - 当前阶段：统一配置与基础资源实施。
-- 当前任务：Task 6（pending；Task 4 提交 `e7612bcf80`）。
-- 已完成：5 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前任务：Task 7（pending；Task 5 提交 `895e13cd6e`）。
+- 已完成：6 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-07（Asia/Shanghai）。
@@ -308,7 +308,7 @@ PG 项目操作无需 projects.db，实际项目入口通过。
 
 ## Task 6：统一 Cron 待投递队列
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -344,11 +344,11 @@ PG Cron 投递完整流程不创建本地队列库，不扩大 exactly-once 承�
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+新增0008_cron_delivery冻结迁移、scoped队列/终态墓碑/锁表；以完整短事务实现enqueue、claim、finish、unknown恢复、等待超时与payload清理。保留execution身份幂等：重放返回原请求或墓碑，不覆盖已持久化请求、不重发终态。read/claim/prune都包含store_id；进程活动发送标记增加Profile键，防止同execution_id跨Profile恢复串扰。发送/等待在事务外，继续复用旧drain及outcome回写流程。网关watch显式捕获拥有者，对PG使用原有1秒节奏poll drain，不依赖本地文件/WAL。原生SQLite连接在PG下明确拒绝，无SQL翻译/内存替代/重试扩张。提交标题：feat(storage): persist Cron delivery queues on selected backend。恢复点：Task 7。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+原生Windows/现有PM解释器。PG合同修改前exit1、1 failed，捕获deliveries.db连接（unified-task6-red.log）。`scripts/run_tests.sh tests/hermes_db/contracts/test_cron_delivery_store.py tests/cron/test_delivery_queue.py tests/cron/test_delivery_queue_retention_race.py tests/cron/test_queued_delivery_fencing.py tests/gateway/test_cron_delivery_housekeeping.py -j 4` exit0、22 passed/0 failed/0 skipped（unified-task6-sqlite.log）。SQLite禁止导入sqlalchemy/psycopg/alembic子进程补充真实enqueue/drain后，test_unified_selection.py exit0、5 passed（unified-task6-sqlite-independent.log）。`scripts/run_tests.sh tests/hermes_db/postgresql/test_cron_delivery_store.py tests/hermes_db/postgresql/test_schema.py -j 2 -- -m integration --postgres-test-config=$pgTestConfig` exit0、9 passed/0 failed/0 skipped（unified-task6-pg-concurrency.log）；补跨Profile活动隔离后单文件相同PG参数exit0、5 passed（unified-task6-pg-final.log）。PG业务父/子进程拒绝所有SQLite连接，证明JSON类型/NUL/Unicode、持久化/重开、作用域隔离、双真实进程唯一claim、owner退出unknown且不重发、终态墓碑重放、pending超时仍排队、无本地文件watch及发送期间checkedout=0。提交确认丢失通过真实PG commit后在dialect do_commit注入OperationalError验证：UnknownCommitError明确抛出，数据库已保存delivered，外部fixture发送计数仍为1，重开drain不重复。该证据是客户侧确认丢失注入，不声称网络代理丢包实测。`PM Python scripts/check --staged --base 895e13cd6e` exit0、14 checks ok（unified-task6-checks-final.log）；最终追加子进程断言后检查仍exit0、14 checks ok（unified-task6-checks-commit.log），diff --check通过。未验证：notepad/指标启用、完整所有域端到端和最终门禁仍在后续任务。
 
 ## Task 7：统一 Cron notepad
 
@@ -1194,7 +1194,7 @@ CLI/Gateway/Web/TUI/Desktop/ACP/Agent及后台任务统一接入领域能力。
 
 ### 未通过与未验证
 
-Task 1–5 已完成，Task 6–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
+Task 1–6 已完成，Task 7–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
 
 ### 最终状态
 
@@ -1202,6 +1202,6 @@ Task 1–5 已完成，Task 6–24 尚未完成；不得宣称全系统PG已完�
 
 ## 恢复点
 
-Task 1–5 配置/领域基础、验证证据、Projects及Cron执行/incident已验收；本地提交后从 Task 6 继续。分支与初始干净工作区已核对，正式实例仍保持 SQLite；开发未写正式 Profile、秘密或业务数据库。
+Task 1–6 配置/领域基础、验证证据、Projects及Cron执行/incident/投递已验收；本地提交后从 Task 7 继续。分支与初始干净工作区已核对，正式实例仍保持 SQLite；开发未写正式 Profile、秘密或业务数据库。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

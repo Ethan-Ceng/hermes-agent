@@ -34,7 +34,7 @@ def test_dead_drain_owner_settles_the_run_it_fenced_unknown(tmp_path, monkeypatc
     execution = executions.latest_execution(job["id"])
     assert jobs.get_job(job["id"])["last_status"] == "delivery_queued"
     claimed = delivery_queue.claim_next()
-    delivery_queue._ACTIVE_DELIVERIES.discard(claimed["execution_id"])
+    delivery_queue._ACTIVE_DELIVERIES.discard(delivery_queue._active_key(claimed["execution_id"]))
     with delivery_queue._transaction() as conn:  # the claiming gateway died mid-send
         conn.execute("UPDATE deliveries SET owner_process_id='gone', owner_pid=999999 "
                      "WHERE execution_id=?", (execution["id"],))

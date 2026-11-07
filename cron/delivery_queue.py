@@ -24,16 +24,22 @@ from agent.redact import redact_sensitive_text
 from cron.executions import _owner_is_live, _process_start_time
 from hermes_constants import get_hermes_home
 from hermes_time import now as _hermes_now
+from hermes_db.domains.cron import domain_operation
 
 logger = logging.getLogger(__name__)
 
 DELIVERY_DB: Optional[Path] = None
 _PROCESS_ID = uuid.uuid4().hex
 _lock = threading.RLock()
-_ACTIVE_DELIVERIES: set[str] = set()
+_ACTIVE_DELIVERIES: set[tuple[str, str]] = set()
 _TERMINAL = ("delivered", "failed", "unknown", "suppressed")
 MAX_TERMINAL_DELIVERIES = 1000
 DEFAULT_DELIVERY_WAIT_TIMEOUT_SECONDS = 300.0
+
+
+def _active_key(execution_id, home=None):
+    from hermes_constants import hermes_home_key
+    return hermes_home_key(home), str(execution_id)
 
 
 def _prune_terminal_unlocked(conn: sqlite3.Connection) -> None:
@@ -141,6 +147,11 @@ def _connect() -> sqlite3.Connection:
     # ``hermes_cli.sqlite_util`` / ``cron.jobs`` cached, so new names must be resolved at call time,
     # not at import time (the guarantee cron/ledger.py used to carry, see e24c8499).
     from hermes_cli.sqlite_util import open_db
+    from hermes_cli.db_setup import storage_backend
+    from hermes_db.errors import StorageConfigurationError
+
+    if storage_backend() == "postgresql":
+        raise StorageConfigurationError("Cron native SQLite delivery connections are unavailable in PostgreSQL mode; use delivery operations")
 
     path = _path()
     conn = open_db(path, db_label="cron/deliveries.db", synchronous_full=True, initialize=_initialize_schema)
@@ -162,6 +173,7 @@ def _transaction() -> Iterator[sqlite3.Connection]:
         yield conn
 
 
+@domain_operation("delivery", domain="cron_deliveries")
 def enqueue(
     execution_id: str,
     job: dict,
@@ -203,6 +215,7 @@ def enqueue(
     return dict(row)
 
 
+@domain_operation("delivery", domain="cron_deliveries")
 def get_status(execution_id: str) -> Optional[dict]:
     with _transaction() as conn:
         row = conn.execute(
@@ -225,6 +238,7 @@ def get_status(execution_id: str) -> Optional[dict]:
     }
 
 
+@domain_operation("delivery", domain="cron_deliveries")
 def claim_next() -> Optional[dict]:
     """Atomically claim one pending send before touching the transport."""
     pid = os.getpid()
@@ -248,12 +262,13 @@ def claim_next() -> Optional[dict]:
         claimed = conn.execute(
             "SELECT * FROM deliveries WHERE execution_id=?", (row["execution_id"],)
         ).fetchone()
-        _ACTIVE_DELIVERIES.add(row["execution_id"])
+        _ACTIVE_DELIVERIES.add(_active_key(row["execution_id"]))
     result = dict(claimed)
     result["job"] = json.loads(result.pop("job_json"))
     return result
 
 
+@domain_operation("delivery", domain="cron_deliveries")
 def _finish(execution_id: str, *, error: Optional[str], suppressed: bool = False) -> bool:
     status = "failed" if error else "suppressed" if suppressed else "delivered"
     safe_error = (
@@ -279,6 +294,7 @@ def _finish(execution_id: str, *, error: Optional[str], suppressed: bool = False
     return cur.rowcount == 1
 
 
+@domain_operation("delivery", domain="cron_deliveries")
 def recover_abandoned() -> int:
     """Fence dead delivery owners as unknown; never replay uncertain sends.
 
@@ -295,7 +311,7 @@ def recover_abandoned() -> int:
             same_process = row["owner_process_id"] == _PROCESS_ID
             if same_process:
                 with _lock:
-                    if row["execution_id"] in _ACTIVE_DELIVERIES:
+                    if _active_key(row["execution_id"]) in _ACTIVE_DELIVERIES:
                         continue
             elif _owner_is_live(int(row["owner_pid"]), row["owner_started_at"]):
                 continue
@@ -336,7 +352,7 @@ def drain(
         if row is None:
             break
         with _lock:
-            _ACTIVE_DELIVERIES.add(row["execution_id"])
+            _ACTIVE_DELIVERIES.add(_active_key(row["execution_id"]))
         try:
             try:
                 error = send(
@@ -351,11 +367,12 @@ def drain(
                 settle_quietly(row["job"].get("id"), row["execution_id"])
         finally:
             with _lock:
-                _ACTIVE_DELIVERIES.discard(row["execution_id"])
+                _ACTIVE_DELIVERIES.discard(_active_key(row["execution_id"]))
         processed += 1
     return processed
 
 
+@domain_operation("delivery", domain="cron_deliveries")
 def _terminalize_wait_timeout(execution_id: str) -> str:
     """Fence a delivery whose worker can no longer wait for confirmation.
 

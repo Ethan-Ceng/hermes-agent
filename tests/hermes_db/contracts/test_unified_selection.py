@@ -75,6 +75,10 @@ attempt = ex.create_execution('independent', source='test')
 assert ex.finish_execution(attempt['id'], success=True)['status'] == 'completed'
 incident, new = inc.upsert_incident('independent', 'failure')
 assert new and inc.get_incident(incident)['state'] == 'detected'
+from cron import delivery_queue as queue
+queue.enqueue('queue-independent', {'id': 'queue-job'}, 'queued')
+assert queue.drain(lambda *args: None) == 1
+assert queue.get_status('queue-independent')['status'] == 'delivered'
 '''
     result = subprocess.run([sys.executable, "-c", code, str(tmp_path)], capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr

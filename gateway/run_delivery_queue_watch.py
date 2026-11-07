@@ -29,21 +29,28 @@ class DeliveryQueueWatch:
     """
 
     def __init__(self, homes: Callable[[], Iterable[Optional[Path]]], drain: Callable[[], None]) -> None:
+        from hermes_constants import get_hermes_home
+        self._default_home = get_hermes_home()
         self._homes = homes
         self.drain = drain
-        self._served: list = list(homes())
+        self._served: list = [home if home is not None else self._default_home for home in homes()]
         self._seen = self._stamp()
 
     def refresh_homes(self) -> None:
         """Re-resolve the served profiles once per tick (a directory read under multiplex),
         not on every poll; a profile that appears mid-interval is drained by the tick itself."""
-        self._served = list(self._homes())
+        self._served = [home if home is not None else self._default_home for home in self._homes()]
 
     def _stamp(self) -> tuple:
         from cron.delivery_queue import queue_path
+        from hermes_cli.db_setup import storage_backend
 
         stamps = []
         for home in self._served:
+            if storage_backend(home) == "postgresql":
+                # PG has no local WAL to watch. Poll the drain on its existing bounded cadence.
+                stamps.append((str(home), "postgresql", time.monotonic_ns()))
+                continue
             path = queue_path(home)
             for candidate in (path, path.with_name(path.name + "-wal")):
                 try:
