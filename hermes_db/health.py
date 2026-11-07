@@ -44,13 +44,14 @@ def configured_probe(home):
         from hermes_db.engine import read_connection
         from hermes_db.errors import StorageSchemaError
         from hermes_db.profile_context import OwnedProfileContext
-        from hermes_db.schema import REQUIRED_REVISION, _revision
+        from hermes_db.schema import status_on_connection
         from hermes_db.tables.conversations import sessions
         from hermes_db.tables.metadata import SCHEMA
 
         with OwnedProfileContext(scope).activate(), read_connection(settings.postgresql) as conn:
-            if _revision(conn, settings.postgresql.schema) != REQUIRED_REVISION:
-                raise StorageSchemaError("Schema upgrade required")
+            status = status_on_connection(conn, settings.postgresql)
+            if not status["ready"]:
+                raise StorageSchemaError(status["action_required"])
             conn = conn.execution_options(schema_translate_map={SCHEMA: settings.postgresql.schema})
             conn.execute(select(sessions.c.id).where(sessions.c.store_id == scope.require_store_id()).limit(1)).first()
         return {"backend": "postgresql", "status": "ok"}

@@ -11,9 +11,9 @@
 ## 当前进度
 
 - 整体状态：`IN_PROGRESS`，恢复真实PG验收，最终门禁尚未通过。
-- 当前阶段：M1真实环境前置通过，继续Schema/初始化验收；后续真实业务验证按依赖顺序补齐。
-- 当前任务：Task 5（in_progress：真实Schema验收及初始化/启动扩展就绪检查）；Tasks 6–17为verification_pending，Task18最终门禁待补。
-- 已完成：4 / 18。
+- 当前阶段：M1真实环境及Schema初始化验收通过，继续M2会话业务实库验收。
+- 当前任务：Task 6（in_progress：会话/提示/用量/查询真实PG）；Tasks 7–17为verification_pending，Task18最终门禁待补。
+- 已完成：5 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：用户已填写根.env并启用pg_trgm；PG17.11、扩展1.6(public)、CREATE权限和测试Schema归属/清理均已实测，连接TLS=false。继续按任务依赖顺序验收，不读取/改写既有业务表。
 - 最近更新时间：2026-11-07（Asia/Shanghai）。
@@ -265,11 +265,13 @@ python scripts/check
 
 Task4 实库恢复验证（2026-11-07）：从用户已配置的.env准备私有测试YAML后，实际只读连接PG17.11；CREATE权限通过、pg_trgm未启用，服务器扩展文件1.6已存在，TLS=false。标准命令 `HERMES_PYTHON=.build/postgresql/full-test-env/Scripts/python.exe D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/postgresql/test_environment.py -j 1 -- -m integration --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml --tb=short` 得0 passed/1 setup error、2.6s、exit1（pg-acceptance-environment-tests.log）；准确失败在pg_support.probe_environment的管理员扩展前置，不是连接或认证失败，未跳过后计通过。只读能力证据为pg-acceptance-preflight.log、pg-acceptance-capabilities.log。fixture在创建本轮Schema前即失败，因此本轮未执行PG DDL、未改业务表，也未安装扩展/服务。依据本任务步骤3，管理员须在验收库执行 `CREATE EXTENSION IF NOT EXISTS pg_trgm;`；不自动替管理员安装。启用后重跑本命令，成功再验证Task5及后续263项验收定义；业务/迁移/并发用例本轮尚未开始。严格completed仍3/18。
 
-## Task 5：创建新库 Schema 与显式版本管理
-
 Task4 完成证据（2026-11-07）：管理员启用pg_trgm后，标准runner真实环境测试1 passed、0 failed、1.6s、exit0（pg-acceptance-environment-enabled.log），实际创建并按归属标记清理唯一Schema；配置/归属保护契约11 passed、1.4s、exit0（pg-acceptance-config-contracts.log）。只读能力记录PG170011/17.11、pg_trgm1.6/public、psycopg3.3.7、SQLAlchemy2.1.6、TLS=false（pg-acceptance-environment-evidence.log）。没有将该项环境通过外推为全部业务通过；严格完成4/18。
 
-状态：in_progress（Task4真实前置已通过；开始真实DDL及用户提出的初始化/启动扩展就绪改进）
+## Task 5：创建新库 Schema 与显式版本管理
+
+状态：completed
+
+用户追加初始化/启动要求：把pg_trgm就绪判断从“升级运行到搜索revision才发现”前移到显式初始化DDL之前，并让schema_status/check_schema（普通Native启动共同入口）检查扩展，而非仅比较Alembic revision。缺项时status提供缺失清单和可执行修复SQL，启动显式失败；保持管理员准备扩展、应用启动只读不自动DDL的既定边界。原5项真实Schema基线已5 passed、5.7s（pg-task5-schema-baseline.log）；先补早期DDL/当前revision仍缺扩展/健康启动只读的行为回归，再实施最小改动。
 
 ### 目标
 
@@ -314,7 +316,9 @@ Task4 完成证据（2026-11-07）：管理员启用pg_trgm后，标准runner真
 
 ## Task 6：实现会话生命周期、提示快照、用量与查询
 
-状态：verification_pending（离线实现与契约已通过；真实 PG 行锁/事务/隔离验收待配置）
+Task5 完成/恢复点（2026-11-07）：原5项真实Schema迁移/重复升级/版本拒绝/跨store约束已通过；用户提出初始化启动改进新增5项实库验收。先观察初始化先发45条DDL、当前版本错误报ready的有效红灯，另有新增诊断字段缺口；实现后两文件10 passed、7.7s、exit0（pg-task5-schema-startup-tests.log）。101文件离线回归536 passed/0 failed/2制品未显式选择skipped，52.5s；默认排除integration不计PG通过（pg-task5-offline-regression.log）。最新14 staged检查通过，3 code files/0 blocking/0 advisory（pg-task5-startup-checks.log）。独立复查报告postgresql-initialization-review.md未发现该阶段阻塞问题，全分支仍CHANGES_REQUIRED。status/check_schema/health共用连接内扩展就绪判断，显式upgrade在DDL前检查，缺项给出修复SQL；无自动安装扩展/无启动DDL。Schema形状未变，不新增Alembic revision。Task5本地保存后按依赖继续Task6，会话业务尚未外推为通过。
+
+状态：in_progress（开始真实PG验收）
 
 ### 目标
 
@@ -1178,7 +1182,7 @@ PM python scripts/check --staged --base ff09cead02e906a4b1da909268c2cc58ec6e144d
 - 单元/SQLite扩大回归：307文件2224 passed、9 failed、1 teardown error、130 skipped、359.4s、exit1（task18-storage-regression.log，整改前）。已执行，未通过；不将未隔离的失败全归为基线。
 - 审查整改：七项新契约先6有效failed/1正常追加passed；主Agent复验5文件41 passed、11.4s，独立Reviewer再跑41 passed、11.7s，均exit0（task18-review-fix-tests.log、task18-core-review-recheck.log）。
 - 整改后全部离线后端/制品：98文件522 passed、0 failed、50.3s、exit0（task18-final-db-contracts.log），包括两套实际制品；默认过滤掉的真实PG定义未运行，不计通过。
-- PostgreSQL 实库环境：已实际连接PG17.11，CREATE权限通过，TLS=false，服务器提供pg_trgm1.6但当前验收库未启用；标准环境测试0 passed/1 setup error、exit1（pg-acceptance-environment-tests.log）。263项验收尚未通过，业务/迁移/并发/故障/重启部分仍未开始。
+- PostgreSQL 实库环境：PG17.11、pg_trgm1.6/public、CREATE权限、TLS=false已有实测；标准环境1 passed、测试Schema归属与清理通过。原迁移5项及新增初始化/启动/CLI/health5项合计10 passed。缺扩展已解决，不能继续当作当前阻塞；当前继续Task6业务验收。
 - 普通入口扩大回归：Task17 四区域4105文件大回归exit1且无完整汇总，最后观察30035 passed/516 failed；单独TUI补跑亦exit1且无完整汇总，最后1427 passed/0 observed failed。未完成部分不计通过。
 - 静态检查：Task18首轮仅ruff的subprocess.check显式性未过，已修正；相对功能起点ff09cead02e9的最新全部14项通过，474 code files、0 blocking / 0 advisory、exit0（task18-feature-checks.log）。随后仅验证记录/设计说明更新，不改变代码。
 - 类型/生成制品：Worker wire/OpenRPC/TypeScript真实生成及契约12 passed；未运行TypeScript编译或完整前端构建，没有这些检查通过证据。
@@ -1205,11 +1209,11 @@ PM python scripts/check --staged --base ff09cead02e906a4b1da909268c2cc58ec6e144d
 
 ### 未通过项目
 
-真实PG263项及新库迁移、并发/故障/重启、真实查询计划与实际支持版本尚未验证；完整SQLite/入口回归未通过，部分失败待归类，四区域/TUI完整执行证据缺失。Nix发行及TypeScript编译未验证。严格completed仍3/18；Tasks4–17与本任务不能因离线检查点而计为completed。
+真实PG环境和新库迁移/重复升级/跨store约束、初始化与启动能力前置已通过本阶段验证；后续会话业务、并发/故障/重启、真实查询计划继续按顺序验收。完整SQLite/入口回归未通过，部分失败待归类，四区域/TUI完整执行证据缺失。Nix发行及TypeScript编译未验证。严格completed为5/18，后续任务不能因离线检查点而计为completed。
 
 ### 最终状态
 
-FAILED：已有执行失败，且真实PG验收前置被缺少pg_trgm阻塞。独立审查结论CHANGES_REQUIRED；不得宣称完整后端通过或READY_TO_MERGE。Task18离线实现、制品、审查整改与最终静态/局部复验记录已保存，严格completed仍3/18。用户已补连接配置，PG17.11实际连接成功；没有安装管理数据库服务或扩展。恢复时管理员先在验收库启用pg_trgm，再按Task4前置探针及后续任务依赖顺序补验，同时完成入口失败归类/对应平台回归。原SQLite七文件的9失败/1error已在功能起点复现；原工作区.gitignore的CRLF导致全工作区diff检查报空白，保持不动，只检查/提交本功能暂存内容。用户.gitignore和multi-user-web-chat.md持续不暂存、不清理。
+上次完整门禁为FAILED；当前IN_PROGRESS恢复验证，独立审查整体仍CHANGES_REQUIRED，不能宣称READY_TO_MERGE。Task4–5真实环境、迁移与初始化检查已通过，严格completed为5/18；继续Task6及后续业务/并发/故障，并完成入口失败归类/对应平台回归。用户已准备扩展，未由应用安装或管理数据库服务。原SQLite七文件9失败/1error已在功能起点复现；用户工作区文件继续保留，秘密配置不暂存。
 
 
 ## 恢复点

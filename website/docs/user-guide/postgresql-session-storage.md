@@ -85,6 +85,14 @@ to the current revision are safe. A nonempty schema without a recognized version
 is refused. Stop application writers before upgrading and prepare an appropriate
 database backup with the administrator.
 
+Initialization checks required extensions before creating tables. Ordinary
+startup and readiness checks also verify `pg_trgm`, including when the schema
+revision is already current. If it is missing, `hermes db status` reports
+`ready: false`, names the missing extension, and provides the repair SQL;
+`hermes db upgrade` stops before schema DDL. The administrator connects to the
+configured database and runs `CREATE EXTENSION IF NOT EXISTS pg_trgm;`, then
+retries the upgrade. Hermes does not install extensions during application boot.
+
 PostgreSQL starts with new data. Selecting this backend does not import an old
 SQLite `state.db`, old queue formats, JSONL history, or session mirrors. It does
 not dual-write or provide a migration back to SQLite. Selecting SQLite again

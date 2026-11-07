@@ -7,6 +7,8 @@ from hermes_db.errors import StorageSchemaError, StorageUnavailableError
 from hermes_db.settings import PostgresSettings
 
 REQUIRED_REVISION = "0003_archive_refs"
+_PG_TRGM_ACTION = ("PostgreSQL pg_trgm is required. Connect to the configured database and run "
+                   "CREATE EXTENSION IF NOT EXISTS pg_trgm; then run hermes db upgrade.")
 
 
 def _revision(conn, schema):
@@ -23,16 +25,34 @@ def _revision(conn, schema):
     return revisions[0] if revisions else None
 
 
+def _missing_extensions(conn):
+    from sqlalchemy import text
+    installed = conn.scalar(text("SELECT EXISTS (SELECT 1 FROM pg_extension WHERE extname='pg_trgm')"))
+    return [] if installed else ["pg_trgm"]
+
+
+def status_on_connection(conn, settings):
+    revision = _revision(conn, settings.schema)
+    missing = _missing_extensions(conn)
+    status = {"backend": "postgresql", "schema": settings.schema, "revision": revision,
+        "required_revision": REQUIRED_REVISION, "missing_extensions": missing,
+        "ready": revision == REQUIRED_REVISION and not missing}
+    if missing:
+        status["action_required"] = _PG_TRGM_ACTION
+    elif revision != REQUIRED_REVISION:
+        status["action_required"] = "Inspect hermes db status and run the explicit hermes db upgrade."
+    return status
+
+
 def schema_status(settings: PostgresSettings) -> dict:
     with read_connection(settings) as conn:
-        revision = _revision(conn, settings.schema)
-    return {"backend": "postgresql", "schema": settings.schema, "revision": revision,
-            "required_revision": REQUIRED_REVISION, "ready": revision == REQUIRED_REVISION}
+        return status_on_connection(conn, settings)
 
 
 def check_schema(settings: PostgresSettings) -> None:
-    if not schema_status(settings)["ready"]:
-        raise StorageSchemaError("PostgreSQL session schema is incompatible; inspect hermes db status and run the explicit upgrade")
+    status = schema_status(settings)
+    if not status["ready"]:
+        raise StorageSchemaError("PostgreSQL session schema is incompatible; " + status["action_required"])
 
 
 def _prepare_schema(conn, settings):
@@ -48,6 +68,8 @@ def _prepare_schema(conn, settings):
                  {"timeout": str(max(1, int(settings.write_lock_timeout_seconds * 1000)))})
     conn.execute(text("SELECT set_config('statement_timeout', :timeout, true)"),
                  {"timeout": str(max(1, int(settings.statement_timeout_seconds * 1000)))})
+    if _missing_extensions(conn):
+        raise StorageSchemaError(_PG_TRGM_ACTION)
     exists = conn.scalar(text("SELECT EXISTS (SELECT 1 FROM pg_namespace WHERE nspname=:schema)"), {"schema": schema})
     if not exists:
         conn.execute(CreateSchema(schema))
