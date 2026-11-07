@@ -10,9 +10,9 @@
 ## 当前进度
 
 - 整体状态：`IN_PROGRESS`。
-- 当前阶段：Discord恢复账本实施。
-- 当前任务：Task 17（completed；正在创建本地任务提交，随后进入Task18）。
-- 已完成：17 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前阶段：RetainDB持久pending队列实施。
+- 当前任务：Task 18（completed；正在创建本地任务提交，随后进入Task19）。
+- 已完成：18 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-08（Asia/Shanghai）。
@@ -1034,7 +1034,7 @@ Discord恢复不需要discord_message_recovery.db且既有功能保留。
 
 ## Task 18：统一 RetainDB 本地 pending 队列
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -1068,11 +1068,21 @@ RetainDB插件本地队列不再要求SQLite，同时保留远端服务协议。
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+已完成0026领域表/资源/具名操作与PG队列、原生factory分流和provider拥有者初始化。已核对_Client.ingest_session实际三参数协议；PG用持久request_id/指纹/claim token和紧凑确认，消息正文确认后清除，终态同request不重发。远端at-least-once不虚构幂等header或exactly-once。目标摘要绑定endpoint/project，API key不进入摘要；旧目标pending明确告知并保留，不能改投新目标，恢复原配置后可继续投递。初始化先在拥有者scope读配置/秘密并启动上下文线程，重初始化先关闭原队列，SOUL后台seed捕获原client/agent身份。
+
+worker按短事务/SKIP LOCKED/持久token claim，POST前续租CAS，确认/失败均精确token结算；HTTP、等待、退避、join不借PG连接。未知入队错误携带安全request_id且仍唤醒数据库重查，未知claim无发送权，未知确认不猜测回滚。关闭拒新、限时等待并报告保留pending。SQLite实现及旧数据保留，不导入PG；PG持续一条一批从数据库取工作，已实测205条启动积压完整恢复。恢复点：本项提交后进入Task19，必须核对实际Matrix SDK并做真实密钥/PG协议验证，不借本项证据外推。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+`scripts/run_tests.sh tests/hermes_db/postgresql/test_retain_queue.py -j 1 -- -m integration --postgres-test-config=$pgTestConfig` exit1、1 failed/1 teardown error（unified-task18-provider-red.log），实际provider initialize通过旧_WriteQueue尝试SQLite。尚无实现通过证据或本地任务commit。
+
+中间证据：provider-first 1 passed；provider-persistence 1 passed，真实sync_turn在外部client阻塞时查到claimed/payload持久行，池checkedout=0、另一Profile pending=0，结束后紧凑ACK清除user/session/messages。provider-owner 2 passed，指定owner在另一个ambient Profile中初始化并sync，实际工作线程读取拥有者的config/secret。native-first 29 passed/1 failed，为旧fixture只mock get_hermes_home但未同步HERMES_HOME导致新拥有者绑定正确拒借另一Profile环境；将fixture实际launch home与mock一致、scope标记拥有者后native-followup 2文件30 passed。transactions-first 3 passed（request幂等、目标scope、终态、到期接管token CAS、真实失败延期/消息冻结）；worker-process-first 5 passed（双writer、实际ACK提交确认丢失不重发、远端成功但本地无ACK的真实新进程重放、205条积压全恢复）。
+
+最终验证：`scripts/run_tests.sh <PowerShell数组展开test_retain_queue*.py的4文件> tests/hermes_db/postgresql/test_domain_schema.py tests/hermes_db/postgresql/test_schema.py -j 3 -- -m integration --postgres-test-config=$pgTestConfig` exit0、6文件20 passed/无skip/retry（unified-task18-pg-final.log）。RetainDB独立11项另含改变project不接管旧pending、恢复原project实际成功、实际enqueue COMMIT确认丢失仍有request_id且不丢投递。所有PG fixture和新进程拒绝全部SQLite入口；只用本机受控client，未请求实际RetainDB服务。崩溃lease重放以拥有者Schema内设置lease过期代表已过TTL，不声称实际等待了生产120秒TTL。
+
+`scripts/run_tests.sh tests/plugins/memory/test_retaindb_provider.py tests/plugins/test_retaindb_plugin.py -j 2` exit0、30 passed/无skip/retry（native-followup）；`... tests/hermes_db/contracts/test_retain_sqlite_optional_drivers.py -j 1` exit0、1 passed（sqlite-no-pg），实际provider/SQLite队列在SQLAlchemy/psycopg/Alembic导入全拒绝的独立进程完成sync_turn/落库/发送/确认。`PM Python scripts/check --staged --base 8ebb3e5691`最终exit0、14 checks/health16文件0 blocking/advisory（checks-final），暂存区diff检查通过。
+
+完成提交标题`feat(storage): persist scoped RetainDB pending queue`；无新依赖、无正式Profile/服务/旧SQLite修改。未验证项为Task19 Matrix实际SDK及Task20–24系统闭合/最终门禁；远端原生协议的at-least-once限制明确保留，不宣称远端去重保证。
 
 ## Task 19：适配 Matrix 加密存储完整 SDK 协议
 
@@ -1392,6 +1402,6 @@ Task 1–9 已完成，Task 10–24 尚未完成；不得宣称全系统PG已完
 
 ## 恢复点
 
-Task 1–17已验收并各自创建本地commit（Task15 `b74b53b114`，Task16 `8145fcafab`，Task17标题 `feat(storage): persist scoped Discord recovery ledgers`）。下一项Task18实际RetainDB provider/pending队列；Task17 PG30 passed、SQLite41 passed、无PG依赖1 passed及14静态checks通过，无skip/retry。Task20维护及Task22普通daemon强验收尚未完成。分支仍为 `feat/postgresql-session-storage`，正式实例保持SQLite，未写正式Profile、秘密或业务表；不能由此宣称全系统PG已完成。
+Task 1–18已验收并各自创建本地commit（Task16 `8145fcafab`，Task17 `8ebb3e5691`，Task18标题 `feat(storage): persist scoped RetainDB pending queue`）。下一项Task19实际Matrix SDK协议及真实PG密钥往返；Task18 PG20 passed、SQLite30 passed、无PG依赖1 passed及14静态checks通过，无skip/retry。Task20维护及Task22普通daemon强验收尚未完成。分支仍为 `feat/postgresql-session-storage`，正式实例保持SQLite，未写正式Profile、秘密或业务表；不能由此宣称全系统PG已完成。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

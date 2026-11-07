@@ -110,6 +110,7 @@ def _capture_initialized_client(monkeypatch, tmp_path):
 
     monkeypatch.setattr(retaindb_module, "_Client", _FakeClient)
     monkeypatch.setattr(retaindb_module, "_WriteQueue", lambda *a, **k: MagicMock())
+    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     monkeypatch.setattr(hermes_constants, "get_hermes_home", lambda: tmp_path)
     return retaindb_module, captured
 
@@ -177,7 +178,7 @@ def test_initialize_combines_scoped_secret_with_dashboard_config(tmp_path, monke
 
     previous_multiplex_state = is_multiplex_active()
     set_multiplex_active(True)
-    token = set_secret_scope({"RETAINDB_API_KEY": "scoped-key"})
+    token = set_secret_scope({"RETAINDB_API_KEY": "scoped-key"}, profile_home=str(tmp_path))
     try:
         RetainDBMemoryProvider().initialize("sess-1")
     finally:

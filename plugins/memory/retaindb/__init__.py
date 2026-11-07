@@ -184,7 +184,16 @@ class _Client:
 class _WriteQueue:
     """SQLite-backed async write queue. Survives crashes — pending rows replay on startup."""
 
-    def __init__(self, client: _Client, db_path: Path):
+    def __new__(cls, client, db_path, *, profile_home=None):
+        from hermes_cli.db_setup import storage_backend
+        if cls is _WriteQueue and storage_backend(profile_home) == "postgresql":
+            from hermes_db.retain_queue import PostgresWriteQueue
+            return object.__new__(PostgresWriteQueue)
+        return object.__new__(cls)
+
+    def __init__(self, client: _Client, db_path: Path, *, profile_home=None):
+        from hermes_constants import get_hermes_home
+        self._profile_home = Path(profile_home) if profile_home is not None else get_hermes_home()
         self._client, self._db_path, self._q = client, db_path, queue.Queue()
         self._thread = spawn_context_thread(self._loop, name="retaindb-writer")
         db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -199,6 +208,10 @@ class _WriteQueue:
             self._q.put((row_id, user_id, session_id, json.loads(msgs_json)))
 
     def _get_conn(self) -> sqlite3.Connection:
+        from hermes_cli.db_setup import storage_backend
+        if storage_backend(self._profile_home) != "sqlite":
+            from hermes_db.errors import StorageConfigurationError
+            raise StorageConfigurationError("Captured RetainDB SQLite backend changed; reopen its owning provider")
         conn = getattr(self._local, "conn", None)
         if conn is None:
             conn = self._local.conn = sqlite3.connect(str(self._db_path), timeout=30, check_same_thread=False)
@@ -327,27 +340,8 @@ class RetainDBMemoryProvider(MemoryProvider):
         ]
 
     def initialize(self, session_id: str, **kwargs) -> None:
-        # Non-secret fields resolve env (profile-scoped) -> config.yaml (written by the Dashboard) -> default.
-        cfg = {k: v.strip() for k, v in _load_retaindb_config().items() if isinstance(v, str)}
-        base_url = re.sub(r"/+$", "", get_secret("RETAINDB_BASE_URL", "") or cfg.get("base_url") or _DEFAULT_BASE_URL)
-        # Project: RETAINDB_PROJECT > config.yaml > hermes-<profile> > "default" (API auto-creates "default").
-        # The project is the data partition: read through the secret scope so a multiplexed secondary's
-        # memories never land in the default profile's project.
-        project = get_secret("RETAINDB_PROJECT", "") or cfg.get("project")
-        if not project:
-            profile_name = os.path.basename(str(kwargs.get("hermes_home", "")))
-            project = f"hermes-{profile_name}" if profile_name not in {"", ".hermes"} else "default"
-        self._client = _Client(get_secret("RETAINDB_API_KEY", "") or "", base_url, project)
-        self._session_id, self._user_id = session_id, kwargs.get("user_id", "default") or "default"
-        self._agent_id = kwargs.get("agent_id", "hermes") or "hermes"
-        # Bind to the profile the manager names, not the ambient one (multiplexing contract, MemoryProvider).
-        from hermes_constants import get_hermes_home
-        home = Path(kwargs["hermes_home"]) if kwargs.get("hermes_home") else get_hermes_home()
-        self._queue = _WriteQueue(self._client, home / "retaindb_queue.db")
-        soul = (home / "SOUL.md").read_text(encoding="utf-8-sig", errors="replace").strip() if (home / "SOUL.md").exists() else ""
-        if soul:  # seed agent identity from SOUL.md in background
-            seed = lambda: self._client.seed_agent_identity(self._agent_id, soul, source="soul_md")
-            spawn_context_thread(_quiet, args=("soul seed", seed), name="retaindb-soul-seed").start()
+        from .initialization import initialize
+        return initialize(self, session_id, **kwargs)
 
     def system_prompt_block(self) -> str:
         project = self._client.project if self._client else "retaindb"

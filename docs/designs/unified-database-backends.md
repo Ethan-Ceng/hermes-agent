@@ -179,6 +179,10 @@ Task16实际消费者细化：源码中旧plugin_db没有生产调用者，不�
 
 Task17协议核对：Discord adapter全部message/scan/cursor和启动探测使用具名普通记录操作；SQLite原表保留，PG拒绝任意SQLite Connection回调且故障明确传播。seen+attempt及processing_start合并为事务，responded对迟到queued/processing保持终态（既有intent为8c6881231a，原生回归已复现覆盖错误）；SQLite用IMMEDIATE，PG先store/plugin行锁，再必要的plugin namespace锁。response与游标同事务，锁顺序固定，Post/历史网络等待不占连接。scan使用每次新UUID避免毫秒/PID碰撞覆盖，30天清理限定store/plugin；SDK不透明ID和错误字节保真，强制错误脱敏在连接外执行。此前Task16的游标消费者收口到完整具名store协议，不保留已迁移内部模块的重导出壳。
 
+Task18实际协议细化：RetainDB的_Client.ingest_session(user_id,session_id,messages)没有本地队列receipt参数，不能发明服务端幂等保证。PG每次逻辑入队分配稳定request_id/内容指纹，使用按store/plugin隔离的持久pending与紧凑确认记录；同request重试先观察原记录，终态不重新发送，确认后清除用户/会话/消息正文。远端请求仍为at-least-once，返回丢失可重放同一冻结消息，不宣称远端exactly-once。队列记录绑定endpoint/project的非秘密摘要，API key轮换不改身份；配置换目标不能把旧pending悄悄投到新分区。
+
+线程只持捕获的Profile/store/target，provider初始化先绑定拥有者，再读配置/秘密并启动上下文线程。入队先提交，Event仅唤醒；claim用短事务/SKIP LOCKED和持久token/到期时间，成功确认与失败延期都做精确token CAS。HTTP、等待、退避和join均在连接外；未知claim提交不授予发送权，未知确认不猜测回滚。关闭先拒绝新入队，再唤醒并限时等待，失败/未完成记录继续在数据库，不能用丢弃队列完成关闭。PG worker持续读取有界批次，不沿用旧启动LIMIT200后其余pending被搁置的实现；SQLite旧队列继续原生可用，不读取它来补PG数据。
+
 ### Matrix SDK
 
 Matrix 单独实现 SDK CryptoStore 协议适配，PG SQL/表/事务由 `hermes_db` 管理，异步 SDK 接口在明确边界调用同步存储并保留 Profile scope。不得只把 SDK URL 从 sqlite 改成 PG 后另起不受管的异步池或失去 `store_id` 隔离。

@@ -30,6 +30,7 @@ POSTGRES_DOMAINS = {
     "metrics": DomainSpec("0023_metrics", ("metrics",)),
     "plugins": DomainSpec("0024_plugins", ("plugins",)),
     "discord_recovery": DomainSpec("0025_discord_recovery", ("discord_recovery", "plugins")),
+    "retain_queue": DomainSpec("0026_retain_queue", ("retain_queue",)),
 }
 
 
