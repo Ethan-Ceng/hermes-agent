@@ -101,7 +101,10 @@ def _group(authority, actor, method, params, *, host_scope=False):
     service = getattr(authority, 'hosted_room_service', None)
     room_authorizer = getattr(service, 'authorize_room', None)
     if service is not None:
-        if Path(service.db_path).resolve() != Path(db_path).resolve():
+        from hermes_db.domains.rooms import normalize_location, RoomStoreRef
+        left, right = normalize_location(service.db_path), normalize_location(db_path)
+        same = left == right if isinstance(left, RoomStoreRef) or isinstance(right, RoomStoreRef) else left.resolve() == right.resolve()
+        if not same:
             raise RuntimeStoreError('profile_mismatch')
         status = service.runtime.status()
         if not status.get('running') or status.get('stopping'):
@@ -118,6 +121,9 @@ def _group(authority, actor, method, params, *, host_scope=False):
             # validation or storage must not leave an owner-only reservation behind.
             def admit(conn):
                 room_authorizer(actor.subject, params['room_id'], create=True, conn=conn)
+            from hermes_db.health import is_postgresql_store
+            if is_postgresql_store(authority.db):
+                admit = service._coordination.owner_effect(actor.subject, params['room_id'])
         else:
             room_authorizer(actor.subject, params['room_id'])
     if method in {'groups.attachment.upload', 'groups.attachment.download'}:
@@ -521,7 +527,9 @@ def _named_profile_dirs():
                 markers = tuple(_lstat_key(os.path.join(entry.path, marker))
                                 for marker in _PROFILE_IDENTITY_MARKERS)
                 tombstone = os.path.exists(profile_tombstone_path(Path(entry.path)))
-                rows.append((entry.name, _stat_key(entry.stat()), markers, tombstone))
+                # NTFS directory enumeration may retain the mtime from before its
+                # identity files closed. Stat the path for a current cache key.
+                rows.append((entry.name, _stat_key(os.stat(entry.path)), markers, tombstone))
             signature = (_stat_key(os.stat(profiles_root)), tuple(sorted(rows)))
     except OSError:
         signature = None

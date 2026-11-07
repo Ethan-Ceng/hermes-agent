@@ -10,9 +10,9 @@
 ## 当前进度
 
 - 整体状态：`IN_PROGRESS`。
-- 当前阶段：房间 driver 与执行领域实施。
-- 当前任务：Task 12（pending；Task 11已完成验证，立即创建本地提交）。
-- 已完成：11 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前阶段：房间策略与路由领域实施。
+- 当前任务：Task 12已completed，下一项Task 13（pending；Task12提交标题 `feat(storage): persist scoped room driver and work records`）。
+- 已完成：12 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-08（Asia/Shanghai）。
@@ -707,7 +707,7 @@ Task11最终验证与恢复：原生Windows/PM full-test-env，`scripts/run_test
 
 ## Task 12：统一房间 driver、任务与 work records
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -734,6 +734,7 @@ Task11最终验证与恢复：原生Windows/PM full-test-env，`scripts/run_test
 2. 保留单owner、执行代次、未知结果、取消竞争与晚到回执规则。
 3. 调度等待、模型、外部peer访问均在短事务外，不用Python锁充当跨进程租约。
 4. 将CanonicalHostedRoomService/HostedAdmissionFence的旧SQLite事务回调逐项改为具名Core/CoreEffect，并在remote run receipt事务中接通work-record capture；不得用PG连接执行旧SQL字符串或遗留独立SQLite围栏。Task11只完成其元数据原语，不将该消费者接入标为已完成。
+5. 依赖细化：driver保留清理与work-record快照均读取policy_publications。为在Task12闭合真实消费者，将该底层scoped publication表随0020提前建立；Task13仍负责策略checkpoint及实际出版事务，不能用空publication集合宣称策略完成。Canonical服务构造仍依赖Task13策略/路由和Task14附件；本任务先完成typed协调/准入及transport-free driver完整调度合同，整服务验收在后续依赖接通后执行，Task22保留完整daemon强验收。
 
 ### 验证方式
 
@@ -746,11 +747,21 @@ Task11最终验证与恢复：原生Windows/PM full-test-env，`scripts/run_test
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+已完成scoped Core租约、准入、启动、Stop/settlement、recover与读取，复用原DTO/验证和代次/幂等规则；0020冻结DDL建立实际driver/work-record及publication基础表。旧driver私有SQLite连接显式拒绝PG。所有room/task/lease围栏含store/room，跨房间member capability反例先红后修复，数值相同的外房间lease不能结算任务。提交标题：feat(storage): persist scoped room driver and work records。恢复点Task13策略checkpoint/router；Task14附件及Task22完整daemon仍待实施，本任务不能外推为完整Canonical房间服务或系统PG已可用。
+
+同事务work-record快照、remote receipt即时捕获、精确pending/ACK与v2 lineage、损坏字节invalid分类/冻结、容量savepoint及已出版终态清理已接通；Canonical owner创建CoreEffect与FIFO member授权使用同一PG连接，移除独立SQLite admission围栏。生产线程driver保存显式RoomStoreRef，容量释放及Stop/重启收获合同通过。PG证据保存原字节，scoped触发器在权威切换时冻结旧producer，不以证据代替执行权限；不导入SQLite旧证据或创建迁移孤儿占位表。
+
+原生回归定位：5文件批次16 passed/1 failed（unified-task12-native-owner.log），唯一失败是既有Profile roster缓存测试，单独复现同样失败（native-cache-repro）。临时诊断仅观察隔离Profile签名（native-cache-diagnosis），确认Windows DirEntry.stat()首次返回子目录内config/profile文件关闭前的旧mtime，后续调用才刷新；marker字节/身份没有变化。已核对c2846b54bb的缓存意图及未修改缓存逻辑的baseline代码。最小改为os.stat(entry.path)读取当前目录状态，保留所有身份/墓碑/粗时钟判据；临时诊断测试已移除，沿用原生失败合同复验。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+原生Windows/PM full-test-env，测试均经scripts/run_tests.sh、独立随机且核对归属的PG Schema。租约先红5 failed（unified-task12-leases-red.log，原路径转换拒绝RoomStoreRef），首轮实现4 passed/1 failed（unified-task12-leases-partial.log，未适配admit_task被SQLite旁路护栏拒绝），继续具名Core状态机后，`scripts/run_tests.sh tests/hermes_db/postgresql/test_room_runs.py -j 1 -- -m integration --postgres-test-config=$pgTestConfig` exit0、24 passed/0 failed/0 skipped/无重试（unified-task12-state-contracts.log）。涵盖实际竞争连接、租约接管/过期/释放、权限转移、准入冲突、取消竞争、未知任务恢复、显式重试和晚到回执；仍未验证work-record原子捕获、完整runtime/跨进程重启、publication清理及最终静态检查，需后续新鲜证据。
+
+最终证据覆盖并取代上述实施中未验证项：`scripts/run_tests.sh tests/hermes_db/postgresql/test_room_runs.py tests/hermes_db/postgresql/test_room_work.py tests/hermes_db/postgresql/test_room_coordination.py tests/hermes_db/postgresql/test_room_driver_runtime.py tests/hermes_db/postgresql/test_room_run_faults.py tests/hermes_db/postgresql/test_rooms_store.py tests/hermes_db/postgresql/test_room_faults.py tests/hermes_db/postgresql/test_schema.py tests/hermes_db/postgresql/test_domain_schema.py tests/hermes_db/postgresql/test_runtime.py -j 3 -- -m integration --postgres-test-config=$pgTestConfig` exit0、10文件78 passed/0 failed/0 skipped/无重试（unified-task12-pg-complete.log）。上一轮76 passed的pg-final之后新增跨房间反例确实1 failed（member-scope-red），整改后本轮78全部通过。包括两个真实子进程无SQLite接管、持久未知恢复/旧回执拒绝、Profile隔离、真实COMMIT确认丢失一次结算、Stop并发、snapshot/remote receipt同事务、坏字节保留、容量savepoint、v2 lineage与精确ACK、publication清理、真实FIFO准入及生产线程driver/容量调度；外部session/model RPC为合同stub，完整Canonical模型Worker/daemon仍由Task22验证。
+
+SQLite命令：`scripts/run_tests.sh tests/gateway/test_hosted_room_driver.py tests/gateway/test_room_work_transition_capture.py tests/gateway/test_room_work_evidence.py tests/gateway/test_room_work_receipt_capture.py tests/gateway/test_room_work_service_capture.py tests/tui_gateway/test_hosted_room_driver_runtime.py tests/tui_gateway/test_hosted_room_worker_capacity.py -j 3` exit0、7文件91 passed/无skip（native-first）。owner/group/无PG SDK五文件批次16 passed/1 failed已按上文定位，修复后`... tests/gateway/test_session_group_controls.py tests/hermes_db/contracts/test_rooms_sqlite_optional_drivers.py -j 2` exit0、2文件8 passed（native-cache-green）；另外四文件10项原已通过。独立SQLite子进程实际屏蔽sqlalchemy/psycopg/alembic导入，仍完成事件/副本/links/driver/证据及ACK真实读写。
+
+`PM Python scripts/check --staged --base 8e1b3c2cc0` exit0、14 checks ok、health35文件0 blocking/advisory（unified-task12-checks-final.log），diff检查通过；之后只更新账本。未验证/未完成范围：POSIX限定、完整Canonical服务构造(Task13–14)、实际模型/peer跨进程链路(Task22)、维护(Task20)、插件与Matrix(Task15–19)、发行及最终独立审查(Task23–24)。PG业务进程维持全SQLite连接审计拒绝，没有新增豁免、回落、双写、服务管理、推送或正式Profile改动。
 
 ## Task 13：统一房间策略 checkpoint 与路由调用
 
@@ -1332,6 +1343,6 @@ Task 1–9 已完成，Task 10–24 尚未完成；不得宣称全系统PG已完
 
 ## 恢复点
 
-Task 1–9已验收；Task 9提交后从Task 10的订阅、转移、Board文件生命周期和剩余消费者继续。分支仍为 `feat/postgresql-session-storage`；正式实例保持SQLite，开发未写正式Profile、秘密或业务数据库。Task 9有75项整批PG、随后两种真实Worker模式及故障/Schema/契约证据；原生唯一fixture失败已单文件复验通过，平台缺口明确保留。尚不外推完整Kanban或全系统PG。
+Task 1–12已验收并各自创建本地commit（Task12标题 `feat(storage): persist scoped room driver and work records`）。下一项Task13策略checkpoint/router，继续消除完整Canonical房间服务的SQL消费者；Task14附件、Task20维护和Task22普通daemon强验收尚未完成。分支仍为 `feat/postgresql-session-storage`，正式实例保持SQLite，未写正式Profile、秘密或业务表。Task12最新10文件78项真实PG/严格SQLite拒绝、原生91项及owner/cache/无PG SDK补充合同、14静态checks通过；不能由此宣称全系统PG已完成。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

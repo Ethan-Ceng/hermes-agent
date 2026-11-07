@@ -94,6 +94,11 @@ def read_history_locked(conn, room_id: str, *, gateway_id: str, epoch: int) -> l
            WHERE room_id=? AND kind IN {TRANSFER_KINDS} ORDER BY seq LIMIT ?""",
         (room_id, MAX_AUTHORITY_SPANS),
     ).fetchall()
+    return history_from_rows(rows, gateway_id=gateway_id, epoch=epoch)
+
+
+def history_from_rows(rows, *, gateway_id: str, epoch: int) -> list[dict[str, Any]] | None:
+    """Validate the committed transfer values from either selected backend."""
     if len(rows) >= MAX_AUTHORITY_SPANS:
         raise AuthorityHistoryError("authority history exceeds its bound")
     if not rows:

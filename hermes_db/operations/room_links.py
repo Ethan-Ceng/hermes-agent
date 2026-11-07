@@ -54,6 +54,8 @@ def upsert_remote_run_receipt(store, *, record, now=None):
             return
         repo.insert_row(conn, store, remote_runs, dict(identity, run_id=record["run_id"], session_id=record["session_id"],
                                                      created_at=timestamp, updated_at=timestamp))
+        from hermes_db.operations.room_work import capture_transition_locked
+        capture_transition_locked(conn, store, record["room_id"])
 
 
 def list_remote_run_receipts(store, *, room_id=None, target_profile=None, session_id=None):

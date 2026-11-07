@@ -10,10 +10,12 @@ from gateway.session_hosted_controls import HostedControls
 from gateway.owner_identity import same_owner
 from hermes_state_runtime import RuntimeStoreError, _epoch
 from tui_gateway.hosted_room_service import HostedRoomService
+from hermes_db.domains.rooms import room_operation
 
 _OWNER = 'gateway.hosted.owner.v1:'
 
 
+@room_operation("room_ownership")
 def probe_native_room_owner(db_path, *, room_id) -> bool:
     """Non-blocking, read-only: does the gateway owning this session store serve ``room_id``? Only rooms
     with an owner entry are in ``CanonicalHostedRoomService.bindings``."""
@@ -96,6 +98,10 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
 
 
     def bindings(self):
+        if self._coordination.native:
+            from hermes_db.operations.room_coordination import owners
+            owned = set(self._coordination.core_read(owners))
+            return tuple(b for b in super().bindings() if b.room_id in owned)
         with self._coordination.read() as conn:
             owned = {r[0][len(_OWNER):] for r in conn.execute(
                 'SELECT key FROM state_meta WHERE key LIKE ?', (_OWNER + '%',))}
@@ -112,6 +118,8 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
                 or not isinstance(room_id, str) or len(room_id) > 128
                 or not IDENTIFIER_RE.fullmatch(room_id)):
             raise RuntimeStoreError('invalid_params')
+        if self._coordination.native:
+            return self._coordination.core_authorize(actor_subject, room_id, create=create, conn=conn)
         if conn is not None:
             self._coordination.check_epoch()
         def write(conn):
@@ -132,6 +140,12 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
         return write(conn) if conn is not None else self._coordination.write(write)
 
     def _owner(self, room_id):
+        if self._coordination.native:
+            from hermes_db.operations.room_coordination import owner
+            saved = self._coordination.core_read(owner, room_id)
+            if saved is None:
+                raise RuntimeStoreError('permission_denied')
+            return saved
         with self._coordination.read() as conn:
             row = conn.execute('SELECT value FROM state_meta WHERE key=?', (_OWNER + room_id,)).fetchone()
         if row is None:
@@ -208,8 +222,11 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
                 frozenset({'session:create', 'session:read', 'session:submit', 'session:control', 'session:approve'}),
                 'hosted:' + binding.room_id + ':' + member)
             if self._coordination.native:
-                from gateway.session_hosted_storage import HostedAdmissionAuthorizer
-                authorize_write = HostedAdmissionAuthorizer(self._coordination, authorized)
+                from gateway.session_hosted_storage import HostedAdmissionAuthorizer, HostedMemberAuthorization
+                authorize = HostedMemberAuthorization(self._coordination,
+                    available=lambda: self.profile_homes().get(profile) == home,
+                    owner=owner, binding=binding, member=member, profile=profile)
+                authorize_write = HostedAdmissionAuthorizer(self._coordination, authorize)
             self.member_rpcs[key] = HostedRoomAuthorityRPC(self.authority, self.loop,
                 room_id=binding.room_id, member_id=member, profile=profile, principal=principal, authorize=authorize,
                 authorize_write=authorize_write, room_db_path=self.db_path)

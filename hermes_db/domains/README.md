@@ -82,6 +82,9 @@ read snapshots keep the authority and replay cursor consistent. Room limits,
 event byte accounting, idempotency and permanent retired identities remain
 durable. PG never imports the legacy SQLite room dataset or creates a separate
 `hosted-pg-*.db` coordination ledger. Trusted transaction callbacks use `CoreEffect`.
-Driver/admission consumers, policy/router consumers and attachment publication
-are separate integration tasks and must be verified before claiming full rooms
-or full-system PostgreSQL readiness.
+Driver leases/tasks and passive work snapshots join the same scoped room
+transactions; canonical FIFO authorization uses its own writer's connection.
+Evidence capacity failures roll back a savepoint, while invalid retained bytes
+remain classified and immutable. Authority changes freeze old producer scopes.
+Policy/router consumers and attachment publication remain separate integration
+tasks; driver contracts alone do not establish full rooms or system readiness.

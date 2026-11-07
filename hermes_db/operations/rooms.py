@@ -15,8 +15,8 @@ def create_room(store, *, room_id, name, members, authority_gateway_id, now=None
     gateway = native._actor_id(authority_gateway_id, "authority_gateway_id")
     timestamp = clock(now)
     with store.write() as conn:
-        repo.lock_store(conn, store)
         effects.invoke(admit, conn, store.scope)
+        repo.lock_store(conn, store)
         if conn.scalar(select(retired.c.room_id).where(repo.scope(retired, store, room_id))) is not None:
             raise native.RoomConflictError("room_id belongs to a disbanded room")
         row = conn.execute(select(rooms).where(repo.scope(rooms, store, room_id)).with_for_update()).mappings().one_or_none()

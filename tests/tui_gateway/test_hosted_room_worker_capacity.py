@@ -10,12 +10,15 @@ from tui_gateway import hosted_room_driver as driver
 
 
 def test_deadline_releases_worker_capacity_for_later_room(tmp_path, monkeypatch):
+    assert_deadline_releases_worker_capacity(tmp_path / 'state.db', monkeypatch)
+
+
+def assert_deadline_releases_worker_capacity(db, monkeypatch):
     elapsed = [0.0]
     monkeypatch.setattr(driver, 'time', SimpleNamespace(monotonic=lambda: elapsed[0]))
     def wall_clock():
         return 100.0
 
-    db = tmp_path / 'state.db'
     bindings = [driver.HostedRoomBinding(room, 'gateway-a', 1)
                 for room in ('room-stuck', 'room-healthy')]
     identities = [state.TaskIdentity(binding.room_id, task, 'thread', 'turn')

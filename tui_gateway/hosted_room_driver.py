@@ -135,7 +135,8 @@ class HostedRoomRuntime:
             raise ValueError("unavailable retry bounds are invalid")
         if rpc is None and transport_resolver is None:
             raise ValueError("rpc or transport_resolver is required")
-        self.db_path = Path(db_path)
+        from hermes_db.domains.rooms import normalize_location
+        self.db_path = normalize_location(db_path)
         self.rpc, self.transport_resolver, self.turn_lock = rpc, transport_resolver, turn_lock
         self.prepare_room, self.publish_terminal = prepare_room, publish_terminal
         self.pending_action, self.task_progress, self.clock = pending_action, task_progress, clock

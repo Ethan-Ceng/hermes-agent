@@ -1,6 +1,6 @@
 """Room coordination captures the canonical Profile's selected storage target."""
 
-from contextlib import closing, contextmanager
+from contextlib import contextmanager
 from pathlib import Path
 
 from hermes_db.health import is_postgresql_store, profile_home_for_store
@@ -42,20 +42,55 @@ class RoomCoordination:
             with self.authority.db._read_ctx() as conn:
                 yield conn
             return
-        from gateway.hosted_rooms import _read_connection
-        self.check_epoch()
-        with closing(_read_connection(self.path)) as conn:
-            conn.execute("BEGIN")
-            yield conn
+        raise TypeError("PG room coordination requires a named Core operation")
 
     def write(self, callback):
         if not self.native:
             return self.authority.db._execute_write(callback)
-        from gateway.hosted_rooms import _connect
-        self.check_epoch()
-        with closing(_connect(self.path)) as conn, conn:
-            conn.execute("BEGIN IMMEDIATE")
-            return callback(conn)
+        raise TypeError("PG room coordination requires a named Core operation")
+
+    def core_read(self, operation, *args):
+        from hermes_db.repositories.runtime import require_epoch
+        with self.authority.db._transactions.read() as conn:
+            require_epoch(conn, self.authority.db.scope, self.authority.epoch)
+            return operation(conn, self.authority.db.scope, *args)
+
+    def core_authorize(self, subject, room_id, *, create=False, conn=None):
+        from hermes_db.operations.room_coordination import authorize_room
+        if conn is not None:
+            return authorize_room(conn, self.authority.db, self.authority.epoch, subject, room_id, create=create)
+        with self.authority.db._transactions.write() as connection:
+            return authorize_room(connection, self.authority.db, self.authority.epoch, subject, room_id, create=create)
+
+    def owner_effect(self, subject, room_id):
+        from hermes_db.operations.effects import CoreEffect
+        def apply(conn, scope):
+            if scope != self.authority.db.scope:
+                raise RuntimeStoreError("profile_mismatch")
+            return self.core_authorize(subject, room_id, create=True, conn=conn)
+        return CoreEffect(apply)
+
+
+class HostedMemberAuthorization:
+    """Captured member capability; file-backed serving checks finish before borrowing SQL."""
+
+    def __init__(self, coordination, *, available, owner, binding, member, profile):
+        self.coordination, self.available = coordination, available
+        self.values = dict(owner_subject=owner, binding=binding, member_id=member, profile=profile)
+
+    def apply(self, conn, scope, operation, identity, generation):
+        from hermes_db.operations.room_coordination import member_authorized
+        authority = self.coordination.authority
+        if scope != authority.db.scope:
+            return False
+        return member_authorized(conn, authority.db, authority.epoch,
+            operation=operation, identity=identity, generation=generation, **self.values)
+
+    def __call__(self, operation, identity, generation):
+        if not self.available():
+            return False
+        with self.coordination.authority.db._transactions.read() as conn:
+            return self.apply(conn, self.coordination.authority.db.scope, operation, identity, generation)
 
 
 class HostedAdmissionAuthorizer:
@@ -70,27 +105,21 @@ class HostedAdmissionFence:
     def __init__(self, coordination, authorize, identity, generation):
         self.coordination, self.authorize = coordination, authorize
         self.identity, self.generation = identity, generation
-        self.conn = None
+        self.prepared = False
 
     @contextmanager
     def context(self):
-        from gateway.hosted_rooms import _connect
-        # Acquire before borrowing PG. Only read here; releasing this independent
-        # fence cannot roll back an already-committed canonical admission.
-        with closing(_connect(self.coordination.path)) as conn:
-            conn.execute("BEGIN IMMEDIATE")
-            self.conn = conn
-            try:
-                yield
-            finally:
-                self.conn = None
-                conn.rollback()
+        self.prepared = bool(self.authorize.available())
+        try:
+            yield
+        finally:
+            self.prepared = False
 
     def effect(self):
         from hermes_db.operations.effects import CoreEffect
         return CoreEffect(self.apply)
 
     def apply(self, conn, scope):
-        if (self.conn is None or scope.store_id != self.coordination.store_id
-                or self.authorize(self.conn, "submit", self.identity, self.generation) is not True):
+        if (not self.prepared or scope.store_id != self.coordination.store_id
+                or self.authorize.apply(conn, scope, "submit", self.identity, self.generation) is not True):
             raise RuntimeStoreError("permission_denied")

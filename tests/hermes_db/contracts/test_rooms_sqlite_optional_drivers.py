@@ -17,7 +17,7 @@ sys.meta_path.insert(0, BlockDrivers())
 from gateway import hosted_rooms as rooms, hosted_room_replicas as replicas
 home = Path(sys.argv[1])
 source, target = home / 'source.db', home / 'replica.db'
-rooms.create_room(source, room_id='room', name='SQLite', members=[], authority_gateway_id='gateway-a')
+rooms.create_room(source, room_id='room', name='SQLite', members=[{'profile':'ops','handle':'ops'}], authority_gateway_id='gateway-a')
 rooms.append_event(source, room_id='room', event_id='first', kind='message.user', actor={'kind':'user','id':'u'},
     payload={'text':'中文\u0000', 'zero':0, 'false':False}, authority_gateway_id='gateway-a', authority_epoch=1)
 page = rooms.read_events(source, room_id='room')
@@ -29,6 +29,17 @@ record = dict(room_id='room', member_id='m', target_url='https://example.test', 
 rooms.upsert_room_link_record(source, record=record, max_links=1)
 assert rooms.list_room_link_records(source)[0]['grant'] == 'fixture-grant'
 assert rooms.room_state(source, room_id='room')['latest_seq'] == 1
+from gateway import hosted_room_driver as driver, hosted_room_work_records as work
+identity = driver.TaskIdentity('room', 'task', 'thread', 'turn')
+driver.admit_task(source, identity, payload={'target_profile':'ops','prompt':'private input','source_event_seq':1}, clock=lambda:10)
+lease = driver.acquire_lease(source, room_id='room', gateway_id='gateway-a', authority_epoch=1, process_generation='process', ttl_seconds=30, clock=lambda:10)
+attempt = driver.start_task(source, identity, lease, expected_cancel_generation=0, clock=lambda:10)
+driver.settle_task(source, attempt, settlement_id='receipt', status='settled', result={'zero':0,'false':False}, clock=lambda:10)
+assert driver.get_task(source, identity)['result'] == {'zero':0,'false':False}
+record = work.capture(source, room_id='room', local_gateway_id='gateway-a')
+assert record['tasks'][0]['phase'] == 'settled' and 'private input' not in work.encode(record)
+pending = work.prepare_delivery(source, room_id='room', local_gateway_id='gateway-a', target_install_id='peer', route_generation='route', through_seq=1)
+assert work.acknowledge(source, room_id='room', target_install_id='peer', route_generation='route', record=pending, ack=work.acknowledgement(pending))
 print('SQLITE_ROOMS_STANDALONE_OK')
 '''
     env = child_env()

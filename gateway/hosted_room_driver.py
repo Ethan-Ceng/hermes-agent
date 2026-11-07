@@ -17,6 +17,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from functools import partial
 from typing import Any, Callable, Literal, get_args
+from hermes_db.domains.rooms import room_operation, assert_sqlite_location
 
 from gateway.hosted_rooms_common import (
     DbPath, bounded_int, canonical_json, compact_json, connect, fenced_update, identifier, table_columns, text,
@@ -295,6 +296,7 @@ def _migrate_task_status_constraint(conn: sqlite3.Connection) -> None:
 def _connect(db_path: DbPath) -> sqlite3.Connection:
     """Open the store; existing tables are validated (after the status-constraint migration when needed).
     The driver schema never shipped, so an incompatible draft fails closed in ``_validate_schema``."""
+    assert_sqlite_location(db_path)
     existing: list[bool] = []
     def ready(conn: sqlite3.Connection) -> bool:
         existing.append(_schema_objects_exist(conn))
@@ -534,6 +536,7 @@ def _run_fence_transition(
         fence_params=(attempt.execution_generation, attempt.cancel_generation, *_run_fence(lease)), **transition)
 
 
+@room_operation("room_leases")
 def acquire_lease(
     db_path: DbPath, *, room_id: Any, gateway_id: Any, authority_epoch: Any, process_generation: Any, ttl_seconds: Any,
     clock: Clock) -> DriverLease:
@@ -575,6 +578,7 @@ def acquire_lease(
         return _lease_from_row(conn.execute(_SELECT_LEASE, (room_id,)).fetchone(), reclaimed=True)
 
 
+@room_operation("room_leases")
 def renew_lease(db_path: DbPath, lease: DriverLease, *, ttl_seconds: Any, clock: Clock) -> DriverLease:
     """Renew the exact active lease generation or fail closed."""
     now, requested_expiry = _lease_window(ttl_seconds, clock)
@@ -589,6 +593,7 @@ def renew_lease(db_path: DbPath, lease: DriverLease, *, ttl_seconds: Any, clock:
         return dataclasses.replace(lease, expires_at=expires_at, reclaimed=False)
 
 
+@room_operation("room_leases")
 def release_lease(db_path: DbPath, lease: DriverLease, *, clock: Clock) -> dict[str, Any]:
     """Release the exact active lease generation idempotently."""
     now = _timestamp(clock)
@@ -613,6 +618,7 @@ def release_lease(db_path: DbPath, lease: DriverLease, *, clock: Clock) -> dict[
             "idempotent": False}
 
 
+@room_operation("room_runs")
 def admit_task(db_path: DbPath, identity: TaskIdentity, *, payload: Any, clock: Clock) -> dict[str, Any]:
     """Persist a queued task, or return the identical admission."""
     normalized_payload, payload_json, payload_digest = _task_payload(payload)
@@ -640,6 +646,7 @@ def admit_task(db_path: DbPath, identity: TaskIdentity, *, payload: Any, clock: 
         return _task_from_row(_load_task(conn, identity))
 
 
+@room_operation("room_runs")
 def start_task(
     db_path: DbPath, identity: TaskIdentity, lease: DriverLease, *, expected_cancel_generation: int, clock: Clock
 ) -> TaskAttempt:
@@ -678,6 +685,7 @@ def start_task(
             cancel_generation=expected_cancel_generation)
 
 
+@room_operation("room_task_settlement")
 def settle_task(
     db_path: DbPath, attempt: TaskAttempt, *, settlement_id: Any, status: TerminalStatus, result: Any, clock: Clock
 ) -> dict[str, Any]:
@@ -688,6 +696,7 @@ def settle_task(
         sql=_SETTLE_RUNNING_SQL, set_params=set_params, stale="task changed during settlement")
 
 
+@room_operation("room_task_settlement")
 def settle_stopping_task(
     db_path: DbPath, identity: TaskIdentity, lease: DriverLease, *, expected_execution_generation: int,
     expected_cancel_generation: int, settlement_id: Any, status: TerminalStatus, result: Any, clock: Clock
@@ -703,6 +712,7 @@ def settle_stopping_task(
         stale="task completion lost the stop race")
 
 
+@room_operation("room_task_recovery")
 def resolve_indeterminate_task(
     db_path: DbPath, identity: TaskIdentity, lease: DriverLease, *, expected_execution_generation: int,
     expected_cancel_generation: int, settlement_id: Any, status: TerminalStatus, result: Any, clock: Clock
@@ -715,6 +725,7 @@ def resolve_indeterminate_task(
         replay=replay, set_params=set_params)
 
 
+@room_operation("room_task_recovery")
 def resolve_indeterminate_cancellation(
     db_path: DbPath, identity: TaskIdentity, lease: DriverLease, *, expected_execution_generation: int,
     expected_cancel_generation: int, cancel_id: Any, clock: Clock) -> dict[str, Any]:
@@ -727,6 +738,7 @@ def resolve_indeterminate_cancellation(
         replay=_cancel_replay(cancel_id), set_params=(expected_cancel_generation + 1, cancel_id, now, now))
 
 
+@room_operation("room_task_recovery")
 def requeue_indeterminate_task(
     db_path: DbPath, identity: TaskIdentity, lease: DriverLease, *, expected_execution_generation: int,
     expected_cancel_generation: int, clock: Clock) -> dict[str, Any]:
@@ -738,6 +750,7 @@ def requeue_indeterminate_task(
         set_params=(now,))
 
 
+@room_operation("room_task_recovery")
 def defer_indeterminate_task(
     db_path: DbPath, identity: TaskIdentity, lease: DriverLease, *, expected_execution_generation: int,
     expected_cancel_generation: int, reason: Any, clock: Clock) -> dict[str, Any]:
@@ -754,6 +767,7 @@ def defer_indeterminate_task(
         replay=replay, set_params=(result_json, now, now))
 
 
+@room_operation("room_task_recovery")
 def requeue_deferred_task(
     db_path: DbPath, identity: TaskIdentity, lease: DriverLease, *, expected_execution_generation: int,
     expected_cancel_generation: int, clock: Clock) -> dict[str, Any]:
@@ -765,6 +779,7 @@ def requeue_deferred_task(
         now=now, set_params=(now,))
 
 
+@room_operation("room_task_settlement")
 def requeue_not_admitted_task(db_path: DbPath, attempt: TaskAttempt, *, clock: Clock) -> dict[str, Any]:
     """Return a running task to its durable queue after proven non-admission."""
     now = _timestamp(clock)
@@ -779,6 +794,7 @@ def requeue_not_admitted_task(db_path: DbPath, attempt: TaskAttempt, *, clock: C
         set_params=(now,), stale="not-admitted task changed during requeue")
 
 
+@room_operation("room_task_settlement")
 def cancel_task(
     db_path: DbPath, identity: TaskIdentity, *, cancel_id: Any, expected_cancel_generation: int, clock: Clock
 ) -> dict[str, Any]:
@@ -798,6 +814,7 @@ def cancel_task(
         stale="task changed during cancellation")
 
 
+@room_operation("room_task_settlement")
 def begin_task_cancel(
     db_path: DbPath, identity: TaskIdentity, *, cancel_id: Any, expected_cancel_generation: int, clock: Clock
 ) -> dict[str, Any]:
@@ -815,6 +832,7 @@ def begin_task_cancel(
         stale="task changed during stop request")
 
 
+@room_operation("room_task_settlement")
 def complete_task_cancel(
     db_path: DbPath, identity: TaskIdentity, *, cancel_id: Any, expected_cancel_generation: int, clock: Clock
 ) -> dict[str, Any]:
@@ -831,6 +849,7 @@ def complete_task_cancel(
         stale="task changed during stop acknowledgement")
 
 
+@room_operation("room_runs")
 def recover_room(db_path: DbPath, lease: DriverLease, *, clock: Clock) -> dict[str, list[TaskIdentity]]:
     """Fence abandoned running attempts without requeueing uncertain work."""
     now = _timestamp(clock)
@@ -851,12 +870,14 @@ def recover_room(db_path: DbPath, lease: DriverLease, *, clock: Clock) -> dict[s
             for status in ("queued", "indeterminate")}
 
 
+@room_operation("room_runs")
 def get_task(db_path: DbPath, identity: TaskIdentity) -> dict[str, Any]:
     """Read one task without mutating its state."""
     with closing(_connect(db_path)) as conn:
         return _task_from_row(_load_task(conn, identity))
 
 
+@room_operation("room_runs")
 def list_tasks(db_path: DbPath, *, room_id: Any, status: TaskStatus | None = None) -> list[dict[str, Any]]:
     """Return room tasks in deterministic admission order."""
     room_id = _identifier(room_id, label="room_id")
@@ -866,6 +887,7 @@ def list_tasks(db_path: DbPath, *, room_id: Any, status: TaskStatus | None = Non
         return [_task_from_row(row) for row in _tasks_in_order(conn, room_id, status)]
 
 
+@room_operation("room_task_retention")
 def prune_published_terminal_tasks(
     db_path: DbPath, *, room_id: Any, clock: Clock, retention_seconds: float = TERMINAL_TASK_RETENTION_SECONDS,
     retain: int = MAX_RETAINED_TERMINAL_TASKS) -> int:
@@ -899,6 +921,7 @@ def prune_published_terminal_tasks(
         return max(0, int(deleted.rowcount))
 
 
+@room_operation("room_runs")
 def get_task_for_turn(
     db_path: DbPath,
     identity: TaskIdentity,

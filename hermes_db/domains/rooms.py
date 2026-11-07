@@ -16,6 +16,16 @@ class RoomStoreRef:
     target: str
 
 
+def normalize_location(location):
+    if isinstance(location, DomainResource):
+        return room_reference(location)
+    return location if isinstance(location, RoomStoreRef) else Path(location)
+
+
+def location_root(location):
+    return location.profile_home if isinstance(location, RoomStoreRef) else Path(location).parent
+
+
 def room_reference(store):
     from hermes_db.move_values import resource_key
     return RoomStoreRef(store.scope.profile_home, store.scope.require_store_id(), resource_key(store._transactions))

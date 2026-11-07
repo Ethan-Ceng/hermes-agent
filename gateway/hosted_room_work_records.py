@@ -10,6 +10,7 @@ import sqlite3
 from gateway import hosted_rooms as rooms
 from gateway import hosted_room_work_storage as storage
 from gateway.hosted_rooms_common import identifier, table_exists
+from hermes_db.domains.rooms import room_operation
 
 VERSION = 1
 PERMISSION = "work_records"
@@ -264,6 +265,7 @@ def capture_transition_locked(conn, room_id):
         conn.execute("RELEASE work_transition_capture")
 
 
+@room_operation("room_work")
 def capture(db_path, *, room_id: str, local_gateway_id: str, through_seq: int | None = None) -> dict:
     """Commit a new revision only when one consistent source view changes."""
     with rooms._transaction(db_path, immediate=True) as conn:
@@ -414,3 +416,27 @@ def acknowledge_locked(conn, *, room_id, target_install_id, route_generation, re
         return False
     return delivery_status_locked(conn, room_id=room_id, target_install_id=target_install_id,
                                   route_generation=route_generation, record=record, status="acked")
+
+
+@room_operation("room_work_delivery")
+def prepare_delivery(db_path, **params):
+    return _passive_write(db_path, prepare_delivery_locked, params)
+
+
+@room_operation("room_work_delivery")
+def delivery_status(db_path, **params):
+    return _passive_write(db_path, delivery_status_locked, params)
+
+
+@room_operation("room_work_delivery")
+def acknowledge(db_path, **params):
+    return _passive_write(db_path, acknowledge_locked, params)
+
+
+def _passive_write(db_path, operation, params):
+    with rooms._transaction(db_path, immediate=True) as conn:
+        try:
+            return operation(conn, **params)
+        except InvalidStoredWorkRecord:
+            pass
+    raise InvalidStoredWorkRecord("stored work evidence is invalid")

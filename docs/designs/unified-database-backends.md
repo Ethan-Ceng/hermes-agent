@@ -155,6 +155,8 @@ Task 9 实库探针已发现真实整机依赖：普通 `gateway.run` 启动会�
 
 Task11接口核对：现有房间函数的db_path是SQLite位置参数，不能从shared-state.db或会话state.db的目录推断PG拥有者。PG延迟调用者捕获明确的Profile/store_id房间引用；旧位置参数在已绑定Profile的PG入口只选当前Profile，不能指定另一个store。所有原生SQLite私有连接在PG下拒绝。原会话阶段`hosted-pg-<digest>.db`独立协调壳须移除；其admission/driver原生SQL消费者在Task12–13逐项端口化，不能用PG连接模拟SQLite执行器。可信事务回调复用已有CoreEffect，权限写入与房间写入使用同一短事务；普通SQLite回调不能被直接拿到PG执行。房间内容配额使用store级短锁和现有统计，控制事件保留原有紧急余量；房间/副本序号使用明确行锁，不把Python锁当多进程租约。
 
+Task12依赖细化：driver终态清理与被动work-record快照需要policy_publications作为已出版判据，其scoped底层表提前进入0020；策略checkpoint和实际出版事务仍由Task13完成。Canonical owner创建及FIFO准入使用同一连接上的具名CoreEffect，锁序为runtime epoch、room store、room/lease/task，文件/配置/peer/模型等待均在借用连接前结束。被动证据与事实在同事务保存，但损坏证据保留原字节并分类invalid，容量失败只回滚证据savepoint，不能阻止Stop；权威切换以scoped数据库触发器冻结旧producer/epoch证据。Task12的transport-free driver调度与准入合同不等于整服务可用：Canonical服务构造仍依赖Task13策略/路由及Task14附件，完整daemon在Task22强验收，不能禁用这些功能绕过依赖。
+
 附件只统一元数据、配额、引用和删除状态。文件写入与 DB 不是同一事务，保留准备/提交/清理协议及重启对账；不因换后端移动附件内容或声称多节点共享文件完成。
 
 ### 指标与插件
