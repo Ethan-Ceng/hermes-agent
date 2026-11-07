@@ -3,8 +3,9 @@
 
 def load_metadata():
     from importlib import import_module
+    from hermes_db.domains.catalog import POSTGRES_DOMAINS
     from hermes_db.tables.metadata import metadata
 
-    for module in ("conversations", "runtime", "gateway", "api"):
+    for module in dict.fromkeys(module for spec in POSTGRES_DOMAINS.values() for module in spec.table_modules):
         import_module(f"hermes_db.tables.{module}")
     return metadata

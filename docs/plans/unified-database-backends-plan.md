@@ -11,8 +11,8 @@
 
 - 整体状态：`IN_PROGRESS`。
 - 当前阶段：统一配置与基础资源实施。
-- 当前任务：Task 2（pending；Task 1 验收完成）。
-- 已完成：1 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前任务：Task 3（pending；Task 1 提交 `41f4258e91`）。
+- 已完成：2 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-07（Asia/Shanghai）。
@@ -114,11 +114,11 @@ $pgTestConfig = Join-Path $PWD '.build/postgresql/private/acceptance-postgresql.
 
 ### 验证证据
 
-原生 Windows，现有 PM full-test-env（Python 3.14.9）。`scripts/run_tests.sh tests/hermes_cli/test_db_setup.py tests/hermes_db/contracts/test_unified_selection.py -j 2` exit0，15 passed/0 failed，无 skip；日志 `.build/postgresql/unified-task1-selection.log`。新合同在修改前 exit1、5 failed（新顶层配置读为 SQLite、旧配置未拒绝；含尚无新选择器的用例），日志 unified-task1-red.log。独立子进程阻止三个 PG 依赖导入并实际 SQLite 写入/关闭/重开成功；双线程两 Profile 配置及秘密隔离通过。`PM Python scripts/check --staged --base d9984f73af` 最终 exit0、14 checks ok（unified-task1-checks-final.log），初次 ruff 缺显式 check 参数已修正。git diff --check 通过。扩展81文件合同回归仍运行，其最终汇总待补；本任务未运行实库及新领域验收，后续任务负责。
+原生 Windows，现有 PM full-test-env（Python 3.14.9）。`scripts/run_tests.sh tests/hermes_cli/test_db_setup.py tests/hermes_db/contracts/test_unified_selection.py -j 2` exit0，15 passed/0 failed，无 skip；日志 `.build/postgresql/unified-task1-selection.log`。新合同在修改前 exit1、5 failed（新顶层配置读为 SQLite、旧配置未拒绝；含尚无新选择器的用例），日志 unified-task1-red.log。独立子进程阻止三个 PG 依赖导入并实际 SQLite 写入/关闭/重开成功；双线程两 Profile 配置及秘密隔离通过。`PM Python scripts/check --staged --base d9984f73af` 最终 exit0、14 checks ok（unified-task1-checks-final.log），初次 ruff 缺显式 check 参数已修正。git diff --check 通过。扩展回归 `scripts/run_tests.sh tests/hermes_cli/test_db_setup.py tests/hermes_cli/test_db_commands.py tests/hermes_cli/test_profile_storage_identity.py tests/hermes_cli/test_backup_storage.py tests/hermes_db/contracts -j 4` 最终 exit0，81文件505 passed/0 failed，无 skip/重试波动（unified-task1-contracts.log）；本任务未运行实库及新领域验收，后续任务负责。
 
 ## Task 2：建立领域存储资源与统一 PG Schema 演进
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -160,11 +160,11 @@ $pgTestConfig = Join-Path $PWD '.build/postgresql/private/acceptance-postgresql.
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+新增 driver-free 领域目录、显式拥有者资源、按需短事务、关闭与跨PID拒绝；复用现有池/预算/Transactions及错误分类，Worker拒绝直接取owner资源。SQLite路径只在SQLite分支保存，不推断Profile。Schema/status报告各域支持、所需revision、缺表及full_system_ready；未实现和未初始化域明确拒绝，普通打开无DDL。load_metadata从已实现域清单加载。0001–0004保持原样；本任务无新业务表，新增revision随各域任务提供，不创建占位迁移。值保真、配额/投影/时区合同写入 domains/README.md 并以现有编码真实PG写读验证。提交标题：feat(storage): add scoped domain resources and schema capabilities。恢复点：Task 3。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+原生Windows/现有PM解释器：`scripts/run_tests.sh tests/hermes_db/contracts/test_domain_resources.py tests/hermes_db/test_engine_lifecycle.py tests/hermes_cli/test_db_commands.py -j 3` exit0，24 passed、0 failed、1 skipped（原生POSIX fork合同不适用于Windows，待适用主机复验）；unified-task2-contracts-final.log。`scripts/run_tests.sh tests/hermes_db/postgresql/test_domain_schema.py tests/hermes_db/postgresql/test_schema.py -j 2 -- -m integration --postgres-test-config=$pgTestConfig` exit0，9 passed/0 failed/0 skipped；unified-task2-pg-final.log。使用已有私有配置和归属校验的随机Schema，实测空库/重复升级/0003前向升级、缺表拒绝、同Schema双store、Unicode/NUL/JSON类型、重开及连接归还。权限测试初次1 failed/3 passed：测试用户为superuser，REVOKE不能约束它；改为事务内SET LOCAL ROLE pg_monitor后真实拒绝读，不改账号或全局授权，复验通过。`PM Python scripts/check --staged --base 41f4258e91` exit0、14 checks ok；unified-task2-checks.log。未验证：原生POSIX fork执行及后续各业务域，不能据此宣称全系统PG完成。
 
 ## Task 3：统一 Agent 验证证据数据库
 
@@ -1194,7 +1194,7 @@ CLI/Gateway/Web/TUI/Desktop/ACP/Agent及后台任务统一接入领域能力。
 
 ### 未通过与未验证
 
-Task 1 已完成，Task 2–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
+Task 1–2 已完成，Task 3–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
 
 ### 最终状态
 
@@ -1202,6 +1202,6 @@ Task 1 已完成，Task 2–24 尚未完成；不得宣称全系统PG已完成�
 
 ## 恢复点
 
-Task 1 配置选择已验收；本地提交后从 Task 2 继续。分支与初始干净工作区已核对，正式实例仍保持 SQLite；开发未写正式 Profile、秘密或业务数据库。
+Task 1–2 配置/领域基础已验收；本地提交后从 Task 3 继续。分支与初始干净工作区已核对，正式实例仍保持 SQLite；开发未写正式 Profile、秘密或业务数据库。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

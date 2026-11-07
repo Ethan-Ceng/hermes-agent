@@ -1,0 +1,37 @@
+# Domain resources
+
+`acquire_profile_domain(name, profile_home=owner, sqlite_path=legacy_path)` resolves
+the owning Profile once. A Cron, Board or attachment directory is a domain location,
+never a way to infer the Profile. Deferred consumers keep the resulting immutable
+`DatabaseScope`; workers continue to use owner RPC rather than acquiring resources.
+
+SQLite domain adapters use `sqlite_path` and their existing native implementation.
+The catalog and resource imports do not require PostgreSQL dependencies. PG adapters
+use `resource.read()` and `resource.write()` for short Core operations and pass
+`resource.scope` to every repository. These units of work are internal boundaries,
+not an arbitrary SQL interface for business callers. Every business query, constraint,
+lock, count and deletion includes `store_id` and any domain keys.
+
+Resources hold no checked-out connection between operations. Closing one resource
+does not dispose the process pool or affect peers. Threads can use the captured
+scope without consulting the ambient Profile; a forked child must acquire again.
+Network, model and file waits stay outside transactions. Existing transaction error
+classification, including unknown commit outcomes, is reused without write retries.
+
+Register PG support only when the actual adapter and explicit migration exist.
+`DomainSpec` names its first revision and Core table modules. `hermes db status`
+reports supported modules, missing tables and `full_system_ready` separately from
+readiness of currently implemented modules. An unsupported or uninitialized domain
+fails explicitly. Opening a resource never creates tables. New tables use
+`scoped_table`/`scoped_fk` and the shared schema translation; revisions 0001–0004
+remain frozen. Domain migrations are added alongside their actual implementation,
+not as placeholder tables or empty revisions.
+
+Reuse `hermes_db.values.encode_text`/`decode_text` for exact text that may contain
+NUL, with binary columns. Serialize arbitrary JSON with its types intact (including
+booleans, numeric zero, empty containers and null); never use truthiness to drop a
+valid value. PostgreSQL Text/JSONB query projections must be separately defined and
+must not enter identity or digest inputs. UTF-8 byte quotas count the exact encoded
+payload, not a projection. Timestamp columns keep each domain's existing instant
+and timezone contract; do not normalize opaque user timestamp strings. Domain
+contracts must prove these choices through real writes and reads.
