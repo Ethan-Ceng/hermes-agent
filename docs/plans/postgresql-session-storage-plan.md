@@ -12,8 +12,8 @@
 
 - 整体状态：`IN_PROGRESS`，恢复真实PG验收，最终门禁尚未通过。
 - 当前阶段：M1/M2主题实库验收通过，继续M3 API/投递/搜索/入口验收。
-- 当前任务：Task 16（in_progress：健康/文件引用/移动与清理竞争真实PG）；Task17为verification_pending，Task18最终门禁待补。
-- 已完成：15 / 18。
+- 当前任务：Task 17（in_progress：普通入口与恢复链路真实PG）；Task18最终门禁待补。
+- 已完成：16 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：用户已填写根.env并启用pg_trgm；PG17.11、扩展1.6(public)、CREATE权限和测试Schema归属/清理均已实测，连接TLS=false。继续按任务依赖顺序验收，不读取/改写既有业务表。
 - 最近更新时间：2026-11-07（Asia/Shanghai）。
@@ -881,7 +881,11 @@ Task15 完成/恢复点（2026-11-07）：真实 `test_search.py` 全部10项pas
 
 ## Task 16：替换文件身份、健康与归档引用依赖
 
-状态：in_progress（开始真实PG验收；已证明的原主机基线限制继续保留）
+状态：completed（真实PG验收及计数整改通过；原主机基线限制留给最终门禁）
+
+Task16 实库发现与有界修复：首次health/archive整文件34 passed/1 failed，实际INSERT已提交但routing repair返回-1；新增批量/重复/作用域计数与Worker空写观察两项回归均有效红灯（pg-task16-insert-counts-red.log：-3而非2、无效INSERT误判changed）。调用链为profile_repair.insert_routes/track_changes→CursorResult.rowcount；核对SQLAlchemy2.1.6实际API文档，默认只保证UPDATE/DELETE计数，INSERT须preserve_rowcount以在cursor关闭前保留驱动值。同模式扫描仅一处INSERT直接累计及通用DML观察器受影响，其他直接rowcount用于UPDATE/DELETE。修复步骤限定为：短写事务统一设置preserve_rowcount；复验两回归、原health/archive、Worker/故障/离线契约及静态；独立复审后保存Task16。不改Schema/幂等协议或业务锁序。
+
+Task16 真实验收完成（2026-11-07）：标准runner、PM full-test-env、独立归属Schema；health/archive/ref 35 passed / 0 failed，44.5s（pg-task16-health-archive-fixed.log）；新INSERT计数/Worker/事务故障3文件23 passed，24.9s（pg-task16-count-fix-tests.log）；移动/采用独立审查回归5 passed，7.2s（pg-task16-move-review-tests.log）。最新全离线101文件520 passed / 0 failed / 2发行环境未传入跳过，53.2s（pg-task16-count-fix-offline.log）；staged 14检查通过、3代码文件0 blocking/0 advisory（pg-task16-count-fix-checks.log）。独立审查见docs/reviews/postgresql-insert-counts-review.md，未发现修复缺陷，整体仍CHANGES_REQUIRED等待后续门禁。恢复点：Task17真实入口/HTTP/Worker/重启恢复；Task18全PG、发行模式与总体回归，不能外推整分支可合并。
 
 ### 目标
 
@@ -962,7 +966,7 @@ Task 16 最终 staged 全部 14 检查通过，76 code files、0 blocking / 0 ad
 
 ## Task 17：统一 CLI、Web、Gateway、TUI、ACP 与 Agent 接线
 
-状态：verification_pending
+状态：in_progress（真实PG入口验收；原跨平台回归限制保留）
 
 ### 目标
 

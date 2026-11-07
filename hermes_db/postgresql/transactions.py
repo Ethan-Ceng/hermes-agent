@@ -49,7 +49,8 @@ class Transactions:
             with self.engine.begin() as conn:
                 phase = "body"
                 self._timeouts(conn, lock_timeout=lock_timeout)
-                yield conn.execution_options(schema_translate_map={SCHEMA: self.schema})
+                # INSERT counts feed repair totals and worker no-op tracking.
+                yield conn.execution_options(schema_translate_map={SCHEMA: self.schema}, preserve_rowcount=True)
                 phase = "commit"
         except IntegrityError:
             raise StorageConflictError("Session storage constraint conflict") from None

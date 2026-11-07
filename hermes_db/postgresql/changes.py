@@ -18,7 +18,7 @@ def track_changes(connection):
             return
         count = result.rowcount
         # SQLite's RETURNING cursor reports zero before fetch. This is only
-        # relevant to the offline harness; psycopg provides sane row counts.
+        # relevant to the offline harness; PG writes preserve driver row counts.
         returning_unknown = result.returns_rows and not conn.dialect.supports_sane_rowcount_returning
         if count != 0 or returning_unknown:
             state["changed"] = True
