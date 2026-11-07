@@ -12,8 +12,8 @@
 
 - 整体状态：`IN_PROGRESS`，恢复真实PG验收，最终门禁尚未通过。
 - 当前阶段：M1真实环境及Schema初始化验收通过，继续M2会话业务实库验收。
-- 当前任务：Task 7（in_progress：完整消息/历史/水位锁真实PG）；Tasks 8–17为verification_pending，Task18最终门禁待补。
-- 已完成：6 / 18。
+- 当前任务：Task 8（in_progress：准入/FIFO/epoch/终态/竞争真实PG）；Tasks 9–17为verification_pending，Task18最终门禁待补。
+- 已完成：7 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：用户已填写根.env并启用pg_trgm；PG17.11、扩展1.6(public)、CREATE权限和测试Schema归属/清理均已实测，连接TLS=false。继续按任务依赖顺序验收，不读取/改写既有业务表。
 - 最近更新时间：2026-11-07（Asia/Shanghai）。
@@ -369,7 +369,7 @@ Task6 完成/恢复点（2026-11-07）：标准runner真实 `tests/hermes_db/pos
 
 ## Task 7：实现完整消息写入与历史读取
 
-状态：in_progress（开始真实PG验收）
+状态：completed
 
 ### 目标
 
@@ -419,9 +419,11 @@ Task6 完成/恢复点（2026-11-07）：标准runner真实 `tests/hermes_db/pos
 
 Core 离线 fixture 在测试中模拟 SQLite 缺少的复合键 IDENTITY，仅用于顺序契约；不能证明 PG sequence/提交顺序。新增 PG 消息共享契约 16 项、同 schema 隔离 1 项、两项根锁阻塞实测（pg_blocking_pids）；均未执行。目前全部真实 PG 47 用例按默认 integration marker 排除，不能计 passed。原 SQLite 共享路径、未知提交确认丢失的受控离线注入、所有权/CAS/回滚/显示边界已有测试；实际 PG DDL、锁/连接故障待配置。
 
+Task7 完成/恢复点（2026-11-07）：标准runner真实 `tests/hermes_db/postgresql/test_messages.py -j 1 -- -m integration --postgres-test-config=<私有路径> --tb=short` 全部19项passed、0 failed、21.4s、exit0（pg-task7-messages-tests.log）。包含正文/结构化内容/缓存sidecar/UID/重写/rewind/副本作用域，以及两种水位/追加竞争；事件与真实pg_stat阻塞观察确认同根锁串行，不是以sleep猜测。代码未变，严格completed7/18；保存该task本地验证commit后继续Task8。
+
 ## Task 8：实现准入队列、epoch 与终态事务
 
-状态：verification_pending（离线准入/终态实现与契约通过；真实 PG 竞争/故障待配置）
+状态：in_progress（开始真实PG验收）
 
 ### 目标
 
@@ -1211,11 +1213,11 @@ PM python scripts/check --staged --base ff09cead02e906a4b1da909268c2cc58ec6e144d
 
 ### 未通过项目
 
-真实PG环境和新库迁移/重复升级/跨store约束、初始化与启动能力前置已通过本阶段验证；后续会话业务、并发/故障/重启、真实查询计划继续按顺序验收。完整SQLite/入口回归未通过，部分失败待归类，四区域/TUI完整执行证据缺失。Nix发行及TypeScript编译未验证。严格completed为5/18，后续任务不能因离线检查点而计为completed。
+真实PG已通过主题及最新完成数量见顶部进度和各task实库记录；未完成主题、并发/故障/重启及真实查询计划继续按顺序验收。完整SQLite/入口回归未通过，部分失败待归类，四区域/TUI完整执行证据缺失。Nix发行及TypeScript编译未验证，不能因离线检查点将未验收任务计为completed。
 
 ### 最终状态
 
-上次完整门禁为FAILED；当前IN_PROGRESS恢复验证，独立审查整体仍CHANGES_REQUIRED，不能宣称READY_TO_MERGE。Task4–5真实环境、迁移与初始化检查已通过，严格completed为5/18；继续Task6及后续业务/并发/故障，并完成入口失败归类/对应平台回归。用户已准备扩展，未由应用安装或管理数据库服务。原SQLite七文件9失败/1error已在功能起点复现；用户工作区文件继续保留，秘密配置不暂存。
+上次完整门禁为FAILED；当前IN_PROGRESS恢复验证，独立审查整体仍CHANGES_REQUIRED，不能宣称READY_TO_MERGE。最新严格completed数量以顶部当前进度为准；继续当前任务及后续业务/并发/故障，并完成入口失败归类/对应平台回归。用户已准备扩展，未由应用安装或管理数据库服务。原SQLite七文件9失败/1error已在功能起点复现；用户工作区文件继续保留，秘密配置不暂存。
 
 
 ## 恢复点
