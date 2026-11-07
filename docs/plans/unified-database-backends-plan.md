@@ -10,9 +10,9 @@
 ## 当前进度
 
 - 整体状态：`IN_PROGRESS`。
-- 当前阶段：插件可移植持久化协议实施。
-- 当前任务：Task 16（completed；正在创建本地任务提交，随后进入Task17）。
-- 已完成：16 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前阶段：Discord恢复账本实施。
+- 当前任务：Task 17（completed；正在创建本地任务提交，随后进入Task18）。
+- 已完成：17 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-08（Asia/Shanghai）。
@@ -981,7 +981,7 @@ SQLite完整29文件回归中28文件通过（native-full保留631 passed/1 fail
 
 ## Task 17：统一 Discord 恢复账本
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -1016,11 +1016,21 @@ Discord恢复不需要discord_message_recovery.db且既有功能保留。
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+已完成全部message/scan/cursor及启动探测消费者的具名协议、0025显式迁移和PG完整账本。SQLite保留原表/数据；PG不提供lambda(SQLite Connection)回调，旧private call明确拒绝，故障明确传播而非空记录。response与Task16 cursor在同一事务。已复现并修复旧attempt在seen保留responded后仍无条件UPDATE覆盖终态的问题；intent提交8c6881231a要求已投递不再重派，两个后端加终态保护并合并seen/attempt事务。scan_id改为每次扫描UUID避免毫秒/PID碰撞覆盖。错误在连接外复用已有强制redaction。恢复点：本项提交后进入Task18 RetainDB实际provider/pending队列；Task20–24系统维护、全入口和最终门禁仍待完成。
+
+当前实现：0025及message/scan/locks表、捕获Profile/store/target的资源、具名store/操作/SQLite协议已接通。adapter消费者已从facade抽至recovery_events；旧Task16 recovery_cursors内部模块删除并更新唯一消费者，不留重导出。SQLite schema初始化先提交，再对具名操作使用IMMEDIATE，防止跨实例SELECT后终态被覆盖；PG store/plugin行锁保护状态，回复与plugin namespace cursor同事务。首轮PG/原生流程已通过，最后检查两处COALESCE空值语义并补值/清理隔离证据，尚未完成本项。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+`scripts/run_tests.sh tests/hermes_db/postgresql/test_discord_recovery.py -j 1 -- -m integration --postgres-test-config=$pgTestConfig` exit1、2 failed/2 teardown errors（unified-task17-pg-red.log），实际消息/回复入口尝试SQLite。`scripts/run_tests.sh tests/gateway/test_discord_recovery_completion_race.py -j 1` exit1、1 failed（completion-race-red），真实SQLite已完成消息被迟到queued撤销，非推测问题。尚无实现通过证据或本地任务commit。
+
+中间证据：pg-first 2文件9 passed（Discord2+插件7）；backfill-first 2 passed，真实候选迭代/授权/派发入口在本地Discord消息fixture运行，两次实际扫描仅首次派发、持久scan成功回执与PG故障不作为空记录；faults-first 3 passed（回复/cursor同事务回滚、实际COMMIT后确认丢失+新进程读取、真实retention/错误强制脱敏）；native-first 21 passed，native-followup 3文件41 passed（含既有journal合同）；sqlite-no-pg 1 passed，真实Native ledger在阻止PG三依赖导入的子进程仍可完成attempt/complete/response/cursor。pg-final首轮8文件28 passed/无skip/retry；checks-first 14 checks通过、health20文件无发现。最后两处COALESCE空字符串语义修正后复验尚未结束。
+
+最终验证（以上为中间记录）：`scripts/run_tests.sh <PowerShell数组展开test_discord*.py的4文件> tests/hermes_db/postgresql/test_plugin_storage.py tests/hermes_db/postgresql/test_plugin_storage_process.py tests/hermes_db/postgresql/test_domain_schema.py tests/hermes_db/postgresql/test_schema.py -j 3 -- -m integration --postgres-test-config=$pgTestConfig` exit0、8文件30 passed/无skip/retry（unified-task17-pg-pass.log）。新增Discord12项：实际backfill两次扫描去重、startup/read故障传播、回复/cursor原子回滚与实际COMMIT确认丢失后的新进程恢复、两个进程终态竞争、attempt预算/claim过期不被discovered续期、scope限定retention、NUL/Unicode SDK IDs及空字符串/None精确保真、旧SQLite回调拒绝。真实外部频道/模型没有被调用，只有本机消息/client fixture；PG进程和子进程严格拒绝全部SQLite入口。
+
+`scripts/run_tests.sh tests/gateway/test_discord_missed_message_backfill.py tests/gateway/test_discord_recovery_completion_race.py tests/hermes_state/test_journal_mode_config.py -j 3` exit0、3文件41 passed/无skip/retry（native-followup）；`... tests/hermes_db/contracts/test_discord_sqlite_optional_drivers.py -j 1` exit0、1 passed（sqlite-no-pg）。`PM Python scripts/check --staged --base 8145fcafab`最终exit0、14 checks/health20文件0 blocking/advisory（checks-final）；暂存区diff检查通过。初次用于更新facade的PM解释器在默认sandbox启动被拒绝，授权范围内提升后成功，无业务数据影响或自动审批拒绝；不把该环境执行失败当作业务测试红证据。
+
+完成提交标题`feat(storage): persist scoped Discord recovery ledgers`；无新依赖、无正式Profile/服务/旧SQLite变更。未验证项仍为后续Task18–24，不能将本领域证据外推为全系统PG已经完成。
 
 ## Task 18：统一 RetainDB 本地 pending 队列
 
@@ -1382,6 +1392,6 @@ Task 1–9 已完成，Task 10–24 尚未完成；不得宣称全系统PG已完
 
 ## 恢复点
 
-Task 1–16已验收并各自创建本地commit（Task14 `8eb11259b6`，Task15 `b74b53b114`，Task16标题 `feat(storage): provide portable scoped plugin records`）。下一项Task17完整Discord恢复账本；cursor已在Task16作为真实消费者提前接入，消息/扫描与故障不可当空记录仍须完成。Task16 PG18 passed、SQLite/无PG依赖34 passed及14静态checks通过，无skip/retry。Task20维护及Task22普通daemon强验收尚未完成。分支仍为 `feat/postgresql-session-storage`，正式实例保持SQLite，未写正式Profile、秘密或业务表；不能由此宣称全系统PG已完成。
+Task 1–17已验收并各自创建本地commit（Task15 `b74b53b114`，Task16 `8145fcafab`，Task17标题 `feat(storage): persist scoped Discord recovery ledgers`）。下一项Task18实际RetainDB provider/pending队列；Task17 PG30 passed、SQLite41 passed、无PG依赖1 passed及14静态checks通过，无skip/retry。Task20维护及Task22普通daemon强验收尚未完成。分支仍为 `feat/postgresql-session-storage`，正式实例保持SQLite，未写正式Profile、秘密或业务表；不能由此宣称全系统PG已完成。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

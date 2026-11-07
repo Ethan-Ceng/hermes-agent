@@ -2450,9 +2450,7 @@ class DiscordAdapter(DiscordAuthorizationMixin, DiscordMediaMixin, DiscordThread
         if not self._client:
             return
         channels = self._missed_message_backfill_channels()
-        ledger_ok = await self._with_discord_recovery_db_async(
-            lambda conn: conn.execute("SELECT 1").fetchone() is not None, False,
-        )
+        ledger_ok = await asyncio.to_thread(self._discord_recovery_store.probe)
         if not ledger_ok:
             logger.error(
                 "[%s] Missed-message recovery aborted: durable ledger unavailable", self.name,
@@ -2630,12 +2628,12 @@ class DiscordAdapter(DiscordAuthorizationMixin, DiscordMediaMixin, DiscordThread
                 yield message
 
     def _discord_recovery_cursor(self, channel_id: str) -> Optional[str]:
-        from .recovery_cursors import cursor
-        return cursor(self, channel_id)
+        from . import recovery_events
+        return recovery_events.cursor(self, channel_id)
 
     def _advance_discord_recovery_cursor(self, channel_id: str, message_id: str) -> None:
-        from .recovery_cursors import advance
-        return advance(self, channel_id, message_id)
+        from . import recovery_events
+        return recovery_events.advance_cursor(self, channel_id, message_id)
 
     async def _should_backfill_discord_message(self, message: Any) -> bool:
         """Return True when a recent Discord message still needs Hermes work."""
@@ -2711,113 +2709,20 @@ class DiscordAdapter(DiscordAuthorizationMixin, DiscordMediaMixin, DiscordThread
         return channel_id, thread_id, parent_id
 
     def _record_discord_message_seen(self, message: Any, *, status: str) -> None:
-        if not self._missed_message_backfill_enabled():
-            return
-        message_id = str(getattr(message, "id", "") or "")
-        if not message_id:
-            return
-        channel_id, thread_id, parent_id = self._message_channel_ids(message)
-        author_id = str(getattr(getattr(message, "author", None), "id", "") or "")
-        created_at = getattr(message, "created_at", None)
-        created_text = created_at.isoformat() if hasattr(created_at, "isoformat") else None
-        now = self._utc_now_iso()
-
-        def _op(conn):
-            existing = conn.execute(
-                "SELECT status, updated_at FROM discord_messages WHERE message_id=?", (message_id,),
-            ).fetchone()
-            # "discovered" only says the scan saw the row: it never overwrites a completed row or an
-            # in-flight claim (queued/processing) — the active-claim guard reads that status and its
-            # original updated_at, so a died dispatch still expires after the 10-minute window.
-            keep = bool(existing) and (existing[0] == "responded" or status == "discovered")
-            final_status = existing[0] if keep else status
-            updated_at = (existing[1] or now) if keep else now
-            conn.execute(
-                """
-                INSERT INTO discord_messages (message_id, channel_id, thread_id, parent_channel_id, author_id, created_at, status, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(message_id) DO UPDATE SET
-                    channel_id=excluded.channel_id,
-                    thread_id=excluded.thread_id,
-                    parent_channel_id=excluded.parent_channel_id,
-                    author_id=excluded.author_id,
-                    created_at=COALESCE(discord_messages.created_at, excluded.created_at),
-                    status=?,
-                    updated_at=excluded.updated_at
-                """,
-                (message_id, channel_id, thread_id, parent_id, author_id, created_text, final_status, updated_at, final_status),
-            )
-        self._with_discord_recovery_db(_op)
+        from . import recovery_events
+        return recovery_events.seen(self, message, status=status)
 
     def _record_recovery_attempt(self, message: Any, *, status: str, error: Optional[str] = None) -> None:
-        if not self._missed_message_backfill_enabled():
-            return
-        self._record_discord_message_seen(message, status=status)
-        message_id = str(getattr(message, "id", "") or "")
-        if not message_id:
-            return
-        now = self._utc_now_iso()
-        # ``attempts`` counts dispatches (the "queued" transition) so max_attempts is a ceiling on
-        # how many times one message is re-run, not on how many state transitions it saw.
-        dispatched = 1 if status == "queued" else 0
-
-        def _op(conn):
-            conn.execute(
-                """
-                UPDATE discord_messages
-                   SET status=?, attempts=attempts+?, last_attempt_at=?, last_error=?, updated_at=?
-                 WHERE message_id=?
-                """,
-                (status, dispatched, now, error, now, message_id),
-            )
-        self._with_discord_recovery_db(_op)
+        from . import recovery_events
+        return recovery_events.attempt(self, message, status=status, error=error)
 
     def _record_discord_processing_start(self, event: MessageEvent, *, emoji_ack: bool) -> None:
-        if not self._missed_message_backfill_enabled():
-            return
-        message = event.raw_message
-        self._record_discord_message_seen(message, status="processing")
-        message_id = str(getattr(message, "id", "") or getattr(event, "message_id", "") or "")
-        if not message_id:
-            return
-        now = self._utc_now_iso()
-
-        def _op(conn):
-            conn.execute(
-                "UPDATE discord_messages SET status='processing', emoji_ack=?, updated_at=? WHERE message_id=?",
-                (1 if emoji_ack else 0, now, message_id),
-            )
-        self._with_discord_recovery_db(_op)
+        from . import recovery_events
+        return recovery_events.processing_start(self, event, emoji_ack=emoji_ack)
 
     def _record_discord_processing_complete(self, event: MessageEvent, outcome: ProcessingOutcome) -> None:
-        if not self._missed_message_backfill_enabled():
-            return
-        message_id = str(getattr(getattr(event, "raw_message", None), "id", "") or getattr(event, "message_id", "") or "")
-        if not message_id:
-            return
-        now = self._utc_now_iso()
-        if outcome == ProcessingOutcome.SUCCESS:
-            # SUCCESS means the base delivered the final (or the stream already had). Attribute it
-            # to the inbound id here: streamed/edited finals, fresh-final sends and media-only replies
-            # carry no reply anchor (reply_to_mode "off" never does), so the send-path ledger writer
-            # cannot mark the row and backfill would re-dispatch it on every reconnect (#113631).
-            def _complete(conn):
-                conn.execute(
-                    "UPDATE discord_messages SET status='responded', replied=1, updated_at=? WHERE message_id=?",
-                    (now, message_id),
-                )
-            self._with_discord_recovery_db(_complete)
-            return
-        status = "cancelled" if outcome == ProcessingOutcome.CANCELLED else "failed"
-
-        def _op(conn):
-            conn.execute(
-                "UPDATE discord_messages "
-                "SET status=CASE WHEN status='responded' THEN status ELSE ? END, "
-                "updated_at=? WHERE message_id=?",
-                (status, now, message_id),
-            )
-        self._with_discord_recovery_db(_op)
+        from . import recovery_events
+        return recovery_events.complete(self, event, outcome)
 
     async def _record_response_async(
         self, reply_to, result: SendResult, content: str, final: bool, metadata: Optional[dict[str, Any]] = None,
@@ -2832,105 +2737,28 @@ class DiscordAdapter(DiscordAuthorizationMixin, DiscordMediaMixin, DiscordThread
     def _record_discord_response(
         self, *, reply_to: Optional[str], result: SendResult, content: str, final: bool,
     ) -> None:
-        if not self._missed_message_backfill_enabled() or not reply_to:
-            return
-        now = self._utc_now_iso()
-        completed = bool(final and result.success)
-        status = "responded" if completed else "failed"
-
-        def _op(conn):
-            conn.execute(
-                """
-                INSERT INTO discord_messages (message_id, status, replied, outage_response, response_message_id, updated_at)
-                VALUES (?, ?, ?, 0, ?, ?)
-                ON CONFLICT(message_id) DO UPDATE SET
-                    status=CASE WHEN ? THEN 'responded' ELSE discord_messages.status END,
-                    replied=CASE WHEN ? THEN 1 ELSE discord_messages.replied END,
-                    outage_response=CASE WHEN ? THEN 0 ELSE discord_messages.outage_response END,
-                    response_message_id=COALESCE(?, response_message_id),
-                    updated_at=?
-                """,
-                (
-                    reply_to, status, 1 if completed else 0, result.message_id, now,
-                    1 if completed else 0, 1 if completed else 0, 1 if completed else 0,
-                    result.message_id, now,
-                ),
-            )
-        self._with_discord_recovery_db(_op)
-        if completed:
-            def _channel_for_message(conn):
-                row = conn.execute(
-                    "SELECT COALESCE(thread_id, channel_id) FROM discord_messages "
-                    "WHERE message_id=?",
-                    (reply_to,),
-                ).fetchone()
-                return str(row[0]) if row and row[0] else None
-            channel_id = self._with_discord_recovery_db(_channel_for_message)
-            if channel_id:
-                self._advance_discord_recovery_cursor(channel_id, reply_to)
+        from . import recovery_events
+        return recovery_events.response(self, reply_to=reply_to, result=result, content=content, final=final)
 
     def _discord_message_is_persistently_complete(self, message_id: str) -> bool:
-        if not message_id:
-            return False
-
-        def _op(conn):
-            row = conn.execute("SELECT status, replied, outage_response FROM discord_messages WHERE message_id=?", (message_id,)).fetchone()
-            if not row:
-                return False
-            status, replied, outage = row
-            return status == "responded" and bool(replied) and not bool(outage)
-        return bool(self._with_discord_recovery_db(_op, default=False))
+        from . import recovery_events
+        return recovery_events.is_complete(self, message_id)
 
     def _discord_message_has_active_claim(self, message_id: str) -> bool:
-        if not message_id:
-            return False
-        cutoff = (dt.datetime.now(dt.UTC) - dt.timedelta(minutes=10)).isoformat()
-
-        def _op(conn):
-            row = conn.execute(
-                "SELECT status, updated_at FROM discord_messages WHERE message_id=?", (message_id,),
-            ).fetchone()
-            return bool(row and row[0] in {"queued", "processing"} and row[1] >= cutoff)
-        return bool(self._with_discord_recovery_db(_op, default=True))
+        from . import recovery_events
+        return recovery_events.active_claim(self, message_id)
 
     def _discord_message_attempts_exhausted(self, message_id: str) -> bool:
-        """True once a row has been dispatched ``max_attempts`` times (any outcome)."""
-        if not message_id:
-            return False
-        cap = self._missed_message_backfill_max_attempts()
-
-        def _op(conn):
-            row = conn.execute("SELECT attempts FROM discord_messages WHERE message_id=?", (message_id,)).fetchone()
-            return bool(row and int(row[0] or 0) >= cap)
-        exhausted = bool(self._with_discord_recovery_db(_op, default=False))
-        if exhausted:
-            logger.debug(
-                "[%s] Not re-dispatching Discord message %s: missed_message_backfill.max_attempts (%d) reached",
-                self.name, message_id, cap,
-            )
-        return exhausted
+        from . import recovery_events
+        return recovery_events.exhausted(self, message_id)
 
     def _record_recovery_scan_start(self, channels: set[str]) -> str:
-        scan_id = f"{int(time.time() * 1000)}-{os.getpid()}"
-        now = self._utc_now_iso()
-
-        def _op(conn):
-            conn.execute(
-                "INSERT OR REPLACE INTO discord_recovery_scans (scan_id, started_at, status, channels, window_seconds, limit_count) VALUES (?, ?, ?, ?, ?, ?)",
-                (scan_id, now, "running", json.dumps(sorted(channels)), self._missed_message_backfill_window_seconds(), self._missed_message_backfill_limit()),
-            )
-        self._with_discord_recovery_db(_op)
-        return scan_id
+        from . import recovery_events
+        return recovery_events.scan_start(self, channels)
 
     def _record_recovery_scan_complete(self, scan_id: str, *, status: str, scanned: int, missed: int, dispatched: int, error: Optional[str] = None) -> None:
-        now = self._utc_now_iso()
-
-        def _op(conn):
-            conn.execute(
-                "UPDATE discord_recovery_scans SET completed_at=?, status=?, scanned=?, missed=?, dispatched=?, error=? WHERE scan_id=?",
-                (now, status, scanned, missed, dispatched, error, scan_id),
-            )
-        self._with_discord_recovery_db(_op)
+        from . import recovery_events
+        return recovery_events.scan_complete(self, scan_id, status=status, scanned=scanned, missed=missed, dispatched=dispatched, error=error)
 
     def _get_discord_command_sync_policy(self) -> str:
         raw = _scoped_gate_env("DISCORD_COMMAND_SYNC_POLICY", "safe").lower()

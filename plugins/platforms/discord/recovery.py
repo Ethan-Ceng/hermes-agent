@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from hermes_constants import get_hermes_home
+from .recovery_protocol import RecoveryOperations
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +20,15 @@ _DB_FILENAME = "discord_message_recovery.db"
 _RETENTION_DAYS = 30
 
 
-class DiscordRecoveryStore:
+class DiscordRecoveryStore(RecoveryOperations):
     """Small profile-scoped SQLite ledger for completed Discord messages."""
+
+    def __new__(cls, hermes_home=None):
+        from hermes_cli.db_setup import storage_backend
+        if cls is DiscordRecoveryStore and storage_backend(hermes_home) == "postgresql":
+            from hermes_db.discord_recovery_store import PostgresDiscordRecoveryStore
+            return object.__new__(PostgresDiscordRecoveryStore)
+        return object.__new__(cls)
 
     def __init__(self, hermes_home: Path | None = None) -> None:
         self._lock = threading.Lock()
@@ -33,6 +41,10 @@ class DiscordRecoveryStore:
         return directory / _DB_FILENAME
 
     def call(self, fn: Callable[[sqlite3.Connection], Any], default: Any = None) -> Any:
+        from hermes_cli.db_setup import storage_backend
+        from hermes_db.errors import StorageConfigurationError
+        if storage_backend(self._hermes_home) != "sqlite":
+            raise StorageConfigurationError("Selected PG Discord recovery cannot open a private SQLite connection")
         try:
             with self._lock:
                 path = self.path()
@@ -40,6 +52,7 @@ class DiscordRecoveryStore:
                 try:
                     if not self._initialized:
                         self._initialize(conn)
+                        conn.commit()
                         self._initialized = True
                         with suppress(OSError):
                             os.chmod(path, 0o600)
@@ -51,6 +64,14 @@ class DiscordRecoveryStore:
         except Exception as exc:
             logger.warning("Discord recovery ledger unavailable: %s", exc)
             return default
+
+    def _operation(self, name, *, default=None, **fields):
+        from . import recovery_sqlite
+        from hermes_cli.sqlite_util import write_txn
+        def invoke(conn):
+            with write_txn(conn):
+                return getattr(recovery_sqlite, name)(conn, **fields)
+        return self.call(invoke, default)
 
     def _initialize(self, conn: sqlite3.Connection) -> None:
         from hermes_state_wal import apply_wal_with_fallback

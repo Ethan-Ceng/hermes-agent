@@ -177,6 +177,8 @@ consent的obs/data高水位、前向时钟上限、回拨关闭钳制、完整�
 
 Task16实际消费者细化：源码中旧plugin_db没有生产调用者，不为凑接口而迁移既有JSON配置文件。将Task17的Discord恢复游标这一明确的键值消费者提前接入通用协议，消息/扫描仍在Task17完成，完整Discord能力此前不报ready。`plugin_store(plugin_id, namespace=..., profile_home=...)`返回具名get/put/delete/scan/prune操作，JSON值与NUL/Unicode键无损；记录返回单调revision，expected_revision=0表示仅当不存在/过期时创建，正revision表示精确CAS，None表示无条件写。namespace内持久单调代次避免删除/过期后的ABA；keyset分页不用offset，配额及TTL在同一namespace写锁下处理。领域pending队列保留Task18专有协议，不强塞KV或通过内存替代。
 
+Task17协议核对：Discord adapter全部message/scan/cursor和启动探测使用具名普通记录操作；SQLite原表保留，PG拒绝任意SQLite Connection回调且故障明确传播。seen+attempt及processing_start合并为事务，responded对迟到queued/processing保持终态（既有intent为8c6881231a，原生回归已复现覆盖错误）；SQLite用IMMEDIATE，PG先store/plugin行锁，再必要的plugin namespace锁。response与游标同事务，锁顺序固定，Post/历史网络等待不占连接。scan使用每次新UUID避免毫秒/PID碰撞覆盖，30天清理限定store/plugin；SDK不透明ID和错误字节保真，强制错误脱敏在连接外执行。此前Task16的游标消费者收口到完整具名store协议，不保留已迁移内部模块的重导出壳。
+
 ### Matrix SDK
 
 Matrix 单独实现 SDK CryptoStore 协议适配，PG SQL/表/事务由 `hermes_db` 管理，异步 SDK 接口在明确边界调用同步存储并保留 Profile scope。不得只把 SDK URL 从 sqlite 改成 PG 后另起不受管的异步池或失去 `store_id` 隔离。
