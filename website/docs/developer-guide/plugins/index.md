@@ -49,7 +49,7 @@ Hermes already ships these for plugin authors:
 
 - **Run the catalog check locally:** `hermes plugins validate /path/to/your-plugin --install-deps` runs the same check catalog CI runs. See [Submitting to the Plugin Catalog](./catalog-submission.md).
 - **Test your plugin in isolation:** `hermes plugins doctor [path-or-id]` runs the same discovery, manifest parser, `register(ctx)` and registries Hermes uses, with a temporary `HERMES_HOME`. See [Validate with Plugin Doctor](#validate-with-plugin-doctor).
-- **Keep state across updates:** `plugin_data_dir()` and `plugin_db()` give your plugin a data directory that survives `hermes plugins update` and `remove` and follows the active profile. See [Store durable state](#store-durable-state).
+- **Keep state across updates:** `plugin_data_dir()` preserves files, and `plugin_store()` persists JSON records on the Profile's selected database backend. `plugin_db()` remains SQLite-only. See [Store durable state](#store-durable-state).
 - **Declare Python dependencies:** list them under `python_dependencies` in `plugin.yaml`, or in a `pyproject.toml` next to it. See [Python dependencies](#python-dependencies).
 - **Ship skills with your plugin:** register them with `ctx.register_skill()`. See [Bundle skills](#bundle-skills).
 - **Ask for privileged host surfaces:** declare them under `capabilities:` so users get a single consent screen. See [Declaring capabilities](#declaring-capabilities).
@@ -1158,19 +1158,48 @@ users' data dies with it. The sanctioned home is the per-plugin data root,
 which survives both and follows the active profile:
 
 ```python
-from plugins.plugin_storage import plugin_data_dir, plugin_db
+from plugins.plugin_storage import plugin_data_dir, plugin_store
 
 # <hermes home>/plugin-data/<name>/ — created on first use
 state_file = plugin_data_dir("my-plugin") / "state.json"
 
-# Or a SQLite database at <data dir>/data.db (WAL mode, thread-friendly)
-conn = plugin_db("my-plugin")
-conn.execute("CREATE TABLE IF NOT EXISTS runs (id TEXT PRIMARY KEY)")
+# A captured Profile/plugin/namespace using storage.backend (SQLite or PostgreSQL).
+store = plugin_store("my-plugin", namespace="progress")
+saved = store.put("job-1", {"status": "ready"}, expected_revision=0)
+current = store.get("job-1")
+store.put("job-1", {"status": "done"}, expected_revision=current.revision)
 ```
 
-One directory per plugin means every plugin's data is inspectable in one
-predictable place. Secrets don't belong here — credential reads go through
-the standard `.env` / secret-scope path like everywhere else.
+`get` returns a `PluginRecord` (`key`, JSON `value`, `revision`, `expires_at`) or
+`None`. `expected_revision=0` creates only when absent or expired; a positive
+revision compares exactly, and `None` writes unconditionally. Stale comparisons
+raise `PluginStorageConflict` (import it from `plugins.plugin_storage`). Revisions
+never repeat within a namespace, including after deletion or expiry. Read the
+current value after an unknown commit outcome; do not blindly retry writes.
+
+`delete(key, expected_revision=...)` returns whether a live record was removed.
+`put(..., ttl_seconds=3600)` sets expiry; reads omit expired records, writes reclaim
+expired space, and `prune_expired(limit=200)` explicitly removes a bounded batch.
+`scan(prefix="job-", limit=100, after=last_key)` uses the last returned key to fetch
+the next page, with a maximum page size of 200. Keys preserve Unicode and NUL and
+must fit 512 UTF-8 bytes. Values use JSON types with string object keys, finite
+numbers and at most 32 nested levels; an encoded value is at most 1 MiB. Each
+namespace retains at most 4,096 live keys and 16 MiB of encoded values; exceeding
+these bounds raises `PluginStorageQuotaError` without partially updating data.
+
+Stores capture their owning Profile at creation. For background work that knows
+its owner, pass `profile_home=home` explicitly; a plugin name or namespace does not
+grant access to another Profile. PostgreSQL also isolates plugins and namespaces
+within `store_id`, and schema creation happens only through `hermes db upgrade`.
+
+`plugin_db("my-plugin")` still returns a caller-owned native SQLite connection
+under `plugin-data/my-plugin/data.db` when `storage.backend` is SQLite. It raises
+an explicit configuration error naming the plugin in PostgreSQL mode, before
+opening SQLite or creating that data directory. Plugins with SQL-specific schemas
+must adopt portable records or a supported domain protocol. There is no SQL
+translation, automatic SQLite import, fallback, or per-plugin backend override.
+Existing JSON configuration and content files remain files through
+`plugin_data_dir()`. Secrets stay in the standard `.env` / secret-scope path.
 
 ### Bundle skills
 

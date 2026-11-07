@@ -175,6 +175,8 @@ consent的obs/data高水位、前向时钟上限、回拨关闭钳制、完整�
 
 插件增加有真实消费者的可移植持久化协议；通用键值/CAS 与领域队列分别按其需求定义。原 `plugin_db()` 任意 SQLite SQL 接口在 SQLite 模式保留，PG 模式不得打开 SQLite；本仓库插件必须完成协议迁移，不能通过禁用插件功能算通过。外部插件须显式采用协议，遇到不兼容使用给出插件名和具体能力原因，不能吞错后伪装已持久化。
 
+Task16实际消费者细化：源码中旧plugin_db没有生产调用者，不为凑接口而迁移既有JSON配置文件。将Task17的Discord恢复游标这一明确的键值消费者提前接入通用协议，消息/扫描仍在Task17完成，完整Discord能力此前不报ready。`plugin_store(plugin_id, namespace=..., profile_home=...)`返回具名get/put/delete/scan/prune操作，JSON值与NUL/Unicode键无损；记录返回单调revision，expected_revision=0表示仅当不存在/过期时创建，正revision表示精确CAS，None表示无条件写。namespace内持久单调代次避免删除/过期后的ABA；keyset分页不用offset，配额及TTL在同一namespace写锁下处理。领域pending队列保留Task18专有协议，不强塞KV或通过内存替代。
+
 ### Matrix SDK
 
 Matrix 单独实现 SDK CryptoStore 协议适配，PG SQL/表/事务由 `hermes_db` 管理，异步 SDK 接口在明确边界调用同步存储并保留 Profile scope。不得只把 SDK URL 从 sqlite 改成 PG 后另起不受管的异步池或失去 `store_id` 隔离。

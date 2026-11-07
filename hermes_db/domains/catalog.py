@@ -28,6 +28,7 @@ POSTGRES_DOMAINS = {
     "rooms": DomainSpec("0019_room_events", ("rooms", "room_runs", "room_work", "room_policy")),
     "room_attachments": DomainSpec("0022_room_attachments", ("room_attachments",)),
     "metrics": DomainSpec("0023_metrics", ("metrics",)),
+    "plugins": DomainSpec("0024_plugins", ("plugins",)),
 }
 
 

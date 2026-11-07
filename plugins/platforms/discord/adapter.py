@@ -2630,34 +2630,12 @@ class DiscordAdapter(DiscordAuthorizationMixin, DiscordMediaMixin, DiscordThread
                 yield message
 
     def _discord_recovery_cursor(self, channel_id: str) -> Optional[str]:
-        if not channel_id:
-            return None
-
-        def _op(conn):
-            row = conn.execute(
-                "SELECT last_message_id FROM discord_recovery_cursors WHERE channel_id=?",
-                (channel_id,),
-            ).fetchone()
-            return str(row[0]) if row else None
-        return self._with_discord_recovery_db(_op)
+        from .recovery_cursors import cursor
+        return cursor(self, channel_id)
 
     def _advance_discord_recovery_cursor(self, channel_id: str, message_id: str) -> None:
-        if not channel_id or not message_id:
-            return
-        now = self._utc_now_iso()
-
-        def _op(conn):
-            conn.execute(
-                """
-                INSERT INTO discord_recovery_cursors (channel_id, last_message_id, updated_at)
-                VALUES (?, ?, ?)
-                ON CONFLICT(channel_id) DO UPDATE SET
-                    last_message_id=excluded.last_message_id,
-                    updated_at=excluded.updated_at
-                """,
-                (channel_id, message_id, now),
-            )
-        self._with_discord_recovery_db(_op)
+        from .recovery_cursors import advance
+        return advance(self, channel_id, message_id)
 
     async def _should_backfill_discord_message(self, message: Any) -> bool:
         """Return True when a recent Discord message still needs Hermes work."""
