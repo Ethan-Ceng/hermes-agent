@@ -12,8 +12,8 @@
 
 - 整体状态：`IN_PROGRESS`，恢复真实PG验收，最终门禁尚未通过。
 - 当前阶段：M1真实环境及Schema初始化验收通过，继续M2会话业务实库验收。
-- 当前任务：Task 9（in_progress：Worker/委派/回执竞争真实PG）；Tasks 10–17为verification_pending，Task18最终门禁待补。
-- 已完成：8 / 18。
+- 当前任务：Task 10（in_progress：租约/压缩/谱系提交竞争真实PG）；Tasks 11–17为verification_pending，Task18最终门禁待补。
+- 已完成：9 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：用户已填写根.env并启用pg_trgm；PG17.11、扩展1.6(public)、CREATE权限和测试Schema归属/清理均已实测，连接TLS=false。继续按任务依赖顺序验收，不读取/改写既有业务表。
 - 最近更新时间：2026-11-07（Asia/Shanghai）。
@@ -480,11 +480,11 @@ epoch 行共享锁先于映射和根锁，启动更新 epoch 等待旧写入结�
 
 Task8 完成/恢复点（2026-11-07）：真实runtime原12项passed、0 failed、21.9s（pg-task8-runtime-tests.log），包含FIFO、容量原子性、同请求竞争、唯一领取、代次/旧epoch和作用域。补5项真实PG事务错误分型验收全部passed、6.1s（pg-task8-failure-tests.log）：在真实commit返回后注入确认丢失，UnknownCommit后按原请求重查只保留一次准入；真实锁超时回滚无部分准入、pg_sleep被实际statement_timeout取消、关闭本测试拥有的连接产生Unavailable、单连接池耗尽产生Unavailable。前者是实际提交后的确认丢失注入，不伪称物理网络断线；未终止别人的连接或改业务Schema。新增test_transaction_failures.py仅验收，无生产代码变更；严格completed8/18，静态复验后保存Task8并继续Task9。
 
-## Task 9：实现 Worker 回执与异步委派存储
-
 Task8提交前最新静态证据：14 staged检查全部通过，新增1 code file、0 blocking/0 advisory（pg-task8-failure-checks.log），生产实现未改。新事务故障文件与该任务验证记录一并保存本地commit。
 
-状态：in_progress（开始真实PG验收）
+## Task 9：实现 Worker 回执与异步委派存储
+
+状态：completed
 
 ### 目标
 
@@ -535,9 +535,11 @@ Task8提交前最新静态证据：14 staged检查全部通过，新增1 code fi
 
 `PYTHONUTF8=1`、PM Python 执行 `scripts/check --staged --base HEAD`：exit 0，14 checks ok，health 28 文件、0 blocking/0 advisory（task9-checks.log）。未执行真实 PG；新增 Worker/委派 16 个 PG 用例，合计 75 个 PG 用例按默认 integration marker 排除，不能计通过。独立 PG 配置仍不存在；不存在真实驱动、锁竞争或吞吐验证证据。普通入口与 Worker RPC 消费接线在 Task 17，当前不能把此开发检查点当作可用 PG 生产模式。
 
+Task9 完成/恢复点（2026-11-07）：真实 `tests/hermes_db/postgresql/test_workers.py` 全部16项passed、0 failed、16.0s、exit0（pg-task9-workers-tests.log）。覆盖登记/采用/序列、重复效果、sidecars/usage、租约holder、子任务/委派作用域、投递claim/延后/ACK、回执回滚与两个连接竞争同一回执只提交一次。无生产改动，严格completed9/18；逐task本地保存后继续Task10租约/压缩/晚到尾部竞争。
+
 ## Task 10：实现租约、压缩与谱系提交
 
-状态：verification_pending
+状态：in_progress（开始真实PG验收）
 
 ### 目标
 
