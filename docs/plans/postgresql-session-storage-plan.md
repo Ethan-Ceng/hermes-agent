@@ -12,8 +12,8 @@
 
 - 整体状态：`IN_PROGRESS`，恢复真实PG验收，最终门禁尚未通过。
 - 当前阶段：M1/M2主题实库验收通过，继续M3 API/投递/搜索/入口验收。
-- 当前任务：Task 13（in_progress：Responses/Run续接与幂等真实PG）；Tasks 14–17为verification_pending，Task18最终门禁待补。
-- 已完成：12 / 18。
+- 当前任务：Task 14（in_progress：投递账本/claim/重试预算真实PG）；Tasks 15–17为verification_pending，Task18最终门禁待补。
+- 已完成：13 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：用户已填写根.env并启用pg_trgm；PG17.11、扩展1.6(public)、CREATE权限和测试Schema归属/清理均已实测，连接TLS=false。继续按任务依赖顺序验收，不读取/改写既有业务表。
 - 最近更新时间：2026-11-07（Asia/Shanghai）。
@@ -721,7 +721,7 @@ Task12 完成/恢复点（2026-11-07）：真实 `test_retirement_rewrites.py` �
 
 ## Task 13：实现 API 响应续接与 Run 幂等存储
 
-状态：in_progress（开始真实PG验收）
+状态：completed
 
 ### 目标
 
@@ -774,9 +774,11 @@ PM 新环境构建成功（`.build/postgresql/task13-env.log`）；四个受影�
 
 Task 13 离线检查点：整改后 14 staged 检查通过（9 code files，0 blocking / 0 advisory，exit 0），日志 `.build/postgresql/task13-checks.log`。数据层接口全部落位；API 路由/authority 接线和 PG Run 恢复的 epoch 证据按总计划在 Task 17 完成。50+123+17 共 190 项真实 PG 定义未执行，不能宣称 API PG 后端已通过。下一任务为 Task 14。
 
+Task13 完成/恢复点（2026-11-07）：真实 `tests/hermes_db/postgresql/test_api_stores.py` 全部17项passed、0 failed、14.8s、exit0（pg-task13-api-tests.log）。包括Responses持久身份/不可变重试信封/正文淘汰/恢复/输出顺序、Run保留与认证scope、同事务终态重查/指针修复、实际提交后的确认丢失观察、失败无内存回落、异步所属Profile/释放，以及并发Run预留/输出索引/首个终态信封（含NUL）唯一性。无生产变更，严格completed13/18；保存后继续Task14投递账本。
+
 ## Task 14：实现对外投递义务账本
 
-状态：verification_pending
+状态：in_progress（开始真实PG验收）
 
 ### 目标
 
