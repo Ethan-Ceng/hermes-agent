@@ -22,6 +22,7 @@ from typing import Any
 
 from gateway import hosted_rooms
 from gateway.hosted_rooms_common import DbPath
+from hermes_db.domains.rooms import room_operation
 
 MAX_PURPOSE_CHARS = 500
 MAX_NOTES_BYTES = 4 * 1024
@@ -73,6 +74,7 @@ def _latest_context(conn: Any, room_id: str, before_seq: int | None) -> dict[str
     return {key: str(payload.get(key) or default) for key, default in _EMPTY_CONTEXT.items()}
 
 
+@room_operation("room_context")
 def room_context(db_path: DbPath, *, room_id: Any, before_seq: int | None = None) -> dict[str, str]:
     """The latest purpose/notes, or the ones in force before ``before_seq`` when given."""
     room_id = hosted_rooms._room_id(room_id)
@@ -80,6 +82,7 @@ def room_context(db_path: DbPath, *, room_id: Any, before_seq: int | None = None
         return _latest_context(conn, room_id, before_seq)
 
 
+@room_operation("room_context")
 def set_room_context(
     db_path: DbPath, *, room_id: Any, event_id: Any, purpose: Any, notes: Any, routing: Any = None,
     lead_member_id: Any = None, now: float | None = None,

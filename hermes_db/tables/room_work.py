@@ -5,7 +5,7 @@ from hermes_db.tables.metadata import scoped_fk, scoped_table
 
 
 publications = scoped_table("hosted_room_policy_publications",
-    *[Column(name, Text, nullable=False) for name in ("room_id", "task_id", "kind")],
+    *[Column(name, Text, nullable=False) for name in ("room_id", "kind")], Column("task_id", LargeBinary, nullable=False),
     Column("execution_generation", BigInteger, nullable=False, server_default="0"), Column("seq", BigInteger, nullable=False),
     key=("room_id", "task_id", "kind", "execution_generation"), constraints=(
         scoped_fk(("room_id",), "hosted_rooms", ("room_id",), ondelete="CASCADE"),))

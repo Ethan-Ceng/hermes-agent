@@ -108,7 +108,7 @@ def test_published_terminals_only_are_pruned_and_snapshot_filters_them(pg_profil
         driver.cancel_task(location, identity, cancel_id="stop", expected_cancel_generation=0, clock=lambda: 10)
         assert driver.prune_published_terminal_tasks(location, room_id="room", clock=lambda: 10**8) == 0
         with acquire_profile_domain("rooms") as store, store.write() as conn:
-            conn.execute(publications.insert().values(store_id="one", room_id="room", task_id="task", kind="turn.cancelled", execution_generation=0, seq=1))
+            conn.execute(publications.insert().values(store_id="one", room_id="room", task_id=encode_text("task"), kind="turn.cancelled", execution_generation=0, seq=1))
         evidence = work.capture(location, room_id="room", local_gateway_id="owner")
         assert evidence["tasks"] == []
         assert driver.prune_published_terminal_tasks(location, room_id="room", clock=lambda: 10**8) == 1

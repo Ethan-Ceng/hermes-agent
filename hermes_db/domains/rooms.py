@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from functools import wraps
 from importlib import import_module
 from pathlib import Path
+from contextlib import contextmanager
 
 from hermes_db.domains.resource import DomainResource
 from hermes_db.errors import StorageConfigurationError
@@ -49,6 +50,18 @@ def assert_sqlite_location(location):
         raise StorageConfigurationError("The selected PostgreSQL room store cannot open a private SQLite connection")
 
 
+@contextmanager
+def open_room_store(reference):
+    from hermes_cli.db_setup import _owning_profile
+    from hermes_db.factory import acquire_profile_domain
+    with _owning_profile(reference.profile_home), acquire_profile_domain("rooms", profile_home=reference.profile_home) as store:
+        if store.settings.backend != "postgresql" or store.scope.store_id != reference.store_id:
+            raise StorageConfigurationError("Captured room storage backend or store_id changed")
+        if room_reference(store).target != reference.target:
+            raise StorageConfigurationError("Captured room database target changed; reopen its owning runtime")
+        yield store
+
+
 def room_operation(topic):
     def decorate(sqlite_operation):
         @wraps(sqlite_operation)
@@ -63,12 +76,7 @@ def room_operation(topic):
             if not isinstance(db_path, RoomStoreRef) and storage_backend() == "sqlite":
                 return sqlite_operation(db_path, *args, **kwargs)
             reference = db_path if isinstance(db_path, RoomStoreRef) else capture_room_store()
-            from hermes_db.factory import acquire_profile_domain
-            with _owning_profile(reference.profile_home), acquire_profile_domain("rooms", profile_home=reference.profile_home) as store:
-                if store.settings.backend != "postgresql" or store.scope.store_id != reference.store_id:
-                    raise StorageConfigurationError("Captured room storage backend or store_id changed")
-                if room_reference(store).target != reference.target:
-                    raise StorageConfigurationError("Captured room database target changed; reopen its owning runtime")
+            with open_room_store(reference) as store:
                 module = import_module(f"hermes_db.operations.{topic}")
                 return getattr(module, sqlite_operation.__name__)(store, *args, **kwargs)
         return operation

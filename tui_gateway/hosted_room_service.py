@@ -569,6 +569,8 @@ class HostedRoomService:
         for _attempt in range(_FENCED_APPEND_ATTEMPTS):
             with self._policy_lock:
                 room = self._room(binding.room_id)
+                if _authority(room) != (binding.gateway_id, binding.authority_epoch):
+                    return
                 snapshot = self._policy_snapshot(room)
                 current = discussion.plan_next_task(
                     room, list(snapshot.events), local_profiles=self.room_profiles(room),

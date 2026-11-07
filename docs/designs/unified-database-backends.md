@@ -157,6 +157,8 @@ Task11接口核对：现有房间函数的db_path是SQLite位置参数，不能�
 
 Task12依赖细化：driver终态清理与被动work-record快照需要policy_publications作为已出版判据，其scoped底层表提前进入0020；策略checkpoint和实际出版事务仍由Task13完成。Canonical owner创建及FIFO准入使用同一连接上的具名CoreEffect，锁序为runtime epoch、room store、room/lease/task，文件/配置/peer/模型等待均在借用连接前结束。被动证据与事实在同事务保存，但损坏证据保留原字节并分类invalid，容量失败只回滚证据savepoint，不能阻止Stop；权威切换以scoped数据库触发器冻结旧producer/epoch证据。Task12的transport-free driver调度与准入合同不等于整服务可用：Canonical服务构造仍依赖Task13策略/路由及Task14附件，完整daemon在Task22强验收，不能禁用这些功能绕过依赖。
 
+Task13查询细化：policy内部thread/member/discussion/task键来自合法任意JSON文本，使用BYTEA；publication.task_id通过0021显式由原ASCII TEXT转BYTEA。房间事件增加仅供查询的thread/discussion字符串派生键，以索引完成历史重建；不以JSONB承载含NUL的原JSON。派生键不进入事件身份、摘要或导出，显式迁移回填已有PG事件，原不可变事件内容保持原样。
+
 附件只统一元数据、配额、引用和删除状态。文件写入与 DB 不是同一事务，保留准备/提交/清理协议及重启对账；不因换后端移动附件内容或声称多节点共享文件完成。
 
 ### 指标与插件

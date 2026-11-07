@@ -86,5 +86,9 @@ Driver leases/tasks and passive work snapshots join the same scoped room
 transactions; canonical FIFO authorization uses its own writer's connection.
 Evidence capacity failures roll back a savepoint, while invalid retained bytes
 remain classified and immutable. Authority changes freeze old producer scopes.
-Policy/router consumers and attachment publication remain separate integration
-tasks; driver contracts alone do not establish full rooms or system readiness.
+Policy cursors, bounded transcripts, terminal publication references and router
+claims also persist on Core. Opaque projection identities use bytes; indexed
+event query keys do not enter event identity. Model waits hold no connection and
+prepared answers retain their captured authority/log fences. Attachment
+publication remains a separate integration task; these contracts alone do not
+establish full rooms or system readiness.

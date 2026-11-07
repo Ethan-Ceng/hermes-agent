@@ -8,10 +8,10 @@ from hermes_db.tables.room_work import source, pending, publications
 
 def unpublished(table, store):
     def comparable(column, target):
-        return func.convert_to(column, "UTF8") if isinstance(target.type, LargeBinary) else column
+        return func.convert_to(column, "UTF8") if isinstance(target.type, LargeBinary) and not isinstance(column.type, LargeBinary) else column
     return ~select(publications.c.task_id).where(room_repo.scope(publications, store),
         comparable(publications.c.room_id, table.c.room_id) == table.c.room_id,
-        comparable(publications.c.task_id, table.c.task_id) == table.c.task_id,
+        comparable(publications.c.task_id, table.c.task_id) == comparable(table.c.task_id, publications.c.task_id),
         publications.c.kind.in_(("turn.settled", "turn.failed", "turn.cancelled"))).exists()
 
 

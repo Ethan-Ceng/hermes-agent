@@ -19,7 +19,7 @@ home = Path(sys.argv[1])
 source, target = home / 'source.db', home / 'replica.db'
 rooms.create_room(source, room_id='room', name='SQLite', members=[{'profile':'ops','handle':'ops'}], authority_gateway_id='gateway-a')
 rooms.append_event(source, room_id='room', event_id='first', kind='message.user', actor={'kind':'user','id':'u'},
-    payload={'text':'中文\u0000', 'zero':0, 'false':False}, authority_gateway_id='gateway-a', authority_epoch=1)
+    payload={'text':'中文\u0000', 'zero':0, 'false':False, 'thread_id':'thread'}, authority_gateway_id='gateway-a', authority_epoch=1)
 page = rooms.read_events(source, room_id='room')
 assert page['events'][0]['payload']['false'] is False
 assert replicas.ingest_page(target, room_id='room', room_name='copy', members=[], page=page)['stored_seq'] == 1
@@ -40,6 +40,13 @@ record = work.capture(source, room_id='room', local_gateway_id='gateway-a')
 assert record['tasks'][0]['phase'] == 'settled' and 'private input' not in work.encode(record)
 pending = work.prepare_delivery(source, room_id='room', local_gateway_id='gateway-a', target_install_id='peer', route_generation='route', through_seq=1)
 assert work.acknowledge(source, room_id='room', target_install_id='peer', route_generation='route', record=pending, ack=work.acknowledgement(pending))
+from gateway.hosted_room_policy_checkpoint import HostedRoomPolicyCheckpoint
+from tui_gateway.hosted_room_router_call import RouterCalls
+checkpoint = HostedRoomPolicyCheckpoint(source)
+assert checkpoint.snapshot(room_id='room', latest_seq=1).events[0]['payload']['thread_id'] == 'thread'
+router = RouterCalls(source, clock=lambda:10)
+assert router._claim(('room','source'))
+router._release(('room','source'))
 print('SQLITE_ROOMS_STANDALONE_OK')
 '''
     env = child_env()

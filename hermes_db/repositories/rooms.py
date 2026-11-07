@@ -29,6 +29,11 @@ def decode(row):
 
 
 def insert_row(conn, store, table, record):
+    if table is events:
+        import json
+        payload = json.loads(record["payload_json"])
+        record = dict(record, **{key: payload.get(field) if isinstance(payload.get(field), str) else None
+            for key, field in (("policy_thread_key", "thread_id"), ("policy_discussion_key", "discussion_event_id"))})
     conn.execute(table.insert().values(store_id=store.scope.require_store_id(), **values(table, record)))
 
 
