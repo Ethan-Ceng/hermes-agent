@@ -12,8 +12,8 @@
 
 - 整体状态：`IN_PROGRESS`，恢复真实PG验收，最终门禁尚未通过。
 - 当前阶段：M1真实环境及Schema初始化验收通过，继续M2会话业务实库验收。
-- 当前任务：Task 11（in_progress：路由/代次/交接/整理真实PG）；Tasks 12–17为verification_pending，Task18最终门禁待补。
-- 已完成：10 / 18。
+- 当前任务：Task 12（in_progress：删除/墓碑/重写/幂等竞争真实PG）；Tasks 13–17为verification_pending，Task18最终门禁待补。
+- 已完成：11 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：用户已填写根.env并启用pg_trgm；PG17.11、扩展1.6(public)、CREATE权限和测试Schema归属/清理均已实测，连接TLS=false。继续按任务依赖顺序验收，不读取/改写既有业务表。
 - 最近更新时间：2026-11-07（Asia/Shanghai）。
@@ -595,7 +595,7 @@ Task10 完成/恢复点（2026-11-07）：真实 `tests/hermes_db/postgresql/tes
 
 ## Task 11：实现路由、会话代次与整理状态
 
-状态：in_progress（开始真实PG验收）
+状态：completed
 
 ### 目标
 
@@ -641,9 +641,11 @@ Task10 完成/恢复点（2026-11-07）：真实 `tests/hermes_db/postgresql/tes
 - ruff/health 已通过；全量 staged scripts/check --staged --base HEAD 14 checks 通过，0 blocking/0 advisory，exit 0，日志 .build/postgresql/task11-checks.log。
 - 新增 21 项真实 PG 路由/交接竞争/hygiene 并发累加/陈旧路由快照竞争用例未执行；累计 123 项真实 PG 验证待配置，不能计入通过。Schema 仍为 26 表/18 索引，无新依赖。
 
+Task11 完成/恢复点（2026-11-07）：真实 `tests/hermes_db/postgresql/test_routing.py` 全部21项passed、0 failed、18.4s、exit0（pg-task11-routing-tests.log）。覆盖路由替换/退休、心跳/整理、交接CAS及重启恢复、单调代次、compression ancestor回指、profile rekey碰撞回滚/主题/账本作用域、永久与可过期fence，以及并发交接仅一位owner。无生产改动，严格completed11/18；保存验证后继续Task12删除/重写与准入竞争。
+
 ## Task 12：实现删除、退休墓碑与会话重写
 
-状态：verification_pending（离线实现与检查已通过；真实 PG 未执行）
+状态：in_progress（开始真实PG验收）
 
 ### 目标
 
