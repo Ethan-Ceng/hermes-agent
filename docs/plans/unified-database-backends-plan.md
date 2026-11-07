@@ -10,9 +10,9 @@
 ## 当前进度
 
 - 整体状态：`IN_PROGRESS`。
-- 当前阶段：RetainDB持久pending队列实施。
-- 当前任务：Task 18（completed；正在创建本地任务提交，随后进入Task19）。
-- 已完成：18 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前阶段：Matrix协议已验收，进入生命周期、健康与运维旁路。
+- 当前任务：Task 20（pending；Task19提交标题 `feat(storage): persist Matrix SDK crypto on unified PostgreSQL backend`）。
+- 已完成：19 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-08（Asia/Shanghai）。
@@ -1086,7 +1086,7 @@ worker按短事务/SKIP LOCKED/持久token claim，POST前续租CAS，确认/失
 
 ## Task 19：适配 Matrix 加密存储完整 SDK 协议
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -1125,11 +1125,33 @@ Matrix E2EE本地持久化在PG模式独立运行，纳入统一schema、scope�
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+实施中：已核对现有adapter连接/迁移/依赖检查路径，当前显式SQLite URL、强依赖asyncpg+aiosqlite、旧pickle迁移与远端设备删除分支均不能照搬PG。项目锁定mautrix[encryption]==0.21.1，matrix extra明确仅Linux，Windows正式测试环境没有SDK/libolm；只读确认现有Ubuntu-26.04 WSL Running，旧独立Linux测试解释器同样无SDK。正在已有Linux主机通过PM/no-install-project创建全新matrix+postgresql+messaging/dev/test隔离环境，home/runtime均随机/tmp根，未改正式Profile、未安装/启动/运维数据库服务。状态文件`.build/postgresql/matrix-linux-state.json`只含非秘密路径，构建日志unified-task19-linux-pm-build.log；后续必须读取真实安装协议并运行真实密钥PG往返，当前未完成。
+
+SDK环境已实际构建成功exit0；状态root为/tmp/hermes-unified-matrix-5bb7b10a96b1，实际mautrix0.21.1/python-olm3.2.16，真实OlmAccount identity pickle往返通过。初次前置探针漏传SDK shared参数而TypeError，按实际from_pickle签名补齐后通过，属于SDK核对而非产品业务红。已读取实际CryptoStore37方法+SyncStore2方法和Session/GroupSession/Device/TOFU/CrossSigner构造及OlmMachine消费者，形成[协议覆盖矩阵](../designs/unified-database-matrix-protocol.md)。SDK事务网络query在外，内部设备验证/本地状态调用在受控同步线程执行真实事务；key-request没有独立DB协议，必须用实际SDK请求/forwarded-key路径验证group持久化，不能发明占位表。恢复点：实现共享Schema/完整Core store及adapter安全分流，仍未完成。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+尚无业务验收结果。已用PM解释器importlib.metadata读取实际Windows/已有Linux环境：mautrix/python-olm/aiosqlite/asyncpg均未安装；pyproject/uv.lock限定Linux及0.21.1；hermes_platform.resolver解析wsl后只读list确认现有Ubuntu与docker-desktop均Running。这是SDK/主机前置核对，不是Matrix协议或PG功能通过证据。依赖缺失不能静默禁用E2EE或把类名PgCryptoStore当作支持PG。
+
+`HERMES_PYTHON=<上述PM Linux python> scripts/run_tests.sh tests/hermes_db/postgresql/test_matrix_crypto_store.py -j 1 -- -m integration --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml` exit1、1 failed（unified-task19-linux-pg-red.log）：真实SDK已导入、独立PG Schema归属/初始化已完成，失败为尚无hermes_db.matrix_crypto。没有DB网络阻塞、没有SQLite豁免、未读旧加密文件或操作远端设备。尚无本项完成commit。
+
+Task19实施续记：新增0027共享迁移、按Profile/store+homeserver/user+device分区的9张Core表和generation护栏；完整39方法使用同步共享池，普通调用即借即还，SDK设备更新transaction由单线程执行真实事务/嵌套savepoint，取消后排队回滚并归还连接。时间及timedelta保留完整值；pickle之外的shared、ratchet、forwarding、TOFU及计数均持久。账号身份冲突拒绝覆盖，旧outbound session更新精确代次。adapter的旧SQLite启动移动到独立sibling，PG分支不创建SDK Database、不读取/删除旧crypto文件、不重置远端设备；新PG数据集遇到已有设备密钥拒绝，PG持久化失败在optional下同样中止。设备认证前后比较ed25519与curve25519。普通正式实例及配置数据保持原样。
+
+阶段证据：真实Linux `scripts/run_tests.sh` 3个Matrix PG文件7 passed、0 failed/skip/retry（unified-task19-linux-pg-core.log）；真实SDK OlmMachine设备查询/发送与adapter启动两文件先5 passed/1 failed（unified-task19-linux-sdk-flows.log），失败为测试发送端群会话未设shared，收到forwarded key/请求取消此前已执行；已修正夹具，完整批次复验中。Windows标准runner 22个Matrix文件215 passed/1 skipped（unified-task19-native.log），唯一skip为既有test_matrix_voice因Windows未装mautrix；将到实际Linux SDK环境补验。首次Windows包装WSL argv把Resolution对象当字符串而TypeError，改用resolver.command后正常，属于启动包装错误而非业务测试结果。Task19仍in_progress，未创建本项commit；当前恢复点为新增进程恢复/无SDK SQL驱动合同、故障/取消/代次测试和全静态门禁。
+
+Task19最终结果：已实现实际mautrix0.21.1 CryptoStore37方法和SyncStore2方法，共享Core/同步psycopg/池/预算/显式迁移0027；Profile/store、homeserver/user、device复合范围及dataset代次检查，全部领域操作命名化。PG adapter使用实际Client窄子类等待SDK handler，传播存储错误，业务成功后再持久游标，启动恢复使用已保存since；既有SQLite SDK流程独立保留。普通ensure_matrix_deps入口现按PG选择排除SDK asyncpg/aiosqlite依赖，不因二者缺失触发PM安装；实际连接仍检查加密SDK/libolm，不以optional降级。安装指导统一PM。正式实例、Profile配置、SQLite数据和旧Matrix文件均未修改；未管理数据库服务。
+
+最新验证（全部标准runner，retry=0）：
+
+- PM Linux SDK环境执行 `scripts/run_tests.sh tests/hermes_db/postgresql/test_matrix_crypto_store.py tests/hermes_db/postgresql/test_matrix_sessions.py tests/hermes_db/postgresql/test_matrix_devices.py tests/hermes_db/postgresql/test_matrix_sdk_flows.py tests/hermes_db/postgresql/test_matrix_adapter_storage.py tests/hermes_db/postgresql/test_matrix_recovery.py tests/hermes_db/postgresql/test_matrix_faults.py tests/hermes_db/postgresql/test_schema.py -j 3 -- -m integration --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml` exit0，8文件27 passed/0 failed/skip/retry（unified-task19-pg-final-clean.log）。每个业务过程拒绝全部SQLite，包括audit捕获别名/直接Connection；随机独立Schema归属校验后使用/清理。实际账号私有one-time keys从PG恢复并建立Olm会话、消耗后再持久；群组加解密、信任/TOFU/签名、重放竞争、真实事务/savepoint/取消/unknown COMMIT、重启及范围均通过，方法对应见协议矩阵。
+- 实际新解释器禁止import asyncpg/aiosqlite、禁止所有SQLite连接、禁止因缺两驱动触发PM安装；普通依赖入口通过，恢复账号/同步/group并由实际OlmMachine加密，父进程重读确认次数增加。网络transport为本地受控回调，实际SDK各网络边界checkedout=0；未做公网Matrix服务联调，不声称端到端exactly-once。
+- 同一PM Linux环境 `scripts/run_tests.sh <rg --files tests/gateway -g test_matrix*.py> tests/plugins/platforms/matrix -j 3` exit0，23文件219 passed/0 failed/skip/retry（unified-task19-linux-native-clean.log）。含实际SDK voice、SQLite adapter连接/加密重开；独立SQLite进程禁止SQLAlchemy/psycopg/Alembic导入，不要求PG实例。
+- Windows原生标准runner最新4文件112 passed/0 failed/skip/retry（unified-task19-native-latest-source.log）；此前23文件215 passed/2 skipped，skip为Windows缺mautrix voice及Linux专有SQLite SDK合同，两者均已在上述实际Linux主机通过，不伪装OS。
+- `PM Windows Python scripts/check --staged --base a0a5ffea8c` exit0，14 checks ok，health29文件0 blocking/advisory（unified-task19-checks-accepted.log）。PG SDK启动异常边界仅留一条具因health allow，捕获后关闭资源并仅记安全错误类型，避免密码学traceback泄密；最后独立review仍须复核。暂存差异检查后仅更新本执行账本、协议文档及EOF空行。
+
+补充失败/修复记录：完整PG先22passed/1failed，子进程在no-install-project环境未显式PYTHONPATH；补传仓库路径后新进程恢复通过，Windows包装打印先GBK错误但实际恢复exit0（recovery-fixed.log），包装改UTF-8。真实SDK默认吞StorageError且不等加密handler已由sync-cursor-red实测失败，修复后adapter/recovery两文件5passed。普通依赖入口仍强制SDK SQL驱动的实测红（pg-sdk-dependency-red.log）后已按后端分流，最终禁止安装合同通过。扩大Linux原生回归先217passed/2failed：fresh-install fixture未模拟PM missing接口，实际SDK已安装时无法进入预期分支；ensure_matrix_deps在基线a0a5ffea8c及f5784617e8已有同一PM条件，已修fixture，3passed。指导改PM后旧pip文字断言1failed，按正确可执行命令更新后3passed。新增scope测试直接import yaml失败，改用项目hermes_yaml后5passed，无增依赖。最终27/219完整批次均通过。早期静态发现unused noqa、UTC别名、async阻塞subprocess、gather BaseException与sibling logger识别问题，已整改至14项全通过；未用规则豁免掩盖业务失败。Windows到Linux文件路径包装错误单列日志final.log，规范路径后最终批次执行正确。
+
+未验证/恢复点：仅Task19协议/业务领域完成，Task20维护入口（包括此前Kanban/附件中断文件job和提交后投影）、Task21全入口审计、Task22完整系统普通daemon/Worker单后端、Task23发行/完整文档和Task24最终验证/独立审查仍未完成。不能以本项Schema ready或原会话测试推断全系统PG就绪。本项提交后立即进入Task20；不推送、不发布、不创建PR或合并。
 
 ## Task 20：消除生命周期、健康与运维旁路
 
@@ -1394,14 +1416,14 @@ CLI/Gateway/Web/TUI/Desktop/ACP/Agent及后台任务统一接入领域能力。
 
 ### 未通过与未验证
 
-Task 1–9 已完成，Task 10–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
+Task 1–19 已完成，Task 20–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
 
 ### 最终状态
 
-尚未进入最终验证。当前为PLAN_READY；实施后的最终判定只用READY_TO_MERGE / BLOCKED / FAILED。
+尚未进入最终验证。当前为IN_PROGRESS；实施后的最终判定只用READY_TO_MERGE / BLOCKED / FAILED。
 
 ## 恢复点
 
-Task 1–18已验收并各自创建本地commit（Task16 `8145fcafab`，Task17 `8ebb3e5691`，Task18标题 `feat(storage): persist scoped RetainDB pending queue`）。下一项Task19实际Matrix SDK协议及真实PG密钥往返；Task18 PG20 passed、SQLite30 passed、无PG依赖1 passed及14静态checks通过，无skip/retry。Task20维护及Task22普通daemon强验收尚未完成。分支仍为 `feat/postgresql-session-storage`，正式实例保持SQLite，未写正式Profile、秘密或业务表；不能由此宣称全系统PG已完成。
+Task 1–19已验收并按任务创建本地commit（Task18 `a0a5ffea8c`；Task19标题 `feat(storage): persist Matrix SDK crypto on unified PostgreSQL backend`）。下一项Task20：生命周期/健康/备份/运维及中断文件job/提交后工作恢复；Task19实际Linux SDK PG27 passed、原生SDK219 passed，Windows最新112 passed及14静态checks通过，无未处置失败。Task21–24全入口、普通daemon强验收、发行和最终独立review仍未完成。分支仍为 `feat/postgresql-session-storage`，正式实例保持SQLite，未写正式Profile、秘密或业务表；不能由此宣称全系统PG已完成。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

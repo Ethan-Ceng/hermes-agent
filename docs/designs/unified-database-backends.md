@@ -187,6 +187,8 @@ Task18实际协议细化：RetainDB的_Client.ingest_session(user_id,session_id,
 
 Matrix 单独实现 SDK CryptoStore 协议适配，PG SQL/表/事务由 `hermes_db` 管理，异步 SDK 接口在明确边界调用同步存储并保留 Profile scope。不得只把 SDK URL 从 sqlite 改成 PG 后另起不受管的异步池或失去 `store_id` 隔离。
 
+实际SDK协议、方法覆盖及PG同步游标错误传播见[Matrix协议核对](unified-database-matrix-protocol.md)。SDK默认吞掉handler异常并允许加密handler在后台执行，PG客户端需等待处理并传播存储错误，成功后才持久化同步游标；不能把网络处理放入长数据库事务。
+
 需覆盖账号/设备、identity/Olm 会话、群组会话、设备列表、密钥请求和 SDK 版本要求的完整协议；必须核对实际安装版本的协议并运行真实密钥 round-trip。PG 模式不读取/删除旧 SQLite 或 pickle 来补数据，不自动删除远端设备或重置密钥。旧设备在新库中缺少原密钥时明确提示管理员使用新设备身份，不能承诺解密未迁移的旧历史。
 
 ## 初始化、切换与运维

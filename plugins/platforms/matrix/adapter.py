@@ -418,7 +418,7 @@ _STARTUP_GRACE_SECONDS = 5  # ignore messages older than this many seconds befor
 
 _OUTBOUND_MENTION_RE = re.compile(r"(?<![\w/])(@[0-9A-Za-z._=/-]+:[0-9A-Za-z.-]+(?::\d+)?)")
 
-_E2EE_INSTALL_HINT = "Install with: pip install 'mautrix[encryption]' asyncpg aiosqlite  (requires libolm C library)"
+_E2EE_INSTALL_HINT = "Install with: hermes pm install --extra matrix (requires libolm C library on a supported platform)"
 
 _MATRIX_IMAGE_FILENAME_EXTS = frozenset({
     ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg", ".heic", ".heif", ".avif"})
@@ -772,6 +772,11 @@ def ensure_matrix_deps() -> bool:
             "UserID": UserID,
         }
 
+    from hermes_cli.db_setup import storage_backend
+    if storage_backend() == "postgresql":
+        from plugins.platforms.matrix.adapter_storage import ensure_pg_dependencies
+        return ensure_pg_dependencies(_import, globals())
+
     # A complete install (module-level imports already bound the types) needs no sync; only a
     # partial one goes through ensure_and_bind, which rebinds after the install.
     if extras.missing("matrix") and not extras.ensure_and_bind("matrix", _import, globals()):
@@ -810,6 +815,8 @@ class MatrixAdapter(BasePlatformAdapter):
     def _resolve_store_dir(self) -> Path:
         """Pin the crypto-store dir to the active profile (connect() runs inside the profile
         scope); cached so later out-of-scope reads report the store actually in use."""
+        from plugins.platforms.matrix.adapter_storage import capture_storage
+        capture_storage(self)
         self._store_dir = _get_hermes_dir("platforms/matrix/store", "matrix/store")
         return self._store_dir
 
@@ -1175,74 +1182,8 @@ class MatrixAdapter(BasePlatformAdapter):
         return True
 
     async def _connect_setup_e2ee(self, client: Any, api: Any, state_store: Any) -> bool:
-        """Set up the Olm machine + crypto store. Returns False when connect must abort."""
-        if not _check_e2ee_deps():
-            if self._e2ee_mode == "optional":
-                logger.warning(
-                    "Matrix: E2EE optional but dependencies are missing. Continuing without "
-                    "encrypted-room support. %s", _E2EE_INSTALL_HINT)
-                self._encryption = False
-            else:
-                logger.error(
-                    "Matrix: E2EE is required but dependencies are missing. %s. Refusing to connect — "
-                    "encrypted rooms would silently fail.", _E2EE_INSTALL_HINT)
-                return await self._abort_connect(api)
-        if not self._encryption:
-            return True
-        phase = "import"
-        try:
-            from mautrix.crypto import OlmMachine
-            from mautrix.crypto.store.asyncpg import PgCryptoStore
-            from mautrix.util.async_db import Database
-            self._store_dir.mkdir(parents=True, exist_ok=True)
-            phase = "create"
-            if (self._store_dir / "crypto_store.pickle").exists():  # pre-SQLite era
-                logger.info("Matrix: removing legacy crypto_store.pickle (migrated to SQLite)")
-                (self._store_dir / "crypto_store.pickle").unlink()
-            crypto_db = Database.create(
-                f"sqlite:///{self._crypto_db_path}", upgrade_table=PgCryptoStore.upgrade_table)
-            await crypto_db.start()
-            self._crypto_db = crypto_db
-            _acct_id = self._user_id or "hermes"
-            # Key on the RESOLVED client.device_id (token's real device), not the configured
-            # one, or the Olm account is stored under a key that can never be looked up.
-            _pickle_key = f"{_acct_id}:{client.device_id or self._device_id or 'default'}"
-            crypto_store = PgCryptoStore(account_id=_acct_id, pickle_key=_pickle_key, db=crypto_db)
-            await crypto_store.open()
-            _store_was_reset = False
-            if client.device_id:
-                _store_was_reset = await self._reset_crypto_store_if_device_changed(crypto_store, client.device_id)
-                await crypto_store.put_device_id(client.device_id)
-            # A just-deleted store has no account to migrate.
-            if not _store_was_reset and not await self._migrate_legacy_crypto_pickle(
-                    crypto_store, crypto_db, _acct_id, _pickle_key):
-                logger.warning("Matrix: crypto pickle migration failed — E2EE may not work correctly")
-            from plugins.platforms.matrix.adapter_crypto import _CryptoStateStore
-            crypto_state = _CryptoStateStore(state_store, self._joined_rooms, client)
-            olm = OlmMachine(client, crypto_store, crypto_state)
-            olm.share_keys_min_trust = TrustState.UNVERIFIED
-            olm.send_keys_min_trust = TrustState.UNVERIFIED
-            await olm.load()
-            if not await self._verify_device_keys_on_server(client, olm):
-                return await self._abort_connect(api, crypto_db)
-            try:
-                await olm.share_keys()
-            except Exception as exc:
-                if "already exists" in str(exc):
-                    logger.error(
-                        "Matrix: device %s has stale one-time keys on the server signed with a "
-                        "previous identity key. Delete the device from the homeserver and restart, "
-                        "or generate a new access token to get a fresh device ID.", client.device_id)
-                    return await self._abort_connect(api, crypto_db)
-                logger.warning("Matrix: share_keys() warning during startup: %s", exc)
-            await self._verify_or_bootstrap_cross_signing(olm, client)
-            client.crypto = olm
-            logger.info(
-                "Matrix: E2EE enabled (store: %s%s)", str(self._crypto_db_path),
-                f", device_id={client.device_id}" if client.device_id else "")
-        except Exception as exc:
-            return await self._e2ee_setup_failed(phase, exc, api)
-        return True
+        from plugins.platforms.matrix.adapter_storage import connect_selected
+        return await connect_selected(self, client, api, state_store)
 
     async def _e2ee_setup_failed(self, what: str, exc: Exception, api: Any) -> bool:
         """Optional mode: log + disable E2EE and return True; required mode: close + return False."""
@@ -1260,16 +1201,21 @@ class MatrixAdapter(BasePlatformAdapter):
         # Honor the active profile's secret scope so a secondary profile under gateway.multiplex_profiles
         # resolves its own recovery key instead of the default profile's (which fails E2EE verification with
         # "Key MAC does not match", #69090).
+        from hermes_db.errors import StorageError
         recovery_key = _scoped_recovery_key()
         if recovery_key:
             try:
                 await olm.verify_with_recovery_key(recovery_key)
                 logger.info("Matrix: cross-signing verified via recovery key")
+            except StorageError:
+                raise
             except Exception as exc:
                 logger.warning("Matrix: recovery key verification failed: %s", exc)
         else:
             try:
                 own_xsign = await olm.get_own_cross_signing_public_keys()
+            except StorageError:
+                raise
             except Exception as exc:
                 own_xsign = None
                 logger.warning("Matrix: cross-signing key lookup failed: %s", exc)
@@ -1290,24 +1236,20 @@ class MatrixAdapter(BasePlatformAdapter):
                     try:
                         new_recovery_key = await olm.generate_recovery_key()
                         _handle_generated_matrix_recovery_key(str(client.mxid), new_recovery_key)
+                    except StorageError:
+                        raise
                     except Exception as exc:
                         logger.warning(
                             "Matrix: cross-signing bootstrap failed (non-fatal — Element will show "
                             "'not verified by its owner'): %s", exc)
 
-    async def _connect_initial_sync(self, client: Any) -> None:
-        """Full initial sync: seed joined rooms, DM cache, and dispatch queued to-device events."""
-        try:
-            sync_data = await client.sync(timeout=10000, full_state=True)
-            if isinstance(sync_data, dict):
-                self._joined_rooms.clear()
-                await self._absorb_sync(client, sync_data, initial=True)
-            else:
-                logger.warning("Matrix: initial sync returned unexpected type %s", type(sync_data).__name__)
-        except Exception as exc:
-            logger.warning("Matrix: initial sync error: %s", exc)
+    async def _connect_initial_sync(self, client: Any) -> bool:
+        from plugins.platforms.matrix.adapter_sync import initial_sync
+        return await initial_sync(self, client)
 
     async def connect(self, *, is_reconnect: bool = False) -> bool:
+        from plugins.platforms.matrix.adapter_storage import capture_storage, make_client
+        capture_storage(self)
         self._device_id_unverified = False
         if self._client is not None:
             try:
@@ -1326,7 +1268,7 @@ class MatrixAdapter(BasePlatformAdapter):
         api = HTTPAPI(base_url=self._homeserver, token=self._access_token or "", client_session=client_session)
         state_store = MemoryStateStore()
         sync_store = MemorySyncStore()
-        client = Client(
+        client = make_client(Client, self,
             mxid=UserID(self._user_id) if self._user_id else UserID(""), device_id=self._device_id or None,
             api=api, state_store=state_store, sync_store=sync_store)
         self._client = client
@@ -1343,7 +1285,8 @@ class MatrixAdapter(BasePlatformAdapter):
         self._startup_ts = time.time()
         self._reset_clock_skew_detector()  # a reconnect after an NTP fix starts clean
         self._closing = False
-        await self._connect_initial_sync(client)
+        if await self._connect_initial_sync(client) is False:
+            return await self._abort_connect(api, self._crypto_db)
         if self._encryption and getattr(client, "crypto", None):
             try:
                 await client.crypto.share_keys()
@@ -1436,6 +1379,7 @@ class MatrixAdapter(BasePlatformAdapter):
         return {"name": identity.display_name, "type": "dm" if identity.chat_type == "dm" else "group"}
 
     def get_diagnostics(self) -> dict[str, Any]:
+        from plugins.platforms.matrix.adapter_storage import storage_diagnostics
         now = time.time()
         token_present = bool(self._access_token)
         user_id = self._user_id or getattr(self._client, "mxid", "") or ""
@@ -1450,8 +1394,7 @@ class MatrixAdapter(BasePlatformAdapter):
                 "connected": self._client is not None, "joined_room_count": len(self._joined_rooms),
                 "last_sync_age_seconds": max(0.0, now - self._last_sync_ts) if self._last_sync_ts else None},
             "e2ee": {
-                "mode": self._e2ee_mode, "enabled": bool(self._encryption), "deps_available": _check_e2ee_deps(),
-                "crypto_store_path": str(self._crypto_db_path),
+                "mode": self._e2ee_mode, "enabled": bool(self._encryption), **storage_diagnostics(self),
                 "recovery_key_configured": bool(_scoped_recovery_key().strip())},
             "policy": {
                 "allowed_user_count": len(self._allowed_user_ids), "allowed_room_count": len(self._allowed_room_ids),
@@ -1882,27 +1825,8 @@ class MatrixAdapter(BasePlatformAdapter):
                 await asyncio.sleep(5)
 
     async def _absorb_sync(self, client: Any, sync_data: dict[str, Any], *, initial: bool = False) -> Optional[str]:
-        """Apply one sync response: joined rooms, next_batch, event dispatch, pending invites. Returns next_batch.
-        The initial (full-state) sync also seeds the DM cache and dispatches so the OlmMachine sees
-        to-device key shares queued while offline."""
-        self._last_sync_ts = time.time()
-        rooms_join = sync_data.get("rooms", {}).get("join", {})
-        if rooms_join or initial:
-            self._joined_rooms.update(rooms_join.keys())
-            self._invalidate_room_identities()
-        self._warn_encrypted_drops(rooms_join, client)
-        nb = sync_data.get("next_batch")  # incremental syncs resume from here
-        if nb:
-            await client.sync_store.put_next_batch(nb)
-        if initial:
-            logger.info("Matrix: initial sync complete, joined %d rooms", len(self._joined_rooms))
-            await self._refresh_dm_cache()
-        try:
-            await self._dispatch_sync(sync_data)
-        except Exception as exc:
-            logger.warning("Matrix: %s: %s", "initial sync event dispatch error" if initial else "sync event dispatch error", exc)
-        self._schedule_pending_invite_joins(sync_data)
-        return nb
+        from plugins.platforms.matrix.adapter_sync import absorb_sync
+        return await absorb_sync(self, client, sync_data, initial=initial)
 
     def _warn_encrypted_drops(self, rooms_join: dict[str, Any], client: Any) -> None:
         """Fail loud when encrypted room events arrive but no decryptor is attached (#131778).
@@ -1932,19 +1856,8 @@ class MatrixAdapter(BasePlatformAdapter):
                     room_id, cause)
 
     async def _dispatch_sync(self, sync_data: dict[str, Any]) -> None:
-        """Dispatch a sync response through the mautrix event machinery."""
-        client = self._client
-        if not client or not hasattr(client, "handle_sync"):
-            return
-        tasks = client.handle_sync(sync_data)
-        if inspect.isawaitable(tasks):
-            tasks = await tasks
-        if tasks:
-            # return_exceptions=True: one failing handler must not drop its SIBLING events.
-            results = await asyncio.gather(*tasks, return_exceptions=True)
-            for result in results:
-                if isinstance(result, Exception):
-                    logger.warning("Matrix: event handler failed during sync dispatch: %s", result)
+        from plugins.platforms.matrix.adapter_sync import dispatch_sync
+        await dispatch_sync(self, sync_data)
 
     def _is_self_sender(self, sender: str) -> bool:
         """True if *sender* is the bot itself (case-insensitive: homeservers vary localpart case). With
@@ -3272,7 +3185,7 @@ def register(ctx) -> None:
         name="matrix", label="Matrix", adapter_factory=MatrixAdapter, check_fn=matrix_deps_present,
         **DASHBOARD_CARD,
         ensure_deps_fn=ensure_matrix_deps, is_connected=_is_connected,
-        required_env=["MATRIX_HOMESERVER", "MATRIX_ACCESS_TOKEN"], install_hint="pip install 'mautrix[encryption]'",
+        required_env=["MATRIX_HOMESERVER", "MATRIX_ACCESS_TOKEN"], install_hint="hermes pm install --extra matrix",
         setup_fn=interactive_setup, apply_yaml_config_fn=_apply_yaml_config, cron_deliver_env_var="MATRIX_HOME_ROOM",
         standalone_sender_fn=_standalone_send, max_message_length=DEFAULT_MAX_MESSAGE_LENGTH, emoji="🔐",
         allow_update_command=True,

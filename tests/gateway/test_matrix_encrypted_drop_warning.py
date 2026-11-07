@@ -64,7 +64,7 @@ class TestMatrixEncryptedDropWarning:
         warnings = [r.getMessage() for r in caplog.records if "encrypted" in r.getMessage()]
         assert len(warnings) == 1
         assert "!enc:example.org" in warnings[0] and hint in warnings[0]
-        assert (mode == "off") == ("pip install" in warnings[0])
+        assert (mode == "off") == ("hermes pm install --extra matrix" in warnings[0])
 
     @pytest.mark.asyncio
     async def test_absorb_sync_no_encrypted_warning_when_crypto_attached(self, caplog):
