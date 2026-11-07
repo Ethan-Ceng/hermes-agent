@@ -21,6 +21,7 @@ POSTGRES_DOMAINS = {
     "projects": DomainSpec("0006_projects", ("projects",)),
     "cron_executions": DomainSpec("0007_cron_executions", ("cron",)),
     "cron_deliveries": DomainSpec("0008_cron_delivery", ("cron_delivery",)),
+    "cron_notepad": DomainSpec("0009_cron_notepad", ("cron_notepad",)),
 }
 
 

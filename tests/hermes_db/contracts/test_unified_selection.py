@@ -79,6 +79,9 @@ from cron import delivery_queue as queue
 queue.enqueue('queue-independent', {'id': 'queue-job'}, 'queued')
 assert queue.drain(lambda *args: None) == 1
 assert queue.get_status('queue-independent')['status'] == 'delivered'
+from cron import notepad
+notepad.set_note('independent', 'cursor', 'persisted')
+assert notepad.get_note('independent', 'cursor') == 'persisted'
 '''
     result = subprocess.run([sys.executable, "-c", code, str(tmp_path)], capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr

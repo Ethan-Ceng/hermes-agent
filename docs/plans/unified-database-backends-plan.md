@@ -11,8 +11,8 @@
 
 - 整体状态：`IN_PROGRESS`。
 - 当前阶段：统一配置与基础资源实施。
-- 当前任务：Task 7（pending；Task 5 提交 `895e13cd6e`）。
-- 已完成：6 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前任务：Task 8（pending；Task 6 提交 `f519a4b6ac`）。
+- 已完成：7 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-07（Asia/Shanghai）。
@@ -352,7 +352,7 @@ PG Cron 投递完整流程不创建本地队列库，不扩大 exactly-once 承�
 
 ## Task 7：统一 Cron notepad
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -388,11 +388,11 @@ PG notepad 无 SQLite 依赖，超过配额原数据保持不变。
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+新增0009_cron_notepad及scoped per-job锁/笔记表，BYTEA保留Unicode/NUL，写入前按真实UTF-8字节核算单值/任务总配额，任务行锁保护并发写/delete/clear。get/set/list/delete/clear统一配置分流，PG不依赖notepad.db存在性。保留空notepad返回空字符串及既有CLI/提示行为；PG读取失败明确传播而非渲染为空。将已删除任务的best-effort清理收口notepad主题模块，正常删除只清理所属store/job，PG故障有明确warning且不假称清理成功；不回滚已持久化的任务文件删除。新增可复用真实Profile PG测试fixture，业务过程全拒绝SQLite。提交标题：feat(storage): support scoped Cron notepads on PostgreSQL。恢复点：Task 8。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+原生Windows/PM full-test-env。新PG合同修改前exit1、2 failed，均捕获notepad.db连接（unified-task7-red.log）。`scripts/run_tests.sh tests/cron/test_notepad.py tests/hermes_db/contracts/test_domain_resources.py tests/hermes_db/contracts/test_unified_selection.py -j 3` exit0、35 passed/0 failed、1 POSIX fork平台skip（unified-task7-sqlite-final.log）；26项既有notepad/CLI/提示/删除合同全过，另以禁止PG依赖导入的子进程实际读写SQLite notepad。`scripts/run_tests.sh tests/hermes_db/postgresql/test_cron_notepad.py tests/hermes_db/postgresql/test_schema.py -j 2 -- -m integration --postgres-test-config=$pgTestConfig` exit0、8 passed/0 failed/0 skipped（unified-task7-pg-final.log）。PG父/子业务进程拒绝全部SQLite，实测Unicode/NUL、关闭/新进程恢复与写回、真实jobs.remove_job的跨store清理、双连接竞争总字节配额只有一写成功且失败后原值不变、缺表读取不渲染空内容、best-effort删除清理故障明确warning。`PM Python scripts/check --staged --base f519a4b6ac` exit0、14 checks ok（unified-task7-checks.log），diff --check通过。未验证：POSIX平台合同、全域PG单后端矩阵及最终审查仍待后续，不将当前证据外推到Kanban/rooms/metrics/plugins。
 
 ## Task 8：统一 Kanban Board、任务与依赖图
 
@@ -1194,7 +1194,7 @@ CLI/Gateway/Web/TUI/Desktop/ACP/Agent及后台任务统一接入领域能力。
 
 ### 未通过与未验证
 
-Task 1–6 已完成，Task 7–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
+Task 1–7 已完成，Task 8–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
 
 ### 最终状态
 
@@ -1202,6 +1202,6 @@ Task 1–6 已完成，Task 7–24 尚未完成；不得宣称全系统PG已完�
 
 ## 恢复点
 
-Task 1–6 配置/领域基础、验证证据、Projects及Cron执行/incident/投递已验收；本地提交后从 Task 7 继续。分支与初始干净工作区已核对，正式实例仍保持 SQLite；开发未写正式 Profile、秘密或业务数据库。
+Task 1–7 配置/领域基础、验证证据、Projects及Cron执行/incident/投递/notepad已验收；本地提交后从 Task 8 继续。分支与初始干净工作区已核对，正式实例仍保持 SQLite；开发未写正式 Profile、秘密或业务数据库。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

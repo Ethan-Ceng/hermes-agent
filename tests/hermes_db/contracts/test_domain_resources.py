@@ -20,8 +20,8 @@ def test_sqlite_path_is_only_a_domain_location_not_a_profile(tmp_path):
         "schema": "hermes", "store_id": "owner-store"}}})
     (owner / ".env").write_text("HERMES_POSTGRES_DSN=postgresql://unused/test\n")
     for nested in (owner / "cron/notepad.db", owner / "boards/work/kanban.db"):
-        with pytest.raises(StorageNotReadyError, match="cron_notepad.*not implemented"):
-            acquire_profile_domain("cron_notepad", profile_home=owner, sqlite_path=nested)
+        with pytest.raises(StorageNotReadyError, match="kanban.*not implemented"):
+            acquire_profile_domain("kanban", profile_home=owner, sqlite_path=nested)
         assert not nested.exists()
     with pytest.raises(StorageConfigurationError, match="Unknown storage domain"):
         acquire_profile_domain("typo", profile_home=owner)

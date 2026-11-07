@@ -2326,11 +2326,8 @@ def remove_job(job_id: str) -> bool:
             cancel_job_run(canonical_id, reason="job removed while running")
         if job_output_dir.exists():
             shutil.rmtree(job_output_dir)
-        try:
-            from cron.notepad import clear_notepad
-            clear_notepad(canonical_id)
-        except Exception:
-            logger.debug("Failed to clear notepad for removed job %s", canonical_id, exc_info=True)
+        from cron.notepad import clear_removed_job
+        clear_removed_job(canonical_id)
         # Prune the fire-fence lock entry so the registry doesn't grow monotonically.
         _fence_key = f"{_current_cron_store().cron_dir.resolve()}::{canonical_id}"
         with _fire_fence_locks_guard:

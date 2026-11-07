@@ -9,6 +9,7 @@ the store untouched — the notepad is prompt-injected each run. Write path is t
 
 from __future__ import annotations
 
+import logging
 import sqlite3
 import threading
 from contextlib import contextmanager
@@ -17,6 +18,10 @@ from typing import Any, Dict, Iterator, List, Optional
 
 from hermes_constants import get_hermes_home
 from hermes_time import now as _hermes_now
+from hermes_db.domains.cron import domain_operation
+from hermes_db.errors import StorageError
+
+logger = logging.getLogger(__name__)
 
 # Optional test override. Production resolves the path at transaction time so multiplexed profile
 # ticks (set_hermes_home_override) cannot leak one profile's notepad rows into the import-time home
@@ -39,6 +44,11 @@ def _connect() -> sqlite3.Connection:
     # not at import time (the guarantee cron/ledger.py used to carry, see e24c8499).
     from cron.jobs import _ensure_cron_dir
     from hermes_cli.sqlite_util import open_db
+    from hermes_cli.db_setup import storage_backend
+    from hermes_db.errors import StorageConfigurationError
+
+    if storage_backend() == "postgresql":
+        raise StorageConfigurationError("Cron native SQLite notepad connections are unavailable in PostgreSQL mode; use notepad operations")
 
     path = _current_notepad_file()
     _ensure_cron_dir(path.parent)
@@ -76,6 +86,7 @@ def _validate(job_id: str, key: str, value: str) -> None:
         raise ValueError(f"value too large (max {MAX_VALUE_BYTES} bytes per key)")
 
 
+@domain_operation("notepad", domain="cron_notepad")
 def set_note(job_id: str, key: str, value: str) -> dict[str, Any]:
     """Upsert one key. Raises ValueError when a size cap would be exceeded."""
     job_id, key, value = str(job_id), str(key), str(value)
@@ -105,6 +116,7 @@ def set_note(job_id: str, key: str, value: str) -> dict[str, Any]:
     return {"job_id": job_id, "key": key, "value": value, "updated_at": now}
 
 
+@domain_operation("notepad", domain="cron_notepad")
 def get_note(job_id: str, key: str) -> Optional[str]:
     with _transaction() as conn:
         row = conn.execute(
@@ -114,6 +126,7 @@ def get_note(job_id: str, key: str) -> Optional[str]:
     return None if row is None else row["value"]
 
 
+@domain_operation("notepad", domain="cron_notepad")
 def delete_note(job_id: str, key: str) -> bool:
     with _transaction() as conn:
         cur = conn.execute(
@@ -123,6 +136,7 @@ def delete_note(job_id: str, key: str) -> bool:
     return cur.rowcount > 0
 
 
+@domain_operation("notepad", domain="cron_notepad")
 def list_notes(job_id: str) -> list[dict[str, Any]]:
     """All entries for one job, sorted by key."""
     with _transaction() as conn:
@@ -134,6 +148,7 @@ def list_notes(job_id: str) -> list[dict[str, Any]]:
     return [dict(row) for row in rows]
 
 
+@domain_operation("notepad", domain="cron_notepad")
 def clear_notepad(job_id: str) -> int:
     """Delete every key for one job (called from ``cron.jobs.remove_job``). Returns row count;
     no-ops without creating the DB when no notepad file exists yet."""
@@ -151,6 +166,8 @@ def render_notepad_section(job_id: str) -> str:
     never use the feature get a byte-identical prompt (prompt-cache + drift safety)."""
     try:
         notes = list_notes(job_id)
+    except StorageError:
+        raise
     except Exception:
         return ""
     if not notes:
@@ -164,3 +181,13 @@ def render_notepad_section(job_id: str) -> str:
         f"(also: get/delete/list; `hermes cron notepad {job_id} delete "
         "<key>` removes an entry).\n\n" + "\n".join(lines) + "\n\n"
     )
+
+
+def clear_removed_job(job_id):
+    """Job deletion is already durable; report a failed cleanup without undoing it."""
+    try:
+        clear_notepad(job_id)
+    except StorageError as error:
+        logger.warning("Notepad cleanup failed for removed job %s: %s", job_id, error)
+    except Exception:
+        logger.debug("Failed to clear notepad for removed job %s", job_id, exc_info=True)

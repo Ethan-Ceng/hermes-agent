@@ -40,3 +40,38 @@ def pg_pair(pg_store, tmp_path):
         yield [pg_store, peer]
     finally:
         peer.close()
+
+
+@pytest.fixture
+def pg_profiles(postgres_test_config, postgres_schema, tmp_path, monkeypatch):
+    """Actual Profile configuration for domain consumers; forbids every SQLite connection."""
+    from contextlib import contextmanager
+    import json
+    import sqlite3
+    from agent.secret_scope import reset_secret_scope, set_secret_scope
+    from hermes_cli.config import atomic_config_write
+    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from hermes_db.schema import upgrade_schema
+
+    pg = replace(postgres_test_config.settings, schema=postgres_schema)
+    upgrade_schema(pg)
+
+    @contextmanager
+    def owner(name):
+        home = tmp_path / name
+        home.mkdir(exist_ok=True)
+        atomic_config_write(home / "config.yaml", {"storage": {"backend": "postgresql", "postgresql": {
+            "schema": pg.schema, "store_id": name, "pool_size": 2, "max_overflow": 0, "connection_budget": 2}}})
+        (home / ".env").write_text("HERMES_POSTGRES_DSN=" + json.dumps(pg.dsn) + "\n", encoding="utf-8")
+        home_token = set_hermes_home_override(home)
+        secret_token = set_secret_scope({"HERMES_POSTGRES_DSN": pg.dsn}, profile_home=str(home))
+        try:
+            yield home
+        finally:
+            reset_secret_scope(secret_token)
+            reset_hermes_home_override(home_token)
+
+    def reject(*args, **kwargs):
+        pytest.fail("PG domain business process must reject every SQLite connection")
+    monkeypatch.setattr(sqlite3, "connect", reject)
+    return owner
