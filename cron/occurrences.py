@@ -22,7 +22,8 @@ def scheduled_instant(value):
 def completed_occurrence(job, instant):
     """Unknown/failed/pruned attempts cannot prove completion: keep them eligible."""
     from cron.constants import FIRE_CLAIM_SKEW_SECONDS
-    from cron.executions import _transaction
+    from cron.executions import completed_occurrence_rows
+    from hermes_db.errors import StorageError
 
     instant = scheduled_instant(instant)
     if instant is None:
@@ -30,12 +31,7 @@ def completed_occurrence(job, instant):
     # A skewed early fire (see claim_job_for_fire) legitimately completes just before its slot.
     earliest_real = datetime.fromisoformat(instant) - timedelta(seconds=FIRE_CLAIM_SKEW_SECONDS)
     try:
-        with _transaction() as conn:
-            rows = conn.execute(
-                "SELECT id, finished_at, claimed_at FROM executions "
-                "WHERE job_id=? AND scheduled_instant=? "
-                "AND status='completed'", (str(job['id']), instant)
-            ).fetchall()
+        rows = completed_occurrence_rows(str(job['id']), instant)
         for row in rows:
             completed_at = scheduled_instant(row["finished_at"] or row["claimed_at"])
             # Legacy or malformed timestamps remain proof; only positively identified poison
@@ -50,6 +46,8 @@ def completed_occurrence(job, instant):
                     row["finished_at"] or row["claimed_at"])
                 return True
         return False
+    except StorageError:
+        raise
     except Exception:
         logger.warning("Cannot check completed occurrence for job %s", job['id'], exc_info=True)
         return False

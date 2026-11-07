@@ -23,6 +23,8 @@ from hermes_constants import get_hermes_home
 from hermes_time import now as _hermes_now
 from cron.constants import CLAIM_TTL_INACTIVITY_HEADROOM
 from hermes_cli.observability.shared_metrics_gateway import record_cron_finish
+from hermes_db.domains.cron import domain_operation
+from hermes_db.errors import StorageError
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +55,11 @@ def _connect() -> sqlite3.Connection:
     # not at import time (the guarantee cron/ledger.py used to carry, see e24c8499).
     from cron.jobs import _ensure_cron_dir
     from hermes_cli.sqlite_util import open_db
+    from hermes_cli.db_setup import storage_backend
+    from hermes_db.errors import StorageConfigurationError
+
+    if storage_backend() == "postgresql":
+        raise StorageConfigurationError("Cron native SQLite connections are unavailable in PostgreSQL mode; use execution operations")
 
     path = EXECUTIONS_FILE or (get_hermes_home().resolve() / "cron" / "executions.db")
     _ensure_cron_dir(path.parent)
@@ -220,6 +227,7 @@ def _stale_age_seconds(claimed_at: str, progress_at: Optional[str]) -> float:
     return _claim_age_seconds(progress_at or claimed_at)
 
 
+@domain_operation("executions")
 def touch_execution_progress(execution_id: str) -> bool:
     """Stamp ``progress_at`` on a running attempt this process owns. Returns False when the row
     is no longer ours or no longer running (the caller treats that as informational only)."""
@@ -245,6 +253,7 @@ def _prune_unlocked(conn: sqlite3.Connection) -> None:
     )
 
 
+@domain_operation("executions")
 def create_execution(
     job_id: str, *, source: str, scheduled_instant: Optional[str] = None,
 ) -> dict[str, Any]:
@@ -268,6 +277,7 @@ def create_execution(
     return record  # type: ignore[return-value]
 
 
+@domain_operation("executions")
 def set_execution_occurrence(execution_id: str, instant: Optional[str]) -> None:
     """Bind the store-claimed snapshot before a provider hands it to a worker."""
     from cron.occurrences import scheduled_instant
@@ -282,6 +292,7 @@ def set_execution_occurrence(execution_id: str, instant: Optional[str]) -> None:
             raise RuntimeError("Cron occurrence could not be bound before dispatch")
 
 
+@domain_operation("executions")
 def mark_execution_handoff_pending(execution_id: str) -> Optional[dict[str, Any]]:
     """Fence restart recovery while an external worker is adopting a claim."""
     with _transaction() as conn:
@@ -299,6 +310,7 @@ def mark_execution_handoff_pending(execution_id: str) -> Optional[dict[str, Any]
     return record
 
 
+@domain_operation("executions")
 def adopt_claimed_execution(execution_id: str) -> Optional[dict[str, Any]]:
     """Atomically transfer and start an attempt in its worker process.
 
@@ -325,6 +337,7 @@ def adopt_claimed_execution(execution_id: str) -> Optional[dict[str, Any]]:
     return record
 
 
+@domain_operation("executions")
 def mark_execution_running(execution_id: str) -> Optional[dict[str, Any]]:
     """Transition one claimed attempt to running exactly once."""
     now = _hermes_now().isoformat()
@@ -344,6 +357,7 @@ def mark_execution_running(execution_id: str) -> Optional[dict[str, Any]]:
     return record
 
 
+@domain_operation("executions")
 def finish_execution(
     execution_id: str, *, success: bool, error: Optional[str] = None,
     delivery_outcome: Optional[str] = None, cancelled: bool = False,
@@ -375,6 +389,7 @@ def finish_execution(
     return record
 
 
+@domain_operation("executions")
 def record_missed_occurrences(
     job_id: str, *, count: int, first_instant: Optional[str], detail: str,
 ) -> Optional[dict[str, Any]]:
@@ -403,6 +418,7 @@ def record_missed_occurrences(
     return record
 
 
+@domain_operation("executions")
 def recover_receipted_execution(execution_id, job_id, *, success, error=None, delivery_outcome=None):
     """Settle a verified canonical receipt after owner loss, including its unknown audit row.
 
@@ -441,6 +457,7 @@ def _row_owner_live(row) -> bool:
     return _owner_is_live(int(row['pid']), row['process_started_at'])
 
 
+@domain_operation("executions")
 def execution_owner_live(execution_id: str, job_id: str) -> bool:
     """True while the attempt's own firer (this process included) can still finish it, so receipt
     recovery must not act for it: no output re-save, no job mark, no ledger write."""
@@ -449,6 +466,7 @@ def execution_owner_live(execution_id: str, job_id: str) -> bool:
     return row is not None and _row_owner_live(row)
 
 
+@domain_operation("executions")
 def settle_delivery_outcome(execution_id: str, outcome: str) -> bool:
     """Replace a terminal attempt's ``queued`` delivery outcome with the drain's real one.
 
@@ -481,11 +499,12 @@ def settle_unstarted_execution(execution_id: str, job_id: str, error: str) -> No
     so a ledger write cannot mask the failure the caller logs or re-raises."""
     try:
         finish_execution(execution_id, success=False, error=error)
-    except (sqlite3.Error, OSError) as record_err:
+    except (sqlite3.Error, OSError, StorageError) as record_err:
         logger.error("Job '%s': failed to close execution receipt %s (%s): %s",
                      job_id, execution_id, error, record_err)
 
 
+@domain_operation("executions")
 def recover_interrupted_executions() -> int:
     """Mark abandoned attempts unknown without scheduling retries: rows whose owner is provably
     dead, plus rows whose live owner holds a claim older than the derived stale bound (the
@@ -562,6 +581,7 @@ def recover_interrupted_executions() -> int:
     return changed
 
 
+@domain_operation("executions")
 def terminalize_dead_owner(execution_id: str, *, reason: str) -> bool:
     """Record one attempt as ``unknown`` with a cause this process actually observed.
 
@@ -617,6 +637,7 @@ def terminalize_dead_owner(execution_id: str, *, reason: str) -> bool:
     return True
 
 
+@domain_operation("executions")
 def give_up_execution(execution_id: str, *, reason: str) -> bool:
     """The firer itself gave up on its in-flight attempt (``CronExecutionUnknown``): record it
     ``unknown`` now, owner-fenced to this process, instead of leaving it ``running`` until a
@@ -637,6 +658,7 @@ def give_up_execution(execution_id: str, *, reason: str) -> bool:
     return True
 
 
+@domain_operation("executions")
 def list_executions(
     *, job_id: Optional[str] = None, limit: int = 50, before_claimed_at: Optional[str] = None,
 ) -> list[dict[str, Any]]:
@@ -663,6 +685,7 @@ def list_executions(
     return [dict(row) for row in rows]
 
 
+@domain_operation("executions")
 def get_execution(execution_id: str) -> Optional[dict[str, Any]]:
     """Return one exact execution attempt, or ``None`` when it is absent."""
     with _transaction() as conn:
@@ -678,6 +701,7 @@ def latest_execution(job_id: str) -> Optional[dict[str, Any]]:
     return rows[0] if rows else None
 
 
+@domain_operation("executions")
 def live_inflight_execution(job_id: str) -> Optional[dict[str, Any]]:
     """The job's latest attempt while it is still claimed/running under a LIVE owner, else ``None``.
 
@@ -711,6 +735,7 @@ def cancellable_execution(job_id: str) -> Optional[dict[str, Any]]:
     return live_executions([job_id]).get(str(job_id))
 
 
+@domain_operation("executions")
 def live_executions(job_ids: list[str]) -> dict[str, dict[str, Any]]:
     """Each job's newest claimed/running attempt under a live owner, in one query (see
     ``cancellable_execution``). The job list carries it as ``live_execution`` so a Stop button
@@ -732,6 +757,7 @@ def live_executions(job_ids: list[str]) -> dict[str, dict[str, Any]]:
     return live
 
 
+@domain_operation("executions")
 def latest_executions(job_ids: list[str]) -> dict[str, dict[str, Any]]:
     """Load latest execution for many jobs in one query."""
     clean = [str(job_id) for job_id in dict.fromkeys(job_ids) if job_id]
@@ -753,3 +779,11 @@ def latest_executions(job_ids: list[str]) -> dict[str, dict[str, Any]]:
             clean,
         ).fetchall()
     return {row["job_id"]: dict(row) for row in rows}
+
+
+@domain_operation("executions")
+def completed_occurrence_rows(job_id: str, instant: str) -> list[dict[str, Any]]:
+    with _transaction() as conn:
+        return [dict(row) for row in conn.execute(
+            "SELECT id, finished_at, claimed_at FROM executions WHERE job_id=? AND scheduled_instant=? AND status='completed'",
+            (str(job_id), instant)).fetchall()]

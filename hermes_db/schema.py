@@ -6,7 +6,7 @@ from hermes_db.engine import get_engine, read_connection, require_postgresql_dri
 from hermes_db.errors import StorageSchemaError, StorageUnavailableError
 from hermes_db.settings import PostgresSettings
 
-REQUIRED_REVISION = "0006_projects"
+REQUIRED_REVISION = "0007_cron_executions"
 _PG_TRGM_ACTION = ("PostgreSQL pg_trgm is required. Connect to the configured database and run "
                    "CREATE EXTENSION IF NOT EXISTS pg_trgm; then run hermes db upgrade.")
 

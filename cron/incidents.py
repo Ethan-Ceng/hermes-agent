@@ -23,6 +23,7 @@ from typing import Any, Dict, Iterator, List, Optional
 from cron import executions as _executions
 from hermes_constants import get_hermes_home
 from hermes_time import now as _hermes_now
+from hermes_db.domains.cron import domain_operation
 
 # Optional test override (mirrors ``cron.executions.EXECUTIONS_FILE``).
 EXECUTIONS_FILE: Optional[Path] = None
@@ -66,6 +67,11 @@ def _connect() -> sqlite3.Connection:
     # not at import time (the guarantee cron/ledger.py used to carry, see e24c8499).
     from cron.jobs import _ensure_cron_dir
     from hermes_cli.sqlite_util import open_db
+    from hermes_cli.db_setup import storage_backend
+    from hermes_db.errors import StorageConfigurationError
+
+    if storage_backend() == "postgresql":
+        raise StorageConfigurationError("Cron native SQLite connections are unavailable in PostgreSQL mode; use incident operations")
 
     path = _db_path()
     _ensure_cron_dir(path.parent)
@@ -153,6 +159,7 @@ def _classify_failure_type(error: str) -> str:
     return "unknown"
 
 
+@domain_operation("incidents")
 def upsert_incident(
     job_id: str, error: str, *, job_name: Optional[str] = None, failure_type: Optional[str] = None,
     output_file: Optional[str] = None,
@@ -197,6 +204,7 @@ def upsert_incident(
         return incident_id, True
 
 
+@domain_operation("incidents")
 def set_incident_state(incident_id: str, state: str) -> bool:
     """Transition an incident's lifecycle state; return whether it changed. ``closed`` is terminal
     for that signature (re-open happens by a changed error minting a NEW incident). Unknown states
@@ -239,6 +247,7 @@ def ack_incident(incident_id: str) -> bool:
     return set_incident_state(incident_id, "closed")
 
 
+@domain_operation("incidents")
 def close_incidents_for_recovered_job(job_id: str) -> int:
     """Mark every open incident for ``job_id`` ``resolved`` after a successful run; returns how many.
     Without this the ledger only ever grows: a one-off failure (a config drift skip, a provider
@@ -261,6 +270,7 @@ def _state_filter(state: Optional[str]) -> tuple[str, tuple]:
     return ("", ()) if state is None else (" WHERE state=?", (state,))
 
 
+@domain_operation("incidents")
 def list_incidents(state: Optional[str] = None) -> list[dict[str, Any]]:
     """Return incidents, newest-activity first, optionally filtered by state."""
     if state is not None and state not in INCIDENT_STATES:
@@ -276,6 +286,7 @@ def list_incidents(state: Optional[str] = None) -> list[dict[str, Any]]:
     return [dict(row) for row in rows]
 
 
+@domain_operation("incidents")
 def get_incident(incident_id: str) -> Optional[dict[str, Any]]:
     with _transaction() as conn:
         row = conn.execute(
@@ -284,6 +295,7 @@ def get_incident(incident_id: str) -> Optional[dict[str, Any]]:
     return dict(row) if row is not None else None
 
 
+@domain_operation("incidents")
 def count_incidents(state: Optional[str] = None) -> int:
     if state is not None and state not in INCIDENT_STATES:
         return 0

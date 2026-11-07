@@ -68,6 +68,13 @@ with pdb.connect_closing(profile_home=sys.argv[1]) as store:
     pid = pdb.create_project(store, name='Independent Projects')
 with pdb.connect_closing(profile_home=sys.argv[1]) as store:
     assert pdb.get_project(store, pid).name == 'Independent Projects'
+from hermes_constants import set_hermes_home_override
+set_hermes_home_override(sys.argv[1])
+from cron import executions as ex, incidents as inc
+attempt = ex.create_execution('independent', source='test')
+assert ex.finish_execution(attempt['id'], success=True)['status'] == 'completed'
+incident, new = inc.upsert_incident('independent', 'failure')
+assert new and inc.get_incident(incident)['state'] == 'detected'
 '''
     result = subprocess.run([sys.executable, "-c", code, str(tmp_path)], capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr

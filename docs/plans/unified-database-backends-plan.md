@@ -11,8 +11,8 @@
 
 - 整体状态：`IN_PROGRESS`。
 - 当前阶段：统一配置与基础资源实施。
-- 当前任务：Task 5（pending；Task 3 提交 `44df595f2a`）。
-- 已完成：4 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前任务：Task 6（pending；Task 4 提交 `e7612bcf80`）。
+- 已完成：5 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-07（Asia/Shanghai）。
@@ -260,7 +260,7 @@ PG 项目操作无需 projects.db，实际项目入口通过。
 
 ## Task 5：统一 Cron 执行与 incident 账本
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -300,11 +300,11 @@ PG 项目操作无需 projects.db，实际项目入口通过。
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+新增0007_cron_executions冻结迁移及同域执行/incident/锁表，复用统一scope、池与Transactions。具名执行/incident入口分流，无SQL翻译；claimed/running/终态、handoff、progress、unknown/receipt恢复、occurrence及保留策略用scoped Core/CAS，事件/metrics回调在提交后。保留原UTC/本地offset文本，以不进入业务记录的毫秒投影排序。存活探测在读连接归还后执行，更新重核快照，避免扫描覆盖接管/进度。Cron occurrence消费者原来直接导入SQLite事务，已改具名completed_occurrence_rows，PG错误不被吞为未完成。SQLite私有连接在PG下明确拒绝，EXECUTIONS_FILE只作用于SQLite。实际scheduler Profile scope和外部worker拥有者经实库验证。提交标题：feat(storage): support Cron execution and incident ledgers。恢复点：Task 6。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+原生Windows/PM full-test-env。修改前新PG业务合同exit1、1 failed，捕获cron/executions.db连接（unified-task5-red.log）。指定执行/incident/resolve测试初轮43 passed；扩展命令 `scripts/run_tests.sh tests/cron/test_execution_ledger.py tests/cron/test_cron_incidents.py tests/cron/test_cron_incidents_resolve.py tests/cron/test_scheduled_occurrence.py tests/cron/test_stale_running_recovery.py tests/cron/test_live_firer_receipt_recovery.py tests/cron/test_idle_tick_config_skip.py tests/hermes_db/contracts/test_unified_selection.py -j 4` exit0、62 passed/0 failed/0 skipped（unified-task5-sqlite-final.log），含无PG依赖的SQLite Cron读写。`scripts/run_tests.sh tests/hermes_db/postgresql/test_cron_executions.py tests/hermes_db/postgresql/test_schema.py tests/hermes_db/postgresql/test_domain_schema.py -j 3 -- -m integration --postgres-test-config=$pgTestConfig` exit0、14 passed/0 failed/0 skipped（unified-task5-pg-final.log）；新增调度scope/路径合同后test_cron_executions.py相同PG参数exit0、6 passed（unified-task5-scope.log）。业务父/子进程拒绝所有SQLite连接；实测双真实进程唯一采用、父进程晚到终态拒绝、真实退出owner恢复unknown与receipt结算、恢复探测期间并发采用CAS、跨store同job隔离、incident重开/ack及8并发去重、offset时间排序/游标、物理关闭PG连接报错后持久记录仍可读取、实际scheduler scope及嵌套路径不回落。`PM Python scripts/check --staged --base e7612bcf80` 最终exit0、14 checks ok（unified-task5-checks-reviewed.log）；初次ruff UTC别名问题已修正，diff --check通过。未验证：投递/notepad/指标启用等独立领域及完整scheduler→模型→投递流程，依赖后续任务；不外推当前证据。
 
 ## Task 6：统一 Cron 待投递队列
 
@@ -1194,7 +1194,7 @@ CLI/Gateway/Web/TUI/Desktop/ACP/Agent及后台任务统一接入领域能力。
 
 ### 未通过与未验证
 
-Task 1–4 已完成，Task 5–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
+Task 1–5 已完成，Task 6–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
 
 ### 最终状态
 
@@ -1202,6 +1202,6 @@ Task 1–4 已完成，Task 5–24 尚未完成；不得宣称全系统PG已完�
 
 ## 恢复点
 
-Task 1–4 配置/领域基础、验证证据与Projects已验收；本地提交后从 Task 5 继续。分支与初始干净工作区已核对，正式实例仍保持 SQLite；开发未写正式 Profile、秘密或业务数据库。
+Task 1–5 配置/领域基础、验证证据、Projects及Cron执行/incident已验收；本地提交后从 Task 6 继续。分支与初始干净工作区已核对，正式实例仍保持 SQLite；开发未写正式 Profile、秘密或业务数据库。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

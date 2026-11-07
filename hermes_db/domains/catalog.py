@@ -19,6 +19,7 @@ POSTGRES_DOMAINS = {
     "sessions": DomainSpec("0004_model_markers", ("conversations", "runtime", "gateway", "api")),
     "verification": DomainSpec("0005_verification", ("verification",)),
     "projects": DomainSpec("0006_projects", ("projects",)),
+    "cron_executions": DomainSpec("0007_cron_executions", ("cron",)),
 }
 
 
