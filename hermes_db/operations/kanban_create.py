@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 
 from hermes_db.repositories import kanban as repo
+from hermes_db.repositories import kanban_workspaces as workspaces
 from hermes_db.tables.kanban import tasks
 from hermes_db.values import encode_text, decode_text
 
@@ -55,7 +56,9 @@ def prepare(store, fields):
     values.update({name: kb._opt_int(fields.get(name)) for name in ("max_runtime_seconds", "max_retries", "goal_max_turns")})
     workspace, project, project_repo = _workspace(store, fields)
     values.update(workspace)
-    return values, project, project_repo
+    path_keys = (workspaces.canonical_path(workspace["workspace_path"]),
+                 workspaces.canonical_path(Path(project_repo) / ".worktrees") if project_repo is not None else None)
+    return values, project, project_repo, path_keys
 
 
 def _initial_state(conn, store, parents, fields, values):
@@ -72,23 +75,26 @@ def _initial_state(conn, store, parents, fields, values):
     return ("todo" if any(row["status"] != "done" for row in rows.values()) else "ready"), rows
 
 
-def _insert(conn, store, values, project, project_repo):
+def _insert(conn, store, values, project, project_repo, path_keys):
     from hermes_cli import kanban_db as kb
     for _attempt in range(2):
         task_id = kb._new_task_id()
         candidate = dict(values, id=task_id)
+        path_key = path_keys[0]
         if project is not None and values["workspace_kind"] == "worktree":
             if project_repo is not None:
                 candidate["workspace_path"] = str(Path(project_repo) / ".worktrees" / task_id)
+                path_key = str(Path(path_keys[1]) / task_id)
             candidate["branch_name"] = candidate["branch_name"] or kb._project_branch_name(project, task_id, values["title"])
         inserted = conn.scalar(insert(tasks).values(**repo.owner(store), **repo.encode_task(candidate))
             .on_conflict_do_nothing(index_elements=[tasks.c.store_id, tasks.c.board_id, tasks.c.id]).returning(tasks.c.id))
         if inserted is not None:
+            workspaces.register(conn, store, task_id, path_key)
             return task_id, candidate
     raise ValueError("could not allocate a unique Kanban task ID")
 
 
-def insert_prepared(conn, store, fields, values, project, project_repo):
+def insert_prepared(conn, store, fields, values, project, project_repo, path_keys):
     parents = tuple(pid for pid in fields.get("parents", ()) if pid)
     values = dict(values, created_at=int(time.time()))
     values["status"], parent_rows = _initial_state(conn, store, parents, fields, values)
@@ -96,7 +102,7 @@ def insert_prepared(conn, store, fields, values, project, project_repo):
     if creator and values["session_id"] is None:
         origin = repo.get(conn, store, creator)
         values["session_id"] = origin["session_id"] if origin else None
-    task_id, values = _insert(conn, store, values, project, project_repo)
+    task_id, values = _insert(conn, store, values, project, project_repo, path_keys)
     for pid in parents:
         repo.link(conn, store, pid, task_id)
     payload = {name: values.get(name) for name in ("assignee", "status", "tenant", "workspace_kind", "workspace_path",
@@ -114,7 +120,7 @@ def insert_prepared(conn, store, fields, values, project, project_repo):
 
 
 def create_task(store, **fields):
-    values, project, project_repo = prepare(store, fields)
+    values, project, project_repo, path_keys = prepare(store, fields)
     # Materialize caller iterators once; retries do not consume a different graph.
     fields["parents"] = tuple(fields.get("parents", ()))
     with store.write() as conn:
@@ -124,5 +130,5 @@ def create_task(store, **fields):
                 tasks.c.idempotency_key == encode_text(idempotency), tasks.c.status != b"archived")
                 .order_by(tasks.c.created_at.desc(), tasks.c.id.desc()).limit(1))
             if existing is not None:
-                return decode_text(existing)
-        return insert_prepared(conn, store, fields, values, project, project_repo)
+                return store.command_result(conn, decode_text(existing))
+        return store.command_result(conn, insert_prepared(conn, store, fields, values, project, project_repo, path_keys))

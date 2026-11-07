@@ -59,7 +59,7 @@ def link_tasks(store, parent_id, child_id, *, expected_child_run_id=None):
             repo.task_update(conn, store, child_id, status="todo")
             repo.event(conn, store, child_id, "dependency_wait", {"reason": "parent_not_done", "demoted": True, "parent": parent_id})
         repo.event(conn, store, child_id, "linked", {"parent": parent_id, "child": child_id})
-        return gated
+        return store.command_result(conn, gated)
 
 
 def unlink_tasks(store, parent_id, child_id):
@@ -109,7 +109,7 @@ def recompute_ready(store, failure_limit=None):
     limit = DEFAULT_FAILURE_LIMIT if failure_limit is None else failure_limit
     with store.write() as conn:
         rows = conn.execute(select(tasks).where(repo.scope(tasks, store), tasks.c.status.in_([b"todo", b"blocked"]))).mappings().all()
-        return sum(_promote(conn, store, repo.decode_task(row), limit) for row in rows)
+        return store.command_result(conn, sum(_promote(conn, store, repo.decode_task(row), limit) for row in rows))
 
 
 def specify_triage_task(store, task_id, *, title=None, body=None, assignee=None, author=None):
@@ -134,19 +134,22 @@ def specify_triage_task(store, task_id, *, title=None, body=None, assignee=None,
     return True
 
 
-def _decomposed_child(conn, store, root, child, author, now):
+def _decomposed_child(conn, store, root, child, author, now, path_key):
     from hermes_cli import kanban_db as kb
+    from hermes_db.repositories import kanban_workspaces as workspaces
     root_kind = root["workspace_kind"] or "scratch"
     kind = child.get("workspace_kind") or root_kind
     path = child.get("workspace_path")
     if not path:
         path = root["workspace_path"] if kind == root_kind and kind != "worktree" else None
+        path_key = workspaces.key_for_task(conn, store, root["id"]) if path else None
     body = child.get("body")
     task_id = kb._new_task_id()
     values = dict(id=task_id, title=child["title"].strip(), body=body if isinstance(body, str) else None,
         assignee=kb._canonical_assignee(child.get("assignee")), status="todo", workspace_kind=kind, workspace_path=path,
         tenant=root["tenant"], created_at=now, created_by=author or "decomposer", session_id=root["session_id"])
     conn.execute(tasks.insert().values(**repo.owner(store), **repo.encode_task(values)))
+    workspaces.register(conn, store, task_id, path_key)
     repo.event(conn, store, task_id, "created", {"by": author or "decomposer", "from_decompose_of": root["id"]})
     return task_id
 
@@ -158,12 +161,14 @@ def decompose_triage_task(store, task_id, *, root_assignee, children, author=Non
         return None
     root_assignee = _canonical_assignee(root_assignee)
     _validate_children_graph(children)
+    from hermes_db.repositories.kanban_workspaces import canonical_path
+    path_keys = [canonical_path(child.get("workspace_path")) for child in children]
     with store.write() as conn:
         root = repo.get(conn, store, task_id)
         if root is None or root["status"] != "triage" or any(row["kind"] == "decomposed" for row in repo.history(conn, store, task_id)):
             return None
         now = int(time.time())
-        ids = [_decomposed_child(conn, store, root, child, author, now) for child in children]
+        ids = [_decomposed_child(conn, store, root, child, author, now, path_keys[index]) for index, child in enumerate(children)]
         for idx, child in enumerate(children):
             for parent_idx in child.get("parents") or []:
                 repo.link(conn, store, ids[parent_idx], ids[idx])

@@ -47,3 +47,17 @@ capabilities completed by the following Kanban tasks.
 `board.json` remains file configuration; the PG registry only holds identity and
 lifecycle. File writes happen after the registry transaction and can fail visibly;
 retrying Board creation preserves the committed active generation.
+
+Kanban run/claim transitions, dispatch ownership and worker commands use scoped
+Core transactions. The dispatch lease releases connections while workers or files
+are being prepared. Adopted workers call closed owner RPC verbs; they cannot
+acquire an owner resource or choose another Board reference. Command results are
+recorded with the primary Board effect, independently of session persistence
+sequence numbers. A private worker outbox retries the original command identity.
+
+Workspace paths are resolved outside transactions and registered as store-scoped
+file references. Cleanup commits a per-path token before removing files, so a
+concurrent task reference or live parent dependency cannot race the removal.
+Interrupted tokens remain fenced until explicit reconciliation. File content,
+workspace paths and Board configuration stay local; subscriptions, transfer and
+the remaining Kanban consumers are still a separate capability gate.

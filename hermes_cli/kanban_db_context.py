@@ -196,13 +196,7 @@ def _ctx_role_history(lines: list[str], conn: sqlite3.Connection, task: Task, no
     role continuity without wiring anything into SOUL.md / MEMORY.md."""
     if not task.assignee:
         return
-    role_rows = conn.execute(
-        "SELECT t.id, t.title, r.summary, r.ended_at "
-        "FROM task_runs r JOIN tasks t ON r.task_id = t.id "
-        "WHERE r.profile = ? AND r.task_id != ? "
-        "  AND r.outcome = 'completed' "
-        "ORDER BY r.ended_at DESC LIMIT 5", (task.assignee, task.id),
-    ).fetchall()
+    role_rows = _kb.recent_profile_completions(conn, task.assignee, task.id)
     if not role_rows:
         return
     lines.append(f"## Recent work by @{task.assignee}")

@@ -9,10 +9,11 @@ from hermes_db.errors import StorageConfigurationError
 
 
 class BoardResource(DomainResource):
-    def __init__(self, resource, board_id, slug):
+    def __init__(self, resource, board_id, slug, *, command=None):
         super().__init__(resource.name, resource.settings, resource.scope, transactions=resource._transactions)
         self.board_id = board_id
         self.slug = slug
+        self.command = command
 
     @contextmanager
     def write(self, *, lock_timeout=None):
@@ -21,13 +22,23 @@ class BoardResource(DomainResource):
         _assert_not_delegated_child_mutation()
         with super().write(lock_timeout=lock_timeout) as conn:
             lock_board(conn, self)
+            if self.command is not None and not self.command.committed:
+                self.command.check_replay(conn, self)
             yield conn
+        if self.command is not None:
+            self.command.after_commit(conn)
+
+    def command_result(self, conn, result):
+        return self.command.record(conn, self, result) if self.command is not None else result
 
 
 def domain_operation(topic):
     def decorate(sqlite_operation):
         @wraps(sqlite_operation)
         def operation(store, *args, **kwargs):
+            from hermes_db.domains.kanban_worker import WorkerBoardResource
+            if isinstance(store, WorkerBoardResource):
+                return store.invoke(sqlite_operation.__name__, args, kwargs)
             if isinstance(store, DomainResource):
                 if not isinstance(store, BoardResource) or store.settings.backend != "postgresql":
                     raise StorageConfigurationError("Kanban operations require the selected Board store")
@@ -50,6 +61,21 @@ def profile_operation(sqlite_operation):
             with acquire_profile_domain("kanban_tasks") as resource:
                 return getattr(kanban_boards, sqlite_operation.__name__)(resource, *args, **kwargs)
         return sqlite_operation(*args, **kwargs)
+    return operation
+
+
+def owner_scoped_operation(file_operation):
+    """Shared file orchestration still binds the resource's owning Profile."""
+    @wraps(file_operation)
+    def operation(store, *args, **kwargs):
+        if isinstance(store, DomainResource):
+            if not isinstance(store, BoardResource):
+                raise StorageConfigurationError("Kanban file operations require a Board resource")
+            store._assert_open()
+            from hermes_cli.db_setup import _owning_profile
+            with _owning_profile(store.scope.profile_home):
+                return file_operation(store, *args, **kwargs)
+        return file_operation(store, *args, **kwargs)
     return operation
 
 

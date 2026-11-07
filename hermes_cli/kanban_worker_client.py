@@ -9,6 +9,7 @@ except ModuleNotFoundError as exc:
 
 import asyncio
 from dataclasses import dataclass
+import json
 import os
 from pathlib import Path
 import sys
@@ -122,7 +123,7 @@ async def _await_receipt(client, params, board_db, claim):
     """Submit the claim (or, on a later connection, re-read the admission it got) and return its
     settled receipt, recording each owner answer on *claim*."""
     if claim.admission_id is None:
-        db = str(await asyncio.to_thread(Path(board_db).resolve))
+        target = params if 'owner' in params else dict(params, db=str(await asyncio.to_thread(Path(board_db).resolve)))
         # The owner answers only after it checks the claim and writes its ``owner_admitted`` marker
         # in one board write transaction. The board (the cross-profile dispatch bus) can make that
         # wait out its busy timeout, so the 30 s default left the owner admitting an attempt whose
@@ -130,7 +131,7 @@ async def _await_receipt(client, params, board_db, claim):
         # admission was left ``unknown``). The wait is still finite: once the marker commits,
         # ``enforce_max_runtime`` and TTL reclaim skip the run (``owner_reclaim_paused``), so an owner
         # that stalls after admitting is bounded by this wait and ``OWNER_WAIT_S``.
-        accepted = await client.rpc('kanban.run', _timeout=admission_answer_budget(), **dict(params, db=db))
+        accepted = await client.rpc('kanban.run', _timeout=admission_answer_budget(), **target)
         receipt = accepted['receipt']
         claim.session_id, claim.admission_id = accepted['session_id'], receipt['admission_id']
         print(f'Session: {claim.session_id}', file=sys.stderr)
@@ -141,6 +142,8 @@ async def _await_receipt(client, params, board_db, claim):
         await asyncio.sleep(.2)
         receipt = await _receipt(client, claim)
         claim.answered = time.monotonic()
+    if 'owner' in params and receipt['status'] == 'terminal':
+        receipt = dict(receipt, kanban_result=await client.rpc('kanban.result', **params))
     return receipt
 
 
@@ -149,7 +152,7 @@ def _exit_code(receipt, params, board_db):
     if receipt['status'] == 'unknown':
         raise GatewayClientError('Kanban execution unknown; retained by owner')
     from gateway.session_kanban import worker_result
-    result = worker_result(board_db, params)
+    result = receipt['kanban_result'] if 'owner' in params else worker_result(board_db, params)
     # The attempt's reply ends the log, as a one-shot worker's did: crash diagnostics quote it.
     if result.get('last_output'):
         print(result['last_output'])
@@ -176,7 +179,14 @@ def _submit():
     try:
         params = {'board': os.environ['HERMES_KANBAN_BOARD'], 'task_id': os.environ['HERMES_KANBAN_TASK'],
             'run_id': int(os.environ['HERMES_KANBAN_RUN_ID']), 'claim_lock': os.environ['HERMES_KANBAN_CLAIM_LOCK']}
-        board_db = os.environ['HERMES_KANBAN_DB']
+        if sys.argv[1:2] == ['--board-owner']:
+            from hermes_db.domains.kanban_owner import validate_reference
+            if len(sys.argv) != 3:
+                raise ValueError('invalid Board owner carrier')
+            params['owner'] = validate_reference(json.loads(sys.argv[2]))
+            board_db = None
+        else:
+            board_db = os.environ['HERMES_KANBAN_DB']
         # Owner startup must never inherit this worker's task/tool/goal identity.
         for key in list(os.environ):
             # The busy timeout is a host tuning knob, not task identity: the answer budget reads it.

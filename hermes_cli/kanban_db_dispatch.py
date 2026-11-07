@@ -8,6 +8,7 @@ late-bound via ``_kb`` (import-cycle breaking) so monkeypatching
 from __future__ import annotations
 
 import contextlib
+import json
 import os
 import re
 import signal
@@ -15,18 +16,17 @@ import sqlite3
 import subprocess
 import sys
 import time
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from typing import Callable
 from typing import Iterable
 from typing import Iterator
 from typing import Mapping
 from typing import Optional
-from typing import TYPE_CHECKING
 
 from hermes_cli.quiet_single_query import KANBAN_WORKER_EXIT_TRAILER
+from hermes_db.domains.kanban import domain_operation
 
 if TYPE_CHECKING:
     from hermes_cli.kanban_db import Task
@@ -496,6 +496,7 @@ def _terminate_reclaimed_worker(
     return info
 
 
+@domain_operation("terminal_workers")
 def reap_terminal_workers(conn: sqlite3.Connection, *, signal_fn=None) -> list[str]:
     """End host-local workers that outlived their run (issue #111791) — a worker
     that called ``kanban_complete`` and then hung keeps its ``state.db`` sidecar
@@ -602,6 +603,7 @@ def _defer_reclaim_for_live_worker(
         _kb._append_event(conn, task_id, "reclaim_deferred", payload, run_id=run_id)
 
 
+@domain_operation("claims")
 def heartbeat_worker(
     conn: sqlite3.Connection,
     task_id: str,
@@ -640,6 +642,7 @@ def heartbeat_worker(
     return True
 
 
+@domain_operation("runtime_sweeps")
 def enforce_max_runtime(conn: sqlite3.Connection, *, signal_fn=None) -> list[str]:
     """Terminate workers whose per-task ``max_runtime_seconds`` has elapsed.
 
@@ -731,7 +734,7 @@ def enforce_max_runtime(conn: sqlite3.Connection, *, signal_fn=None) -> list[str
         # own. If the breaker trips this flips the task to ``blocked`` and emits
         # ``gave_up`` on top of the ``timed_out`` already emitted.
         if cur.rowcount == 1:
-            _record_task_failure(
+            _kb._record_task_failure(
                 conn, tid,
                 error=error,
                 outcome="timed_out",
@@ -747,6 +750,7 @@ def enforce_max_runtime(conn: sqlite3.Connection, *, signal_fn=None) -> list[str
 _STALE_HEARTBEAT_GAP_SECONDS = 3600
 
 
+@domain_operation("runtime_sweeps")
 def detect_stale_running(
     conn: sqlite3.Connection,
     *,
@@ -850,6 +854,7 @@ def detect_stale_running(
     return reclaimed
 
 
+@domain_operation("lease_sweeps")
 def reconcile_orphaned_running(conn: sqlite3.Connection) -> list[str]:
     """Requeue ``running`` cards with broken claim bookkeeping; returns their ids.
 
@@ -1270,7 +1275,7 @@ def _account_crashes(conn: sqlite3.Connection, crash_details: list) -> list[str]
                 continue
             # ``force_trip``: the decision (incl. per-task ``max_retries``) was
             # already made against the violation streak above.
-            tripped = _record_task_failure(
+            tripped = _kb._record_task_failure(
                 conn, tid,
                 error=error_text,
                 outcome="crashed",
@@ -1290,7 +1295,7 @@ def _account_crashes(conn: sqlite3.Connection, crash_details: list) -> list[str]
             # the whole ``failure_limit`` budget would be spent on identical
             # failures. ``force_trip`` blocks now, sticky: ``recompute_ready``
             # must not auto-resume it before the operator fixes the provider.
-            tripped = _record_task_failure(
+            tripped = _kb._record_task_failure(
                 conn, tid,
                 error=error_text,
                 outcome="crashed",
@@ -1305,7 +1310,7 @@ def _account_crashes(conn: sqlite3.Connection, crash_details: list) -> list[str]
             if is_systemic:
                 # Trips at 1, below any ``failure_limit``: hold it for an operator.
                 extra["sticky"] = True
-            tripped = _record_task_failure(
+            tripped = _kb._record_task_failure(
                 conn, tid,
                 error=error_text,
                 outcome="crashed",
@@ -1319,6 +1324,7 @@ def _account_crashes(conn: sqlite3.Connection, crash_details: list) -> list[str]
     return auto_blocked
 
 
+@domain_operation("crash_sweeps")
 def detect_crashed_workers(conn: sqlite3.Connection, board: Optional[str] = None) -> list[str]:
     """Reclaim ``running`` tasks whose worker PID is no longer alive.
 
@@ -1368,129 +1374,7 @@ def detect_crashed_workers(conn: sqlite3.Connection, board: Optional[str] = None
     return sweep.crashed
 
 
-def _record_task_failure(
-    conn: sqlite3.Connection,
-    task_id: str,
-    error: str,
-    *,
-    outcome: str,
-    failure_limit: int | None = None,
-    force_trip: bool = False,
-    release_claim: bool = False,
-    end_run: bool = False,
-    event_payload_extra: Optional[dict] = None,
-    infrastructure: bool = False,
-) -> bool:
-    """Record a non-success outcome and maybe trip the circuit breaker; every
-    non-success path funnels through here so ``consecutive_failures`` stays
-    consistent. Returns True when the task was auto-blocked.
-
-    ``release_claim=True, end_run=True``: spawn-failure path (task still
-    running with an open run — restore source phase or ``blocked``, release
-    claim, close run). Both False: timeout/crash path (caller already restored
-    the phase and closed the run; only the counter moves, a trip flips to
-    ``blocked`` + ``gave_up``). Threshold: per-task ``max_retries`` >
-    ``failure_limit`` > ``DEFAULT_FAILURE_LIMIT``. ``force_trip`` trips
-    unconditionally (caller applied its own bounded-retry policy).
-
-    ``infrastructure=True``: the host refused the spawn (no restart-safe scope,
-    #114720) — nothing about the card ran, so the run and event are recorded
-    with ``infrastructure: true`` but ``consecutive_failures`` is left alone and
-    the breaker never trips; the card stays retryable and
-    :func:`check_respawn_guard` spaces the retries.
-    """
-    if failure_limit is None:
-        failure_limit = DEFAULT_FAILURE_LIMIT
-    error = error[:500]
-    with _kb.write_txn(conn):
-        row = conn.execute(
-            "SELECT consecutive_failures, status, max_retries, current_run_id "
-            "FROM tasks WHERE id = ?", (task_id,),
-        ).fetchone()
-        if row is None:
-            return False
-        retry_status = (
-            _kb._retry_status_for_run(conn, task_id, row["current_run_id"])
-            if release_claim
-            else ("review" if row["status"] == "review" else "ready")
-        )
-        failures = int(row["consecutive_failures"]) + (0 if infrastructure else 1)
-
-        # Per-task override wins over caller-supplied and default thresholds.
-        task_override = _kb._row_get(row, "max_retries")
-        if task_override is not None:
-            effective_limit, limit_source = int(task_override), "task"
-        else:
-            effective_limit, limit_source = int(failure_limit), "dispatcher"
-
-        if infrastructure or not (force_trip or failures >= effective_limit):
-            if release_claim:
-                # Spawn path: restore the claimed source phase + clear claim.
-                conn.execute(
-                    "UPDATE tasks SET status = ?, claim_lock = NULL, "
-                    "claim_expires = NULL, worker_pid = NULL, worker_started_at = NULL, "
-                    "consecutive_failures = ?, last_failure_error = ? "
-                    "WHERE id = ? AND status = 'running'",
-                    (retry_status, failures, error, task_id),
-                )
-            else:
-                conn.execute(
-                    "UPDATE tasks SET consecutive_failures = ?, "
-                    "last_failure_error = ? WHERE id = ?",
-                    (failures, error, task_id),
-                )
-            # Timeout/crash path's caller already emitted its own event.
-            if end_run:
-                detail = {"failures": failures, "retry_status": retry_status}
-                if infrastructure:
-                    detail["infrastructure"] = True
-                run_id = _kb._end_run(
-                    conn, task_id, outcome=outcome, status=outcome, error=error, metadata=detail,
-                )
-                _kb._append_event(conn, task_id, outcome, {"error": error, **detail}, run_id=run_id)
-            return False
-
-        # Spawn path (release_claim) is still running and also clears claim
-        # state; the timeout/crash path already did.
-        conn.execute(
-            "UPDATE tasks SET status = 'blocked', "
-            + ("claim_lock = NULL, claim_expires = NULL, worker_pid = NULL, worker_started_at = NULL, "
-               if release_claim else "")
-            + "consecutive_failures = ?, last_failure_error = ? "
-            "WHERE id = ? AND status IN ('running', 'ready', 'review')",
-            (failures, error, task_id),
-        )
-        payload = {
-            "failures": failures,
-            "effective_limit": effective_limit,
-            "limit_source": limit_source,
-            "error": error,
-            "trigger_outcome": outcome,
-            "retry_status": retry_status,
-        }
-        run_id = None
-        if end_run:
-            # Only the spawn path has an open run to close.
-            run_id = _kb._end_run(
-                conn, task_id, outcome="gave_up", status="gave_up", error=error,
-                metadata={
-                    "failures": failures,
-                    "trigger_outcome": outcome,
-                    "effective_limit": effective_limit,
-                    "limit_source": limit_source,
-                    "retry_status": retry_status,
-                },
-            )
-        if force_trip:
-            # The caller applied its own bounded policy, so the counter cannot
-            # judge this block: ``recompute_ready`` holds it for an operator.
-            payload["sticky"] = True
-        if event_payload_extra:
-            payload.update(event_payload_extra)
-        _kb._append_event(conn, task_id, "gave_up", payload, run_id=run_id)
-        return True
-
-
+@domain_operation("worker_identity")
 def _set_worker_pid(conn: sqlite3.Connection, task_id: str, pid: int, *, run_id=None, claim_lock=None) -> None:
     """Publish the launcher only while this claim has no executing worker yet, together with its
     restart-stable fingerprint (``_process_fingerprint``); the ``spawned`` event carries both. The
@@ -1513,6 +1397,7 @@ def _set_worker_pid(conn: sqlite3.Connection, task_id: str, pid: int, *, run_id=
         _kb._append_event(conn, task_id, "spawned", {"pid": int(pid), "started_at": started_at}, run_id=run_id)
 
 
+@domain_operation("worker_identity")
 def adopt_worker_pid(conn: sqlite3.Connection, task_id: str, run_id: int, pid: int) -> bool:
     """Worker-side half of ``_set_worker_pid``, run by the worker before its first model call.
 
@@ -1538,6 +1423,7 @@ def adopt_worker_pid(conn: sqlite3.Connection, task_id: str, run_id: int, pid: i
     return True
 
 
+@domain_operation("failures")
 def _clear_failure_counter(conn: sqlite3.Connection, task_id: str) -> None:
     """Reset the unified consecutive-failures counter.
 
@@ -1553,6 +1439,7 @@ def _clear_failure_counter(conn: sqlite3.Connection, task_id: str) -> None:
         )
 
 
+@domain_operation("dispatch_queries")
 def check_respawn_guard(
     conn: sqlite3.Connection, task_id: str, *, lane: str = "ready",
 ) -> Optional[str]:
@@ -1574,87 +1461,24 @@ def check_respawn_guard(
     handoff. Stale / dead claim locks are NOT a guard reason — the reclaim
     passes own those.
     """
-    row = conn.execute(
-        "SELECT last_failure_error FROM tasks WHERE id = ?",
-        (task_id,),
-    ).fetchone()
+    from hermes_cli.kanban_respawn_policy import history_guard, primary_guard
+    row = conn.execute("SELECT last_failure_error FROM tasks WHERE id = ?", (task_id,)).fetchone()
     if row is None:
         return None
-
     now = int(time.time())
-
-    # 1. Rate-limit cooldown — see docstring for why this precedes blocker_auth.
-    #    LATEST run only: a newer crash/completion supersedes the rate-limit run.
-    #    An infrastructure spawn refusal (#114720) shares the cooldown: the host
-    #    condition is not the card's, so it retries forever, spaced, and never
-    #    reaches the breaker.
-    rl_cooldown = _kb._resolve_rate_limit_cooldown_seconds()
-    latest_run = conn.execute(
-        "SELECT outcome, ended_at, metadata FROM task_runs "
-        "WHERE task_id = ? AND ended_at IS NOT NULL "
-        "ORDER BY ended_at DESC LIMIT 1",
-        (task_id,),
-    ).fetchone()
-    if latest_run is not None and latest_run["outcome"] == "spawn_failed":
-        if rl_cooldown > 0 and _kb._json_dict(latest_run["metadata"]).get("infrastructure"):
-            ended_at = _kb._to_epoch(latest_run["ended_at"])
-            if ended_at is not None and (now - ended_at) < rl_cooldown:
-                return "infrastructure_cooldown"
-    if latest_run is not None and latest_run["outcome"] == "rate_limited":
-        if rl_cooldown <= 0:
-            # Cooldown disabled — respawn immediately, skipping blocker_auth so
-            # the stamped rate-limit text doesn't re-trap the task.
-            return None
-        ended_at = _kb._to_epoch(latest_run["ended_at"])
-        if ended_at is not None and (now - ended_at) < rl_cooldown:
-            return "rate_limit_cooldown"
-        # Cooldown elapsed — return early so blocker_auth doesn't catch the
-        # stamped rate-limit text; this path intentionally retries forever
-        # (spaced by the cooldown) until quota returns or a real run supersedes it.
-        return None
-
-    # 2. Quota / auth blocker: retrying immediately will not help.  A plain
-    # crash is different: its persisted error includes the worker's last
-    # captured output, which is context rather than a diagnosis and may contain
-    # benign commands such as ``claude auth status`` (#117097).
-    err = _kb._lossy_text(row["last_failure_error"])
-    latest_outcome = latest_run["outcome"] if latest_run is not None else None
-    if err and latest_outcome != "crashed" and _RESPAWN_BLOCKER_RE.search(err):
-        return "blocker_auth"
-
-    # Review-lane spawns stop here: a recent completed run and a fresh PR URL
-    # are the canonical *inputs* to a review handoff, not duplicate-work signals.
-    if lane == "review":
-        return None
-
-    # 3. Completed run within guard window. Exception: an explicit re-queue
-    #    AFTER that success (done→ready drag, re-promotion, unblock, reclaim) is
-    #    a deliberate "run it again" — otherwise a manual done→ready would sit
-    #    silently held until the window elapses.
-    success = max((t for t, _ in _rows_since(
-        conn, "task_runs", task_id, now - _RESPAWN_GUARD_SUCCESS_WINDOW, "AND outcome = 'completed'")), default=None)
-    if success is not None and not any(_rows_since(
-            conn, "task_events", task_id, success, "AND kind IN ('status', 'promoted', 'unblocked', 'reclaimed')")):
-        return "recent_success"
-
-    # 4. GitHub PR URL in a recent comment — prior worker already opened a PR.
-    #    Exception: a handoff AFTER the newest PR comment (operator reassign,
-    #    reviewer changes_requested, review reopen) names the profile that must
-    #    now work on THAT PR — a closer or the implementer finishing it, not a
-    #    duplicate implementation (#111910). A crash/reclaim is not a handoff,
-    #    so the worker that opened the PR is still not re-spawned against it.
-    pr_times = [t for t, c in _rows_since(conn, "task_comments", task_id, now - _RESPAWN_GUARD_PR_WINDOW,
-                                          cols=", body", unreadable=now)  # duplicate-PR risk: fail closed
-                if _RESPAWN_GUARD_PR_URL_RE.search(_kb._lossy_text(c["body"]) or "")]
-    if pr_times:
-        # Strictly after: a same-second tie stays guarded (fail closed).
-        if any(_is_handoff_event(e["kind"], e["payload"]) for _, e in _rows_since(
-                conn, "task_events", task_id, max(pr_times),
-                "AND kind IN ('assigned', 'changes_requested', 'review_reopened')", cols=", kind, payload", strict=True)):
-            return None
-        return "active_pr"
-
-    return None
+    latest = conn.execute(
+        "SELECT outcome, ended_at, metadata FROM task_runs WHERE task_id = ? AND ended_at IS NOT NULL "
+        "ORDER BY ended_at DESC LIMIT 1", (task_id,)).fetchone()
+    handled, reason = primary_guard(row["last_failure_error"], latest, lane, now)
+    if handled:
+        return reason
+    successes = list(_rows_since(conn, "task_runs", task_id, now - _RESPAWN_GUARD_SUCCESS_WINDOW,
+                                 "AND outcome = 'completed'"))
+    comments = list(_rows_since(conn, "task_comments", task_id, now - _RESPAWN_GUARD_PR_WINDOW,
+                                cols=", body", unreadable=now))
+    events = list(_rows_since(conn, "task_events", task_id,
+                              now - max(_RESPAWN_GUARD_SUCCESS_WINDOW, _RESPAWN_GUARD_PR_WINDOW), cols=", kind, payload"))
+    return history_guard(successes, events, comments)
 
 
 _GUARD_TIME_COLS = {"task_runs": "ended_at", "task_events": "created_at", "task_comments": "created_at"}
@@ -1788,6 +1612,7 @@ def dispatch_profile_allowlist_summary() -> str:
             "profile, or the config could not be read — omit the key to allow any)")
 
 
+@domain_operation("dispatch_queries")
 def _has_spawnable(conn: sqlite3.Connection, status: str) -> bool:
     rows = conn.execute(
         "SELECT DISTINCT assignee FROM tasks "
@@ -1904,6 +1729,7 @@ def configured_max_in_progress() -> Optional[int]:
     return ival if ival >= 1 else None
 
 
+@domain_operation("dispatch_queries")
 def count_running_tasks(conn: sqlite3.Connection) -> int:
     """Number of tasks in ``status='running'``.
 
@@ -1977,6 +1803,7 @@ def _memory_pressure_level(sample: Optional[Mapping[str, Any]] = None) -> str:
         return "unknown"
 
 
+@domain_operation("dispatch")
 def dispatch_once(
     conn: sqlite3.Connection,
     *,
@@ -2049,6 +1876,7 @@ def _call_spawn_fn(spawn_fn, task: Task, workspace: str, board: Optional[str]) -
         return spawn_fn(task, workspace)
 
 
+@domain_operation("dispatch_lane")
 def _dispatch_lane_task(
     conn: sqlite3.Connection,
     row: sqlite3.Row,
@@ -2063,6 +1891,7 @@ def _dispatch_lane_task(
     spawn_fn,
     per_profile_cap: Optional[int],
     per_profile_running: dict[str, int],
+    dispatch_permit=None,
 ) -> bool:
     """Guard, claim, resolve the workspace and spawn one ready/review row.
     Returns True when a spawn slot was consumed (real or ``dry_run``); every
@@ -2133,7 +1962,7 @@ def _dispatch_lane_task(
         else:
             workspace = _kbw.resolve_workspace(claimed, board=board)
     except Exception as exc:
-        if _record_task_failure(
+        if _kb._record_task_failure(
             conn, claimed.id, f"workspace: {exc}",
             outcome="spawn_failed", failure_limit=failure_limit, release_claim=True, end_run=True,
         ):
@@ -2167,7 +1996,7 @@ def _dispatch_lane_task(
         infrastructure = isinstance(exc, RestartSafeScopeUnavailable)
         if infrastructure:
             _kb._log.warning("kanban dispatcher: spawn of %s deferred, host cannot place the worker: %s", claimed.id, exc)
-        if _record_task_failure(
+        if _kb._record_task_failure(
             conn, claimed.id, str(exc),
             outcome="spawn_failed", failure_limit=failure_limit, release_claim=True, end_run=True,
             infrastructure=infrastructure,
@@ -2176,6 +2005,7 @@ def _dispatch_lane_task(
         return False
 
 
+@domain_operation("dispatch_queries")
 def _apply_default_assignee(
     conn: sqlite3.Connection, task_id: str, assignee: str, *, dry_run: bool,
 ) -> bool:
@@ -2263,7 +2093,7 @@ def _tick_spawn_budget(
         spawn_budget = max_spawn - running_count
 
     if max_in_progress is not None:
-        total_running = running_count + count_running_tasks_other_boards(board)
+        total_running = running_count + _count_other_running(conn, board)
         if total_running >= max_in_progress:
             return False, None
         remaining = max_in_progress - total_running
@@ -2293,6 +2123,7 @@ def _tick_spawn_budget(
     return True, spawn_budget
 
 
+@domain_operation("dispatch_queries")
 def _lane_rows(conn: sqlite3.Connection, status: str) -> list[sqlite3.Row]:
     """Unclaimed rows of one lane in dispatch order."""
     return conn.execute(
@@ -2300,6 +2131,17 @@ def _lane_rows(conn: sqlite3.Connection, status: str) -> list[sqlite3.Row]:
         f"WHERE status = '{status}' AND claim_lock IS NULL "
         "ORDER BY priority DESC, created_at ASC"
     ).fetchall()
+
+
+@domain_operation("dispatch_queries")
+def _count_other_running(conn, board=None):
+    return count_running_tasks_other_boards(board)
+
+
+@domain_operation("dispatch_queries")
+def _running_per_profile(conn):
+    return {row["assignee"]: int(row["n"]) for row in conn.execute(
+        "SELECT assignee, COUNT(*) AS n FROM tasks WHERE status = 'running' AND assignee IS NOT NULL GROUP BY assignee")}
 
 
 def _any_spawnable_review(
@@ -2366,6 +2208,7 @@ def _dispatch_once_locked(
     default_assignee: Optional[str] = None,
     max_in_progress_per_profile: Optional[int] = None,
     reconcile_orphans: bool = True,
+    dispatch_permit=None,
 ) -> DispatchResult:
     """One dispatcher tick: reclaim stale/crashed running tasks, promote
     todo -> ready, then atomically claim each spawnable ready/review row and
@@ -2401,12 +2244,7 @@ def _dispatch_once_locked(
     ) else None
     per_profile_running: dict[str, int] = {}
     if per_profile_cap is not None:
-        for prow in conn.execute(
-            "SELECT assignee, COUNT(*) AS n FROM tasks "
-            "WHERE status = 'running' AND assignee IS NOT NULL "
-            "GROUP BY assignee"
-        ):
-            per_profile_running[prow["assignee"]] = int(prow["n"])
+        per_profile_running = _running_per_profile(conn)
     # Review-lane reservation: the ready loop runs first and would otherwise
     # consume the ENTIRE shared budget, starving reviews under a sustained ready
     # backlog. When spawnable review work exists and there is any budget, hold
@@ -2421,6 +2259,7 @@ def _dispatch_once_locked(
         dry_run=dry_run, ttl_seconds=ttl_seconds, board=board,
         failure_limit=failure_limit, spawn_fn=spawn_fn,
         per_profile_cap=per_profile_cap, per_profile_running=per_profile_running,
+        dispatch_permit=dispatch_permit,
     )
     default_assignee = _resolve_default_assignee(default_assignee)
     spawned = 0
@@ -2697,6 +2536,13 @@ def _worker_argv(task: Task, profile_arg: str, hermes_home: Optional[str]) -> li
     return [sys.executable, "-m", "hermes_cli.kanban_worker_client"]
 
 
+def _worker_owner_argv(task, profile_arg, hermes_home, board_owner):
+    command = _worker_argv(task, profile_arg, hermes_home)
+    if board_owner is not None:
+        command.extend(["--board-owner", json.dumps(board_owner, ensure_ascii=True, separators=(",", ":"))])
+    return command
+
+
 def _open_worker_log(task: Task, board: Optional[str]):
     """Append-mode per-task log (a re-run on unblock appends, never overwrites),
     rotated first. Anchored at the board root (not the shared kanban root) so
@@ -2748,7 +2594,7 @@ def _restart_safe_worker_argv(task: Task, command: list[str]) -> list[str]:
     ).argv
 
 
-def _default_spawn(task: Task, workspace: str, *, board: Optional[str] = None) -> Optional[int]:
+def _default_spawn(task: Task, workspace: str, *, board: Optional[str] = None, board_owner=None) -> Optional[int]:
     """Fire-and-forget ``hermes -p <profile> chat -q ...`` subprocess.
 
     Returns the child's PID so the dispatcher can detect crashes before the
@@ -2856,7 +2702,7 @@ def _default_spawn(task: Task, workspace: str, *, board: Optional[str] = None) -
     # older hermes builds on PATH that predate the flag's precedence.
     env.pop("HERMES_TUI", None)
 
-    cmd = _worker_argv(task, profile_arg, env.get("HERMES_HOME"))
+    cmd = _worker_owner_argv(task, profile_arg, env.get("HERMES_HOME"), board_owner)
     # The worker is `-m hermes_cli.kanban_worker_client`: Hermes itself, with no console-script
     # bootstrap. The routed-profile scrub above strips Hermes-owned PYTHONPATH entries (user
     # children must not see our tree), so a PYTHONPATH-launched dispatcher spawned a child that

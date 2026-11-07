@@ -6,7 +6,7 @@ from hermes_db.engine import get_engine, read_connection, require_postgresql_dri
 from hermes_db.errors import StorageSchemaError, StorageUnavailableError
 from hermes_db.settings import PostgresSettings
 
-REQUIRED_REVISION = "0010_kanban_tasks"
+REQUIRED_REVISION = "0015_kanban_workspaces"
 _PG_TRGM_ACTION = ("PostgreSQL pg_trgm is required. Connect to the configured database and run "
                    "CREATE EXTENSION IF NOT EXISTS pg_trgm; then run hermes db upgrade.")
 

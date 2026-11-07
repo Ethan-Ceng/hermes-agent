@@ -342,7 +342,7 @@ def test_interrupted_review_runs_retry_in_review_phase(
     )
 
     if reclaim_kind == "spawn_failure":
-        assert not kbd._record_task_failure(
+        assert not kb._record_task_failure(
             conn,
             task_id,
             "reviewer process failed to spawn",
@@ -461,7 +461,7 @@ def test_respawn_guards_compare_mixed_int_and_iso_times_by_value(conn) -> None:
 
 def test_review_retry_still_trips_the_failure_breaker(conn) -> None:
     task_id, _review = _claimed_review(conn, "Reviewer repeatedly fails")
-    assert kbd._record_task_failure(
+    assert kb._record_task_failure(
         conn,
         task_id,
         "reviewer cannot start",
@@ -775,7 +775,7 @@ def test_review_transitions_preserve_consecutive_failures(conn) -> None:
     # A crash now increments 1 -> 2 and trips a failure_limit=2 breaker —
     # the counter accumulated across the review cycle instead of being
     # amnesia-reset back to 0.
-    tripped = kbd._record_task_failure(
+    tripped = kb._record_task_failure(
         conn, task_id, "worker crashed", outcome="crashed", failure_limit=2,
     )
     assert tripped is True

@@ -1,0 +1,59 @@
+"""Authenticated Board RPC; mutation ACKs belong to the Board's own receipt transaction."""
+
+import asyncio
+
+from hermes_db.domains.kanban_owner import open_board_owner
+from hermes_db.domains.kanban_wire import pack
+from hermes_db.errors import StorageError
+from hermes_db.operations.kanban_command_receipts import CommandReceipt, CommandReplay
+from hermes_state_keys import admission_fingerprint
+from hermes_state_runtime import RuntimeStoreError
+
+
+async def worker_kanban(connection, ref, params, *, command):
+    from gateway.session_authorities import require_serving
+    from gateway.session_worker import _SCOPE
+    from gateway.session_worker_kanban_operations import READS, COMMANDS
+    require_serving(connection.authority)
+    fields = _SCOPE | {"epoch", "operation", "payload"} | ({"command_id"} if command else set())
+    if (set(params) != fields or not isinstance(params["operation"], str) or params["operation"] not in (COMMANDS if command else READS)
+            or not isinstance(params["payload"], dict)):
+        raise RuntimeStoreError("invalid_params")
+    if "worker:adopt" not in connection.actor.capabilities:
+        raise RuntimeStoreError("permission_denied")
+    if command:
+        command_id = params["command_id"]
+        if not isinstance(command_id, str) or len(command_id) != 32 or any(char not in "0123456789abcdef" for char in command_id):
+            raise RuntimeStoreError("invalid_params")
+    return await asyncio.to_thread(_execute, connection, ref, params, command)
+
+
+def _execute(connection, ref, params, command):
+    from hermes_cli.kanban_db import ArtifactPreservationError
+    from gateway.session_worker_recall import verify_read
+    from gateway.session_worker_kanban_operations import frozen_context, invoke, refusal
+    verify_read(connection, ref, params)
+    context = frozen_context(connection, ref, params)
+    if not command:
+        with open_board_owner(context["owner"]) as store:
+            return pack(invoke(store, context, params, params["operation"], params["payload"]))
+    digest = admission_fingerprint(canonical_target=context["owner"]["board_id"], payload={
+        "owner": context["owner"], "principal": connection.actor.subject,
+        **{key: params[key] for key in ("profile_id", "execution_id", "generation", "operation", "payload")}})
+    receipt = CommandReceipt(params["command_id"], digest)
+    try:
+        with open_board_owner(context["owner"], command=receipt) as store:
+            with store.read() as conn:
+                receipt.check_replay(conn, store)
+            try:
+                result = invoke(store, context, params, params["operation"], params["payload"])
+            except (StorageError, RuntimeStoreError):
+                raise
+            except (ValueError, ArtifactPreservationError) as error:
+                result = refusal(error, context)
+            if not receipt.committed:
+                with store.write() as conn:
+                    store.command_result(conn, result)
+            return pack(result)
+    except CommandReplay as replay:
+        return pack(replay.result)

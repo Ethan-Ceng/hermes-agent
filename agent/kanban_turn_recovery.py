@@ -226,18 +226,14 @@ def worker_claim_is_live(
     task_id = _resolve_task_id(task_id)
     if task_id is None:
         return False
-    db_path = _kanban_db_path() if db_path is None else (db_path.strip() or None)
-    if not db_path or not Path(db_path).exists():
-        logger.warning("kanban claim check: pinned board db %r not found — not retrying in place", db_path)
+    from agent.kanban_worker_proof import adopted_claim_proof, sqlite_claim_carrier
+    proof = adopted_claim_proof(task_id, db_path, run_id, claim_lock)
+    if proof is not None:
+        return proof
+    carrier = sqlite_claim_carrier(db_path, run_id, claim_lock)
+    if carrier is None:
         return False
-    run_id_env = str(run_id if run_id is not None else os.environ.get("HERMES_KANBAN_RUN_ID") or "").strip()
-    lock_env = str(claim_lock if claim_lock is not None else os.environ.get("HERMES_KANBAN_CLAIM_LOCK") or "").strip()
-    if not run_id_env or not lock_env:
-        logger.warning(
-            "kanban claim check: missing dispatcher-pinned run-id/claim-lock carrier "
-            "— no exact authority to re-prove, not retrying in place"
-        )
-        return False
+    db_path, run_id_env, lock_env = carrier
     now = _now()
     try:
         conn = sqlite3.connect(f"{Path(db_path).absolute().as_uri()}?mode=ro", uri=True)

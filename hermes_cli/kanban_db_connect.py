@@ -720,6 +720,10 @@ def connect(db_path: Optional[Path] = None, *, board: Optional[str] = None) -> s
     ``_INITIALIZED_PATHS``. Path: explicit ``db_path``, else ``board``, else
     :func:`kanban_db_path` (``HERMES_KANBAN_DB`` -> ``HERMES_KANBAN_BOARD`` ->
     ``<root>/kanban/current`` -> ``default``)."""
+    from hermes_db.domains.kanban_worker import connect_worker_board
+    worker = connect_worker_board(db_path, board=board)
+    if worker is not None:
+        return worker
     from hermes_cli.db_setup import storage_backend
     if storage_backend() == "postgresql":
         from hermes_db.domains.kanban import connect as connect_board

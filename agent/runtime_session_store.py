@@ -218,9 +218,10 @@ from agent.runtime_session_compression import RuntimeSessionCompressionMixin
 
 
 from agent.runtime_session_lifecycle import RuntimeSessionLifecycleMixin
+from agent.runtime_session_kanban import RuntimeSessionKanbanMixin
 
 
-class RuntimeSessionStore(RuntimeSessionCompressionMixin, RuntimeSessionLifecycleMixin):
+class RuntimeSessionStore(RuntimeSessionCompressionMixin, RuntimeSessionLifecycleMixin, RuntimeSessionKanbanMixin):
     """Synchronous durable results with a private byte-bounded retry journal.
 
     A failed write remains pending, and failure is sticky until explicit retry or
@@ -262,7 +263,7 @@ class RuntimeSessionStore(RuntimeSessionCompressionMixin, RuntimeSessionLifecycl
                 reconciled = False
                 self.journal = {'scope': self.scope, 'next_sequence': 1, 'pending': []}
                 self._save(self.journal)
-            if self.journal['pending']:
+            if self._has_pending_receipt():
                 self.retry_pending()
             if reconciled and self.scope != dict(scope):
                 # Replay must land the journal exactly on the adopted assignment (a pending
@@ -327,7 +328,7 @@ class RuntimeSessionStore(RuntimeSessionCompressionMixin, RuntimeSessionLifecycl
 
     def _read_rpc(self, method, **params):
         with self.lock:
-            if self.failure or self.journal['pending']:
+            if self.failure or self._has_pending_receipt():
                 raise WorkerPersistenceError(self.failure or 'pending_receipt')
             return self.rpc(method, **self.scope, **params)
 
@@ -335,7 +336,7 @@ class RuntimeSessionStore(RuntimeSessionCompressionMixin, RuntimeSessionLifecycl
         with self.lock:
             if self.failure:
                 raise WorkerPersistenceError(self.failure)
-            if self.journal['pending']:
+            if self._has_pending_receipt():
                 raise WorkerPersistenceError('pending_receipt')
             entry = {'sequence': self.journal['next_sequence'], 'operation': operation, 'payload': payload}
             candidate = json.loads(json.dumps(self.journal))
@@ -353,6 +354,7 @@ class RuntimeSessionStore(RuntimeSessionCompressionMixin, RuntimeSessionLifecycl
         with self.lock:
             results = []
             try:
+                results.extend(self._retry_kanban_pending())
                 while self.journal['pending']:
                     entry = self.journal['pending'][0]
                     result = self.rpc('worker.persist', **self.scope, **entry)
@@ -427,7 +429,7 @@ class RuntimeSessionStore(RuntimeSessionCompressionMixin, RuntimeSessionLifecycl
         with self.lock:
             if self.failure:
                 raise WorkerPersistenceError(self.failure)
-            if self.journal['pending']:
+            if self._has_pending_receipt():
                 raise WorkerPersistenceError('pending_receipt')
             return True
 

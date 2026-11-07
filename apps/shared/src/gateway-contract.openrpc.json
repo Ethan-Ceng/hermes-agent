@@ -21788,6 +21788,47 @@
         "title": "InterruptStatus",
         "type": "string"
       },
+      "KanbanBoardOwner": {
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "const": 1,
+            "title": "Version",
+            "type": "integer"
+          },
+          "backend": {
+            "const": "postgresql",
+            "title": "Backend",
+            "type": "string"
+          },
+          "profile_home": {
+            "title": "Profile Home",
+            "type": "string"
+          },
+          "store_id": {
+            "title": "Store Id",
+            "type": "string"
+          },
+          "board_id": {
+            "title": "Board Id",
+            "type": "string"
+          },
+          "board": {
+            "title": "Board",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "backend",
+          "profile_home",
+          "store_id",
+          "board_id",
+          "board"
+        ],
+        "title": "KanbanBoardOwner",
+        "type": "object"
+      },
       "KanbanRunParams": {
         "additionalProperties": false,
         "properties": {
@@ -21818,6 +21859,17 @@
             ],
             "default": null,
             "title": "Db"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KanbanBoardOwner"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           }
         },
         "required": [
@@ -48424,6 +48476,136 @@
         "title": "WorkerExecution",
         "type": "object"
       },
+      "WorkerKanbanCommandParams": {
+        "additionalProperties": false,
+        "properties": {
+          "profile_id": {
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "execution_id": {
+            "title": "Execution Id",
+            "type": "string"
+          },
+          "generation": {
+            "title": "Generation",
+            "type": "integer"
+          },
+          "pid": {
+            "title": "Pid",
+            "type": "integer"
+          },
+          "birth": {
+            "title": "Birth",
+            "type": "number"
+          },
+          "secret": {
+            "title": "Secret",
+            "type": "string"
+          },
+          "epoch": {
+            "title": "Epoch",
+            "type": "integer"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "command_id": {
+            "title": "Command Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile_id",
+          "session_id",
+          "execution_id",
+          "generation",
+          "pid",
+          "birth",
+          "secret",
+          "epoch",
+          "operation",
+          "payload",
+          "command_id"
+        ],
+        "title": "WorkerKanbanCommandParams",
+        "type": "object"
+      },
+      "WorkerKanbanReadParams": {
+        "additionalProperties": false,
+        "properties": {
+          "profile_id": {
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "execution_id": {
+            "title": "Execution Id",
+            "type": "string"
+          },
+          "generation": {
+            "title": "Generation",
+            "type": "integer"
+          },
+          "pid": {
+            "title": "Pid",
+            "type": "integer"
+          },
+          "birth": {
+            "title": "Birth",
+            "type": "number"
+          },
+          "secret": {
+            "title": "Secret",
+            "type": "string"
+          },
+          "epoch": {
+            "title": "Epoch",
+            "type": "integer"
+          },
+          "operation": {
+            "title": "Operation",
+            "type": "string"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          }
+        },
+        "required": [
+          "profile_id",
+          "session_id",
+          "execution_id",
+          "generation",
+          "pid",
+          "birth",
+          "secret",
+          "epoch",
+          "operation",
+          "payload"
+        ],
+        "title": "WorkerKanbanReadParams",
+        "type": "object"
+      },
+      "WorkerKanbanResult": {
+        "additionalProperties": true,
+        "title": "WorkerKanbanResult",
+        "type": "object"
+      },
       "WorkerPersistParams": {
         "additionalProperties": false,
         "properties": {
@@ -49308,6 +49490,24 @@
       }
     },
     {
+      "name": "kanban.result",
+      "summary": "Read the native producer's exact saved Kanban attempt result through its owner.",
+      "params": [
+        {
+          "name": "params",
+          "schema": {
+            "$ref": "#/components/schemas/KanbanRunParams"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/WorkerKanbanResult"
+        }
+      }
+    },
+    {
       "name": "kanban.run",
       "summary": "Native-owner only: admit the dispatcher's current claim on a kanban task.",
       "params": [
@@ -49772,6 +49972,42 @@
         "name": "result",
         "schema": {
           "$ref": "#/components/schemas/WorkerExecution"
+        }
+      }
+    },
+    {
+      "name": "worker.kanban.command",
+      "summary": "Apply a named Board mutation once under its scoped durable command receipt.",
+      "params": [
+        {
+          "name": "params",
+          "schema": {
+            "$ref": "#/components/schemas/WorkerKanbanCommandParams"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/WorkerKanbanResult"
+        }
+      }
+    },
+    {
+      "name": "worker.kanban.read",
+      "summary": "Read named Board data through the adopted worker's frozen owner policy.",
+      "params": [
+        {
+          "name": "params",
+          "schema": {
+            "$ref": "#/components/schemas/WorkerKanbanReadParams"
+          }
+        }
+      ],
+      "result": {
+        "name": "result",
+        "schema": {
+          "$ref": "#/components/schemas/WorkerKanbanResult"
         }
       }
     },

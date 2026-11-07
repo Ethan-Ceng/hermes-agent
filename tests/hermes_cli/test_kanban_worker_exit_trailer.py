@@ -111,7 +111,7 @@ def test_plain_budget_trip_still_auto_recovers(kanban_home):
         tids = [kb.create_task(conn, title=t, assignee="a") for t in ("raise-limit", "reassign")]
         for tid in tids:
             for i in range(2):
-                kbd._record_task_failure(
+                kb._record_task_failure(
                     conn, tid, error=f"boom{i}", outcome="crashed", failure_limit=2,
                     release_claim=False, end_run=False,
                 )
@@ -122,7 +122,7 @@ def test_plain_budget_trip_still_auto_recovers(kanban_home):
         assert kb.get_task(conn, tids[0]).status == "ready"
 
         for i in range(2):
-            kbd._record_task_failure(
+            kb._record_task_failure(
                 conn, tids[1], error=f"again{i}", outcome="crashed", failure_limit=2,
                 release_claim=False, end_run=False,
             )

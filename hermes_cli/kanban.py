@@ -617,15 +617,6 @@ def _cmd_reassign(args: argparse.Namespace) -> int:
     )
 
 
-def _rows_by_task(conn, table: str, ids: list[str]) -> dict[str, list]:
-    """``{task_id: [rows ordered by id]}`` for every id (empty list when none)."""
-    by = {i: [] for i in ids}
-    placeholders = ",".join(["?"] * len(ids))
-    for row in conn.execute(f"SELECT * FROM {table} WHERE task_id IN ({placeholders}) ORDER BY id", tuple(ids)):
-        by.setdefault(row["task_id"], []).append(row)
-    return by
-
-
 def _cmd_diagnostics(args: argparse.Namespace) -> int:
     """List active diagnostics on the board via the same rule engine the dashboard uses."""
     from hermes_cli import kanban_diagnostics as kd
@@ -638,44 +629,24 @@ def _cmd_diagnostics(args: argparse.Namespace) -> int:
 
     diag_config = kd.config_from_runtime_config(load_config())
 
+    from hermes_cli.kanban_diagnostic_snapshot import diagnostic_snapshot
     with kbc.connect_closing() as conn:
-        # Either one-task mode or fleet mode.
-        if getattr(args, "task", None):
-            task = kb.get_task(conn, args.task)
-            if task is None:
-                return _err(f"no such task: {args.task}")
-            diags_by_task = {args.task: kd.compute_task_diagnostics(
-                task, kb.list_events(conn, args.task), kb.list_runs(conn, args.task),
-                graph=kb.task_graph_context(conn, args.task), config=diag_config)}
-        else:
-            # Fleet mode: pull all non-archived tasks + their events/runs.
-            rows = list(conn.execute("SELECT * FROM tasks WHERE status != 'archived'").fetchall())
-            ids = [r["id"] for r in rows]
-            diags_by_task = {}
-            if ids:
-                ev_by = _rows_by_task(conn, "task_events", ids)
-                run_by = _rows_by_task(conn, "task_runs", ids)
-                graph_by = kb.task_graph_contexts(conn, ids)
-                for r in rows:
-                    tid = r["id"]
-                    dl = kd.compute_task_diagnostics(r, ev_by.get(tid, []), run_by.get(tid, []),
-                                                     graph=graph_by.get(tid), config=diag_config)
-                    if dl:
-                        diags_by_task[tid] = dl
+        target = getattr(args, "task", None)
+        snapshot = diagnostic_snapshot(conn, target)
+        if target and not snapshot:
+            return _err(f"no such task: {target}")
+        diags_by_task, meta = {}, {}
+        for task, events, runs, graph in snapshot:
+            diagnostics = kd.compute_task_diagnostics(task, events, runs, graph=graph, config=diag_config)
+            if diagnostics or target:
+                diags_by_task[task["id"]] = diagnostics
+                meta[task["id"]] = {name: task[name] for name in ("title", "status", "assignee")}
 
         sev = getattr(args, "severity", None)
         if sev:
             floor = kd.SEVERITY_ORDER.index(sev)
             diags_by_task = {tid: kept for tid, dl in diags_by_task.items()
                              if (kept := [d for d in dl if kd.SEVERITY_ORDER.index(d.severity) >= floor])}
-
-        # Map task_id → title/status/assignee for the table output.
-        meta: dict[str, dict] = {}
-        if diags_by_task:
-            placeholders = ",".join(["?"] * len(diags_by_task))
-            for r in conn.execute(f"SELECT id, title, status, assignee FROM tasks WHERE id IN ({placeholders})",
-                                  tuple(diags_by_task.keys())):
-                meta[r["id"]] = {k: r[k] for k in ("title", "status", "assignee")}
 
     # What this home believes it may claim on a shared board (#113620).
     allowlist = kbd.dispatch_profile_allowlist_summary()

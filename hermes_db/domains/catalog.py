@@ -22,7 +22,8 @@ POSTGRES_DOMAINS = {
     "cron_executions": DomainSpec("0007_cron_executions", ("cron",)),
     "cron_deliveries": DomainSpec("0008_cron_delivery", ("cron_delivery",)),
     "cron_notepad": DomainSpec("0009_cron_notepad", ("cron_notepad",)),
-    "kanban_tasks": DomainSpec("0010_kanban_tasks", ("kanban",)),
+    "kanban_tasks": DomainSpec("0010_kanban_tasks", ("kanban", "kanban_artifacts", "kanban_dispatch", "kanban_commands", "kanban_workspaces")),
+    "kanban_runs": DomainSpec("0011_kanban_runs", ("kanban", "kanban_artifacts", "kanban_dispatch", "kanban_commands", "kanban_workspaces")),
 }
 
 

@@ -6,7 +6,6 @@ from sqlalchemy import delete, func, select
 from hermes_db.repositories import kanban as repo
 from hermes_db.tables.kanban import tasks, comments, events
 from hermes_db.values import decode_text, encode_text
-from hermes_db.errors import StorageNotReadyError
 
 from hermes_db.operations.kanban_create import create_task
 
@@ -71,7 +70,8 @@ def assign_task(store, task_id, profile):
         if row is None:
             return False
         if row["claim_lock"] is not None and row["status"] == "running":
-            raise RuntimeError(f"cannot reassign {task_id}: currently running (claimed). Wait for completion or reclaim the stale lock first.")
+            from hermes_cli.kanban_errors import TaskAlreadyClaimedError
+            raise TaskAlreadyClaimedError(f"cannot reassign {task_id}: currently running (claimed). Wait for completion or reclaim the stale lock first.")
         values = {"assignee": profile}
         if row["assignee"] != profile:
             values.update(consecutive_failures=0, last_failure_error=None)
@@ -111,7 +111,9 @@ def set_reasoning_effort(store, task_id, effort):
 def edit_task(store, task_id, *, title=None, body=None, priority=None, result=None, summary=None, metadata=None, board=None):
     from hermes_cli import kanban_db as kb
     if result is not None:
-        raise StorageNotReadyError("Completed-result editing requires Kanban run storage (Task 9)")
+        from hermes_db.operations.kanban_result_edit import edit_result
+        return edit_result(store, task_id, title=title, body=body, priority=priority, result=result,
+                           summary=summary, metadata=metadata, board=board)
     values = {name: value for name, value in (("title", title), ("body", body), ("priority", priority)) if value is not None}
     if not values:
         return False
@@ -137,7 +139,7 @@ def add_comment(store, task_id, author, body):
         repo.require_task(conn, store, task_id)
         comment_id = repo.comment(conn, store, task_id, author.strip(), body.strip(), int(time.time()))
         repo.event(conn, store, task_id, "commented", {"author": author, "len": len(body)})
-        return comment_id
+        return store.command_result(conn, comment_id)
 
 
 def list_comments(store, task_id):

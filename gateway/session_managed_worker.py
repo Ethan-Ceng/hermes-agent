@@ -520,8 +520,9 @@ def _continuation_path(db, start, tip):
 
 def _compression_ancestors(db, session_id):
     """Root-first ids of the sessions *session_id* continues by compression, excluding itself."""
+    from hermes_db.authority_access import is_compression_child
     ancestors, current = [], db.get_session(session_id)
-    while current and db._is_compression_child_row(current) and len(ancestors) < 200:
+    while current and is_compression_child(db, current) and len(ancestors) < 200:
         parent = current['parent_session_id']
         if parent in ancestors or parent == session_id:
             break

@@ -6,13 +6,19 @@ import sqlite3
 import time
 import psutil
 
+from hermes_db.domains.kanban import domain_operation
+from hermes_db.domains.kanban_evidence import TaskEvidence, typed_owner_receipt
 
+
+@domain_operation("owner_recovery")
 def _owner_receipt(conn, task_id):
     """The parsed ``owner_admitted`` receipt of the task's CURRENT run, or None.
 
     The receipt is the owner's pointer to its own admission ledger. No receipt means the run
     never reached an owner (a plain dispatcher worker): nothing about it is ambiguous.
     """
+    if isinstance(conn, TaskEvidence):
+        return typed_owner_receipt(conn.payloads.get('owner_admitted'))
     marker = conn.execute(
         "SELECT e.payload FROM task_events e JOIN tasks t ON t.current_run_id=e.run_id "
         "WHERE t.id=? AND e.task_id=t.id AND e.kind='owner_admitted' ORDER BY e.id DESC LIMIT 1",
@@ -33,7 +39,7 @@ def _admission_row(receipt):
     """
     if not receipt:
         return None
-    if receipt.get('storage_backend') == 'postgresql':
+    if receipt.get('storage_backend') in {'sqlite', 'postgresql'}:
         return _native_admission_row(receipt)
     try:
         with closing(sqlite3.connect(Path(receipt['db']).as_uri() + '?mode=ro', uri=True)) as owner:
@@ -54,7 +60,10 @@ def _native_admission_row(receipt):
         return None
     try:
         with closing(open_session_store(Path(receipt['profile_home']) / 'state.db', read_only=True)) as owner:
-            if not is_postgresql_store(owner) or owner.scope.store_id != receipt['store_id']:
+            pg = is_postgresql_store(owner)
+            if pg != (receipt['storage_backend'] == 'postgresql'):
+                return None
+            if pg and owner.scope.store_id != receipt['store_id']:
                 return None
             row = runtime_for_store(owner).find_admission(principal_id=receipt['principal_id'],
                 session_id=receipt['session_id'], request_id=receipt['request_id'])
@@ -84,12 +93,15 @@ def owner_reclaim_paused(conn, task_id):
         return True
 
 
+@domain_operation("owner_recovery")
 def _latest_run_event(conn, task_id, kind):
     """The newest ``kind`` payload on the task's CURRENT run, or ``{}``.
 
     A payload that cannot be read is not a payload that says the attempt is over, so
     callers treat ``{}`` as "no evidence" rather than as an absence.
     """
+    if isinstance(conn, TaskEvidence):
+        return conn.payloads.get(kind, {})
     row = conn.execute(
         "SELECT e.payload FROM task_events e JOIN tasks t ON t.current_run_id=e.run_id "
         "WHERE t.id=? AND e.task_id=t.id AND e.kind=? ORDER BY e.id DESC LIMIT 1",
@@ -153,6 +165,15 @@ def _run_worker_pids(conn, task_row, task_id):
     return [(int(pid), fingerprint) for pid, fingerprint in recorded if pid]
 
 
+@domain_operation("owner_recovery")
+def _task_owner_state(conn, task_id):
+    if isinstance(conn, TaskEvidence):
+        return conn.task
+    return conn.execute(
+        "SELECT claim_lock, claim_expires, worker_pid, worker_started_at, last_heartbeat_at "
+        "FROM tasks WHERE id=?", (task_id,)).fetchone()
+
+
 def owner_attempt_provably_over(conn, task_id) -> bool:
     """True when an unresolved owner receipt cannot still be executing this attempt.
 
@@ -186,9 +207,7 @@ def owner_attempt_provably_over(conn, task_id) -> bool:
     receipt = _owner_receipt(conn, task_id)
     if receipt is None:
         return False  # no receipt: this pause did not come from an owner attempt
-    row = conn.execute(
-        "SELECT claim_lock, claim_expires, worker_pid, worker_started_at, last_heartbeat_at "
-        "FROM tasks WHERE id=?", (task_id,)).fetchone()
+    row = _task_owner_state(conn, task_id)
     if row is None or not _host_local_lock(row['claim_lock']):
         return False
     pids = _run_worker_pids(conn, row, task_id)
@@ -307,16 +326,7 @@ def managed_run_exit_code(conn, task_id, worker_pid, claim_lock):
     the dispatcher's own worker, or the owner-side interpreter ``worker_bound`` recorded under
     that claim — ``session_kanban._record_worker_result`` writes the interpreter's pid, never the
     spawned submitter's ``tasks.worker_pid``."""
-    def latest(kind):
-        row = conn.execute(
-            "SELECT e.payload FROM task_events e JOIN tasks t ON t.current_run_id=e.run_id "
-            "WHERE t.id=? AND e.task_id=t.id AND e.kind=? ORDER BY e.id DESC LIMIT 1", (task_id, kind)).fetchone()
-        try:
-            payload = json.loads(row['payload']) if row else {}
-        except ValueError:
-            return {}
-        return payload if isinstance(payload, dict) else {}
-
-    result, bound = latest('worker_result'), latest('worker_bound')
+    result = _latest_run_event(conn, task_id, 'worker_result')
+    bound = _latest_run_event(conn, task_id, 'worker_bound')
     pids = {worker_pid, *([bound.get('pid')] if bound.get('claim_lock') == claim_lock else [])}
     return result.get('exit_code') if result.get('claim_lock') == claim_lock and result.get('pid') in pids else None

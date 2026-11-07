@@ -19,6 +19,8 @@ from typing import TYPE_CHECKING
 import contextlib
 
 from hermes_cli.worktree_ops import release_lsp_clients
+from hermes_db.domains.kanban import domain_operation, owner_scoped_operation
+from hermes_db.errors import StorageError
 
 if TYPE_CHECKING:
     from hermes_cli.kanban_db import Task
@@ -49,9 +51,6 @@ _ACTIVE_CHILDREN_SQL = (
     "LIMIT 1"
 )
 
-_WORKSPACE_ROW_SQL = "SELECT workspace_kind, workspace_path, branch_name FROM tasks WHERE id = ?"
-
-
 def _git(repo_root: Path, *args: str, timeout: int) -> subprocess.CompletedProcess:
     """``git -C repo_root args``; never raises on a non-zero exit.
 
@@ -73,6 +72,7 @@ def _git(repo_root: Path, *args: str, timeout: int) -> subprocess.CompletedProce
     )
 
 
+@domain_operation("workspaces")
 def _has_active_children(conn: sqlite3.Connection, task_id: str) -> bool:
     return conn.execute(_ACTIVE_CHILDREN_SQL, (task_id,)).fetchone() is not None
 
@@ -82,6 +82,7 @@ _TERMINAL_TASK_SQL = (
 )
 
 
+@domain_operation("workspaces")
 def _is_terminal_task(conn: sqlite3.Connection, task_id: str) -> bool:
     return conn.execute(_TERMINAL_TASK_SQL, (task_id,)).fetchone() is not None
 
@@ -163,6 +164,7 @@ def _other_board_uses_path(db_file: Path, task_id: str, key: str) -> bool:
         other.close()
 
 
+@domain_operation("workspaces")
 def _workspace_in_use_by_other(
     conn: sqlite3.Connection, task_id: str, path: Path | str
 ) -> Optional[str]:
@@ -332,15 +334,13 @@ def _managed_scratch_path_info(p: Path) -> tuple[bool, Optional[str]]:
     return False, None
 
 
+@owner_scoped_operation
 def _scratch_workspace(conn: sqlite3.Connection, task_id: str) -> Optional[Path]:
     """Expanded ``workspace_path`` when the task uses a scratch workspace, else ``None``."""
-    row = conn.execute(
-        "SELECT workspace_kind, workspace_path FROM tasks WHERE id = ?",
-        (task_id,),
-    ).fetchone()
-    if not row or row["workspace_kind"] != "scratch" or not row["workspace_path"]:
+    task = _kb.get_task(conn, task_id)
+    if not task or task.workspace_kind != "scratch" or not task.workspace_path:
         return None
-    return Path(row["workspace_path"]).expanduser()
+    return Path(task.workspace_path).expanduser()
 
 
 def _is_managed_scratch_path(p: Path) -> bool:
@@ -359,6 +359,7 @@ def _is_managed_scratch_path(p: Path) -> bool:
     return _managed_scratch_path_info(p)[0]
 
 
+@domain_operation("workspaces")
 def _cleanup_workspace(conn: sqlite3.Connection, task_id: str) -> None:
     """Remove a task's scratch workspace dir and kill its stale tmux session.
     Called from :func:`complete_task` after the transaction commits; best-effort
@@ -366,11 +367,10 @@ def _cleanup_workspace(conn: sqlite3.Connection, task_id: str) -> None:
     only when provably free of work (clean tree, every commit reachable from a
     remote-tracking ref); ``dir`` is intentionally preserved."""
     try:
-        row = conn.execute(_WORKSPACE_ROW_SQL, (task_id,)).fetchone()
-        if not row:
+        task = _kb.get_task(conn, task_id)
+        if task is None:
             return
-        kind: Optional[str] = row["workspace_kind"]
-        path: Optional[str] = row["workspace_path"]
+        kind, path = task.workspace_kind, task.workspace_path
         if kind not in _REMOVABLE_KINDS or not path:
             # Not removable itself, but completing may still unblock a deferred
             # parent scratch cleanup (e.g. a 'dir' child of a scratch parent).
@@ -391,7 +391,7 @@ def _cleanup_workspace(conn: sqlite3.Connection, task_id: str) -> None:
         if kind == "worktree":
             _cleanup_worker_tmux(conn, task_id)
             if not _defer_shared_worktree_cleanup(conn, task_id, path):
-                _cleanup_worktree_workspace(task_id, path, row["branch_name"])
+                _cleanup_worktree_workspace(task_id, path, task.branch_name)
             _try_cleanup_parent_workspaces(conn, task_id)
             return
         wp = Path(path)
@@ -419,6 +419,8 @@ def _cleanup_workspace(conn: sqlite3.Connection, task_id: str) -> None:
         # After cleaning up this task's workspace, check if any parent tasks now have all children done —
         # their deferred cleanup can proceed (#33774).
         _try_cleanup_parent_workspaces(conn, task_id)
+    except StorageError as error:
+        _kb._log.warning("Workspace cleanup failed for task %s: %s", task_id, error)
     except Exception:
         pass  # best-effort — never block completion
 
@@ -504,25 +506,21 @@ def _try_cleanup_parent_workspaces(conn: sqlite3.Connection, task_id: str) -> No
     See #33774.
     """
     try:
-        parents = conn.execute(
-            "SELECT parent_id FROM task_links WHERE child_id = ?",
-            (task_id,),
-        ).fetchall()
-        for (parent_id,) in parents:
-            row = conn.execute(_WORKSPACE_ROW_SQL, (parent_id,)).fetchone()
+        for parent_id in _kb.parent_ids(conn, task_id):
+            task = _kb.get_task(conn, parent_id)
             if (
-                not row
-                or row["workspace_kind"] not in _REMOVABLE_KINDS
-                or not row["workspace_path"]
+                task is None
+                or task.workspace_kind not in _REMOVABLE_KINDS
+                or not task.workspace_path
                 or not _is_terminal_task(conn, parent_id)
                 or _has_active_children(conn, parent_id)
             ):
                 continue
-            ws_path = row["workspace_path"]
-            if row["workspace_kind"] == "worktree":
+            ws_path = task.workspace_path
+            if task.workspace_kind == "worktree":
                 if _defer_shared_worktree_cleanup(conn, parent_id, ws_path):
                     continue
-                _cleanup_worktree_workspace(parent_id, ws_path, row["branch_name"])
+                _cleanup_worktree_workspace(parent_id, ws_path, task.branch_name)
                 continue
             wp = Path(ws_path)
             if not wp.is_dir():
@@ -533,6 +531,8 @@ def _try_cleanup_parent_workspaces(conn: sqlite3.Connection, task_id: str) -> No
                 release_lsp_clients(str(wp))
                 shutil.rmtree(wp, ignore_errors=True)
                 _kb._log.debug("Deferred cleanup: removed parent %s scratch workspace: %s", parent_id, wp)
+    except StorageError as error:
+        _kb._log.warning("Deferred parent workspace cleanup failed for task %s: %s", task_id, error)
     except Exception:
         pass  # best-effort
 
@@ -540,13 +540,11 @@ def _try_cleanup_parent_workspaces(conn: sqlite3.Connection, task_id: str) -> No
 def _cleanup_worker_tmux(conn: sqlite3.Connection, task_id: str) -> None:
     """Kill the tmux session associated with a task's assignee, if dead."""
     try:
-        row = conn.execute(
-            "SELECT assignee FROM tasks WHERE id = ?", (task_id,)
-        ).fetchone()
-        if not row or not row["assignee"]:
+        task = _kb.get_task(conn, task_id)
+        if task is None or not task.assignee:
             return
         # Workers named swarm1-12 use tmux sessions named swarm-swarm1 etc.
-        session = f"swarm-{row['assignee']}"
+        session = f"swarm-{task.assignee}"
         out = subprocess.run(
             ["tmux", "list-panes", "-t", session, "-F", "#{pane_dead}"],
             capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=5,
@@ -555,6 +553,8 @@ def _cleanup_worker_tmux(conn: sqlite3.Connection, task_id: str) -> None:
         if out.stdout.strip() == "1":
             subprocess.run(["tmux", "kill-session", "-t", session], capture_output=True, timeout=5, check=False)
             _kb._log.debug("Killed stale tmux session: %s", session)
+    except StorageError as error:
+        _kb._log.warning("Worker workspace cleanup lookup failed for task %s: %s", task_id, error)
     except Exception:
         pass  # best-effort — never block completion
 
@@ -830,10 +830,12 @@ def _set_task_column(conn: sqlite3.Connection, task_id: str, column: str, value:
         conn.execute(f"UPDATE tasks SET {column} = ? WHERE id = ?", (value, task_id))
 
 
+@domain_operation("workspaces")
 def set_workspace_path(conn: sqlite3.Connection, task_id: str, path: Path | str) -> None:
     _set_task_column(conn, task_id, "workspace_path", str(path))
 
 
+@domain_operation("workspaces")
 def set_branch_name(conn: sqlite3.Connection, task_id: str, branch_name: str) -> None:
     _set_task_column(conn, task_id, "branch_name", str(branch_name))
 

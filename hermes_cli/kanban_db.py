@@ -31,9 +31,10 @@ import time
 from contextvars import ContextVar, Token
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Optional
+from typing import Any, Collection, Iterable, Optional
 
 from hermes_cli.kanban_workflow import DEFAULT_STATUSES as VALID_STATUSES
+from hermes_cli.kanban_errors import TaskAlreadyClaimedError
 from toolsets import get_toolset_names
 from utils import unlink_files_older_than
 from hermes_db.domains.kanban import domain_operation, profile_operation
@@ -207,7 +208,7 @@ def _fire_worker_spawned_hook(
     try:
         _fire_kanban_lifecycle_hook(
             "on_kanban_worker_spawned", task.id, board=board or get_current_board(),
-            assignee=task.assignee, run_id=_current_run_id(conn, task.id),
+            assignee=task.assignee, run_id=(get_task(conn, task.id) or task).current_run_id,
             worker_pid=int(pid) if pid else None, workspace_path=str(workspace_path),
         )
     except Exception as exc:  # pragma: no cover - defensive
@@ -1271,7 +1272,7 @@ def assign_task(conn: sqlite3.Connection, task_id: str, profile: Optional[str]) 
         if not row:
             return False
         if row["claim_lock"] is not None and row["status"] == "running":
-            raise RuntimeError(
+            raise TaskAlreadyClaimedError(
                 f"cannot reassign {task_id}: currently running (claimed). "
                 "Wait for completion or reclaim the stale lock first."
             )
@@ -1563,6 +1564,7 @@ def _collision_free_path(dest_dir: Path, safe_name: str) -> Path:
     return dest_dir / candidate
 
 
+@domain_operation("artifacts")
 def store_attachment_bytes(
     conn: sqlite3.Connection, task_id: str, filename: str, data: bytes, *,
     content_type: Optional[str] = None, uploaded_by: Optional[str] = None,
@@ -1594,6 +1596,7 @@ def store_attachment_bytes(
         raise
 
 
+@domain_operation("artifacts")
 def add_attachment(
     conn: sqlite3.Connection, task_id: str, *, filename: str, stored_path: str,
     content_type: Optional[str] = None, size: int = 0, uploaded_by: Optional[str] = None,
@@ -1619,15 +1622,18 @@ def add_attachment(
         return int(cur.lastrowid or 0)
 
 
+@domain_operation("artifacts")
 def list_attachments(conn: sqlite3.Connection, task_id: str) -> list[Attachment]:
     return [Attachment.from_row(r) for r in _task_rows(conn, "task_attachments", task_id, "created_at ASC, id ASC")]
 
 
+@domain_operation("artifacts")
 def get_attachment(conn: sqlite3.Connection, attachment_id: int) -> Optional[Attachment]:
     r = conn.execute("SELECT * FROM task_attachments WHERE id = ?", (attachment_id,)).fetchone()
     return None if r is None else Attachment.from_row(r)
 
 
+@domain_operation("artifacts")
 def delete_attachment(conn: sqlite3.Connection, attachment_id: int) -> Optional[Attachment]:
     """Delete the row (source of truth) and best-effort its blob; None when no row matched."""
     with write_txn(conn):
@@ -1664,6 +1670,7 @@ def _insert_comment(
     )
 
 
+@domain_operation("events")
 def _append_event(
     conn: sqlite3.Connection, task_id: str, kind: str, payload: Optional[dict] = None, *,
     run_id: Optional[int] = None,
@@ -1991,6 +1998,7 @@ def _claim_and_open_run(
     return run_id
 
 
+@domain_operation("claims")
 def claim_task(
     conn: sqlite3.Connection, task_id: str, *, ttl_seconds: Optional[int] = None,
     claimer: Optional[str] = None,
@@ -2026,6 +2034,7 @@ def claim_task(
     return claimed
 
 
+@domain_operation("claims")
 def claim_review_task(
     conn: sqlite3.Connection, task_id: str, *, ttl_seconds: Optional[int] = None,
     claimer: Optional[str] = None,
@@ -2056,6 +2065,7 @@ def claim_review_task(
         return get_task(conn, task_id)
 
 
+@domain_operation("runs")
 def _retry_status_for_run(
     conn: sqlite3.Connection, task_id: str, run_id: Optional[int] = None,
 ) -> str:
@@ -2081,6 +2091,7 @@ _RUN_OUTCOME_TERMINAL_STATUS = {
 }
 
 
+@domain_operation("runs")
 def goal_run_status(
     conn: sqlite3.Connection, task_id: str, expected_run_id: Optional[int] = None,
 ) -> Optional[str]:
@@ -2111,6 +2122,7 @@ def goal_run_status(
     return task.status
 
 
+@domain_operation("claims")
 def heartbeat_claim(
     conn: sqlite3.Connection, task_id: str, *, ttl_seconds: Optional[int] = None,
     claimer: Optional[str] = None,
@@ -2137,6 +2149,7 @@ def _extend_run_claim(conn: sqlite3.Connection, task_id: str, expires: int) -> O
     return run_id
 
 
+@domain_operation("lease_sweeps")
 def release_stale_claims(
     conn: sqlite3.Connection, *, signal_fn=None, failure_limit: Optional[int] = None,
 ) -> int:
@@ -2295,6 +2308,7 @@ def _extend_live_stale_claim(conn: sqlite3.Connection, row: sqlite3.Row, now: in
         )
 
 
+@domain_operation("claims")
 def reclaim_task(
     conn: sqlite3.Connection, task_id: str, *, reason: Optional[str] = None, signal_fn=None,
 ) -> bool:
@@ -2343,12 +2357,13 @@ def reassign_task(
     # assign_task handles its own txn + the still-running guard.
     try:
         return assign_task(conn, task_id, profile)
-    except RuntimeError:
+    except TaskAlreadyClaimedError:
         # Task is still running and reclaim_first was False; caller
         # needs to decide whether to retry with reclaim.
         return False
 
 
+@domain_operation("completion_guards")
 def _verify_created_cards(
     conn: sqlite3.Connection, completing_task_id: str, claimed_ids: Iterable[str],
 ) -> tuple[list[str], list[str]]:
@@ -2394,6 +2409,7 @@ def _verify_created_cards(
 _TASK_ID_PROSE_RE = re.compile(r"\bt_[a-f0-9]{8,}\b")
 
 
+@domain_operation("completion_guards")
 def _scan_prose_for_phantom_ids(conn: sqlite3.Connection, text: str) -> list[str]:
     """``t_<hex>`` references in ``text`` that don't resolve to a task (deduped; advisory)."""
     if not text:
@@ -2460,6 +2476,7 @@ def _claim_is_live(trow) -> bool:
     )
 
 
+@domain_operation("completion")
 def complete_task(
     conn: sqlite3.Connection, task_id: str, *, result: Optional[str] = None,
     summary: Optional[str] = None, metadata: Optional[dict] = None,
@@ -2570,6 +2587,7 @@ def complete_task(
 _REVIEW_APPROVED_NOTE = "Review approved without additional evidence."
 
 
+@domain_operation("completion_guards")
 def _gate_created_cards(
     conn: sqlite3.Connection, task_id: str, created_cards: Optional[Iterable[str]], preview_text: Optional[str],
 ) -> list[str]:
@@ -2597,6 +2615,7 @@ def _substantive_text(value: Optional[str]) -> bool:
     return bool(value is not None and str(value).strip())
 
 
+@domain_operation("completion_guards")
 def _gate_empty_completion(
     conn: sqlite3.Connection,
     task_id: str,
@@ -2742,6 +2761,8 @@ def _persist_scratch_completion_artifacts(
     conn: sqlite3.Connection, task_id: str, metadata: dict,
 ) -> None:
     """Copy scratch-workspace completion artifacts before cleanup removes them."""
+    # Compensation authority comes only from files this invocation actually created.
+    metadata.pop("_staged_artifacts", None)
     raw_artifacts = metadata.get("artifacts")
     if not isinstance(raw_artifacts, (list, tuple)):
         return
@@ -2760,7 +2781,7 @@ def _persist_scratch_completion_artifacts(
 
     attachment_dir = task_attachments_dir(task_id, board=board)
     persisted: list[str] = []
-    used_destinations: set[Path] = set()
+    used_destinations: dict[Path, None] = {}
     changed = False
 
     def _discard_copies() -> None:
@@ -2808,15 +2829,13 @@ def _persist_scratch_completion_artifacts(
             raise ArtifactPreservationError(
                 f"could not preserve declared scratch artifact {artifact}: {exc}"
             ) from exc
-        used_destinations.add(dest)
+        used_destinations[dest] = None
         persisted.append(str(dest.resolve()))
         changed = True
 
     if changed:
         metadata["artifacts"] = persisted
-        metadata["_staged_artifacts"] = [
-            path for path in persisted if path.startswith(str(attachment_dir.resolve()))
-        ]
+        metadata["_staged_artifacts"] = [str(path.resolve()) for path in used_destinations]
 
 
 def _discard_staged_copies(copies: Iterable[Path], attachment_dir: Path) -> None:
@@ -2856,7 +2875,7 @@ def _insert_completion_attachment(
     _append_event(conn, task_id, "attached", {"filename": filename, "size": size, "by": uploaded_by})
 
 
-def _unique_attachment_path(directory: Path, filename: str, used: set[Path]) -> Path:
+def _unique_attachment_path(directory: Path, filename: str, used: Collection[Path]) -> Path:
     """Return a non-conflicting path under ``directory`` for ``filename``."""
     safe_name = Path(filename).name or "artifact"
     stem, suffix = Path(safe_name).stem or "artifact", Path(safe_name).suffix
@@ -2946,6 +2965,7 @@ def edit_task(
     return True
 
 
+@domain_operation("transitions")
 def block_task(
     conn: sqlite3.Connection, task_id: str, *, reason: Optional[str] = None,
     kind: Optional[str] = None, expected_run_id: Optional[int] = None,
@@ -3053,16 +3073,10 @@ def _route_block(
     (un-typed None compares equal to a prior un-typed block). At
     ``BLOCK_RECURRENCE_LIMIT`` the task routes to ``triage`` for a human.
     """
-    payload = {"reason": reason, "kind": kind, "source_status": source_status}
-    if kind == "dependency":
-        return "todo", "dependency_wait", "block_kind    = ?", (kind,), payload
-    recurrences = prev_recurrences + 1 if prev_kind == kind else 1
-    set_sql = "block_kind    = ?,\n                       block_recurrences = ?"
-    payload = {"reason": reason, "kind": kind, "recurrences": recurrences, "source_status": source_status}
-    if recurrences >= BLOCK_RECURRENCE_LIMIT:
-        payload["limit"] = BLOCK_RECURRENCE_LIMIT
-        return "triage", "block_loop_detected", set_sql, (kind, recurrences), payload
-    return "blocked", "blocked", set_sql, (kind, recurrences), payload
+    from hermes_cli.kanban_block_policy import block_transition
+    status, event, values, payload = block_transition(kind, reason, source_status,
+        prev_kind=prev_kind, prev_recurrences=prev_recurrences, recurrence_limit=BLOCK_RECURRENCE_LIMIT)
+    return status, event, ", ".join(f"{column} = ?" for column in values), tuple(values.values()), payload
 
 
 def redact_review_value(value: Any) -> Any:
@@ -3080,6 +3094,7 @@ def redact_review_value(value: Any) -> Any:
     return value
 
 
+@domain_operation("review")
 def request_review(
     conn: sqlite3.Connection, task_id: str, *, summary: Optional[str] = None,
     metadata: Optional[dict] = None, reviewer: Optional[str] = None,
@@ -3229,6 +3244,7 @@ def _nonblank_str(value: Any) -> Optional[str]:
     return value if isinstance(value, str) and value.strip() else None
 
 
+@domain_operation("review")
 def request_changes(
     conn: sqlite3.Connection, task_id: str, *, reason: str, expected_run_id: Optional[int] = None,
 ) -> tuple[bool, Optional[str]]:
@@ -3299,6 +3315,7 @@ def request_changes(
     return True, implementer
 
 
+@domain_operation("transitions")
 def promote_task(
     conn: sqlite3.Connection, task_id: str, *, actor: str, reason: Optional[str] = None,
     dry_run: bool = False,
@@ -3378,6 +3395,7 @@ def _landing_status_after_parents(conn: sqlite3.Connection, task_id: str) -> str
     return "ready" if _parents_satisfied(conn, task_id) else "todo"
 
 
+@domain_operation("transitions")
 def unblock_task(conn: sqlite3.Connection, task_id: str) -> bool:
     """``blocked``/``scheduled`` -> its resumable phase (parent re-gated; ``review``
     when that is where it left off), closing any leaked run first."""
@@ -3422,6 +3440,7 @@ def unblock_task(conn: sqlite3.Connection, task_id: str) -> bool:
         return True
 
 
+@domain_operation("review")
 def reopen_review_task(conn: sqlite3.Connection, task_id: str) -> bool:
     """``review`` -> ``ready``/``todo`` so the implementer re-runs on the new
     comments; restores the implementer from the ``review_requested`` event.
@@ -3689,6 +3708,7 @@ def delete_task(conn: sqlite3.Connection, task_id: str) -> bool:
     return True
 
 
+@domain_operation("transitions")
 def schedule_task(
     conn: sqlite3.Connection, task_id: str, *, reason: Optional[str] = None,
     expected_run_id: Optional[int] = None,
@@ -3936,94 +3956,6 @@ def known_assignees(conn: sqlite3.Connection) -> list[dict]:
 
 # --- Runs (attempt history on a task) ---
 
-def list_runs(
-    conn: sqlite3.Connection, task_id: str, *, include_active: bool = True,
-    state_type: Optional[str] = None, state_name: Optional[str] = None,
-) -> list[Run]:
-    """Runs in start order; ``include_active=False`` = closed only; ``state_type``
-    (``status``/``outcome``) + ``state_name`` filter together."""
-    if (state_type is None) ^ (state_name is None):
-        raise ValueError("state_type and state_name must both be set or both omitted")
-    if state_type is not None and state_type not in ("status", "outcome"):
-        raise ValueError("state_type must be 'status' or 'outcome'")
-    q = "SELECT * FROM task_runs WHERE task_id = ?"
-    params: list[Any] = [task_id]
-    if not include_active:
-        q += " AND ended_at IS NOT NULL"
-    if state_type is not None:
-        q += f" AND {state_type} = ?"
-        params.append(state_name)
-    q += " ORDER BY started_at ASC, id ASC"
-    rows = conn.execute(q, params).fetchall()
-    return [Run.from_row(r) for r in rows]
-
-
-def get_run(conn: sqlite3.Connection, run_id: int) -> Optional[Run]:
-    row = conn.execute("SELECT * FROM task_runs WHERE id = ?", (int(run_id),)).fetchone()
-    return Run.from_row(row) if row else None
-
-
-def latest_run(conn: sqlite3.Connection, task_id: str) -> Optional[Run]:
-    """Return the most recent run regardless of outcome (active or closed)."""
-    row = conn.execute(
-        "SELECT * FROM task_runs WHERE task_id = ? "
-        "ORDER BY started_at DESC, id DESC LIMIT 1", (task_id,),
-    ).fetchone()
-    return Run.from_row(row) if row else None
-
-
-def latest_summary(conn: sqlite3.Connection, task_id: str) -> Optional[str]:
-    """Newest non-empty run summary, or None. Workers hand off via ``summary`` and
-    leave ``tasks.result`` NULL, so views need this or a done task looks empty."""
-    row = conn.execute(
-        "SELECT summary FROM task_runs "
-        "WHERE task_id = ? AND summary IS NOT NULL AND summary != '' "
-        "ORDER BY COALESCE(ended_at, started_at) DESC, id DESC LIMIT 1", (task_id,),
-    ).fetchone()
-    return row["summary"] if row else None
-
-
-def latest_summaries(conn: sqlite3.Connection, task_ids: Iterable[str]) -> dict[str, str]:
-    """``{task_id: newest non-empty run summary}`` in one query (window function,
-    SQLite >= 3.25); tasks without a summary are omitted."""
-    ids = list(task_ids)
-    if not ids:
-        return {}
-    placeholders = ",".join("?" for _ in ids)
-    rows = conn.execute(
-        f"""
-        SELECT task_id, summary FROM (
-            SELECT task_id, summary,
-                   ROW_NUMBER() OVER (
-                       PARTITION BY task_id
-                       ORDER BY COALESCE(ended_at, started_at) DESC, id DESC
-                   ) AS rn
-              FROM task_runs
-             WHERE task_id IN ({placeholders})
-               AND summary IS NOT NULL AND summary != ''
-        ) WHERE rn = 1
-        """,
-        ids,
-    ).fetchall()
-    return {r["task_id"]: r["summary"] for r in rows}
-
-
-def current_run_started_ats(conn: sqlite3.Connection, task_ids: Iterable[str]) -> dict[str, int]:
-    """``{task_id: started_at of the run ``tasks.current_run_id`` points at}``
-    in one query; tasks with no active run (NULL or dangling pointer) are omitted."""
-    ids = list(task_ids)
-    if not ids:
-        return {}
-    placeholders = ",".join("?" for _ in ids)
-    rows = conn.execute(
-        "SELECT t.id AS task_id, r.started_at AS started_at FROM tasks t "
-        "JOIN task_runs r ON r.id = t.current_run_id "
-        f"WHERE t.id IN ({placeholders})",
-        ids,
-    ).fetchall()
-    return {r["task_id"]: r["started_at"] for r in rows}
-
-
 # --- Split modules (imported at the tail: they import this module as ``_kb``) ---
 from hermes_cli.kanban_db_boards import (
     _default_board_display_name,
@@ -4053,9 +3985,14 @@ from hermes_cli.kanban_db_dispatch import (
     _clear_failure_counter,
     _defer_reclaim_for_live_worker,
     _pid_alive,
-    _record_task_failure,
     _terminate_reclaimed_worker,
     _worker_alive,
     _worker_survived_termination,
     _worker_terminal_timeout_env,
 )
+
+from hermes_cli.kanban_db_runs import (
+    list_runs, get_run, latest_run, latest_summary, latest_summaries, current_run_started_ats, recent_profile_completions,
+)
+
+from hermes_cli.kanban_db_failure import _record_task_failure

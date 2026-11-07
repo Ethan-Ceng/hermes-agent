@@ -425,12 +425,22 @@ canonical_method("cron.cancel", params=CronAdmissionParams, result=CronCancelRes
                  doc="Cancel a queued cron admission or latch cancellation on a started one.")
 
 
+class KanbanBoardOwner(Params):
+    version: Literal[1]
+    backend: Literal["postgresql"]
+    profile_home: str
+    store_id: str
+    board_id: str
+    board: str
+
+
 class KanbanRunParams(Params):
     board: str
     task_id: str
     run_id: int
     claim_lock: str
     db: str | None = None
+    owner: KanbanBoardOwner | None = None
 
 
 class KanbanRunResult(Result):

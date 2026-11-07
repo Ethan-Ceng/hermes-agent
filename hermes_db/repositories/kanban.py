@@ -53,6 +53,9 @@ def require_task(conn, store, task_id):
 
 
 def task_update(conn, store, task_id, **values):
+    if "status" in values and values["status"] not in {"done", "archived", "failed", "cancelled"}:
+        from hermes_db.repositories.kanban_workspaces import guard_live_task
+        guard_live_task(conn, store, task_id)
     return conn.execute(update(tasks).where(key(store, task_id)).values(**encode_task(values))).rowcount
 
 
@@ -68,6 +71,8 @@ def comment(conn, store, task_id, author, body, now):
 
 
 def link(conn, store, parent_id, child_id):
+    from hermes_db.repositories.kanban_workspaces import guard_parent_link
+    guard_parent_link(conn, store, parent_id, child_id)
     conn.execute(insert(links).values(**owner(store), parent_id=encode_text(parent_id),
         child_id=encode_text(child_id)).on_conflict_do_nothing())
 

@@ -227,12 +227,15 @@ class AuthorityConnection:
                     'bot_relay.roster.sync': self.bot_roster, 'bot_relay.outbox.drain': self.bot_outbox,
                     'bot_relay.reply': self.bot_reply, 'a2a.forward': self.a2a_forward,
                     'kanban.run': self.kanban_run,
+                    'kanban.result': self.kanban_result,
                     'cron.submit': self.cron_submit, 'cron.status': self.cron_status,
                     'cron.cancel': self.cron_cancel, 'cron.recover': self.cron_recover,
                     'worker.register': self.worker_register, 'worker.adopt': self.worker_adopt,
                     'worker.persist': self.worker_persist,
                     'worker.recall': self.worker_recall,
                     'worker.read': self.worker_read,
+                    'worker.kanban.read': self.worker_kanban_read,
+                    'worker.kanban.command': self.worker_kanban_command,
                     'setup.status': self.setup_status, 'setup.runtime_check': self.setup_runtime_check,
                     'session.resume': self.resume, 'session.detach': self.detach,
                     'prompt.submit': self.submit,
@@ -388,6 +391,10 @@ class AuthorityConnection:
         from gateway.session_kanban import run_task
         return await run_task(self, params)
 
+    async def kanban_result(self, ref, params):
+        from gateway.session_kanban_result import result_task
+        return await result_task(self, params)
+
     async def cron_recover(self, ref, params):
         from gateway.session_cron import rpc
         return await rpc(self, 'recover', params)
@@ -447,6 +454,14 @@ class AuthorityConnection:
     async def worker_read(self, ref, params):
         from gateway.session_worker_reads import worker_read
         return await worker_read(self, ref, params)
+
+    async def worker_kanban_read(self, ref, params):
+        from gateway.session_worker_kanban import worker_kanban
+        return await worker_kanban(self, ref, params, command=False)
+
+    async def worker_kanban_command(self, ref, params):
+        from gateway.session_worker_kanban import worker_kanban
+        return await worker_kanban(self, ref, params, command=True)
 
     async def slash_exec(self, ref, params):
         from gateway.session_commands import execute_command

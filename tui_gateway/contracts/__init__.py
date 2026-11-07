@@ -23,6 +23,7 @@ from . import (
 )
 from . import canonical
 from . import canonical_worker_reads
+from . import canonical_worker_kanban
 from .base import JsonValue, Params, Payload, Result, WireEnum
 from .registry import CANONICAL_METHODS, EVENTS, METHODS, SERVER_REQUESTS
 

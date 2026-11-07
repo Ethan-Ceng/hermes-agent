@@ -1,6 +1,6 @@
 """Immutable Board generations, scoped tasks and dependency graph records."""
 
-from sqlalchemy import BigInteger, Column, ForeignKeyConstraint, Identity, Index, LargeBinary, Text
+from sqlalchemy import BigInteger, Column, ForeignKeyConstraint, Identity, Index, LargeBinary, Text, UniqueConstraint
 from hermes_db.tables.metadata import SCHEMA, scoped_fk, scoped_table
 
 kanban_board_locks = scoped_table("kanban_board_locks", key=())
@@ -48,3 +48,20 @@ Index("ix_kanban_tasks_status", tasks.c.store_id, tasks.c.board_id, tasks.c.stat
 Index("ix_kanban_links_child", links.c.store_id, links.c.board_id, links.c.child_id)
 Index("ix_kanban_comments_task", comments.c.store_id, comments.c.board_id, comments.c.task_id, comments.c.created_at)
 Index("ix_kanban_events_task", events.c.store_id, events.c.board_id, events.c.task_id, events.c.id)
+
+runs = scoped_table("kanban_runs", Column("board_id", Text, nullable=False),
+    Column("id", BigInteger, Identity(), nullable=False), Column("task_id", LargeBinary, nullable=False),
+    *[Column(name, LargeBinary, nullable=name != "status") for name in ("profile", "step_key", "status", "claim_lock", "worker_started_at",
+                                           "outcome", "summary", "metadata", "error")],
+    *[Column(name, BigInteger, nullable=name != "started_at") for name in ("claim_expires", "worker_pid", "max_runtime_seconds", "last_heartbeat_at", "started_at", "ended_at")],
+    key=("board_id", "id"), constraints=(
+        scoped_fk(("board_id", "task_id"), "kanban_tasks", ("board_id", "id"), ondelete="CASCADE"),
+        UniqueConstraint("store_id", "board_id", "task_id", "id", name="uq_kanban_runs_task_identity")))
+tasks.append_constraint(ForeignKeyConstraint(["store_id", "board_id", "id", "current_run_id"],
+    [f"{SCHEMA}.kanban_runs.{name}" for name in ("store_id", "board_id", "task_id", "id")],
+    name="fk_kanban_tasks_current_run", deferrable=True, initially="DEFERRED"))
+events.append_constraint(ForeignKeyConstraint(["store_id", "board_id", "task_id", "run_id"],
+    [f"{SCHEMA}.kanban_runs.{name}" for name in ("store_id", "board_id", "task_id", "id")],
+    name="fk_kanban_events_run", deferrable=True, initially="DEFERRED"))
+Index("ix_kanban_runs_task", runs.c.store_id, runs.c.board_id, runs.c.task_id, runs.c.started_at)
+Index("ix_kanban_runs_status", runs.c.store_id, runs.c.board_id, runs.c.status)

@@ -22,6 +22,7 @@ import time
 from typing import Any, Iterable, Optional
 
 from hermes_cli import kanban_db as kb
+from hermes_db.domains.kanban import domain_operation
 
 BLACKBOARD_PREFIX = "[swarm:blackboard] "
 
@@ -103,6 +104,7 @@ def _activate_root_inline(
     return True
 
 
+@domain_operation("swarm")
 def create_swarm(
     conn: sqlite3.Connection,
     *,
@@ -171,32 +173,12 @@ def _create_swarm_uncommitted(
     """Create the swarm graph inside the caller's transaction: planning root
     (``blocked`` until the caller activates it), parallel workers, a verifier
     waiting on every worker, and a synthesizer waiting on the verifier."""
-    goal = _require_text(goal, "goal")
-    verifier_assignee = _require_text(verifier_assignee, "verifier_assignee")
-    synthesizer_assignee = _require_text(synthesizer_assignee, "synthesizer_assignee")
-    worker_specs = list(workers)
-    if not worker_specs:
-        raise ValueError("at least one worker is required")
-    for i, spec in enumerate(worker_specs, start=1):
-        _require_text(spec.profile, f"workers[{i}].profile")
-        _require_text(spec.title, f"workers[{i}].title")
-
-    common = dict(
-        created_by=created_by, tenant=tenant,
-        workspace_kind=workspace_kind, workspace_path=workspace_path,
-    )
-    root = kb.create_task(
-        conn,
-        title=root_title or f"Swarm: {goal.splitlines()[0][:80]}",
-        body="Kanban Swarm v1 planning/root card. This card is completed "
-             "immediately so parallel workers can start while it remains the "
-             f"shared blackboard and audit anchor.\n\nGoal:\n{goal}",
-        assignee=created_by,
-        priority=priority,
-        idempotency_key=idempotency_key,
-        initial_status="blocked",
-        **common,
-    )
+    from hermes_cli.kanban_swarm_plan import plan_swarm
+    plan = plan_swarm(goal=goal, workers=workers, verifier_assignee=verifier_assignee,
+        synthesizer_assignee=synthesizer_assignee, root_title=root_title, verifier_title=verifier_title,
+        synthesizer_title=synthesizer_title, tenant=tenant, created_by=created_by,
+        workspace_kind=workspace_kind, workspace_path=workspace_path, priority=priority, idempotency_key=idempotency_key)
+    root = kb.create_task(conn, **plan["root"])
 
     # Idempotency may return an existing root: recover its topology from the
     # blackboard instead of duplicating the graph.
@@ -208,50 +190,14 @@ def _create_swarm_uncommitted(
         if worker_ids and verifier_id and synthesizer_id:
             return SwarmCreated(root, worker_ids, str(verifier_id), str(synthesizer_id))
 
-    context_suffix = _swarm_context(root, goal)
-    worker_ids = [
-        kb.create_task(
-            conn,
-            title=spec.title,
-            body=(spec.body or "") + context_suffix,
-            assignee=spec.profile,
-            parents=[root],
-            priority=spec.priority or priority,
-            skills=spec.skills or None,
-            max_runtime_seconds=spec.max_runtime_seconds,
-            **common,
-        )
-        for spec in worker_specs
-    ]
-    verifier = kb.create_task(
-        conn,
-        title=verifier_title,
-        body=(
-            "Review every worker handoff and blackboard update. Gate the swarm: "
-            "complete only with metadata {\"gate\": \"pass\"} when evidence is "
-            "sufficient; otherwise block with exact missing work."
-            + context_suffix
-        ),
-        assignee=verifier_assignee,
-        parents=worker_ids,
-        priority=priority,
-        skills=["requesting-code-review"],
-        **common,
-    )
-    synthesizer = kb.create_task(
-        conn,
-        title=synthesizer_title,
-        body=(
-            "Synthesize the verified worker outputs into the final deliverable. "
-            "Do not start until the verifier has passed the gate."
-            + context_suffix
-        ),
-        assignee=synthesizer_assignee,
-        parents=[verifier],
-        priority=priority,
-        skills=["humanizer"],
-        **common,
-    )
+    context_suffix = _swarm_context(root, plan["goal"])
+
+    def card(fields, parents):
+        return kb.create_task(conn, **dict(fields, body=fields["body"] + context_suffix, parents=parents))
+
+    worker_ids = [card(fields, [root]) for fields in plan["workers"]]
+    verifier = card(plan["verifier"], worker_ids)
+    synthesizer = card(plan["synthesizer"], [verifier])
 
     created = SwarmCreated(root, worker_ids, verifier, synthesizer)
     post_blackboard_update(conn, root, author=created_by, key="topology", value=created.as_dict() | {"goal": goal})
@@ -271,9 +217,13 @@ def latest_blackboard(conn: sqlite3.Connection, root_id: str) -> dict[str, Any]:
     """Merge structured blackboard comments on a root card. Later comments
     replace earlier values for the same key; ``_authors`` records the author
     of the winning value for traceability."""
+    return merge_blackboard(kb.list_comments(conn, root_id))
+
+
+def merge_blackboard(comments) -> dict[str, Any]:
     merged: dict[str, Any] = {}
     authors: dict[str, str] = {}
-    for comment in kb.list_comments(conn, root_id):
+    for comment in comments:
         body = comment.body or ""
         if not body.startswith(BLACKBOARD_PREFIX):
             continue

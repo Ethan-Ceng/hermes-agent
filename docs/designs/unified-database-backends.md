@@ -129,6 +129,18 @@ Task 8 代码核对补充：SQLite Board 的 slug 是目录身份，归档后重
 
 `board.json` 继续是文件配置，保存显示信息、默认工作目录和项目配置；PG 注册表只保存 Board 身份、slug 查找与生命周期，不复制该 JSON 配置进数据库。PG 文件根绑定拥有者 Profile，SQLite 继续保留原共享目录规则。身份事务先提交，文件配置随后写入；文件失败显式上报，重试创建复用已提交的活动代次。工作区/附件目录的归档、清理与跨 Board 转移在 Task 10 闭合，不把 DB 提交假称为文件操作已经成功。
 
+Task 9 依赖细化：现有 `complete_task` / `request_review` 在终态事务中登记保存的附件行，`_spawn_candidate` 同步写入解析后的 workspace/branch，完成后查询父子与跨 Board 的共享工作区引用再清理。因此 Task 9 的真实终态/派发闭合依赖原排在 Task 10 的底层附件元数据、workspace 字段/引用读取和清理接口。将这些必要底层适配提前随 Task 9 实施，Task 10 保留订阅、跨 Board 原子转移、Board 目录生命周期以及剩余工具/dashboard/watchers消费者；任务总数、后端选型和验收范围不变。不得用省略附件保存或跳过清理/共享引用判据使 Task 9 通过；文件准备/回滚与提交确认丢失仍须分别处理。
+
+Task 9 调度协调细化：SQLite 原文件锁覆盖整个 tick（包括工作区/进程等待），PG 不用持有连接的 advisory lock 替代。PG 使用 store 内持久调度租约、随机 owner token 和短事务续租；同 store 的 Board tick 串行，以原子认领及所有 Board 的 running 计数共同保护预算。等待期间连接归还池；租约失效后不再开始新 spawn，已认领任务仍由精确 run/claim 和 owner 回执保护。租约 TTL/续租属于内部实现常量，不增加用户配置或环境变量；进程消失后可按数据库时钟接管。跨 store 的计数不越过 Profile 隔离，机器资源压力仍由已有主机探测约束。
+
+工作区清理并发细化：仅查询现有共享引用后删除文件存在跨Board新增引用的窗口。PG增加store内规范路径注册表与任务引用，路径在连接外解析，业务事务通过同一路径行锁登记引用；恢复非终态、分解继承和新增依赖也核对仍需使用的父工作区。清理事务核对终态、活动子任务与所有Board引用后先提交随机cleanup token，再在连接外清理目录/工作树，最后以token CAS释放。pending token拒绝新引用，不依赖进程内锁或长数据库事务；进程中断后由Task 20维护对账，不能自动过期并冒险删除新引用。路径是本机文件资源定位，业务Board身份仍使用稳定board_id。
+
+回收先在一致读快照中捕获 task、当前 run、owner/worker 事件及水位；事务外执行进程、文件和 admission 探测，短写事务在 Board 锁内重新核对整个快照与事件水位后才结束 run、释放 claim、记事件和失败预算。这些写入一次提交，避免 run 已释放但预算未登记时另一个 dispatcher 重派发。等待期间新绑定的 interpreter、心跳或回执都会使旧快照失效；未知提交保持错误，不自动重试。
+
+Worker 命令协议细化：实际 `worker.persist` 的连续序号与回执属于执行会话owner，Board却可能属于另一个Profile甚至另一个连接目标，不能把Board写入混进该会话事务或假称二者原子。复用Worker已有受保护JSON outbox，增加一个互斥的待确认Kanban命令槽，使用独立随机command_id，不消耗会话persist序号。命令经已采用worker的同一认证RPC连接交给会话owner；owner只从其持久化、冻结的kanban policy解析Board owner ref，不接收Worker自选DSN/Schema/Profile路径。关闭的具名读操作不写入；mutation在Board主业务事务内登记scoped command回执，提交确认丢失后只以同ID/同payload恢复原回执。文件/PR准备和提交后清理仍在事务外，不能为了通用回执包住整段编排而持有连接。明确业务拒绝可登记无副作用回执；存储故障/未知提交保留pending，禁止静默重发为新命令或让后续写入越过它。Worker工厂owner-only护栏保持原样。
+
+Task 9 实库探针已发现真实整机依赖：普通 `gateway.run` 启动会经 `recover_gateway_native_sessions → ensure_hosted_service → RoomCoordination._prepare → hosted_rooms._connect` 无条件打开尚属Task 11–12的房间SQLite。这不是Kanban功能通过，也不是环境缺SDK。保留普通daemon探针作为Task 22必须转绿的全系统场景；在房间实现前，Task 9另用生产SessionAuthority/runtime API/control listener的嵌入式拥有者合同验证真实dispatcher、采用Worker、具名RPC与业务持久化，不改生产启动逻辑、不加“关闭房间以运行PG”的开关。该合同只能证明Kanban/session协议；全系统PG可启动、真实普通daemon及重启仍须Task 22完成，不能用范围较窄的证据替代。
+
 ### 房间与附件
 
 房间事件序号、权限 epoch、幂等身份和退役墓碑用范围约束及行锁保护。Driver、work records、policy checkpoint 和 router claim 对应同一房间事件谱系；提交时重新核对代次与水位。

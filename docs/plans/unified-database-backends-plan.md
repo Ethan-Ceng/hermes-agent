@@ -11,8 +11,8 @@
 
 - 整体状态：`IN_PROGRESS`。
 - 当前阶段：Kanban 领域实施。
-- 当前任务：Task 8 已完成，下一项 Task 9（本地提交后立即进入）。
-- 已完成：8 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前任务：Task 9已完成，下一项Task 10；Task 9本地提交后立即继续。
+- 已完成：9 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-07（Asia/Shanghai）。
@@ -457,7 +457,7 @@ Windows 原生；PM 测试解释器沿用 `.build/postgresql/full-test-env/Scrip
 
 ## Task 9：统一 Kanban run、派发与 Worker 回执
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -469,6 +469,7 @@ Windows 原生；PM 测试解释器沿用 `.build/postgresql/full-test-env/Scrip
 - `hermes_cli/kanban.py`
 - `hermes_cli/kanban_owner_recovery.py`
 - `hermes_cli/kanban_swarm.py`
+- `hermes_cli/kanban_db_workspace.py`、终态所需附件元数据/文件保护接口（从Task 10前移的基础依赖）
 - `agent/kanban_turn_recovery.py`
 - `gateway/session_kanban.py`
 - `hermes_db/operations/kanban_runs.py`
@@ -484,6 +485,7 @@ Windows 原生；PM 测试解释器沿用 `.build/postgresql/full-test-env/Scrip
 1. 端口化资格判断、claim、run ID、心跳、owner恢复、取消、完成及代次护栏。
 2. 明确 Board/任务/run 锁顺序，用受影响行/CAS判定结果，保留未知提交和旧回执拒绝。
 3. 接入真实dispatcher/worker/cron调用链，Worker不直接打开owner会话库。
+4. 端口化终态/派发直接调用的底层附件元数据与 workspace 字段/引用/清理接口；附件内容仍为文件，不跳过保存/共享引用判断。订阅、跨Board转移及剩余消费者仍在Task 10闭合。
 
 ### 验证方式
 
@@ -496,11 +498,62 @@ Windows 原生；PM 测试解释器沿用 `.build/postgresql/full-test-env/Scrip
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+已完成。前置 Task 8 本地提交 `94efe69e4e`。新增 `0011_kanban_runs` 至 `0015_kanban_workspaces` 显式迁移，端口化run/claim/心跳/恢复/派发/终态/审阅、精确进程代次和失败预算。复用原生调度/策略与文件准备，PG使用Board锁及store内持久租约，不占连接等待文件或进程。真实采用Worker使用可信Board owner ref、闭合RPC和独立outbox命令回执，effect+receipt同Board事务。Swarm拓扑/黑板/root激活同事务，CLI diagnostics读取命名快照。必要的附件元数据、工作区引用与cleanup token已接入；SQLite原生路径继续可用。`kanban_runs`能力现已登记；完整workspace/订阅/转移及普通daemon全系统能力仍待后续任务。提交标题：feat(storage): persist Kanban runs dispatch and worker receipts。
+
+以下保留子阶段实施与失败修正记录。初始run实现新增Core run表与Board/store/task复合FK，当前任务指针和事件run引用都不能跨任务或作用域。已有run读取API抽入 `kanban_db_runs.py` 主题模块，facade保持公共补丁入口并净缩减；claim用Board行锁+受影响行CAS；手动reclaim在释放读连接后做进程探测，并以run/lock/PID/指纹快照重查。
+
+初始调用链核对发现：`gateway/session_kanban.py`、`kanban_worker_client.py`、`kanban_owner_recovery.py` 等持有SQLite path/Connection；assigned Profile的会话owner与Board owner可能不同，不能让assignee的store_id覆盖Board身份。随后沿可信派发与已采用Worker frame/RPC传递/核对Board owner ref，保持Worker不直接获得owner store，factory的owner-only防线未放宽。
+
+实施前依赖调整已记录至设计：实际 `complete_task` / `request_review` 事务内登记附件、`_spawn_candidate` 写 workspace/branch、提交后清理查父子/跨Board引用，原Task 9→10顺序缺少这些终态前置。将必要底层附件元数据与workspace适配前移到Task 9；Task 10仍负责订阅、跨Board原子转移、Board目录生命周期及剩余消费者。无功能削减、不改变24项总数；相关实测必须在Task 9完成前提供。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+- 初始 `scripts/run_tests.sh tests/hermes_db/postgresql/test_kanban_runs.py -j 2 -- -m integration --postgres-test-config=$pgTestConfig`：2 failed，明确在 Task 8 保留的未实现 PG 原生事务保护处失败，日志 `unified-task9-red.log`。
+- 首轮 `scripts/run_tests.sh tests/hermes_db/postgresql/test_kanban_runs.py tests/hermes_db/postgresql/test_schema.py -j 2 -- -m integration --postgres-test-config=$pgTestConfig`：退出0，7 passed（2 run/5 Schema），包含真实双子进程同时起跑，只有一个 claim 成功且退出后可读取持久 run；日志 `unified-task9-claims.log`。
+- 新增 reclaim 代次测试后 `scripts/run_tests.sh tests/hermes_db/postgresql/test_kanban_runs.py -j 2 -- -m integration --postgres-test-config=$pgTestConfig`：退出0，3 passed，日志 `unified-task9-reclaim.log`。各 fixture 仍使用核对归属的随机 Schema，父/子拒绝全部 SQLite，未访问正式 Profile/数据或管理 PG 服务。
+- 继续复用/抽出 `kanban_block_policy.py` 的纯状态策略，已接入 PG block/unblock 与 run 结束。对应实库同命令：退出0，4 passed，日志 `unified-task9-blocks.log`，覆盖依赖等待、粘性阻塞、unblock 继承计数与循环进入 triage；并非整个终态/完成/审阅都已实现。
+- `scripts/run_tests.sh tests/hermes_cli/test_kanban_db.py -j 2`：退出0，53 passed、2原生主机平台skip，日志 `unified-task9-native-runs.log`；`scripts/run_tests.sh tests/hermes_cli/test_kanban_block_kinds.py tests/hermes_cli/test_kanban_blocked_sticky.py tests/hermes_cli/test_kanban_resume_guard.py -j 3`：退出0，21 passed，日志 `unified-task9-native-blocks.log`。run schema 新 FK 后 Task 8 实库基础任务合同复验：退出0，9 passed，日志 `unified-task9-task8-regression.log`。
+- 当前部分实现 `PM Python scripts/check --staged --base 94efe69e4e`：退出0，14项通过、0 blocking/advisory，日志 `unified-task9-checks-partial.log`。这不是Task 9最终门禁，后续变更继续复验。
+- 底层附件前置：新增 `0012_kanban_artifacts`，附件行/跨Board路径护栏保存在PG，内容保留文件；新上传使用唯一文件代次，已知回滚删除未登记文件，UnknownCommit保留文件。最后一个引用的删除先提交cleanup token，文件删除在连接归还后执行，新引用遇到待清理token显式失败；跨Board共享引用保留内容。进程在cleanup中途丢失的token需由Task 20维护/对账闭合，当前未宣称完整生命周期恢复。
+- `scripts/run_tests.sh tests/hermes_db/postgresql/test_kanban_artifacts.py tests/hermes_db/postgresql/test_schema.py -j 2 -- -m integration --postgres-test-config=$pgTestConfig`：退出0，7 passed（2附件/5Schema），初始对应2项按预期NotReady失败。增加真实COMMIT后客户端确认丢失与跨Board并发引用测试后单文件4 passed；日志 `unified-task9-artifacts-faults.log`。确认丢失为真实服务器COMMIT之后在客户端注入异常，未声称做过网络代理丢包。
+- workspace字段与引用读取已改为命名Core接口，共用文件编排通过持有资源绑定owner Profile，原生/PG不再在这些编排中直接读取tasks原生SQL。`scripts/run_tests.sh tests/hermes_db/postgresql/test_kanban_workspaces.py tests/hermes_db/postgresql/test_kanban_artifacts.py tests/hermes_db/postgresql/test_kanban_runs.py -j 3 -- -m integration --postgres-test-config=$pgTestConfig`：退出0，10 passed；日志 `unified-task9-workspace-base.log`。workspace当前证明现存共享引用保护与字段/拥有者绑定；并发新增workspace引用与清理的最终协调护栏尚待闭合，不能把这2项adapter合同外推为完整workspace生命周期验收。
+- 完成态已开始：`test_kanban_completion.py` 最初3项在原生SQL未适配处失败；接入 Core 完成/证据/PR接受快照和事务外文件准备后，3项通过，扩展客户端COMMIT确认丢失与PR接受身份/连接断言后5项通过（`unified-task9-completion-faults.log`）。PR收据使用既有 `collect_acceptance` seam 测试，未声称真实GitHub网络验收。完成后副本/附件行持久化、旧run回执拒绝、失败时保持running和继任者不受影响均实测；审阅/dispatcher/owner链及workspace并发清理护栏仍未完成。
+- 复用文件helper时定位出既有回滚补偿缺陷：`_persist_scratch_completion_artifacts` 用附件目录前缀而非本次创建集合生成补偿列表，导致 review 回滚删除已有附件。`git log -p -S 'staged_copies = _stage_completion_artifacts'` 核对 `ba65ce668ab9` 原意为只清理本次副本；在 `94efe69e4e` 原始 facade/workspace 源码覆盖并finally恢复的基线上，新增行为合同确实1 failed（`unified-task9-file-ownership-base.log`）。已改为有序的实际创建集合；调用者传入内部暂存marker的第二场景也先复现1 failed/1 passed（`unified-task9-file-marker-red.log`），随后清除输入marker再生成补偿权限。两种后端共享该helper，修正整个类而非只补PG。
+- 原生workspace扩展回归最初73 passed、1 failed、2平台skip，其中 teardown 用例在测试准备阶段 `scratch.rmdir()` 即触发 Windows“当前目录被占用”，未运行产品清理。该“已删除 cwd”前提仅POSIX可构造，已用 `platforms("posix")` 标记，无OS伪装。修正后 staging/teardown 两文件19 passed、1平台skip（尚未加入第二marker场景时，`unified-task9-file-ownership-green.log`）；最新两场景复验继续记录。
+- 两种暂存所有权场景及无PG导入SQLite合同最新共7 passed（`unified-task9-file-marker-green.log`）。完成态 result/summary/任意JSON回填已接入，先复现显式NotReady，再单文件6 passed（`unified-task9-result-edit.log`），更新原completed run而不生成重复handoff。
+- 审阅原生SQL与Worker上下文role查询原先3 failed；接入Core request_review/request_changes/reopen与recent_profile_completions后3 passed，扩展真实COMMIT阶段延迟FK回滚后4 passed（`unified-task9-review-faults.log`）。Body失败/COMMIT明确回滚只补偿新副本，UnknownCommit保留内容；实现者/审阅者在changes→重做→再审阅中保持原来源。
+- 本轮原生7文件命令（`test_kanban_db.py`、`test_kanban_review_lifecycle.py`、`test_kanban_review_lifecycle_complete.py`、`test_kanban_empty_completion.py`、`test_kanban_task_updated_hook.py`、`test_kanban_complete_live_claim_guard.py`、`test_kanban_artifact_staging_ownership.py`，均在`tests/hermes_cli/`，`scripts/run_tests.sh ... -j 3`）：退出0，116 passed、2平台skip，日志 `unified-task9-native-terminal.log`。
+- 本轮实库7文件命令（`test_kanban_tasks.py`、`test_kanban_runs.py`、`test_kanban_artifacts.py`、`test_kanban_workspaces.py`、`test_kanban_completion.py`、`test_kanban_review.py`、`test_schema.py`，均在`tests/hermes_db/postgresql/`，`scripts/run_tests.sh ... -j 3 -- -m integration --postgres-test-config=$pgTestConfig`）：退出0，34 passed，日志 `unified-task9-domain-partial.log`。不包含尚未适配的dispatcher/owner链。
+- 人工promotion与reassign合同先2 failed，其中实际SQL错误被旧 `except RuntimeError` 吞成False，违背该函数只处理“仍在running”的原意。新增窄 `TaskAlreadyClaimedError(RuntimeError)` 用于分配业务拒绝，两种后端一致；PG promotion与reassign接入后2 passed（`unified-task9-routing.log`），存储故障明确传播。
+- 完成态基础阶段静态复验 `PM Python scripts/check --staged --base 94efe69e4e`：退出0，14项通过（`unified-task9-checks-terminal-partial.log`）；该次尚未含最后review/result/promotion变更，Task 9最终静态门禁仍待继续执行。
+- 失败结算从过长dispatch主题抽入 `kanban_db_failure.py`，公开补丁入口统一为facade的 `_record_task_failure`，agent finalizer和原测试同步改用此入口，无旧内部路径shim。共享failure预算策略；PG在同一短事务处理run/claim/预算，旧run不能计入继任者，基础设施拒绝不计失败。`scripts/run_tests.sh tests/hermes_db/postgresql/test_kanban_failures.py -j 2 -- -m integration --postgres-test-config=$pgTestConfig`：退出0，2 passed（先按预期失败，`unified-task9-failures.log`）。原生4文件（db/review_lifecycle_complete/worker_exit_trailer/agent iteration_limit_exit）94 passed、2平台skip（`unified-task9-native-failures.log`）；`test_run_agent.py -k 'kanban_block or no_kanban_block'`仅选择改动的2项，2 passed（`unified-task9-agent-seam.log`），不外推为完整agent回归。
+- PID发布/采用已接入Core，进程指纹在事务外取得，任务和run记录同一个PID/出生指纹，并用run/claim锁拒绝旧发布。`test_kanban_runs.py`最新6 passed（先2 failed/4 passed，`unified-task9-pid.log`），用实际测试进程指纹验证；未终止当前测试进程。
+- owner恢复的具名证据读取接入Core，实测真实PG admission从queued→running→terminal；相同task ID在另一Board/store无回执串读，旧run的worker_result不能成为新run依据。`test_kanban_owner_recovery.py`初始2 failed于原生SQL，修正测试keyword调用后2 passed（`unified-task9-owner.log`）；所有SQLite连接仍拒绝，远程owner不以PID推断状态。
+- 过期租约、孤儿与陈旧心跳扫描使用脱离连接的task/run/event水位快照；写入前Board锁内重查，run结束、claim释放、事件与失败预算原子提交。首轮3项红后，两文件5 passed（`unified-task9-sweeps.log`）。加入真实独立子进程的超时终止、死亡/clean-exit分类、终态回收和结算注入回滚后先3 failed/5 passed（未适配crash/reaper，`unified-task9-crash-red.log`），随后8 passed（`unified-task9-crash.log`）。信号hook实测池checkedout=0；等待期新owner回执使旧快照失效；注入失败使run与预算一起回滚。未操作正式进程/服务。
+- 派发租约设计已在编码前细化至设计：PG不以持续占连接的advisory lock包住spawn等待；store内持久token租约+续租、短事务认领与预算协调。实现和跨进程/接管证据仍待提供，不能据此声明dispatcher完成。
+- 随后新增 `0013_kanban_dispatch` 和store内持久token租约；后台续租用捕获resource的显式scope，不持有等待连接，不运行SQLite文件锁或WAL checkpoint。共享原生lane/budget编排，PG在claim事务内再核对租约与跨Board running预算；共享respawn纯策略，PG存储错误不吞成0/False。`test_kanban_dispatch.py`与`test_schema.py`首轮8 passed（`unified-task9-dispatch-first.log`），含真实子进程tick与另一Board竞争，子进程退出后仍从PG读取running预算。spawn仍为测试回调，尚未验证真实owner/Worker执行链。
+- 新增“工作区准备期间operator reclaim”合同先1 failed/4 passed（`unified-task9-spawn-fence-red.log`），证明旧run会继续spawn；启动前加入Board事务内精确run/claim+租约核对与claim续期后5 passed（`unified-task9-dispatch-fences.log`）。其中续租合同越过初始TTL仍保持唯一owner，旧owner释放不会删除继任者token。
+- 共享respawn/dispatch改动后原生5文件（db、host_cap、list_undecodable_text、review_lifecycle、dispatch_tick_hook）98 passed、2平台skip（`unified-task9-native-dispatch.log`）。owner回收原生3文件（owner_receipt_reclaim、managed_worker_loss、dispatch_lock）31 passed、2平台skip（`unified-task9-native-owner.log`）。本阶段静态检查14项通过、health56文件0 blocking（`unified-task9-checks-sweeps-partial.log`），该次还未包含后续dispatch/schema13/owner-policy变更。
+- 已接入gateway真实policy构建与admission marker入口的PG分支，Board owner引用显式携带Profile home、store_id和稳定Board代次，不接受DSN/SQL/额外字段，也不从assigned Profile重解释Board身份。`test_kanban_owner_policy.py`最初1 failed/1 passed为测试误把Event DTO的dict payload再次json.loads，修正后随owner-recovery/dispatch合同复验；实际结果记录在下一条。原生gateway两个文件排除真实dispatcher lifecycle的选择性回归4 passed（`unified-task9-native-policy.log`）；不外推为完整原生或PG Worker回归。
+- 该轮owner-policy/recovery/dispatch实库3文件9 passed（`unified-task9-owner-policy.log`）。补充不完整PG owner receipt后先按SQLite连接拒绝策略1 failed/2 passed（`unified-task9-owner-untyped-red.log`）；PG新数据集不接受历史裸db路径作为owner身份。新回执显式带backend/Profile home/principal，通过配置选择会话SDK；SQLite旧历史裸路径只留在原生Board兼容路径。两文件5 passed（`unified-task9-owner-typed.log`）。
+- 原生真实dispatcher argv、普通owner进程、loopback模型/tool round与complete/timeout/rate-limit/billing/crash生命周期随 `test_session_kanban.py` 全文件重跑，与owner_receipt_reclaim共24 passed、2平台skip（`unified-task9-native-owner-typed.log`）。该证据仅SQLite；PG实际Worker/RPC/outbox路径仍未接通。
+- 崩溃分类增加protocol连续预算、rate-limit不计失败、真实死亡dispatcher租约按数据库时钟过期并由继任者接管，实库sweeps/dispatch两文件15 passed（`unified-task9-crash-and-lease.log`）。后续静态检查发现3 blocking（两处通用异常缺traceback、续租测试固定sleep）和1 advisory（原始Thread未继承ContextVars），已按规则加诊断、改为轮询数据库时钟，并使用 `spawn_context_thread`；最新复验待记录，未以waiver跳过。
+- SDK协议核对后记录Worker命令实现细化：现有 `worker.persist` 必须保持会话owner连续序号，Board可以属于不同Profile/连接目标，不能在会话receipt事务内调用独立Board事务后宣称原子。复用已有受保护JSON outbox增加互斥Kanban pending槽，独立command_id；owner从持久冻结policy获得Board ref，具名mutation在Board主事务登记effect+receipt，未知提交保留同命令待确认。读请求不承载写入，不放宽factory owner-only。该细化已在对应编码前写入设计，尚待实现、真实RPC/故障/重启验收。
+- Worker JSON outbox增加互斥 `kanban_pending`，复用原私有目录、独占文件锁、原子落盘、大小限制和已验证adoption规则，不消耗 `worker.persist` 的next_sequence。新增2项合同最初AttributeError红，随后outbox新旧两文件8 passed、1 POSIX平台skip（`unified-task9-command-outbox.log`）。这是本地journal/RPC模拟证据；真实owner RPC和端到端尚未接通。
+- 新增 `0014_kanban_commands`，Board主事务可登记无损DTO/tuple/文本结果与request digest；重放只返回同一命令结果，变更payload冲突。comment首个实际消费者的实库回执/Schema合同8 passed（`unified-task9-command-receipts.log`），包含真实COMMIT后客户端确认丢失仍只有1条comment、回执插入失败使comment/event一并回滚、同command ID跨Board/store不串。关键生命周期已逐项插入主事务result登记，后续复验进行中；未将部分hook覆盖外推为全部命令已可远程执行。
+- 关键command result hook后8个PG领域文件38 passed（`unified-task9-command-hooks.log`）；该阶段完整静态14项通过、health79文件0 blocking/advisory（`unified-task9-checks-command-partial.log`），不含后续RPC桥接。具名RPC合同实库1 passed（`unified-task9-worker-rpc-first.log`）：真实会话SDK的execution/adoption/generation/epoch与跨store Board effect/receipt均实际读写，PID认证在此项使用既有verified-claim seam，不能算真实子进程认证。canonical覆盖/生成4 passed（`unified-task9-worker-contracts.log`）；之后加入载体/结果桥接，恢复/等待/契约四文件63 passed（`unified-task9-worker-bridge-native.log`）。
+- 普通daemon强探针先失败，诊断 `unified-task9-worker-e2e-diagnostic.log` 指向尚未实施的房间启动依赖：`recover_gateway_native_sessions → CanonicalHostedRoomService → RoomCoordination._prepare → hosted_rooms._connect` 实际触发被拒绝的SQLite连接。未关闭房间、未放行SQLite、未把失败改成成功。该全系统场景保留为Task 22必须转绿的显式场景；Task 9改用生产原语组成的嵌入式session owner合同继续验证Kanban/采用Worker/RPC真实链。范围与影响已先写入设计，普通daemon启动/重启仍未通过、整体full_system_ready仍false。
+- 真实嵌入式Owner/dispatcher argv/submitter/已采用Worker/RPC/tool实测发现用量结算 `_compression_ancestors` 调用SQLite私有 `_is_compression_child_row`，导致成功Worker被错误结算unknown。核对引入历史 `fcaddb248d` 的压缩祖先用量意图后，新PG合同2项先按AttributeError红（`unified-task9-worker-usage-red.log`），改用已有portable `is_compression_child`；原生用量8 passed（`unified-task9-native-worker-usage.log`）。
+- PG真实Worker+用量+命令回执3文件7 passed（`unified-task9-worker-embedded-green.log`）：loopback模型实际调用comment/complete、PG持久化、submitter退出0、所有业务Python进程由sitecustomize拒绝全部SQLite，实际interpreter PID有独立guard见证。关闭重开与Owner重启后epoch增长、重复kanban.run均恢复同一terminal admission，kanban.result退出0、comment仍1条、worker_bound仍1次且没有新增推理。测试服务器修正Ollama `/api/show` 元数据探测应404，推理计数仅计真实 `/v1/chat/completions`；未用停功能回避数据库。该证据仍限嵌入式session runtime，普通daemon待Task 22。
+- RPC/Worker桥接阶段静态 `PM Python scripts/check --staged --base 94efe69e4e` 14项通过、health99文件0 blocking/advisory（`unified-task9-checks-worker-partial.log`）；不含后续workspace fence等变更。工作区新增引用竞态合同先2 failed（`unified-task9-workspace-fence-red.log`），实现0015规范路径引用+持久cleanup token后，与完成/Schema3文件15 passed（`unified-task9-workspace-fence-first.log`）。连接外删除期间，另一Board create/set同路径均明确Busy并回滚，清理后可重新引用；父子引用/中断恢复仍继续验证。
+- Swarm合同先2 failed（`unified-task9-swarm-red-workspace.log`，原生write_txn明确拒绝PG）；抽出共同卡片计划并以命名Core整图事务实现。随后修正测试误把argv list传给Namespace入口、诊断年龄需同时包含ready事件的fixture问题，Swarm/slash diagnostics与workspace父子/中断2文件7 passed（`unified-task9-swarm-diagnostics-green.log`）。另一Board新增引用、同Board新增live child在目录删除回调期间均Busy且无连接占用；中断token关闭重开仍拒绝新引用，未冒称Task 20对账已完成。
+- 新增调度清理故障合同先1 failed/1 passed（`unified-task9-lease-error-red.log`），修正release失败掩盖原UnknownCommitError，原错误对象和unknown语义保留，清理错误加note；正常tick只有release失败仍传播StorageError。该修正已包含下列整批PG回归。
+- PG整批实际命令：`$pgFiles = @(Get-ChildItem tests/hermes_db/postgresql/test_kanban*.py | ForEach-Object { $_.FullName }); & $testRunner scripts/run_tests.sh @pgFiles tests/hermes_db/postgresql/test_managed_worker_usage.py tests/hermes_db/postgresql/test_schema.py -j 4 -- -m integration --postgres-test-config=$pgTestConfig`，退出0，18文件75 passed（`unified-task9-pg-regression.log`）。配置fixture限定已核对归属的随机Schema，全业务测试过程拒绝所有SQLite连接。
+- 后续真实Worker E2E增加独立命名执行Profile/store_id，与默认Profile两个模式2 passed（`unified-task9-worker-cross-profile.log`）；不是PID或SDK mock。Board effect留在store one，session admission标记实际执行store worker-two与Profile，执行Profile自己的Board仍无任务；重启后同terminal admission、同run、同一comment、无重复推理，实际owner/interpreter/submitter链的SQLite guard均有见证。普通daemon仍保留Task 22失败场景，未替换整系统验收。
+- SQLite原生整批实际命令：`$nativeFiles = @(Get-ChildItem tests/hermes_cli/test_kanban*.py | ForEach-Object { $_.FullName }); & $testRunner scripts/run_tests.sh @nativeFiles tests/agent/test_kanban_turn_recovery.py tests/agent/test_kanban_command_outbox.py tests/agent/test_runtime_session_store.py tests/agent/test_runtime_session_store_proxy.py tests/agent/test_turn_finalizer_iteration_limit_exit.py tests/gateway/test_session_kanban.py tests/gateway/test_managed_worker_result_usage.py tests/cron/test_cron_kanban_env_isolation.py -j 4`：90文件首轮680 passed、1 failed、20平台skip（`unified-task9-native-regression.log`）。唯一失败为配置故障测试fixture时机/错误预期；产品原有allowlist失败仍跳过全部card。调整为连接和任务就绪后注入故障、兼容显式配置路径参数，保留skipped_nonspawnable与无claim/run断言，单文件9 passed（`unified-task9-config-fault-green.log`）。其余89个文件通过后实现未再改变，未额外重复运行；没有未整改失败或pass-on-retry。
+- 收尾配置/Schema能力两文件9 passed（`unified-task9-capability.log`）；root agent预算seam两项2 passed（`unified-task9-agent-finalizer.log`，`scripts/run_tests.sh tests/agent/test_run_agent.py -j 1 -- -k kanban_block`）；RPC生成/无驱动资源/Board ref四文件9 passed、1 POSIX平台skip（`unified-task9-final-contracts.log`）。最终 `PM Python scripts/check --staged --base 94efe69e4e` 退出0，14检查通过、health112文件0 blocking/advisory（`unified-task9-checks-final.log`）；后续仅更新本执行账本。
+
+未验证/恢复点：Task 10继续订阅、跨Board转移、Board目录生命周期、dashboard/watchers/CLI tail及通用Worker工具消费者；当前PG RPC只绑定真实Kanban采用Worker，普通chat与delegated child工具能力需在Task 10闭合。附件25MB文件传递不能被4MB Worker outbox缩限，需专用文件handoff。附件/workspace中断token与命令提交后工作对账待Task 20。普通daemon仍被后续房间域SQLite依赖阻止，强场景须Task 22转绿。20项跨平台skip没有在本机验证，不伪装OS；Task 24最终验证与独立审查仍未执行。仅Task 9已验收，不宣称完整Kanban或全系统PG。
 
 ## Task 10：统一 Kanban 订阅、工作区引用与跨 Board 转移
 
@@ -1016,6 +1069,7 @@ CLI/Gateway/Web/TUI/Desktop/ACP/Agent及后台任务统一接入领域能力。
 - `acp_adapter/`
 - `tools/`
 - `tests/hermes_db/postgresql/test_unified_surfaces.py`
+- `tests/hermes_db/postgresql/scenarios/kanban_full_gateway.py`（Task 9提前建立、必须转绿的普通daemon场景）
 
 ### 依赖与接口
 
@@ -1075,6 +1129,7 @@ CLI/Gateway/Web/TUI/Desktop/ACP/Agent及后台任务统一接入领域能力。
 
 - `scripts/run_tests.sh tests/hermes_db/contracts/test_single_backend.py`
 - `scripts/run_tests.sh tests/hermes_db/postgresql/test_single_backend.py -- -m integration --postgres-test-config=$pgTestConfig`
+- `scripts/run_tests.sh tests/hermes_db/postgresql/scenarios/kanban_full_gateway.py -- -m integration --postgres-test-config=$pgTestConfig`；房间端口化后必须转绿并扩大为普通daemon重启恢复，禁止以嵌入式owner合同替代。
 - 预期所有自有SQLite连接尝试为0，且各功能的真实业务结果、持久化和重启恢复全部成立。
 
 ### 完成条件
@@ -1186,6 +1241,7 @@ CLI/Gateway/Web/TUI/Desktop/ACP/Agent及后台任务统一接入领域能力。
 | 2026-11-07 | 撤销独立Cron/Kanban/rooms/插件SQLite排除，建立统一后端计划 | 用户明确可选意味着系统单后端可用；原会话成果复用，新域全部待实施 |
 | 2026-11-07 | 统一选择提升至storage.backend | 避免组件配置造成运行时必须混用数据库；旧开发配置显式报错，不静默回退 |
 | 2026-11-07 | Matrix单列完整SDK协议任务 | 源码实际传sqlite URL；不能凭PgCryptoStore类名或替换DSN判定已经统一 |
+| 2026-11-07 | Task 9提前包含终态/派发直接依赖的底层附件元数据与workspace适配 | complete/review/spawn实调用链依赖原Task 10接口；避免通过跳过保存/清理完成Task 9，订阅/转移/剩余消费者仍归Task 10，24项总数与验收不变 |
 
 ## 最终验证
 
@@ -1209,7 +1265,7 @@ CLI/Gateway/Web/TUI/Desktop/ACP/Agent及后台任务统一接入领域能力。
 
 ### 未通过与未验证
 
-Task 1–8 已完成，Task 9–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
+Task 1–9 已完成，Task 10–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
 
 ### 最终状态
 
@@ -1217,6 +1273,6 @@ Task 1–8 已完成，Task 9–24 尚未完成；不得宣称全系统PG已完�
 
 ## 恢复点
 
-Task 1–8 配置/领域基础、验证证据、Projects、Cron执行/incident/投递/notepad及Kanban基础任务/图已验收；Task 8 本地提交后从 Task 9 的 run/派发/owner作用域和Worker回执继续。分支仍为 `feat/postgresql-session-storage`；正式实例保持 SQLite，开发未写正式 Profile、秘密或业务数据库。Task 8 实证为153原生/合同通过、5平台skip、32真实PG通过、14检查通过；更大范围仍待对应任务，不外推完整Kanban或全系统PG。
+Task 1–9已验收；Task 9提交后从Task 10的订阅、转移、Board文件生命周期和剩余消费者继续。分支仍为 `feat/postgresql-session-storage`；正式实例保持SQLite，开发未写正式Profile、秘密或业务数据库。Task 9有75项整批PG、随后两种真实Worker模式及故障/Schema/契约证据；原生唯一fixture失败已单文件复验通过，平台缺口明确保留。尚不外推完整Kanban或全系统PG。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

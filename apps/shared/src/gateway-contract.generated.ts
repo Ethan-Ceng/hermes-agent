@@ -4980,6 +4980,15 @@ export interface KanbanRunParams {
   run_id: number
   claim_lock: string
   db?: string | null
+  owner?: KanbanBoardOwner | null
+}
+export interface KanbanBoardOwner {
+  version: 1
+  backend: 'postgresql'
+  profile_home: string
+  store_id: string
+  board_id: string
+  board: string
 }
 export interface KanbanRunResult {
   session_id: string
@@ -5488,6 +5497,32 @@ export interface WorkerReadParams {
   payload: Record<string, string>
 }
 export type WorkerReadResult = boolean | string | Record<string, unknown> | null
+export interface WorkerKanbanReadParams {
+  profile_id: string
+  session_id: string
+  execution_id: string
+  generation: number
+  pid: number
+  birth: number
+  secret: string
+  epoch: number
+  operation: string
+  payload: Record<string, unknown>
+}
+export type WorkerKanbanResult = Record<string, unknown>
+export interface WorkerKanbanCommandParams {
+  profile_id: string
+  session_id: string
+  execution_id: string
+  generation: number
+  pid: number
+  birth: number
+  secret: string
+  epoch: number
+  operation: string
+  payload: Record<string, unknown>
+  command_id: string
+}
 /** ``answers`` rides only on a reconnect replay (locks the server already accepted; null = skipped). */
 export interface ClarifyRequestParams {
   session_id: string
@@ -7009,6 +7044,8 @@ export interface CanonicalRpcMethods {
   'groups.discard': { params: GroupsDiscardParams; result: GroupsDiscardResult }
   'groups.retry': { params: CanonicalRoomAttemptParams; result: GroupsRetryResult }
   'image.attach_bytes': { params: ImageAttachBytesParams; result: CanonicalAttachedImageResult }
+  /** Read the native producer's exact saved Kanban attempt result through its owner. */
+  'kanban.result': { params: KanbanRunParams; result: WorkerKanbanResult }
   /** Native-owner only: admit the dispatcher's current claim on a kanban task. */
   'kanban.run': { params: KanbanRunParams; result: KanbanRunResult }
   'profiles.list': { params: CanonicalProfilesParams; result: CanonicalProfilesResult }
@@ -7052,6 +7089,10 @@ export interface CanonicalRpcMethods {
   'shell.exec': { params: CanonicalShellExecParams; result: ShellExecResult }
   /** Adopt a registered execution after verifying the live producer claim. */
   'worker.adopt': { params: WorkerScopeParams; result: WorkerExecution }
+  /** Apply a named Board mutation once under its scoped durable command receipt. */
+  'worker.kanban.command': { params: WorkerKanbanCommandParams; result: WorkerKanbanResult }
+  /** Read named Board data through the adopted worker's frozen owner policy. */
+  'worker.kanban.read': { params: WorkerKanbanReadParams; result: WorkerKanbanResult }
   /** Sequence-fenced typed persistence write from an adopted worker. */
   'worker.persist': { params: WorkerPersistParams; result: WorkerPersistResult }
   /** Read fixed tool metadata through the authenticated adopted execution owner. */
@@ -7084,6 +7125,7 @@ export const CANONICAL_RPC_METHODS = [
   'groups.discard',
   'groups.retry',
   'image.attach_bytes',
+  'kanban.result',
   'kanban.run',
   'profiles.list',
   'prompt.cancel',
@@ -7110,6 +7152,8 @@ export const CANONICAL_RPC_METHODS = [
   'session.steer',
   'shell.exec',
   'worker.adopt',
+  'worker.kanban.command',
+  'worker.kanban.read',
   'worker.persist',
   'worker.read',
   'worker.recall',
