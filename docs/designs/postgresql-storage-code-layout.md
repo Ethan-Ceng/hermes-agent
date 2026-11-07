@@ -2,6 +2,8 @@
 
 ## 状态与范围
 
+> 当前定位：本文件是会话阶段的代码布局依据；该阶段已实施。用户最新明确系统单后端可用的目标后，完整领域布局及全局配置以[统一数据库后端设计](unified-database-backends.md)为准，任务以[统一实施计划](../plans/unified-database-backends-plan.md)为准；下文旧pending/尚未实施描述仅为最初设计时点。
+
 - 日期：2026-11-06。
 - 状态：DESIGN_READY，代码结构设计已收敛，尚未实施。
 - 命名已确定：数据库层包为 `hermes_db`，数据仓储为 `repositories/`；沿用 SQLAlchemy Core 推荐方案。

@@ -131,6 +131,13 @@ distributed file storage, account management, or active-active gateway ownership
 External message delivery remains best-effort and cannot promise exactly-once
 effects in a remote platform.
 
+The independent SQLite stores described above are a limitation of the current
+session-backend implementation. The planned unified database layer will apply
+one backend selection to all Hermes-owned databases, including Cron, Kanban,
+room coordination, metrics, and maintained plugin stores. That extension is
+not implemented yet; the session acceptance results do not establish that the
+whole application can currently run with PostgreSQL as its only database.
+
 ## Developer verification
 
 Use an independent, administrator-managed test database with `pg_trgm` already

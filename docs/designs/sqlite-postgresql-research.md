@@ -2,6 +2,8 @@
 
 ## 状态与结论
 
+> 后续范围修正（2026-11-07）：保留本报告的历史源码事实，不重做整轮技术选型。用户要求全部自有数据库服从hermes_db的一个后端选择；独立数据库的新增实现范围见[统一数据库后端设计](unified-database-backends.md)和[实施计划](../plans/unified-database-backends-plan.md)。
+
 - 日期：2026-11-06。
 - 状态：源码调研已完成；实施范围与架构见接入设计和实施计划，尚未运行 PostgreSQL 验证。
 - 后续决策：用户已确认只支持新 PG 数据，不兼容或迁移旧数据；数据库层采用 hermes_db、共享 Schema + 稳定 store_id，执行任务见 [实施计划](../plans/postgresql-session-storage-plan.md)。下文源码事实保留，历史导入分析不构成实施范围。
