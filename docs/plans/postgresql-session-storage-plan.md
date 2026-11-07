@@ -12,8 +12,8 @@
 
 - 整体状态：`IN_PROGRESS`，恢复真实PG验收，最终门禁尚未通过。
 - 当前阶段：M1/M2主题实库验收通过，继续M3 API/投递/搜索/入口验收。
-- 当前任务：Task 14（in_progress：投递账本/claim/重试预算真实PG）；Tasks 15–17为verification_pending，Task18最终门禁待补。
-- 已完成：13 / 18。
+- 当前任务：Task 15（in_progress：中文/布尔/长正文/真实查询计划PG）；Tasks 16–17为verification_pending，Task18最终门禁待补。
+- 已完成：14 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：用户已填写根.env并启用pg_trgm；PG17.11、扩展1.6(public)、CREATE权限和测试Schema归属/清理均已实测，连接TLS=false。继续按任务依赖顺序验收，不读取/改写既有业务表。
 - 最近更新时间：2026-11-07（Asia/Shanghai）。
@@ -778,7 +778,7 @@ Task13 完成/恢复点（2026-11-07）：真实 `tests/hermes_db/postgresql/tes
 
 ## Task 14：实现对外投递义务账本
 
-状态：in_progress（开始真实PG验收）
+状态：completed
 
 ### 目标
 
@@ -826,9 +826,11 @@ Task 14 离线检查点：已补齐 crash-left 同回复去重登记、重试/�
 
 新增 crash-left 契约先 5 passed / Core 缺接口 1 failed，补齐后通过；当前 11 项离线投递契约覆盖 process home、adapter profile、跨 store、迟到/同实例旧 token、限流采用、未发送退款、预算、清理、事务回滚、真实提交后注入 ack 丢失，并在发送回调断言没有活动写事务。scripts/run_tests.sh tests/hermes_db 加投递/最终流式回复六个现有测试文件：66 files，430 passed / 0 failed，39.0s，exit 0；另连接泄露/单连接 2 passed，1.4s。日志 .build/postgresql/task14-tests.log。默认运行器排除了 integration，PG 文件显示的估算数量不是 PG 通过。新增 11 项真实 PG 定义（含三个屏障并发竞争）未执行；合计 201 项真实 PG 定义仍无执行证据。测试配置文件再次核对不存在。Task 14 保持 verification_pending，不能称 PG 投递后端已通过；下一任务 Task 15 可独立推进。
 
+Task14 完成/恢复点（2026-11-07）：真实 `tests/hermes_db/postgresql/test_deliveries.py` 全部11项passed、0 failed、9.7s、exit0（pg-task14-deliveries-tests.log）。涵盖内容去重、崩溃遗留回复、洪水退避/预算、scope、TTL夺取与旧token拒绝、未知提交与回滚、实际Gateway提交/发送等待时持有claim，以及并发启动/运行sweep只一位claimant、崩溃回复只登记一次。验证本地账本原子性，不声称外部平台exactly-once；无生产改动，严格completed14/18。保存后继续Task15实际搜索和EXPLAIN/索引证据。
+
 ## Task 15：实现 PG 搜索与中文查询契约
 
-状态：verification_pending
+状态：in_progress（开始真实PG验收）
 
 ### 目标
 
