@@ -12,8 +12,8 @@
 
 - 整体状态：`IN_PROGRESS`，恢复真实PG验收，最终门禁尚未通过。
 - 当前阶段：M1真实环境及Schema初始化验收通过，继续M2会话业务实库验收。
-- 当前任务：Task 6（in_progress：会话/提示/用量/查询真实PG）；Tasks 7–17为verification_pending，Task18最终门禁待补。
-- 已完成：5 / 18。
+- 当前任务：Task 7（in_progress：完整消息/历史/水位锁真实PG）；Tasks 8–17为verification_pending，Task18最终门禁待补。
+- 已完成：6 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：用户已填写根.env并启用pg_trgm；PG17.11、扩展1.6(public)、CREATE权限和测试Schema归属/清理均已实测，连接TLS=false。继续按任务依赖顺序验收，不读取/改写既有业务表。
 - 最近更新时间：2026-11-07（Asia/Shanghai）。
@@ -314,11 +314,11 @@ Task4 完成证据（2026-11-07）：管理员启用pg_trgm后，标准runner真
 
 2026-11-06，PM Python 3.14.9：标准 runner `tests/hermes_db/test_table_contracts.py tests/hermes_cli/test_db_commands.py` 初次 8 passed；`tests/hermes_db tests/hermes_cli/test_db_setup.py tests/hermes_cli/test_db_commands.py` 57 passed（exit 0），6 个 PG integration 测试按默认 marker deselected，不计通过。新增池超时/真实配置消费检查后受影响两文件重跑 8 passed。迁移资源由真实 Alembic ScriptDirectory 找到 required head。DDL 只编译/冻结，未在 PG 执行。静态检查首次 14 项中仅 Ruff 的三个 RUF015 测试迭代写法不合规，已修正，最新 UTF-8 `scripts/check --staged --base HEAD` 全部 14 项通过，health 0 blocking/0 advisory。最终完整离线局部回归同上命令 59 passed/0 failed（exit 0）；PG 集成 6 项 deselected，不计通过。真实空库 upgrade、重复升级、并发锁、跨 store FK 和权限场景均待 Task 4 配置，不能标 completed。
 
-## Task 6：实现会话生命周期、提示快照、用量与查询
-
 Task5 完成/恢复点（2026-11-07）：原5项真实Schema迁移/重复升级/版本拒绝/跨store约束已通过；用户提出初始化启动改进新增5项实库验收。先观察初始化先发45条DDL、当前版本错误报ready的有效红灯，另有新增诊断字段缺口；实现后两文件10 passed、7.7s、exit0（pg-task5-schema-startup-tests.log）。101文件离线回归536 passed/0 failed/2制品未显式选择skipped，52.5s；默认排除integration不计PG通过（pg-task5-offline-regression.log）。最新14 staged检查通过，3 code files/0 blocking/0 advisory（pg-task5-startup-checks.log）。独立复查报告postgresql-initialization-review.md未发现该阶段阻塞问题，全分支仍CHANGES_REQUIRED。status/check_schema/health共用连接内扩展就绪判断，显式upgrade在DDL前检查，缺项给出修复SQL；无自动安装扩展/无启动DDL。Schema形状未变，不新增Alembic revision。Task5本地保存后按依赖继续Task6，会话业务尚未外推为通过。
 
-状态：in_progress（开始真实PG验收）
+## Task 6：实现会话生命周期、提示快照、用量与查询
+
+状态：completed
 
 ### 目标
 
@@ -365,9 +365,11 @@ Task5 完成/恢复点（2026-11-07）：原5项真实Schema迁移/重复升级/
 
 最新离线回归：`HERMES_PYTHON=.build/postgresql/test-env/Scripts/python.exe`，`bash scripts/run_tests.sh tests/hermes_db tests/hermes_cli/test_db_setup.py tests/hermes_cli/test_db_commands.py`：exit 0，18 文件、114 passed、0 failed，15.2 秒；日志 `.build/postgresql/task6-tests.log`。真实 PG 28 项用例由默认 integration 过滤排除，不计通过。默认独立 PG 配置文件仍不存在。`PYTHONUTF8=1`，PM Python 执行 `scripts/check --staged --base HEAD`：exit 0，14 checks ok，health 39 文件、0 blocking/0 advisory（日志 `.build/postgresql/task6-checks.log`）。
 
+Task6 完成/恢复点（2026-11-07）：标准runner真实 `tests/hermes_db/postgresql/test_sessions.py -j 1 -- -m integration --postgres-test-config=<私有路径> --tb=short` 全部22参数化契约passed、0 failed、17.7s、exit0（pg-task6-sessions-tests.log）。覆盖完整会话生命周期、提示/工具pin原文、累计与绝对用量、nullable金额、元数据保真、来源/权限作用域及查询；每项使用归属隔离Schema，未改既有用户表。无生产代码变更，不重复扩大已通过测试；严格completed6/18。保存此task验证commit后继续Task7消息与水位锁；并发运行账本/搜索/API等仍待后续实库验证。
+
 ## Task 7：实现完整消息写入与历史读取
 
-状态：verification_pending（离线实现/共享契约通过；真实 PG 竞争与驱动验收待配置）
+状态：in_progress（开始真实PG验收）
 
 ### 目标
 
