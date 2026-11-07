@@ -159,6 +159,7 @@ website/static/api/automation-blueprints-index.json
 models-dev-upstream/
 
 # Local editor / agent tooling (machine-specific; keep in global config, not the repo)
+.idea
 .codex/
 .cursor/
 .gemini/
@@ -332,3 +333,6 @@ native/fts5_cjk/*.so
 /pm/.lock.json.lock
 
 apps/desktop/.dist-build*
+
+# Demo
+dify-main
