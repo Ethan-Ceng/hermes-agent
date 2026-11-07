@@ -12,8 +12,8 @@
 
 - 整体状态：`IN_PROGRESS`，恢复真实PG验收，最终门禁尚未通过。
 - 当前阶段：M1真实环境及Schema初始化验收通过，继续M2会话业务实库验收。
-- 当前任务：Task 10（in_progress：租约/压缩/谱系提交竞争真实PG）；Tasks 11–17为verification_pending，Task18最终门禁待补。
-- 已完成：9 / 18。
+- 当前任务：Task 11（in_progress：路由/代次/交接/整理真实PG）；Tasks 12–17为verification_pending，Task18最终门禁待补。
+- 已完成：10 / 18。
 - 产品范围阻塞：无。用户已确认使用新库，不迁移旧数据。
 - 执行前置条件：用户已填写根.env并启用pg_trgm；PG17.11、扩展1.6(public)、CREATE权限和测试Schema归属/清理均已实测，连接TLS=false。继续按任务依赖顺序验收，不读取/改写既有业务表。
 - 最近更新时间：2026-11-07（Asia/Shanghai）。
@@ -539,7 +539,7 @@ Task9 完成/恢复点（2026-11-07）：真实 `tests/hermes_db/postgresql/test
 
 ## Task 10：实现租约、压缩与谱系提交
 
-状态：in_progress（开始真实PG验收）
+状态：completed
 
 ### 目标
 
@@ -591,9 +591,11 @@ Worker 发布将 execution 的物理目标和 admission lineage 同事务推进�
 - ruff/health 当前通过（35 files、0 blocking/0 advisory）；全量 staged scripts/check --staged --base HEAD 14 checks / 0 blocking / 0 advisory 通过，exit 0，日志 .build/postgresql/task10-checks.log。
 - 新增 27 项真实 PG 压缩/租约/Worker/故障/并发用例，尚未执行；与前序合计 102 项 PG 用例未验证。仅 collect-only 尝试被 runner 按 0 实际测试返回 exit 1，不记为通过。默认本地 PostgreSQL 测试配置路径仍不存在；未连接 PG、未管理数据库服务/扩展。
 
+Task10 完成/恢复点（2026-11-07）：真实 `tests/hermes_db/postgresql/test_compression_leases.py` 全部27项passed、0 failed、26.0s、exit0（pg-task10-compression-tests.log）。覆盖真实租约过期/续租/夺取、holder隔离、原位/轮换压缩、持有覆盖与晚到尾部、缓存列/UID/全部消息字段、回滚、Worker压缩回执重启与竞争不分叉。真实并发摘要等待期间另连接追加NUL正文成功，最终保留summary及完整late tail，确认模型/摘要等待不占事务。无生产改动，严格completed10/18；保存验证后继续Task11路由/代次/交接。
+
 ## Task 11：实现路由、会话代次与整理状态
 
-状态：verification_pending
+状态：in_progress（开始真实PG验收）
 
 ### 目标
 
