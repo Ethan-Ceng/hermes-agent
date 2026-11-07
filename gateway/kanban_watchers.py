@@ -130,6 +130,12 @@ class GatewayKanbanWatchersMixin:
         # tick), or advance/rewind land on a per-slug DB the notifier never
         # reads and cursors silently reset.
         with _kb.pin_first_board_resolution():
+            if "_board_owner" in sub:
+                from hermes_db.domains.kanban_owner import open_board_owner
+                with open_board_owner(sub["_board_owner"]) as conn:
+                    getattr(_kbn, op)(conn, task_id=sub["task_id"], platform=sub["platform"], chat_id=sub["chat_id"],
+                                      thread_id=sub.get("thread_id") or "", **extra)
+                return
             conn = _kbc.connect(board=board)
             try:
                 getattr(_kbn, op)(

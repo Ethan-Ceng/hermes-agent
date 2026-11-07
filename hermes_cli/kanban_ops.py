@@ -16,6 +16,7 @@ from hermes_cli import kanban_db as kb
 from hermes_cli import kanban_db_connect as kbc
 from hermes_cli import kanban_db_dispatch as kbd
 from hermes_cli import kanban_db_workspace as kbw
+from hermes_cli import kanban_db_queries as queries
 from hermes_cli.kanban_output import _err, _fmt_ts, _print_json
 
 
@@ -272,17 +273,12 @@ def _cmd_watch(args: argparse.Namespace) -> int:
     print(f"Watching kanban events (initial board '{kb.get_current_board()}'). Ctrl-C to stop.", flush=True)
     # Seed cursor at the latest id so we don't replay history.
     with kbc.connect_closing() as conn:
-        cursor = int(conn.execute("SELECT COALESCE(MAX(id), 0) AS m FROM task_events").fetchone()["m"])
+        cursor = queries.latest_event_id(conn)
 
     def tick():
         nonlocal cursor
         with kbc.connect_closing() as conn:
-            rows = conn.execute(
-                "SELECT e.id, e.task_id, e.kind, e.payload, e.created_at,        t.assignee, "
-                "t.tenant FROM task_events e LEFT JOIN tasks t ON t.id = e.task_id WHERE e.id > ? "
-                "ORDER BY e.id ASC LIMIT 200",
-                (cursor,),
-            ).fetchall()
+            rows = queries.events_after(conn, cursor, with_task=True)
         for r in rows:
             cursor = max(cursor, int(r["id"]))
             if (kinds and r["kind"] not in kinds) or (args.assignee and r["assignee"] != args.assignee) \
@@ -304,44 +300,12 @@ def _cmd_watch(args: argparse.Namespace) -> int:
 
 def _cmd_gc(args: argparse.Namespace) -> int:
     """Remove archived tasks' scratch workspaces, old events, and old worker logs."""
-    import shutil
     event_days = getattr(args, "event_retention_days", 30)
     log_days = getattr(args, "log_retention_days", 30)
     if event_days < 0 or log_days < 0:
         return _err("kanban gc: retention days must be >= 0 (0 disables that sweep)", 2)
-    scratch_root = kb.workspaces_root()
-    removed_ws = 0
     with kbc.connect_closing() as conn:
-        rows = conn.execute(
-            "SELECT id, workspace_kind, workspace_path, branch_name FROM tasks "
-            "WHERE status = 'archived'"
-        ).fetchall()
-        for row in rows:
-            if row["workspace_kind"] == "worktree":
-                # Backstop for worktrees that escaped the completion/archive hook.
-                # Same safety predicate: only clean, fully-pushed worktrees go.
-                wt_path = row["workspace_path"]
-                if wt_path and Path(wt_path).is_dir():
-                    if kbw._defer_shared_worktree_cleanup(conn, row["id"], wt_path):
-                        continue
-                    kbw._cleanup_worktree_workspace(row["id"], wt_path, row["branch_name"])
-                    if not Path(wt_path).is_dir():
-                        removed_ws += 1
-                continue
-            if row["workspace_kind"] != "scratch":
-                continue
-            path = Path(row["workspace_path"] or (scratch_root / row["id"]))
-            # Same containment predicate as completion cleanup (#28818): strictly below a
-            # managed root, never the root itself (which holds every task's scratch dir).
-            # Cheap existence/symlink check first: most rows were already cleaned at
-            # completion, and rmtree refuses a symlink (so it must not be counted).
-            if not path.is_dir() or path.is_symlink() or not kbw._is_managed_scratch_path(path):
-                continue
-            if kbw._defer_shared_workspace_cleanup(conn, row["id"], path):
-                continue
-            shutil.rmtree(path, ignore_errors=True)
-            if not path.exists():
-                removed_ws += 1
+        removed_ws = kbw.gc_archived_workspaces(conn)
 
     removed_events = 0
     if event_days:

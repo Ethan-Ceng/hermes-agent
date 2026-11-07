@@ -562,6 +562,10 @@ def _board_path(
     resolving through the pin. Without explicit intent the ``env_var`` override
     pins the file, else legacy ``<root>/<default_parts>`` for the ``default``
     board, else ``board_dir(slug)/leaf``."""
+    from hermes_db.domains.kanban_files import generation_path
+    selected_path = generation_path(env_var, board, leaf)
+    if selected_path is not None:
+        return selected_path
     pin = os.environ.get(env_var, "").strip() if env_var else ""
     slug = _explicit_board_slug(board)
     if pin and (slug is None or _explicit_board_intent_pinned()):
@@ -1166,44 +1170,6 @@ def _missing_task_ids(conn: sqlite3.Connection, ids: Iterable[str]) -> list[str]
     rows = conn.execute(f"SELECT id FROM tasks WHERE id IN ({placeholders})", ids).fetchall()
     present = {r["id"] for r in rows}
     return [p for p in ids if p not in present]
-
-
-def _inherit_notify_subs(
-    conn: sqlite3.Connection, child_id: str, parents: Iterable[str], *,
-    created_at: Optional[int] = None,
-) -> None:
-    """Copy parents' notify subscriptions to a child, cursor caught up to the
-    child's current event so a late ``link_tasks`` never replays history.
-
-    Single owner of inheritance (create_task, link_tasks, decompose). It must
-    copy EVERY routing/delivery column: dropping ``chat_type`` made DM-originated
-    completions wake a fresh group session instead of the originating DM.
-
-    Omitting columns here silently degrades routing: a DM-originated child completion falls back to
-    chat_type='group' and wakes a fresh group-scoped session instead of the originating DM (issue #73030).
-    """
-    parent_ids = tuple(dict.fromkeys(p for p in parents if p))
-    if not parent_ids:
-        return
-    row = conn.execute(
-        "SELECT COALESCE(MAX(id), 0) AS cursor FROM task_events WHERE task_id = ?", (child_id,),
-    ).fetchone()
-    cursor = int(row["cursor"] if row is not None else 0)
-    placeholders = ",".join("?" * len(parent_ids))
-    conn.execute(
-        f"""
-        INSERT OR IGNORE INTO kanban_notify_subs
-            (task_id, platform, chat_id, thread_id, user_id, user_id_alt,
-             chat_type, notifier_profile, delivery_mode, delivery_metadata,
-             created_at, last_event_id)
-        SELECT ?, platform, chat_id, thread_id, user_id, user_id_alt,
-               COALESCE(chat_type, 'dm'), notifier_profile,
-               COALESCE(delivery_mode, 'notify'), delivery_metadata, ?, ?
-          FROM kanban_notify_subs
-         WHERE task_id IN ({placeholders})
-        """,
-        (child_id, int(created_at if created_at is not None else time.time()), cursor, *parent_ids),
-    )
 
 
 @domain_operation("tasks")
@@ -2455,6 +2421,7 @@ class LiveClaimError(ValueError):
     as recoverable."""
 
     def __init__(self, task_id: str):
+        self.task_id = task_id
         super().__init__(
             f"{task_id} is running under a live worker claim; pass expected_run_id "
             "(worker ownership) or force=True (explicit operator override) instead "
@@ -3477,6 +3444,7 @@ def reopen_review_task(conn: sqlite3.Connection, task_id: str) -> bool:
         return True
 
 
+@domain_operation("reopen")
 def invalidate_descendants_for_parent_reopen(
     conn: sqlite3.Connection, task_id: str, *, author: str,
 ) -> dict[str, Any]:
@@ -3630,6 +3598,7 @@ def specify_triage_task(
     return True
 
 
+@domain_operation("archive")
 def archive_task(conn: sqlite3.Connection, task_id: str, *, signal_fn=None) -> bool:
     """Archive a task; a *running* task's host-local worker is terminated.
 
@@ -3996,3 +3965,4 @@ from hermes_cli.kanban_db_runs import (
 )
 
 from hermes_cli.kanban_db_failure import _record_task_failure
+from hermes_cli.kanban_db_notify import _inherit_notify_subs

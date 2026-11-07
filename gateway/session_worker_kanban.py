@@ -22,6 +22,8 @@ async def worker_kanban(connection, ref, params, *, command):
     if "worker:adopt" not in connection.actor.capabilities:
         raise RuntimeStoreError("permission_denied")
     if command:
+        if "/child:" in params["execution_id"]:
+            raise RuntimeStoreError("permission_denied")
         command_id = params["command_id"]
         if not isinstance(command_id, str) or len(command_id) != 32 or any(char not in "0123456789abcdef" for char in command_id):
             raise RuntimeStoreError("invalid_params")
@@ -31,9 +33,17 @@ async def worker_kanban(connection, ref, params, *, command):
 def _execute(connection, ref, params, command):
     from hermes_cli.kanban_db import ArtifactPreservationError
     from gateway.session_worker_recall import verify_read
-    from gateway.session_worker_kanban_operations import frozen_context, invoke, refusal
+    from gateway.session_worker_kanban_context import frozen_context
+    from gateway.session_worker_kanban_operations import invoke, refusal
     verify_read(connection, ref, params)
     context = frozen_context(connection, ref, params)
+    if params["operation"] == "board.resolve":
+        return pack(context)
+    context = dict(context, principal=connection.actor.subject)
+    if params["operation"] == "attachment.chunk":
+        from gateway.session_worker_kanban_upload import write_chunk
+        with open_board_owner(context["owner"]):
+            return pack(write_chunk(context, params, connection.actor.subject))
     if not command:
         with open_board_owner(context["owner"]) as store:
             return pack(invoke(store, context, params, params["operation"], params["payload"]))

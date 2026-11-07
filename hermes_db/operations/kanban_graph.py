@@ -59,6 +59,8 @@ def link_tasks(store, parent_id, child_id, *, expected_child_run_id=None):
             repo.task_update(conn, store, child_id, status="todo")
             repo.event(conn, store, child_id, "dependency_wait", {"reason": "parent_not_done", "demoted": True, "parent": parent_id})
         repo.event(conn, store, child_id, "linked", {"parent": parent_id, "child": child_id})
+        from hermes_db.operations.kanban_notify import inherit
+        inherit(conn, store, child_id, (parent_id,))
         return store.command_result(conn, gated)
 
 
@@ -151,6 +153,8 @@ def _decomposed_child(conn, store, root, child, author, now, path_key):
     conn.execute(tasks.insert().values(**repo.owner(store), **repo.encode_task(values)))
     workspaces.register(conn, store, task_id, path_key)
     repo.event(conn, store, task_id, "created", {"by": author or "decomposer", "from_decompose_of": root["id"]})
+    from hermes_db.operations.kanban_notify import inherit
+    inherit(conn, store, task_id, (root["id"],), created_at=now)
     return task_id
 
 

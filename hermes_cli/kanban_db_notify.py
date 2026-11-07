@@ -16,6 +16,7 @@ from typing import Iterable
 from typing import Mapping
 from typing import Optional
 from typing import TYPE_CHECKING
+from hermes_db.domains.kanban import domain_operation
 
 if TYPE_CHECKING:
     from hermes_cli.kanban_db import Event
@@ -64,6 +65,7 @@ def _decode_notify_delivery_metadata(raw: Any) -> dict[str, Any]:
     return {str(key): value for key, value in data.items() if isinstance(value, _SCALAR_TYPES)}
 
 
+@domain_operation("notify")
 def add_notify_sub(
     conn: sqlite3.Connection,
     *,
@@ -163,6 +165,7 @@ def _notify_profile_filter(
     return "(" + ") OR (".join(clauses) + ")", params
 
 
+@domain_operation("notify")
 def list_notify_subs(
     conn: sqlite3.Connection,
     task_id: Optional[str] = None,
@@ -217,6 +220,14 @@ def count_notify_subs(
     chat/thread exactly. Raises :class:`sqlite3.Error` if the DB exists but is
     unreadable — callers pick their own fallback.
     """
+    from hermes_cli.db_setup import storage_backend
+    if storage_backend() == "postgresql":
+        if db_path is not None:
+            from hermes_db.errors import StorageConfigurationError
+            raise StorageConfigurationError("SQLite subscription path overrides cannot select a PostgreSQL Board")
+        from hermes_db.operations.kanban_notify import count_notify_subs as count
+        return count(board=board, notifier_profiles=notifier_profiles, include_unowned=include_unowned,
+                     platform=platform, chat_id=chat_id, thread_id=thread_id)
     path = db_path if db_path is not None else _kb.kanban_db_path(board=board)
     if not path.exists():
         return 0
@@ -252,6 +263,7 @@ def count_notify_subs(
         conn.close()
 
 
+@domain_operation("notify")
 def remove_notify_sub(
     conn: sqlite3.Connection,
     *,
@@ -268,6 +280,7 @@ def remove_notify_sub(
     return cur.rowcount > 0
 
 
+@domain_operation("notify")
 def purge_stale_done_notify_subs(conn: sqlite3.Connection, *, max_age_days: int = 30) -> int:
     """Delete notify subs whose task sat in ``done``/``blocked`` untouched for
     longer than ``max_age_days`` (``<= 0`` disables); returns rows deleted.
@@ -319,6 +332,7 @@ def _notify_cursor(
     return None if row is None else int(row["last_event_id"])
 
 
+@domain_operation("notify")
 def unseen_events_for_sub(
     conn: sqlite3.Connection,
     *,
@@ -349,6 +363,7 @@ def unseen_events_for_sub(
     return max_id, out
 
 
+@domain_operation("notify")
 def claim_unseen_events_for_sub(
     conn: sqlite3.Connection,
     *,
@@ -389,6 +404,7 @@ def _cas_cursor(conn: sqlite3.Connection, key: tuple, new_cursor: int, expected:
     )
 
 
+@domain_operation("notify")
 def advance_notify_cursor(
     conn: sqlite3.Connection,
     *,
@@ -405,6 +421,7 @@ def advance_notify_cursor(
         )
 
 
+@domain_operation("notify")
 def record_notify_ping(
     conn: sqlite3.Connection, *, task_id: str, platform: str, chat_id: str,
     thread_id: Optional[str] = None, event_id: int,
@@ -418,6 +435,7 @@ def record_notify_ping(
         )
 
 
+@domain_operation("notify")
 def rewind_notify_cursor(
     conn: sqlite3.Connection,
     *,
@@ -434,6 +452,44 @@ def rewind_notify_cursor(
     with _kb.write_txn(conn):
         cur = _cas_cursor(conn, _sub_key(task_id, platform, chat_id, thread_id), old_cursor, claimed_cursor)
     return cur.rowcount > 0
+
+
+def _inherit_notify_subs(
+    conn: sqlite3.Connection, child_id: str, parents: Iterable[str], *,
+    created_at: Optional[int] = None,
+) -> None:
+    """Copy parents' notify subscriptions to a child, cursor caught up to the
+    child's current event so a late ``link_tasks`` never replays history.
+
+    Single owner of inheritance (create_task, link_tasks, decompose). It must
+    copy EVERY routing/delivery column: dropping ``chat_type`` made DM-originated
+    completions wake a fresh group session instead of the originating DM.
+
+    Omitting columns here silently degrades routing: a DM-originated child completion falls back to
+    chat_type='group' and wakes a fresh group-scoped session instead of the originating DM (issue #73030).
+    """
+    parent_ids = tuple(dict.fromkeys(p for p in parents if p))
+    if not parent_ids:
+        return
+    row = conn.execute(
+        "SELECT COALESCE(MAX(id), 0) AS cursor FROM task_events WHERE task_id = ?", (child_id,),
+    ).fetchone()
+    cursor = int(row["cursor"] if row is not None else 0)
+    placeholders = ",".join("?" * len(parent_ids))
+    conn.execute(
+        f"""
+        INSERT OR IGNORE INTO kanban_notify_subs
+            (task_id, platform, chat_id, thread_id, user_id, user_id_alt,
+             chat_type, notifier_profile, delivery_mode, delivery_metadata,
+             created_at, last_event_id)
+        SELECT ?, platform, chat_id, thread_id, user_id, user_id_alt,
+               COALESCE(chat_type, 'dm'), notifier_profile,
+               COALESCE(delivery_mode, 'notify'), delivery_metadata, ?, ?
+          FROM kanban_notify_subs
+         WHERE task_id IN ({placeholders})
+        """,
+        (child_id, int(created_at if created_at is not None else time.time()), cursor, *parent_ids),
+    )
 
 
 # Late-bound origin namespace (see module docstring); imported LAST so this

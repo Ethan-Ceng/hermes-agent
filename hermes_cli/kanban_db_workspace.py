@@ -293,6 +293,9 @@ def _managed_scratch_path_info(p: Path) -> tuple[bool, Optional[str]]:
                 board,
             ))
 
+    from hermes_db.domains.kanban_files import managed_scratch_roots
+    for generation_root, generation_board in managed_scratch_roots():
+        _add_root(generation_root.parent, generation_root.parent.resolve(strict=False), (generation_root.name,), generation_board)
     override = os.environ.get("HERMES_KANBAN_WORKSPACES_ROOT", "").strip()
     if override:
         override_root = Path(override).expanduser()
@@ -496,6 +499,26 @@ def _cleanup_worktree_workspace(
             _git(repo_root, "branch", "-D", branch, timeout=30)
     except Exception:
         pass  # best-effort — never block completion
+
+
+@domain_operation("workspaces")
+def gc_archived_workspaces(conn):
+    scratch_root = _kb.workspaces_root()
+    removed = 0
+    for row in _kb.list_tasks(conn, status="archived", include_archived=True):
+        if row.workspace_kind == "worktree":
+            path = Path(row.workspace_path) if row.workspace_path else None
+            if path is not None and path.is_dir() and not _defer_shared_worktree_cleanup(conn, row.id, path):
+                _cleanup_worktree_workspace(row.id, str(path), row.branch_name)
+                removed += not path.is_dir()
+        elif row.workspace_kind == "scratch":
+            path = Path(row.workspace_path or (scratch_root / row.id))
+            if not path.is_dir() or path.is_symlink() or not _is_managed_scratch_path(path):
+                continue
+            if not _defer_shared_workspace_cleanup(conn, row.id, path):
+                shutil.rmtree(path, ignore_errors=True)
+                removed += not path.exists()
+    return removed
 
 
 def _try_cleanup_parent_workspaces(conn: sqlite3.Connection, task_id: str) -> None:

@@ -17,6 +17,7 @@ import re
 import sqlite3
 import time
 from concurrent.futures import ThreadPoolExecutor
+from contextvars import copy_context
 from contextlib import closing, contextmanager
 from dataclasses import asdict
 from functools import partial
@@ -36,6 +37,9 @@ from hermes_cli import kanban_db_notify as kbn
 from hermes_cli import kanban_db_dispatch as kbd
 from hermes_cli import kanban_db_workspace as kbw
 from hermes_cli import kanban_diagnostics as kd
+from hermes_cli import kanban_db_queries as queries
+from hermes_db.errors import StorageError
+from hermes_db.domains.kanban import domain_operation
 from hermes_cli.kanban_db import KANBAN_ATTACHMENT_MAX_BYTES, _collision_free_path, _safe_attachment_name
 
 log = logging.getLogger(__name__)
@@ -213,29 +217,13 @@ def _compute_task_diagnostics(conn: sqlite3.Connection, task_ids: Optional[list[
     if task_ids is not None and not task_ids:
         return {}
     diag_config = kd.config_from_runtime_config(load_config())
-    if task_ids is not None:
-        rows = conn.execute(f"SELECT * FROM tasks WHERE id IN ({_placeholders(task_ids)})", tuple(task_ids)).fetchall()
-    else:
-        rows = conn.execute("SELECT * FROM tasks WHERE status != 'archived'").fetchall()
-    if not rows:
-        return {}
-    row_ids = [r["id"] for r in rows]
-
-    def _rows_by_task(table: str) -> dict[str, list]:
-        by_task: dict[str, list] = {tid: [] for tid in row_ids}
-        for row in conn.execute(
-            f"SELECT * FROM {table} WHERE task_id IN ({_placeholders(row_ids)}) ORDER BY id", tuple(row_ids)):
-            by_task.setdefault(row["task_id"], []).append(row)
-        return by_task
-
-    events_by_task = _rows_by_task("task_events")
-    runs_by_task = _rows_by_task("task_runs")
-    graph_by_task = kanban_db.task_graph_contexts(conn, row_ids)
+    from hermes_cli.kanban_diagnostic_snapshot import diagnostic_snapshot
+    snapshot = diagnostic_snapshot(conn, task_ids=task_ids)
     out: dict[str, list[dict]] = {}
-    for r in rows:
+    for r, events, runs, graph in snapshot:
         tid = r["id"]
         diags = kd.compute_task_diagnostics(
-            r, events_by_task[tid], runs_by_task[tid], config=diag_config, graph=graph_by_task.get(tid))
+            r, events, runs, config=diag_config, graph=graph)
         if diags:
             out[tid] = [d.to_dict() for d in diags]
     return out
@@ -268,9 +256,7 @@ def _attach_diagnostics(task_d: dict, diags: Optional[list[dict]]) -> None:
 
 def _links_for(conn: sqlite3.Connection, task_id: str) -> dict[str, list[str]]:
     """Return {'parents': [...], 'children': [...]} for a task."""
-    def _ids(col: str, other: str) -> list[str]:
-        return [r[col] for r in conn.execute(f"SELECT {col} FROM task_links WHERE {other} = ? ORDER BY {col}", (task_id,))]
-    return {"parents": _ids("parent_id", "child_id"), "children": _ids("child_id", "parent_id")}
+    return {"parents": kanban_db.parent_ids(conn, task_id), "children": kanban_db.child_ids(conn, task_id)}
 
 
 def _link_tasks(conn: sqlite3.Connection, links: dict[str, list[str]]) -> list[dict]:
@@ -300,20 +286,9 @@ def get_board(
             conn, tenant=tenant, include_archived=include_archived,
             workflow_template_id=workflow_template_id, current_step_key=current_step_key)
         # Link / comment / progress rollups are each one aggregate query rather than N per-task lookups.
-        link_counts: dict[str, dict[str, int]] = {}
-        for row in conn.execute("SELECT parent_id, child_id FROM task_links").fetchall():
-            link_counts.setdefault(row["parent_id"], {"parents": 0, "children": 0})["children"] += 1
-            link_counts.setdefault(row["child_id"], {"parents": 0, "children": 0})["parents"] += 1
-        comment_counts: dict[str, int] = {
-            r["task_id"]: r["n"] for r in conn.execute("SELECT task_id, COUNT(*) AS n FROM task_comments GROUP BY task_id")}
-        progress: dict[str, dict[str, int]] = {}  # per parent: children done / total, rendered as "N/M"
-        for row in conn.execute(
-            "SELECT l.parent_id AS pid, t.status AS cstatus FROM task_links l JOIN tasks t ON t.id = l.child_id").fetchall():
-            p = progress.setdefault(row["pid"], {"done": 0, "total": 0})
-            p["total"] += 1
-            p["done"] += row["cstatus"] == "done"
+        link_counts, comment_counts, progress, tenants = queries.board_rollups(conn)
         diagnostics_per_task = _compute_task_diagnostics(conn, task_ids=None)
-        latest_event_id = conn.execute("SELECT COALESCE(MAX(id), 0) AS m FROM task_events").fetchone()["m"]
+        latest_event_id = queries.latest_event_id(conn)
         columns: dict[str, list[dict]] = {c: [] for c in BOARD_COLUMNS}
         if include_archived:
             columns["archived"] = []
@@ -340,7 +315,6 @@ def get_board(
         columns["done"].sort(key=lambda d: (d["completed_at"] is None, -(d["completed_at"] or 0)))
 
         # Queue columns keep list_tasks' dispatch order (priority DESC, created_at ASC).
-        tenants = [r["tenant"] for r in conn.execute("SELECT DISTINCT tenant FROM tasks WHERE tenant IS NOT NULL ORDER BY tenant")]
         # List of known assignees for the lane-by-profile sub-grouping.
         # Uses kanban_db.known_assignees so the lane set unions profiles
         # currently holding non-archived tasks with profiles configured on
@@ -670,23 +644,10 @@ def _open_parent_refusal(conn, task_id: str, s: str) -> Optional[str]:
 def _patch_title_body(conn, task_id: str, payload: UpdateTaskBody, board: Optional[str]) -> None:
     """PATCH title/body phase: one UPDATE + ``edited`` event, then the post-commit observer
     (field names only — values never leave the DB via this payload)."""
-    with kanban_db.write_txn(conn):
-        sets, vals = [], []
-        if payload.title is not None:
-            if not payload.title.strip():
-                raise HTTPException(status_code=400, detail="title cannot be empty")
-            sets.append("title = ?")
-            vals.append(payload.title.strip())
-        if payload.body is not None:
-            sets.append("body = ?")
-            vals.append(payload.body)
-        vals.append(task_id)
-        conn.execute(f"UPDATE tasks SET {', '.join(sets)} WHERE id = ?", vals)
-        conn.execute(
-            "INSERT INTO task_events (task_id, kind, payload, created_at) VALUES (?, 'edited', NULL, ?)",
-            (task_id, int(time.time())))
-    kanban_db.notify_task_updated(
-        conn, task_id, [f for f in ("title", "body") if getattr(payload, f) is not None], board=board)
+    title = payload.title.strip() if payload.title is not None else None
+    if title == "":
+        raise HTTPException(status_code=400, detail="title cannot be empty")
+    kanban_db.edit_task(conn, task_id, title=title, body=payload.body, board=board)
 
 
 @router.patch("/tasks/{task_id}")
@@ -724,6 +685,7 @@ def delete_task(task_id: str, board: Optional[str] = Query(None)):
         return {"deleted": True, "task_id": task_id}
 
 
+@domain_operation("dashboard")
 def _parents_blocking_ready(conn: sqlite3.Connection, task_id: str) -> list:
     """Parent rows (id, title, status) not ``done`` that block promotion to ``ready``.
 
@@ -739,6 +701,7 @@ def _parents_blocking_ready(conn: sqlite3.Connection, task_id: str) -> list:
     return [{"id": r["id"], "title": r["title"], "status": r["status"]} for r in rows]
 
 
+@domain_operation("dashboard")
 def _set_status_direct(conn: sqlite3.Connection, task_id: str, new_status: str) -> bool:
     """Direct status write for drag-drop moves without a structured verb (todo<->ready,
     running<->ready) + a ``status`` event. Leaving ``running`` closes the run as 'reclaimed'
@@ -894,9 +857,7 @@ def list_diagnostics(
                 if (keep := [d for d in dl if kd.severity_at_or_above(d.get("severity"), severity)])}
         if not diags_by_task:
             return {"diagnostics": [], "count": 0}
-        ids = list(diags_by_task.keys())
-        rows = {r["id"]: r for r in conn.execute(
-            f"SELECT id, title, status, assignee FROM tasks WHERE id IN ({_placeholders(ids)})", tuple(ids)).fetchall()}
+        rows = queries.tasks_by_ids(conn, diags_by_task)
         out = []
         for tid, dl in diags_by_task.items():
             r = rows.get(tid) or {"title": None, "status": None, "assignee": None}
@@ -922,14 +883,7 @@ def list_active_workers(board: Optional[str] = _BOARD_Q):
     """Every running worker: an open ``task_runs`` row with a ``worker_pid`` whose
     task is ``running``. Returns ``{workers, count, checked_at}``."""
     with _board_conn(board) as (board, conn):
-        rows = conn.execute(
-            "SELECT r.id AS run_id, r.task_id, t.title AS task_title, t.status AS task_status, "
-            "t.assignee AS task_assignee, r.profile, r.worker_pid, r.started_at, r.claim_lock, "
-            "r.claim_expires, r.last_heartbeat_at, r.max_runtime_seconds "
-            "FROM task_runs r JOIN tasks t ON t.id = r.task_id "
-            "WHERE r.ended_at IS NULL AND r.worker_pid IS NOT NULL AND t.status = 'running' "
-            "ORDER BY r.started_at ASC").fetchall()
-        workers = [dict(row) for row in rows]
+        workers = queries.active_worker_rows(conn)
         return {"workers": workers, "count": len(workers), "checked_at": int(time.time())}
 
 
@@ -1369,11 +1323,13 @@ def _projects_by_id() -> dict[str, Any]:
 def _board_counts(slug: str) -> dict[str, int]:
     """``{status: count}`` for a board; ``{}`` on a missing/empty DB."""
     try:
-        if not kanban_db.kanban_db_path(board=slug).exists():
+        from hermes_cli.db_setup import storage_backend
+        if storage_backend() == "sqlite" and not kanban_db.kanban_db_path(board=slug).exists():
             return {}
         with closing(kbc.connect(board=slug)) as conn:
-            rows = conn.execute("SELECT status, COUNT(*) AS n FROM tasks GROUP BY status").fetchall()
-            return {r["status"]: int(r["n"]) for r in rows}
+            return queries.board_status_counts(conn)
+    except StorageError:
+        raise
     except Exception:
         return {}
 
@@ -1489,7 +1445,7 @@ async def _run_transfer(fn, log_label: str):
     """Run a blocking kanban_transfer call off the event loop, mapping its errors
     to 404 (missing path) / 400 (invalid) / 500 (logged)."""
     try:
-        return await asyncio.get_running_loop().run_in_executor(None, fn)
+        return await asyncio.to_thread(fn)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
     except ValueError as exc:
@@ -1738,7 +1694,7 @@ def _ws_board_live(normed: Optional[str]) -> Optional[str]:
 
 
 class _EventTail:
-    """Per-socket ``task_events`` tailer. One SQLite connection, used/closed only on a
+    """Per-socket ``task_events`` tailer. One Board handle, used/closed only on a
     dedicated single-thread executor (connections are thread-affine); reusing it avoids
     churning WAL/SHM sidecars while an idle dashboard polls."""
 
@@ -1746,23 +1702,18 @@ class _EventTail:
         self._board = board
         self._conn: Optional[sqlite3.Connection] = None
         self._executor: Optional[ThreadPoolExecutor] = None
+        self._context = copy_context()
 
     def _latest(self) -> int:
         """The board's current tail: the cursor a client without one starts from."""
         if self._conn is None:
             self._conn = kbc.connect(board=self._board)
-        rows = self._conn.execute(
-            "SELECT COALESCE(MAX(id), 0) AS m FROM task_events", ()
-        ).fetchall()
-        return int(rows[0]["m"]) if rows else 0
+        return queries.latest_event_id(self._conn)
 
     def _fetch(self, cursor: int) -> tuple[int, list[dict]]:
         if self._conn is None:
             self._conn = kbc.connect(board=self._board)
-        rows = self._conn.execute(
-            "SELECT id, task_id, run_id, kind, payload, created_at "
-            "FROM task_events WHERE id > ? ORDER BY id ASC LIMIT 200",
-            (cursor,)).fetchall()
+        rows = queries.events_after(self._conn, cursor)
         out: list[dict] = []
         for r in rows:
             try:
@@ -1780,7 +1731,7 @@ class _EventTail:
     def _run(self, fn, *args):
         if self._executor is None:
             self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="kanban-events")
-        return asyncio.get_running_loop().run_in_executor(self._executor, fn, *args)
+        return asyncio.get_running_loop().run_in_executor(self._executor, self._context.run, fn, *args)
 
     async def latest(self) -> int:
         return await self._run(self._latest)
@@ -1792,7 +1743,7 @@ class _EventTail:
         if self._executor is None:
             return
         try:
-            await asyncio.get_running_loop().run_in_executor(self._executor, self._close)
+            await self._run(self._close)
         except Exception as exc:
             log.warning("Kanban event stream connection cleanup failed: %s", exc)
         finally:

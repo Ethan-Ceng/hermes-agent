@@ -121,6 +121,10 @@ def export_board(
     """Export ``board`` to a ``tar.gz`` (suffix optional on ``output_path``);
     returns a summary dict. Workspaces are never included — large,
     machine-local, rebuilt on demand."""
+    from hermes_cli.db_setup import storage_backend
+    if storage_backend() == "postgresql":
+        from hermes_db.operations.kanban_transfer import export_board as export_postgresql
+        return export_postgresql(board, output_path, include_attachments=include_attachments, include_logs=include_logs)
     slug = kb._normalize_board_slug(board) or kb.get_current_board()
     if not kb.board_exists(slug):
         raise ValueError(f"board {slug!r} does not exist")
@@ -247,9 +251,11 @@ def _relocate_imported_rows(conn: sqlite3.Connection, slug: str) -> tuple[dict[s
         _scrub_local_state(conn)
 
         dropped = rehomed = 0
+        path_mapping = {}
         for row in conn.execute("SELECT id, task_id, stored_path FROM task_attachments").fetchall():
             landed = attachments_dir / row["task_id"] / Path(row["stored_path"]).name
             if landed.is_file():
+                path_mapping[row["stored_path"]] = str(landed)
                 conn.execute("UPDATE task_attachments SET stored_path = ? WHERE id = ?", (str(landed), row["id"]))
                 rehomed += 1
             else:
@@ -257,6 +263,8 @@ def _relocate_imported_rows(conn: sqlite3.Connection, slug: str) -> tuple[dict[s
                 dropped += 1
         if dropped:
             warnings.append(f"{dropped} attachment record(s) dropped — the files were not in the archive")
+        from hermes_cli.kanban_transfer_values import reanchor_sqlite
+        reanchor_sqlite(conn, path_mapping)
 
         parked = [
             r["id"]
@@ -292,6 +300,10 @@ def import_board(
 ) -> dict[str, Any]:
     """Import an archive as a NEW board (``slug`` overrides the archive's;
     either way it auto-suffixes if taken). Returns a summary dict."""
+    from hermes_cli.db_setup import storage_backend
+    if storage_backend() == "postgresql":
+        from hermes_db.operations.kanban_import import import_board as import_postgresql
+        return import_postgresql(archive_path, slug, activate=activate)
     archive = Path(archive_path).expanduser()
     if not archive.exists():
         raise FileNotFoundError(f"archive not found: {archive}")

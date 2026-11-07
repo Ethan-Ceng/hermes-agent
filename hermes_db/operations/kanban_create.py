@@ -116,6 +116,9 @@ def insert_prepared(conn, store, fields, values, project, project_repo, path_key
     gating = [pid for pid, row in parent_rows.items() if row["status"] not in {"done", "archived"}]
     if values["status"] == "todo" and gating:
         repo.event(conn, store, task_id, "dependency_wait", {"reason": "parent_not_done", "parent": gating[0]})
+    from hermes_db.operations.kanban_notify import inherit
+    inherit(conn, store, task_id, [creator] if creator else (), created_at=values["created_at"])
+    inherit(conn, store, task_id, parents, created_at=values["created_at"])
     return task_id
 
 

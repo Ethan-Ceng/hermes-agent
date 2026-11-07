@@ -25,12 +25,16 @@ def _dispatch_boards(args: argparse.Namespace) -> int:
 def _board_task_counts(slug: str) -> dict[str, int]:
     """``{status: count}`` for a board. Safe to call on an empty DB."""
     try:
-        if not kb.kanban_db_path(board=slug).exists():
+        from hermes_cli.db_setup import storage_backend
+        from hermes_cli.kanban_db_queries import board_status_counts
+        if storage_backend() == "sqlite" and not kb.kanban_db_path(board=slug).exists():
             return {}
         with kbc.connect_closing(board=slug) as conn:
-            rows = conn.execute("SELECT status, COUNT(*) AS n FROM tasks GROUP BY status").fetchall()
-        return {r["status"]: int(r["n"]) for r in rows}
-    except Exception:
+            return board_status_counts(conn)
+    except Exception as error:
+        from hermes_db.errors import StorageError
+        if isinstance(error, StorageError):
+            raise
         return {}
 
 
@@ -82,7 +86,7 @@ def _cmd_boards_create(args: argparse.Namespace) -> int:
     )
     print(f"Board {meta['slug']!r} {'already exists' if already else 'created'}.\n"
           f"  Display name: {meta.get('name', '')}\n"
-          f"  DB path:      {meta['db_path']}")
+          f"  Storage:      {meta['db_path'] or 'PostgreSQL'}")
     if getattr(args, "switch", False):
         kb.set_current_board(meta["slug"])
         print(f"  Switched to {meta['slug']!r}.")
@@ -134,7 +138,7 @@ def _cmd_boards_show(args: argparse.Namespace) -> int:
     print(f"Current board: {current}\n  Display name: {meta.get('name', '')}")
     if meta.get("description"):
         print(f"  Description:  {meta['description']}")
-    print(f"  DB path:      {meta['db_path']}\n"
+    print(f"  Storage:      {meta['db_path'] or 'PostgreSQL'}\n"
           f"  Tasks:        {sum(counts.values())} total" + (f" ({_fmt_counts(counts)})" if counts else ""))
     return 0
 

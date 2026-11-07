@@ -150,6 +150,20 @@ def test_attachment_blob_travels_and_is_readable(kanban_root, tmp_path):
     assert stored.read_bytes() == b"hello attachment"
 
 
+def test_completion_artifact_links_are_reanchored_with_the_blob(kanban_root, tmp_path):
+    ids = _seed_board()
+    with kbc.connect_closing(board="alpha") as source:
+        attachment, = kb.list_attachments(source, ids["scratch"])
+        assert kb.complete_task(source, ids["scratch"], summary="delivered", metadata={"artifacts": [attachment.stored_path]})
+    archive = kt.export_board("alpha", str(tmp_path / "artifacts"))["archive"]
+    kanban_root("target")
+    result = kt.import_board(archive)
+    with kbc.connect_closing(board=result["board"]) as target:
+        attachment, = kb.list_attachments(target, ids["scratch"])
+        assert kb.latest_run(target, ids["scratch"]).metadata["artifacts"] == [attachment.stored_path]
+        assert Path(attachment.stored_path).read_bytes() == b"hello attachment"
+
+
 def test_export_without_attachments_drops_the_rows(kanban_root, tmp_path):
     _seed_board()
     archive = kt.export_board(

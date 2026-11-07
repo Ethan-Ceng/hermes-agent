@@ -259,18 +259,15 @@ class _Collector:
         # DB, never to that slug's own (empty) physical file.
         kb = self.kb
         with _pin_first():
-            seen_db_paths: set[str] = set()
+            from hermes_cli.kanban_db_identity import board_storage_identity
+            seen_boards: set[tuple] = set()
             for board_meta in _list_boards(kb):
                 slug = board_meta.get("slug") or kb.DEFAULT_BOARD
-                db_path = board_meta.get("db_path")
-                try:
-                    resolved_db_path = str(Path(db_path).expanduser().resolve()) if db_path else str(kb.kanban_db_path(slug).resolve())
-                except Exception:
-                    resolved_db_path = f"slug:{slug}"
-                if resolved_db_path in seen_db_paths:
-                    logger.debug("kanban notifier: skipping duplicate board slug %s for DB %s", slug, resolved_db_path)
+                identity = board_storage_identity(kb, slug, db_path=board_meta.get("db_path"))
+                if identity in seen_boards:
+                    logger.debug("kanban notifier: skipping duplicate board slug %s for %s", slug, identity)
                     continue
-                seen_db_paths.add(resolved_db_path)
+                seen_boards.add(identity)
                 self.collect_board(slug)
         return self.deliveries
 
@@ -317,6 +314,10 @@ class _Collector:
         )
         if not events:
             return None
+        from hermes_db.domains.kanban import BoardResource
+        if isinstance(conn, BoardResource):
+            from hermes_db.domains.kanban_owner import board_reference
+            sub = dict(sub, _board_owner=board_reference(conn))
         task = self.kb.get_task(conn, sub["task_id"])
         logger.debug("kanban notifier: claimed %d event(s) for %s on board %s cursor %s→%s",
                      len(events), sub["task_id"], slug, old_cursor, cursor)

@@ -15,6 +15,23 @@ def _cleanup_workspace(store, task_id):
     cleanup_workspace(store, task_id)
 
 
+def gc_archived_workspaces(store):
+    from hermes_cli import kanban_db as kb
+    from hermes_db.operations.kanban_workspace_cleanup import cleanup_workspace
+    removed = 0
+    for task in kb.list_tasks(store, status="archived", include_archived=True):
+        if task.workspace_kind not in {"scratch", "worktree"}:
+            continue
+        path = Path(task.workspace_path or (kb.workspaces_root(board=store.slug) / task.id))
+        if not path.is_dir() or path.is_symlink():
+            continue
+        if task.workspace_path is None:
+            set_workspace_path(store, task.id, str(path))
+        cleanup_workspace(store, task.id)
+        removed += not path.exists()
+    return removed
+
+
 def _has_active_children(store, task_id):
     query = select(tasks.c.id).join(links, and_(tasks.c.store_id == links.c.store_id,
         tasks.c.board_id == links.c.board_id, tasks.c.id == links.c.child_id))

@@ -6,8 +6,10 @@ from hermes_db.tables.kanban import tasks, events, runs
 from hermes_db.values import encode_text
 
 
-def diagnostic_snapshot(store, task_id=None):
+def diagnostic_snapshot(store, task_id=None, *, task_ids=None):
     condition = repo.key(store, task_id) if task_id is not None else repo.scope(tasks, store) & (tasks.c.status != b"archived")
+    if task_ids is not None:
+        condition = repo.scope(tasks, store) & tasks.c.id.in_([encode_text(value) for value in task_ids])
     with store.read() as conn:
         rows = [repo.decode_task(row) for row in conn.execute(select(tasks).where(condition)).mappings()]
         ids = [encode_text(row["id"]) for row in rows]

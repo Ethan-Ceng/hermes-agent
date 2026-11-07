@@ -135,6 +135,14 @@ Task 9 调度协调细化：SQLite 原文件锁覆盖整个 tick（包括工作�
 
 工作区清理并发细化：仅查询现有共享引用后删除文件存在跨Board新增引用的窗口。PG增加store内规范路径注册表与任务引用，路径在连接外解析，业务事务通过同一路径行锁登记引用；恢复非终态、分解继承和新增依赖也核对仍需使用的父工作区。清理事务核对终态、活动子任务与所有Board引用后先提交随机cleanup token，再在连接外清理目录/工作树，最后以token CAS释放。pending token拒绝新引用，不依赖进程内锁或长数据库事务；进程中断后由Task 20维护对账，不能自动过期并冒险删除新引用。路径是本机文件资源定位，业务Board身份仍使用稳定board_id。
 
+Task 10文件布局细化：PG数据库已用board_id区分同slug重建代次，若本地附件/工作区/日志仍只按slug定位，新Board会继续接管旧文件树。因此PG内容根使用拥有者Profile下 `kanban/data/<board_id>/`，文件根覆盖也按board_id分代；资源/RPC捕获的Board引用绑定该代次，目录路径不成为业务身份。`boards/<slug>/board.json`继续是当前显示配置，归档只移动配置并保留可定位旧代次内容的文件指针，复用slug不会搬动或重用旧内容根。SQLite文件布局保持现状。硬删除的文件回收必须使用持久目录栅栏，保护其他Board仍引用的附件/工作区，不能直接rmtree一个可能共享的代次树；中断后的待清理状态由Task 20对账。该PG布局在最终启用新数据集前确定，不迁移旧SQLite文件。
+
+实际 `kanban_transfer.py` 是整Board归档export/import，现有系统没有单任务move_board命令。Task 10保留该CLI/API语义，以一致快照导出、原子创建目标Board和域内ID映射实现PG转移；不新增无消费者的任务移动工具。PG归档使用明确的无SQLite载荷版本，支持其完整导入导出并保留文件，旧SQLite数据库归档继续只走SQLite分支；PG不打开旧SQLite档案来实施被排除的数据迁移。
+
+Board文件退休的锁顺序为短事务内store文件栅栏→注册表/Board→路径锁，引用登记与目录删除意图共用该栅栏；目录删除在事务外，持久退休根拒绝新引用。配置目录的rename/delete/create另用已有PM跨进程文件锁协调同一台机器的实际文件，等待文件锁时不占数据库连接；这不承载数据库状态或代替PG业务锁。硬删除先持久确认配置目录已清理，再允许复用slug；旧内容仍被其他Board引用时明确保留待清理状态，重建使用新board_id内容根，不影响旧引用。所有源/目标路径在本机操作前核对归属与解析后的边界。
+
+PG导入先在私有文件stage校验归档与附件SHA-256，单个短事务创建目标Board、全部任务/图/history和持久import文件job，按新目标域映射run/event等本地行ID。Board在文件发布前保持不可打开的pending状态；发布文件/配置均在连接外，最后以同一短事务激活Board并结算job。提交结果不明保留原stage/job供恢复，不自动重做为另一个Board；已知业务事务回滚只补偿本次独占stage。用户未请求双写/数据回迁，PG只导入PG v2逻辑归档。导出为一致读快照，复制快照登记的附件并记录内容校验；并发删除导致文件不可读时明确失败，不能悄悄省略附件后声称完整导出。
+
 回收先在一致读快照中捕获 task、当前 run、owner/worker 事件及水位；事务外执行进程、文件和 admission 探测，短写事务在 Board 锁内重新核对整个快照与事件水位后才结束 run、释放 claim、记事件和失败预算。这些写入一次提交，避免 run 已释放但预算未登记时另一个 dispatcher 重派发。等待期间新绑定的 interpreter、心跳或回执都会使旧快照失效；未知提交保持错误，不自动重试。
 
 Worker 命令协议细化：实际 `worker.persist` 的连续序号与回执属于执行会话owner，Board却可能属于另一个Profile甚至另一个连接目标，不能把Board写入混进该会话事务或假称二者原子。复用Worker已有受保护JSON outbox，增加一个互斥的待确认Kanban命令槽，使用独立随机command_id，不消耗会话persist序号。命令经已采用worker的同一认证RPC连接交给会话owner；owner只从其持久化、冻结的kanban policy解析Board owner ref，不接收Worker自选DSN/Schema/Profile路径。关闭的具名读操作不写入；mutation在Board主业务事务内登记scoped command回执，提交确认丢失后只以同ID/同payload恢复原回执。文件/PR准备和提交后清理仍在事务外，不能为了通用回执包住整段编排而持有连接。明确业务拒绝可登记无副作用回执；存储故障/未知提交保留pending，禁止静默重发为新命令或让后续写入越过它。Worker工厂owner-only护栏保持原样。
@@ -178,6 +186,10 @@ Matrix 单独实现 SDK CryptoStore 协议适配，PG SQL/表/事务由 `hermes_
 7. Matrix 使用实际支持版本 SDK 的加密对象读写/重开验证；需要的系统依赖或实库条件缺失时明确保留未验收任务。
 8. 全部测试经 `scripts/run_tests.sh`，依赖经 PM；最终执行 verification-before-completion 和独立 code-review，整改后复验。
 9. 原会话阶段的非 WSL 私有启动页验证缺口及波动历史继续单列；不伪装 OS，不以不相关基线覆盖当前功能缺陷。
+
+Task 10普通Worker细化：交互会话通过同一采用连接的具名`board.resolve`只读请求，由owner在自身Profile解析slug和board_id；后续请求仅携带该slug/代次选择器，不能携带Profile路径/DSN/Schema。派发Worker仍只能使用冻结kanban policy指向的Board；delegated child继承根policy的可读Board、owner拒绝其全部mutation。新数据集默认Board使用固定`default`代次，可在真实PG表上零行读取；第一次写入将默认Board登记与业务写入置于同一事务，保证只读RPC不会隐式创建Board。已存在默认Board保持原board_id。
+
+Worker附件沿用25MiB上限，不能塞入4MiB JSON outbox或8MiB RPC。采用私有分块文件handoff：小块认证RPC、owner检查执行claim、总量/摘要/块顺序，文件准备在事务外，终态附件登记和command回执仍共用Board事务；未知提交保留同一command/stage恢复。handoff位置由owner决定，Worker不得传任意读取路径；child只读且不能上传。实际实现和恢复合同在Task10记录，自动回收对账归Task20。
 
 ## 风险与处置
 

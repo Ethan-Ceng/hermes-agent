@@ -8,28 +8,14 @@ from hermes_state_runtime import RuntimeStoreError
 READS = frozenset({"get_task", "get_run", "latest_run", "list_runs", "latest_summary", "latest_summaries",
     "list_tasks", "list_comments", "list_comments_after", "list_events", "list_attachments", "get_attachment",
     "parent_ids", "child_ids", "unsatisfied_parents", "task_graph_context", "board_stats", "goal_run_status",
-    "recent_profile_completions", "_verify_created_cards", "worker.claim_live", "worker.submitter"})
+    "recent_profile_completions", "_verify_created_cards", "worker.claim_live", "worker.submitter", "board.resolve",
+    "list_notify_subs", "build_worker_context"})
 COMMANDS = frozenset({"add_comment", "create_task", "complete_task", "block_task", "schedule_task", "request_review",
     "request_changes", "heartbeat_claim", "heartbeat_worker", "recompute_ready", "_record_task_failure", "link_tasks",
-    "claim_task", "claim_review_task", "worker.bind", "worker.result"})
+    "claim_task", "claim_review_task", "worker.bind", "worker.result", "unblock_task", "add_notify_sub",
+    "store_attachment_bytes", "attachment.chunk", "attachment.commit"})
 _LIFECYCLE = frozenset({"complete_task", "block_task", "schedule_task", "request_review", "request_changes",
                        "heartbeat_worker", "_record_task_failure"})
-
-
-def frozen_context(connection, ref, params):
-    from gateway.session_policy import policy_for_source
-    authority = connection.authority
-    if "/child:" in params["execution_id"]:
-        raise RuntimeStoreError("permission_denied")
-    live = authority.sessions.get(authority.logical_owner(params["session_id"]))
-    policy = policy_for_source(authority.runner, live.source) if live is not None else None
-    if policy is None or policy.source != "kanban" or not policy.kanban_json:
-        raise RuntimeStoreError("permission_denied")
-    import json
-    context = json.loads(policy.kanban_json)
-    if not isinstance(context, dict) or "owner" not in context:
-        raise RuntimeStoreError("permission_denied")
-    return context
 
 
 def _owner_operation(store, context, params, operation, payload):
@@ -59,8 +45,10 @@ def invoke(store, context, params, operation, payload):
     from hermes_cli import kanban_db as kb, kanban_db_dispatch as dispatch
     from hermes_db.domains.kanban_wire import unpack
     if operation.startswith("worker."):
+        if "task_id" not in context:
+            raise RuntimeStoreError("permission_denied")
         return _owner_operation(store, context, params, operation, payload)
-    if set(payload) != {"args", "kwargs"}:
+    if set(payload) not in ({"args", "kwargs"}, {"args", "kwargs", "target"}):
         raise RuntimeStoreError("invalid_params")
     try:
         args, kwargs = unpack(payload["args"]), unpack(payload["kwargs"])
@@ -68,22 +56,31 @@ def invoke(store, context, params, operation, payload):
         raise RuntimeStoreError("invalid_params") from error
     if not isinstance(args, (list, tuple)) or not isinstance(kwargs, dict):
         raise RuntimeStoreError("invalid_params")
-    handler = dispatch.heartbeat_worker if operation == "heartbeat_worker" else getattr(kb, operation)
+    if operation == "attachment.commit":
+        from gateway.session_worker_kanban_upload import commit_upload
+        return commit_upload(store, context, params, context["principal"], args, kwargs)
+    from hermes_cli import kanban_db_notify as notify
+    handlers = {"heartbeat_worker": dispatch.heartbeat_worker, "add_notify_sub": notify.add_notify_sub,
+                "list_notify_subs": notify.list_notify_subs}
+    handler = handlers[operation] if operation in handlers else getattr(kb, operation)
     try:
         bound = inspect.signature(handler).bind(store, *args, **kwargs)
     except TypeError as error:
         raise RuntimeStoreError("invalid_params") from error
     target = bound.arguments.get("task_id")
-    if operation in _LIFECYCLE or operation in {"claim_task", "claim_review_task"}:
+    owned = "task_id" in context
+    if owned and operation == "unblock_task":
+        raise RuntimeStoreError("permission_denied")
+    if owned and (operation in _LIFECYCLE or operation in {"claim_task", "claim_review_task"}):
         if target != context["task_id"]:
             raise RuntimeStoreError("permission_denied")
         if operation in _LIFECYCLE:
             bound.arguments["expected_run_id"] = context["run_id"]
-    if operation == "heartbeat_claim":
+    if owned and operation == "heartbeat_claim":
         if target != context["task_id"]:
             raise RuntimeStoreError("permission_denied")
         bound.arguments["claimer"] = context["claim_lock"]
-    if operation == "link_tasks":
+    if owned and operation == "link_tasks":
         if bound.arguments["child_id"] != context["task_id"]:
             raise RuntimeStoreError("permission_denied")
         bound.arguments["expected_child_run_id"] = context["run_id"]
@@ -97,6 +94,6 @@ def refusal(error, context):
     if isinstance(error, kb.EmptyCompletionError):
         return CommandRefusal("EmptyCompletionError", (error.task_id,))
     if isinstance(error, kb.LiveClaimError):
-        return CommandRefusal("LiveClaimError", (context["task_id"],))
+        return CommandRefusal("LiveClaimError", (error.task_id,))
     name = type(error).__name__ if isinstance(error, (kb.ArtifactPreservationError, kb.AttachmentTooLarge)) else "ValueError"
     return CommandRefusal(name, (str(error),))

@@ -574,6 +574,10 @@ def repair_db(db_path: Optional[Path] = None, *, board: Optional[str] = None) ->
     ``hermes kanban repair`` can pick its exit code. ``OperationalError``
     (locked/busy) still propagates raw: a locked healthy DB must not be
     quarantined."""
+    from hermes_cli.db_setup import storage_backend
+    if storage_backend() == "postgresql":
+        from hermes_db.errors import StorageConfigurationError
+        raise StorageConfigurationError("Kanban repair repairs SQLite indexes; PostgreSQL maintenance belongs to its administrator")
     path = db_path if db_path is not None else _kb.kanban_db_path(board=board)
     try:
         resolved = path.resolve()

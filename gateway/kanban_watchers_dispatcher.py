@@ -137,19 +137,11 @@ class _KanbanDispatcher:
     def _board_slugs(self) -> list:
         return _board_slugs(self.kb)
 
-    def board_db_fingerprint(self, slug: str) -> tuple[str, int | None, int | None]:
+    def board_db_fingerprint(self, slug: str) -> tuple:
         from hermes_cli import kanban_db as _kb
+        from hermes_cli.kanban_db_identity import board_storage_identity
         with _kb.pin_first_board_resolution():
-            path = self.kb.kanban_db_path(slug)
-        try:
-            resolved = str(path.expanduser().resolve())
-        except Exception:
-            resolved = str(path)
-        try:
-            stat = path.stat()
-        except OSError:
-            return (resolved, None, None)
-        return (resolved, stat.st_mtime_ns, stat.st_size)
+            return board_storage_identity(self.kb, slug)
 
     def is_corrupt_board_db_error(self, exc: Exception) -> bool:
         if isinstance(exc, _kbc().KanbanDbCorruptError):

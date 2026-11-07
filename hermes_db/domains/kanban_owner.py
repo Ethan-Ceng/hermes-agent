@@ -37,6 +37,11 @@ def open_board_owner(reference, *, command=None):
             raise StorageConfigurationError("Kanban Board owner backend or store_id changed")
         with resource.read() as conn:
             row = _lookup(conn, resource, reference["board"])
+        if row is None and reference["board"] == reference["board_id"] == "default":
+            with BoardResource(resource, "default", "default") as board:
+                board.command = command
+                yield board
+            return
         if row is None or row["archived"] or row["board_id"] != reference["board_id"]:
             raise StorageConfigurationError("Kanban Board owner generation was retired or replaced")
         with BoardResource(resource, row["board_id"], reference["board"], command=command) as board:

@@ -25,7 +25,8 @@ def _prepare_files(store, task_id, metadata):
     kb._persist_scratch_completion_artifacts(store, task_id, metadata)
     staged = [Path(value) for value in metadata.pop("_staged_artifacts", [])]
     try:
-        rows = [dict(filename=path.name, stored_path=str(path), size=path.stat().st_size) for path in staged]
+        from hermes_db.repositories.kanban_workspaces import canonical_path
+        rows = [dict(filename=path.name, stored_path=str(path), size=path.stat().st_size, file_key=canonical_path(path)) for path in staged]
     except Exception:
         if staged:
             kb._discard_staged_copies(staged, staged[0].parent)

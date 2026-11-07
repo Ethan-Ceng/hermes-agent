@@ -21,16 +21,23 @@ logger = logging.getLogger("gateway.run")
 def _run_in_fresh_context(func: Callable[..., Any], /, *args: Any) -> Any:
     """Run *func* in an empty ``Context`` so request-local ContextVars stay behind.
 
+    The owning Profile is captured before clearing request state.
     ``asyncio.to_thread`` copies the caller's context; a lingering
     ``delegate_task`` child marker would make ``write_txn`` false-trip for
     these process-owned writers. An empty Context keeps the DB guard intact
     for real children without exempting dispatcher writes.
     """
-    return Context().run(func, *args)
+    from hermes_constants import get_hermes_home
+    from hermes_cli.db_setup import _owning_profile
+    home = get_hermes_home().resolve()
+    def owning_service():
+        with _owning_profile(home):
+            return func(*args)
+    return Context().run(owning_service)
 
 
 async def _to_thread_process_service(func: Callable[..., Any], /, *args: Any) -> Any:
-    """Offload blocking process-service work without inheriting request ContextVars."""
+    """Offload process-service work with its Profile and without request markers."""
     return await asyncio.to_thread(_run_in_fresh_context, func, *args)
 
 
@@ -38,7 +45,10 @@ def _list_boards(kb: Any) -> list:
     """Enumerate live boards; fall back to the default board when listing fails."""
     try:
         return kb.list_boards(include_archived=False)
-    except Exception:
+    except Exception as error:
+        from hermes_db.errors import StorageError
+        if isinstance(error, StorageError):
+            raise
         return [kb.read_board_metadata(kb.DEFAULT_BOARD)]
 
 

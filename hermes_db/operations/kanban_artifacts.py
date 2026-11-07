@@ -26,11 +26,13 @@ def lock_blob(conn, store, path):
         raise StorageBusyError("Attachment file cleanup is pending; retain the file and retry after reconciliation")
 
 
-def insert_attachment(conn, store, task_id, *, filename, stored_path, content_type=None, size=0, uploaded_by=None, created_at=None):
+def insert_attachment(conn, store, task_id, *, filename, stored_path, file_key, content_type=None, size=0, uploaded_by=None, created_at=None):
+    from hermes_db.operations.kanban_file_jobs import guard_reference
+    guard_reference(conn, store, file_key)
     lock_blob(conn, store, stored_path)
     values = {key: encode_text(value) for key, value in dict(task_id=task_id, filename=filename,
               stored_path=stored_path, content_type=content_type, uploaded_by=uploaded_by).items()}
-    attachment_id = conn.scalar(attachments.insert().values(**repo.owner(store), **values, size=int(size),
+    attachment_id = conn.scalar(attachments.insert().values(**repo.owner(store), **values, path_key=encode_text(file_key), size=int(size),
         created_at=int(time.time()) if created_at is None else created_at).returning(attachments.c.id))
     repo.event(conn, store, task_id, "attached", {"filename": filename, "size": int(size), "by": uploaded_by})
     return attachment_id
@@ -41,9 +43,11 @@ def add_attachment(store, task_id, *, filename, stored_path, content_type=None, 
         raise ValueError("attachment filename is required")
     if not stored_path or not stored_path.strip():
         raise ValueError("attachment stored_path is required")
+    from hermes_db.repositories.kanban_workspaces import canonical_path
+    file_key = canonical_path(stored_path)
     with store.write() as conn:
         repo.require_task(conn, store, task_id)
-        attachment_id = insert_attachment(conn, store, task_id, filename=filename.strip(), stored_path=stored_path,
+        attachment_id = insert_attachment(conn, store, task_id, filename=filename.strip(), stored_path=stored_path, file_key=file_key,
                                           content_type=content_type, size=size, uploaded_by=uploaded_by)
         return store.command_result(conn, attachment_id)
 

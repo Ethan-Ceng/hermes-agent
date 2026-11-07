@@ -28,12 +28,22 @@ def worker_binding():
 
 
 def connect_worker_board(db_path=None, *, board=None):
+    from agent.runtime_session_store import current_worker_store, call_off_event_loop
     binding = worker_binding()
     if binding is None:
-        return None
+        from agent.runtime_session_store import is_worker_process
+        from hermes_cli.db_setup import storage_backend
+        if not is_worker_process() or storage_backend() != "postgresql":
+            return None
+        if db_path is not None:
+            raise StorageConfigurationError("Worker may select only a Board slug in its owning Profile")
+        from hermes_db.domains.kanban_wire import unpack
+        store = current_worker_store()
+        context = unpack(call_off_event_loop(store.kanban_read, "board.resolve", {"board": board}))
+        return WorkerBoardResource(store, context)
     if db_path is not None or (board is not None and board != binding[1]["board"]):
         raise StorageConfigurationError("Worker Board selector must match its adopted owner policy")
-    return WorkerBoardResource(*binding)
+    return WorkerBoardResource(current_worker_store(), binding[1])
 
 
 class WorkerBoardResource:
@@ -53,7 +63,14 @@ class WorkerBoardResource:
             raise StorageClosedError("Worker Board resource is closed or belongs to another process")
         if operation not in READS | COMMANDS:
             raise StorageNotReadyError(f"Kanban worker operation {operation} is not implemented")
-        payload = {"args": pack(args), "kwargs": pack(kwargs)}
+        if operation in COMMANDS:
+            from hermes_cli.kanban_db import _assert_not_delegated_child_mutation
+            _assert_not_delegated_child_mutation()
+        if operation == "store_attachment_bytes":
+            from agent.runtime_kanban_upload import upload_attachment
+            return upload_attachment(self, args, kwargs)
+        payload = {"args": pack(args), "kwargs": pack(kwargs),
+                   "target": {"board": self.slug, "board_id": self.board_id}}
         method = self.worker_store.kanban_read if operation in READS else self.worker_store.kanban_command
         result = unpack(call_off_event_loop(method, operation, payload))
         if isinstance(result, CommandRefusal):

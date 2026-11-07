@@ -6,7 +6,7 @@ from hermes_db.tables.metadata import scoped_fk, scoped_table
 attachments = scoped_table("kanban_attachments", Column("board_id", Text, nullable=False),
     Column("id", BigInteger, Identity(), nullable=False), Column("task_id", LargeBinary, nullable=False),
     *[Column(name, LargeBinary, nullable=False) for name in ("filename", "stored_path")],
-    Column("content_type", LargeBinary), Column("uploaded_by", LargeBinary),
+    Column("content_type", LargeBinary), Column("uploaded_by", LargeBinary), Column("path_key", LargeBinary),
     Column("size", BigInteger, nullable=False, server_default="0"), Column("created_at", BigInteger, nullable=False),
     key=("board_id", "id"), constraints=(scoped_fk(("board_id", "task_id"), "kanban_tasks", ("board_id", "id"), ondelete="CASCADE"),))
 blobs = scoped_table("kanban_blobs", Column("path", LargeBinary, nullable=False), Column("cleanup_token", Text), key=("path",))

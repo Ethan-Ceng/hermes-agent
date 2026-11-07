@@ -10,9 +10,9 @@
 ## 当前进度
 
 - 整体状态：`IN_PROGRESS`。
-- 当前阶段：Kanban 领域实施。
-- 当前任务：Task 9已完成，下一项Task 10；Task 9本地提交后立即继续。
-- 已完成：9 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前阶段：房间领域实施。
+- 当前任务：Task 11（pending；Task 10已完成验证，立即创建本地提交）。
+- 已完成：10 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-07（Asia/Shanghai）。
@@ -557,7 +557,7 @@ Windows 原生；PM 测试解释器沿用 `.build/postgresql/full-test-env/Scrip
 
 ## Task 10：统一 Kanban 订阅、工作区引用与跨 Board 转移
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -596,11 +596,52 @@ Kanban剩余持久化与所有原生 SQL 消费者完成接入。
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+已完成：订阅/游标/继承、具名dashboard/CLI/watch/GC和网关消费者、按board_id分代的真实文件生命周期、带校验的v2整Board导入导出及原子图写入、普通/派发Worker与child owner RPC、25MiB分块附件handoff。新增0016–0018显式迁移并登记kanban_workspace能力；SQLite仍无需PG依赖。提交标题：feat(storage): complete scoped Kanban storage consumers。恢复点Task11。自动文件job/upload-stage/token维护及全daemon房间依赖按Task20/22闭合，不能把当前业务合同外推为全系统PG完成。以下保留实施过程和失败证据；最终完成依据见本任务末尾。
+
+部分进展：新增0016通知订阅与精确文本/ASCII平台匹配投影，命名订阅操作、owner过滤、原子claim/rewind、独立ping水位、保留清理及create/link/decompose订阅继承。订阅沿原生语义不强制task外键（可预订未来任务），删除任务显式清理订阅；Board FK带store/board，删除Board级联。count在只读PG资源中查询，不以.db存在性跳过，不创建默认Board。尚未完成Task 10其他消费者和完整验收。
+
+实施前布局/转移核对已写入设计：PG本地内容必须跟随board_id代次而非复用slug，采用Profile `kanban/data/<board_id>`，归档显示配置与内容指针，目录清理由持久栅栏保护共享引用。实际kanban_transfer为整Board export/import，没有单任务跨Board移动API；PG保留现有入口，提供无SQLite载荷的归档版本与原子目标导入，不借归档打开旧SQLite迁移。两点属于当前任务实际接口细化，不改变目标和任务总数。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+- `scripts/run_tests.sh tests/hermes_db/postgresql/test_kanban_notify.py -j 1 -- -m integration --postgres-test-config=$pgTestConfig` 首轮2 failed，原生write_txn拒绝PG（`unified-task10-notify-red.log`）。实现后同文件+test_kanban_tasks.py+test_kanban_swarm.py，`-j 3`、相同PG参数，退出0，13 passed（`unified-task10-notify-first.log`）。持久订阅、creator/parent/link继承、NUL/Unicode/0/False元数据、跨store/Board过滤、两个连接竞争claim以及旧rewind不能覆盖新游标均实库验证。
+- Task 10完整回归、剩余具名消费者、归档/转移/通用Worker合同与静态门禁尚未执行，不创建commit，不标完成。
+- dashboard经真实bundled插件发现/信任挂载+HTTP与线程tail初轮2 failed（`unified-task10-dashboard-red.log`），暴露原生SQL及线程丢失Profile实际打开SQLite；改具名聚合/事件接口、捕获thread Context后2 passed（`unified-task10-dashboard-reads-first.log`）。状态写入新增重开合同先1 failed（`unified-task10-dashboard-write-red.log`），命名Core实现parent/descendant/run/event同事务、归档postcommit终止与清理后3 passed（`unified-task10-dashboard-write-first.log`）。加入审计故障整图回滚后，与notify两文件6 passed（`unified-task10-dashboard-rollback.log`）。
+- 原生通知/计数/dashboard/tail/parent-reopen五文件77 passed（`unified-task10-native-dashboard-notify.log`）。CLI watch/GC收口命名接口，PG使用已有cleanup token，真实CLI两阶段读取和持久清理1 passed（`unified-task10-cli-watch-gc.log`）；原生watch/GC两文件13 passed（`unified-task10-native-watch-gc.log`）。这些不是Task 10最终门禁。
+- 部分消费者静态 `PM Python scripts/check --staged --base 4bd7861dfc` 退出0，14项通过、health24文件0 blocking/advisory（`unified-task10-checks-consumers-partial.log`）；后续仅增加执行账本和新布局/转移细化，后续实现继续验证。
+- 文件代次合同先1 failed，证明同slug新Board仍解析旧附件根（`unified-task10-file-generation-red.log`）。PG本地内容改为绑定board_id，资源/Worker引用捕获同一代次；SQLite布局不变。与完成/工作区/真实Worker四文件14 passed（`unified-task10-file-generation-first.log`）。
+- 新增0017持久Board文件任务与短store文件栅栏；归档提交后移动配置、保存旧内容指针和tombstone；同slug配置未结算前拒绝复用。硬删除先提交逻辑退休，配置删除确认后可创建新代次，旧内容被其他Board引用时明确files_pending并保留。附件增加独立规范路径投影，workspace/attachment新引用与退休意图共用短锁，目录删除期间无连接占用。源/目标解析归属和重定向路径均核对，PM文件锁只协调本机文件操作，不替代PG业务状态。Task 20仍须接通维护入口和未知路径投影回填。
+- 归档初轮误导入atomic_json_write所在模块，形成3失败（`unified-task10-archive-first.log`）；修正后Board文件/任务/附件/完成/审阅/Schema六文件29 passed（`unified-task10-file-retirement-first.log`）。故障合同初轮3 passed/1 fixture失败：patch了已持有资源的Transactions实例，而生产入口另取资源；改patch实际Transactions类后4 passed（`unified-task10-file-jobs-faults-green.log`），真实COMMIT后抛UnknownCommitError、文件中断均保留持久意图并可重试归档。硬删除保留其他Board工作区/附件，移除引用后退休根回收；回收期间新增引用Busy、重复job不误删同slug新代次配置。
+
+当前恢复点：通知、具名dashboard/CLI读写、父级重开/归档、内容根代次和基础文件job已有局部证据。继续完整export/import PG归档、gateway dispatcher/notifier scope/identity、普通chat/delegated Worker工具与25MB文件handoff；之后整批回归、最终静态门禁才能完成Task 10。没有Task 10 commit。
+
+导入实施前细化：一致读快照导出v2逻辑数据和登记附件SHA-256；不可读/越出管理根附件明确报错，不静默省略。导入私有stage先验证，目标Board+全部rows+import job一次事务提交，文件在事务外发布，激活Board+结算job再一次事务提交；pending Board不能被业务打开，未知提交保留原stage/job而不自动生成新Board。stage/文件job的自动维护入口仍属Task 20，不把手动恢复合同外推为已闭合维护功能。
+
+追加局部证据：PG export公共入口业务合同先失败（`unified-task10-export-business-red.log`），v2逻辑归档实现后1 passed（`unified-task10-export-first.log`）。import公共入口先拒绝v2（`unified-task10-import-business-red.log`）；初版误向safe_extract_targz传str、修正Path后全图导入/事务回滚3 passed（`unified-task10-import-graph-green.log`）。新增0018 import stage持久定位，实际COMMIT确认丢失、文件发布中断、损坏附件校验6 passed（`unified-task10-import-faults.log`）；原stage/job可恢复，pending Board不可打开，没有另建Board重做。
+
+实际scratch完成附件导入后run/event链接仍指源绝对路径，PG和SQLite分别红测（`unified-task10-import-artifact-links-red.log`、`unified-task10-native-artifact-links-red.log`）。核对历史重定位意图后加入共同纯值映射，PG合同6 passed（`unified-task10-import-artifact-links-green.log`），原生transfer20 passed（`unified-task10-native-transfer-green.log`）。禁止三个PG依赖导入的实际SQLite完成/附件/关闭重开子进程1 passed（`unified-task10-sqlite-driver-free.log`）。
+
+真实HTTP并发导入先因run_in_executor丢失Profile选择SQLite v1而失败（`unified-task10-http-transfer-scope-red.log`）；改asyncio.to_thread继承ContextVars，dashboard+transfer两文件11 passed（`unified-task10-transfer-http-green.log`），同名并发导入分配两个独立代次且落到目标Profile。原生Board HTTP生命周期4 passed（`unified-task10-native-transfer-http.log`）。以上PG命令均标准runner、`-m integration --postgres-test-config=$pgTestConfig`，业务进程拒绝所有SQLite连接；SQLite合同不传PG参数。静态partial14项中health46文件无阻塞，ruff发现新子进程测试缺显式check参数（`unified-task10-checks-transfer-partial.log`），已补check=False，待下一批复验。当前恢复点推进为gateway notifier/dispatcher身份及普通chat/delegated Worker/25MB附件handoff，Task10仍in_progress、无commit。
+
+Task10网关/Worker追加进展：dispatcher/notifier按PG store_id+board_id去重/识别代次，PG metadata不再声称有.db路径；通知回写捕获可信Board ref，拒绝归档/复用slug的新代次。后台fresh Context保留捕获的Profile，仅清除请求/child标记。网关合同先3 failed（`unified-task10-watchers-red.log`），初版2 passed/1 fixture缺完整Runner失败（`unified-task10-watchers-first.log`），改真实GatewayRunner后3 passed（包含于`unified-task10-watchers-counts.log`，同批CLI计数仍红）。CLI Board计数原以.db存在性返回空，红测后改具名聚合；合同首次期望triage而实际默认ready，已按业务真实状态修正。原生网关/Board CLI三文件41 passed（`unified-task10-native-watchers.log`）。
+
+普通compute新增owner解析的board.resolve与slug/代次选择器，worker不可自选Profile/DSN；新默认Board只读零行不登记，首次写入在主事务登记稳定default代次，已有默认代次保持不变。真正预留child使用自身claim，继承根policy读权限，owner拒绝所有child mutation；本机delegate运行/重试显式绑定child store。实际PG runtime预留/子claim/首写回执/重开隔离合同1 passed，加原有真实默认/跨Profile专用Worker两例合计3 passed（`unified-task10-interactive-worker-first.log`）。该局部owner协议合同绕过了同进程PID核验，不能替代独立进程认证，独立场景仍在推进。
+
+25MiB附件原直接编码使4MiB outbox_full，红测`unified-task10-upload-red.log`。现用256KiB认证块、owner决定私有stage、准确执行身份/目标/摘要/块长度验证，最终附件与command receipt同主事务；原outbox/transport预算不放宽。实际最大尺寸+真实COMMIT后UnknownCommitError+同命令恢复+文件重开合同1 passed（`unified-task10-upload-first.log`），帧小于1MiB、pending JSON小于64KiB，最终仅一条附件。stage自动回收入口仍须Task20，当前保留恢复材料，不隐藏孤儿清理义务。
+
+独立普通Worker探针未通过，不计完成：初版隔离env缺HOME（`unified-task10-interactive-process-first.log`），补齐后session.create20秒探测超时（second/fourth/diagnostic日志）；third到达实际工具但fixture漏assignee，已补正确assignee和kanban_show。faulthandler证据定位`session_inventory → get_tool_definitions → get_model_context_length → model_metadata_http`，当前明确配置测试模型context_length，不关闭功能。context日志随后证实已进入真实Worker，但fixture仅register未adopt导致stale_generation，已补完整register→adopt；最新`unified-task10-interactive-process-adopt.log`待核结果。原生完整Kanban126文件回归正在运行（`unified-task10-native-regression.log`）。
+
+归档边界补充：循环依赖导入先fixture猜错created_at列，修正按真实row复制后实际未拒绝循环（`unified-task10-import-cycle-business-red.log`）；已加入发布前线性DAG/引用/status/workspace校验，transfer7项已在diagnostic批次通过。静态首次GBK输出编码失败；UTF-8重跑health67文件0 blocking/advisory，footguns发现一个UTF-8读/BOM规则、ruff发现无效noqa和未使用解包，均已修正（`unified-task10-checks-worker-utf8.log`），还需最新全门禁。当前仍9/24、Task10 in_progress，无Task10 commit。
+
+最新追加：完整register→adopt后，独立Worker已实际完成创建/评论/25MiB上传，child的kanban_show返回完整对象而非ok包装；修正fixture按真实协议取task.id后，独立进程/owner重启/数据隔离合同1 passed（`unified-task10-interactive-process-complete.log`，36.9s），所有owner/Worker均有SQLite拒绝guard见证。此前context/adopt日志的失败分别是未采用状态和show响应断言，不隐去。移除临时faulthandler诊断模块，保留堆栈证据。
+
+完整原生126文件首轮934 passed/1 failed/21平台skip（`unified-task10-native-regression.log`，422.7s）。唯一失败是既有fixture直接open('/dev/null')在Windows越出受控目录；历史284d220ba4确认其意图只提供无用的日志句柄，已改隔离Profile下worker.log，不改生产派发语义。相同两项跨Profile合同与SQLite repair/outbox/无PG依赖四文件9 passed（`unified-task10-native-followup.log`）；其余125文件首轮通过。
+
+PG26文件首轮报告105 passed，但运行过程中新增repair守卫合同导致该文件首轮红、代码修正后自动重试绿，属于本次编辑与测试并发造成的污染，不能当稳定最终门禁（`unified-task10-pg-regression.log`保留原始重试输出）。repair独立红测捕获旧SQLite文件连接（`unified-task10-repair-red.log`），已明确拒绝PG下的SQLite索引修复，不触碰旧数据；PG消费者3项+SQLite无驱动1项合计4 passed（`unified-task10-repair-independent.log`）。已冻结业务源码重新运行包含所有真实Worker的PG27文件最终批次（`unified-task10-pg-final.log`），还在等待结果。静态current14项通过、health67文件0 blocking/advisory（`unified-task10-checks-current.log`），最终源码静态与delegate执行回归亦在运行。Task10业务已局部闭合并登记kanban_workspace能力，但仍须这批最终证据通过才标completed并commit。
+
+Task10最终验证：原生Windows/同一PM full-test-env，冻结业务源码后 `scripts/run_tests.sh <tests/hermes_db/postgresql/test_kanban*.py全部25文件> tests/hermes_db/postgresql/test_schema.py tests/hermes_db/postgresql/test_domain_schema.py -j 3 -- -m integration --postgres-test-config=$pgTestConfig` exit0、27文件106 passed/0 failed/0 skipped/无重试或flaky（`unified-task10-pg-final.log`，144.3s）。包括真实采用的普通Worker/预留child/25MiB附件/owner重启，以及默认与跨Profile专用Worker；PG父/子业务进程拒绝所有SQLite连接，实际工作、持久化、隔离和恢复均有正向断言。目录I/O/实际COMMIT后确认丢失、共享引用/代次竞争、导入全图回滚及损坏/循环档案拒绝合同同批通过。
+
+SQLite最终证据是前述126文件934 passed、1个/dev/null fixture失败、21个原生平台skip，加修正后4文件9 passed（含该文件全部2项）；其余125文件已通过，未伪造POSIX。`scripts/run_tests.sh tests/tools/test_delegate.py tests/tools/test_delegate_child_transcript_release.py tests/tools/test_async_delegation_worker.py tests/tools/test_delegate_capability_inheritance.py -j 3` exit0、81 passed/0 failed/0 skipped（`unified-task10-child-regression.log`）。无PG依赖的SQLite真实完成/附件/重开也通过。`PM Python scripts/check --staged --base 4bd7861dfc` exit0、14 checks ok，health69文件0 blocking/advisory（`unified-task10-checks-final-source.log`）；之后只更新领域README与本执行账本，diff --cached --check及diff --check均通过。本任务不安装/运维PG、不动正式Profile、未推送。未验证项：POSIX专有合同、自动维护入口(Task20)、全系统普通daemon(Task22)、Matrix实际SDK(Task19)和最终独立审查/复验(Task24)仍未完成。恢复点：Task11，前10项均有本地commit。
 
 ## Task 11：统一房间元数据、事件与 replica
 

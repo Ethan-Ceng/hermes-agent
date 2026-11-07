@@ -28,6 +28,8 @@ def reference_scope(store, task_id):
 
 
 def lock_path(conn, store, key):
+    from hermes_db.operations.kanban_file_jobs import guard_reference
+    guard_reference(conn, store, key)
     conn.execute(insert(paths).values(store_id=store.scope.require_store_id(), path_key=encode_text(key)).on_conflict_do_nothing())
     token = conn.scalar(select(paths.c.cleanup_token).where(path_scope(store, key)).with_for_update())
     if token is not None:

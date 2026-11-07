@@ -562,7 +562,8 @@ def _validate_child_output_schema(
         # unmarked turn is misread as the dispatcher-owned worker by every HERMES_KANBAN_* gate.
         from agent.delegation_context import delegated_child_context
         from tools.delegate_tool_routes import child_profile_scope
-        with child_profile_scope(child), delegated_child_context(str(getattr(child, "session_id", "") or "")):
+        from agent.runtime_worker_context import worker_store_context
+        with child_profile_scope(child), delegated_child_context(str(getattr(child, "session_id", "") or "")), worker_store_context(getattr(child, "_session_db", None)):
             _retry_result = child.run_conversation(
                 user_message=build_retry_message(_schema_errors), task_id=child_task_id,
                 stream_callback=relay_child_text,
@@ -931,8 +932,9 @@ class _ChildRun:
             worker_thread_holder["t"] = threading.current_thread()
             from agent.delegation_context import delegated_child_context
             from tools.delegate_tool_routes import child_profile_scope
+            from agent.runtime_worker_context import worker_store_context
             # A profile-routed child converses as that profile (config, secrets, skills, terminal policy).
-            with child_profile_scope(child), delegated_child_context(str(getattr(child, "session_id", "") or "")):
+            with child_profile_scope(child), delegated_child_context(str(getattr(child, "session_id", "") or "")), worker_store_context(getattr(child, "_session_db", None)):
                 return child.run_conversation(
                     user_message=user_message, task_id=self.child_task_id, stream_callback=self.relay_text,
                 )

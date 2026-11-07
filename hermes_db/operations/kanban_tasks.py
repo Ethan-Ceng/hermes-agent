@@ -165,11 +165,14 @@ def list_events(store, task_id):
 
 def _delete(store, task_id, *, archived_only):
     from hermes_db.operations.kanban_graph import recompute_ready
+    from hermes_db.tables.kanban_notify import subscriptions
     with store.write() as conn:
         condition = repo.key(store, task_id)
         if archived_only:
             condition = condition & (tasks.c.status == b"archived")
         count = conn.execute(delete(tasks).where(condition)).rowcount
+        if count:
+            conn.execute(delete(subscriptions).where(repo.key(store, task_id, subscriptions)))
     if count and not archived_only:
         recompute_ready(store)
     return count > 0

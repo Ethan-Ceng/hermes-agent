@@ -19,8 +19,18 @@ class BoardResource(DomainResource):
     def write(self, *, lock_timeout=None):
         from hermes_cli.kanban_db import _assert_not_delegated_child_mutation
         from hermes_db.repositories.kanban import lock_board
+        from hermes_db.operations.kanban_file_jobs import lock_files
         _assert_not_delegated_child_mutation()
         with super().write(lock_timeout=lock_timeout) as conn:
+            lock_files(conn, self)
+            if self.slug == self.board_id == "default":
+                from hermes_db.operations.kanban_boards import _lookup, _registry_lock, _save
+                _registry_lock(conn, self)
+                row = _lookup(conn, self, self.slug)
+                if row is None:
+                    _save(conn, self, self.slug, None, False)
+                elif row["board_id"] != self.board_id:
+                    raise StorageConfigurationError("Default Board owner generation changed")
             lock_board(conn, self)
             if self.command is not None and not self.command.committed:
                 self.command.check_replay(conn, self)
@@ -44,7 +54,8 @@ def domain_operation(topic):
                     raise StorageConfigurationError("Kanban operations require the selected Board store")
                 module = import_module(f"hermes_db.operations.kanban_{topic}")
                 from hermes_cli.db_setup import _owning_profile
-                with _owning_profile(store.scope.profile_home):
+                from hermes_db.domains.kanban_files import board_files
+                with _owning_profile(store.scope.profile_home), board_files(store):
                     return getattr(module, sqlite_operation.__name__)(store, *args, **kwargs)
             return sqlite_operation(store, *args, **kwargs)
         return operation
@@ -73,7 +84,8 @@ def owner_scoped_operation(file_operation):
                 raise StorageConfigurationError("Kanban file operations require a Board resource")
             store._assert_open()
             from hermes_cli.db_setup import _owning_profile
-            with _owning_profile(store.scope.profile_home):
+            from hermes_db.domains.kanban_files import board_files
+            with _owning_profile(store.scope.profile_home), board_files(store):
                 return file_operation(store, *args, **kwargs)
         return file_operation(store, *args, **kwargs)
     return operation

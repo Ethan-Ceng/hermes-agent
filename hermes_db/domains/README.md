@@ -42,8 +42,21 @@ generation, and explicit same-slug creation allocates another. A held handle can
 write a retired generation. Tasks, links, comments and events include both keys,
 and every graph mutation holds the Board row lock. PG never interprets a SQLite
 path override as a Board or Profile. Its local files live under the owner's Profile;
-worker-owner routing, runs and workspace/subscription lifecycles are separate
-capabilities completed by the following Kanban tasks.
+worker-owner routing, runs and workspace/subscription lifecycles have separate
+capability records. PG content follows `kanban/data/<board_id>` so reusing a slug
+cannot reuse another generation's files. Archive/delete/import file jobs commit
+their intent before filesystem work, retain shared references, and can resume an
+interrupted publication without recreating the Board. PG export/import uses the
+v2 logical archive and verifies registered attachment hashes; SQLite archives
+remain on the SQLite path, without cross-backend migration.
+
+An adopted ordinary worker resolves only a slug in its owner's Profile; a Kanban
+worker remains bound to its frozen Board reference. Reserved children carry their
+own authenticated read claim and cannot mutate Boards. Large attachment bytes use
+bounded authenticated chunks and an owner-selected private stage. The final
+attachment metadata and command receipt commit together; an unknown commit keeps
+the same command and stage. File-job, upload-stage and cleanup-token maintenance
+must reconcile durable ownership before removing recovery material.
 `board.json` remains file configuration; the PG registry only holds identity and
 lifecycle. File writes happen after the registry transaction and can fail visibly;
 retrying Board creation preserves the committed active generation.

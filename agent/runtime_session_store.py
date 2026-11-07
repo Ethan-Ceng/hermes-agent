@@ -36,6 +36,10 @@ def is_worker_process():
 def current_worker_store():
     if not is_worker_process():
         return None
+    from agent.runtime_worker_context import scoped_worker_store
+    scoped = scoped_worker_store()
+    if scoped is not None:
+        return scoped
     from tools.async_delegation_worker import worker_ledger
     return worker_ledger().store
 
