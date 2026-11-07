@@ -18,6 +18,7 @@ def _use_projects_db(monkeypatch, tmp_path):
 
 def test_agent_session_project_create_keeps_profile_active_pointer_and_moves_session(monkeypatch, tmp_path):
     db_path, connect_closing = _use_projects_db(monkeypatch, tmp_path)
+    background = str(tmp_path / "background")
     with connect_closing(db_path=db_path) as conn:
         active_id = pdb.create_project(conn, name="Foreground", folders=["/work/foreground"])
         pdb.set_active(conn, active_id)
@@ -28,7 +29,7 @@ def test_agent_session_project_create_keeps_profile_active_pointer_and_moves_ses
     try:
         result = json.loads(
             project_tools.project_create(
-                "Background", path="/work/background", task_id="session-background"
+                "Background", path=background, task_id="session-background"
             )
         )
     finally:
@@ -41,7 +42,7 @@ def test_agent_session_project_create_keeps_profile_active_pointer_and_moves_ses
     assert result["success"] is True
     assert created is not None
     assert created.name == "Background"
-    assert workspace_moves == [("session-background", "/work/background", "Background")]
+    assert workspace_moves == [("session-background", background, "Background")]
 
 
 def test_legacy_project_create_sets_profile_active_pointer(monkeypatch, tmp_path):
@@ -76,11 +77,12 @@ def test_legacy_project_switch_sets_profile_active_pointer(monkeypatch, tmp_path
 
 def test_agent_session_project_switch_keeps_profile_active_pointer(monkeypatch, tmp_path):
     db_path = tmp_path / "projects.db"
+    background = str(tmp_path / "background")
     original_connect_closing = pdb.connect_closing
 
     with original_connect_closing(db_path=db_path) as conn:
         active_id = pdb.create_project(conn, name="Foreground", folders=["/work/foreground"])
-        background_id = pdb.create_project(conn, name="Background", folders=["/work/background"])
+        background_id = pdb.create_project(conn, name="Background", folders=[background])
         pdb.set_active(conn, active_id)
 
     monkeypatch.setattr(pdb, "connect_closing", lambda: original_connect_closing(db_path=db_path))
@@ -97,7 +99,7 @@ def test_agent_session_project_switch_keeps_profile_active_pointer(monkeypatch, 
 
     assert result["success"] is True
     assert result["id"] == background_id
-    assert workspace_moves == [("session-background", "/work/background", "Background")]
+    assert workspace_moves == [("session-background", background, "Background")]
 
 
 def test_session_without_workspace_callback_switch_sets_profile_active_pointer(monkeypatch, tmp_path):

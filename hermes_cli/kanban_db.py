@@ -1049,7 +1049,7 @@ def _resolve_project_link(
     try:
         with _pdb.connect_closing() as _pconn:
             project_obj = _pdb.get_project(_pconn, project_id)
-    except Exception:
+    except (sqlite3.Error, OSError):
         project_obj = None
     if project_obj is None and project_source_task_id:
         project_obj, project_repo = _project_from_source_task(

@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+from hermes_db.errors import StorageError
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +65,8 @@ def _project(cwd):
     try:
         with pdb.connect_closing() as conn:
             project = pdb.project_for_path(conn, cwd)
+    except StorageError:
+        raise
     except Exception:  # health: allow BLE001 -- main's resolver: an unreadable projects.db names no project
         logger.debug("failed to resolve project for cwd", exc_info=True)
         return None

@@ -70,9 +70,9 @@ def test_missing_and_unsupported_domains_never_initialize_at_open(settings, tmp_
     assert status == upgrade_schema(settings)
     assert status["domains"]["sessions"]["ready"]
     assert not status["full_system_ready"]
-    assert not status["domains"]["projects"]["supported"]
-    with pytest.raises(StorageNotReadyError, match="projects.*not implemented"):
-        acquire_domain("projects", config, scope)
+    assert not status["domains"]["matrix_crypto"]["supported"]
+    with pytest.raises(StorageNotReadyError, match="matrix_crypto.*not implemented"):
+        acquire_domain("matrix_crypto", config, scope)
     with get_engine(settings).begin() as conn:
         quoted = conn.dialect.identifier_preparer.quote(settings.schema)
         conn.execute(text(f"DROP TABLE {quoted}.system_prompts CASCADE"))

@@ -18,6 +18,7 @@ from typing import Iterable, List, Optional
 
 from hermes_cli.sqlite_util import add_column_if_missing as _add_column_if_missing, open_db, write_txn
 from hermes_constants import get_hermes_home
+from hermes_db.domains.projects import domain_operation
 
 
 def projects_db_path() -> Path:
@@ -111,13 +112,19 @@ def _normalize_path(path: str) -> str:
     return p.rstrip("/\\") or p
 
 
-def connect(db_path: Optional[Path] = None) -> sqlite3.Connection:
-    """Open (and initialize if needed) the per-profile projects DB.
+def connect(db_path: Optional[Path] = None, *, profile_home: Optional[Path] = None):
+    """Open the selected Projects store; callers use named project operations.
 
     WAL with DELETE fallback for network filesystems (``hermes_state`` helper). Schema init is
     idempotent (``CREATE TABLE IF NOT EXISTS`` + additive migrations) and cached per-path per-process.
     """
-    path = db_path if db_path is not None else projects_db_path()
+    from hermes_cli.db_setup import resolve_db_configuration
+    from hermes_db.factory import acquire_domain
+
+    settings, scope = resolve_db_configuration(profile_home)
+    if settings.backend == "postgresql":
+        return acquire_domain("projects", settings, scope)
+    path = db_path if db_path is not None else (projects_db_path() if profile_home is None else scope.profile_home / "projects.db")
     resolved = str(path.resolve())
 
     def _initialize(conn: sqlite3.Connection) -> None:
@@ -134,10 +141,10 @@ def connect(db_path: Optional[Path] = None) -> sqlite3.Connection:
 
 
 @contextlib.contextmanager
-def connect_closing(db_path: Optional[Path] = None):
+def connect_closing(db_path: Optional[Path] = None, *, profile_home: Optional[Path] = None):
     """Open a projects DB connection and close it on exit (sqlite3's own context manager only
     commits/rollbacks, so long-lived gateway/dashboard processes would leak fds otherwise)."""
-    conn = connect(db_path=db_path)
+    conn = connect(db_path=db_path, profile_home=profile_home)
     try:
         yield conn
     finally:
@@ -204,6 +211,7 @@ def _primary_path_key(path: str) -> str:
     return os.path.normcase(_normalize_path(path))
 
 
+@domain_operation
 def find_by_primary_path(conn: sqlite3.Connection, path: str, *, include_archived: bool = False) -> Optional[Project]:
     """The first (oldest) project whose primary path matches ``path`` (separator/case normalized so
     equivalent Windows spellings don't slip past the dedup check), else None."""
@@ -217,6 +225,7 @@ def find_by_primary_path(conn: sqlite3.Connection, path: str, *, include_archive
     return None
 
 
+@domain_operation
 def create_project(
     conn: sqlite3.Connection, *, name: str, slug: Optional[str] = None, folders: Optional[Iterable[str]] = None,
     primary_path: Optional[str] = None, description: Optional[str] = None, icon: Optional[str] = None,
@@ -256,11 +265,13 @@ def create_project(
     return pid
 
 
+@domain_operation
 def list_projects(conn: sqlite3.Connection, *, include_archived: bool = False) -> list[Project]:
     sql = "SELECT * FROM projects" + ("" if include_archived else " WHERE archived = 0") + " ORDER BY created_at ASC"
     return [_load_project(conn, r) for r in conn.execute(sql).fetchall()]
 
 
+@domain_operation
 def get_project(conn: sqlite3.Connection, id_or_slug: str) -> Optional[Project]:
     """Look up a project by id first, then by slug."""
     row = (
@@ -270,6 +281,7 @@ def get_project(conn: sqlite3.Connection, id_or_slug: str) -> Optional[Project]:
     return None if row is None else _load_project(conn, row)
 
 
+@domain_operation
 def update_project(
     conn: sqlite3.Connection, project_id: str, *, name: Optional[str] = None, description: Optional[str] = None,
     icon: Optional[str] = None, color: Optional[str] = None, board_slug: Optional[str] = None,
@@ -302,6 +314,7 @@ def _execute_rowcount(conn: sqlite3.Connection, sql: str, params) -> int:
     return cur.rowcount
 
 
+@domain_operation
 def add_folder(conn: sqlite3.Connection, project_id: str, path: str, *, label: Optional[str] = None, is_primary: bool = False) -> str:
     """Add a folder to a project. Returns the normalized path."""
     norm = _normalize_path(path)
@@ -324,6 +337,7 @@ def add_folder(conn: sqlite3.Connection, project_id: str, path: str, *, label: O
     return norm
 
 
+@domain_operation
 def remove_folder(conn: sqlite3.Connection, project_id: str, path: str) -> bool:
     """Remove a folder from a project. Repoints primary if it was primary."""
     norm = _normalize_path(path)
@@ -350,6 +364,7 @@ def _set_primary_locked(conn: sqlite3.Connection, project_id: str, path: str) ->
     conn.execute("UPDATE projects SET primary_path = ? WHERE id = ?", (path, project_id))
 
 
+@domain_operation
 def set_primary(conn: sqlite3.Connection, project_id: str, path: str) -> bool:
     norm = _normalize_path(path)
     with write_txn(conn):
@@ -359,14 +374,17 @@ def set_primary(conn: sqlite3.Connection, project_id: str, path: str) -> bool:
     return True
 
 
+@domain_operation
 def archive_project(conn: sqlite3.Connection, project_id: str) -> bool:
     return _execute_rowcount(conn, "UPDATE projects SET archived = 1 WHERE id = ?", (project_id,)) > 0
 
 
+@domain_operation
 def restore_project(conn: sqlite3.Connection, project_id: str) -> bool:
     return _execute_rowcount(conn, "UPDATE projects SET archived = 0 WHERE id = ?", (project_id,)) > 0
 
 
+@domain_operation
 def delete_project(conn: sqlite3.Connection, project_id: str) -> bool:
     """Hard-delete a project and its folders (cascade)."""
     return _execute_rowcount(conn, "DELETE FROM projects WHERE id = ?", (project_id,)) > 0
@@ -387,6 +405,7 @@ def _get_meta(conn: sqlite3.Connection, key: str) -> Optional[str]:
     return row["value"] if row else None
 
 
+@domain_operation
 def set_active(conn: sqlite3.Connection, project_id: Optional[str]) -> None:
     """Set (or clear, when ``None``) the active project pointer."""
     with write_txn(conn):
@@ -396,10 +415,12 @@ def set_active(conn: sqlite3.Connection, project_id: Optional[str]) -> None:
             _upsert_meta_locked(conn, _ACTIVE_META_KEY, project_id)
 
 
+@domain_operation
 def get_active_id(conn: sqlite3.Connection) -> Optional[str]:
     return _get_meta(conn, _ACTIVE_META_KEY)
 
 
+@domain_operation
 def get_discovery_policy_key(conn: sqlite3.Connection) -> Optional[str]:
     return _get_meta(conn, _DISCOVERY_POLICY_META_KEY)
 
@@ -412,6 +433,7 @@ def _clear_repos_locked(conn: sqlite3.Connection, clear: bool, policy_key: Optio
         _upsert_meta_locked(conn, _DISCOVERY_POLICY_META_KEY, policy_key)
 
 
+@domain_operation
 def reconcile_discovered_repos_policy(conn: sqlite3.Connection, policy_key: str, *, preserve_unversioned: bool = False) -> bool:
     """Clear cached scan rows when their discovery policy changes; pre-policy rows are retained only
     for the backward-compatible default policy. Returns whether rows were cleared."""
@@ -424,11 +446,13 @@ def reconcile_discovered_repos_policy(conn: sqlite3.Connection, policy_key: str,
     return cleared
 
 
+@domain_operation
 def clear_discovered_repos(conn: sqlite3.Connection, *, policy_key: Optional[str] = None) -> None:
     with write_txn(conn):
         _clear_repos_locked(conn, True, policy_key)
 
 
+@domain_operation
 def record_discovered_repos(
     conn: sqlite3.Connection, repos: Iterable[tuple[str, Optional[str]]], *, replace: bool = False,
     policy_key: Optional[str] = None,
@@ -454,11 +478,13 @@ def record_discovered_repos(
     return len(rows)
 
 
+@domain_operation
 def list_discovered_repos(conn: sqlite3.Connection) -> list[dict]:
     """All cached discovered repo roots, most-recently-seen first."""
     return [dict(r) for r in conn.execute("SELECT root, label, last_seen FROM discovered_repos ORDER BY last_seen DESC").fetchall()]
 
 
+@domain_operation
 def project_for_path(conn: sqlite3.Connection, path: str, *, include_archived: bool = False) -> Optional[Project]:
     """Return the project owning ``path``: a folder owns it when equal or an ancestor, and the longest
     folder wins so nested projects resolve to the innermost one."""

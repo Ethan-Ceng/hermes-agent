@@ -222,6 +222,7 @@ def _scan_discovered_repos_remote(conn, policy: dict) -> bool:
     excludes = policy.get("exclude_paths") or []
     pairs: list[tuple[str, str | None]] = []
     seen: set[str] = set()
+    from hermes_db.errors import StorageError
     authoritative = True
 
     def _is_excluded(path: str) -> bool:
@@ -257,6 +258,8 @@ def _scan_discovered_repos_remote(conn, policy: dict) -> bool:
         try:
             pdb.record_discovered_repos(
                 conn, pairs, replace=authoritative, policy_key=_repo_discovery_policy_key(policy))
+        except StorageError:
+            raise
         except Exception:
             logger.debug("discover_repos cache write failed", exc_info=True)
             authoritative = False
@@ -268,6 +271,7 @@ def _discover_repos_payload(
     """Merge cached filesystem-scanned repos with session-derived roots, junk-filtered, with
     session totals. ``backfill`` persists resolved roots onto session rows — kept OFF the
     per-turn tree path and done only on explicit refresh."""
+    from hermes_db.errors import StorageError
     repos: dict[str, dict] = {}
 
     def _agg(root: str) -> dict:
@@ -296,6 +300,8 @@ def _discover_repos_payload(
     if backfill and db is not None and not getattr(db, "read_only", False):
         try:
             db.backfill_repo_roots(cwd_to_root)
+        except StorageError:
+            raise
         except Exception:
             logger.debug("failed to backfill repo roots", exc_info=True)
     if include_cached:
@@ -309,6 +315,8 @@ def _discover_repos_payload(
                         agg = _agg(root)
                         if entry.get("label"):
                             agg["label"] = entry["label"]
+        except StorageError:
+            raise
         except Exception:
             logger.debug("failed to read discovered repo cache", exc_info=True)
     out = sorted(repos.values(), key=lambda r: r["last_active"], reverse=True)

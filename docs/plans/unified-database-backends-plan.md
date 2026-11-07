@@ -11,8 +11,8 @@
 
 - 整体状态：`IN_PROGRESS`。
 - 当前阶段：统一配置与基础资源实施。
-- 当前任务：Task 4（pending；Task 1 `41f4258e91`，Task 2 `4d9d0c0430`）。
-- 已完成：3 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前任务：Task 5（pending；Task 3 提交 `44df595f2a`）。
+- 已完成：4 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-07（Asia/Shanghai）。
@@ -214,7 +214,7 @@ $pgTestConfig = Join-Path $PWD '.build/postgresql/private/acceptance-postgresql.
 
 ## Task 4：统一 Projects 与发现缓存数据库
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -252,11 +252,11 @@ PG 项目操作无需 projects.db，实际项目入口通过。
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+新增0006_projects冻结迁移、Core项目/目录/元数据/发现缓存及store锁表；精确文本用BYTEA，slug唯一键、外键均带store_id。19个已有具名项目操作统一分流到PG完整短事务，保留SQLite接口；PG资源不提供execute或SQL翻译。创建/slug分配/主目录/策略缓存变更以store行锁序列化。connect显式拥有者，db_path覆盖仅用于SQLite。CLI/TUI/Web/tools既有具名调用接通；发现缓存、库存和看板关联查询不再吞PG错误为空结果。修正两个已在基线复现的Windows工具测试路径fixture，无OS伪装。提交标题：feat(storage): support Projects on the unified backend。恢复点：Task 5。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+原生Windows/PM full-test-env。`scripts/run_tests.sh tests/hermes_cli/test_projects_db.py tests/hermes_cli/test_projects_cli.py tests/tui_gateway/test_projects_rpc.py tests/tui_gateway/test_project_tree.py tests/tools/test_project_tools.py tests/hermes_cli/test_kanban_project_link.py tests/hermes_cli/test_kanban_board_project.py tests/hermes_db/contracts/test_unified_selection.py -j 4` exit0、97 passed/0 failed/0 skipped（unified-task4-sqlite-final.log），含禁止PG依赖导入的SQLite项目写入/重开。初轮2项工具Unix路径断言失败；用44df595f2a原版projects_db模块跑同测试仍2 failed/8 passed（unified-task4-tools-base.log），改原生tmp_path后通过。`scripts/run_tests.sh tests/hermes_db/postgresql/test_projects_store.py tests/hermes_db/postgresql/test_schema.py tests/hermes_db/postgresql/test_domain_schema.py -j 3 -- -m integration --postgres-test-config=$pgTestConfig` exit0、13 passed/0 failed/0 skipped（unified-task4-pg-final.log）。扩展CLI/Web/TUI创建流程后再跑test_projects_store.py相同PG参数，exit0、4 passed（unified-task4-surfaces-final.log）：整个业务进程及独立子进程拒绝所有SQLite连接，验证真实工具注册dispatch、CLI list、TUI list/create、Web工作区、重启读写、同ID跨store、同slug竞争、主目录竞争、归档删除/缓存和故障传播。TUI首轮因测试仅绑定秘密而缺Profile秘密文件失败，fixture改为隔离Profile的.env（从已有私有测试源读取、不输出/提交秘密）；宿主将CLI输出重定向stderr的断言已按实际协议修正。`PM Python scripts/check --staged --base 44df595f2a` 最终exit0、14 checks ok（unified-task4-checks-final.log），diff --check通过。未验证：metrics启用链路须Task15后单后端全流程再验；本次用默认授权策略，未禁用/替代指标以绕过测试，也不把项目证据外推到指标、完整Kanban或全系统。
 
 ## Task 5：统一 Cron 执行与 incident 账本
 
@@ -1194,7 +1194,7 @@ CLI/Gateway/Web/TUI/Desktop/ACP/Agent及后台任务统一接入领域能力。
 
 ### 未通过与未验证
 
-Task 1–3 已完成，Task 4–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
+Task 1–4 已完成，Task 5–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
 
 ### 最终状态
 
@@ -1202,6 +1202,6 @@ Task 1–3 已完成，Task 4–24 尚未完成；不得宣称全系统PG已完�
 
 ## 恢复点
 
-Task 1–3 配置/领域基础与验证证据已验收；本地提交后从 Task 4 继续。分支与初始干净工作区已核对，正式实例仍保持 SQLite；开发未写正式 Profile、秘密或业务数据库。
+Task 1–4 配置/领域基础、验证证据与Projects已验收；本地提交后从 Task 5 继续。分支与初始干净工作区已核对，正式实例仍保持 SQLite；开发未写正式 Profile、秘密或业务数据库。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

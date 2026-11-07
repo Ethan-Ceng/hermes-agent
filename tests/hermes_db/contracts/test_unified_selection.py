@@ -63,6 +63,11 @@ with open_profile_db(sys.argv[1]) as db:
     db.sessions.append_message('independent', role='user', content='persisted')
 with open_profile_db(sys.argv[1]) as db:
     assert db.sessions.get_messages_as_conversation('independent')[0]['content'] == 'persisted'
+from hermes_cli import projects_db as pdb
+with pdb.connect_closing(profile_home=sys.argv[1]) as store:
+    pid = pdb.create_project(store, name='Independent Projects')
+with pdb.connect_closing(profile_home=sys.argv[1]) as store:
+    assert pdb.get_project(store, pid).name == 'Independent Projects'
 '''
     result = subprocess.run([sys.executable, "-c", code, str(tmp_path)], capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr
