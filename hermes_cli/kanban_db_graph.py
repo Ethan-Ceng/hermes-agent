@@ -4,6 +4,7 @@ from __future__ import annotations
 import sqlite3
 import time
 from typing import Any, Optional
+from hermes_db.domains.kanban import domain_operation
 
 def inherit_creator_origin(
     conn: sqlite3.Connection, task_id: str, creator_task_id: Optional[str], *,
@@ -87,6 +88,7 @@ def _validate_children_graph(children: list) -> None:
         raise ValueError("cyclic dependency detected in decomposed children list")
 
 
+@domain_operation("graph")
 def decompose_triage_task(
     conn: sqlite3.Connection, task_id: str, *, root_assignee: Optional[str], children: list[dict],
     author: Optional[str] = None, auto_promote: bool = True,

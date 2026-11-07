@@ -10,9 +10,9 @@
 ## 当前进度
 
 - 整体状态：`IN_PROGRESS`。
-- 当前阶段：统一配置与基础资源实施。
-- 当前任务：Task 8（pending；Task 6 提交 `f519a4b6ac`）。
-- 已完成：7 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前阶段：Kanban 领域实施。
+- 当前任务：Task 8 已完成，下一项 Task 9（本地提交后立即进入）。
+- 已完成：8 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-07（Asia/Shanghai）。
@@ -396,7 +396,7 @@ PG notepad 无 SQLite 依赖，超过配额原数据保持不变。
 
 ## Task 8：统一 Kanban Board、任务与依赖图
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -434,11 +434,26 @@ Kanban 基本任务与图在 PG 可独立读写，公共消费者不执行 SQLit
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+新增 `0010_kanban_tasks` 及 Core Board 注册表、任务/依赖边/评论/事件表；所有键、FK、查询、锁和删除均带 `store_id + board_id`。Board slug 查找当前稳定代次，归档后重建分配新代次，旧资源写入被 Board 行锁和生命周期检查拒绝；不从本地路径推断 Profile/Board。命名 Board 必须显式创建，默认 Board 只做幂等业务 DML，不在连接时运行 DDL。
+
+`BoardResource` 使用捕获的拥有者作用域和短事务，无 `.execute`/SQLite SQL 翻译接口。任务创建、幂等、字段修改/分配、Projects 关联、技能/goal/model/reasoning字段、任务删除、依赖图/环检测、ready 重算、triage 规格化/原子分解、评论/事件/统计/保留期均有命名 Core 操作；基础 CLI 创建/列表/编辑/统计直接使用这些接口。分解的后续 child 约束失败会回滚此前 child/边/事件；并发创建键和反向图边由真实 PG Board 锁串行化。Worker context 的 parent 查询改用命名图接口，run history 归 Task 9。
+
+`board.json` 保留文件配置，不存入 PG；PG 只登记身份与生命周期。PG 文件根绑定拥有者 Profile，SQLite 原共享路径与路径覆盖继续保留。身份事务提交后写配置文件；文件错误明确上报，重试创建复用已提交活动代次。已将这项事务边界、Board 代次、跨 Profile Worker 必须继承可信 owner 的要求补入设计。`kanban_tasks`、`kanban_runs`、`kanban_workspace` 分别报告能力；后两者仍不支持，不伪报整个 Kanban 就绪。
+
+原 `SCHEMA_SQL` 原样移到 `kanban_sqlite_schema.py`，修正内部引用而不加 re-export shim，facade 净缩减。SQLite 初始化、WAL/损坏修复和 PG 获取路径在最早的连接边界分离。原生基线四个失败（systemd 主机标记、Git/可执行路径断言、FakePopen 跨用例泄漏）已在 Task 7 原始源码复现；仅修测试主机边界和假进程注册表隔离。扩大回归另发现同类 FakeProc 泄漏，也只修测试隔离。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+Windows 原生；PM 测试解释器沿用 `.build/postgresql/full-test-env/Scripts/python.exe`，秘密只通过私有测试配置路径读取。PG fixture 在核对归属的随机 Schema 显式升级；父/子业务进程拒绝所有 `sqlite3.connect`，包括内存/URI，不给业务路径豁免。
+
+- 初始 `scripts/run_tests.sh tests/hermes_db/postgresql/test_kanban_tasks.py -- -m integration --postgres-test-config=$pgTestConfig`：2 failed，按预期在旧 SQLite 连接处拒绝。后续测试修正了实际 connect_closing 所在模块、CLI positional title 与输出词、故障注入前提；不把测试编写错误当作产品缺陷。
+- 原始 Task 7 源码的 `scripts/run_tests.sh tests/hermes_cli/test_kanban_db.py -j 2`：50 passed、4 failed、1平台skip，日志 `unified-task8-native-baseline.log`。之前动态导入基线插件的两次尝试为 harness 54 setup errors，不是产品证据；已删除临时插件并换成原源码覆盖、finally 精确恢复当前文件。
+- 最终 `scripts/run_tests.sh tests/hermes_cli/test_kanban_db.py tests/hermes_cli/test_kanban_db_init.py tests/hermes_cli/test_kanban_decompose_db.py tests/hermes_cli/test_kanban_graph_identity.py tests/hermes_cli/test_kanban_project_link.py tests/hermes_cli/test_kanban_boards.py tests/hermes_cli/test_kanban_board_project.py tests/hermes_cli/test_kanban_creator_origin.py tests/hermes_cli/test_kanban_specify_db.py tests/hermes_cli/test_kanban_gc_retention.py tests/hermes_cli/test_kanban_core_functionality.py tests/hermes_cli/test_kanban_cli.py tests/hermes_db/contracts/test_unified_selection.py tests/hermes_db/contracts/test_domain_resources.py -j 3`：退出0，153 passed、5适用平台skip（Linux/systemd、POSIX）。日志 `unified-task8-regression-final.log`。之前扩展回归为151 passed、2 failed、5 skip，同类 FakeProc 泄漏修正后完整复验。包含真实 SQLite 业务子进程拒绝 SQLAlchemy/psycopg/Alembic 导入。
+- 最终 `scripts/run_tests.sh tests/hermes_db/postgresql/test_kanban_tasks.py tests/hermes_db/postgresql/test_schema.py tests/hermes_db/postgresql/test_cron_notepad.py tests/hermes_db/postgresql/test_cron_delivery_store.py tests/hermes_db/postgresql/test_cron_executions.py tests/hermes_db/postgresql/test_projects_store.py -j 3 -- -m integration --postgres-test-config=$pgTestConfig`：退出0，32 passed，其中当前 Kanban 9项、Schema 5项；日志 `unified-task8-pg-final-all.log`。曾以两个不存在的文件名调用 runner，退出2且未执行测试；上述已改为真实路径。
+- Kanban 实证包含：NUL/Unicode 精确保真、相同任务ID跨Board/store隔离、旧Board资源与同名重建隔离、并发幂等与互斥图边、原子分解约束回滚、Projects继承/显式scratch覆盖、真实 CLI、池归还、调用上下文变更仍绑定拥有者、SQL失败不回落、真实子进程关闭/重开后读写持久数据、文件配置写入失败后的代次恢复。
+- `PM Python scripts/check --staged --base 38a120b287` 最新退出0，14项通过，0 blocking/advisory；日志 `unified-task8-checks-final.log`。首次检查只报测试文件行数增长，清理两处多余空行后通过。`git diff --cached --check` 通过。本地提交标题 `feat(storage): support scoped Kanban tasks and graphs`，父提交 `38a120b287`；提交后可用该唯一标题定位SHA。
+
+未验证/恢复点：Task 9 的 run/claim/派发/Worker/owner恢复/旧回执和完成态 result 编辑仍未实现；Task 10 的订阅继承、工作区/附件生命周期、Board 文件目录归档/删除、跨 Board 转移仍待闭合。当前仅验收基础任务/图，不宣称完整 Kanban/全系统 PG；Task 11–24 与最终审查仍 pending。Task 8 本地提交后立即进入 Task 9。
 
 ## Task 9：统一 Kanban run、派发与 Worker 回执
 
@@ -1194,7 +1209,7 @@ CLI/Gateway/Web/TUI/Desktop/ACP/Agent及后台任务统一接入领域能力。
 
 ### 未通过与未验证
 
-Task 1–7 已完成，Task 8–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
+Task 1–8 已完成，Task 9–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
 
 ### 最终状态
 
@@ -1202,6 +1217,6 @@ Task 1–7 已完成，Task 8–24 尚未完成；不得宣称全系统PG已完�
 
 ## 恢复点
 
-Task 1–7 配置/领域基础、验证证据、Projects及Cron执行/incident/投递/notepad已验收；本地提交后从 Task 8 继续。分支与初始干净工作区已核对，正式实例仍保持 SQLite；开发未写正式 Profile、秘密或业务数据库。
+Task 1–8 配置/领域基础、验证证据、Projects、Cron执行/incident/投递/notepad及Kanban基础任务/图已验收；Task 8 本地提交后从 Task 9 的 run/派发/owner作用域和Worker回执继续。分支仍为 `feat/postgresql-session-storage`；正式实例保持 SQLite，开发未写正式 Profile、秘密或业务数据库。Task 8 实证为153原生/合同通过、5平台skip、32真实PG通过、14检查通过；更大范围仍待对应任务，不外推完整Kanban或全系统PG。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

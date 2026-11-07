@@ -13,7 +13,7 @@ class DomainSpec:
 
 KNOWN_DOMAINS = (
     "sessions", "verification", "projects", "cron_executions", "cron_deliveries", "cron_notepad",
-    "kanban", "rooms", "room_attachments", "metrics", "plugins", "discord_recovery", "retain_queue", "matrix_crypto",
+    "kanban_tasks", "kanban_runs", "kanban_workspace", "rooms", "room_attachments", "metrics", "plugins", "discord_recovery", "retain_queue", "matrix_crypto",
 )
 POSTGRES_DOMAINS = {
     "sessions": DomainSpec("0004_model_markers", ("conversations", "runtime", "gateway", "api")),
@@ -22,6 +22,7 @@ POSTGRES_DOMAINS = {
     "cron_executions": DomainSpec("0007_cron_executions", ("cron",)),
     "cron_deliveries": DomainSpec("0008_cron_delivery", ("cron_delivery",)),
     "cron_notepad": DomainSpec("0009_cron_notepad", ("cron_notepad",)),
+    "kanban_tasks": DomainSpec("0010_kanban_tasks", ("kanban",)),
 }
 
 

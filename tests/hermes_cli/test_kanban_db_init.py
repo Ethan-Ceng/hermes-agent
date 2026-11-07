@@ -5,6 +5,7 @@ import sqlite3
 from pathlib import Path
 
 from hermes_cli import kanban_db as kb
+from hermes_cli.kanban_sqlite_schema import SCHEMA_SQL
 from hermes_cli import kanban_db_connect as kbc
 
 
@@ -14,7 +15,7 @@ def _make_legacy_db(path: Path) -> None:
     additive-column migration runs cleanly on top.
     """
     conn = sqlite3.connect(str(path))
-    conn.executescript(kb.SCHEMA_SQL)
+    conn.executescript(SCHEMA_SQL)
     conn.executescript(
         """
         DROP TABLE task_events;

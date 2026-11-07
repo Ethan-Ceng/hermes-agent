@@ -35,3 +35,15 @@ must not enter identity or digest inputs. UTF-8 byte quotas count the exact enco
 payload, not a projection. Timestamp columns keep each domain's existing instant
 and timezone contract; do not normalize opaque user timestamp strings. Domain
 contracts must prove these choices through real writes and reads.
+
+Kanban uses `(store_id, board_id)` handles resolved by the owner's Board registry.
+The human slug points to its current immutable generation; archive retires that
+generation, and explicit same-slug creation allocates another. A held handle cannot
+write a retired generation. Tasks, links, comments and events include both keys,
+and every graph mutation holds the Board row lock. PG never interprets a SQLite
+path override as a Board or Profile. Its local files live under the owner's Profile;
+worker-owner routing, runs and workspace/subscription lifecycles are separate
+capabilities completed by the following Kanban tasks.
+`board.json` remains file configuration; the PG registry only holds identity and
+lifecycle. File writes happen after the registry transaction and can fail visibly;
+retrying Board creation preserves the committed active generation.

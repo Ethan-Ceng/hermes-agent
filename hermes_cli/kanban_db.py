@@ -1,4 +1,8 @@
-"""SQLite-backed Kanban board shared across profiles (the cross-profile coordination primitive).
+"""Kanban task API for the selected backend; SQLite boards remain shared across profiles.
+
+PG uses owner-bound Board resources and scoped Core operations. Board names resolve to persistent
+generations; its file configuration stays in the owning Profile. Runs and workspace lifecycles
+are separate capabilities from basic task storage.
 
 Lives under the shared Hermes root: ``default`` board DB at ``<root>/kanban.db`` (pre-boards
 back-compat), other boards at ``<root>/kanban/boards/<slug>/``; a worker on one board never sees
@@ -32,6 +36,7 @@ from typing import Any, Iterable, Optional
 from hermes_cli.kanban_workflow import DEFAULT_STATUSES as VALID_STATUSES
 from toolsets import get_toolset_names
 from utils import unlink_files_older_than
+from hermes_db.domains.kanban import domain_operation, profile_operation
 
 _log = logging.getLogger(__name__)
 
@@ -209,6 +214,7 @@ def _fire_worker_spawned_hook(
         _log.debug("kanban worker spawned hook failed: %s", exc)
 
 
+@domain_operation("tasks")
 def notify_task_updated(
     conn: sqlite3.Connection, task_id: str, changed_fields: Iterable[str], *,
     board: Optional[str] = None,
@@ -401,7 +407,12 @@ def _require_slug(slug: str) -> str:
 def kanban_home() -> Path:
     """``HERMES_KANBAN_HOME`` else ``get_default_hermes_root()``. Shared across
     profiles BY DESIGN: resolving through the active profile's HERMES_HOME would
-    fork the board per profile and break the dispatcher/worker handoff."""
+    fork the SQLite board per profile and break the dispatcher/worker handoff.
+    PG files bind the owning Profile; its Board identity comes from the registry."""
+    from hermes_cli.db_setup import storage_backend
+    if storage_backend() == "postgresql":
+        from hermes_constants import get_hermes_home
+        return get_hermes_home()
     override = os.environ.get("HERMES_KANBAN_HOME", "").strip()
     if override:
         return Path(override).expanduser()
@@ -490,6 +501,7 @@ def board_dir(board: Optional[str] = None) -> Path:
     return boards_root() / _slug_or_default(board)
 
 
+@profile_operation
 def board_exists(board: Optional[str] = None) -> bool:
     """Board has a ``board.json`` on disk; ``default`` always exists."""
     slug = _slug_or_default(board)
@@ -614,7 +626,7 @@ class Task:
     project_id: Optional[str] = None
     result: Optional[str] = None
     idempotency_key: Optional[str] = None
-    # Column semantics: see SCHEMA_SQL.
+    # Column semantics: see kanban_sqlite_schema.SCHEMA_SQL.
     consecutive_failures: int = 0
     worker_pid: Optional[int] = None
     last_failure_error: Optional[str] = None
@@ -773,214 +785,7 @@ class Event:
 
 # --- Schema ---
 
-SCHEMA_SQL = """
-CREATE TABLE IF NOT EXISTS tasks (
-    id                   TEXT PRIMARY KEY,
-    title                TEXT NOT NULL,
-    body                 TEXT,
-    assignee             TEXT,
-    status               TEXT NOT NULL,
-    priority             INTEGER DEFAULT 0,
-    created_by           TEXT,
-    created_at           INTEGER NOT NULL,
-    started_at           INTEGER,
-    completed_at         INTEGER,
-    workspace_kind       TEXT NOT NULL DEFAULT 'scratch',
-    workspace_path       TEXT,
-    branch_name          TEXT,
-    -- Optional link to a first-class Project (hermes_cli/projects_db). When set,
-    -- the task's worktree is anchored under the project's primary repo with a
-    -- deterministic branch name instead of a random wt/<task-id> fallback.
-    project_id           TEXT,
-    claim_lock           TEXT,
-    claim_expires        INTEGER,
-    tenant               TEXT,
-    result               TEXT,
-    idempotency_key      TEXT,
-    -- Unified consecutive-failure counter. Incremented on spawn
-    -- failure, timeout, or crash; reset only on successful completion.
-    -- The circuit breaker in _record_task_failure trips when this
-    -- exceeds DEFAULT_FAILURE_LIMIT consecutive non-successes.
-    consecutive_failures INTEGER NOT NULL DEFAULT 0,
-    worker_pid           INTEGER,
-    -- Restart-stable fingerprint of worker_pid ("<boot/instantiation epoch>|<start time>",
-    -- kanban_db_dispatch._process_fingerprint) recorded at spawn: liveness and kills require pid
-    -- AND fingerprint to agree, so a PID recycled after a reboot is never read as our worker or
-    -- signalled. NULL = legacy row (pre-fingerprint spawn); 'unverified' = capture failed at
-    -- spawn (held while live, never signalled). Column keeps its INTEGER affinity for the
-    -- start-time-only integer values older rows carry.
-    worker_started_at    INTEGER,
-    -- Short excerpt of the most recent failure's error text.
-    last_failure_error   TEXT,
-    max_runtime_seconds  INTEGER,
-    last_heartbeat_at    INTEGER,
-    -- Pointer into task_runs for the currently-active run (NULL if no
-    -- run is in-flight). Denormalised for cheap reads.
-    current_run_id       INTEGER,
-    -- Forward-compat for v2 workflow routing. In v1 the kernel writes
-    -- these when the task is opted into a template but otherwise ignores
-    -- them; the dispatcher doesn't consult them for routing yet.
-    workflow_template_id TEXT,
-    current_step_key     TEXT,
-    -- Force-loaded skills for the worker on this task, stored as JSON.
-    -- Passed to the worker via `--skills`. NULL or empty array = no extras.
-    skills               TEXT,
-    -- Per-task model override. When set, the dispatcher passes -m <model>
-    -- to the worker, overriding the profile's default model. NULL = use
-    -- the profile default.
-    model_override       TEXT,
-    -- Provider the model override belongs to. When set (alongside
-    -- model_override), the dispatcher passes --provider <name> so the
-    -- worker resolves the model against the right backend instead of the
-    -- profile's configured provider. NULL = profile provider.
-    provider_override    TEXT,
-    -- Per-task reasoning effort for the worker (minimal|low|medium|high|
-    -- xhigh|max|ultra, or 'none' for thinking off). When set, the dispatcher
-    -- passes --reasoning <level> so the worker runs at that depth regardless
-    -- of the profile's agent.reasoning_effort. NULL = profile setting.
-    reasoning_effort     TEXT,
-    -- Per-task override for the consecutive-failure circuit breaker.
-    -- The value is the failure count at which the breaker trips — e.g.
-    -- ``max_retries=1`` blocks on the first failure. NULL (the common
-    -- case) falls through to the dispatcher-level ``kanban.failure_limit``
-    -- config and then ``DEFAULT_FAILURE_LIMIT``.
-    max_retries          INTEGER,
-    -- When 1, the dispatched worker runs in a Ralph-style goal loop: an
-    -- auxiliary judge re-evaluates the worker's response against the
-    -- card title/body after each turn and feeds a continuation prompt
-    -- back into the SAME session until the judge agrees the work is done
-    -- or ``goal_max_turns`` is exhausted. NULL/0 = classic single-shot
-    -- worker (the default).
-    goal_mode            INTEGER NOT NULL DEFAULT 0,
-    -- Goal-loop turn budget for ``goal_mode`` workers. NULL = use the
-    -- goals-engine default.
-    goal_max_turns       INTEGER,
-    -- Originating chat/agent session id when the task was created from
-    -- inside an agent loop that propagated ``HERMES_SESSION_ID``. NULL
-    -- for tasks created from the CLI, dashboard, or any path that doesn't
-    -- set the env var, and for an id with no ``sessions`` row in this
-    -- profile's state.db (kanban_create verifies before stamping). Indexed
-    -- so per-session list queries stay cheap on larger boards.
-    session_id           TEXT,
-    -- Typed block reason set by ``block_task`` (one of VALID_BLOCK_KINDS, or
-    -- NULL for legacy/un-typed blocks). Drives routing: ``dependency`` never
-    -- sits in ``blocked`` (goes to ``todo`` for parent-gating); the others go
-    -- to ``blocked`` for a human. Preserved across unblock so a re-block for
-    -- the SAME kind can be recognised as a loop.
-    block_kind           TEXT,
-    -- Unblock-loop counter. Incremented each time a task is re-blocked for the
-    -- same truly-blocked reason after having been unblocked. When it reaches
-    -- BLOCK_RECURRENCE_LIMIT the task is routed to ``triage`` instead of
-    -- ``blocked`` so a cron can't spin it forever. Reset to 0 only on a
-    -- successful completion — NOT on unblock (resetting on unblock is exactly
-    -- the amnesia that let the loop run unbounded).
-    block_recurrences    INTEGER NOT NULL DEFAULT 0
-);
 
-CREATE TABLE IF NOT EXISTS task_links (
-    parent_id  TEXT NOT NULL,
-    child_id   TEXT NOT NULL,
-    PRIMARY KEY (parent_id, child_id)
-);
-
-CREATE TABLE IF NOT EXISTS task_comments (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    task_id    TEXT NOT NULL,
-    author     TEXT NOT NULL,
-    body       TEXT NOT NULL,
-    created_at INTEGER NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS task_events (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    task_id    TEXT NOT NULL,
-    run_id     INTEGER,
-    kind       TEXT NOT NULL,
-    payload    TEXT,
-    created_at INTEGER NOT NULL
-);
-
--- Historical attempt record. Each time the dispatcher claims a task, a
--- new row is created here; claim state, PID, heartbeat, runtime cap,
--- and structured summary all live on the run, not the task. Multiple
--- rows per task id when the task was retried after crash/timeout/block.
--- v2 of the kanban schema will use ``step_key`` to drive per-stage
--- workflow routing; in v1 the column is nullable and unused (kernel
--- ignores it).
-CREATE TABLE IF NOT EXISTS task_runs (
-    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-    task_id             TEXT NOT NULL,
-    profile             TEXT,
-    step_key            TEXT,
-    status              TEXT NOT NULL,
-    -- status: running | done | blocked | crashed | timed_out | failed | released
-    claim_lock          TEXT,
-    claim_expires       INTEGER,
-    worker_pid          INTEGER,
-    -- Spawn-time start fingerprint of worker_pid (see tasks.worker_started_at). Retained with
-    -- worker_pid after the run ends so a worker that outlives its terminal transition can
-    -- still be found and reaped; NULL = legacy row, never signalled.
-    worker_started_at   INTEGER,
-    max_runtime_seconds INTEGER,
-    last_heartbeat_at   INTEGER,
-    started_at          INTEGER NOT NULL,
-    ended_at            INTEGER,
-    outcome             TEXT,
-    -- outcome: completed | blocked | crashed | timed_out | spawn_failed |
-    --          gave_up | reclaimed | (null while still running)
-    summary             TEXT,
-    metadata            TEXT,
-    error               TEXT
-);
-
--- Files attached to a task (PDFs, images, source documents). The blob
--- lives on disk under ``attachments_root(board)/<task_id>/<stored_name>``;
--- this row carries metadata + the absolute ``stored_path`` so the
--- dashboard can list/download and ``build_worker_context`` can surface
--- the absolute path to the worker (which has full file-tool access). See
--- #35338.
-CREATE TABLE IF NOT EXISTS task_attachments (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    task_id      TEXT NOT NULL,
-    filename     TEXT NOT NULL,
-    stored_path  TEXT NOT NULL,
-    content_type TEXT,
-    size         INTEGER NOT NULL DEFAULT 0,
-    uploaded_by  TEXT,
-    created_at   INTEGER NOT NULL
-);
-
--- Subscription from a gateway source (platform + chat + thread) to a
--- task. The gateway's kanban-notifier watcher tails task_events and
--- pushes ``completed`` / ``blocked`` / ``spawn_auto_blocked`` events to
--- the original requester so human-in-the-loop workflows close the loop.
-CREATE TABLE IF NOT EXISTS kanban_notify_subs (
-    task_id       TEXT NOT NULL,
-    platform      TEXT NOT NULL,
-    chat_id       TEXT NOT NULL,
-    thread_id     TEXT NOT NULL DEFAULT '',
-    user_id       TEXT,
-    user_id_alt   TEXT,
-    chat_type     TEXT,
-    notifier_profile TEXT,
-    delivery_mode TEXT NOT NULL DEFAULT 'notify',
-    delivery_metadata TEXT,
-    created_at    INTEGER NOT NULL,
-    last_event_id INTEGER NOT NULL DEFAULT 0,
-    last_ping_event_id INTEGER NOT NULL DEFAULT 0,
-    PRIMARY KEY (task_id, platform, chat_id, thread_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_tasks_status          ON tasks(status);
-CREATE INDEX IF NOT EXISTS idx_links_child           ON task_links(child_id);
-CREATE INDEX IF NOT EXISTS idx_links_parent          ON task_links(parent_id);
-CREATE INDEX IF NOT EXISTS idx_comments_task         ON task_comments(task_id, created_at);
-CREATE INDEX IF NOT EXISTS idx_events_task           ON task_events(task_id, created_at);
-CREATE INDEX IF NOT EXISTS idx_runs_task             ON task_runs(task_id, started_at);
-CREATE INDEX IF NOT EXISTS idx_runs_status           ON task_runs(status);
-CREATE INDEX IF NOT EXISTS idx_attachments_task      ON task_attachments(task_id, created_at);
-CREATE INDEX IF NOT EXISTS idx_notify_task           ON kanban_notify_subs(task_id);
-"""
 
 
 # --- ID generation ---
@@ -1154,6 +959,7 @@ def _normalize_task_skills(skills: Optional[Iterable[str]]) -> Optional[list[str
     return cleaned
 
 
+@domain_operation("tasks")
 def create_task(
     conn: sqlite3.Connection, *, title: str, body: Optional[str] = None,
     assignee: Optional[str] = None, created_by: Optional[str] = None,
@@ -1399,6 +1205,7 @@ def _inherit_notify_subs(
     )
 
 
+@domain_operation("tasks")
 def get_task(conn: sqlite3.Connection, task_id: str) -> Optional[Task]:
     row = conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
     return Task.from_row(row) if row else None
@@ -1419,6 +1226,7 @@ VALID_SORT_ORDERS: dict[str, str] = {
 }
 
 
+@domain_operation("tasks")
 def list_tasks(
     conn: sqlite3.Connection, *, assignee: Optional[str] = None, status: Optional[str] = None,
     tenant: Optional[str] = None, session_id: Optional[str] = None, include_archived: bool = False,
@@ -1452,6 +1260,7 @@ def list_tasks(
     return [Task.from_row(r) for r in rows]
 
 
+@domain_operation("tasks")
 def assign_task(conn: sqlite3.Connection, task_id: str, profile: Optional[str]) -> bool:
     """Assign/reassign; raises RuntimeError while the task is running under a claim."""
     profile = _canonical_assignee(profile)
@@ -1484,6 +1293,7 @@ def assign_task(conn: sqlite3.Connection, task_id: str, profile: Optional[str]) 
     return True
 
 
+@domain_operation("tasks")
 def set_model_override(
     conn: sqlite3.Connection, task_id: str, model: Optional[str], provider: Optional[str] = None,
 ) -> bool:
@@ -1517,6 +1327,7 @@ def _set_task_override(
     return True
 
 
+@domain_operation("tasks")
 def set_reasoning_effort(conn: sqlite3.Connection, task_id: str, effort: Optional[str]) -> bool:
     """Set (empty clears; ``"none"`` pins thinking OFF) the per-task reasoning
     effort. Independent of the model override so clearing one never resets the
@@ -1531,6 +1342,7 @@ def set_reasoning_effort(conn: sqlite3.Connection, task_id: str, effort: Optiona
 
 # --- Links ---
 
+@domain_operation("graph")
 def link_tasks(
     conn: sqlite3.Connection,
     parent_id: str,
@@ -1608,6 +1420,7 @@ def _would_cycle(conn: sqlite3.Connection, parent_id: str, child_id: str) -> boo
     return False
 
 
+@domain_operation("graph")
 def unlink_tasks(conn: sqlite3.Connection, parent_id: str, child_id: str) -> bool:
     with write_txn(conn):
         cur = conn.execute(
@@ -1633,14 +1446,17 @@ def _linked_ids(conn: sqlite3.Connection, want: str, where: str, task_id: str) -
 # Dependency edge removed — re-evaluate promotion eligibility for the child immediately. Matches the
 # contract of complete_task and unblock_task; without this the child stays stuck in todo until the next
 # dispatcher tick or a manual `hermes kanban recompute` (issue #22459).
+@domain_operation("graph")
 def parent_ids(conn: sqlite3.Connection, task_id: str) -> list[str]:
     return _linked_ids(conn, "parent_id", "child_id", task_id)
 
 
+@domain_operation("graph")
 def child_ids(conn: sqlite3.Connection, task_id: str) -> list[str]:
     return _linked_ids(conn, "child_id", "parent_id", task_id)
 
 
+@domain_operation("graph")
 def task_graph_contexts(conn: sqlite3.Connection, task_ids: Iterable[str]) -> dict[str, dict]:
     """Bulk-load compact direct graph state for graph-aware diagnostics."""
     ordered_ids = list(dict.fromkeys(str(task_id) for task_id in task_ids if task_id))
@@ -1661,6 +1477,7 @@ def task_graph_contexts(conn: sqlite3.Connection, task_ids: Iterable[str]) -> di
     return contexts
 
 
+@domain_operation("graph")
 def task_graph_context(conn: sqlite3.Connection, task_id: str) -> dict:
     """Return compact direct parent/child state for one task."""
     return task_graph_contexts(conn, [task_id])[task_id]
@@ -1668,6 +1485,7 @@ def task_graph_context(conn: sqlite3.Connection, task_id: str) -> dict:
 
 # --- Comments & events ---
 
+@domain_operation("tasks")
 def add_comment(conn: sqlite3.Connection, task_id: str, author: str, body: str) -> int:
     if not body or not body.strip():
         raise ValueError("comment body is required")
@@ -1697,10 +1515,12 @@ def _task_rows(conn: sqlite3.Connection, table: str, task_id: str, order: str) -
     ).fetchall()
 
 
+@domain_operation("tasks")
 def list_comments(conn: sqlite3.Connection, task_id: str) -> list[Comment]:
     return [Comment.from_row(r) for r in _task_rows(conn, "task_comments", task_id, "created_at ASC")]
 
 
+@domain_operation("tasks")
 def list_comments_after(
     conn: sqlite3.Connection, task_id: str, *, after_id: int = 0
 ) -> list[Comment]:
@@ -1828,6 +1648,7 @@ def delete_attachment(conn: sqlite3.Connection, attachment_id: int) -> Optional[
     return att
 
 
+@domain_operation("tasks")
 def list_events(conn: sqlite3.Connection, task_id: str) -> list[Event]:
     return [Event.from_row(r) for r in _task_rows(conn, "task_events", task_id, "created_at ASC, id ASC")]
 
@@ -2033,6 +1854,7 @@ def _resume_status_from_events(conn: sqlite3.Connection, task_id: str) -> str:
     return "ready"
 
 
+@domain_operation("graph")
 def recompute_ready(conn: sqlite3.Connection, failure_limit: int | None = None) -> int:
     """Promote ``todo``/``blocked`` tasks whose parents are all done/archived;
     returns the count. Opens its own IMMEDIATE txn — call OUTSIDE any write txn.
@@ -2107,6 +1929,7 @@ def _parents_satisfied(conn: sqlite3.Connection, task_id: str) -> bool:
     ).fetchone() is None
 
 
+@domain_operation("graph")
 def unsatisfied_parents(conn: sqlite3.Connection, task_id: str) -> list[tuple[str, str]]:
     """``(parent_id, status)`` for every direct parent :func:`_parents_satisfied`
     still counts as open (``done`` / ``archived`` release the child), in id
@@ -3045,6 +2868,7 @@ def _unique_attachment_path(directory: Path, filename: str, used: set[Path]) -> 
     return candidate
 
 
+@domain_operation("tasks")
 def edit_task(
     conn: sqlite3.Connection, task_id: str, *, title: Optional[str] = None,
     body: Optional[str] = None, priority: Optional[int] = None,
@@ -3729,6 +3553,7 @@ def invalidate_descendants_for_parent_reopen(
     return {"invalidated": invalidated, "terminations": terminations}
 
 
+@domain_operation("graph")
 def specify_triage_task(
     conn: sqlite3.Connection, task_id: str, *, title: Optional[str] = None,
     body: Optional[str] = None, assignee: Optional[str] = None, author: Optional[str] = None,
@@ -3840,6 +3665,7 @@ def _delete_task_relations(conn: sqlite3.Connection, task_id: str) -> None:
         conn.execute(f"DELETE FROM {table} WHERE task_id = ?", (task_id,))
 
 
+@domain_operation("tasks")
 def delete_archived_task(conn: sqlite3.Connection, task_id: str) -> bool:
     """Hard-delete an ARCHIVED task (+ related rows); anything else must be
     archived first so data loss takes two deliberate actions."""
@@ -3851,6 +3677,7 @@ def delete_archived_task(conn: sqlite3.Connection, task_id: str) -> bool:
         return cur.rowcount == 1
 
 
+@domain_operation("tasks")
 def delete_task(conn: sqlite3.Connection, task_id: str) -> bool:
     """Hard-delete a task and its related rows in one txn; False when not found."""
     with write_txn(conn):
@@ -3919,6 +3746,7 @@ def build_worker_context(conn: sqlite3.Connection, task_id: str) -> str:
 
 # --- Stats + SLA helpers ---
 
+@domain_operation("tasks")
 def board_stats(conn: sqlite3.Connection) -> dict:
     """Per-status + per-assignee counts and the oldest ``ready`` age (staleness signal)."""
     by_status: dict[str, int] = {}
@@ -4010,6 +3838,7 @@ def _retention_seconds(older_than_seconds: int) -> int:
     return older_than_seconds
 
 
+@domain_operation("tasks")
 def gc_events(conn: sqlite3.Connection, *, older_than_seconds: int = 30 * 24 * 3600) -> int:
     """Prune old done/archived events, retaining decomposition identity until task deletion.
 
@@ -4093,6 +3922,7 @@ def list_profiles_on_disk() -> list[str]:
     return sorted(names)
 
 
+@domain_operation("tasks")
 def known_assignees(conn: sqlite3.Connection) -> list[dict]:
     """``{"name", "on_disk", "counts"}`` for every on-disk profile or task
     assignee, so a fresh profile appears in pickers before it has a task."""

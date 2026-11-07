@@ -125,6 +125,10 @@ Cron 保留 owner 指纹、claimed/running/terminal、unknown、错过发生时�
 
 Kanban 保留任务图、可派发条件、精确 run identity、租约、认领与回执、订阅和工作区引用。跨 Board 转移在同一 PG 事务中完成，排序获取多个 Board/任务锁；本地文件/工作树清理在提交后的受控阶段执行。不能用进程内锁替代跨进程 claim，也不能把旧 SQLite 的全库写锁当作 PG 已提供的保证。
 
+Task 8 代码核对补充：SQLite Board 的 slug 是目录身份，归档后重建同 slug 会产生新数据库；PG 不能把 slug 永久直接用作数据代次。复用 slug 作为稳定查找键，由拥有者的显式 Board 初始化/元数据操作在 PG 注册表中分配稳定 `board_id`；归档保留旧代次，同名重建分配新代次，不从绝对路径生成身份。默认 Board 不可删除，可使用固定默认身份。Task 8–10 分别报告 `kanban_tasks`、`kanban_runs`、`kanban_workspace` 能力，未完成部分仍明确未就绪，不能把基础任务可读写标成完整 Kanban 已支持。原跨 Profile 共享目录的 Worker 路径不能直接转换为执行 Profile 的 store_id；Task 9 必须从可信 owner/派发上下文解析 Board 作用域，继续遵守 owner RPC 边界。
+
+`board.json` 继续是文件配置，保存显示信息、默认工作目录和项目配置；PG 注册表只保存 Board 身份、slug 查找与生命周期，不复制该 JSON 配置进数据库。PG 文件根绑定拥有者 Profile，SQLite 继续保留原共享目录规则。身份事务先提交，文件配置随后写入；文件失败显式上报，重试创建复用已提交的活动代次。工作区/附件目录的归档、清理与跨 Board 转移在 Task 10 闭合，不把 DB 提交假称为文件操作已经成功。
+
 ### 房间与附件
 
 房间事件序号、权限 epoch、幂等身份和退役墓碑用范围约束及行锁保护。Driver、work records、policy checkpoint 和 router claim 对应同一房间事件谱系；提交时重新核对代次与水位。

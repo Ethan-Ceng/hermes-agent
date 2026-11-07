@@ -18,6 +18,7 @@ import threading
 import time
 from dataclasses import dataclass
 from dataclasses import field
+from hermes_cli.kanban_sqlite_schema import SCHEMA_SQL
 from agent.deadline import poll_until
 from hermes_cli.sqlite_util import add_column_if_missing as _add_column_if_missing
 from pathlib import Path
@@ -719,6 +720,10 @@ def connect(db_path: Optional[Path] = None, *, board: Optional[str] = None) -> s
     ``_INITIALIZED_PATHS``. Path: explicit ``db_path``, else ``board``, else
     :func:`kanban_db_path` (``HERMES_KANBAN_DB`` -> ``HERMES_KANBAN_BOARD`` ->
     ``<root>/kanban/current`` -> ``default``)."""
+    from hermes_cli.db_setup import storage_backend
+    if storage_backend() == "postgresql":
+        from hermes_db.domains.kanban import connect as connect_board
+        return connect_board(board)
     path = db_path if db_path is not None else _kb.kanban_db_path(board=board)
     from agent.delegation_context import kanban_path_is_fenced
     if kanban_path_is_fenced(path):
@@ -775,7 +780,7 @@ def connect(db_path: Optional[Path] = None, *, board: Optional[str] = None) -> s
             # Idempotent; runs under _INIT_LOCK so same-process dispatcher
             # threads can't race the ALTER TABLE pass with stale PRAGMA snapshots.
             if resolved not in _INITIALIZED_PATHS:
-                conn.executescript(_kb.SCHEMA_SQL)
+                conn.executescript(SCHEMA_SQL)
                 _migrate_add_optional_columns(conn)
                 _INITIALIZED_PATHS.add(resolved)
 
@@ -805,6 +810,10 @@ def init_db(db_path: Optional[Path] = None, *, board: Optional[str] = None) -> P
     :func:`connect`'s cached first-time auto-init, this always re-runs the
     migration pass — callers that know the on-disk schema may have drifted
     (tests writing legacy event kinds, external upgrades) use it to force it."""
+    from hermes_cli.db_setup import storage_backend
+    if storage_backend() == "postgresql":
+        with connect(board=board) as resource:
+            return f"postgresql:{resource.scope.require_store_id()}/{resource.board_id}"
     path = db_path if db_path is not None else _kb.kanban_db_path(board=board)
     _refuse_dead_board_resurrection(path, board)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -1247,6 +1256,10 @@ def write_txn(conn: sqlite3.Connection, *, allow_nested: bool = False):
     (``complete_task`` & co.) must never run under an open outer transaction,
     since those side effects would fire while the outer txn can still roll back.
     """
+    from hermes_db.domains.resource import DomainResource
+    if isinstance(conn, DomainResource):
+        from hermes_db.errors import StorageNotReadyError
+        raise StorageNotReadyError("Kanban PG operations use named domain transactions; this operation is not implemented yet")
     _kb._assert_not_delegated_child_mutation(_main_db_file(conn))
     if getattr(conn, "in_transaction", False):
         if not allow_nested:

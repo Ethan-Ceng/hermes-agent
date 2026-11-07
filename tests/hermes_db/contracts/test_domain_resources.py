@@ -13,15 +13,17 @@ from hermes_db.scope import DatabaseScope
 from hermes_db.settings import DatabaseSettings
 
 
-def test_sqlite_path_is_only_a_domain_location_not_a_profile(tmp_path):
+def test_sqlite_path_is_only_a_domain_location_not_a_profile(tmp_path, monkeypatch):
+    from hermes_db.domains.catalog import POSTGRES_DOMAINS
+    monkeypatch.delitem(POSTGRES_DOMAINS, "sessions")
     owner = tmp_path / "owner"
     owner.mkdir()
     atomic_config_write(owner / "config.yaml", {"storage": {"backend": "postgresql", "postgresql": {
         "schema": "hermes", "store_id": "owner-store"}}})
     (owner / ".env").write_text("HERMES_POSTGRES_DSN=postgresql://unused/test\n")
     for nested in (owner / "cron/notepad.db", owner / "boards/work/kanban.db"):
-        with pytest.raises(StorageNotReadyError, match="kanban.*not implemented"):
-            acquire_profile_domain("kanban", profile_home=owner, sqlite_path=nested)
+        with pytest.raises(StorageNotReadyError, match="sessions.*not implemented"):
+            acquire_profile_domain("sessions", profile_home=owner, sqlite_path=nested)
         assert not nested.exists()
     with pytest.raises(StorageConfigurationError, match="Unknown storage domain"):
         acquire_profile_domain("typo", profile_home=owner)

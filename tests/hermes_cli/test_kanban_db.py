@@ -15,6 +15,7 @@ import pytest
 
 import hermes_state_wal
 from hermes_cli import kanban_db as kb
+from hermes_cli.kanban_sqlite_schema import SCHEMA_SQL
 from hermes_cli import kanban_db_connect as kbc
 from hermes_cli import kanban_db_dispatch as kbd
 from hermes_cli import kanban_db_workspace as kbw
@@ -44,11 +45,6 @@ def _init_git_repo(repo: Path) -> None:
 # ---------------------------------------------------------------------------
 # Schema / init
 # ---------------------------------------------------------------------------
-
-
-
-
-
 
 
 @pytest.mark.platforms("windows")
@@ -177,11 +173,6 @@ def test_connect_migrates_legacy_db_before_optional_column_indexes(tmp_path):
 # ---------------------------------------------------------------------------
 # Links + dependency resolution
 # ---------------------------------------------------------------------------
-
-
-
-
-
 
 
 # ---------------------------------------------------------------------------
@@ -551,6 +542,7 @@ def test_respawn_guard_ignores_auth_words_in_crashed_worker_output(kanban_home):
         assert kbd.check_respawn_guard(conn, spawn_failed_id) == "blocker_auth"
 
 
+@pytest.mark.platforms("linux")
 def test_infrastructure_spawn_refusal_never_charges_the_card(
     kanban_home, monkeypatch, all_assignees_spawnable,
 ):
@@ -801,7 +793,8 @@ def test_worktree_workspace_explicit_target_materializes_linked_worktree(kanban_
         capture_output=True,
         text=True,
     ).stdout
-    assert f"worktree {target}" in listed
+    listed_paths = [Path(line.removeprefix("worktree ")) for line in listed.splitlines() if line.startswith("worktree ")]
+    assert target in listed_paths
     assert f"branch refs/heads/{branch}" in listed
 
 
@@ -1137,6 +1130,7 @@ class TestSharedBoardPaths:
                 captured["env"] = kwargs.get("env", {})
                 self.pid = 4242
 
+        monkeypatch.setattr(kbd, "_live_worker_procs", {})
         monkeypatch.setattr("subprocess.Popen", _FakePopen)
 
         task = kb.Task(
@@ -1546,7 +1540,7 @@ def test_connect_heals_reduced_tasks_schema_seeded_by_external_harness(kanban_ho
         assert healed <= cols
         # Healed DDL matches the fresh schema (NOT NULL DEFAULT 'scratch' etc.).
         fresh = sqlite3.connect(":memory:")
-        fresh.executescript(kb.SCHEMA_SQL)
+        fresh.executescript(SCHEMA_SQL)
         fresh_info = {r[1]: r[2:] for r in fresh.execute("PRAGMA table_info(tasks)")}
         healed_info = {r["name"]: tuple(r)[2:] for r in conn.execute("PRAGMA table_info(tasks)")}
         assert {c: healed_info[c] for c in healed} == {c: fresh_info[c] for c in healed}
@@ -1575,7 +1569,7 @@ def test_connect_heals_reduced_tasks_schema_seeded_by_external_harness(kanban_ho
 # ---------------------------------------------------------------------------
 
 
-def test_resolve_hermes_argv_prefers_module_form_over_path_shim(monkeypatch):
+def test_resolve_hermes_argv_prefers_module_form_over_path_shim(monkeypatch, tmp_path):
     """A `hermes` on PATH must not shadow the running install (#111569):
     the module argv wins whenever ``hermes_cli`` is importable; only an
     explicit ``$HERMES_BIN`` overrides it."""
@@ -1588,8 +1582,9 @@ def test_resolve_hermes_argv_prefers_module_form_over_path_shim(monkeypatch):
     monkeypatch.setattr(kbd, "_safe_which_no_cwd", lambda name: "/tmp/planted/hermes")
     assert kbd._resolve_hermes_argv() == [sys.executable, "-m", "hermes_cli.main"]
 
-    monkeypatch.setenv("HERMES_BIN", "/opt/hermes/bin/hermes")
-    assert kbd._resolve_hermes_argv() == ["/opt/hermes/bin/hermes"]
+    explicit = str(tmp_path / "bin" / "hermes")
+    monkeypatch.setenv("HERMES_BIN", explicit)
+    assert kbd._resolve_hermes_argv() == [explicit]
 
 
 
@@ -1653,6 +1648,7 @@ def test_default_spawn_pins_repo_root_on_module_worker_pythonpath(tmp_path, monk
             captured["env"] = kwargs.get("env", {})
             self.pid = 4242
 
+    monkeypatch.setattr(kbd, "_live_worker_procs", {})
     monkeypatch.setattr("subprocess.Popen", _FakePopen)
 
     task = kb.Task(

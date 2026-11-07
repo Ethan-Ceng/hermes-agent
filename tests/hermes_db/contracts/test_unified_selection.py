@@ -82,6 +82,17 @@ assert queue.get_status('queue-independent')['status'] == 'delivered'
 from cron import notepad
 notepad.set_note('independent', 'cursor', 'persisted')
 assert notepad.get_note('independent', 'cursor') == 'persisted'
+from pathlib import Path
+Path.home = lambda: Path(sys.argv[1])
+from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
+kb.create_board('independent')
+with kbc.connect_closing(board='independent') as store:
+    parent = kb.create_task(store, title='parent', workspace_kind='scratch')
+    child = kb.create_task(store, title='child', workspace_kind='scratch', parents=[parent])
+    assert kb.get_task(store, child).status == 'todo'
+    assert kb.unlink_tasks(store, parent, child)
+with kbc.connect_closing(board='independent') as store:
+    assert kb.get_task(store, child).status == 'ready'
 '''
     result = subprocess.run([sys.executable, "-c", code, str(tmp_path)], capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr

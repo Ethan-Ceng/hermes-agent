@@ -1,0 +1,63 @@
+"""Kanban business dispatch and immutable, owner-resolved Board handles."""
+
+from contextlib import contextmanager
+from functools import wraps
+from importlib import import_module
+
+from hermes_db.domains.resource import DomainResource
+from hermes_db.errors import StorageConfigurationError
+
+
+class BoardResource(DomainResource):
+    def __init__(self, resource, board_id, slug):
+        super().__init__(resource.name, resource.settings, resource.scope, transactions=resource._transactions)
+        self.board_id = board_id
+        self.slug = slug
+
+    @contextmanager
+    def write(self, *, lock_timeout=None):
+        from hermes_cli.kanban_db import _assert_not_delegated_child_mutation
+        from hermes_db.repositories.kanban import lock_board
+        _assert_not_delegated_child_mutation()
+        with super().write(lock_timeout=lock_timeout) as conn:
+            lock_board(conn, self)
+            yield conn
+
+
+def domain_operation(topic):
+    def decorate(sqlite_operation):
+        @wraps(sqlite_operation)
+        def operation(store, *args, **kwargs):
+            if isinstance(store, DomainResource):
+                if not isinstance(store, BoardResource) or store.settings.backend != "postgresql":
+                    raise StorageConfigurationError("Kanban operations require the selected Board store")
+                module = import_module(f"hermes_db.operations.kanban_{topic}")
+                from hermes_cli.db_setup import _owning_profile
+                with _owning_profile(store.scope.profile_home):
+                    return getattr(module, sqlite_operation.__name__)(store, *args, **kwargs)
+            return sqlite_operation(store, *args, **kwargs)
+        return operation
+    return decorate
+
+
+def profile_operation(sqlite_operation):
+    @wraps(sqlite_operation)
+    def operation(*args, **kwargs):
+        from hermes_cli.db_setup import storage_backend
+        if storage_backend() == "postgresql":
+            from hermes_db.operations import kanban_boards
+            from hermes_db.factory import acquire_profile_domain
+            with acquire_profile_domain("kanban_tasks") as resource:
+                return getattr(kanban_boards, sqlite_operation.__name__)(resource, *args, **kwargs)
+        return sqlite_operation(*args, **kwargs)
+    return operation
+
+
+def connect(board=None):
+    from hermes_cli import kanban_db as kb
+    from hermes_db.factory import acquire_profile_domain
+    from hermes_db.operations.kanban_boards import resolve_board
+    slug = kb._explicit_board_slug(board) or kb.get_current_board()
+    with acquire_profile_domain("kanban_tasks") as resource:
+        board_id = resolve_board(resource, slug)
+        return BoardResource(resource, board_id, slug)

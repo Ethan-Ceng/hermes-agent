@@ -158,11 +158,8 @@ def _ctx_parent_results(lines: list[str], conn: sqlite3.Connection, task_id: str
     """Done-parent handoffs: newest ``completed`` run's summary+metadata,
     falling back to ``task.result`` for pre-runs-table data. Stamped with a
     relative age so the worker re-verifies stale upstream results."""
-    parent_rows = conn.execute(
-        "SELECT parent_id FROM task_links WHERE child_id = ? ORDER BY parent_id", (task_id,),
-    ).fetchall()
     wrote_header = False
-    for pid in (r["parent_id"] for r in parent_rows):
+    for pid in _kb.parent_ids(conn, task_id):
         pt = _kb.get_task(conn, pid)
         if not pt or pt.status != "done":
             continue

@@ -695,6 +695,7 @@ def test_default_spawn_does_not_auto_load_any_skill(kanban_home, monkeypatch):
         captured["env"] = kwargs.get("env", {})
         return FakeProc()
 
+    monkeypatch.setattr(kbd, "_live_worker_procs", {})
     monkeypatch.setattr("subprocess.Popen", fake_popen)
 
     conn = kbc.connect()

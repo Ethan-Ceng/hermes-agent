@@ -14,6 +14,7 @@ import time
 from typing import Any
 from typing import Optional
 from pathlib import Path
+from hermes_db.domains.kanban import profile_operation
 
 
 def _dir_holds_board(d: Path) -> bool:
@@ -35,7 +36,13 @@ def _default_board_display_name(slug: str) -> str:
     return " ".join(part.capitalize() for part in slug.replace("_", "-").split("-") if part) or slug
 
 
+@profile_operation
 def read_board_metadata(board: Optional[str] = None) -> dict:
+    """Read file metadata plus the selected backend's Board lifecycle state."""
+    return _read_metadata_file(board)
+
+
+def _read_metadata_file(board: Optional[str] = None) -> dict:
     """``board.json`` merged over defaults, plus ``slug`` and ``db_path``. Never
     raises — a missing/malformed file yields the synthesized entry."""
     slug = _kb._slug_or_default(board)
@@ -66,7 +73,18 @@ def read_board_metadata(board: Optional[str] = None) -> dict:
     return meta
 
 
+@profile_operation
 def write_board_metadata(
+    board: Optional[str], *, name: Optional[str] = None, description: Optional[str] = None,
+    icon: Optional[str] = None, color: Optional[str] = None, archived: Optional[bool] = None,
+    default_workdir: Optional[str] = None, project_id: Optional[str] = None,
+) -> dict:
+    """Preserve board.json as file configuration under either database backend."""
+    return _write_metadata_file(board, name=name, description=description, icon=icon, color=color,
+        archived=archived, default_workdir=default_workdir, project_id=project_id)
+
+
+def _write_metadata_file(
     board: Optional[str], *, name: Optional[str] = None, description: Optional[str] = None,
     icon: Optional[str] = None, color: Optional[str] = None, archived: Optional[bool] = None,
     default_workdir: Optional[str] = None, project_id: Optional[str] = None,
@@ -100,6 +118,7 @@ def write_board_metadata(
     return meta
 
 
+@profile_operation
 def create_board(
     slug: str, *, name: Optional[str] = None, description: Optional[str] = None,
     icon: Optional[str] = None, color: Optional[str] = None, default_workdir: Optional[str] = None,
@@ -119,6 +138,7 @@ def create_board(
     return meta
 
 
+@profile_operation
 def list_boards(*, include_archived: bool = True) -> list[dict]:
     """Metadata for every board: ``default`` first (always present), then
     ``boards/<slug>/`` dirs holding a ``kanban.db`` or ``board.json``, sorted."""
@@ -143,6 +163,7 @@ def list_boards(*, include_archived: bool = True) -> list[dict]:
     return entries
 
 
+@profile_operation
 def remove_board(slug: str, *, archive: bool = True) -> dict:
     """Archive (to ``boards/_archived/<slug>-<ts>/``) or delete a board;
     ``default`` cannot be removed. Returns ``{"slug", "action", "new_path"}``."""
