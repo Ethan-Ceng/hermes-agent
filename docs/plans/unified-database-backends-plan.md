@@ -1597,6 +1597,8 @@ Achievements三个失败已由独立保留原断言的观测定位为替身缺�
 
 同一8d6生产提交的Windows/Linux SQLite/PG四套全新PM独立发行环境均已构建成功、退出0，日志unified-task24-{windows,linux}-pm-bundles-8d6f7bdaebf8.log，状态task24-{windows,linux}-bundle-8d6f7bdaebf8-state.json；旧58d载荷/环境保留。构建成功尚不等于新安装/全域业务通过，待当前Native受影响文件完整结算后，使用这套新参数复验完整PG/显式daemon及安装合同。
 
+新8d6快照受影响Native回归已真实结束：22文件415pass/0fail/3个Windows平台skip、退出0、115.6秒（unified-task24-owner-native-regressions.log），包括原配置guard2项、remote实际plane全部105项、本地Profile全部108项/身份拆分2项、完整备份/恢复、MiniMax16项及Achievements6项。另独立原完整safe-mode合同仍1fail/退出1、89.63秒（review-foundation-safe-mode-owner-accepted.log）：前面的普通sentinel、safe one、坏YAML safe two及文件保持均通过，最后ignore-user-config仍保留插件发现的阶段发现worker打开测试Profile的.env（原line252审计断言失败）。原Projects/inventory原因局部闭合不等于完整合同通过；该新增现场正在独立捕获实际.env读取栈，未归为既有/时序、未改原断言或放宽秘密边界。最新生产全域PG复验暂不重启，先收敛这一真实失败，避免用即将过时的发行载荷反复验证。四套8d6载荷已保留且尚未宣称业务通过。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |
