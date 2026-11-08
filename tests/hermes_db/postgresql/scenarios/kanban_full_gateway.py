@@ -106,6 +106,16 @@ def prepare_execution_home(home, config, separate_profile):
     return execution_home, "coder", "worker-two"
 
 
+def wait_completion(store, task_id, home):
+    try:
+        wait_until(lambda: kb.get_task(store, task_id).status == "done", timeout=90, interval=.05,
+                   what="PG model tool completion")
+    except AssertionError as error:
+        paths = (kb.worker_logs_dir() / f"{task_id}.log", home / "pg-kanban-owner.log")
+        details = "\n".join(safe_log(path) for path in paths if path.is_file())
+        raise AssertionError(f"{error}\n{details}") from error
+
+
 def run_worker_probe(pg_profiles, tmp_path, monkeypatch, *, owner_module="gateway.run", separate_profile=False):
     from hermes_cli.config import atomic_config_write, read_user_config_raw
     from hermes_db.domains.kanban_owner import board_reference
@@ -175,8 +185,7 @@ def run_worker_probe(pg_profiles, tmp_path, monkeypatch, *, owner_module="gatewa
 
                 result = dispatch.dispatch_once(store, spawn_fn=spawn, max_spawn=1)
                 assert [row[0] for row in result.spawned] == [task_id]
-                wait_until(lambda: kb.get_task(store, task_id).status == "done", timeout=90, interval=.05,
-                           what="PG model tool completion")
+                wait_completion(store, task_id, execution_home)
                 wait_until(lambda: any(event.kind == "worker_result" for event in kb.list_events(store, task_id)),
                            timeout=30, interval=.05, what="PG worker result receipt")
                 assert [comment.body for comment in kb.list_comments(store, task_id)] == ["PG_COMMAND_PERSISTED"]

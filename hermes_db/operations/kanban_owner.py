@@ -44,7 +44,8 @@ def admit_claim(store, params, receipt):
     with store.write() as conn:
         old = _event(conn, store, params["task_id"], params["run_id"], "owner_admitted")
         if old is not None:
-            if any(old["payload"].get(key) != receipt.get(key) for key in ("session_id", "request_id", "profile_home", "store_id")):
+            identity = ("storage_backend", "session_id", "request_id", "profile_home", "store_id", "target", "principal_id")
+            if any(old["payload"].get(key) != receipt.get(key) for key in identity):
                 raise RuntimeStoreError("stale_kanban_claim")
             return
         task, _run = _current(conn, store, params)

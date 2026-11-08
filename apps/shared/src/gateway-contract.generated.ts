@@ -4983,10 +4983,11 @@ export interface KanbanRunParams {
   owner?: KanbanBoardOwner | null
 }
 export interface KanbanBoardOwner {
-  version: 1
+  version: 2
   backend: 'postgresql'
   profile_home: string
   store_id: string
+  target: string
   board_id: string
   board: string
 }

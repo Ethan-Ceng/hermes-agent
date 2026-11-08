@@ -21792,7 +21792,7 @@
         "additionalProperties": false,
         "properties": {
           "version": {
-            "const": 1,
+            "const": 2,
             "title": "Version",
             "type": "integer"
           },
@@ -21809,6 +21809,10 @@
             "title": "Store Id",
             "type": "string"
           },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          },
           "board_id": {
             "title": "Board Id",
             "type": "string"
@@ -21823,6 +21827,7 @@
           "backend",
           "profile_home",
           "store_id",
+          "target",
           "board_id",
           "board"
         ],

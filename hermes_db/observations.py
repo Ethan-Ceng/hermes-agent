@@ -68,3 +68,14 @@ def cron_writers(home):
     with _read(home) as (conn, owned):
         return [decode(row) for row in conn.execute(select(cron_executions).where(cron_executions.c.store_id == owned,
             cron_executions.c.status.in_(("claimed", "running")))).mappings()]
+
+
+def kanban_due_board(home, statuses):
+    from sqlalchemy import select
+    from hermes_db.tables.kanban import tasks, kanban_boards
+    from hermes_db.values import encode_text
+    with _read(home) as (conn, owned):
+        return conn.scalar(select(kanban_boards.c.slug).join(tasks,
+            (tasks.c.store_id == kanban_boards.c.store_id) & (tasks.c.board_id == kanban_boards.c.board_id)).where(
+            tasks.c.store_id == owned, kanban_boards.c.archived == 0,
+            tasks.c.status.in_([encode_text(status) for status in statuses])).limit(1))

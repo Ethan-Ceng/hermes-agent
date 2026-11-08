@@ -229,6 +229,10 @@ Task 10普通Worker细化：交互会话通过同一采用连接的具名`board.
 
 Worker附件沿用25MiB上限，不能塞入4MiB JSON outbox或8MiB RPC。采用私有分块文件handoff：小块认证RPC、owner检查执行claim、总量/摘要/块顺序，文件准备在事务外，终态附件登记和command回执仍共用Board事务；未知提交保留同一command/stage恢复。handoff位置由owner决定，Worker不得传任意读取路径；child只读且不能上传。实际实现和恢复合同在Task10记录，自动回收对账归Task20。
 
+Task21接入细化：Board owner引用升级为内部v2，冻结不含凭据的连接目标指纹（含Schema）及store/board身份；会话owner回执也冻结其独立目标。只有store_id/board_id不足以区分配置改指另一数据库后的相同ID，claim请求身份因此包含目标指纹；旧PG引用/回执缺少目标时保持拒绝或unknown，不查另一数据集，不解释为SQLite文件。正式SQLite协议不变。idle-exit逐个绑定所有已服务Profile并查询真实Kanban状态；PG更新完成检查读取完整Schema能力，不执行SQLite内存探测。PG选择下的自动代码回退明确不支持：旧会话版本可能忽略统一storage.backend或不认识当前Schema；forward更新沿用既有升级流程，不给PG提供SQLite快照恢复指导。
+
+Profile重命名细化：PG本机Kanban内容根按Profile存放，单独rename目录会使PG内workspace/attachment/cleanup intent仍指向旧home；这与旧共享SQLite布局不同，必须在Task21闭合。重命名使用绑定store_id/连接目标及旧/新home的本机操作日志，跨文件系统操作与短Core事务分段恢复；新Profile在路径重定位完成前不发布给后台拥有者。只重定位旧home之下的明确文件引用和清理意图，外部工作区及历史会话文本/提示不重写，SQL等待与文件操作不交叠。不把临时文件系统操作日志当作领域数据源；实际领域元数据仍由PG保存。中断后对同一命令幂等重放，确认未知或目标变化保持现场并明确上报。
+
 ## 风险与处置
 
 | 风险 | 处置 |

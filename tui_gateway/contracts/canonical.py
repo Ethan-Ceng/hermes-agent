@@ -426,10 +426,11 @@ canonical_method("cron.cancel", params=CronAdmissionParams, result=CronCancelRes
 
 
 class KanbanBoardOwner(Params):
-    version: Literal[1]
+    version: Literal[2]
     backend: Literal["postgresql"]
     profile_home: str
     store_id: str
+    target: str
     board_id: str
     board: str
 

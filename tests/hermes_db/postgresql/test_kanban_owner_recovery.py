@@ -22,6 +22,8 @@ def test_owner_receipt_reads_real_admission_and_only_current_attempt(pg_profiles
         runtime.admit_input(epoch=epoch, principal_id="producer", session_id="owner", request_id="attempt", payload={})
         receipt = dict(storage_backend="postgresql", profile_home=str(home), store_id=db.scope.store_id,
                        principal_id="producer", session_id="owner", request_id="attempt")
+        from hermes_db.move_values import resource_key
+        receipt["target"] = resource_key(db._transactions)
         kb._append_event(store, task_id, "owner_admitted", receipt, run_id=first.current_run_id)
         assert recovery.owner_reclaim_paused(store, task_id)
         admission = runtime.claim_input(epoch=epoch, session_id="owner")
@@ -76,3 +78,48 @@ def test_pg_board_legacy_path_receipt_remains_ambiguous_without_opening_sqlite(p
         with store.read() as conn:
             evidence = snapshot(conn, store, task_id)
         assert recovery.owner_reclaim_paused(evidence, task_id)
+
+
+def test_owner_admission_receipt_refuses_same_ids_from_a_retargeted_schema(pg_profiles, postgres_engine, postgres_test_config):
+    from copy import deepcopy
+    from dataclasses import replace
+    from hermes_cli.config import atomic_config_write, read_user_config_raw
+    from hermes_db.move_values import resource_key
+    from hermes_db.schema import upgrade_schema
+    from tests.hermes_db.pg_support import isolated_namespace
+    with isolated_namespace(postgres_engine, postgres_test_config) as other_schema:
+        upgrade_schema(replace(postgres_test_config.settings, schema=other_schema))
+        with pg_profiles("one") as home:
+            original = read_user_config_raw(home / "config.yaml")
+            with closing(open_session_store(home / "state.db")) as db:
+                db.create_session("same", "kanban")
+                runtime = runtime_for_store(db)
+                epoch = runtime.begin_epoch(instance_id="original")
+                runtime.admit_input(epoch=epoch, principal_id="producer", session_id="same", request_id="same", payload={})
+                receipt = dict(storage_backend="postgresql", profile_home=str(home), store_id=db.scope.store_id,
+                    target=resource_key(db._transactions), principal_id="producer", session_id="same", request_id="same")
+            changed = deepcopy(original)
+            changed["storage"]["postgresql"]["schema"] = other_schema
+            atomic_config_write(home / "config.yaml", changed)
+            try:
+                with closing(open_session_store(home / "state.db")) as db:
+                    db.create_session("same", "kanban")
+                    runtime = runtime_for_store(db)
+                    epoch = runtime.begin_epoch(instance_id="different")
+                    runtime.admit_input(epoch=epoch, principal_id="producer", session_id="same", request_id="same", payload={})
+                    admission = runtime.claim_input(epoch=epoch, session_id="same")
+                    runtime.settle_input(epoch=epoch, admission_id=admission["admission_id"], generation=admission["generation"], outcome="completed")
+                assert recovery._admission_row(receipt) is None
+            finally:
+                atomic_config_write(home / "config.yaml", original)
+            assert recovery._admission_row(receipt) == ("queued", None)
+
+
+def test_pg_receipt_backend_change_stays_unknown_without_opening_legacy_sqlite(pg_profiles):
+    from hermes_cli.config_backend import write_config_key
+    with pg_profiles("one") as home:
+        receipt = dict(storage_backend="postgresql", profile_home=str(home), store_id="one", target="captured",
+            principal_id="producer", session_id="same", request_id="same")
+        write_config_key(home / "config.yaml", "storage.backend", "sqlite")
+        (home / "state.db").write_bytes(b"inactive bytes must not become an owner admission ledger")
+        assert recovery._admission_row(receipt) is None

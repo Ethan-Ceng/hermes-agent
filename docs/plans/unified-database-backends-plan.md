@@ -10,9 +10,9 @@
 ## 当前进度
 
 - 整体状态：`IN_PROGRESS`。
-- 当前阶段：全入口与直接 SQL 消费者闭合。
-- 当前任务：Task 21（pending；Task20完成并准备立即创建本地提交，前置基线 `90f82575b0`）。
-- 已完成：20 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前阶段：单后端完整业务强验收。
+- 当前任务：Task 22（pending；Task21已验收，立即本地提交）。
+- 已完成：21 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-08（Asia/Shanghai）。
@@ -1258,7 +1258,7 @@ $task20PgFiles = @(
 
 ## Task 21：闭合全部入口与直接 SQL 消费者
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -1298,11 +1298,35 @@ CLI/Gateway/Web/TUI/Desktop/ACP/Agent及后台任务统一接入领域能力。
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+Task21启动恢复点：Task20已在f0c6a6bcb6本地提交，开始时工作区干净。先核对旧test_surface_flow的storage.session fixture、普通kanban_full_gateway场景及已知直接SQL调用图；继续保留正式Profile/服务/SQLite数据，PG只使用私有配置下核对归属的随机Schema。不以部分入口或旧会话测试代替完整闭合。
+
+首批结果：旧surface_flow基线2文件5pass/7fail（unified-task21-entry-baseline.log），embedded worker两Profile2项已通过，7失败是旧配置和旧房间SQLite边界。将surface fixture统一为storage.backend，并抽出可复用pg_sqlite_guard（connect/alias/direct Connection审计且捕获被吞错误）；配置改后9pass/1fail（unified-task21-surface-guarded.log），剩余旧合同明确要求独立SQLite，已按撤销边界替换为同PG/backend、持久owner、同ID隔离、epoch/服务重开合同。新测试曾误用不存在的get_room并已改用实际probe_hosted_room/room_state；最终surface+offturn 12pass/0skip/retry（unified-task21-offturn-surface-green.log）。实际普通gateway.run daemon场景已在不关闭房间/指标/插件下转绿1项（unified-task21-daemon-first.log），业务模型/worker argv、工具写入与重启使用原真实实现；Task22仍要扩展为全域完整验收。
+
+实际代码缺口一：Board owner只比较store/board，两个归属已核对的独立随机Schema构造同store_id/default Board/同task ID，旧引用会跟随配置改指另一个数据集。红测unified-task21-board-retarget-red.log确认，修复为内部v2冻结target哈希、统一所有producer并将目标纳入claim请求ID；现owner_policy3项通过。进一步发现owner admission回执同样缺目标，且配置改回SQLite时先open_session_store再比较会触发SQLite；双Schema红测确认错误采用另一个终态，第二fixture起先因config写入遗漏字段被项目保护拦住，改为write_config_key后补验。生产回执增加target，typed PG evidence缺字段保留unknown；恢复先判断所选backend再打开，并核对target。owner recovery+policy现8passed/0skip（unified-task21-admission-retarget-green.log），保留原pending而不把另一个数据集的completed当作结束。
+
+实际代码缺口二：idle-exit仍按kanban.db是否存在判断忙碌，更新回退检测会直连旧state.db。红测2fail/1teardown error被SQLite guard实际捕获（unified-task21-offturn-red.log）。已增加具名PG due Board观察，逐服务Profile绑定完整拥有者Scope；PG自动回退不走Native ledger/snapshot，forward保持通过。更新成功校验按PG Schema健康分流，未就绪明确返回未完成，不运行SQLite :memory:能力probe。PG offturn/owner/rpc/upload扩展4文件9pass/0skip（unified-task21-owner-offturn-expanded.log），原生idle-exit/downgrade4文件23pass/0skip（unified-task21-native-offturn.log）。设计已记录v2/unknown和PG回退边界，未改变正式SQLite协议/实例。
+
+当前恢复点：Task21仍in_progress，无本task提交，基线f0c6a6bcb6；源码连接/SQL消费者清单存于忽略目录task21-sql-consumers.txt和task21-direct-connections.txt，不把ACP transport的_conn或Native实现SQL当作未适配数据库。已核对insights、analytics、session_search、spillover、update维护等已有PG具名分流；Profile初始化已由profile_storage.fork_storage_identity分配新ID，复用而非重写。待核对Profile rename下PG本机Kanban绝对文件路径/持久intent是否重定位（尚需实际复现，不凭搜索宣称缺陷），继续剩余Web/TUI/ACP/后台调用图、完整Schema下daemon及v2 worker回归；本task尚未做最新静态门禁，不得标完成。
+
+后续实际复现：新增test_profile_file_scope.py通过真实profiles.rename_profile移动独立Profile（所有宿主服务适配器被测试边界替换，不操作正式实例），PG guard下确实完成目录/alias/现有identity流程，但task.workspace_path仍是before旧home，附件也存旧绝对路径；红测1fail（unified-task21-profile-rename-red.log）。已将本机文件引用重定位/中断日志/发布顺序写入设计，尚未实施。下一恢复点是此缺口，不能用跳过rename或仅改测试期望完成Task21。当前其余最新owner policy+admission恢复8pass、offturn/surface12pass、原生offturn23pass；待路径重定位后再做整组回归和static，最后按本task提交。
+
+路径重定位已实施：profile_file_moves在同一profiles目录的文件锁内记录无秘密的home/store/target操作日志，PG目录改名前标记新Profile不可发布，短Core事务重定位明确列、workspace主键/引用/cleanup snapshot、owner policy和文件job，离开SQL后原子重写自身数据集的私有文件标记，成功后才发布并删除日志；旧SQLite直接目录rename保持原协议。基础实库改名1passed（unified-task21-profile-rename-gated.log）；数据库不可用/确认丢失/文件中断重试及cleanup重放首轮5pass/1fixture失败（unified-task21-profile-rename-recovery.log），失败来自未发布Profile正常配置写入被tombstone保护拦住，测试已改为模拟管理员直接编辑现有文件，未绕开生产保护。后续整组入口7项路径合同已通过，尚待最新fixture整理后复验。
+
+当前未解决：最新10文件入口回归中普通daemon1项、embedded worker2项超时（unified-task21-entry-final.log），其余入口/投影/owner/RPC/路径测试通过；不能使用早先daemon通过覆盖本次失败。已为超时追加脱敏worker/owner日志（不扩大timeout、不停功能），由systematic-debugging定位。静态首轮发现测试fixture导入shadow及无效noqa，修正后14检查通过、health20文件0blocking/advisory（unified-task21-checks-final.log）；诊断测试新增后须重跑。原生Windows Profile套件8项为POSIX权限、symlink特权或shell文件名假设失败，另pwd导入失败；正在真实Linux环境运行对应4文件，未伪装OS或改宿主策略。Task21保持in_progress，无本task commit。
+
+最终闭合：脱敏诊断日志unified-task21-daemon-diagnostic.log显示submitter被owner以invalid_params拒绝，实际wire contract的KanbanBoardOwner仍Literal[1]且不允许target；不是模型慢或PG池问题。将契约同步v2+必需target并重新生成TypeScript/OpenRPC后，真实普通daemon、embedded同/不同执行Profile、交互worker和改名恢复4文件11passed。补充owner admission同ID但target改变的不可变红测1fail/2pass（unified-task21-admission-identity-red.log），实际Core admit_claim原比较遗漏target，现同时比较backend/store/target/principal/session/request/home；修复后owner policy/recovery+普通daemon3文件9passed。没有扩大timeout或停用功能。Profile路径7合同同时验证真实PG持久化、同Schema不同store不改写、三种中断恢复、配置改指拒绝、cleanup fence保留与重放。
+
+最终恢复点：Task21完成，按本task创建本地commit，随后开始Task22完整域单进程/子进程业务矩阵。Task22必须补足全域同时运行、跨进程重启和SQLite无PG依赖证明；本task入口证据及此前各域证据不能替代它。Task23发行/文档和Task24最终独立审查尚未实施。正式Profile、配置、SQLite数据和PG业务表未改。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+- PM Windows解释器统一经`scripts/run_tests.sh`，PG参数均`-m integration --postgres-test-config=<私有文件路径>`、retries=0，独立随机归属Schema且PG业务进程SQLite全拒绝。
+- 10文件全入口首轮38pass/3fail（unified-task21-entry-final.log）；失败为上文已复现修复的wire v1/v2。其余8文件覆盖surface_flow、surface_projections、unified_surfaces、owner policy/recovery、worker RPC/interactive及profile_file_scope。
+- `scripts/run_tests.sh tests/hermes_db/postgresql/scenarios/kanban_full_gateway.py tests/hermes_db/postgresql/test_kanban_worker_e2e.py tests/hermes_db/postgresql/test_kanban_interactive_worker.py tests/hermes_db/postgresql/test_profile_file_scope.py -j 2 -- <PG参数>`：11passed/0skip，退出0，unified-task21-workers-wire-green.log。
+- `scripts/run_tests.sh tests/hermes_db/postgresql/test_kanban_owner_policy.py tests/hermes_db/postgresql/test_kanban_owner_recovery.py tests/hermes_db/postgresql/scenarios/kanban_full_gateway.py -j 2 -- <PG参数>`：9passed/0skip，退出0，unified-task21-owner-daemon-final.log。
+- 原生Windows生成契约、canonical wire和适用Profile回归3文件76passed/2平台skip，退出0，unified-task21-native-wire-rename.log；过滤完整POSIX专属测试类的同一原生全量Profile合同在真实Linux4文件127passed/3Windows skip，退出0，unified-task21-linux-profile.log。首轮Windows误选POSIX全量测试的8失败及pwd导入失败保留在unified-task21-native-profile.log，Linux实机通过不伪装Windows支持symlink特权；Windows新增PG改名7项无skip。
+- 更新/idle-exit原生4文件23passed（unified-task21-native-offturn.log）。使用已由PM准备的Node/TypeScript对生成契约`--noEmit --strict --skipLibCheck --target ES2023 --module ESNext --moduleResolution Bundler`退出0（unified-task21-contract-tsc.log）。
+- PM解释器`scripts/check --staged --base f0c6a6bcb6`：14检查通过，health23文件0blocking/advisory（unified-task21-checks-accepted.log）；`git diff --cached --check`退出0。最终仅补写本账本，随后创建本地commit。
 
 ## Task 22：建立单后端运行强验收
 
@@ -1470,7 +1494,7 @@ CLI/Gateway/Web/TUI/Desktop/ACP/Agent及后台任务统一接入领域能力。
 
 ### 未通过与未验证
 
-Task 1–19 已完成，Task 20–24 尚未完成；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
+Task 1–21已完成，Task22–24尚未实施；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
 
 ### 最终状态
 
@@ -1478,6 +1502,6 @@ Task 1–19 已完成，Task 20–24 尚未完成；不得宣称全系统PG已�
 
 ## 恢复点
 
-Task 1–19已验收并按任务创建本地commit（Task18 `a0a5ffea8c`；Task19标题 `feat(storage): persist Matrix SDK crypto on unified PostgreSQL backend`）。下一项Task20：生命周期/健康/备份/运维及中断文件job/提交后工作恢复；Task19实际Linux SDK PG27 passed、原生SDK219 passed，Windows最新112 passed及14静态checks通过，无未处置失败。Task21–24全入口、普通daemon强验收、发行和最终独立review仍未完成。分支仍为 `feat/postgresql-session-storage`，正式实例保持SQLite，未写正式Profile、秘密或业务表；不能由此宣称全系统PG已完成。
+Task1–21已验收并按任务创建本地commit（Task20 `f0c6a6bcb6`；Task21标题`feat(storage): close unified entry points and profile file lifecycle`）。下一项Task22：建立所有域同时工作及跨进程恢复的零SQLite强验收，复用已有真实普通daemon/worker场景并补齐完整矩阵，不能用部分入口或历史835测试替代。Task23独立发行和Task24最终独立review仍未实施。分支仍为`feat/postgresql-session-storage`，正式实例保持SQLite，未写正式Profile、秘密或业务表；不能由此宣称全系统PG已完成。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

@@ -59,12 +59,18 @@ def _native_admission_row(receipt):
     if is_worker_process():
         return None
     try:
-        with closing(open_session_store(Path(receipt['profile_home']) / 'state.db', read_only=True)) as owner:
+        from hermes_cli.db_setup import storage_backend
+        home = Path(receipt['profile_home'])
+        if storage_backend(home) != receipt['storage_backend']:
+            return None
+        with closing(open_session_store(home / 'state.db', read_only=True)) as owner:
             pg = is_postgresql_store(owner)
             if pg != (receipt['storage_backend'] == 'postgresql'):
                 return None
-            if pg and owner.scope.store_id != receipt['store_id']:
-                return None
+            if pg:
+                from hermes_db.move_values import resource_key
+                if owner.scope.store_id != receipt['store_id'] or resource_key(owner._transactions) != receipt.get('target'):
+                    return None
             row = runtime_for_store(owner).find_admission(principal_id=receipt['principal_id'],
                 session_id=receipt['session_id'], request_id=receipt['request_id'])
     except (StorageError, OSError, KeyError, TypeError, ValueError):

@@ -104,13 +104,22 @@ def _named_profile(home: Path) -> str:
     return resolved.name if named else ""
 
 
-def _ledgered_profiles(home: Path | None) -> list[tuple[str, Path]]:
+def _profiles(home: Path | None) -> list[tuple[str, Path]]:
     from hermes_cli.backup import _sibling_profile_homes
     from hermes_constants import get_hermes_home
 
     home = Path(home or get_hermes_home())
-    profiles = [(_named_profile(home), home), *_sibling_profile_homes(home)]
-    return [(name, h) for name, h in profiles if _has_ledger_rows(h / "state.db")]
+    return [(_named_profile(home), home), *_sibling_profile_homes(home)]
+
+
+def _postgresql_profiles(home):
+    from hermes_cli.db_setup import storage_backend
+    return [(name, profile_home) for name, profile_home in _profiles(home) if storage_backend(profile_home) == "postgresql"]
+
+
+def _ledgered_profiles(home: Path | None) -> list[tuple[str, Path]]:
+    from hermes_cli.db_setup import storage_backend
+    return [(name, h) for name, h in _profiles(home) if storage_backend(h) == "sqlite" and _has_ledger_rows(h / "state.db")]
 
 
 def would_refuse(root: Path, target_ref: str, home: Path | None = None, *, git: Callable[..., int],
@@ -118,6 +127,8 @@ def would_refuse(root: Path, target_ref: str, home: Path | None = None, *, git: 
     """Whether ``hermes update`` would refuse ``target_ref`` here: the update check's read-only twin of
     :func:`downgrade_refusal`, so a release the updater refuses is never offered as an update.
     The store scan runs first, so ``remote`` is only consulted when some store has runtime history."""
+    if _postgresql_profiles(home):
+        return git("merge-base", "--is-ancestor", "HEAD", target_ref) != 0
     return bool(_ledgered_profiles(home)) and target_predates_runtime(
         None, root, target_ref, git=git, remote=remote)
 
@@ -125,6 +136,12 @@ def would_refuse(root: Path, target_ref: str, home: Path | None = None, *, git: 
 def downgrade_refusal(git_cmd, root: Path, target_ref: str, home: Path | None = None) -> str | None:
     """Why the update must not move to ``target_ref``, or ``None``: refuses only a pre-runtime target
     while this profile's or a sibling profile's state.db holds runtime ledger rows."""
+    if _postgresql_profiles(home):
+        if _updater_git(git_cmd, root)("merge-base", "--is-ancestor", "HEAD", target_ref) == 0:
+            return None
+        return ("Refusing an automatic downgrade while PostgreSQL system storage is selected. "
+            "Older code may ignore storage.backend or require another schema revision. "
+            "Keep compatible code; PostgreSQL database recovery is operator-managed, without SQLite snapshot restore.")
     ledgered = _ledgered_profiles(home)
     if not ledgered or not target_predates_runtime(git_cmd, root, target_ref):
         return None

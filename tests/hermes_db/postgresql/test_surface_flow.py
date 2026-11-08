@@ -5,7 +5,7 @@ import json
 
 import pytest
 
-pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
+pytestmark = [pytest.mark.integration, pytest.mark.allow_network, pytest.mark.usefixtures('pg_sqlite_guard')]
 
 
 @pytest.fixture
@@ -21,11 +21,11 @@ def surface_config(postgres_test_config, postgres_schema, tmp_path, monkeypatch)
     upgrade_schema(settings)
     homes = [tmp_path / 'first', tmp_path / 'second']
     config = {'platform_toolsets': {'cli': []}, 'model': {'provider': 'custom', 'default': 'm',
-        'base_url': 'http://provider.invalid/v1'}, 'storage': {'session': {'backend': 'postgresql'}}}
+        'base_url': 'http://provider.invalid/v1'}, 'storage': {'backend': 'postgresql'}}
     options = {key: getattr(settings, key) for key in settings.__dataclass_fields__ if key != 'dsn'}
     for home, store_id in zip(homes, ('surface-one', 'surface-two')):
         home.mkdir()
-        config['storage']['session']['postgresql'] = {**options, 'store_id': store_id}
+        config['storage']['postgresql'] = {**options, 'store_id': store_id}
         (home / 'config.yaml').write_text(yaml.safe_dump(config), encoding='utf-8')
         (home / '.env').write_text('HERMES_POSTGRES_DSN=' + json.dumps(settings.dsn) + '\n', encoding='utf-8')
     try:
@@ -145,9 +145,45 @@ async def test_worker_private_owner_receipts_on_real_postgresql(pg_store, pg_run
 
 
 @pytest.mark.asyncio
-async def test_hosted_coordination_owns_no_postgresql_transcript_files(pg_pair, monkeypatch):
-    from tests.hermes_db.contracts.test_hosted_native_coordination import test_native_hosted_room_ownership_uses_scoped_local_coordination_only
-    await test_native_hosted_room_ownership_uses_scoped_local_coordination_only(pg_pair, monkeypatch)
+async def test_hosted_coordination_uses_selected_backend_and_preserves_scope_on_restart(surface_config, monkeypatch):
+    import asyncio
+    from contextlib import closing
+    from types import SimpleNamespace
+    from gateway.hosted_rooms import create_room, probe_hosted_room, room_state
+    from gateway.session_hosted_service import CanonicalHostedRoomService
+    from hermes_cli.db_setup import _owning_profile
+    from hermes_db.access import open_session_store
+    from hermes_db.runtime_access import runtime_for_store
+    from hermes_state_runtime import RuntimeStoreError
+    home, other_home = surface_config
+    monkeypatch.setattr('gateway.hosted_rooms.local_authority_gateway_id', lambda: 'test')
+    with _owning_profile(home), closing(open_session_store(home / 'state.db')) as db:
+        runtime = runtime_for_store(db)
+        owner = SimpleNamespace(db=db, profile_id=str(home), epoch=runtime.begin_epoch(instance_id='owner'))
+        service = CanonicalHostedRoomService(owner, asyncio.get_running_loop())
+        assert service.db_path.profile_home == home.resolve() and service.db_path.store_id == 'surface-one'
+        service.authorize_room('alice', 'room', create=True)
+        create_room(service.db_path, room_id='room', name='Original', authority_gateway_id='test',
+            members=[{'member_id': 'default', 'profile': 'default', 'handle': 'bot'}])
+        restarted = CanonicalHostedRoomService(owner, asyncio.get_running_loop())
+        assert restarted.authorize_room('alice', 'room')
+        assert [binding.room_id for binding in restarted.bindings()] == ['room']
+        with pytest.raises(RuntimeStoreError, match='permission_denied'):
+            restarted.authorize_room('bob', 'room', create=True)
+        new_owner = SimpleNamespace(db=db, profile_id=str(home), epoch=runtime.begin_epoch(instance_id='replacement'))
+        replacement = CanonicalHostedRoomService(new_owner, asyncio.get_running_loop())
+        assert replacement.authorize_room('alice', 'room')
+        with pytest.raises(RuntimeStoreError, match='stale_epoch'):
+            service.authorize_room('alice', 'room')
+        with _owning_profile(other_home), closing(open_session_store(other_home / 'state.db')) as other:
+            other_owner = SimpleNamespace(db=other, profile_id=str(other_home), epoch=runtime_for_store(other).begin_epoch(instance_id='other'))
+            other_service = CanonicalHostedRoomService(other_owner, asyncio.get_running_loop())
+            assert not probe_hosted_room(other_service.db_path, room_id='room')
+            other_service.authorize_room('bob', 'room', create=True)
+            create_room(other_service.db_path, room_id='room', name='Other', authority_gateway_id='test',
+                members=[{'member_id': 'default', 'profile': 'default', 'handle': 'bot'}])
+            assert room_state(replacement.db_path, room_id='room')['name'] == 'Original'
+        assert not (home / 'state.db').exists() and not (home / 'shared-state.db').exists()
 
 
 @pytest.mark.asyncio

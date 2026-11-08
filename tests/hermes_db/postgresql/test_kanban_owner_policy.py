@@ -38,8 +38,12 @@ def test_assigned_owner_freezes_pg_board_policy_and_writes_exact_receipt(pg_prof
         assert context["owner"]["store_id"] == "one"
         receipt = {"storage_backend": "postgresql", "profile_home": str(assigned), "store_id": "two",
                    "principal_id": "owner", "session_id": "session", "request_id": "request"}
+        from hermes_db.domains.rooms import capture_room_store
+        receipt["target"] = capture_room_store(assigned).target
         admit_postgresql_claim(context, params, receipt)
         admit_postgresql_claim(context, params, receipt)
+        with pytest.raises(RuntimeStoreError, match="stale_kanban_claim"):
+            admit_postgresql_claim(context, params, receipt | {"target": "f" * 64})
         with open_board_owner(context["owner"]) as board:
             events = [event for event in kb.list_events(board, task_id) if event.kind == "owner_admitted"]
             assert len(events) == 1 and events[0].payload["store_id"] == "two"
@@ -71,3 +75,35 @@ def test_owner_reference_refuses_retired_generation_and_backend_fallback(pg_prof
         with pytest.raises(StorageConfigurationError, match="reference"):
             with open_board_owner(reference | {"dsn": "forbidden"}):
                 pytest.fail("caller supplied connection details accepted")
+
+
+def test_captured_board_owner_cannot_retarget_an_identical_store_and_board_in_another_schema(
+        pg_profiles, postgres_engine, postgres_test_config, monkeypatch):
+    from copy import deepcopy
+    from dataclasses import replace
+    from hermes_cli.config import atomic_config_write, read_user_config_raw
+    from hermes_db.schema import upgrade_schema
+    from tests.hermes_db.pg_support import isolated_namespace
+    monkeypatch.setattr(kb, "_new_task_id", lambda: "same-card")
+    with isolated_namespace(postgres_engine, postgres_test_config) as second_schema:
+        upgrade_schema(replace(postgres_test_config.settings, schema=second_schema))
+        with pg_profiles("one") as home:
+            original = read_user_config_raw(home / "config.yaml")
+            with kbc.connect_closing() as first:
+                kb.create_task(first, title="original dataset")
+                captured = board_reference(first)
+            replacement = deepcopy(original)
+            replacement["storage"]["postgresql"]["schema"] = second_schema
+            atomic_config_write(home / "config.yaml", replacement)
+            try:
+                with kbc.connect_closing() as second:
+                    kb.create_task(second, title="different dataset")
+                with pytest.raises(StorageConfigurationError, match="target"):
+                    with open_board_owner(captured):
+                        pytest.fail("old Board authority followed a configuration retarget")
+                with kbc.connect_closing() as second:
+                    assert kb.get_task(second, "same-card").title == "different dataset"
+            finally:
+                atomic_config_write(home / "config.yaml", original)
+            with kbc.connect_closing() as first:
+                assert kb.get_task(first, "same-card").title == "original dataset"

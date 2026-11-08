@@ -20,4 +20,7 @@ def typed_owner_receipt(payload):
         return {}
     if not all(isinstance(payload.get(key), str) and payload[key] for key in ("profile_home", "principal_id")):
         return {}
+    if payload["storage_backend"] == "postgresql" and not all(
+            isinstance(payload.get(key), str) and payload[key] for key in ("store_id", "target")):
+        return {}
     return payload

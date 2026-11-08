@@ -395,6 +395,10 @@ def _print_verified_update_completion(message: str) -> bool:
     if not message.startswith("✓"):
         _print_update_completion(message)
         return False
+    from hermes_cli.db_setup import storage_backend
+    if storage_backend() == "postgresql":
+        from hermes_cli.update_storage import print_postgresql_completion
+        return print_postgresql_completion(message)
     sqlite_runtime_ok, sqlite_info = _post_update_sqlite_runtime_status()
     if sqlite_info is None:
         # Grace path: an unprobeable interpreter (dev checkout, no probe subprocess) must not

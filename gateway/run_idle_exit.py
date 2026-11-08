@@ -109,6 +109,13 @@ def _cron_busy(homes) -> str | None:
 
 
 def _kanban_busy() -> str | None:
+    from hermes_cli.db_setup import storage_backend
+    from hermes_constants import get_hermes_home
+    home = get_hermes_home()
+    if storage_backend(home) == "postgresql":
+        from hermes_db.observations import kanban_due_board
+        slug = kanban_due_board(home, _KANBAN_DUE_STATUSES)
+        return f"kanban work on board {slug}" if slug is not None else None
     from hermes_cli import kanban_db
     marks = ",".join("?" * len(_KANBAN_DUE_STATUSES))
     for meta in kanban_db.list_boards(include_archived=False):
@@ -119,6 +126,16 @@ def _kanban_busy() -> str | None:
             if conn.execute(f"SELECT 1 FROM tasks WHERE status IN ({marks}) LIMIT 1",
                             _KANBAN_DUE_STATUSES).fetchone():
                 return f"kanban work on board {meta.get('slug')}"
+    return None
+
+
+def _kanban_busy_for_homes(homes) -> str | None:
+    from hermes_cli.db_setup import _owning_profile
+    from hermes_constants import get_hermes_home
+    for home in homes or [get_hermes_home()]:
+        with _owning_profile(home):
+            if (reason := _kanban_busy()) is not None:
+                return reason
     return None
 
 
@@ -202,7 +219,7 @@ def busy_reason(runner, *, window: float, count_clients: bool = True) -> str | N
             return "background work in flight"
         homes = _served_homes(runner)
         return (_messaging_busy(runner) or _ledger_busy(runner) or _profile_start_busy(runner)
-                or _cron_busy(homes) or _kanban_busy() or _store_gates_busy(homes))
+                or _cron_busy(homes) or _kanban_busy_for_homes(homes) or _store_gates_busy(homes))
     except Exception as exc:
         logger.debug("idle-exit probe failed; staying up", exc_info=True)
         return f"idle probe failed ({type(exc).__name__})"

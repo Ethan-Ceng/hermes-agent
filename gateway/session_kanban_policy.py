@@ -15,7 +15,7 @@ def claim_request_id(params):
     identity = [params.get("board"), params.get("task_id"), params.get("run_id")]
     if "owner" in params:
         owner = params["owner"]
-        identity = ["postgresql", owner["store_id"], owner["board_id"], params.get("task_id"), params.get("run_id")]
+        identity = ["postgresql", owner["target"], owner["store_id"], owner["board_id"], params.get("task_id"), params.get("run_id")]
     return "kanban:" + json.dumps(identity, separators=(",", ":"))
 
 

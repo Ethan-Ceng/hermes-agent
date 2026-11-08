@@ -62,5 +62,7 @@ def frozen_context(connection, ref, params):
         board_id = row["board_id"] if row is not None else "default"
         if target.get("board_id", board_id) != board_id:
             raise RuntimeStoreError("stale_generation")
-        return {"board": slug, "owner": {"version": 1, "backend": "postgresql", "profile_home": str(home),
-            "store_id": resource.scope.require_store_id(), "board_id": board_id, "board": slug}}
+        from hermes_db.domains.kanban import BoardResource
+        from hermes_db.domains.kanban_owner import board_reference
+        with BoardResource(resource, board_id, slug) as board:
+            return {"board": slug, "owner": board_reference(board)}

@@ -2279,12 +2279,8 @@ def rename_profile(old_name: str, new_name: str) -> Path:
     if new_canon == "default":
         raise ValueError("Cannot rename to 'default' — it is reserved.")
     _refuse_rename_without_file_tooling(old_canon)
-    old_dir = get_profile_dir(old_canon)
-    new_dir = get_profile_dir(new_canon)
-    if not old_dir.is_dir():
-        raise _unknown_profile_error(old_canon)
-    if new_dir.exists():
-        raise _profile_exists_error(new_canon)
+    from hermes_cli.profile_file_moves import resolve_move, move_directory
+    old_dir, new_dir = resolve_move(old_canon, new_canon)
 
     # 1. Remove the old name's service even when its gateway is stopped: the unit is named after
     # the old profile and runs ``--profile <old>``, so the service manager would crash-loop it on
@@ -2320,7 +2316,7 @@ def rename_profile(old_name: str, new_name: str) -> Path:
     try:
         if live_mux and not wait_profile_unowned(old_dir):  # same owner wait as delete_profile
             raise RuntimeError("a running gateway still owns this profile; retry the rename once it settles")
-        old_dir.rename(new_dir)
+        move_directory(old_dir, new_dir)
     except Exception:
         if live_mux:
             clear_named_profile_deleted(old_dir)

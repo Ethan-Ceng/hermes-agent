@@ -43,12 +43,32 @@ def pg_pair(pg_store, tmp_path):
 
 
 @pytest.fixture
-def pg_profiles(postgres_test_config, postgres_schema, tmp_path, monkeypatch):
+def pg_sqlite_guard(monkeypatch):
+    """Reject aliases/direct constructors as well as connect(), even when a caller catches errors."""
+    import sqlite3
+    import sys
+    attempts = []
+    enabled = [True]
+    def reject(*args, **kwargs):
+        attempts.append(True)
+        pytest.fail("PG domain business process must reject every SQLite connection")
+    def audit(event, args):
+        if enabled[0] and event == "sqlite3.connect":
+            reject()
+    sys.addaudithook(audit)
+    monkeypatch.setattr(sqlite3, "connect", reject)
+    try:
+        yield
+    finally:
+        enabled[0] = False
+        assert not attempts, "PG business code attempted SQLite, even if its caller caught the rejection"
+
+
+@pytest.fixture
+def pg_profiles(postgres_test_config, postgres_schema, tmp_path, monkeypatch, pg_sqlite_guard):
     """Actual Profile configuration for domain consumers; forbids every SQLite connection."""
     from contextlib import contextmanager
     import json
-    import sqlite3
-    import sys
     from agent.secret_scope import reset_secret_scope, set_secret_scope
     from hermes_cli.config import atomic_config_write
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
@@ -72,18 +92,4 @@ def pg_profiles(postgres_test_config, postgres_schema, tmp_path, monkeypatch):
             reset_secret_scope(secret_token)
             reset_hermes_home_override(home_token)
 
-    attempts = []
-    enabled = [True]
-    def reject(*args, **kwargs):
-        attempts.append(True)
-        pytest.fail("PG domain business process must reject every SQLite connection")
-    def audit(event, args):
-        if enabled[0] and event == "sqlite3.connect":
-            reject()
-    sys.addaudithook(audit)
-    monkeypatch.setattr(sqlite3, "connect", reject)
-    try:
-        yield owner
-    finally:
-        enabled[0] = False
-        assert not attempts, "PG business code attempted SQLite, even if its caller caught the rejection"
+    yield owner
