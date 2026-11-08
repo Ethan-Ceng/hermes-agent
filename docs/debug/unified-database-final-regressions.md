@@ -254,4 +254,22 @@ server secret的真实phase另行留证：`_open_profile_session_db`从264723.88
 
 notification最终独立foundation已逐项接受实际源diff、有效acquire红、双宿主原合同与Linuxprobe绿，无新增blocking/major，保持通用cold-stop及全局未通过边界。最新`PM Python scripts/check --staged --base d0101fe64df16b4db716af9ea55b66d8bd05b5d2`全部14检查通过、health1文件0blocking/0advisory、退出0（poller-real-store-checks）。随后只补本结果/恢复信息，另核diff-check，以本地标题`test: prepare real store before polling lifecycle`保存，不是Task24完成提交。
 
-下一工作区增量已经给两个profile case加真实store的closing上下文，覆盖timed build及finally join；原业务15/5、cleanup15保持，文件diff22+/22-，尚未纳入本次notification提交。实际open相位/同handle probe在旧两case均明确first after_start=True而红，2fail/28.7秒（profile-store-preparation-original-red；pytest28.21秒）；候选尚未验证，不宣称profile准备完成。清理故障probe另适配为只在worker打开时持有Event、允许真实main预持有引用，新版本独立红正在运行；新nested5 observer已准备记录原等待失败时本case持有的真实线程栈，尚未取得新现场。
+下一工作区增量已经给两个profile case加真实store的closing上下文，覆盖timed build及finally join；原业务15/5、cleanup15保持，文件diff22+/22-，尚未纳入本次notification提交。实际open相位/同handle probe在旧两case均明确first after_start=True而红，2fail/28.8秒（profile-store-preparation-original-red；pytest28.21秒；此前28.7为抄录误差，现按canonical Summary更正）；本段当时候选尚未验证。清理故障probe另适配为只在worker打开时持有Event、允许真实main预持有引用；新nested5 observer已准备记录原等待失败时本case持有的真实线程栈。
+
+## 2026-11-09：profile 构建持有真实共享库引用
+
+该工作区增量现已验证局部合同：两case通过`contextlib.closing(server._open_profile_session_db(str(profile_home)))`保持实际目标库引用，覆盖原timed build和finally join，再释放本测ref。worker仍真实调用自己的open、安装home/secret/terminal、执行MCP/make/attach/finally，没有mock store或选择其他backend。原built15、ready5、cleanup15及全部业务断言保持，文件行数22+/22-。SQLite registry-owned close只release自己的引用，不能将本Native fixture的同Python对象证明外推为PG资源对象identity要求。
+
+独立候选state=`task24-profile-store-candidate-state.json`，基础d0101fe64d，继承已提交notification SHA09ac...1928、server单文件overlay SHA256=`0e05b83d26c9a84cfff09713bcaf88bf10c923c4113d77651c3479b855659cf8`。实际phase/reuse probe要求至少首次open在start前、worker第二次open在start后、同目标home且返回同一真实SQLite handle；原业务错误仍重抛。旧两参数实际2fail/28.8秒，当前两个参数均绿/5.2秒；Windows相同源的原两case经canonical runner及隔离Profile **2pass/0fail/退出0/10.4秒**（profile-held-store-windows）。
+
+清理诊断版本的限制单独记录：首个适配probe在旧函数上确实观察owned thread alive，但其自身finally仅join15，最终也未排空，实际1fail/16.4秒并有第二个cleanup AssertionError（profile-held-cleanup-original-red）；不能写成已干净排空的红证据。后续只将ignored probe自身finally的real_join设为60秒，原fixture业务15/5和生产/测试cleanup15都不改，并以新native文件保留前版。该同语义probe旧函数实际**1fail/7.6秒/退出1**，只有预期alive AssertionError，自己的最终排空成功（profile-held-cleanup-drained-original-red；pytest6.89秒，之前内部8.3是工具外层wall-time误读，已按runner更正）；当前候选同probe **1pass/9.6秒**。强制原业务AssertionError类型/正文和实际线程最终退出要求保留。
+
+当前六文件联合通过`run_matrix_linux.py --state task24-profile-store-candidate-state.json --tools-state task24-linux-tools-state.json --native --log unified-task24-profile-prepared-native-joint.log <原四完整文件及两个profile相位参数/清理probe> -j4 --file-timeout1200 -- -m 'not live'`执行，插件为pause/groups/notification的prepared命名及扩展server profile观察器。session22923仍live：五文件51pass、原637项server文件尚待，**不能记整批688通过**。当前profile case原built约.0108/.0124秒、ready约1.1146/.5673秒，均真实原期限内；新nested5失败时的确切owned threads栈捕获也已启用，尚无新失败现场。独立foundation已核对closing范围/真实相位及同handle/旧红与当前probe绿/Windows结果，接受该局部准备；完整server、联合终态及静态仍待。
+
+该六文件批次现已自然终态，session22923退出0：**688pass/0fail/0skip、485.9秒、4workers**。分解为原server完整637pass/476.3秒、pause完整43pass、groups完整4pass、notification原1pass、profile真实句柄参数2pass及cleanup1pass，合计不重复。旧四文件682/3非零保留。新增nested5本次实际Event返回True/约.524427秒；其成功observer达到20000事件上限，没有失败owned线程快照，不将其冒称为完整phase或旧红的根因证明。
+
+最新`PM Python scripts/check --staged --base c1dffcc317`全部14检查通过、health1个Python文件0blocking/0advisory、退出0（profile-held-store-checks）。后续仅补本终态/审查与恢复文字，另核diff-check；该源码的独立最终局部结算正补录，整体Task24仍未完成。
+
+另以ignored `task24_reconcile_native_provenance.py`执行只读核对（native-provenance-reconciliation.log/json）：原完整20a478日志确有6412个唯一逐文件行、63150pass/15fail/726skip、8个非零文件；每一selected路径以Git blob比较到当前worktree，仅probe/hygiene/async-age/notification/server五个测试文件变化，全部属于原8个非零文件。20a478至当前除tests/docs之外的生产diff为空。该manifest只记录来源对应关系，**不把原非零批次改成绿色、不替代补测或独立范围审查**；它也没有证明全部跨文件负载组合或原历史异常原因。分批验证是否满足原Task24要求、尚有何非平台blocking/major，已交独立审查逐项判断，非WSL七项仍缺实机。
+
+最终独立foundation已读取688/0/0完整终态、14项静态、五个源hash及各自overlay，并直接核对生产diff空。按原Task24允许分批的要求，原七个非平台非零文件现均有当前完整文件补证，其中最后四文件为实际-j4联合；本范围未发现必须再跑全6412或新并发组合的具体非平台blocking/major依据。历史未定因风险继续记录，不臆断成当前生产缺陷，也不抹去原full红。当前剩余收尾为冻结最终本地ref/hash及证据集合绑定、相对a875全分支静态/verification、各分域独立总审，以及七项非WSL实机。以标题`test: hold real profile stores during scoped builds`创建本地测试恢复提交，父提交c1dffcc317；Task24仍未完成/全局不批准。

@@ -824,7 +824,6 @@ def test_profile_scoped_agent_build_starts_mcp_discovery_in_profile_home(
 
     profile_home = tmp_path / "profiles" / "sheepyr"
     profile_home.mkdir(parents=True)
-
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / "default"))
 
     seen = []
@@ -855,16 +854,17 @@ def test_profile_scoped_agent_build_starts_mcp_discovery_in_profile_home(
         "profile_home": str(profile_home),
     }
 
-    server._sessions[sid] = session
-    try:
-        server._start_agent_build(sid, session)
-        assert built.wait(timeout=15), "agent build thread never called _make_agent"
-        assert ready.wait(timeout=5), "agent_ready never set after build"
-    finally:
-        build_thread = session["_agent_build_thread"]
-        build_thread.join(timeout=15)
-        server._sessions.pop(sid, None)
-        assert not build_thread.is_alive(), "profile build outlived its test's mocks"
+    with contextlib.closing(server._open_profile_session_db(str(profile_home))):
+        server._sessions[sid] = session
+        try:
+            server._start_agent_build(sid, session)
+            assert built.wait(timeout=15), "agent build thread never called _make_agent"
+            assert ready.wait(timeout=5), "agent_ready never set after build"
+        finally:
+            build_thread = session["_agent_build_thread"]
+            build_thread.join(timeout=15)
+            server._sessions.pop(sid, None)
+            assert not build_thread.is_alive(), "profile build outlived its test's mocks"
 
     assert seen == [str(profile_home)]
 
@@ -886,7 +886,6 @@ def test_profile_scoped_agent_build_installs_secret_scope(monkeypatch, tmp_path)
     (profile_home / ".env").write_text(
         "PROXMOX_TOKEN=grace-secret\n", encoding="utf-8"
     )
-
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / "default"))
 
     scopes = []
@@ -918,16 +917,17 @@ def test_profile_scoped_agent_build_installs_secret_scope(monkeypatch, tmp_path)
         "profile_home": str(profile_home),
     }
 
-    server._sessions[sid] = session
-    try:
-        server._start_agent_build(sid, session)
-        assert built.wait(timeout=15), "agent build thread never called _make_agent"
-        assert ready.wait(timeout=5), "agent_ready never set after build"
-    finally:
-        build_thread = session["_agent_build_thread"]
-        build_thread.join(timeout=15)
-        server._sessions.pop(sid, None)
-        assert not build_thread.is_alive(), "profile build outlived its test's mocks"
+    with contextlib.closing(server._open_profile_session_db(str(profile_home))):
+        server._sessions[sid] = session
+        try:
+            server._start_agent_build(sid, session)
+            assert built.wait(timeout=15), "agent build thread never called _make_agent"
+            assert ready.wait(timeout=5), "agent_ready never set after build"
+        finally:
+            build_thread = session["_agent_build_thread"]
+            build_thread.join(timeout=15)
+            server._sessions.pop(sid, None)
+            assert not build_thread.is_alive(), "profile build outlived its test's mocks"
 
     assert scopes == [{"PROXMOX_TOKEN": "grace-secret"}]
 

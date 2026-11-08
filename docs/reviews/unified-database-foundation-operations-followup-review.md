@@ -813,3 +813,65 @@ server另一个新红 `test_run_prompt_submit_requeues_all_unstarted_notificatio
 最终 `task24-poller-warm-overlay-state.json` 以d0101fe独立候选为基准，只overlay该notification文件；SHA256 `09ac29210a6c10e05183c325c4e6a85992d9e1f910862004863f344375c11928` 与实际工作区一致。新实际终态为：Linux `unified-task24-poller-real-store-candidate.log` **2文件2 passed/0 failed、15.3秒**（真实phase probe1/9.2秒，原case1/5.9秒）；Windows `unified-task24-poller-real-store-windows.log` **原case1 passed/0 failed、10.8秒**。`notification-joins-warm.json` 另确认本次两个原3秒join实际约0.013827和0.509024秒，均退出，不是原失败现场。
 
 **notification这项fixture准备局部可接受，未发现新增blocking/major。** 它有正确实际acquire的红绿及原合同通过支持，仍只覆盖已准备session的重建/停止；原cold初始化中stop的一般期限和底层WAL/DDL慢原因并未因此新增保证。server真实引用准备与nested5秒红仍待后续实际证据，原四文件联合非零、20a478全宽非零和非WSL POSIX七项缺口继续保留。全局仍 **FAILED / CHANGES_REQUIRED**。
+
+## server 持有真实 profile store 的候选只读复审
+
+本节只读核对server fixture第二次准备整改、两个相位参数和适配后的cleanup probe；没有代跑、连库、修改实现/测试或提交。`task24-profile-store-candidate-state.json` 基于d010独立source，包含notification已审09ac文件和server SHA256 `0e05b83d26c9a84cfff09713bcaf88bf10c923c4113d77651c3479b855659cf8` overlay；server哈希与Reviewer实际读取文件一致。
+
+### 真实引用生命周期与原断言
+
+当前server diff为22新增/22删除（大部分为缩进与空行），实质是两个case各用 `contextlib.closing(server._open_profile_session_db(str(profile_home)))` 包住session注册、原start、built15秒、ready5秒以及finally的owned join15秒/pop/alive断言。closing在join之后才释放本测试预热引用；原scope/MCP业务断言均未删改。若准备open失败，真实异常会在注册session之前使case失败；没有fake store或无声忽略。
+
+worker仍实际调用原 `_open_profile_session_db`，并在自己的finally归还其引用。SQLite共享handle的close按registry refcount release，预热引用在构建期间仍持有，避免先close再触发第二次冷初始化；最后外层closing才可能触发最终teardown。`resolve_db_configuration`根据显式目标home短暂绑定配置/secret作用域并恢复，原worker仍须独立实际安装scope，预热不能替代其scope正确性断言。此处证明范围是本Native SQLite fixture，不是PG resource的Python对象identity合同或生产冷启动时长保证。
+
+`task24_prepare_profile_store_probe.py` 的两个参数调用原两个case；spy保存并转调真实open/start，要求首次实际open在start前、第二次实际open在start后、恰两次且同home/同一真实对象。它捕获原AssertionError后先核对准备边界，再重抛，不能以正确准备掩盖业务失败；自己的finally仍join实际捕获线程。旧fixture `unified-task24-profile-store-preparation-original-red.log` 实际 **2 failed/28.8秒**，两参数确有 `after_start=True` 的首次实际open，作为有效旧准备边界红。28.7秒是旧抄录误差，不是另一次测试结果。
+
+### cleanup 适配 probe 的两份旧红不可混用
+
+新的 `task24_prepare_held_build_cleanup_probe.py` 只对start之后的真实worker open安装门闩，允许计时前的真实准备open完成；保存本测实际thread handle，只在对这些handle进行join时释放门闩并转真实join。原built Event的probe wait仍仅用于确定触发原准确AssertionError，原fixture的built15/ready5/cleanup15均未修改。
+
+- `unified-task24-profile-held-cleanup-original-red.log` **1 failed/16.4秒**：先有预期“failed fixture returned with its build thread still running”，但probe自己的15秒finally join也未排空，输出有 `During handling` 及第二个“probe could not clean up”错误。它证明那次诊断自身清理不足，**不能声称此产物已排空**。
+- 新诊断仅把自身finally保存的真实join排空上限改成60秒，门闩及故障语义不变。`unified-task24-profile-held-cleanup-drained-original-red.log` 实际 **1 failed/7.6秒（pytest6.89秒）**，唯一失败为捕获原业务AssertionError后owned thread仍alive；没有secondary cleanup失败，最后真实join和not-alive断言已完成。8.3秒是工具外层耗时，不能替代canonical7.6秒。新增60秒只属于ignored诊断自清理，不能写成生产或原fixture期限被提高。
+
+### 当前实际结算与尚在运行的范围
+
+已读Windows `unified-task24-profile-held-store-windows.log`：两个原case **2 passed/0 failed、10.4秒**，原15/5与清理15均保留。Linux `unified-task24-profile-prepared-native-joint.log` 在本检查点已分别结算profile相位两个参数2 passed/5.2秒、适配cleanup probe1 passed/9.6秒、notification1 passed、groups4 passed和pause43 passed；**原637项server文件尚未返回，六文件仍live，不能登记预计688项全绿。**
+
+源码与上述相位/cleanup局部红绿支持这项真实引用准备，**局部整改可接受，未发现新增blocking/major**；最终原完整server及联合结论仍待实际终态。此前nested_started原5秒红还没有失败栈，不能因为两个profile准备参数通过就归为DB或宣称已修复；新observer只为下一次原失败保留其实际owned线程栈，不改变业务。原15秒冷初始化内部原因、旧多余None归属、原全宽非零与非WSL POSIX七项证据缺口继续保留。全局仍 **FAILED / CHANGES_REQUIRED**。
+
+## 六文件补验终态与最终非平台证据范围判断
+
+本 Reviewer只读核对新增终态、完整provenance helper/log/JSON、实际Git diff和各补验文件哈希，未代跑、连库、修改实现/测试或提交。当前 `c1dffcc317ac9ded6077f219492489b3633d1cd8` 工作区closing候选的完整Linux运行已自然退出；本节替前一检查点补结算，不改写前节当时“仍live”的事实。
+
+### closing 最终局部结算
+
+`unified-task24-profile-prepared-native-joint.log` 的真实终态为 **6文件688 passed/0 failed/0 skipped、exit0、485.9秒、-j4**。原server完整637项通过/476.3秒；另为原pause43、groups4、notification1、真实profile open相位参数2和强制原失败的cleanup probe1。该批不是只挑两个profile case取绿，Windows原两case2 passed/10.4秒也继续单列。`unified-task24-profile-held-store-checks.log` 实际14检查通过、health1文件0 blocking/0 advisory、exit0；这是本次fixture局部静态范围，不冒称新的全分支598文件health。
+
+当前closing最终候选因此有原函数真实open次序/同home/同handle红绿、原业务失败仍传播的cleanup红绿、两宿主原case，以及原完整文件/四原文件-j4联合补验支持，**本项局部整改可接受**。原built15/ready5、独立cleanup15和scope业务断言保持，冷writer/schema准备移到计时前并持有真实引用；不是生产性能修复声明。
+
+新 `server-build-profile-test_run_prompt_submit_requeues_all_unstarted_notifications_with_real_threading.json` 的本次原nested Event在约 **0.524427秒返回True**，但events实际20000条触及observer cap，没有失败owned栈。故只能说原nested5秒合同在本次完整文件中通过，不能声称拥有完整phase、已解释上轮5秒失败或确定其由DB引起。此历史未定位边界保留，不能反过来把当前实际通过改记为失败或自动报一个未实证产品major。
+
+### provenance 的实际能力及局限
+
+已检查 `task24_reconcile_native_provenance.py`：它从原full日志逐行提取实际文件结算，要求6412行且路径唯一，按20a478 Git tree取原blob，读取当前tracked test blob/文件SHA并核对原失败数15；生产diff使用实际Git差异排除tests/docs。原始输出仍为 **63150 passed/15 failed/726 skipped、8个非零文件**。Reviewer另直接核对20a478→当前工作区，tracked生产diff确为空；只有五个selected测试文件发生变化，全部属于原8个非零条目。五个当前SHA均与各自已读取overlay/补验一致：probe `92182b…1c1b0c`、hygiene `da3e7e…7b943e`、async `641d0a…21c74`、notification `09ac29…11928`、server `0e05b8…59cf8`。
+
+这只证明来源与文件集合对应，不是新一次全宽执行，不核准每个skip为已执行，也不解释历史时序或修改原exit1。原其余6404条文件记录继续按原各自实际结果和平台/依赖skip解释，不能一概称6404个文件全部业务已执行。
+
+| 原8个非零文件的当前映射 | 已读完整文件补证 |
+| --- | --- |
+| probe预算 | 当前完整8 passed；两个真实I/O/私有策略clock预算参数的旧断言反例另保留。 |
+| hygiene adoption | 当前原完整3 passed；真实acquire准备和失败cleanup两个probe另2 passed，完整三文件5项结算，不将probe替代原三case。 |
+| async delegation | 当前原完整35 passed/1 macOS适用项skip；真实dispatch后的本地clock反例另1 passed，peer独立review已接受。 |
+| update pause record、groups route parity | 当前-j4联合原完整43与4 passed；源码未改，成功观察没有被包装成历史因果。 |
+| notification poller、server | 当前-j4联合原完整1与637 passed；新增真实准备/cleanup probe另3项计入688，原红及内部耗时边界另留。 |
+| private webapp launch | 仍为非WSL POSIX七项未获适用主机证据；不能以WSL、Windows或不适用skip抵消。 |
+
+### 是否还缺必须追加的非平台宽批或并发合同
+
+Task24原验证方式明确允许八个Native目录“按依赖/原生平台分批并读取完整汇总”（计划第1481行），并未要求每次只有测试fixture/文档变化后必须重新同进程组合跑完6412文件。原完整20a478已有全部逐文件结果；当前生产与其相同，五个测试变化都有确定的合同/旧反例审查及当前完整文件补验，最后四个受影响原文件还以-j4联合执行。文件内线程、进程、原业务deadline没有因为分批被禁用，真实PG并发claim/receipt/限额/故障合同亦已在当前生产完整689项及目录外8项中分开结算。
+
+**就本 Reviewer 的foundation/operations/worker及上述Native补证范围，未发现仍需另跑全6412或增加一个特定并发组合才能关闭的具体非平台blocking/major缺口。** 不能仅凭“旧慢原因尚未解释”一律推定当前生产bug，或要求重复直到某次全批安静；历史PG recovery、controls/history/Host/压缩及本次nested慢现场继续作为诚实风险记录。本判断不推翻其他独立Reviewer仍持有的具体领域问题，也不覆盖未执行的条件交叉乘积。
+
+当前非平台仍需完成的具体**收尾门禁**是：把最终本地提交ref与以上实际测试/overlay哈希和分批文件集合冻结对应；在该最终输入上完成相对a875的完整分支 `scripts/check`/verification-before-completion和各分域最终独立结论。局部health1不能替代最终全分支检查，未提交候选不能冒称已绑定完成提交；若后续生产或相关测试再变更，按实际影响补验，不能继续使用本次provenance无变化前提。这些是最终证据绑定/审查工作，不是已发现的新产品缺陷；本轮不建议重复当前完整PG、发行或无影响Native文件。
+
+非WSL POSIX七项适用主机证据仍真实缺失，设计/计划要求全部必需验收和最终独立APPROVED才可READY_TO_MERGE。因此**全局继续 FAILED / CHANGES_REQUIRED、Task24未完成**；本节接受分域补证范围，不批准全局完成、合并或发布。

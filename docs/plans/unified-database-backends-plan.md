@@ -1763,7 +1763,17 @@ notification raw fake-agent夹具现仅补真实goals store/nonNone准备，保�
 
 下一步先结算通知fixture局部小修，然后用真实profile store ref覆盖server scope测试的timed build/join并验证同一handle与实际worker open；两个相位probe的原红正在非运行旧候选执行（profile-store-preparation-original-red/session51770），尚未计结果。新增nested_started5先取所属线程实际phase，不加期限/不禁用tick；当前仍Task24 FAILED/in_progress及非WSL7项缺口。
 
-notification最终独立foundation已接受局部红绿和准确边界，最新`PM Python scripts/check --staged --base d0101fe64df16b4db716af9ea55b66d8bd05b5d2`14检查通过、health1个Python文件0blocking/0advisory、退出0（poller-real-store-checks）。随后只补实际结果/恢复文字并diff-check，以唯一标题`test: prepare real store before polling lifecycle`保存本地恢复点，Task24仍FAILED/in_progress。工作区server另有closing真实ref准备增量、未纳入此提交；旧两profile相位probe现已2fail/28.7秒（实际first open after_start=True），候选仍待，不能预记通过。新nested5待原失败窗口线程现场。
+notification最终独立foundation已接受局部红绿和准确边界，最新`PM Python scripts/check --staged --base d0101fe64df16b4db716af9ea55b66d8bd05b5d2`14检查通过、health1个Python文件0blocking/0advisory、退出0（poller-real-store-checks）。随后只补实际结果/恢复文字并diff-check，以唯一标题`test: prepare real store before polling lifecycle`保存本地恢复点，Task24仍FAILED/in_progress。工作区server另有closing真实ref准备增量、未纳入此提交；旧两profile相位probe现已2fail/28.8秒（实际first open after_start=True；此前28.7误记已更正），本段当时候选仍待。新nested5待原失败窗口线程现场。
+
+server实际closing准备已有局部证据：原15/5/cleanup15及全业务断言保持，worker仍真实open同target；旧phase2红28.8秒→当前两参数绿5.2秒，验证初始化在start之前、第二次实际worker open复用同home/同真实SQLite handle。当前源SHA0e05b83d...5659cf8（state task24-profile-store-candidate-state.json，基础d010+已提交notif overlay），Windows原两项2pass/0fail/退出0/10.4秒。清理适配probe曾旧1fail16.4秒且自身15秒未排空，另存不计干净排空；新ignored probe仅自身finally real_join60，原fixture15/5/15不改，旧唯一alive红1fail7.6秒/实际排空成功（非工具外层8.3），当前同probe1pass9.6秒。独立foundation已接受局部准备边界，不外推PG对象identity或底层23秒性能修复。
+
+六文件-j4联合观察仍在session22923（profile-prepared-native-joint），当前五文件51pass、原server637项未返回，不预记688绿；扩展observer已准备新nested5原失败窗口的owned-thread栈。下一步读取完整终态，分别处理新红与窄绿，不重启或重复已结算PG/发行；该源码的静态/本地提交待完成，Task24仍FAILED/in_progress。
+
+六文件联合现已自然退出0：688pass/0fail/0skip、485.9秒、4workers（profile-prepared-native-joint），其中原server637pass/476.3秒、pause43/groups4/notif1/profile相位2/cleanup1；旧四文件682/3和原20a全宽15红都不改写。新nested5本次Event约.524秒True，observer触及20000事件cap、无失败线程快照，不声称原因已定位。最新`PM Python scripts/check --staged --base c1dffcc317`14检查通过、health1文件0blocking/0advisory、退出0（profile-held-store-checks）；独立最终局部结算待补，后续仅结果/恢复文字并diff-check，本地提交待创建。
+
+只读native provenance manifest逐一对应原6412唯一文件行及Git blob：完整原统计63150/15/726、8非零文件；到当前worktree生产diff=[]，仅5个selected测试变更且全部在原8个非零文件中。该manifest不是新的业务测试或全绿判定，不取代补测和独立审查；Task24原验证方式允许按依赖/原生平台分批，但当前非平台必需范围/并发合同和历史未定因风险的实际分级仍由独立review核对。非WSL7项主机及最终全局门禁未闭合，保持FAILED/in_progress、不宣称全系统完成。
+
+独立foundation最终已按原分批要求核对688/0/0、14静态、五hash及原6412 provenance：本范围未发现需要再跑全6412或另加新并发组合的具体非平台blocking/major；原七非平台非零文件都有当前完整文件补证，最后四为-j4联合，历史未定因风险和原红都保留。最终本地ref/hash/分批集合冻结、相对a875全分支静态/verification、各分域独立总审仍待；非WSL7仍缺真实主机。以唯一标题`test: hold real profile stores during scoped builds`保存本地恢复，父c1dffcc317，非Task24完成提交。
 
 ## 计划变更
 
@@ -1807,9 +1817,9 @@ Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣
 
 ## 恢复点
 
-Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。最新测试恢复按唯一标题`test: prepare real store before polling lifecycle`定位，父提交d0101fe64d（server线程清理）；async-age fb483、hygiene261f、probe99bd均已局部闭合，生产仍120bf8。当前完整PG127文件689绿、双宿主DB绿、四套发行及目录外mixed/deletion另8项均已结算，不因测试/文档重复运行。
+Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。最新测试恢复按唯一标题`test: hold real profile stores during scoped builds`定位，父提交c1dffcc317（notification真实库准备）；server cleanup d010、async-age fb483、hygiene261f、probe99bd均已局部闭合，生产仍120bf8。当前完整PG127文件689绿、双宿主DB绿、四套发行及目录外mixed/deletion另8项均已结算，不因测试/文档重复运行。
 
-原20a478宽批已退出1，state task24-current-wide-native-state.json、log unified-task24-20a478-full-native-observed.log，6412文件63150pass/15fail/726skip；原红/现场保留，FAL另38绿。probe/hygiene/async-age三项局部已闭环；server自有线程cleanup minor现有正确红绿/完整637绿/独立复审/14静态，但原15秒慢因及旧None归属不冒称已修。仍需处置pause、groups、notification及server共4文件5参数和非WSL7项。当前同一fb+f85b候选四完整文件-j4联合观察session41931（remaining-native-joint-observed）仍在运行；下一步读其终态及joint观察产物，不重启或用前次窄绿替代。全局独立终审未完成，历史managed/Host因果保留。
+原20a478宽批已退出1，state task24-current-wide-native-state.json、log unified-task24-20a478-full-native-observed.log，6412文件63150pass/15fail/726skip；原红/现场保留，FAL另38绿。旧四文件joint41931也已退出1、682/3；新六文件session22923现已退出0、688/0/0、485.9秒（profile-prepared-native-joint），含原server637及三个真实回归参数。当前五hash与源对应已独立核对，原七非平台非零文件都有当前完整文件补证；没有要求把原full改称一次绿色。下一步绑定最终提交ref/证据集合、跑相对a875全分支静态/verification及完成独立分域总审；非WSL7项仍缺适用主机。历史managed/Host、pause/groups及nested5未明因果按风险留账，不补造结论。
 
 metrics恢复`2a2684390016a1bfadc4c759bf2151945425f077`已实际Linux13文件34项及新冻结Native36文件714项全过；先前ed0真实worker模型PG计数0的红已由owner通道局部整改，不用旧owner20项替代。RetainDB `ed0cdbe604`与verification `c0558e9c13`证据继续保留，三个真实managed领域在加入quiesce后另6项通过。
 
