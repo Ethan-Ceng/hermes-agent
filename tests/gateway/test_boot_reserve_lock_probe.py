@@ -149,11 +149,32 @@ def test_a_live_foreign_owner_still_refuses_at_once(tmp_path):
         assert not booting.owns(root)
 
 
-def test_a_persistent_probe_flicker_still_refuses_at_the_deadline(tmp_path):
-    """A probe that is back on every attempt is retried with a backoff, never spun on, and the
-    reserve still refuses once the deadline passes."""
+@pytest.mark.parametrize(('recheck_cost', 'retries'), [(0.001, True), (0.31, False)])
+def test_a_persistent_probe_flicker_still_refuses_at_the_deadline(tmp_path, monkeypatch, recheck_cost, retries):
+    """Back off within the budget; a first re-check that exhausts it needs no second attempt.
+
+    Real flock/record I/O may consume the whole budget on a busy host. Control only the policy
+    clock and cancellable wait so both outcomes are exercised without assuming fast fsyncs.
+    """
+    from gateway import runtime_ownership
+
     root, boot = _homes(tmp_path)
     wait_s = 0.3
+    now, waits = [0.0], []
+    real_recheck = runtime_ownership._conflicting_homes
+
+    def recheck(homes):
+        conflicts = real_recheck(homes)
+        now[0] += recheck_cost
+        return conflicts
+
+    def wait(delay):
+        waits.append(delay)
+        now[0] += delay
+        return False
+
+    monkeypatch.setattr(runtime_ownership, 'time', SimpleNamespace(monotonic=lambda: now[0]))
+    monkeypatch.setattr(runtime_ownership, '_conflicting_homes', recheck)
 
     class AlwaysProbed(ProfileOwnership):
         refused_at = []
@@ -161,20 +182,28 @@ def test_a_persistent_probe_flicker_still_refuses_at_the_deadline(tmp_path):
 
         def reserve(self, homes, **kwargs):
             if self.refused_at:
-                self.gaps.append(time.monotonic() - self.refused_at[-1])
+                self.gaps.append(now[0] - self.refused_at[-1])
             try:
                 with _probe_hold(boot):
                     return super().reserve(homes, **kwargs)
             finally:
-                self.refused_at.append(time.monotonic())
+                self.refused_at.append(now[0])
 
     booting = AlwaysProbed()
-    started = time.monotonic()
-    with pytest.raises(OwnershipConflict):
-        _reserve_waiting_out_browse_reconcile(booting, [root, boot], wait_s=wait_s)
-    assert time.monotonic() - started >= wait_s
-    assert booting.gaps and min(booting.gaps) >= 0.01, booting.gaps  # backed off, never spun
-    assert not booting.owns(root)
+    try:
+        with pytest.raises(OwnershipConflict):
+            runtime_ownership.reserve_waiting_out_transient_holders(booting, [root, boot], wait_s=wait_s,
+                cancel=SimpleNamespace(is_set=lambda: False, wait=wait))
+        assert now[0] >= wait_s
+        if retries:
+            assert booting.gaps and min(booting.gaps) >= 0.01, booting.gaps
+            assert waits and min(waits) >= 0.01, waits
+        else:
+            assert len(booting.refused_at) == 1
+            assert booting.gaps == waits == []
+        assert not booting.owns(root)
+    finally:
+        booting.close()
 
 
 class _HotServeRunner(GatewayProfileReconcileMixin):

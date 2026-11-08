@@ -602,3 +602,28 @@ mixed metrics root测试的audit要求每一次实际SQLite连接都在明确的
 已读取 `unified-task24-worker-host-timed-observed.log` 的新终态：同三文件、`-j3`、原断言/20秒controls及30秒history期限，**14 passed / 0 failed / 0 skipped、exit0、112.6s**，分项Host5、managed launch7、compression2。Root只增加5秒watchdog/失败timing和started观察，没有生产修正。此批证明本次通过，不能把其绿色时序当成上一批13pass/1fail controls的实际因果，不能据此声称旧失败根因已修复；旧failed timing未留存边界继续保留。
 
 原计划的一次20a478八目录最终宽复验现已开始，Root通知仍live；本 Reviewer没有代跑或拿中途零失败计数当最终通过。等待该批终态即可，不再建议开启重复runner。原非WSL POSIX私有启动页七项仍缺适用主机，历史间歇与PG并行服务故障的归因限制不变。全局继续 **FAILED / CHANGES_REQUIRED**，无完成、合并或发布批准。
+
+## 2026-11-09：固定 probe 预算用例的独立复审
+
+只读审查当前 `8c75a83c353b60078b9bbdab77fd5375ca5eff43` 上 `tests/gateway/test_boot_reserve_lock_probe.py` 的一个用例修改、未变生产helper/boot wrapper、历史意图及两份真实日志；没有代跑、连库、修改生产/测试或提交。`task24-probe-budget-candidate-state.json` 的独立候选以8c75为基准、只覆盖该测试文件；SHA256 `92182b8cea73b662cdde0f7d85941d8a55a85e0340158a7a32aee4cbef1c1b0c` 与本 Reviewer 实际读取文件匹配。原运行中的20a478宽批没有被此候选覆盖或重启。
+
+### 原失败与真实合同
+
+原宽批 `unified-task24-20a478-full-native-observed.log:1618` 对该文件结算 **6 passed/1 failed**，失败case先满足真实 elapsed≥0.3秒，随后因为 `gaps=[]` 失败。`runtime_ownership.py` 和原测试在a875→当前已提交HEAD之间没有变更，但本 Reviewer没有只靠“无diff”认定原因。
+
+已阅读 `24479b4529bd788e378ed35473599b4b524affd3`：共享helper的合同是每次必须真实reserve、transient probe有预算时经过15ms backoff再试、live foreign owner即时拒绝、一个固定deadline约束整体；并不保证最少两次attempt。当前helper在真实 `_conflicting_homes` 之后、等待之前检查是否已到deadline。因此一次recheck的实际I/O耗时就耗尽预算时，直接拒绝而没有gaps是合法结果。
+
+Root 的独立 counterfactual 日志 `unified-task24-probe-budget-original-red.log` 已完整读取：保持原用例和真实 `_conflicting_homes`，只在第一次真实recheck结束后给策略时钟推进0.31秒；直接调用原测试，确定 **1 failed、exit1、runner1.0s**，相同失败为 `gaps=[]`。这证明旧“必有重试”断言排除了合法固定预算分支；不是证明新后端实现必须延长预算或多重试一次，也不将该受控观察冒称为旧宽批的精确fsync现场。
+
+### 候选没有替换所有权或 I/O 结果
+
+- 新case保持 `wait_s=0.3`，`.001`成本参数要求实际发生重试，gaps和wait均非空且至少10ms，能够拒绝spin/无退避；`.31`参数要求恰一次reserve、gaps和wait均为空，能够拒绝预算耗尽后的额外等待。两分支都要求OwnershipConflict、策略时钟已到预算且不持有root。
+- `monkeypatch` 替换的是 `runtime_ownership` 自己的 `time` 引用，未修改标准库全局 `time.monotonic`，不影响 `gateway.status`、文件系统或pytest其他时钟；每个参数结束后恢复。已有可选cancel对象只控制等待与推进策略时钟，`is_set=False`使本case专注预算，真实取消合同仍由原独立用例覆盖。
+- recheck wrapper先调用保存的真实 `_conflicting_homes` 再推进策略时间；`AlwaysProbed.reserve`仍用真实flock并调用原 `ProfileOwnership.reserve`，真实lock record truncate/write/flush/fsync、失败回滚与recheck的真实逐home reserve/close都保留，未伪造OwnershipConflict或granted结果。外层增加finally close，`_probe_hold`文件上下文亦始终释放。
+- 本case直接调用共享helper，是为使用其已有cancel.wait接缝精确测固定预算；boot wrapper本身只转调这个helper，未改生产wiring。其余六个原用例没有diff，继续实际覆盖boot wrapper、真实wall clock、跨进程flock/live owner、hot-serve及取消后不取得锁。没有fake OS或改变生产deadline/backoff。
+
+### 真实候选结果及结论
+
+已读取 `unified-task24-probe-budget-candidate.log`：PM Linux解释器、canonical runner、retries=0、`-j1`，整文件 **8 passed / 0 failed / 0 skipped、exit0、1.5s**，即两个策略预算参数和原六个真实case。runner对模块any-of Linux/macOS marker打印macOS note，不能将其改写为在macOS执行过；本次pytest八项均在真实Linux执行，没有skip计数。
+
+**该局部测试整改可接受，未发现新增blocking/major。** 它精确补足旧用例的两种预算分支，保留所有权保护与实际I/O，不是生产修复。原冻结宽批仍含未修改旧case的失败，必须保留其真实非零结果和后续补验关系；当前宽批尚live，不能据候选8项计为全局绿色。其他managed定时失败、历史未定因边界和非WSL七项主机缺口不由本项关闭。全局仍 **FAILED / CHANGES_REQUIRED**。

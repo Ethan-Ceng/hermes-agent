@@ -2,7 +2,7 @@
 
 ## 审查范围
 
-- 日期：2026-11-08；分支：`feat/postgresql-session-storage`。
+- 日期：2026-11-09；分支：`feat/postgresql-session-storage`。
 - 实施基准：`a8753423841362c6c8d76e2dca094c95d690ba27`；规划提交：`d9984f73af`。
 - 最后生产版本：`120bf8c9d6c9f3ac9e2d35e995ed976a4e175c3b`；最终 CLI 测试修正/当前宽回归冻结版本：`20a4789b35d4b38eec098c5a1203699200833474`。二者之后的 `bdb2bf505d`、`194647f52b`、`8a3c2f39d8` 只有证据文档，生产未变。
 - 历史检查点：原独立审查 `3febe6fc31`、生产整改 `58d0003f83d1c99505e1173508ea7e2934d89411`、测试合同修正 `d402ff3a06b15c45a150eb2459191bfc5a4a7e22`；以下历史结果保留其原版本归属。
@@ -43,7 +43,7 @@
 | 当前完整分支静态/生成/构建 | `unified-task24-20a478-full-branch-checks.log`：**14 checks ok，598 Python files health 0 blocking/0 advisory，退出0**；120bf8生成契约check、strict TypeScript及完整TUI实际build退出0。旧Electron noEmit/预检22项只保留其原源码未改的历史范围 |
 | Native原失败文件覆盖 | 69d完整6412文件为**63024 passed / 140 failed / 726 skipped，退出1**；最终63个非零文件中，120的59文件replay与额外3文件精确覆盖62，唯一缺失private launch平台文件。replay为315 pass/4 fail/7 skip，额外3文件239 pass/1 macOS skip；不能说62文件全绿 |
 | 最新三文件实际观察 | `worker-host-loaded-observed`：**13 passed / 1 failed，369.7秒，退出1**，controls原20秒未见approval；PG/Windows批结束后 `worker-host-timed-observed`：**14 passed / 0 failed / 0 skipped，112.6秒，退出0**。保留原20/30秒及所有业务断言，仅增加现场观察；后次绿不证明旧失败因果 |
-| 当前20a478最终 Native | `unified-task24-20a478-full-native-observed.log`：**原八目录6412文件仍在运行**，-j4、原期限、retries0并保留worker/Host观察，不使用中途计数作完成证据。FAL在同ref独立PM环境另**38 passed / 0 failed / 0 skipped，退出0，1.9秒**，不是宽批次中的38项 |
+| 当前20a478最终 Native | `unified-task24-20a478-full-native-observed.log`：**原八目录6412文件仍在运行，已见启动锁probe一项红**，-j4、原期限、retries0并保留worker/Host观察。该旧测试错误要求0.3秒预算内至少两次尝试，原函数受控复核耗时反例同断言1红，保留真实flock的双预算参数候选整文件8绿、独立复审接受、14静态/health1文件0通过；不将候选绿改成原批绿。FAL同ref独立PM环境另38 pass/0 fail/0 skip、退出0、1.9秒 |
 
 ### 历史检查点结果
 

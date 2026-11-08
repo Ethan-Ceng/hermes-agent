@@ -16,7 +16,7 @@
 - 已完成：23 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：非WSL POSIX私有启动页七项仍缺适用主机。验收PG恢复后当前生产120bf8完整127文件689项已通过，前两次中断记录保留。Native managed history/压缩、审批提示与Host注入偶发超时根因未明，最后宽复验及独立终审仍未闭合。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
-- 更新时间：2026-11-08（Asia/Shanghai）。
+- 更新时间：2026-11-09（Asia/Shanghai）。
 
 ## 目标、约束与范围变化
 
@@ -1725,6 +1725,12 @@ CLI两份fixture最后静态首轮13/14通过，health指出原service test超�
 
 审查汇总文档增量已执行`PM Python scripts/check --staged --base 8a3c2f39d8`，14检查全部通过、无Python measured修改、退出0（unified-task24-review-summary-checks.log）；diff-check亦通过。以标题`docs(storage): align final review with current evidence`保存本地证据恢复点。当前原生宽批仍经原session核对运行中，已进入Gateway文件、尚无新失败，不将该中途状态改成最终通过。
 
+20a478当前宽批首红已产生：启动锁probe文件6pass/1fail、8.5秒，原持久probe用例先满足elapsed>=0.3，再因gaps=[]失败。源码及历史核对表明原测试/共享reserve helper相对a875未变；原固定deadline允许首轮真实reserve/复核耗尽预算后立即拒绝，测试却要求一定出现第二次尝试。保持真实flock、直接调用未改原test，受控模块时钟在一次真实复核后推进0.31秒，标准runner确定1fail、退出1、1.0秒，同gaps断言（probe-budget-original-red）；没有把原红归为单个fsync延迟或PG产品缺陷。
+
+当前仅修原测试前提：原wait_s=0.3/真实文件锁与PID记录/真实fsync/release保留，通过已有cancel.wait与模块私有clock接缝明确测试预算内退避和首轮预算耗尽两种合法路径；其余六个真实boot/跨进程probe/foreign owner/取消case不改。独立新候选state为task24-probe-budget-candidate-state.json、基础8c75a83c35、单测试overlay SHA92182b8c...1c1b0c；整文件8pass/0fail、退出0、1.5秒（probe-budget-candidate），不是延长生产或测试期限取绿。独立foundation与静态待结算，Task24保持FAILED/in_progress。当前完整6412文件原冻结继续执行，不能将后续候选8绿记成原宽批已绿；详见debug的新日期章节。
+
+启动锁probe夹具整改已由独立foundation逐行核对真实I/O、模块clock隔离、两个预算分支和原六项接线合同，局部可接受、无新增blocking/major；未要求或执行生产改动。`PM Python scripts/check --staged --base 8c75a83c35`14检查通过、health1个Python文件0blocking/0advisory、退出0（unified-task24-probe-budget-checks.log），后续只补入审查结论/结果文字，diff-check通过。以唯一标题`test: make probe deadline coverage deterministic`保存父提交8c75上的本地测试恢复点；PG/发行不因测试修改重跑，仍以120bf8真实生产689/四载荷为准。原20a478宽批仍在运行，现进入managed相关文件，已记录旧probe单红，不能改称当前整批全绿或Task24完成。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |
@@ -1765,7 +1771,7 @@ Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣
 
 ## 恢复点
 
-Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。证据恢复`bdb2bf505d`，代码恢复`20a4789b35`（CLI测试/文档），生产仍`120bf8c9d6`（Matrix关闭）。当前完整PG127文件689绿与双宿主数据库完整绿已结算；PG目录外integration已另补mixed-root1项与删除/混合房间7项，均退出0，不混入全PG689。Native三文件先13pass/1fail（controls20秒红）、宽批次结束后timed观察14pass/0fail，原history/压缩/审批及Host偶发原因仍未明确。现有三域报告已读取；最新20a478八目录6412文件宽批次运行中，state为task24-current-wide-native-state.json、日志unified-task24-20a478-full-native-observed.log，保留worker/Host现场观察，FAL同ref独立38项已过。下一步读取该宽批次终态/失败artifact，并将两份integration补证交最终独立审查，不用单次绿删除旧红；不重复已结算PG/发行。适用非WSL主机七项仍缺，全局独立终审未完成。
+Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。当前汇总恢复`8c75a83c35`，最新测试恢复通过其后唯一标题`test: make probe deadline coverage deterministic`定位，生产仍`120bf8c9d6`。当前完整PG127文件689绿、双宿主DB绿和四套发行已结算；目录外mixed-root1项与删除/混合房间7项另补且独立核对。20a478宽批旧probe一项红已由受控原函数反例定因测试前提、双分支真实flock候选整文件8绿及独立复审/静态闭合；原宽批红不抹去。原history/压缩/审批及Host偶发原因仍未明确，三文件13/1及后次14/0保留。八目录6412文件仍在原20a478冻结运行，state task24-current-wide-native-state.json、log unified-task24-20a478-full-native-observed.log、session64460，保留worker/Host现场观察，FAL同ref独立38项已过。下一步读取其终态/失败artifact，按实际新证据整改，不重复已结算PG/发行或重启当前宽批。适用非WSL主机七项仍缺，全局独立终审未完成。
 
 metrics恢复`2a2684390016a1bfadc4c759bf2151945425f077`已实际Linux13文件34项及新冻结Native36文件714项全过；先前ed0真实worker模型PG计数0的红已由owner通道局部整改，不用旧owner20项替代。RetainDB `ed0cdbe604`与verification `c0558e9c13`证据继续保留，三个真实managed领域在加入quiesce后另6项通过。
 

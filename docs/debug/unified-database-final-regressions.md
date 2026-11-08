@@ -163,3 +163,15 @@ Host原单项保留20/30秒及原唯一执行/目标断言，仅加phase/watchdo
 本次通过的压缩True/False实际fsync累计107.774/91.614秒（2653/2657次），安静同类为8.228/8.670秒（2676/2703次），本次单次最大1.768/1.800秒。显著负载差异支持继续观察持久化延迟，但不能证明controls失败就是fsync、也不能据它延长期限或删除持久性。该失败home已被原runner清理，随后仅对已知精确路径的timing恢复未找到，没有扫描其他测试home。后续观察器准备了5秒watchdog及失败timing采集，尚未代替已有红证据；当前先结算PG127文件串行与Windows数据库全批，不叠加新的宽runner。
 
 PG/Windows两批终止后，同三个原文件在相同120bf8冻结、原-j3/期限/断言下，增加5秒watchdog及每次fsync started、失败timing采集：14pass/0fail/0skip、退出0、112.6秒（worker-host-timed-observed）。这一实际绿色覆盖controls/history、两个压缩模式和Host全部五项；没有生产修改。新的成功时间线不补造此前失败缺失的关键worker栈，故仅证明当前有界运行，不写根因已修，也不抹去13pass/1fail。最新全PG127文件689pass与WindowsDB579pass/5平台skip、LinuxDB584pass均退出0，证明各自实际范围，不替代Native最后宽复验或非WSL七项主机证据。
+
+## 2026-11-09：启动锁 probe 测试错误要求预算内至少两次尝试
+
+20a478当前完整宽批首红是`tests/gateway/test_boot_reserve_lock_probe.py`，6pass/1fail，文件8.5秒；持久probe用例先通过实际elapsed>=0.3秒，再因gaps=[]失败。69d同文件此前7pass/1.4秒。该测试和`runtime_ownership`相对a875没有改动；旧24479b4529的意图是固定deadline、真实reserve及15ms退避，不保证任意负载下0.3秒能完成至少两轮。当前run_bootstrap的改动仅增加checked purge verb，与该等待函数无关。
+
+调用链是boot wrapper→`reserve_waiting_out_transient_holders`→真实reserve拒绝→`_conflicting_homes`真实文件锁/记录复核→deadline判断；首轮尝试/复核已经用完预算时直接重抛OwnershipConflict是合法拒绝，不应再wait或重试。原测试仍无条件要求gaps非空，把真实I/O必须足够快写成了生产合同。此结论不声称已经测得哪一个fsync具体耗时。
+
+确定性反例保留未改原函数及真实flock，只在其真实冲突复核完成后让该模块的受控monotonic推进0.31秒（两个模块分别替换time引用，不改全局time模块），然后直接调用原测试。标准runner实际1fail/0pass、退出1、1.0秒，精确复现同一个gaps=[]断言（unified-task24-probe-budget-original-red.log）；不是靠重跑等待偶发。
+
+修正只涉及原持久probe测试：原wait_s=0.3不变，实际ProfileOwnership.reserve、flock、PID记录/真实fsync及release均保留；该模块私有clock和已有cancel.wait接缝控制预算。两个参数分别让一次复核成本为0.001秒（必须重试，gap和每次wait均至少0.01秒，最终deadline拒绝）与0.31秒（必须一次拒绝、无wait/额外尝试）。直接测试boot/hot-serve共用的生产helper，原六个boot facade/跨进程真实probe与foreign owner/取消用例完全不改；finally关闭本测试owner。这里验证算法预算与退避参数，不冒称此单例测量了物理墙钟300ms的性能；生产期限、锁/身份或协议均未改，也没有伪装OS。
+
+新独立候选从8c75a83c35提交创建，overlay仅该测试文件，SHA256为`92182b8cea73b662cdde0f7d85941d8a55a85e0340158a7a32aee4cbef1c1b0c`（task24-probe-budget-candidate-state.json）。原整文件现8pass/0fail、退出0、1.5秒（unified-task24-probe-budget-candidate.log），含两个预算参数和原六项；runner对any-of Linux/macOS marker输出macOS提示，但实际8项都在Linux执行，没有skip计数，不声称跑过macOS。独立foundation已核对源码、历史意图、原红与候选绿，接受该局部测试整改；静态14检查通过、health1个Python文件0blocking/0advisory、退出0（probe-budget-checks）。当前6412文件宽批仍在原20a478输入上继续，不修改或重启它，原红保留；该夹具前提问题不解释其他managed/Host时序故障。
