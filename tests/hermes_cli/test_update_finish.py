@@ -421,6 +421,10 @@ def _npm_graph(source):
     _put(source, "packages/value/index.js", "export const value = 'compiled local graph';\n")
     _put(source, "packages/value/index.d.ts", "export const value: string;\n")
     _put(source, "ui-tui/src/entry.tsx", "import { value } from 'fixture-value'; console.log(value);\n")
+    helpers = source / "ui-tui/scripts"
+    helpers.mkdir(parents=True)
+    for name in ("gateway_bootstrap.py", "clipboard_image.py"):
+        shutil.copy2(ROOT / "ui-tui/scripts" / name, helpers / name)
     _put(source, "web/src/main.ts", "import { value } from 'fixture-value'; document.body.textContent = value;\n")
     _put(source, "web/index.html", '<html><body><script type="module" src="/src/main.ts"></script></body></html>')
     _put(source, "web/tsconfig.json", json.dumps({"compilerOptions": {
@@ -449,6 +453,8 @@ def test_selected_child_builds_and_finalizes_under_parent_lock(completion):
     built = subprocess.run([node, str(source / "ui-tui/dist/entry.js")],
                            capture_output=True, text=True, check=True)
     assert built.stdout.strip() == "compiled local graph"
+    for name in ("gateway_bootstrap.py", "clipboard_image.py"):
+        assert (source / "ui-tui/dist/scripts" / name).is_file()
     assert (source / "hermes_cli/web_dist/index.html").is_file()
     assert any("compiled local graph" in p.read_text() for p in (source / "hermes_cli/web_dist/assets").glob("*.js"))
     assert (source / "node_modules/.hermes-node-deps").is_file()

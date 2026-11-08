@@ -12,7 +12,7 @@
 - 整体状态：`VERIFYING`。
 - 当前阶段：原生启动复验、最终验证与独立审查。
 - 当前验证判定：`FAILED`；三份独立审查均为`CHANGES_REQUIRED`，正在Task24内整改，未完成本项。
-- 当前任务：Task24（in_progress；Task23本地提交`3febe6fc31`，verification恢复提交`c0558e9c13`，RetainDB恢复提交`ed0cdbe604`，metrics恢复提交`2a26843900`）。
+- 当前任务：Task24（in_progress；Task23本地提交`3febe6fc31`，verification恢复提交`c0558e9c13`，RetainDB恢复提交`ed0cdbe604`，metrics恢复提交`2a26843900`，Telegram恢复`692382575f`，宿主夹具恢复`29796fc67d`）。
 - 已完成：23 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：非WSL POSIX私有启动页七项仍缺适用主机。验收PG已恢复；旧生产实现114文件659项全绿不代表最新整改完成。RetainDB/metrics托管消费者已局部整改通过；Native宽回归未决项、最终全域/发行复验及独立终审仍未完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
@@ -1657,6 +1657,10 @@ Telegram恢复提交已实际保存为`692382575fc9...`（完整ref由git记录�
 
 下一步按原完整失败输出生成逐文件复验清单；用已有PM管理的Linux工具链，依项目package-management说明在新隔离Native checkout准备锁定npm workspaces依赖，补原update_finish两项真实esbuild/TypeScript/Vite acceptance，不能把缺编译器的skip当通过。再以该冻结ref复验原失败文件及独立FAL PM环境；非WSL私有启动页七项继续保留主机缺口。未重写24任务范围，也未重建将过时的最终发行载荷。
 
+Native原失败清单最新完整复验已结算：冻结`29796fc67d3580adbea66ce83306ded4ee7007c0`的新隔离Linux checkout，使用已有PM Node26.12.1/npm12.0.2，依项目workspace说明实际npm ci安装567包且esbuild/TypeScript/Vite均可解析（native-node-prepare），未修改其tracked源码。原49个失败文件中48个在全PM环境复验为761pass/10fail、3文件非零、退出1/180.1秒（unified-task24-native-failed-files-final.log）；FAL在单独已有PM环境、同一297源码另1文件38pass/0fail、退出0/1.6秒（fal-frozen-regression）。首次FAL编排早于state生成而FileNotFound，未开始测试，不计通过或业务红；生成后才顺序实跑。
+
+十项红为非WSL私有启动页7项、真实更新编译2项、managed压缩1项（30秒等待HISTORY_8终态）。另在原冻结checkout安装未跟踪只读观测插件，实际2项编译均失败并记录原child输出（update-compiler-observed）；esbuild已真实编译197B，但TUI打包cpSync找不到夹具的ui-tui/scripts/gateway_bootstrap.py。生产builder从c1f19acb7f起要求连同clipboard_image.py打包，测试的微型workspace尚未提供这两项输入。当前只补实际辅助脚本输入及输出存在合同；在独立candidate checkout测试，不改原297冻结证据、不放松编译/回执/锁/退出断言。压缩保留原30秒期限，先在失败退出前采集拥有者日志和admission/execution行；未证明其根因，不将其他45文件通过替代本项。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |
@@ -1698,7 +1702,11 @@ Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣
 
 Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。当前metrics恢复`2a2684390016a1bfadc4c759bf2151945425f077`已实际Linux13文件34项及新冻结Native36文件714项全过；先前ed0真实worker模型PG计数0的红已由owner通道局部整改，不用旧owner20项替代。RetainDB `ed0cdbe604`与verification `c0558e9c13`证据继续保留，三个真实managed领域在加入quiesce后另6项通过。
 
-当前Telegram原基线pre-entry取消major以settlement Future整改，原单项1pass、原全文件与平台四文件119pass，独立真实SDK3pass；第一次候选热循环及其超时/归属核对清理记录全部保留。最终静态14检查通过、health1个Python文件0blocking/0advisory（telegram-settlement-checks-final），准备保存标题fix(telegram): settle admitted callbacks before shutdown的本地恢复提交。新2a冻结两份tools文件仍24pass/2fail：whole /tmp目标正确触发运行时自删保护，以及Termux成功fallback不等于WSL整体音频可用。下一步只修正这两项宿主测试前提，保留生产保护/机器事实，再继续其余Native失败逐项闭合。
+Telegram原基线pre-entry取消major的实际恢复提交为`692382575f`，宿主两项夹具恢复为`29796fc67d3580adbea66ce83306ded4ee7007c0`。在297新冻结且实际准备Node compilers后，原失败48文件761pass/10fail，另同ref的FAL38pass；十项集中非WSL私有页7、真实更新编译2、managed压缩1。两份旧tools失败已局部闭合，不再列为下一步。
+
+更新编译candidate仅补微型workspace必需的真实运行时辅助脚本及打包输出断言，原完整文件16pass/0fail/0skip、退出0/40.4秒（unified-task24-update-compiler-candidate.log），不修改生产builder、不跳过真实编译。独立foundation复核接受该局部修正；首轮静态13/14通过，旧审查历史故障字面路径缺标注导致no-tmp红，补历史证据注释后最终14检查全过、health1文件0blocking/0advisory、退出0（update-fixture-checks-final）。以标题`test: include runtime helpers in update build fixture`保存本地恢复commit，不是Task24完成提交。Windows/Linux另只读核对验收数据库身份且均in_recovery=false/available=true（current-ready-{windows,linux}），不操作服务。
+
+压缩原冻结单文件2pass/102.5秒、原清单并发组6文件52pass/107.8秒（compress-observed/compress-load-observed），均0fail/退出0，未修改源码或原30秒期限；尚未再现HISTORY_8超时，不据此声称根因修复。下一步从新恢复ref统一重建最终四套PM载荷与新冻结全PG/Native门禁，保留压缩故障观测和原红证据。
 
 所有必需生产整改收敛后统一重建四套发行载荷，执行当前完整PG/Native/故障/适用平台复验及独立终审。旧58d生产的完整PG659绿及Native62870pass44fail220errors726skip不外推到当前代码；后续工具424、Photon16、FAL38及局部整改证据见本账本。非WSL私有启动页七项仍待现成主机，不伪装OS；正式实例仍SQLite a875342384，未写正式Profile/秘密/既有业务表，不管理数据库服务，不推送/发布/PR/合并。
 

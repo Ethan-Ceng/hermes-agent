@@ -372,7 +372,7 @@ canonical runner、retries 0、原各阶段 deadline；实际 **1 passed、0 fai
 
 | 位置 | 冻结真实失败及修正后的合同 |
 | --- | --- |
-| `tests/tools/test_command_guards.py:80–94` | 冻结 `2a2684390016a1bfadc4c759bf2151945425f077` 的 PM Linux 解释器位于 `/tmp/...`。旧目标 `rm -rf /tmp` 是运行时解释器的祖先目录，实际日志明确 `Runtime self-delete block: the Python interpreter...`；返回 approved=False、callback=0 是正确硬保护，不应为了让 callback 被调用而关掉它。现 deny 测试只改为本测试 tmp_path 下独立 `approval-target`，保留 approved=False、callback 恰一次和 allow_permanent=True；新增真实 `Path(sys.executable).resolve().parent` 删除目标，令 callback 返回 session 仍要求 approved=False 且从未调用 callback，直接加强“不可审批覆盖运行时保护”的行为合同。两项只调用 guard 进行判定，没有执行删除命令。 |
+| `tests/tools/test_command_guards.py:80–94` | 冻结 `2a2684390016a1bfadc4c759bf2151945425f077` 的 PM Linux 解释器位于 `/tmp/...`。旧目标 `rm -rf /tmp` 是运行时解释器的祖先目录，实际日志明确 `Runtime self-delete block: the Python interpreter...`；返回 approved=False、callback=0 是正确硬保护，不应为了让 callback 被调用而关掉它。现 deny 测试只改为本测试 tmp_path 下独立 `approval-target`，保留 approved=False、callback 恰一次和 allow_permanent=True；新增真实 `Path(sys.executable).resolve().parent` 删除目标，令 callback 返回 session 仍要求 approved=False 且从未调用 callback，直接加强“不可审批覆盖运行时保护”的行为合同。两项只调用 guard 进行判定，没有执行删除命令。 <!-- no-tmp: ok — 历史红测的故障目标与解释器祖先路径证据，不是新建临时目录或执行命令 --> |
 | `tests/tools/test_termux_api_detection.py:189–201` | 冻结结果已经含 `Termux:API microphone recording available (sounddevice not required)`，没有 app 缺失警告；available=False 来自原生 WSL 缺少音频转发的另一条警告。当前断言要求真实 detect_audio_environment 产出 Termux 成功 notice，并继续拒绝误导的 app 缺失 warning；不再将整台宿主的 available 强行规定为 True。邻接的 clean-probes-no-match 负例仍要求 available=False 和 app 缺失 warning，原探针 ladder 返回 True/False 的合同亦保留。 |
 
 生产顺序已逐行追踪：`tools/approval.py:1152–1174` 的 `_floor_block` 在 `check_all_command_guards:1248` 的人工/allowlist/模式判断前执行；运行时匹配来自 `agent.runtime_self_protection.command_deletes_runtime`，不是测试替换。`tools/voice_mode.py:255–277` 仅在 binary 和 app fallback 成功时给 Termux notice，而 `detect_audio_environment:328–351` 独立记录 WSL 警告、以 `not warnings` 汇总 available。新断言正好对应这两个不同层次，不删除或伪造实际警告、不把宿主其他不可用条件伪装为成功。
@@ -388,3 +388,20 @@ canonical runner、retries 0、原各阶段 deadline；实际 **1 passed、0 fai
 - `.build/postgresql/unified-task24-native-host-fixtures-green.log`：当前两文件 **27 passed / 0 failed，runner 7.0s**，原生 Linux PM 解释器，19+8 项均执行。
 
 上述日志都通过 canonical `scripts/run_tests.sh`、无文件重试结算；本次不重复已完成的同一窄范围测试。该证据允许局部测试整改，不能擦除此前冻结宽回归失败、代替后续新冻结完整验收、关闭其他 metrics/发行门禁或填补非 WSL POSIX 私有启动页的平台证据缺口。全局结论保持 **FAILED / CHANGES_REQUIRED**。
+
+## 29796fc 更新收尾编译夹具的独立复审
+
+范围为 HEAD `29796fc67d3580adbea66ce83306ded4ee7007c0` 上 `tests/hermes_cli/test_update_finish.py` 的单文件 +6 行候选；本 Reviewer 只读完整 diff、真实 builder/历史意图及脱敏观察产物，未改生产、仓库测试或候选、未重复 runner、未提交。已核对当前文件 SHA256 为 `f19186d5373dd2b743407dd5604bedf47582edcb2934473952676c89f5fc15b9`，与 `task24-update-candidate-state.json` 的单文件候选标识相同；该状态记录独立候选目录、上述基准 ref 和真实 PM Linux 解释器。准备脚本从冻结 checkout clone/checkout 基准，仅覆盖该测试文件并复用已准备 node_modules，未覆盖旧冻结证据树。
+
+**这六行是合理的测试输入补齐及成功产物断言，未发现新增 blocking/major；只允许该局部测试修正，全局继续 FAILED / CHANGES_REQUIRED。**
+
+真实发布合同来自 `c1f19acb7f8d6716750778e2565fd67f85d66090`（`fix(tui): ship runtime Python helpers with the built product`），已逐项阅读该提交的 builder、freshness、文档、实际消费者和 JS 测试：
+
+- `scripts/build/tui.mjs:70–77` 在 esbuild 成功后必须把源 `ui-tui/scripts/gateway_bootstrap.py` 与 `clipboard_image.py` 拷贝进产品 `dist/scripts/`，然后才记录产品 receipt。`frontend-common.mjs:139–140` 只有 compile 全部成功才 publish，失败清理 scratch，因此仅 esbuild 输出成功不代表产品已经发布。
+- `ui-tui/src/lib/pythonHelpers.ts` 优先取随编译产物携带的 helper；gateway/clipboard 消费者走这个 helper 路径，以支持 Python 包与 TUI 位于不同发布目录。freshness 同时把两文件列为输入。原提交的 JS 产品测试还在删除源目录后从发布产物读 helper，表明它们不是可省略的测试噪声。
+
+观察证据 `.build/postgresql/unified-task24-update-compiler-observed.log` 为原两目标 **2 failed、14 deselected**，未当作完整文件结算。两个 `update-finish-test_*.json` 均记录真实 esbuild `Done in 1/2ms`，随后 `cpSync` 对 fixture 的 `ui-tui/scripts/gateway_bootstrap.py` 抛 `ENOENT/lstat`；因此没有发布 `ui-tui/dist/entry.js`。success case 在后续执行该文件时非零，compiler-failure case 在要求此前 TUI 成功的存在断言失败。后者另外仍真实产生 web `TS2322`/`TypeScript build failed`，没有被替换成假异常。completion child 的 code=0 与 C3“已提交代码的 build 失败作为 owed follow-up”合同一致，不能把它误读为编译产品通过。
+
+修正只在 `_npm_graph:424–427` 用 `shutil.copy2` 把仓库实际两个 helper 作为真实输入放入所选临时 source，不预制 dist、不替换 builder/编译器、不略过 helper 发布。成功用例 `:456–457` 新增两个 `dist/scripts` 文件存在断言。原真实 Node 运行、npm lifecycle 所选解释器、web 编译、父 update lock 保留、配置迁移、原 receipt/plan/token、install stamp 与 completion 结果断言均保留。真实 TypeScript 失败用例 `:486–522` 也保持原非零编译输出、成功 TUI/缺失 web、维护和重启继续、receipt build follow-up、pending tail 与无 install stamp；并未把失败改成成功。
+
+候选完整文件现已结束，本 Reviewer 已读取 `.build/postgresql/unified-task24-update-compiler-candidate.log`：canonical runner、`-j 1`、retries=0，**16 passed / 0 failed / 0 skipped、exit 0、40.4s**。原 `platforms('posix')` 和 child 90 秒 deadline 未改，没有 fake OS、增加期限、削弱 lock/receipt 或关闭失败路径。本结果为 Root 在独立候选执行，本 Reviewer 未冒称代跑，也不将它外推到 Windows、完整更新发行 E2E、全后端/全原生矩阵或其余失败根因。另行进行的 managed compression 30 秒失败诊断不在本节结论中，局部重跑通过不能由此宣称其根因已确认或修复。整体仍 **FAILED / CHANGES_REQUIRED**。

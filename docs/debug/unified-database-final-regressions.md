@@ -102,4 +102,16 @@ Telegram原cancel-before-entry在2a当前冻结也稳定红。SDK22.8在stop开�
 
 metrics最新整改已补闭合owner领域短写、KV root intent及提交后维护，业务/SDK/PG回执与Windows原生指标688项的局部证据见实施计划。owner engagement Path(None)永久红测已关闭且SQLite路径调用兼容；真实SDK barrier测试前两次的缓存/线程Profile夹具问题保留原日志，并据HX002让入口按实际owner绑定路径scope后通过。必要journal仍阻止提前finish，没以模型成功替代指标持久。当前Linux指标全域、最后静态及冻结发行尚未完成，全局依然FAILED。
 
-保持 **UNRESOLVED / FAILED**。配置归属、verification及RetainDB等分域有上述确定的整改/独立证据，不能替代metrics托管缺口、宽回归红测的逐项闭合和新生产载荷完整复验。下一步继续这些实际失败的证据驱动整改，再执行最终独立审查。非WSL POSIX七项适用主机证据仍另行缺失，不能由以上WSL调试替代。
+保持 **UNRESOLVED / FAILED**。配置归属、verification、RetainDB及metrics等分域已有局部整改/独立证据，不能替代宽回归红测的逐项闭合和新生产载荷完整复验。下一步继续这些实际失败的证据驱动整改，再执行最终独立审查。非WSL POSIX七项适用主机证据仍另行缺失，不能由以上WSL调试替代。
+
+## 真实编译器下的更新收尾夹具
+
+冻结297原失败清单实跑48文件761pass/10fail，另FAL38pass。实际编译器已在隔离checkout按锁安装，更新收尾原文件14pass/2fail；只读观测插件保留两个child输出，原2项复现仍2fail。两者相同根因是微型workspace没有ui-tui/scripts/gateway_bootstrap.py与clipboard_image.py；真实esbuild先成功，随后生产builder复制必需运行时辅助脚本时ENOENT，故无TUI产品。源码历史c1f19acb7f已明确该发布输入，不能修改生产builder跳过它。
+
+候选只在_npm_graph补齐这两个真实输入，并检查成功产品包含它们；原编译产物执行、web bundle内容、selected PM Python、更新锁/回执和故意TypeScript失败的owed-build断言均保留。红测日志unified-task24-update-compiler-observed.log，脱敏child输出update-finish-test_*.json；候选与冻结297源码分开，证据state为task24-update-candidate-state.json并记录修改文件SHA256。完整原文件已实际16pass/0fail/0skip、退出0/40.4秒（unified-task24-update-compiler-candidate.log）；独立复核和静态仍待，不据此关闭全局验收。
+
+## managed压缩的间歇性终态超时
+
+同一297冻结失败清单48文件中，False分支在HISTORY_8的30秒admission终态期限失败，True通过；没有以单项历史绿掩盖它。新增仅在未跟踪pytest插件的daemon yield异常边界保存本次拥有者日志及session_admissions/worker_executions，先于测试自有进程finally清理，脱敏且只写忽略目录。没有更改生产行为、测试期限或接受条件。
+
+原冻结单文件实跑2pass/0fail/102.5秒（compress-observed）；原失败清单同组6文件-j4实跑52pass/0fail/107.8秒（compress-load-observed），均退出0。仍未再次触发原超时，故没有失败时新增日志，不能宣称根因已确认或生产修复。后续完整门禁保留该原红与故障观测；若重现继续沿最早偏差追踪。
