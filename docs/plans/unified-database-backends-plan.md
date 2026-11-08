@@ -1599,6 +1599,14 @@ Achievements三个失败已由独立保留原断言的观测定位为替身缺�
 
 新8d6快照受影响Native回归已真实结束：22文件415pass/0fail/3个Windows平台skip、退出0、115.6秒（unified-task24-owner-native-regressions.log），包括原配置guard2项、remote实际plane全部105项、本地Profile全部108项/身份拆分2项、完整备份/恢复、MiniMax16项及Achievements6项。另独立原完整safe-mode合同仍1fail/退出1、89.63秒（review-foundation-safe-mode-owner-accepted.log）：前面的普通sentinel、safe one、坏YAML safe two及文件保持均通过，最后ignore-user-config仍保留插件发现的阶段发现worker打开测试Profile的.env（原line252审计断言失败）。原Projects/inventory原因局部闭合不等于完整合同通过；该新增现场正在独立捕获实际.env读取栈，未归为既有/时序、未改原断言或放宽秘密边界。最新生产全域PG复验暂不重启，先收敛这一真实失败，避免用即将过时的发行载荷反复验证。四套8d6载荷已保留且尚未宣称业务通过。
 
+8d6完整safe-mode末阶段的新major已有实际owned worker审计栈（review-foundation-safe-mode-owner-env-observed.log，1fail/16.49秒）：conversation_loop→lifecycle→relay_shared_metrics.observe_lifecycle→consent reconcile→storage_backend→_owning_profile→build_profile_secret_scope→load_env_file。a875原完整合同此前已通过末阶段；本轮不是靠重试猜时序。原因是新PG consent guard在原disabled/no-file短路前探测backend，而selector在读取冻结worker快照之前先hydrate .env。整改仅让已绑定的worker快照选择直接走现有effective loader与_backend校验，避免附加secret scope构建；正常owner有效配置/真实PG acquire/秘密/稳定scope全部保留，不关闭config-only插件或指标、不让agent默认配置重选owner既有store。补真实新解释器、两种backend/三种冻结策略的文件audit与禁PG driver导入合同，先红后绿，再原完整CLI及实际PG指标复验。
+
+冻结backend探测永久新解释器合同已实际6fail→6pass（unified-task24-frozen-selector-red.log / unified-task24-frozen-selector-green.log），覆盖SQLite/PG与普通/ignore/safe三个真实绑定策略；audit拒绝Profile config/.env打开，import hook拒绝PG驱动。后者与原选择/指标/备份共5文件171pass/0fail/1个POSIX平台skip、退出0、23秒。真实owner PG指标六文件20pass/0fail、退出0、45.6秒（unified-task24-frozen-selector-pg-metrics.log），包含新进程、HTTP、故障、双Profile及disabled lifecycle consent；不外推为managed worker指标通过。
+
+独立metrics-worker-snapshot-followup-review确认窄修保留同一冻结loader结果和正常owner MetricsRef/PG acquire；同时发现此前未覆盖的两个关键静态交界：默认bypass worker快照缺storage、PG Profile保留旧metrics.sqlite3时可能进入SQLite分支；普通PG managed worker的指标域获取会被owner-only拒绝，尚未找到转发消费者。这些不是已执行红测，已请求独立实际PG daemon/managed worker+模型+启用指标的持久/重开/peer隔离与遗留SQLite反例，不能用owner20项证明它们完成。真实复现后必须沿明确owner持久通道解决，并将原因/影响写回设计与Task24，不放宽guard、不取消指标/生命周期、不以agent默认快照替代持有store身份。
+
+冻结selector窄修本地恢复门禁：`scripts/check --staged --base 8d6f7bdaeb`全部14检查通过，2个Python文件health0blocking/0advisory、退出0（unified-task24-frozen-selector-checks.log）；不把局部health2文件写成完整分支555文件已检查。随后保存明确Task24未完成的本地恢复commit，下一步新快照执行原完整CLI合同；新发现的managed PG指标范围仍等实际反例，未标完成，不重建最终发行载荷。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |

@@ -113,8 +113,12 @@ def open_profile_db(profile_home: Path | None = None):
 
 def storage_backend(profile_home: Path | None = None):
     """Driver/secret-free backend selection for file-tooling and cache boundaries."""
+    from agent.safe_worker_policy import worker_config_snapshot
     from hermes_constants import get_hermes_home
     home = Path(profile_home if profile_home is not None else get_hermes_home()).resolve()
+    # The worker's effective loader already returns its frozen policy; don't hydrate Profile secrets first.
+    if worker_config_snapshot() is not None:
+        return _backend(_storage(_storage_config(home)))
     with _owning_profile(home):
         config = _storage_config(home)
         return _backend(_storage(config))

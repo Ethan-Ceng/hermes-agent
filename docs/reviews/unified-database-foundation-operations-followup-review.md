@@ -317,3 +317,31 @@ SQLite 门禁没有放宽：使用 postgresql 目录的 autouse `pg_sqlite_guard
 - 原完整 `tests/hermes_cli/test_safe_mode.py` 仍需在主 Agent 的新冻结快照执行：包括真实 CLI/PTY、普通 sentinel、两次 safe launch、worker 文件打开审计与 config-only 插件语义。Reviewer 按要求未覆盖活跃 58d/66a checkout，正在等待新快照信息；不以这三项 PG 测试替代原合同。
 
 因此本项状态更新为：**源修复及目标 PG 子合同复审符合预期，原 major 的完整验收仍待最新冻结原合同复跑。** 当前未新增需要生产修改的审查问题；完整原生/PG 结算与其他门禁继续保留，整体 **`FAILED` / `CHANGES_REQUIRED`**。
+
+### 8d6f 原合同独立复验：Projects 目标闭合，另有 config-only metrics major
+
+Reviewer 核对新独立 Native checkout 为 `8d6f7bdaebf8fc1749d155a455bbb2730d492ae3`、tracked clean，PM 解释器仍为既有 task24-full-test-env。按要求实际运行未包装的原 `tests/hermes_cli/test_safe_mode.py`，canonical runner、`-j 1`、retries 0、原 deadline。受审 inventory blob 仍为 `5028965b9752a1f9b7ac865a1d371d1a218abc53`；原 safe-mode 测试在 58d/8d6f 的 blob 都是 `592775ba89d09819b573e17e0cc3a6015c82445a`，没有修改审计或行为断言。
+
+该完整原合同 **1 failed、退出 1，89.63 秒**，日志 `.build/postgresql/review-foundation-safe-mode-owner-accepted.log`。文件名 accepted 是运行前预设名，实际失败，不登记为通过。它已执行通过普通 sentinel 控制、第一次 safe worker 无文件泄漏、坏 YAML 后第二次 safe launch、原文件不改与工具一致性，最后在第 252 行 config-only worker 的 `.env` 打开审计断言失败。
+
+因此原先 Projects inventory 击穿 `session.create` 的 major 可按具体根因闭合：8d6f 已通过其此前失败的完整真实阶段，并有前节三项 PG owner/持久化子合同支撑。**完整 safe-mode 合同仍未通过，新增的独立 major 不能被该局部闭合掩盖。** 8d6f 的 PG 测试改为以 pytest_plugins 注册原 surface fixture，核心三项业务断言及 SQLite audit guard 未减少。
+
+对新的 `.env` 失败，Reviewer 仅扩展忽略目录的观察器，保留原 safe-mode 用例与原审计 hook，打印本测子进程的实际 start 角色（不打印 argv 的凭据）及 config.yaml/.env 打开栈。8d6f 再次有观测执行为 **1 failed、退出 1，16.49 秒**（`.build/postgresql/review-foundation-safe-mode-owner-env-observed.log`），仍在原第 252 行失败，没有调整超时。实际 start 记录第 353 行证明 PID 2854967 是本测 owner 2854573 启动的 managed worker；第 1116 行为该 config-only worker 的真实 `.env` 打开审计：
+
+```text
+conversation_loop._restore_or_build_system_prompt
+-> lifecycle.invoke_hook -> observability.observe_lifecycle
+-> relay_shared_metrics.observe_lifecycle:1435
+-> _reconcile_send_consent_once:1411
+-> db_setup.storage_backend:118 -> _owning_profile:26
+-> secret_scope.build_profile_secret_scope:411
+-> load_env_file:386 -> owning Profile .env
+```
+
+新增触发点是 `hermes_cli/observability/relay_shared_metrics.py:1411`：原先 `not send and not metrics.sqlite3.exists()` 即短路退出，如今先调用 storage_backend 再判断 SQLite/no-store。config-only 按原设计保留插件/lifecycle，所以进入此路径；`storage_backend` 虽声明 driver/secret-free，却通过 `_owning_profile` 在调用 snapshot-aware loader 之前先 hydrate `.env`。冻结 worker config loader 本身仍优先使用 snapshot，错误在更外侧的秘密作用域准备，不是 YAML loader 的 snapshot seam 失效。
+
+此为 **major：config-only worker 的冻结 Profile 文件隔离合同回归**。先前 a875 同环境完整原用例为 1 passed，已覆盖该末尾审计；8d6f 原合同与带实际栈观察的原合同连续复现，不能先归为既有问题或时序。它不表示已证明数据出网或系统沙箱逃逸，而是明确的会话配置/文件 I/O 合同被新增 consumer 破坏。
+
+最小整改必须同时保持两种边界：纯 backend 探测应尊重已绑定的冻结 worker 配置，且不 hydrate Profile 秘密/文件；真实持久 acquire 仍须使用明确 owner/settings/scope 与 owner-only 约束，不能因为 agent 默认 snapshot 缺 storage 字段而给 PG owner 改开 SQLite。若 consent store 仅 owner 持有，应沿 owner 明确资源处理；不以关闭 config-only 的插件/lifecycle、删除 `.env` 断言或 SQLite/内存 fallback 掩盖问题。该交界已及时发给主 Agent，请其与 metrics Reviewer 一起处理。
+
+本节未修改生产、仓库测试或快照 tracked 文件。原 Projects major 目标闭合，新 config-only metrics major **未整改验收**，原完整 safe-mode 合同及全局仍为 **`FAILED` / `CHANGES_REQUIRED`**。
