@@ -58,3 +58,23 @@ scripts/run_tests.sh .build/postgresql/test_review_matrix_fix_edges.py -j 1 -s -
 | 非 WSL POSIX 私有启动页7项 | 既有适用主机缺口仍保留，不能由本次 Linux/WSL SDK 测试补齐 |
 
 本次代码整改及独立局部验证已解决原两项 major。整个分支仍按原报告的 `CHANGES_REQUIRED` 总体门禁处理，最终状态须结合永久回归、最新独立发行与 Task24/适用主机证据判断。
+
+## 58d 冻结回归后的单项测试修正复核
+
+2026-11-08，独立增量复核基准 `58d0003f83`。本次只修改 `tests/hermes_db/postgresql/test_matrix_sessions.py` 中 `test_olm_sessions_resume_both_directions_with_exact_metadata`；已核对 Matrix crypto/cache/runtime/adapter 生产文件相对该基准没有差异。Reviewer 未修改测试或生产代码。
+
+冻结日志 `unified-task24-frozen-pg-and-distribution.log` 的具体失败已读到：测试重开 store、取得并缓存 `loaded_inbound` 后，仍传入上一个 store 的独立 `inbound` 对象保存，正确触发活动 ratchet 的 `StorageConflictError`。允许这种替换会重新引入原并发缺陷；不应为了旧 fixture 修改生产护栏。
+
+当前测试改为使用重开 store 返回的 `loaded_inbound` 继续真实 Olm 双向加解密并保存。原 creation_time 的完整时区/微秒、session ID、last_encrypted 断言保留；新增第二次实际关闭重开、两端 last_encrypted 精确比较以及再次双向加解密。未清空缓存、跳过持久写入、吞掉冲突、替换 SDK 或放宽生产检查。该修正符合新 store 的会话对象所有权合同，且增强重开后的密码学/元数据验证。
+
+独立窄复验经已有真实 Linux PM SDK 环境与标准 runner：
+
+```text
+scripts/run_tests.sh tests/hermes_db/postgresql/test_matrix_sessions.py -j 1 -k test_olm_sessions_resume_both_directions_with_exact_metadata -- -m integration --postgres-test-config=<私有配置路径>
+```
+
+实际结果：退出0，`1 passed, 0 failed`，9.9秒，retries=0；日志 `.build/postgresql/review-matrix-sessions-corrected-single.log`。使用真实 mautrix/libolm、PG 随机拥有者 Schema 和 SQLite 全拒绝 guard。runner 发现文件约4项，`-k` 后只执行所指定1项，不计为独立执行4项。另已读取 Root 的完整文件日志 `unified-task24-matrix-sessions-corrected.log`，其中实际4 passed、退出0；这部分明确属于 Root 执行证据。
+
+本次测试文件运行前后 SHA-256 相同：`65B77F1CCDFA53EC8632EC274FF21C22EB3B49D9CAFC48564AA3DE9BF35E02CC`。
+
+结论：接受该单项测试修正，未发现测试合同放松或新的 blocking/major。冻结全 PG 日志中的其他失败及总体 Task24 门禁不由此关闭，整体仍为 `FAILED / CHANGES_REQUIRED`。

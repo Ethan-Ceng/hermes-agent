@@ -25,14 +25,24 @@ async def test_olm_sessions_resume_both_directions_with_exact_metadata(pg_profil
         try:
             loaded = await store.get_latest_session(bob.identity_key)
             assert loaded.creation_time.isoformat() == outbound.creation_time.isoformat()
-            assert inbound.decrypt(loaded.encrypt("after reopen")) == "after reopen"
-            answer = inbound.encrypt("answer")
             loaded_inbound = (await store.get_sessions(alice.identity_key))[0]
-            await store.update_session(alice.identity_key, inbound)
+            # Continue both persisted ratchets through the objects owned by the reopened SDK store.
+            assert loaded_inbound.decrypt(loaded.encrypt("after reopen")) == "after reopen"
+            answer = loaded_inbound.encrypt("answer")
+            await store.update_session(alice.identity_key, loaded_inbound)
             assert loaded.decrypt(answer) == "answer"
             assert loaded_inbound.id == inbound.id
             await store.update_session(bob.identity_key, loaded)
             assert (await store.get_latest_session(bob.identity_key)).last_encrypted == loaded.last_encrypted
+            await store.close()
+            store = new_store()
+            await store.open()
+            resumed = await store.get_latest_session(bob.identity_key)
+            resumed_inbound = (await store.get_sessions(alice.identity_key))[0]
+            assert resumed.last_encrypted == loaded.last_encrypted
+            assert resumed_inbound.last_encrypted == loaded_inbound.last_encrypted
+            assert resumed_inbound.decrypt(resumed.encrypt("second reopen")) == "second reopen"
+            assert resumed.decrypt(resumed_inbound.encrypt("second answer")) == "second answer"
         finally:
             await store.close()
 

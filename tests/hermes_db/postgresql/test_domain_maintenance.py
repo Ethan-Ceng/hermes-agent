@@ -1,6 +1,7 @@
 """Interrupted file effects resume against durable PG intents without borrowing SQL for IO."""
 
 from pathlib import Path
+from contextlib import contextmanager
 import os
 import subprocess
 import sys
@@ -9,6 +10,30 @@ import pytest
 from hermes_cli import kanban_db as kb, kanban_db_connect as kbc, kanban_db_workspace as workspace
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
+
+
+@contextmanager
+def lose_completion_ack(monkeypatch):
+    from hermes_db.errors import UnknownCommitError
+    from hermes_db.postgresql.transactions import Transactions
+    from hermes_db.repositories import kanban as repo
+    original, event, completed = Transactions.write, repo.event, []
+    def observed(conn, store, task_id, kind, *args, **kwargs):
+        result = event(conn, store, task_id, kind, *args, **kwargs)
+        if kind == "completed":
+            completed.append(conn)
+        return result
+    @contextmanager
+    def lost(self, **kwargs):
+        with original(self, **kwargs) as conn:
+            yield conn
+        if conn in completed:
+            raise UnknownCommitError("real completion committed without confirmation")
+    with monkeypatch.context() as fault:
+        fault.setattr(repo, "event", observed)
+        fault.setattr(Transactions, "write", lost)
+        yield
+    assert completed
 
 
 @pytest.mark.parametrize("removed_before_crash", [False, True])
@@ -86,9 +111,7 @@ def test_pg_physical_recovery_refuses_before_copy_or_sqlite(pg_profiles, tmp_pat
 
 
 def test_committed_completion_recovers_downstream_and_hook_after_lost_ack(pg_profiles, monkeypatch):
-    from contextlib import contextmanager
     from hermes_db.errors import UnknownCommitError
-    from hermes_db.postgresql.transactions import Transactions
     from hermes_db.maintenance import maintain_profile
     hooks = []
     monkeypatch.setattr(kb, "_fire_task_hook", lambda event, task, task_id, run_id, **fields: hooks.append((event, task_id)))
@@ -96,14 +119,7 @@ def test_committed_completion_recovers_downstream_and_hook_after_lost_ack(pg_pro
         parent = kb.create_task(board, title="parent")
         child = kb.create_task(board, title="child")
         kb.link_tasks(board, parent, child)
-        original = Transactions.write
-        @contextmanager
-        def lose_ack(self, **kwargs):
-            with original(self, **kwargs) as conn:
-                yield conn
-            raise UnknownCommitError("completion acknowledgement lost")
-        with monkeypatch.context() as fault:
-            fault.setattr(Transactions, "write", lose_ack)
+        with lose_completion_ack(monkeypatch):
             with pytest.raises(UnknownCommitError):
                 kb.complete_task(board, parent, result="durably finished")
         assert kb.get_task(board, parent).status == "done"
@@ -232,8 +248,6 @@ def test_maintenance_prunes_plugin_ttl_without_reusing_revisions_and_replays_roo
 
 
 def test_archived_board_cannot_poison_pending_completion_recovery(pg_profiles, monkeypatch):
-    from contextlib import contextmanager
-    from hermes_db.postgresql.transactions import Transactions
     from hermes_db.errors import UnknownCommitError
     from hermes_db.maintenance import maintain_profile
     hooks = []
@@ -245,14 +259,7 @@ def test_archived_board_cannot_poison_pending_completion_recovery(pg_profiles, m
             path = kb.workspaces_root(board="archive") / task
             path.mkdir(parents=True)
             workspace.set_workspace_path(store, task, path)
-            original = Transactions.write
-            @contextmanager
-            def lost(self, **kwargs):
-                with original(self, **kwargs) as conn:
-                    yield conn
-                raise UnknownCommitError("completion committed without confirmation")
-            with monkeypatch.context() as fault:
-                fault.setattr(Transactions, "write", lost)
+            with lose_completion_ack(monkeypatch):
                 with pytest.raises(UnknownCommitError):
                     kb.complete_task(store, task, result="finished")
         kb.remove_board("archive", archive=True)

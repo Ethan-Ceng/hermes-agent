@@ -186,8 +186,13 @@ def run_worker_probe(pg_profiles, tmp_path, monkeypatch, *, owner_module="gatewa
                 result = dispatch.dispatch_once(store, spawn_fn=spawn, max_spawn=1)
                 assert [row[0] for row in result.spawned] == [task_id]
                 wait_completion(store, task_id, execution_home)
-                wait_until(lambda: any(event.kind == "worker_result" for event in kb.list_events(store, task_id)),
-                           timeout=30, interval=.05, what="PG worker result receipt")
+                try:
+                    wait_until(lambda: any(event.kind == "worker_result" for event in kb.list_events(store, task_id)),
+                               timeout=30, interval=.05, what="PG worker result receipt")
+                except AssertionError as error:
+                    paths = (kb.worker_logs_dir() / f"{task_id}.log", execution_home / "pg-kanban-owner.log")
+                    details = "\n".join(safe_log(path) for path in paths if path.is_file())
+                    raise AssertionError(f"{error}\n{details}") from error
                 assert [comment.body for comment in kb.list_comments(store, task_id)] == ["PG_COMMAND_PERSISTED"]
                 run = kb.latest_run(store, task_id)
                 assert run.outcome == "completed" and run.summary == "PG worker delivered"

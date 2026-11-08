@@ -12,9 +12,9 @@
 - 整体状态：`VERIFYING`。
 - 当前阶段：原生启动复验、最终验证与独立审查。
 - 当前验证判定：`FAILED`；三份独立审查均为`CHANGES_REQUIRED`，正在Task24内整改，未完成本项。
-- 当前任务：Task24（in_progress；Task23本地提交`3febe6fc31`）。
+- 当前任务：Task24（in_progress；Task23本地提交`3febe6fc31`，整改恢复提交`58d0003f83`）。
 - 已完成：23 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
-- 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
+- 阻塞：无待用户重新选择的技术方案；非WSL POSIX私有启动页七项仍缺适用主机。最终宽回归尚未通过，不能用局部绿测代替。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-08（Asia/Shanghai）。
 
@@ -1517,6 +1517,20 @@ Native最新：Linux10文件145pass/0fail/5平台skip、退出0（unified-task24
 
 恢复提交静态终验：scripts/check --staged --base a875342384退出0，全部14检查通过、完整分支547个Python文件health 0blocking/0advisory（unified-task24-all-branch-checks.log）；git diff --cached --check通过。局部整改恢复提交标题为`fix(storage): close unified backend review gaps`，Task24仍in_progress、整体FAILED，剩余全域/发行/平台任务照旧。原生宽回归跨整改版本运行，结果仅作为缺陷发现依据，不能当作某个固定新提交的最终验收；接下来在已有Linux的独立本机文件系统checkout中按冻结恢复提交重跑，避免/mnt/d源代码I/O争用，继续保留所有初轮失败和未验证项，不调大业务deadline、不伪装OS。
 
+冻结验证恢复点为实际本地提交`58d0003f83d1c99505e1173508ea7e2934d89411`。已从该ref重新导出Windows/Linux无.git及秘密的独立source-bundle，经PM构建SQLite/PG四个全新环境，构建日志unified-task24-{windows,linux}-pm-bundles.log均退出0；新载荷的Windows独立安装/升级2文件4pass/2Linux SDK skip（unified-task24-windows-distribution-final.log），Linux同两文件实际6pass/0skip，包含在下面冻结PG总批次内。继续使用-I、载荷外CWD、installed源码归属及双Profile新进程逆序读回；SQLite环境不含PG extra，Linux两个环境均有锁定实际Matrix SDK，PG进程全拒绝SQLite。四套状态只存忽略目录task24-{windows,linux}-bundle-state.json。后续目前只有测试/诊断及账本变化，未改该冻结提交的生产实现，不将旧2219载荷当作本轮代码。
+
+Windows最终核心普通合同：`scripts/run_tests.sh tests/hermes_db -j 3 --file-timeout 1200 -- -m 'not integration and not live'`并传新独立安装参数，212文件573passed/0failed/3平台skip，退出0、907.9秒（unified-task24-windows-core-final.log）。PG目录在该批次按integration排除，进度估算不是实库执行数量。Windows真实PG文件范围补验3文件19pass/0skip（unified-task24-windows-pg-file-scope.log），覆盖Profile改名、附件规范路径及file_job，仍归属校验随机Schema、SQLite guard。PM Node运行生成契约strict/noEmit TypeScript及Desktop Electron noEmit检查均退出0，PM Python `scripts/gen_gateway_contracts.py --check`退出0；Desktop预更新备份Vitest实际22pass/0fail，退出0（unified-task24-{contract-tsc,desktop-typecheck,generated-contracts,desktop-preflight}.log）。无构建部署或正式服务变更。
+
+冻结58d的Linux全PG+独立发行批次已完整结束：`scripts/run_tests.sh tests/hermes_db/postgresql tests/hermes_db/test_distribution.py -j 3 --file-timeout 1200 -- -m 'not live' --postgres-test-config=<私有文件> --hermes-distribution-source=<58d独立载荷> --hermes-postgresql-python=<新PM解释器> --hermes-sqlite-python=<新PM解释器>`，113文件654passed/4failed/0skip，退出1、1945.9秒（unified-task24-frozen-pg-and-distribution.log）。失败为maintenance两项故障注入、Matrix sessions一项及跨Profile embedded Worker结果回执30秒超时。其余全部通过不抵消这四项；普通daemon场景不符合自动test_文件名，仍须显式执行。
+
+maintenance旧夹具无条件在首个write的真实COMMIT后丢ACK；整改引入的completion前置写使其尚未命中声称的主完成事务。现捕获真实repo.event(kind='completed')对应同一Connection，仅在该事务真实COMMIT并归还连接后注入UnknownCommitError，回滚不会注入；父done/子todo→ready、另一Profile触发维护、hook恰一次及归档workspace清理断言全部保留。Windows全文件10pass/0fail（unified-task24-maintenance-confirmation-final.log），独立Reviewer窄复验2pass/0fail（unified-review-maintenance-ack-independent.log），均退出0；复核及原失败保留在collaboration-followup-review。本次只修正测试，不改变生产事务。
+
+Matrix sessions失败来自测试在store重开并读取loaded_inbound后，继续提交旧store的独立inbound对象；新的真实SDK并发整改正确拒绝替换活动ratchet。测试现让两端均使用重开的对象完成真实加解密、保存，再第二次重开验证加密时间和双向消息。实际Linux SDK/PG全文件4pass/0fail、退出0（unified-task24-matrix-sessions-corrected.log）；独立Reviewer同一项1pass/0fail、退出0（review-matrix-sessions-corrected-single.log），已记录matrix-followup-review，未放松合同。Worker超时只补测试所有者与worker脱敏日志，不提高业务deadline、不放松回执/clean-exit/重启断言；相同实际Linux环境独立全文件2pass/0fail、退出0（unified-task24-worker-result-diagnostic.log），但未稳定复现原失败，不能将其写成根因已解决。
+
+冻结58d的独立本机文件系统checkout正在执行八个原生目录完整宽回归，日志unified-task24-frozen-native-areas.log，尚未有完整汇总。compression deterministic fallback出现一项时序失败；相同环境依次在a875与58d checkout独立窄跑各6pass/0fail（unified-task24-compression-{baseline,head}.log），不能据此将完整批次失败隐藏或宣称根因已确认。原/mnt/d宽回归跨多次整改版本、还有大量ACP/时序失败，不再是最终证据；核对其runner cwd/确切脚本及父子进程归属后，只停止该runner及11个测试子进程（unified-task24-superseded-run-stop.log），保留原始partial日志，不记完整退出或成功，未影响正式实例或冻结新批次。
+
+仅测试合同及脱敏诊断修正的静态门禁：PM解释器`scripts/check --staged --base 58d0003f83`全部14检查通过，3个Python文件health 0blocking/0advisory，退出0（unified-task24-test-contract-checks.log）；git diff --cached --check通过。随后只补账本与独立复审记录并保存本地恢复commit；Task24仍in_progress。生产代码及58d四套发行载荷未变，新冻结测试快照将重跑完整PG与显式普通daemon联合合同，不以局部pass替代完整结果。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |
@@ -1530,11 +1544,11 @@ Native最新：Linux10文件145pass/0fail/5平台skip、退出0（unified-task24
 
 ### 执行结果
 
-- 单元/SQLite回归：Task22/23及Task24所列局部有真实证据；最终宽回归仍运行且已有失败，尚未通过。
-- 真实PG各域/并发/故障/单后端审计：Task24首轮103文件569pass/4fail/1error及文件超时，正在整改/重跑，尚未通过。
-- 独立安装/显式迁移/原生重启：未执行本计划全域验证。
-- 静态/生成契约/适用构建：业务实现后按实际变化运行。
-- 独立审查：三份独立初审CHANGES_REQUIRED；foundation及Matrix增量已有独立通过证据，协作域追加整改和全局最终复审尚未完成。
+- 单元/SQLite回归：最新Windows核心212文件573pass/0fail/3平台skip，局部Native合同见Task24；冻结Linux八目录宽回归仍运行且有失败，尚未通过。
+- 真实PG各域/并发/故障/单后端审计：冻结58d完整113文件654pass/4fail/0skip、退出1。两项maintenance夹具整改已10pass且独立2pass；Matrix夹具全文件4pass且独立1pass；Worker单独2pass但原超时根因未确认，完整绿色门禁缺失。
+- 独立安装/显式迁移/原生重启：58d四套新PM环境已构建；最新独立安装Windows4pass/2Linux SDK skip、Linux6pass/0skip；全域联合业务/SDK新进程恢复已真实通过，但最新普通daemon/Worker联合复验未闭合。
+- 静态/生成契约/适用构建：58d全分支14检查通过、547个Python文件health 0；最新生成契约check、契约strict TypeScript、Desktop Electron noEmit均退出0，Desktop预检22pass。新测试整改后还须静态检查。
+- 独立审查：原三份初审CHANGES_REQUIRED；分域follow-up已记录已发现问题闭合，最新maintenance测试修正独立2pass；全局最终复审未完成。
 
 ### 验收标准检查
 
@@ -1548,7 +1562,7 @@ Native最新：Linux10文件145pass/0fail/5平台skip、退出0（unified-task24
 
 ### 未通过与未验证
 
-Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。生产整改后旧2219b69afd独立发行载荷不含本轮代码，必须以新恢复提交重建和复验。
+Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣称全系统PG已完成。非WSL私有启动页七项仍缺适用主机，没有收到新的主机入口；不伪装OS或WSL策略。58d新独立发行载荷已完成真实验证，但全PG及原生宽回归仍有失败，普通daemon联合补验及全局最终复审未闭合。
 
 ### 最终状态
 
@@ -1556,6 +1570,6 @@ Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣
 
 ## 恢复点
 
-Task1–23已验收并按任务创建本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`）。Task24整改代码、永久PG/Native回归及三份独立follow-up已保存，局部证据见本任务；当前判定FAILED，仍23/24。下一步：用明确的整改恢复commit重新导出无.git/秘密的独立source-bundle，经PM构建SQLite/PG四个新环境并重新验证；完整PG目录采用适合多case文件的1200秒总cap重跑；等原生宽回归完整汇总后逐项定位/同条件基准和复验；重做覆盖全分支的静态、实际daemon/Worker联合恢复及最终独立审查。非WSL私有启动页七项依然等待适用主机，不能以WSL或Windows伪装替代。正式实例仍SQLite a875342384，未写正式Profile、秘密或业务表，不推送/发布/PR/合并。
+Task1–23已验收并按任务创建本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`）；Task24生产整改恢复提交`58d0003f83`未标本项完成。该ref的四套新PM发行环境已验证；当前判定FAILED，仍23/24。下一步：读Matrix双向重开窄验结果与Worker脱敏日志；将测试修正和证据创建本地恢复commit后在新冻结checkout完成全PG绿色复验；等待当前冻结Linux八目录宽回归完整汇总再逐项定位/基准和复验；完成实际普通daemon/Worker联合恢复、最新静态及全局最终独立审查。非WSL私有启动页七项依然等待适用主机，不能以WSL或Windows伪装替代。正式实例仍SQLite a875342384，未写正式Profile、秘密或业务表，不推送/发布/PR/合并。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

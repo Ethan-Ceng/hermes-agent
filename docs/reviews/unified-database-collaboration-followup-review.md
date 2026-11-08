@@ -64,3 +64,21 @@ D:/Programs/Git/bin/bash.exe scripts/run_tests.sh .build/postgresql/review_colla
 ## 结论
 
 本次协作域已发现问题的整改复审通过，当前范围未发现新增未处置 blocking/major。总体合并结论继续保留 **`CHANGES_REQUIRED`**，等待尚未完成的总体验证与适用平台证据；本报告不授权宣称全系统 `APPROVED` 或 `READY_TO_MERGE`。
+
+## 冻结 58d 后维护故障夹具复核
+
+2026-11-08 再次核对冻结提交 `58d0003f83d1c99505e1173508ea7e2934d89411` 后 `tests/hermes_db/postgresql/test_domain_maintenance.py` 的测试整改；该次修正不改变生产实现。此前旧夹具无条件令第一个 write 事务提交后抛 UnknownCommitError，新增 completion 前置事务使其不再命中它原本声称的主完成事务。
+
+新 `lose_completion_ack` 在调用真实 `repo.event` 成功登记 `kind="completed"` 后捕获该 Connection；`lost` 先完整退出原 `Transactions.write`，确认同一个真实事务正常 COMMIT、连接归还后才抛 UnknownCommitError。若业务 body 回滚或真实 COMMIT 失败，原 context manager 会直接抛错，不会执行后面的注入。这仍是客户端确认丢失的故障注入，不声称做过网络丢包，也不替代驱动错误分类测试。
+
+两项原有业务证据完整保留：父任务已 done、子任务维护前仍 todo、hook 尚未触发；从另一 Profile 作用域对拥有者 home 连续维护后，子任务 ready、hook 仅一次；归档 Board 的未决完成意图仍可恢复、workspace 被清理且原 Board 的 hook 恰一次。`assert completed` 还防止故障夹具未命中目标写入时悄悄通过。未发现断言放松或存储 mock 替代。
+
+独立窄复验：
+
+```text
+scripts/run_tests.sh tests/hermes_db/postgresql/test_domain_maintenance.py -j 1 -- -m integration -k 'committed_completion_recovers_downstream or archived_board_cannot_poison' --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml
+```
+
+仍使用既有 PM Windows 解释器、retries=0、归属核对的随机 Schema/临时 Profile/SQLite audit guard。结果 **2 passed / 0 failed，退出 0，34.6 秒**；日志 `.build/postgresql/unified-review-maintenance-ack-independent.log`。另读取 Root 全文件日志 `.build/postgresql/unified-task24-maintenance-confirmation-final.log`，确认 10 passed / 0 failed 的原始汇总，但不冒称本 Reviewer 重跑全部十项。
+
+本次测试整改复核通过；它只补正这两项 unknown-commit 恢复证据，不改变前述总体门禁状态。全 PG、Native 与其他最终验证仍须按实际最终汇总判定，不能用此 2 项或全文件 10 项提前宣布总体验收通过。
