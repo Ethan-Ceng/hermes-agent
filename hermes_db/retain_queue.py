@@ -5,7 +5,9 @@ import json
 import logging
 import threading
 import uuid
+from websockets.exceptions import WebSocketException
 from agent.memory_provider import spawn_context_thread
+from agent.runtime_session_store import WorkerPersistenceError
 from agent.redact import redact_sensitive_text
 from hermes_cli.db_setup import _owning_profile
 from hermes_db.domains.retain_queue import capture_queue
@@ -45,7 +47,7 @@ class PostgresWriteQueue(_WriteQueue):
             record = operations.prepare(self.reference, request_id, user_id, session_id, messages)
             try:
                 operations.enqueue(self.reference, record)
-            except UnknownCommitError as error:
+            except (UnknownCommitError, WorkerPersistenceError, OSError, WebSocketException) as error:
                 error.request_id = request_id
                 raise
             finally:
@@ -54,6 +56,9 @@ class PostgresWriteQueue(_WriteQueue):
     def _send(self, row):
         request_id, token = row["request_id"], row["claim_token"]
         if not operations.renew(self.reference, request_id, token):
+            return
+        # A replayed renewal receipt is historical; only a fresh PG read admits this HTTP attempt.
+        if not operations.owns_claim(self.reference, request_id, token):
             return
         try:
             self._client.ingest_session(row["user_id"], row["session_id"], json.loads(row["messages_json"]))
@@ -77,6 +82,8 @@ class PostgresWriteQueue(_WriteQueue):
                     continue
             except StorageError:
                 logger.exception("RetainDB queue operation failed; durable state requires reconciliation")
+            except (WorkerPersistenceError, OSError, WebSocketException):
+                logger.warning('RetainDB owner channel is unavailable; durable queue awaits receipt reconciliation')
             if self._stop.is_set():
                 return
             self._wait()
@@ -92,7 +99,7 @@ class PostgresWriteQueue(_WriteQueue):
         else:
             try:
                 counts = operations.counts(self.reference)
-            except StorageError:
+            except (StorageError, WorkerPersistenceError, OSError, WebSocketException):
                 logger.exception("RetainDB closed without proving its pending count")
             else:
                 if counts["pending"]:

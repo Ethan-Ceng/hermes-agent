@@ -167,6 +167,8 @@ Task14文件边界细化：PG附件在store内持久分配一次内容namespace�
 
 ### 指标与插件
 
+Task24 RetainDB托管消费者细化：authority固定Profile/store/Schema及retaindb插件身份，destination仍是同Profile的业务分区，允许新会话恢复原目的地的pending，不绑定到当前会话或最新配置的单一endpoint。消息内容指纹由owner重算，短写与执行回执使用同一连接；只有二进制fingerprint在RPC中转hex，其他业务值无损保留。claim/renew旧回执不证明当前租约，HTTP前须经认证读取当下PG的status/token/lease；过期或被接管则不发送。外部HTTP仍为原at-least-once合同，不虚构远端幂等。worker通道故障保持受保护pending journal并明确报告，关闭前结算必要回执，未确认投递保留持久行供重开恢复。
+
 指标保留当前安装/拥有者语义与 consent 状态，不能以换库扩大遥测发送范围。聚合、打包水位与 outbox 去重在一个短事务完成，导出文件及网络发送仍在事务外。
 
 Task24真实managed worker验收补充：agent的冻结配置只决定模型、工具和可选功能，不能决定它所使用的持久数据集。特别是ignore-user-config采用默认SQLite选择（或缺少storage）的快照，不能因此让已选PG的Profile打开遗留指标SQLite。Worker通过已认证、已采用且受epoch/generation约束的owner协议取得非秘密数据集身份；取得失败或旧owner不支持该协议时明确失败，不回落本地库。

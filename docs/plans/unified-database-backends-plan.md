@@ -12,9 +12,9 @@
 - 整体状态：`VERIFYING`。
 - 当前阶段：原生启动复验、最终验证与独立审查。
 - 当前验证判定：`FAILED`；三份独立审查均为`CHANGES_REQUIRED`，正在Task24内整改，未完成本项。
-- 当前任务：Task24（in_progress；Task23本地提交`3febe6fc31`，整改恢复提交`58d0003f83`）。
+- 当前任务：Task24（in_progress；Task23本地提交`3febe6fc31`，verification恢复提交`c0558e9c13`，本次RetainDB整改另存恢复提交）。
 - 已完成：23 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
-- 阻塞：非WSL POSIX私有启动页七项仍缺适用主机。验收PG已恢复并完成114文件659项全绿；Native宽回归仍运行且已有失败，最终独立审查尚未完成。
+- 阻塞：非WSL POSIX私有启动页七项仍缺适用主机。验收PG已恢复；旧生产实现114文件659项全绿不代表最新整改完成。Native宽回归已失败；RetainDB托管消费者局部整改已通过，metrics缺口与最终全域复验/独立审查尚未完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-08（Asia/Shanghai）。
 
@@ -1618,6 +1618,16 @@ verification首步实际结果：新Core合同第一次因测试表名导入失�
 真实消费永久化：Windows原普通daemon→采用worker→模型write_file→PG证据→退出→新owner恢复→peer空已1pass（managed-verification-first）。扩为普通/ignore-user-config的首批1pass/1fail是默认关闭验证功能后没有证据的测试前提错误，保留managed-verification-accepted.log；config-only现通过已有公开HERMES_VERIFY_ON_STOP启动override显式opt-in，不改生产开关/断言/guard。最新永久两项2pass/0fail/0skip、退出0、106.3秒（unified-task24-managed-verification-opt-in.log），每个owner进程连接预算1。独立Linux普通1pass46秒、config-only1pass62.3秒（worker-domain-first-fix-review），实测默认snapshot_backend=sqlite而实际证据在owner PG；此前“默认snapshot字面缺storage”的额外观测误判已纠正并留原日志，未计生产失败。
 
 原生证据/停止/保留/FD/缓存及worker读线程8文件90pass/0fail/3平台skip、退出0（unified-task24-worker-domain-native-evidence.log）；SQLite独立全域/新进程恢复+统一选择2文件8pass/0fail/1 Linux SDK skip（worker-domain-sqlite-independent），PG导入/服务拒绝保持。当前暂存首步`scripts/check --staged --base 51b3e61c6c`全部14检查通过、11个Python文件health0blocking/0advisory（unified-task24-worker-domain-checks.log），准备保存明确Task24未完成的本地恢复commit；独立worker-domain-first-fix-review关闭本通道及retention问题，RetainDB和metrics已实证的worker major仍保留，整体CHANGES_REQUIRED。
+
+最新恢复提交为`c0558e9c1365afb95406431b7a05c74c60525bf4`，verification owner receipt通道已提交；其全新Linux冻结快照三个文件实际8pass/0fail/0skip、退出0、41.4秒（unified-task24-domain-frozen-linux.log），包含真实普通/ignore managed验证和SQLite全域实际SDK合同。没有将Task24标完成。
+
+RetainDB整改进行中：真实owner-only红测与独立boundary review确认缺少worker消费者。沿既有采用身份/领域回执接入闭合enqueue/claim/renew/ack/fail及fresh reads；store/plugin/Schema由authority固定，destination保留同Profile合法业务namespace，owner重算消息指纹。队列SQL复用同一receipt Connection，HTTP仍在worker原线程与事务外。实际注册worker的backend从owner identity读取，不能用agent默认快照重选SQLite。旧renew回执仅是历史，HTTP前增加当下token/lease读；通道失败保留sticky journal，不自动绕过恢复。首轮Core红测2fail，接入后4pass；最新6文件22pass/0fail、退出0、30.6秒（unified-task24-worker-retain-port-first.log），含队列多进程、事务故障及冻结selector。尚未完成实际managed sync_turn/HTTP/重启恢复、旧租约丢确认反例及独立实现复审，不以构造成功或局部22项关闭major；metrics实际worker缺口仍未修复。
+
+RetainDB最新局部收敛：原先首轮managed+Core合批3pass/1fail，失败为非法同会话双活worker夹具；改合法跨会话接管后Core3pass。其真实managed文件先Windows1pass/47.7秒、Linux与Core合批4pass/76.4秒。新增真实WebSocket断线永久合同先2fail，根因SDK的ConnectionClosed不属于OSError；队列在enqueue/loop/shutdown处理WebSocketException及OSError，保留原异常/request_id与sticky journal，不改变WorkerRPC未知提交重试。独立原红probe不变复验1pass，另独立实际enqueue提交丢确认/journal/peer/flush/finish1pass。
+
+最新Windows `unified-task24-retain-lifecycle-green.log`两文件4pass/0fail/107.4秒，包含实际provider sync_turn、PG budget1下HTTP挂起仍由同owner读取会话、503失败与HTTP未结束worker退出两种持久恢复、新owner/新会话重放原body、peer隔离及所有进程SQLite尝试0。此前生命周期批次3pass/2fail保留：read测试在HTTP调用与ack开始间隙提前观察，现等PG acknowledged及空journal；另一项误查daemon的worker警告，现核对实际worker退出、HTTP仍未release及PG claimed，不放宽join10或业务断言。`unified-task24-retain-request-id-green.log`两文件6pass/0fail/19.2秒，包括新增enqueue实际commit/丢确认原异常携request_id、必要回执阻止finish、显式重放后仅一行和旧renew回执/新租约反例；JSON False/0/None/NUL/Unicode均保留。
+
+最终Linux同一生产实现7文件19pass/0fail/0skip、退出0、206.1秒（unified-task24-retain-owner-linux-final.log），包括全部Retain PG原合同及三个新永久文件的实际业务、线程/通道故障、重启/peer。Windows SQLite/插件6文件44pass/0fail、退出0、8.6秒（retain-sqlite-contracts）；`scripts/check --staged --base c0558e9c13`14检查通过、health9个Python文件0blocking/0advisory（retain-owner-checks-final）。独立retaindb-worker-boundary-review已读取最终日志及diff，关闭本通道major，保持全局FAILED。当前保存标题`fix(storage): persist retained memory through owner receipts`的本地恢复commit，Task24仍in_progress，后续先整改metrics托管major，再新冻结完整PG/发行/Native/平台复验与独立终审；不将以上19项当全系统矩阵。
 
 ## 计划变更
 

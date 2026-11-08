@@ -84,6 +84,16 @@ safe-mode 的新增 owner 栈显示，忽略用户配置的会话在可选 Proje
 
 remote fresh Profile 的 staging 查询也被真实plane原合同拒绝。a875/58d同条件均失败且git历史确认会话阶段已存在；当前沿用既有supports_file_tooling边界，只对本地复制配置分配新身份，远端fresh的最终配置归其backend。Windows fresh已过，但完整文件99pass/6个其他dotenv/home失败仍保留，不能标为完整通过。
 
+## 托管进程的领域消费者
+
+预期：真实PG owner采用的compute worker只通过已认证owner通道操作持久数据集，agent的ignore-user-config默认快照不改变该身份。实际独立PG daemon/模型红测发现verification、RetainDB及metrics仍直接acquire，被owner-only拒绝；config-only指标还尝试遗留SQLite，被全连接audit拒绝。模型完成不证明这些消费者工作。原因是先前领域测试只覆盖owner，缺少实际托管入口；不移除guard、不禁用功能。
+
+首步verification以`c0558e9c13`补owner identity/read及现有worker.persist领域效果，真实证据/回执同Connection；worker不接受时间/retention伪造。Core真实rollback/COMMIT丢ACK及Windows/Linux普通/ignore实际编辑→PG→新owner恢复/peer已通过，冻结Linux三文件8pass。RetainDB复用此通道，严格固定拥有者/plugin，保留跨会话destination分区；原生SQL在传入receipt连接完成，owner重算指纹和PG租约。独立边界报告为`docs/reviews/unified-database-retaindb-worker-boundary-review.md`。
+
+RetainDB初版桥接另有确定根因：WorkerRPC原样重抛实际WebSocket断线，而writer只捕获StorageError/WorkerPersistenceError/OSError，读断线不产生sticky写journal，导致线程死亡但worker可finish。独立真实WS1011→PG probe先1fail，再增加WebSocketException边界处理后原probe不变1pass；enqueue保留原异常并附request_id，不改变未知提交的重放规则。永久transport最初两项确实2fail；修复后read观测曾在HTTP调用与ack开始间隙提前读取，改为等待真实PG acknowledged及空journal。此为测试竞态，不清空或绕过journal。
+
+永久关闭测试第一次错误检查daemon日志中的worker警告，改为实际worker退出时HTTP仍未release、PG行仍claimed的业务断言；原join10与HTTP hold预算保持。Windows真实provider.sync_turn/HTTP/预算1并发owner读、503/pending及未结束HTTP/claimed两种关闭、新owner新会话恢复/peer两项通过；transport read/已提交ack/已提交enqueue丢确认三项通过，flush/finish在未确认journal时拒绝，显式同receipt恢复后才允许结束。Windows两文件6pass和生命周期两文件4pass分别见`unified-task24-retain-request-id-green.log`与`unified-task24-retain-lifecycle-green.log`，SQLite/plugins六文件44pass。最新Linux全批和静态按计划记录实际结算，不预记通过；metrics实际托管消费者尚未整改，不据此关闭全系统验收。
+
 ## 调试结论
 
-保持 **UNRESOLVED / FAILED**。当前仅测试故障合同与清理有确定的红绿/独立证据；其余失败未选取未经证实的生产补丁。下一步是读取两个现有runner的完整结果、对实际失败控制reply/拥有者进程栈作证据驱动整改，再按影响范围复验及最终独立审查。非WSL POSIX七项适用主机证据仍另行缺失，不能由以上WSL调试替代。
+保持 **UNRESOLVED / FAILED**。配置归属、verification及RetainDB等分域有上述确定的整改/独立证据，不能替代metrics托管缺口、宽回归红测的逐项闭合和新生产载荷完整复验。下一步继续这些实际失败的证据驱动整改，再执行最终独立审查。非WSL POSIX七项适用主机证据仍另行缺失，不能由以上WSL调试替代。

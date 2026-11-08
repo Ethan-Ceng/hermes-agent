@@ -73,10 +73,16 @@ def record_verification(resource, session_id, payload):
 
 
 def write_handlers():
-    return {'domain.verification.' + name: partial(verification, operation=name) for name in ('record', 'mark_edited')}
+    from hermes_db.operations.worker_retain_queue import write_handlers as queue_handlers
+    values = {'domain.verification.' + name: partial(verification, operation=name) for name in ('record', 'mark_edited')}
+    values.update(queue_handlers())
+    return values
 
 
 def read(conn, scope, session_id, name, arguments):
+    from hermes_db.operations import worker_retain_queue as queue
+    if name in queue.READS:
+        return queue.read(conn, scope, session_id, name, arguments)
     if name != 'verification.status':
         raise RuntimeStoreError('invalid_params')
     return verification(conn, scope, session_id, arguments, operation='status')

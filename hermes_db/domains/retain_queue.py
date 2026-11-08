@@ -15,9 +15,32 @@ class RetainQueueRef:
     plugin_id: str = "retaindb"
 
 
+class WorkerRetainQueueRef(RetainQueueRef):
+    __slots__ = ('_resource',)
+
+    def __init__(self, resource, destination_id):
+        super().__init__(resource.scope.profile_home, resource.scope.require_store_id(), resource.target, destination_id)
+        object.__setattr__(self, '_resource', resource)
+
+    def _result(self, result):
+        if isinstance(result, dict) and isinstance(result.get('fingerprint'), str):
+            return dict(result, fingerprint=bytes.fromhex(result['fingerprint']))
+        return result
+
+    def command(self, name, **values):
+        return self._result(self._resource.command('retain_queue.' + name, dict(destination_id=self.destination_id, **values)))
+
+    def query(self, name, **values):
+        return self._result(self._resource.query('retain_queue.' + name, dict(destination_id=self.destination_id, **values)))
+
+
 def capture_queue(profile_home, destination_id):
+    from agent.runtime_domain_store import worker_resource
     from hermes_db.factory import acquire_profile_domain
     from hermes_db.move_values import resource_key
+    worker = worker_resource('retain_queue', profile_home=profile_home)
+    if worker is not None:
+        return WorkerRetainQueueRef(worker, destination_id)
     with acquire_profile_domain("retain_queue", profile_home=profile_home) as resource:
         return RetainQueueRef(resource.scope.profile_home, resource.scope.require_store_id(), resource_key(resource._transactions), destination_id)
 
