@@ -62,3 +62,39 @@ Root 执行的 `.build/postgresql/unified-task24-native-tools-recheck.log` 已�
 ## 结论
 
 本轮发现的 remote/achievements/Telegram/两个 tools 问题均已有明确 a875 同条件证据；其中 remote 有当前局部修复的独立 Linux fresh 绿证据，achievements 有替身缺属性的完整观测证据。其余失败、完整 remote/PG 身份回归、Photon/fal 新前提复验和 Task 24 总体仍未结算。保留原失败和限定范围的复验记录，整体 **FAILED / CHANGES_REQUIRED**，不作总体 APPROVED。
+
+## Task24 Telegram 基线 major：2a268 后整改独立复审
+
+本节是上述 Telegram 基线问题的后续，不回写旧 A/B 为新引入问题。输入为已提交 `2a2684390016a1bfadc4c759bf2151945425f077` 和唯一生产变更 `plugins/platforms/telegram/update_admission.py`；原 `tests/plugins/test_telegram_update_admission.py` 的 94 项内容及业务期限未修改。Reviewer 未改生产/仓库测试、未安装或提交，诊断仅写 ignored 文件并沿既有 PM Linux/canonical runner，retries=0。
+
+### 原基线与 SDK 协议
+
+Root 冻结当前 2a 的 `.build/postgresql/unified-task24-telegram-preentry-current-red.log` 已读取：原 `error_before_entry-cancel` **1 failed / 93 deselected**，仍在 app.stop 后 `_inflight_update_ids` owners=1 处失败。这与本报告最初 a875/58d 同条件红一致，不是统一数据库 diff 新引入。
+
+再次核对实际安装 **python-telegram-bot 22.8** 的 `Application.stop`、`__create_task`、`__create_task_callback` 与 `process_error`：stop 先将 running=False，再等待已有 SDK task set 的一个快照；`__create_task` 只在 running=True 时登记 SDK set。一个已有 handler 在停止过程中报错，`process_error(block=False)` 仍会通过相同私有 seam 派生真实 error task，但它已不在 SDK 自动等待集合中。Hermes 的 claim owner 在该 seam 已增加，必须等自己的完成回调执行 coroutine.close / release 后才算 admission 已结算。不能仅以 SDK task.done 或 SDK stop 返回证明这一步发生。
+
+自等待核对：PTB 明确为 handler/job/error callback 内请求停止提供 `stop_running`；在 SDK 已跟踪的 task 内直接 await stop，本来就可能在 SDK 自身 gather 中等待自己。本次未发现当前生产 disconnect 路径新增合法自等待情形，不能把该 SDK 既有不当调用方式归为本 diff 新 major。当前变更也未通过略过现有 claim 来掩盖它。
+
+### [major，初次候选已否定] 等待已完成 Task 导致 stop 热循环
+
+Root 初次未提交候选给 claim 增加 `_claim_tasks`，stop 在 super.stop 后 `while set: await asyncio.gather(*set)`。它**没有通过**本次验收：Python 3.14 在全部子 task 已 done 时 gather 可同步完成，await 不让出事件循环，已排队的 Hermes finished 回调无法执行 discard/release，while 持续热循环。
+
+精确证据：Reviewer `.build/postgresql/test_review_telegram_stop_boundary.py`，SHA256 `DE656500C3AACA2101EBFAD62EC91BA13EBF7B4DE8B82985E048DE5722685D25`。直接调用原失败用例、原 fixture 与全部原断言，仅包装观察并加 **3 秒 SIGALRM 硬上限**；没有延长业务期限或靠循环重试。日志 `review-telegram-stop-boundary.log` 为 **1 failed / exit 1**，runner 8.2s。截断栈为候选 `update_admission.py:268 → asyncio.gather → Python3.14 tasks.py:920`。脱敏 `review-telegram-stop-boundary-observed.json` 同时记录 running=False、集合唯一 task 为 `Application:111:process_error:non_blocking` 且 done=True/cancelled=True，claim owners 仍为 1。
+
+Root 的 `unified-task24-telegram-preentry-target-green.log` 虽名含 green，实际 30 秒 faulthandler 栈同样停在该 stop 行，之后触及 180 秒观察 runner 上限；不能记绿。首个旧 full 候选日志也未提供完成 summary，本节不把它当通过。Reviewer 的窄探针已自行限时退出，未按 argv 扫描/停止其他进程或 WSL。
+
+最小整改依据是等待“claim 完成回调真正结算”的独立 marker，而非再等待已经 done 的 SDK task。不以 sleep(0)、延长期限或删除原释放/重放断言处理。
+
+### 当前 settlement 修正与独立正例
+
+Root 最新 diff 为每个 claim owner 创建私有 settlement Future；真实 finished callback 先关闭被取消但未进入的原 coroutine、调用原 `_release_claim`，随后从集合移除 marker 并完成 Future。stop 在原 super.stop 后用 `asyncio.wait(tuple(markers))` 等待；若晚到 error task 又派生后续任务则下一轮继续等待。一个 event-loop callback 内的移除/完成之间没有 await；取消 stop 不会通过 wait 取消 marker 或其业务 task。原 claim failed/accepted/completed 判定、bot 归属及 receipt 逻辑不改。逐行复审未发现该增量的新增问题。
+
+Reviewer 新独立文件 `.build/postgresql/test_review_telegram_settlement.py`，SHA256 `BA9CB7184C5063E797C82B3FB14221FF6986A4D44FB9F1EDB31E7F0EEFECD4B8`；`review-telegram-settlement.log` **3 passed / 0 failed / exit 0**，4.9s，脱敏观测 `review-telegram-settlement-observed.json`：
+
+- 原 error_before_entry 原函数、全部原重放/coroutine-close 断言在同样 3 秒观察上限内通过，最终 settlement 集合为空。
+- 真实 PTB handler 在 running=False 后失败，真实非阻塞 error callback 再创建一个等待 Event 的 descendant；SDK 自身 task set 已空时 stop 仍不返回，直至该 late descendant 的真实回调释放 claim。
+- 在同一 late descendant 边界取消 stop，marker 与 descendant 均未被取消，claim 继续 pin；释放业务 Event 后真实完成回调归零，native handoff 的 seen receipt 保留。未设置假的 worker/SDK 状态、未以假 stop 或手工释放 claim 代替。
+
+Root 最新完整日志已读：`unified-task24-telegram-preentry-settlement-green.log` 原单项 **1 passed / 0 failed**，2.4s；`unified-task24-telegram-settlement-full.log` 为 **4 文件、119 passed / 0 failed**，15.0s，包含原 admission 全部 **94 项**及 Telegram 插件侧另三文件 25 项。这是 Root 的标准 runner 证据，与本 Reviewer 的三项独立运行分别记账。
+
+该 Telegram 基线 major 及中途 Task-gather 热循环候选，在当前 settlement 局部范围已获得整改与独立正例。它不消去旧失败记录，也不代表整个 Native 宽回归、最终统一冻结/发行复验或非 WSL 适用平台证据已完成；Task24 总体仍 **FAILED / CHANGES_REQUIRED**。

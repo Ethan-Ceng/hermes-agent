@@ -12,9 +12,9 @@
 - 整体状态：`VERIFYING`。
 - 当前阶段：原生启动复验、最终验证与独立审查。
 - 当前验证判定：`FAILED`；三份独立审查均为`CHANGES_REQUIRED`，正在Task24内整改，未完成本项。
-- 当前任务：Task24（in_progress；Task23本地提交`3febe6fc31`，verification恢复提交`c0558e9c13`，RetainDB恢复提交`ed0cdbe604`）。
+- 当前任务：Task24（in_progress；Task23本地提交`3febe6fc31`，verification恢复提交`c0558e9c13`，RetainDB恢复提交`ed0cdbe604`，metrics恢复提交`2a26843900`）。
 - 已完成：23 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
-- 阻塞：非WSL POSIX私有启动页七项仍缺适用主机。验收PG已恢复；旧生产实现114文件659项全绿不代表最新整改完成。Native宽回归已失败；RetainDB托管消费者局部整改已通过，metrics缺口与最终全域复验/独立审查尚未完成。
+- 阻塞：非WSL POSIX私有启动页七项仍缺适用主机。验收PG已恢复；旧生产实现114文件659项全绿不代表最新整改完成。RetainDB/metrics托管消费者已局部整改通过；Native宽回归未决项、最终全域/发行复验及独立终审仍未完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-08（Asia/Shanghai）。
 
@@ -1647,6 +1647,12 @@ metrics最新完整局部结算：校正清单后的Linux13文件34pass/0fail/0e
 
 补测后静态`PM Python scripts/check --staged --base ed0cdbe604`全部14检查通过、health23个Python文件0blocking/0advisory、退出0（worker-metrics-checks-final）。当前生产候选将保存标题`fix(storage): persist worker metrics through owner receipts`的本地恢复提交；Task24仍23/24、FAILED/in_progress。下一步在该ref新冻结Native验证原指标30文件、原完整CLI安全启动与SQLite实际SDK独立合同，并继续宽回归未决项；所有必需生产整改收敛后才重建最终四套PM发行载荷和完整PG/故障/平台复验，避免用即将过时的载荷反复声明完成。全局独立终审仍待，非WSL私有启动页七项主机仍缺。
 
+metrics恢复点实际为`2a2684390016a1bfadc4c759bf2151945425f077`，独立Native checkout已核对完整ref。该冻结版本36文件714pass/0fail/0skip、退出0、49.2秒（unified-task24-metrics-frozen-native.log），覆盖原指标30文件、原完整safe-mode及SQLite实际SDK/禁止PG驱动独立合同，补齐Windows所跳过的该组7个POSIX用例；不外推为另一组非WSL私有启动页已通过。四套最终发行载荷及全系统PG矩阵仍待生产整改收敛后重建。
+
+Native Telegram基线major继续整改：2a冻结的原error_before_entry-cancel确实1fail/93deselected（telegram-preentry-current-red），与a875同条件旧红一致。实际PTB22.8的stop先running=False，随后派生error callback未进SDK自己的task set，导致stop返回时claim owners=1。第一版直接跟踪Task并循环gather候选被独立3秒观察及Root180.1秒超时/stop栈否定：Python3.14对全done Task的gather可同步完成，饿死清理callback。该失败候选日志名虽含green仍不计通过；旧全文件候选执行已中断，另按完整argv、PM解释器、cwd、出生时间及专有pytest temp marker核对归属后终止其独立进程组，未操作其他进程/服务。
+
+当前改为私有settlement Future，只在coroutine关闭及原claim释放完成后才完成该信号；stop在SDK stop之后用asyncio.wait等待这些清理信号，取消stop不取消marker。原单项1pass/2.4秒，原94项断言未改；完整原文件与平台三文件共4文件119pass/0fail/退出0/15.0秒（telegram-settlement-full）。独立真实SDK三项3pass/4.9秒，还覆盖stopping状态派生后继task及取消stop后真实释放；native-late-failures-review已记录局部闭合，未批准全局。静态首轮只发现slots排序，已修正排序待最终检查，功能/测试期限未放宽。当前修改准备另存标题`fix(telegram): settle admitted callbacks before shutdown`的恢复commit，Task24仍FAILED/in_progress，继续剩余Native fixture/生命周期问题。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |
@@ -1686,8 +1692,10 @@ Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣
 
 ## 恢复点
 
-Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。最新`ed0cdbe604cded73026f28f4b96937c6e204a5cf`包含RetainDB真实worker领域整改，Linux7文件19项、Windows实际managed HTTP/关闭恢复和通道故障已通过，静态14检查与独立局部审查通过；`c0558e9c13`的verification通道已通过冻结Linux8项。ed0全新Native checkout已按完整ref核对，已完成原完整safe-mode及SQLite独立合同六文件19pass/0fail/0skip、退出0（unified-task24-retain-frozen-native.log）。当前新增真实managed metrics永久合同在ed0生产实现实际1fail/1pass（managed-metrics-permanent-red），它包含真实模型计数/engagement、新owner重开、peer、遗留SQLite与owner consent窗口；普通模型PG计数0的major仍未修，不以旧owner20项关闭worker major。
+Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。当前metrics恢复`2a2684390016a1bfadc4c759bf2151945425f077`已实际Linux13文件34项及新冻结Native36文件714项全过；先前ed0真实worker模型PG计数0的红已由owner通道局部整改，不用旧owner20项替代。RetainDB `ed0cdbe604`与verification `c0558e9c13`证据继续保留，三个真实managed领域在加入quiesce后另6项通过。
 
-下一步根据独立有界协议复审修复metrics，保留owner-only与agent collection/owner send-consent分离、同连接回执、连接外维护/HTTP和finish前Relay排空；再统一重建发行载荷、完整PG/Native/故障/适用平台复验及独立终审。旧58d生产的完整PG659绿及Native62870pass44fail220errors726skip不外推到当前代码；后续工具424、Photon16、FAL38及局部整改证据见本账本。非WSL七项仍待现成主机，不伪装OS；正式实例仍SQLite a875342384，未写正式Profile/秘密/既有业务表，不管理数据库服务，不推送/发布/PR/合并。
+当前Telegram原基线pre-entry取消major以settlement Future整改，原单项1pass、原全文件与平台四文件119pass，独立真实SDK3pass；第一次候选热循环及其超时/归属核对清理记录全部保留。最终静态14检查通过、health1个Python文件0blocking/0advisory（telegram-settlement-checks-final），准备保存标题fix(telegram): settle admitted callbacks before shutdown的本地恢复提交。新2a冻结两份tools文件仍24pass/2fail：whole /tmp目标正确触发运行时自删保护，以及Termux成功fallback不等于WSL整体音频可用。下一步只修正这两项宿主测试前提，保留生产保护/机器事实，再继续其余Native失败逐项闭合。
+
+所有必需生产整改收敛后统一重建四套发行载荷，执行当前完整PG/Native/故障/适用平台复验及独立终审。旧58d生产的完整PG659绿及Native62870pass44fail220errors726skip不外推到当前代码；后续工具424、Photon16、FAL38及局部整改证据见本账本。非WSL私有启动页七项仍待现成主机，不伪装OS；正式实例仍SQLite a875342384，未写正式Profile/秘密/既有业务表，不管理数据库服务，不推送/发布/PR/合并。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

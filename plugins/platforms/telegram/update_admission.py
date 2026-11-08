@@ -179,11 +179,12 @@ def build_update_processor(extra, name: str) -> PerChatUpdateProcessor:
 
 
 class TelegramApplication(Application):
-    __slots__ = ("_current_claim", "adapter")
+    __slots__ = ("_claim_settlements", "_current_claim", "adapter")
 
     def __init__(self, *, adapter, **kwargs):
         super().__init__(**kwargs)
         self.adapter = adapter
+        self._claim_settlements = set()
         if adapter._update_admission is None:
             adapter._update_admission = ContextVar[_Claim | None]("telegram_update_claim", default=None)
         self._current_claim: ContextVar[_Claim | None] = adapter._update_admission
@@ -247,15 +248,26 @@ class TelegramApplication(Application):
         if claim is not None and claim.owners:
             # Pin scheduled work before callback entry, including cancellation before entry.
             claim.owners += 1
+            settled = asyncio.get_running_loop().create_future()
+            self._claim_settlements.add(settled)
 
             def finished(done):
                 # PTB's task wrapper may never start, leaving its callback unawaited.
                 if done.cancelled() and asyncio.iscoroutine(coroutine):
                     coroutine.close()
                 self._release_claim(claim, done)
+                self._claim_settlements.remove(settled)
+                settled.set_result(None)
 
             task.add_done_callback(finished)
         return task
+
+    async def stop(self):
+        await super().stop()
+        # PTB stops tracking new tasks after running=False; error callbacks created while draining
+        # still own our claims and must settle before shutdown permits the update to be replayed.
+        while self._claim_settlements:
+            await asyncio.wait(tuple(self._claim_settlements))
 
     def _release_claim(self, claim, task=None):
         if task is not None and task.cancelled():
