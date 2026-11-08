@@ -205,3 +205,17 @@ Root未改原业务断言的阶段observer在当前隔离候选得到原文件3p
 截至宽批96.7%的中途快照已有6个非零文件/12个失败参数：probe、hygiene、pause-record、非WSL private-launch七项、async-delegation和groups-route-parity。前两项有局部整改证据；pause-record和groups尚待失败现场定因，async-age已发现错误固定墙钟上限但尚未修改/验证。原批仍运行，所有计数须以最终终态为准；历史managed/Host间歇因果和非WSL主机缺口继续保留。
 
 最终独立foundation已读取真实失败profile、正确acquire红、候选hash/diff和5项终态，接受该fixture局部整改，无新增blocking/major；未代跑或连库。`PM Python scripts/check --staged --base 99bd92d5ecdf63c93a01561d58769fd51360cbdf`实际14检查通过、health1个Python文件0blocking/0advisory、退出0（`unified-task24-hygiene-real-warm-checks.log`）。本段仅在检查后补入结果，另运行diff-check；本地恢复标题`test: prepare real hygiene state before timing`，不是Task24完成提交。
+
+## 2026-11-09：完整 Native 终态与 live-activity 夹具
+
+原20a478八目录批次已自然终态，session64460退出1；`unified-task24-20a478-full-native-observed.log`完整6412文件、63150pass/15fail/726skip、7722.3秒、4workers、retries=0。8个非零文件为probe(1)、hygiene(1)、pause-record(1)、private-launch(7)、async-delegation(1)、groups-route-parity(1)、notification-poller(1)、tui-gateway-server(2)。原hygiene具体断言现已确认whole12.006945064<5失败；它没有失败profile，不能把另两份7秒post-hook现场冒称为该原批现场。此前所有中途计数由本终态取代。
+
+后三个新Native错误分别是附件成员任务10秒未terminal/last_error、第二个notification线程在原3秒join后仍alive、完整637项server文件中的profile build首case15秒未调用_make_agent、下一case实际scopes含多余None。它们是待取证分叉，不按文件总耗时推定负载/fsync，也不加期限或关闭功能。只读pause原完整43项本次通过40.1秒，false JSON的asked/unknown空、live含本PID、fresh/cached ct相同且过期marker确实False；notification原单项本次1pass/1.9秒，两个3秒join实际约0.006/0.709秒、都退出。两次只是未复现，不能关闭原红。
+
+async实际失败22.1>20源于测试base_ts在真实dispatch前设为当时减12秒，而公开live age按list时刻继续增长。历史合同不提供dispatch八秒性能上限；独立plugins只读确认字段计算正确，但未测得具体dispatch慢阶段。先在原函数上做可重复反例：仅替换测试模块与ad模块各自time绑定为相同proxy，不改共享stdlib time；真实dispatch返回后同时推进10.1逻辑秒，worker、monitor、ledger/SQLite保持真实。原函数1fail/26.1秒，age46.9违反20上限（`activity-age-original-red`）；46.9含逻辑推进，不能改写为真实dispatch耗时。
+
+最小fixture修正以progress()实际设置的Event等待monitor已采样（5秒有界）替换sleep(.1)，首次list前等待，避免list自己的采样满足信号。原runner gate10、monitor间隔.03及running/in_tool/api_calls/current_tool/私有字段和finally均保留；用实际list前后墙钟与同base_ts的一位小数年龄作包围断言，不移动base到dispatch之后，也不增大固定20秒上限。生产代码未改。
+
+新261f3fcc04隔离候选state=`task24-activity-age-overlay-state.json`，单文件SHA256=`641d0ac71508edbebf8f3c70d3bd43ba018613c532aaf783b070b236fdc21c74`。初次复制因Windows命令长度206失败，后续缺state没有测试；该准备错误单独保留。改为从已知挂载读取源文件并验证SHA后，经`run_matrix_linux.py --state task24-activity-age-overlay-state.json --tools-state task24-linux-tools-state.json --native --log unified-task24-activity-age-verified-candidate.log tests/tools/test_async_delegation.py tests/tools/test_task24_live_activity_elapsed_dispatch.py -j1 --file-timeout1200 -- -m 'not live'`调用canonical脚本，实际**2文件36pass/0fail/1个macOS平台skip、退出0、113.9秒**。原整文件35pass/1skip，原函数同一反例1pass；没有声称验证macOS或整个Native。独立plugins已读取diff/probe/hash和终态，当前静态尚待。
+
+最终局部独立plugins复审已关闭原固定上限minor，接受真实Event就绪与年龄包围合同；不关闭原宽验延迟归因。`PM Python scripts/check --staged --base 261f3fcc04f6f25965e1e78ae5fc7e324fa35aa2`全部14检查通过、health1个Python文件0blocking/0advisory、退出0（activity-age-checks）。随后只补本结果/独立结论及pause/groups只读followup；diff-check另核。本地恢复标题`test: compare delegation activity age at sampling time`，不是Task24完成提交。

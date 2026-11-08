@@ -179,3 +179,19 @@ child age不是monitor缓存：monitor的 `_progress_ts` 是“多久未见token
 最小建议是保留真实dispatch、ledger、runner、monitor和状态/字段/私有数据不泄露断言，改用实际list前后clock相对同一base_ts的年龄包围验证；这使延迟仍计入真实年龄，而不是增大20秒上限。用Event同步真实runner启动/采样，可移除sleep(.1)对安静runner的假设，原有有界等待/cleanup仍须保留。若要精确验证12.0→13.0投影，可仅替换ad模块的time**绑定**为本地受控clock proxy，或对已有显式now参数的年龄投影函数验证已知值；不可直接patch `ad.time.time`，因为那会改共享stdlib time模块、污染真实worker/monitor及DB时钟。仅把base_ts移到dispatch后仍可能受调度延迟影响，不算完整处理。若怀疑dispatch性能另有回归，应补独立阶段timing证据，不能让本年龄断言代替延迟诊断。
 
 这是原测试固定上限的已证实观测边界，尚未实施或绿验；不是新生产major，也不抹去该Native文件失败。Root后续fixture处置须重新按合同验证，整体 **FAILED / CHANGES_REQUIRED** 和非WSL适用主机缺口继续保留。
+
+### async-age fixture 小修的独立源码复核及局部红→绿
+
+Root 随后只改该原测试：加入真实 `progress()` 的 sampled Event，首次list前 `sampled.wait(timeout=5)` 替代sleep(.1)，再以list前/后实际time相对同一个base_ts的一位小数年龄包围结果。Reviewer已逐行核对diff：Event只在真实progress_fn内set，首次list尚未发生，不能用list自己的采样伪满足；monitor又仅在runner已_started后调用该sampler，后续records锁保留sweep收尾的同步。runner gate10、monitor interval .03、真实dispatch/ledger、running/in_tool/api_calls/current_tool和不泄露callable/private字段断言、finally gate释放均保留。新5秒是显式就绪观察界限，不声称它与旧固定sleep时序完全相同；没有延长runner或生产deadline。年龄包围仍验证真实增长，未把结果钳在12或放大原20上限。此小修的源码处置可接受，未发现新blocking/major。
+
+已核对独立overlay state：基础 `261f3fcc04f6f25965e1e78ae5fc7e324fa35aa2`，source `/var/tmp/hermes-unified-matrix-final-e57df8da31/task24-native-261f3fcc04-ba240f31`；仅该测试overlay SHA256 `641d0ac71508edbebf8f3c70d3bd43ba018613c532aaf783b070b236fdc21c74`，与当前工作区一致。该局部候选不是新的完整Native/ref验收。
+
+`task24_prepare_activity_age_probe.py`（SHA256 `72cdef8e5731fe7ca0dc9d93f25c4bd8f7589d0ec18fa662ed51c50b8f4f461e`）调用原测试函数，保留其真实dispatch/DB/worker；只把原测试模块和ad模块各自的time**绑定**换成同一个proxy，stdlib/global time模块未改。真实dispatch返回后proxy offset推进10.1秒，不sleep、不伪造runner/记录，再运行原断言。原函数finally释放gate、外层等待真实worker完成并清理。这证明的是年龄投影面对额外逻辑经过时间的合同，不把proxy offset当实测dispatch耗时。
+
+| 日志 | 实际证据 |
+| --- | --- |
+| `unified-task24-activity-age-original-red.log` | 原测试函数在同一probe下 **1 failed，26.1s**（pytest25.64s），字段/状态先通过，最终 **46.9 <= 20**失败；46.9还含真实墙钟经过，不能全归为10.1秒offset或全归为真实dispatch耗时。原宽验22.1红继续单独保留 |
+| `unified-task24-activity-age-verified-candidate.log` | 当前hash候选，**2文件、36 passed / 0 failed / 1 macOS适用项skip，113.9s**；分解为原完整文件35通过/1skip、112.0s，**同一probe**1通过、1.9s，不是仅单项取绿 |
+| `unified-task24-activity-age-candidate-terminal.log` | 早期编排在读取缺失overlay state时就FileNotFoundError，未进入测试；不计为业务红或绿。Root另记录WinError206准备失败，同样不计入上述测试结果 |
+
+因此前节“固定年龄上限”minor现有保持真实执行链的源码修正、原函数确定性红及当前完整文件+同probe绿，**本测试合同范围可以局部关闭**。Reviewer未代跑/连库/修改实现或仓库测试；本轮仅更新报告。它没有定位原宽验约10.1秒墙钟差的具体运行阶段，也不证明整个Native宽验、平台或非WSL七项缺口完成，整体仍 **FAILED / CHANGES_REQUIRED**。

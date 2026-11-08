@@ -181,3 +181,59 @@ identity 还有一条需要观察、尚未证实的分叉：`identity()`（`:74`
 ### 本轮结论
 
 已确认真实合同失败及其精确源码分叉，**根因尚未获得必要现场数据**。没有新增已验证的生产 major 归因，但该失败继续作为未闭合 Native 门禁；不能用历史 43 项绿或当前 PG 689 项绿将其关闭。Task24 和全局审查继续 **`FAILED / CHANGES_REQUIRED`**。
+
+## 2026-11-09：pause 分支观测与 groups-route-parity 新现场
+
+本轮继续只读，未开启测试、连库、操作进程/服务或改生产/测试。下述重跑均为父任务执行，本 Reviewer 核对原始日志/JSON及实际调用链。
+
+### Pause：本次未复现，不关闭原红
+
+`unified-task24-pause-record-branch-observed.log` 为原完整文件 **43 passed / 0 failed，40.1 秒**。已读取 `pause-record-observed-false.json` 与 `pause-record-observed-true.json`：
+
+- False：原 stop_sent=[]，主请求和 accepted reader 均 False，asked/unknown 均为空，live 包含本 PID 332970；cached ct=1794159032.07，与 fresh 结果及记录的 `ct:1794159032.070` 一致，真实 incarnation verdict=True，最终 profiles={}。
+- True：主请求过期返回 False，accepted receipt 返回 True；asked 包含该 PID、unknown 为空、live 包含该 PID，最终债务保持。缓存/新读 ct 同样一致。
+
+这次准确走到了前节预期的两个分支，没有复现旧 PID 71887 的失败，也没有提供旧现场为何偏离的证据。原 wide 的 42 pass / 1 fail 不改写为通过；缓存差异等仍只是待捕获的解释，不能因本次 ct 一致而宣称已经排除。
+
+### Groups-route-parity：确定现场与原契约
+
+原 wide `.build/postgresql/unified-task24-20a478-full-native-observed.log:6335` 显示 `tests/tui_gateway/test_groups_route_parity.py` **3 passed / 1 failed，28.2 秒**。完整可用 inline traceback 的失败链为原文件 `:134` → `test_hosted_room_attachment_routes.py:75` → `test_hosted_room_driver_runtime.py:431`；`_wait_for(timeout=10.0)` 抛出 condition-not-reached。文件总耗时包括其他 case、准备与关闭，不能据 28.2 秒推断某个 IO 阶段耗时。
+
+失败 case 绑定真实 Native room/附件库中的 note.txt 与 shot.png，冻结 task manifest（event/member 归属），然后用 HostedRoomServerRPC 驱动 member turn。它的 session server 是原 `_server_module()` 的本地 SimpleNamespace：session.list 为空，create 返回 runtime；prompt.submit 将 params 放入 submits，**同步**调用 `_hosted_terminal_callback({'status':'settled','text':'Read it.'})`。该 case 没有真实模型 HTTP、外部推理或 managed worker，不能借别的 worker/model 慢点解释它。
+
+待完成的业务结果是 task settled、恰好一次 submit、文档路径仍可读且字节为 exact bytes、`_hosted_images` 中唯一图片字节与 PNG 相同。当前失败发生在这些后续断言之前；原日志没有保存 task 最终状态、submits 是否到达或文件准备阶段。
+
+原 helper 先 runtime.start，再等待 **task 进入 TERMINAL_STATUSES 或 runtime.status().last_error 非空**，finally 原样 `assert runtime.stop(timeout=5.0)`。inline 最终仍是原 10 秒 timeout，未出现 stop 断言失败，表明原 stop 已返回成功；这不提供 stop 之前的 durable/task 状态，也不能排除 stop 等待期间才有晚到进展。
+
+### 实际 runtime / driver / 附件调用链
+
+```text
+HostedRoomRuntime.start → supervisor._worker_loop → _run_cycle
+→ room thread._run_room_once → _process_room
+→ acquire/recover lease → start_task → _execute_attempt
+→ RecordingTurnLocks → resolve/create session → bind/mark submitted
+→ HostedRoomServerRPC.submit
+→ capture_lease → prepare_before_submit(bound_submission_payload)
+→ event/member-authorized HostedRoomAttachmentStore.read
+→ capture_native_media / restore_native_media → document/image owner-local paths
+→ fake prompt.submit → immediate _on_terminal → state.settle_task
+→ terminal publication / driver observation
+```
+
+RecordingTurnLocks 是原测试的立即进入 context manager，不是实际等待审批的 profile lock。附件错误处理与普通 driver 错误通常会设置 last_error 或 terminal failed，使原等待提早返回；但 last_error 不是所有分支的证明：`_run_room_once` 静默处理 LeaseHeldError，`_on_terminal` 静默丢弃被 fence 的 StaleLeaseError / 部分 StaleTaskError。主管/room 线程尚未进入某阶段、阻塞中的原 DB/file 调用，或主 predicate 的原 get_task 读跨过 deadline，也都没有被当前 inline 分辨。以上是待观测分叉，**不是已确认根因**。
+
+相对 a875，原 parity 测试及 session_hosted_attachments/session_ingress_media 没有 diff。Runtime 与 ServerRPC 的两处生产变化是 Path→normalize_location，此 case 输入 Path 仍返回 Path；附件 store 另有本分支新增的所选后端选择/SQLite location guard，不能把所有新调用成本直接视为已经排除。共享 `_legacy_runtime` 在 58d 加入固定业务 clock，避免该路由合同把 0.4 秒 lease 因磁盘/CPU延迟误判到期；原 10 秒外部等待与 5 秒 stop 未变。上述文件在 58d→20a 没有继续修改。
+
+历史 `857d224808` 的明确意图是两条 groups 路由都携带 event/member 授权的文件，文档通过 prompt 路径行、图片通过进程内 `_hosted_images` 传递，不能退回“不支持附件”绕过。58d 原 wide 此文件 **4 passed / 3.4 秒**，69d 原 wide **4 passed / 3.1 秒**；它们只是历史对照，不能替代当前失败或 fresh baseline A/B。
+
+### 最小后续取证建议（不由本 Reviewer 执行）
+
+1. 保留原完整 4-case 文件顺序、真实 Native room/附件、原固定业务 clock、0.4 秒 lease、10 秒 wait、5 秒 stop 和全部文件结果断言。若一次观察绿，只记录未复现，不扩大超时或反复盲跑。
+2. 包装**实际读取 seam** `tests.tui_gateway.test_hosted_room_attachment_routes._wait_for`，在原 timeout 抛出、原 helper 的 finally stop **之前**保存现场后原样重抛；只在 stop 后抓取会丢失最重要的进展状态。parity 模块导入的 helper 仍从该 globals 读取 `_wait_for`，不能只 patch 定义模块中已被导出的旧引用。
+3. 以有界内存事件记录真实调用的进入/返回/异常及 monotonic 时间：supervisor/room cycle、lease acquire/recover、start/bind/mark submitted、附件 read、capture/restore、ServerRPC._call 的方法名、fake submit、callback 和 settle。重点记录静默 LeaseHeld/StaleLease/StaleTask 的实际异常；不要额外调用业务函数、再启动 driver 或通过新连接“复查”。
+4. 保存原 predicate 已实际返回的 task/status，以及 cycles、current task、leases、blocked/deferred 状态、submits 数量、callback 进入/退出和 execution/cancel/lease generation；分别标注观察时点，不能拼成原子快照。原 get_task 每次进入/返回的耗时也需记录，区分 main poll 与 room worker。原 timeout 时可采本测试 runtime 自己的 supervisor/room Python thread stacks；不采其他用户进程。
+5. 只在失败时一次写本测持久诊断产物，附件仅记录 manifest/路径/尺寸等白名单，不逐调用新增 fsync 或打印文件正文。不重置 lease、不改变 authority、scope 或存储实现，也不将 fixture 的同步 terminal callback 替换成别的完成机制。
+
+当前缺的最小判断是：task/lease 在 10 秒内走到了哪一阶段、有没有发生静默 fence、submit/callback 是否真正到达，以及原 predicate 是否长时间停在自己的读调用。取得这些数据前，不能归因为 IO、CPU、固定 clock 或某个数据库冷启动，更不能用调大 timeout 宣布修复。
+
+本节确认两份新观察的准确范围：pause **未复现**；groups 是尚未定因的真实 Native 超时。原红和所有总体平台/宽回归限制继续保留，Task24 与全局结论仍 **`FAILED / CHANGES_REQUIRED`**。

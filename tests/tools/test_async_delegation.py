@@ -439,27 +439,36 @@ def test_list_async_delegations_exposes_live_activity(monkeypatch):
     from progress_fn plus seconds_since_progress, for /agents UIs (#51690)."""
     monkeypatch.setattr(ad, "_STALE_CHECK_INTERVAL", 0.03)
     gate = threading.Event()
+    sampled = threading.Event()
     base_ts = time.time() - 12.0
+
+    def progress():
+        sampled.set()
+        return (((3, "web_search", base_ts),), True)
 
     res = ad.dispatch_async_delegation(
         goal="live listing", context=None, toolsets=None, role="leaf",
         model="m", session_key="", max_async_children=1,
         runner=lambda: (gate.wait(timeout=10), {})[1],
-        progress_fn=lambda: (((3, "web_search", base_ts),), True),
+        progress_fn=progress,
     )
     try:
-        time.sleep(0.1)  # let the monitor stamp _progress_ts at least once
+        assert res["status"] == "dispatched"
+        assert sampled.wait(timeout=5), "monitor never sampled the running child"
+        before = time.time()
         item = next(
             d for d in ad.list_async_delegations()
             if d["delegation_id"] == res["delegation_id"]
         )
+        after = time.time()
         assert item["status"] == "running"
         assert item["in_tool"] is True
         assert "seconds_since_progress" in item
         (child,) = item["children_activity"]
         assert child["api_calls"] == 3
         assert child["current_tool"] == "web_search"
-        assert 10.0 <= child["seconds_since_activity"] <= 20.0
+        # The live age includes time spent dispatching; it is rounded to tenths.
+        assert round(before - base_ts, 1) <= child["seconds_since_activity"] <= round(after - base_ts, 1)
         # Callables and private bookkeeping must never leak.
         assert "progress_fn" not in item
         assert "interrupt_fn" not in item

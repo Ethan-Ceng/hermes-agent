@@ -1743,6 +1743,14 @@ CLI两份fixture最后静态首轮13/14通过，health指出原service test超�
 
 hygiene最终独立foundation复审已接受该fixture小修：正确acquire红/5绿、真实hooks/库及全部原期限均核对，无新增blocking/major。最新`PM Python scripts/check --staged --base 99bd92d5ecdf63c93a01561d58769fd51360cbdf`14检查全过、health1文件0blocking/0advisory、退出0（hygiene-real-warm-checks）；随后仅补入本结果及独立结论并diff-check。以唯一标题`test: prepare real hygiene state before timing`保存本地恢复提交；Task24仍23/24、FAILED/in_progress。下一步继续原宽批终态和pause-record完整文件只读分叉观察，不延长TTL/改权限/重置身份缓存。
 
+原20a478宽批已自然退出1：6412文件63150pass/15fail/726skip、7722.3秒、4workers/retries0（20a478-full-native-observed）。8个非零文件精确为probe1、hygiene1、pause-record1、private-launch7、async-delegation1、groups-route-parity1、notification-poller1、tui-gateway-server2；原hygiene此次实际12.006945064秒违反5秒，不能把新profile代充原现场。probe99bd、hygiene261f已有局部闭环；PG/发行未发生生产变化，不重复执行。新server两项分别15秒未make_agent、下一项scopes多None，须查失败工作线程/清理，不加期限。
+
+async-age测试原固定20上限已按独立plugins核对的合同整改：真实dispatch/ledger/monitor/worker保留，monitor实际Event替代sleep，list前后真实时钟包围同base_ts的一位小数age。原gate10/.03与全部业务/隐私/finally断言不变；不修改生产。相同原函数反例只推进两个模块本地proxy的逻辑时钟10.1秒、全局stdlib不改，原1fail26.1秒（age46.9>20，含模拟推进，不是实际延迟），新261f候选原完整文件+同probe36pass/0fail/1个macOS平台skip/退出0/113.9秒（activity-age-verified-candidate）。overlay单文件SHA641d0ac7...dc21c74，准备时WinError206及缺state零测试保留；独立终态审查/静态待结算。
+
+pause-record原完整文件只读分叉观察43pass/40.1秒，false实际asked/unknown空、live含本PID、fresh/cached ct相同；notification原单项1pass/1.9秒且两个真实join约.006/.709秒。它们只是未复现原红，根因不关闭。剩余当前原宽红的三项有局部整改，另4文件5个Native失败参数与7个非WSL平台参数尚未闭合，最终独立全局审查仍待；Task24继续FAILED/in_progress。详见debug和各独立followup。
+
+async-age最终独立plugins复审已接受源码/原函数红/新36绿1skip，原固定上限minor按局部闭合。最新`PM Python scripts/check --staged --base 261f3fcc04f6f25965e1e78ae5fc7e324fa35aa2`14检查通过、health1个Python文件0blocking/0advisory、退出0（activity-age-checks）；后续仅补实际结果、独立结论和pause/groups只读报告，diff-check通过。以唯一标题`test: compare delegation activity age at sampling time`保存本地测试恢复点；Task24仍FAILED/in_progress，不把补测从原宽批15红中扣成全绿。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |
@@ -1777,13 +1785,15 @@ hygiene最终独立foundation复审已接受该fixture小修：正确acquire红/
 
 Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣称全系统PG已完成。当前120bf8完整PG127文件689绿与双宿主数据库完整批次已结算，两个PG服务恢复失败批次继续保留。69d原生全批非零，最终62/63失败文件已复验但组合仍非全绿；managed history/压缩、controls审批与Host注入偶发超时仍未解释，不一律归因inode或用单次安静绿关闭。非WSL私有启动页七项仍缺适用主机，已异步询问现成入口，不伪装OS或WSL策略。当前发行新载荷已验证，全局最终复审未闭合。
 
+当前Native最新终态补充：20a478完整6412文件63150pass/15fail/726skip、退出1；FAL同ref另38pass。probe99bd/hygiene261f局部整改及async-age新36pass/1skip已独立接受，各自检查14项通过；原批错误留账。其余pause-record、groups-route、notification及server共4文件5个参数尚未定因或整改；另private-launch7项缺非WSL适用主机。上方历史/中途账本不取代本终态，尚无最新完整Native绿色。
+
 ### 最终状态
 
 当前最终验证判定`FAILED`，Task24保持in_progress。未处理blocking/major和宽回归红测必须先整改；非WSL POSIX平台证据缺口单独保留，不得宣称全系统PG完成或可合并。
 
 ## 恢复点
 
-Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。当前汇总恢复`8c75a83c35`，最新测试恢复通过其后唯一标题`test: make probe deadline coverage deterministic`定位，生产仍`120bf8c9d6`。当前完整PG127文件689绿、双宿主DB绿和四套发行已结算；目录外mixed-root1项与删除/混合房间7项另补且独立核对。20a478宽批旧probe一项红已由受控原函数反例定因测试前提、双分支真实flock候选整文件8绿及独立复审/静态闭合；原宽批红不抹去。原history/压缩/审批及Host偶发原因仍未明确，三文件13/1及后次14/0保留。八目录6412文件仍在原20a478冻结运行，state task24-current-wide-native-state.json、log unified-task24-20a478-full-native-observed.log、session64460，保留worker/Host现场观察，FAL同ref独立38项已过。下一步读取其终态/失败artifact，按实际新证据整改，不重复已结算PG/发行或重启当前宽批。适用非WSL主机七项仍缺，全局独立终审未完成。
+Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。最新测试恢复`261f3fcc04`（hygiene真实库准备/清理），probe为99bd；生产仍`120bf8c9d6`。当前完整PG127文件689绿、双宿主DB绿和四套发行已结算；目录外mixed-root1项与删除/混合房间7项另补且独立核对。原20a478宽批已退出1，state task24-current-wide-native-state.json、log unified-task24-20a478-full-native-observed.log，6412文件63150pass/15fail/726skip；不重启，原失败及观察artifact保留，FAL同ref另38项已过。probe/hygiene局部已闭环、async-age新候选36绿/1平台skip待静态及终态复审；原wide15红不抹去。下一步整改pause-record、groups-route、notification-poller和server两项共4文件5参数，按实际线程/身份/状态现场定因，不能以单次串行绿关闭。非WSL七项仍缺适用主机，全局独立终审未完成；历史managed/Host间歇未知因果仍保留，不重复已结算PG/发行。
 
 metrics恢复`2a2684390016a1bfadc4c759bf2151945425f077`已实际Linux13文件34项及新冻结Native36文件714项全过；先前ed0真实worker模型PG计数0的红已由owner通道局部整改，不用旧owner20项替代。RetainDB `ed0cdbe604`与verification `c0558e9c13`证据继续保留，三个真实managed领域在加入quiesce后另6项通过。
 
