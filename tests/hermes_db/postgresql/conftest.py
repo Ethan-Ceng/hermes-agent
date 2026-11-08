@@ -42,7 +42,7 @@ def pg_pair(pg_store, tmp_path):
         peer.close()
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def pg_sqlite_guard(monkeypatch):
     """Reject aliases/direct constructors as well as connect(), even when a caller catches errors."""
     import sqlite3

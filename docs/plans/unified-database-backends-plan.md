@@ -10,9 +10,9 @@
 ## 当前进度
 
 - 整体状态：`IN_PROGRESS`。
-- 当前阶段：单后端完整业务强验收。
-- 当前任务：Task 22（pending；Task21已验收，立即本地提交）。
-- 已完成：21 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前阶段：统一配置文档与独立发行验证。
+- 当前任务：Task23（pending；Task22已验收，立即本地提交）。
+- 已完成：22 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-08（Asia/Shanghai）。
@@ -1330,7 +1330,7 @@ Task21启动恢复点：Task20已在f0c6a6bcb6本地提交，开始时工作区�
 
 ## Task 22：建立单后端运行强验收
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -1367,11 +1367,26 @@ Task21启动恢复点：Task20已在f0c6a6bcb6本地提交，开始时工作区�
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+从Task21提交17078105be的干净工作区恢复，新增共享业务探针和Native/PG验收入口：同一解释器依次运行会话/Projects/验证证据/Cron执行、incident、notepad、delivery/双Board任务、run、comment、附件/房间事件和附件授权/指标/双插件KV与Discord；PG同进程另运行真实RetainDB writer的失败持久待发与实际mautrix/Olm SDK加解密，再运行各域维护。两个Profile使用同Schema不同store与相同会话/房间/插件键，写入后退出解释器，新的解释器以反向Profile顺序重读，RetainDB实际重放同一冻结消息，Matrix恢复原身份、同步游标、群组密钥并再次通过SDK加解密。测试文件只记录随机业务ID和公共加密见证，不存读取替代；断言均来自实际领域API和PG。
+
+SQLite业务探针主动拒绝sqlalchemy/psycopg/alembic/asyncpg导入，真实各域数据库写入后由新解释器恢复，RetainDB同样走真实SQLite队列重放。PG审计用sys.addaudithook捕获别名、URI、内存库和直接Connection构造；独立正向控制实际尝试4种入口全部被拒绝。PG目录fixture升级为autouse，吞错或后台线程尝试仍使测试失败；整个联合业务进程不提供SQLite豁免。用户SQLite文档读取在另一个独立文件输入子进程验证只读内容与文件hash，不给PG业务进程开例外。
+
+首轮Native1pass/1fail、PG1fail均是测试指标resource使用无效taxonomy，实际_validate_counter正常拒绝；改为项目client_resource映射，不改变生产校验。修正后Native2passed（unified-task22-sqlite-second.log）、真实SDK Linux全域双Profile重启1passed（unified-task22-pg-second.log），均退出0。正在运行包含新文件输入合同的Native完整3项，以及PG15文件联合/故障/并发/普通daemon矩阵和静态门禁；尚未结项，不外推为全系统最终ready。
+
+最终结果：PG15文件首轮41pass/8fail，8项都是文件启动的旧fixture在no-install-project环境缺少明确源码路径（ModuleNotFoundError分别为gateway/hermes_cli/plugins/hermes_db，unified-task22-pg-acceptance.log），不是业务SQL失败。共享child_env保留系统白名单且显式pin当前checkout，不继承任意PYTHONPATH；全矩阵重跑49pass/0skip/retry（unified-task22-pg-accepted.log）。最新报告按真正完成的调用登记10领域及Profile数量，PG新进程SQLite连接数均0、无吞错见证；更新后的联合进程+原Matrix恢复2pass（unified-task22-pg-final-process.log）。
+
+SQLite SDK细化与真实证据：上游mautrix SQLite类确实从asyncpg导入UniqueViolationError，直接禁止该类型依赖的首轮SDK补验1fail/3pass（unified-task22-native-sdk.log）；未伪造SDK类或改生产依赖。SDK专项允许真实asyncpg异常类型，但禁止其connect/create_pool，继续禁止SQLAlchemy/psycopg/Alembic；普通SQLite核心专项仍禁止全部四类导入。SDK实际创建SQLite数据库、保存Olm账号/群组密钥/同步游标，退出后新解释器恢复并通过实际OlmMachine再次加解密；Linux最终4pass/0skip（unified-task22-native-sdk-final.log）。没有PG实例或PG连接。Windows共同合同与普通启动4pass/2明确Linux专属skip（unified-task22-windows-final.log），未伪装OS；实际SDK全域PG/SQLite证据来自已核对的Linux环境。
+
+恢复点：Task22验收完成并立即按任务创建本地commit。后续Task23必须从本地提交导出独立载荷、PM环境离开开发源码导入路径验证全部域和迁移；Task24仍须完整原生回归、最终verification-before-completion及独立code-review，不能据本task声明READY_TO_MERGE。正式实例/配置/数据库服务未动。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+- 全部Python验证经`scripts/run_tests.sh`，PG仅私有配置路径和核对归属的随机Schema，retries=0。
+- Linux PM：`scripts/run_tests.sh tests/hermes_db/postgresql/test_single_backend.py tests/hermes_db/postgresql/test_transaction_failures.py tests/hermes_db/postgresql/test_cron_executions.py tests/hermes_db/postgresql/test_plugin_storage_process.py tests/hermes_db/postgresql/test_metrics_process.py tests/hermes_db/postgresql/test_room_attachment_concurrency.py tests/hermes_db/postgresql/test_retain_queue_process.py tests/hermes_db/postgresql/test_retain_queue_transactions.py tests/hermes_db/postgresql/test_matrix_faults.py tests/hermes_db/postgresql/test_matrix_recovery.py tests/hermes_db/postgresql/test_discord_recovery_process.py tests/hermes_db/postgresql/test_kanban_command_receipts.py tests/hermes_db/postgresql/test_kanban_tasks.py tests/hermes_db/postgresql/test_rooms_store.py tests/hermes_db/postgresql/scenarios/kanban_full_gateway.py -j 3 -- -m integration --postgres-test-config=<私有配置>`：49passed，退出0，unified-task22-pg-accepted.log。覆盖池耗尽、实际断连/语句取消、COMMIT确认丢失、精确回执、双进程CAS/配额/计数器/终态、205条Retain重启及完整daemon模型工具和重启。
+- 同Linux环境最新`test_single_backend.py test_matrix_recovery.py -j 2 -- <PG参数>`：2passed，退出0，unified-task22-pg-final-process.log。所有PG测试进程自动SQLite全拒绝；完整业务子进程包含双Profile与10领域。
+- Linux PM：`scripts/run_tests.sh tests/hermes_db/contracts/test_single_backend.py -j 1`：4passed/0skip，退出0，unified-task22-native-sdk-final.log，包含实际SQLite Matrix SDK、完整共同业务、拒绝PG服务连接、四类SQLite审计正向控制、独立用户SQLite文件只读hash。
+- Windows PM：`scripts/run_tests.sh tests/hermes_db/contracts/test_single_backend.py tests/gateway/test_normal_runtime_boot.py -j 2`：4passed/2Linux专属skip，退出0，unified-task22-windows-final.log；SDK专属项在上述Linux真实执行。
+- PM解释器`scripts/check --staged --base 17078105be`：14检查通过、health10文件0blocking/advisory，退出0，unified-task22-checks-final.log；`git diff --cached --check`退出0。仅本账本完成记录随后补写，立即本地commit。
 
 ## Task 23：完善统一配置文档与独立发行验证
 
@@ -1494,7 +1509,7 @@ Task21启动恢复点：Task20已在f0c6a6bcb6本地提交，开始时工作区�
 
 ### 未通过与未验证
 
-Task 1–21已完成，Task22–24尚未实施；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
+Task1–22已完成，Task23–24尚未实施；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
 
 ### 最终状态
 
@@ -1502,6 +1517,6 @@ Task 1–21已完成，Task22–24尚未实施；不得宣称全系统PG已完�
 
 ## 恢复点
 
-Task1–21已验收并按任务创建本地commit（Task20 `f0c6a6bcb6`；Task21标题`feat(storage): close unified entry points and profile file lifecycle`）。下一项Task22：建立所有域同时工作及跨进程恢复的零SQLite强验收，复用已有真实普通daemon/worker场景并补齐完整矩阵，不能用部分入口或历史835测试替代。Task23独立发行和Task24最终独立review仍未实施。分支仍为`feat/postgresql-session-storage`，正式实例保持SQLite，未写正式Profile、秘密或业务表；不能由此宣称全系统PG已完成。
+Task1–22已验收并按任务创建本地commit（Task21 `17078105be`；Task22标题`test(storage): prove complete single-backend business recovery`）。下一项Task23：统一文档/示例、从本地提交导出独立source-bundle，经PM双安装环境验证全部域初始化、迁移资源和重启隔离；Task24最终独立review仍未实施。Task22最新PG矩阵49pass、最新SDK/全域进程2pass、Linux SQLite含SDK4pass、Windows共同合同4pass/2平台skip，14静态检查通过。分支仍为`feat/postgresql-session-storage`，正式实例保持SQLite，未写正式Profile、秘密或业务表；不能由此宣称全系统PG已完成。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

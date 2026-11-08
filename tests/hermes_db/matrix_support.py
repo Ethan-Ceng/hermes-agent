@@ -29,7 +29,7 @@ def group_pair(room="!room:matrix.test"):
 
 
 @asynccontextmanager
-async def sdk_machine(store):
+async def sdk_machine(store, *, device_id=None):
     import aiohttp
     from mautrix.api import HTTPAPI
     from mautrix.client import Client
@@ -38,7 +38,7 @@ async def sdk_machine(store):
     from plugins.platforms.matrix.adapter_crypto import _CryptoStateStore
     async with aiohttp.ClientSession() as session:
         state = MemoryStateStore()
-        client = Client(mxid=store.account_id, device_id=store.reference.owner_device,
+        client = Client(mxid=store.account_id, device_id=device_id or store.reference.owner_device,
             api=HTTPAPI(base_url="https://matrix.test", client_session=session), state_store=state, sync_store=store)
         machine = OlmMachine(client, store, _CryptoStateStore(state, set(), client))
         await machine.load()

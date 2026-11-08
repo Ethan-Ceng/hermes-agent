@@ -52,7 +52,9 @@ CHILD_ENV_KEYS = ('PATH', 'LANG', 'TZ', 'SYSTEMROOT', 'SYSTEMDRIVE', 'WINDIR', '
 
 
 def child_env():
-    return {k: os.environ[k] for k in CHILD_ENV_KEYS if k in os.environ}
+    # File-launched fixtures need this checkout even in a PM no-install-project environment.
+    return {**{k: os.environ[k] for k in CHILD_ENV_KEYS if k in os.environ},
+            "PYTHONPATH": str(Path(__file__).resolve().parents[3])}
 
 
 async def rpc(ws, method, **params):
