@@ -5,7 +5,7 @@
 ## 版本与观察条件
 
 - 基准为 `a875342384`，生产整改冻结版本为 `58d0003f83`；`d402ff3a06` 和 `66a987c9ea` 只修改测试合同、诊断及文档。已用 `git diff 58d0003f83 --name-only` 核对未继续修改生产代码。
-- Linux 为真实 Ubuntu/WSL。冻结 checkout 在现有隔离 `/tmp/hermes-unified-matrix-*` 目录，原先跨版本 `/mnt/d` 宽跑的 partial 日志不作为冻结验收。
+- Linux 为真实 Ubuntu/WSL。冻结 checkout 在现有隔离 Linux 本机测试根，具体根与提交见忽略目录的 `task24-*-state.json`；原先跨版本 `/mnt/d` 宽跑的 partial 日志不作为冻结验收。
 - 全部 Python 合同由 PM 解释器经 `scripts/run_tests.sh` 执行，retries=0。没有延长业务 deadline、伪造 OS 或关闭功能。诊断探针与原文件隔离回归分别登记，不把导入式探针当作完整回归。
 
 ## Compression deterministic fallback
@@ -75,6 +75,14 @@
 d402完整批次随后在约58%出现服务端 recovery mode：最终114文件336 passed、325 errors、49文件非零，不能计通过。用户处理服务后，首次仍not yet accepting connections，之后Windows/Linux只读查询都确认指定独立数据库身份及pg_is_in_recovery=false。只对本批次日志中两个Schema候选先验证数据库、当前角色owner和唯一测试标记，再删除仍存在的一项，另一项已不存在；未操作其他Schema或管理服务。
 
 当前66a完整PG/发行/普通daemon重跑日志为 `unified-task24-pg-after-service-recovery.log`，已完整659 passed/0 failed/0 errors/0 skipped、退出0、1276.2秒。原Worker两项也在此实际通过。保留原超时及旧批次服务中断证据；完整PG绿色不替代尚未通过的Native宽回归与未决调试。
+
+## 配置 owner 与安全启动
+
+当前归档验证直接解析 YAML 触发配置架构 guard，已改为复用配置 owner 的纯原始文档解析入口，不用 live defaults/overlay 替代归档证明。Windows 原配置及新归档合同48项、实际PG备份10项通过，独立同合同48项及ZIP/quick拒绝覆盖11项通过；最终新发行载荷与完整回归尚待。
+
+safe-mode 的新增 owner 栈显示，忽略用户配置的会话在可选 Project 标签查询中重读坏 YAML，发生在 worker 之前。普通标签查询原本也在 owner_scope 外，真实PG双Profile取得了前景Profile项目。当前最小修复将普通查询移到owner_scope内，bypass不查询该附加标签。新PG永久合同3红→3绿；原完整CLI/worker合同须在新冻结checkout复验。新测只证明正常创建后坏配置的snapshot及持久handle/peer隔离，不扩大为坏storage配置下新PG创建或跨进程重启成功。
+
+remote fresh Profile 的 staging 查询也被真实plane原合同拒绝。a875/58d同条件均失败且git历史确认会话阶段已存在；当前沿用既有supports_file_tooling边界，只对本地复制配置分配新身份，远端fresh的最终配置归其backend。Windows fresh已过，但完整文件99pass/6个其他dotenv/home失败仍保留，不能标为完整通过。
 
 ## 调试结论
 

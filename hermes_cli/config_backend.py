@@ -173,6 +173,12 @@ class ConfigValueError(ConfigWriteError):
         super().__init__(message, code=code)
 
 
+def parse_config_document(payload: Any) -> Any:
+    """Parse a raw persisted file/archive document without live layers, expansion or defaults."""
+    from utils import fast_safe_load
+    return fast_safe_load(payload)
+
+
 class FileBackend:
     """The user layer is ``<home>/config.yaml`` on local disk."""
 
@@ -188,9 +194,8 @@ class FileBackend:
 
     @staticmethod
     def read_path(path: Path) -> Any:
-        from utils import fast_safe_load
         with open(path, encoding="utf-8-sig") as f:
-            return fast_safe_load(f)
+            return parse_config_document(f)
 
     @staticmethod
     def read_path_readonly(path: Path) -> Any:

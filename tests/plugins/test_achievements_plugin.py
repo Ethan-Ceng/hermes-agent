@@ -123,7 +123,10 @@ def _install_fake_session_db(plugin_api, fake_db):
     and cannot leak into unrelated tests in the same process.
     """
     fake_module = type(sys)("hermes_state")
-    fake_module.SessionDB = lambda **_kw: fake_db
+    def open_fake(**kwargs):
+        fake_db.db_path = kwargs['db_path']
+        return fake_db
+    fake_module.SessionDB = open_fake
     plugin_api._test_monkeypatch.setitem(sys.modules, "hermes_state", fake_module)
 
 

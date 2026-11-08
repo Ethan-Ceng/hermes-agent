@@ -141,8 +141,11 @@ def session_inventory(authority, policy, agent, cwd):
     from tui_gateway import git_probe
     info: dict = {"tools": {}, "skills": {}, "mcp_servers": [], "version": "", "release_date": "",
                   "update_behind": None, "update_command": "",
-                  "branch": git_probe.branch(cwd) if cwd else "", "project": _project(cwd)}
+                  "branch": git_probe.branch(cwd) if cwd else "", "project": None}
     with owner_scope(authority):
+        # Bypass launches deliberately ignore live Profile config, including this optional label.
+        if policy is None or not policy.ignore_user_config:
+            info["project"] = _project(cwd)
         config = policy.config(authority, secrets=False) if policy is not None else {}
         if agent is not None:
             from agent.voice_turn_route import session_runtime_view

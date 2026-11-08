@@ -253,3 +253,67 @@ Reviewer 在忽略的 `.build/postgresql/review_foundation/test_hot_profile_park
 - 唯一持有的本测 daemon 已退出并被回收，门闩 finally 释放。所有数据都是临时 Profile/文件，未操作正式实例。
 
 这项局部测试整改及其 pending 等待路径已得到独立正向证据。原 a875/58d 两份门闩红测、冻结原生失败及当时 reply 未知的边界全部保留；主 Agent 的整文件 7 项日志 `unified-task24-hot-profile-async-contract.log` 在本节读取时仍运行，本报告不以单个 probe 代替其最终结果。其他未闭合失败、完整冻结/PG 门禁和平台证据缺口均不受本次通过影响，整体仍 **`FAILED` / `CHANGES_REQUIRED`**。
+
+### 新增 major：可选 Project 展示击穿 safe launch 的冻结策略合同
+
+**状态：已复现的新增产品回归，整改尚待独立验收。** 冻结原生日志第 5473–5487 行的 `tests/hermes_cli/test_safe_mode.py` 在第二次真实 `--safe-mode` CLI 请求失败（exit 1、request_failed）。此项不能归为时序或仅由预期的坏 YAML 警告造成；相同环境顺序 A/B 已复现直接因果。
+
+意图已以 `git log -p -S` 核对：`ee6b11605014e2dc9dc33f546bb7fcee02576701` 明确规定 safe/ignore-user-config 为 owner 冻结策略，真实隔离 worker 不读 Profile YAML/插件/规则文件，且损坏 config.yaml 后第二次 safe launch 仍成功；`111ee7249e614bffa2555f6ee6895735ee8e5cb7` 又将这个冻结快照合同接入 `load_user_config_effective`。当前 effective loader 第 63–69 行仍优先返回 `worker_config_snapshot`，没有证据表明已经绑定的 worker 绕过该 seam 重读 YAML。
+
+独立观察层 `.build/postgresql/review_foundation/test_safe_mode_observed.py` 直接运行原用例与真实 PTY/daemon/loopback model。原 CLI 非零时，在原断言触发前保存本测 owner 的 stdout/gateway/errors 日志及原审计 hook 已记录的 config.yaml 打开栈；不打印凭据或配置内容，不改原期限、断言或任一生产函数。
+
+| 固定 checkout | 实际结果 | 日志 |
+| --- | --- | --- |
+| a875 baseline | 原完整 safe-mode 合同 1 passed，退出 0，37.1 秒 | `.build/postgresql/review-foundation-safe-mode-baseline-observed.log` |
+| 58d head | 原相同 `SAFE_PROBE_two` exit 1/request_failed，1 failed，退出 1，18.57 秒 | `.build/postgresql/review-foundation-safe-mode-head-observed.log` |
+
+head 日志第 304–353 行保留了 owner 的完整实际异常链：
+
+```text
+session.create -> AuthorityConnection._create -> resume
+-> snapshot_info (session_local_inventory.py:202)
+-> session_inventory:144 -> _project(cwd):66
+-> projects_db.connect_closing:147 -> connect:124
+-> resolve_db_configuration:101 -> _storage_config:87/90
+-> live config.yaml parse failure -> StorageConfigurationError
+```
+
+原审计 hook 的实际 config-open 栈也记录同一 owner PID 的 `_project`→Projects connect→`load_user_config_effective`→`read_config_doc`，与上述异常栈相符。错误发生在本次 `session.create` 的 owner 展示信息生成阶段，还未进入这次 prompt/worker turn；不是 worker 的冻结快照被破坏。
+
+精确新增触发点：`hermes_cli/projects_db.py:124` 从原直接打开 SQLite 文件改为每次 Projects connect 重新解析选定 storage；`gateway/session_local_inventory.py:68` 新增 `except StorageError: raise`。该 inventory 的第 144 行在可选 banner Project 标签查询时调用它，且发生在第 145 行已有 `owner_scope(authority)` 之前。因此损坏 live YAML 的 StorageConfigurationError 从可选 inventory 逃逸，导致整个 create/resume RPC 被映射为 request_failed。普通 fail-closed storage 选择本身必须保留；问题是 bypass 会话被要求完成这项额外 live-config 展示查询。
+
+最小保持目标的方向：
+
+- 对 `policy.ignore_user_config`（safe_mode 已蕴含它）的 inventory，保持可选 project 标签为 None，不做该附加 Projects 查询；会话、admission、worker 的实际持久化仍使用既有 owner authority/store，不回落数据库、不变成内存 turn，也不关闭 safe 功能。
+- 普通 Project 查询应置于已有明确 `owner_scope(authority)` 内；本 probe 仅一个 Profile，未单独声称已证明多 Profile 串库。
+- 如需要在 bypass banner 仍显示项目名，应由 owner 已持有的明确 settings/scope/domain 资源读取。冻结的 agent 默认配置与持久 store 身份是两种边界，不能因 snapshot 缺 storage 配置而为已选 PG owner 改开 SQLite，也不能在多 Profile owner 绑定一次性的全局 worker policy。
+- 不将 `db_setup` 改为 fail-open，不让 PG 配置错误回落 SQLite/内存，不以删除坏 YAML 阶段或放宽 safe-mode 审计断言制造通过。整改后仍需原完整三阶段（普通 sentinel、两次 safe launch、config-only 插件语义）的真实正向复验及相应后端边界验证。
+
+本项是本轮新增 **major**，与之前已确认闭合的数据删除/Bot Chat/房间整改分开记录；在当前冻结版本上它仍阻止批准。冻结原生此时已累计 12 failed，其他失败与完整最终验证仍按各自证据处置。整体继续 **`FAILED` / `CHANGES_REQUIRED`**。
+
+### safe-mode major 的最小整改与新增 PG 合同复审
+
+主 Agent 随后修改 `gateway/session_local_inventory.py`：普通 `_project(cwd)` 移入既有 `owner_scope(authority)`；`policy.ignore_user_config` 时保留 `project: None`，不做附加 Project 标签查询。Reviewer 只读复审实际 diff 与测试/日志，未改生产、仓库测试或活跃冻结 checkout，也未提交。此次受审生产 blob 为 `5028965b9752a1f9b7ac865a1d371d1a218abc53`，新增测试 blob 为 `685f27ab49721b9c5c36bf14fe45da7dc79c2ddf`。
+
+在该最小 diff 中未发现新的 blocking/major 或功能/后端回退路径。跳过范围只有 bypass inventory 的可选项目名；实际会话/路由/worker 持久资源仍由已持有的 owner authority 选择，未把 agent 冻结默认值用于重选存储。普通 Projects 的 `_project` StorageError 传播和 db_setup fail-closed 保留，既没有新增 SQLite/内存 fallback，也没有关闭 safe/config-only 功能。普通查询在 owner scope 内是正向修复，避免借用前景 Profile。
+
+新增 `tests/hermes_db/postgresql/test_local_inventory_storage.py` 的三项实际合同及证据已独立读取：
+
+| 合同 | 原目标红测 | 当前绿测所证明的行为 |
+| --- | --- | --- |
+| 同 workspace、前景与 owner 两个 PG Profile 各有项目 | 原查询实际取出 foreground project，断言 owner project 失败 | 在 foreground scope 中构建第二 Profile 的真实 authority，库存项目名来自 owner project；owner store_id 为 surface-two |
+| `ignore_user_config=True, safe_mode=False` | 真实 snapshot_info→Projects→坏 live YAML 抛 StorageConfigurationError | 既有 PG 会话的实际 snapshot 成功，project 为 None，owner 会话仍可读；直接 `_project` 对同坏配置仍明确拒绝 |
+| `ignore_user_config=True, safe_mode=True` | 同上，在实际 snapshot_info 目标路径失败 | 同一 bypass 合同成功，恢复配置后重新经公共 factory 获取可读该 session，另一个 store 不含该 session |
+
+`unified-task24-inventory-target-red.log` 为 **3 failed**（pytest 15.91 秒）；`unified-task24-inventory-owner-green.log` 为 **3 passed、0 failed**（runner 19.7 秒）。虽然 runner 的静态测试数量估计为 2，参数化实际执行的是 3 项，不将估计数当作跳过。surface_config 使用真实已升级、归属核对的随机 PG namespace、两 store_id 和 pool_size/connection_budget 1；没有 fake store 或模拟 SQL 结果。
+
+SQLite 门禁没有放宽：使用 postgresql 目录的 autouse `pg_sqlite_guard`，既替换 `sqlite3.connect`，又对 `sqlite3.connect` audit 事件拒绝；teardown 还检查所有尝试，即使业务捕获拒绝也会失败。测试文件没有加豁免、关闭 guard 或改内存后端。独立读取的代码还保留普通坏配置的 StorageConfigurationError 反向断言。
+
+验证范围必须保持明确：
+
+- 当前两个 bypass 项先在配置有效时真实 `create_local_session`，再写坏 YAML，随后执行实际 snapshot_info。这是本次 inventory 修复的目标边界；先前“坏配置下新建会话”的初版更早在 routing/storage 解析失败，并未命中 inventory，不能登记为本修复的目标红测。计划账本已保留该事实，没有把早期拒绝隐藏为业务通过。
+- 当前绿测证明已存在 PG 会话在坏配置下的 snapshot、原 owner 持久数据可读、恢复配置后公共 factory 重新获取及 peer store 隔离。owner authority 在重新获取时仍存活，未证明关闭所有 owner/连接后的独立进程重启恢复。
+- 它不等价于“损坏 PG Profile 配置后新建 safe session 的全 RPC/worker E2E”；生产 routing 和其 fail-closed 未改。该更早边界不因本次三绿而扩大为通过或自动判定已修复。
+- 原完整 `tests/hermes_cli/test_safe_mode.py` 仍需在主 Agent 的新冻结快照执行：包括真实 CLI/PTY、普通 sentinel、两次 safe launch、worker 文件打开审计与 config-only 插件语义。Reviewer 按要求未覆盖活跃 58d/66a checkout，正在等待新快照信息；不以这三项 PG 测试替代原合同。
+
+因此本项状态更新为：**源修复及目标 PG 子合同复审符合预期，原 major 的完整验收仍待最新冻结原合同复跑。** 当前未新增需要生产修改的审查问题；完整原生/PG 结算与其他门禁继续保留，整体 **`FAILED` / `CHANGES_REQUIRED`**。

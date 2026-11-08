@@ -132,11 +132,12 @@ class DatabaseBackupPolicy:
         owner, local = self._owner(relative)
         if local != Path("config.yaml") or "postgresql" not in (self.source.get(owner), self._backend(owner)):
             return
-        import hermes_yaml as yaml
+        from hermes_yaml import YAMLError
+        from hermes_cli.config_backend import parse_config_document
         from hermes_cli.db_setup import _storage, _backend
         try:
-            config = yaml.safe_load(read_payload())
-        except (OSError, yaml.YAMLError, UnicodeError):
+            config = parse_config_document(read_payload())
+        except (OSError, YAMLError, UnicodeError):
             raise StorageConfigurationError("Cannot verify backup database backend configuration") from None
         if not isinstance(config, dict):
             raise StorageConfigurationError("Cannot verify backup database backend configuration")

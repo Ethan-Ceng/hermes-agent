@@ -1563,6 +1563,36 @@ hot-profile新helper独立真实正向门闩1pass/退出0（review-foundation-ho
 
 冻结Native宽回归另出现managed-compress[False]在HISTORY_9普通turn terminal原30秒超时，尚未到实际compress操作，当前已观察7fail。独立只读诊断将捕获本测真实worker/admission及拥有者日志，不凭文件名或低并行绿测猜根因。除正在改的测试合同外，生产代码仍保持58d，不以完整PG659绿测抵消这些Native失败。
 
+上述测试/调试恢复commit为`dcb0e7df59df0e644e6def1157332a2bda2b7394`，不是Task24完成提交。首次快照参数误填为不足10位引用，被工具在创建前拒绝；随后直接从git rev-parse HEAD读取完整ref，新独立Linux checkout（task24-hot-profile-checkout-state.json）保持该ref的实际测试源码。原`test_multiplex_hot_serve_live.py -j1 --file-timeout1200 -- --tb=long`完整7pass/0fail/退出0、222.1秒（unified-task24-hot-profile-native-filesystem.log）；原启动90秒、控制5秒未变。Root/mnt/d此前6pass/1个启动失败的日志保留，不把切换文件系统本身当作原启动延迟已定因；当前受影响文件复验全过。
+
+UTF-8完整静态输出已读：14项中13项通过，唯一no-tmp失败是新调试文档写死Linux临时根；health该测试文件0blocking/0advisory（unified-task24-hot-profile-contract-checks-utf8.log）。现文档改为引用实际task24状态文件，未添加规则豁免；只重跑受影响`check --staged --only no-tmp --base 66a987c9ea`为1check ok/退出0（unified-task24-debug-path-check.log）。原测试代码与完整14项执行时的blob c4c46a7bf2bafcab33a782036dee1fd302ca6d22一致；不冒称第一轮14项命令退出0。全分支最终统一检查留待总验收收敛时复核。
+
+managed普通turn独立单次带观测原False用例1pass/退出0、106.3秒（review-native-managed-compress-observed.log），原17次terminal等待均保留30秒、实际两个daemon周期及后续压缩/配置冻结/owner/worker排空/重启断言全部执行。原故障点HISTORY_9此次4.1002秒，最长HISTORY_15为24.9360秒；实际没有触发timeout现场采样，不能归因CPU/模型/锁/启动/结算或称已修复。独立报告unified-database-native-managed-compress-observation.md及原失败一并保留，不重复轰跑争取绿色。当前只剩58d八目录Native宽回归仍在执行；其7个失败信号并未因局部通过全部闭合。
+
+宽回归继续揭示实际新问题及工具前提：config_read_guard明确命中backup_database_policy.validate_config的归档字节yaml.safe_load，未通过配置owner。此处必须验证归档自身的原始backend，不能换成当前Profile的defaults/overlay/ENV或把归档写入临时config再读。整改决定：在现有config_backend增加纯raw document解析入口，FileBackend与归档均复用同一既有fast-safe loader；不访问live backend、不增加存储后端或恢复路径、不改变矛盾metadata/坏内容的fail-closed规则。补原始BOM/环境字面值/坏内容秘密安全合同；原架构guard红及真实PG/Native备份合同均须复验。此为Task24原owner边界整改，未扩展统一数据库设计。生产代码将不再与58d字节一致，旧659全绿只对应此前冻结版本；新生产恢复commit后须重建独立载荷并复验相关当前代码，不能自动继承旧结果。
+
+其他新增CLI准备错误已由独立工具审计区分：Node/npm未在Linux准备，既有PM uv0.13.5已验证但不在测试PATH；desktop/setup/plugin相关错误不是业务已通过。Root将仅通过PM在新的隔离store准备锁定Linux Node26.12.1/npm12.0.2，明确加入已verified工具PATH后复跑受影响文件，不修改仍运行的58d环境。MiniMax loopback Connection reset及safe_mode request_failed分别保留，不能归入缺工具。当前Native仍未完整结算，新增失败/错误以最终汇总为准。
+
+新增已确认major：safe-mode原完整合同在a875通过、58d失败，独立实际owner栈定位session.create/resume展示信息在owner_scope之外调用Projects，重新解析被明确忽略的损坏live YAML；尚未进入worker。新增真实PG双Profile红测也实际取得foreground project而非owner project。整改仅把普通可选Project查询放到既有owner_scope内；ignore_user_config策略不查询该附加标签，实际会话仍使用已持有的持久store，不改storage fail-closed、不以冻结agent默认值改选SQLite。原PG bypass新测在创建时更早触及routing重新解析坏配置，尚未命中inventory，不能计为目标红测；调整为先真实创建持久会话，再损坏配置并调用真实snapshot_info，单独保留新建routing需要有效storage配置的边界。完整safe-mode原合同及普通PG隔离/持久化/重开均须复验。
+
+Linux隔离PM工具准备已实际结束：uv0.13.5、Node26.12.1、npm12.0.2版本核对通过，状态task24-linux-tools-state.json；下载SSL失败重试及最终成功保留在unified-task24-native-tools-pm-preparation.log。原58d宽回归环境未被修改，当前仍运行，已观察44 failed，最终setup错误及失败分类必须读取完整汇总；先前7fail为当时进度而非最终数量。
+
+另一当前major已按原真实remote plane合同复现：fresh Profile仍在隐藏staging目录时，fork_storage_identity无条件向配置backend解析该临时home，remote backend正确拒绝非法Profile home，导致创建失败（unified-task24-remote-profile-red.log，1fail）。后续独立同条件A/B及git show证明a875会话基础已有此问题，f874e6be49为其祖先，不归为本24项计划新增；因它直接阻断当前Profile身份创建仍在本轮收敛。既有远端配置明确不允许文件clone，fresh没有复制的storage身份或本地config需要fork；远端最终Profile配置继续由其backend管理。整改沿用既有profiles_config的supports_file_tooling边界，只有实际拥有本地配置文件的backend执行复制身份拆分，不为staging伪造远端Profile、写远端配置或回落SQLite；本地PG clone的独立store_id及file owner合同仍须复验。此处不改变运行时统一后端选择。
+
+当前PG inventory永久合同已实际3fail→3pass，退出0（unified-task24-inventory-target-red.log / unified-task24-inventory-owner-green.log）。独立foundation复审未发现新增blocking/major，明确两项bypass只证明既有持久会话的snapshot、再次取得handle及peer隔离，不声称关闭owner后的跨进程恢复或损坏storage配置下新PG session.create成功；原完整CLI/worker safe-mode合同待新快照。归档原始配置合同Windows48pass、实际PG备份10pass，独立同合同48pass及真实ZIP/quick拒绝发布11pass；局部复审archive-config-document-review通过，整体仍CHANGES_REQUIRED。remote Windows全文件99pass/6fail，fresh已过；其他六项为dotenv/plane-home合同，尚未核对主机前提或基线，完整日志unified-task24-remote-profile-green.log保留，不能把该名称当全绿结果。
+
+Linux实际PM工具补齐后29文件完整复验424pass/0fail/0error、退出0、251.9秒（unified-task24-native-tools-recheck.log），仍58d冻结源码、原deadline、retries0；覆盖原缺工具的Desktop/source/TUI/web构建及plugin install/update/consent/guard等，具体完整文件列表保留在runner日志。没有改原宽回归环境或给生产增加工具特判。test_update_finish两项后经独立追栈也属缺Node，另由Reviewer在相同已验证工具环境单独复验，不将原failed吞掉。
+
+冻结58d的八目录原生宽回归已真实结束：6412文件62870passed/44failed/220errors/726skipped，49文件非零（1个import/collection），退出1、10578.9秒（unified-task24-frozen-native-areas.log）。只读runtime observer在核对原runner身份后自动记录terminal并退出0，没有管理/重启/终止该runner；全量失败保留。除了已实际424项工具补验，Photon三文件还需已核验Node环境，FAL collection缺锁定fal extra需通过PM新环境补验；不能把220errors当成业务已执行。独立后段报告unified-database-native-late-failures-review记录7项A/B在a875/58d均红的归属，不将既有问题自动抵消当前失败。
+
+Achievements三个失败已由独立保留原断言的观测定位为替身缺实际SessionDB必有的db_path；当前只在测试factory按实际打开参数填充db_path，不动生产storage_identity或统计/partial持久化合同，须复验原文件。Windows本地Profile identity+profiles两文件批次为101pass/8fail/4skip（两个store/file身份clone用例通过）；其余包括symlink权限及POSIX壳/环境合同失败，unified-task24-profile-identity-fork.log保留，拟在新Native冻结快照完整复验，不假称Windows完整通过。最新完整静态首轮14项仅ruff冗余fixture alias失败、health552文件0问题；删除冗余alias后单独ruff退出0，最终完整检查将再次执行。
+
+独立MiniMax诊断已给出实际原socket及单变量TCP反事实：测试Handler未消费95字节POST即关闭，客户端仍open且只收到13032<16384字节便RST；仅读完请求体则完整响应+EOF。生产OAuth和原测试在a875/58d均无diff，不修改生产吞ReadError。当前仅补测试Handler按Content-Length消费body，保留真实socket、15秒HTTP边界、16KB截断及全部错误文本断言；原红、基线/窄绿和诊断首版自身失误均保留在native-oauth-update-finish-observation.md。update_finish补工具实际14pass/2skip，缺esbuild/TypeScript/Vite的两个真实构建仍未验证，不能记16pass。
+
+当前Achievements原全文件Windows6pass/0fail/退出0（unified-task24-achievements-fixture-final.log），只修测试factory身份属性。新PG测试fixture改为pytest_plugins复用实际既有fixture，以消除冗余alias/参数遮蔽，不更改业务断言；完整静态第二轮因该遮蔽及独立报告临时根字面值而失败，均按规则修正，未加豁免，须最新复验。
+
+当前整改恢复提交前最新验证：`scripts/check --staged --base a875342384`全部14检查通过，554个Python文件health0blocking/0advisory、退出0（unified-task24-owner-checks-accepted.log）；保留此前两轮真实失败。Windows配置/归档/本地PG身份clone/MiniMax真实HTTP/Achievements五文件72pass/0fail、退出0（unified-task24-owner-contracts-final.log）；pytest_plugins复用fixture后实际PG inventory仍3pass/0fail、退出0（unified-task24-inventory-plugin-fixture.log）。Linux补PM Node的Photon三文件16pass/0fail/0skip、退出0（unified-task24-photon-tools-recheck.log）。另通过PM新建单独含锁定fal extra的测试环境成功，未修改原full环境，业务测试尚待。将保存本地恢复commit以建立新冻结验证点，Task24继续in_progress，不是完成提交；完整原safe-mode/remote/备份与新发行载荷门禁仍待。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |
@@ -1576,10 +1606,10 @@ hot-profile新helper独立真实正向门闩1pass/退出0（review-foundation-ho
 
 ### 执行结果
 
-- 单元/SQLite回归：最新Windows核心212文件573pass/0fail/3平台skip，局部Native合同见Task24；冻结Linux八目录宽回归仍运行且有失败，尚未通过。
+- 单元/SQLite回归：最新Windows核心212文件573pass/0fail/3平台skip；dcb独立Linux hot-profile全文件7pass，66a shutdown原文件Linux/Windows各25pass，完整SQLite SDK双Profile/新进程恢复4pass。冻结Linux八目录宽回归完整6412文件62870pass/44fail/220errors/726skip、退出1；工具前提修正后另29文件424pass，其他整改/复验未闭合。
 - 真实PG各域/并发/故障/单后端审计：最新冻结66a完整114文件659pass/0fail/0error/0skip、退出0；含完整PG目录、独立发行及显式普通daemon。旧58d四失败、d402服务恢复模式325errors及确认/清理过程保留，不计作最新批次通过。
 - 独立安装/显式迁移/原生重启：58d四套新PM环境已构建；最新独立安装Windows4pass/2Linux SDK skip、Linux6pass/0skip；全域联合业务/SDK新进程恢复已真实通过，但最新普通daemon/Worker联合复验未闭合。
-- 静态/生成契约/适用构建：58d全分支14检查通过、547个Python文件health 0；d402测试合同及最新shutdown清理各14检查通过/health 0。最新生成契约check、契约strict TypeScript、Desktop Electron noEmit均退出0，Desktop预检22pass。
+- 静态/生成契约/适用构建：58d全分支14检查通过、547个Python文件health 0；d402测试合同及shutdown清理各14检查通过/health 0。最新hot-profile测试14检查的13项通过/no-tmp文档失败，文档修正后该guard独立退出0，测试blob未变。生成契约check、契约strict TypeScript、Desktop Electron noEmit均退出0，Desktop预检22pass；最终全分支统一检查尚待。
 - 独立审查：原三份初审CHANGES_REQUIRED；分域follow-up已记录已发现问题闭合，最新maintenance测试修正独立2pass；全局最终复审未完成。
 
 ### 验收标准检查
@@ -1594,7 +1624,7 @@ hot-profile新helper独立真实正向门闩1pass/退出0（review-foundation-ho
 
 ### 未通过与未验证
 
-Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣称全系统PG已完成。最新66a完整PG114文件659项全绿，先前非零结果、服务恢复/两候选归属清理全部保留。非WSL私有启动页七项仍缺适用主机，不伪装OS或WSL策略。Native宽回归仍运行且已有6fail；hot-profile异步测试合同修正正在复验，其他失败因果未定，全局最终复审未闭合。
+Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣称全系统PG已完成。最新66a完整PG114文件659项全绿只对应58d生产实现；新归档/配置owner及Profile创建修改须绑定新载荷复验，先前非零、恢复/清理记录保留。非WSL私有启动页七项仍缺适用主机，已再次异步询问现成入口，不伪装OS或WSL策略。Native宽回归已完整失败（62870pass/44fail/220errors/726skip）；工具29文件424pass及局部整改证据不自动关闭其余失败，全局最终复审未闭合。
 
 ### 最终状态
 
@@ -1602,6 +1632,6 @@ Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣
 
 ## 恢复点
 
-Task1–23已验收并按任务创建本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`）；Task24生产整改恢复提交`58d0003f83`，测试合同恢复提交`d402ff3a06`，线程清理及总审查汇总恢复提交`66a987c9ea`，均未标本项完成。58d四套新PM发行环境已验证；当前判定FAILED，仍23/24。PG经用户处理后双主机核对恢复、中断两个候选已严格归属清理，66a全PG/发行/daemon114文件重跑中（unified-task24-pg-after-service-recovery.log）；58d Linux八目录Native宽回归仍运行，已4fail。Linux/Windows最新shutdown原文件各25pass、独立两条失败路径清理证明保留原异常，但原Worker超时、compression/barrier及command discovery差异尚未定根因。下一步：读取两个完整批次汇总；继续独立command discovery失败时持有子进程栈/共享skill cache作用域假设的确定性见证，不能无证据改Agent核心或放宽timeout；整改后复验并最终独立全局审查。非WSL私有启动页七项仍缺适用主机。正式实例仍SQLite a875342384，未写正式Profile、秘密或业务表，不推送/发布/PR/合并。
+Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`）；Task24所有58d/d402/66a/dcb恢复均未标完成，当前仍FAILED、23/24。58d生产版本对应完整PG/发行/普通daemon659pass及Windows核心573pass；Native完整6412文件62870pass/44fail/220errors/726skip、退出1。PM工具补齐后29文件424pass，hot-profile全文件Linux7pass、shutdown双主机25项、SQLite SDK4项已通过，其他原失败保留。当前工作区新增归档原始配置owner、inventory所属scope/bypass和remote fresh Profile边界修复；局部独立复审及PG3项/备份10项、配置48项已绿，生产已不同于58d，不能继承旧659为当前最终证据。下一步：当前完整静态通过后保存明确Task24未完成的本地恢复commit、创建新的独立Native快照复验safe-mode/remote/备份等受影响文件，重建四套发行载荷并验证新生产版本；继续处理未决失败/缺SDK和构建工具前提，非WSL七项等待现成主机入口，最后独立全局终审及整改后复验。正式实例仍SQLite a875342384，未写正式Profile、秘密或既有业务表，不推送/发布/PR/合并。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

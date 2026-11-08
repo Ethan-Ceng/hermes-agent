@@ -4,7 +4,10 @@ import uuid
 
 
 def fork_storage_identity(home):
-    from hermes_cli.config_backend import write_config_key
+    from hermes_cli.config_backend import supports_file_tooling, write_config_key
+    # Non-file backends refuse cloning and own the final Profile's configuration themselves.
+    if not supports_file_tooling():
+        return
     from hermes_cli.config_effective import load_user_config_effective
     from hermes_cli.db_setup import _backend, _section, _storage
     from hermes_db.errors import StorageConfigurationError
