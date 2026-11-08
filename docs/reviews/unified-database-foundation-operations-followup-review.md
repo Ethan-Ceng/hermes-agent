@@ -716,3 +716,52 @@ finally覆盖整个handler调用与断言段，任何其中的异常都会先释
 已读取 `unified-task24-hygiene-real-warm-accepted.log` 的完整终态：PM Linux、canonical runner、retries=0、`-j1`，**3文件5 passed/0 failed、45.9秒**，分项原文件3 passed/12.5秒、强制原断言失败的cleanup恢复probe1 passed/31.3秒、真实acquire顺序probe1 passed/2.1秒。文件总时长包含真实预热和测试进程开销，不能把31.3秒改写为5秒计时内的handler耗时；probe同时保留原AssertionError/强制正文及close一次/任务排空要求。
 
 **本项fixture最终候选可接受，未发现新增blocking/major。** 它将已实证的真实post-turn冷准备移到hygiene计时之前，保留原预算及真实功能，已有正确acquire红绿和原合同通过支持；firstcase cleanup minor按前节范围保持闭合。没有生产性能修复声明，不将旧红记录抹除或预记仍live的20a478全宽终态；其他历史定时问题、非WSL POSIX七项主机缺口和最终全域验收仍需按各自证据处理。全局继续 **FAILED / CHANGES_REQUIRED**。
+
+## 20a478 宽批终态：TUI build 两红与 poller 取证边界
+
+当前 `fb48321d7d06997b787b0ec8e855a74527179ec4` 上仅做只读诊断，未代跑、连库、修改生产/测试或提交。已直接读取 `unified-task24-20a478-full-native-observed.log:6709` 的终态：**6412文件63150 passed/15 failed/726 skipped，8文件非零、exit1、7722.3秒**。此为原20a478快照，后来的probe预算/hygiene fixture整改没有覆盖或重启它。原hygiene完整断言现已打印为elapsed **12.00694506400032 < 5.0** 失败（第6884行）；该次仍无各phase现场，不能直接套用后续新重现的post-hook时序。
+
+### [minor] 两个 profile build 用例没有在 mock 失效前收回自有构建线程
+
+位置：`tests/tui_gateway/test_tui_gateway_server.py:864`、`:868`、`:926`、`:930`；实际构建为 `tui_gateway/session_registry.py:216`。
+
+原文件实际 **635 passed/2 failed、runner290.5秒**，完整输出从第7350行起。MCP-home case在原 `built.wait(15)` 失败；下一secret-scope case记录到两次make-agent调用，一项为None、一项含目标fixture凭据，而断言要求一项。两个finally都只从全局sessions移除sid，没有join已保存于 `session['_agent_build_thread']` 的实际线程。只移除记录不会停止已捕获current的构建：`_build` 在开始读取current及profile_home，之后直到make-agent以前没有再次检查记录是否仍存在；仅在attach时才拒绝被移除的session，并在finally释放scope/DB、set ready。
+
+这会产生确定的测试生命周期窗口：后台body仍可能运行，但pytest已撤销本case的 `server._make_agent` 等patch并安装下一case的patch。`tui_gateway/method_ctx.py` 将函数重绑到server的globals，`_make_agent` 和MCP startup在实际调用时查找全局值，unique sid不会隔离这个mock窗口。`3995fd434cb457c85dfacfeead04f69c65bad092` 的历史修改已提及前一build仍可能finishing，却采用unique sid/15秒等待、stub尾部工作，未补足失败时的join。该历史说明检查方向，**不是本次额外调用来自哪条线程的现场证据**。
+
+业务阶段需要继续分开：当前build真实经过resume-history、session context、home/secret/terminal scope绑定、目标profile session store acquire、MCP discovery、make-agent、attach/wiring和finally。第一个15秒失败只证明其 `built` Event没有在期限内set；没有该线程当时的栈/phase，不能先归因SQLite冷启动、秘密加载、MCP或CPU调度。上述生产/测试路径文件相对a875没有相关diff，但无diff与别次窄绿都不能替代同条件失败证据。
+
+最小建议：两个用例在finally通过自己session持有的确切build-thread handle收回线程，保证原patch撤销前不再有自有后台body继续执行；保留15秒build、5秒ready及原业务断言。清理失败仍须报失败，不能删掉额外调用、过滤None或扩大业务deadline。若线程未结束，诊断只记录该handle的阶段和栈；不要枚举/干预其他服务线程。必要的隔离probe可以用Event包装实际绑定/实际store acquire后的接缝，精确证明迟到线程跨越patch生命周期及join整改，但不能伪造scope或store结果。
+
+### 额外 None 不等于已证实的秘密泄漏
+
+secret case的mock在第898行用 `dict(scope) if scope else None` 记录：正确安装的空字典scope与未安装scope都写成None。前一MCP-home profile没有自己的fixture秘密，故来自该profile的正确空scope也可能产生None。记录还缺少make-agent的实际sid/thread identity和 `current_secret_scope_home()`，无法区分本case错误绑定、前case迟到调用或其他后台调用；即使确认前case迟到，也不等于该调用读取了另一个Profile的秘密。
+
+生产代码在make-agent之前调用 `_bind_build_profile_scopes(profile_home)`，目标home有值时真实构造profile secret mapping、安装home/secret/terminal，再打开该profile store，失败不回落到launch DB；finally释放这些scope。当前输出不足以证明这条实际调用跨越了秘密边界。下一份最小观察应在原mock入口记录实际sid、当前线程handle/ident、实际home及scope是否严格为None（与空mapping分开），只记录scope键名/归属，不记录真实秘密值；同时记录自有build的阶段enter/exit和原15秒超时时的栈。先建立额外调用归属，再决定是否需要生产整改，不能按这条列表直接报产品秘密泄漏。
+
+### notification poller 的3秒失败仍未定因
+
+`unified-task24-20a478-full-native-observed.log:7325` 起显示首次poller已按原3秒join退出、唯一replacement也已确认；真正失败在对replacement set stop后第二个3秒join结束仍alive（原测试第52行），文件1 failed/4.74秒。不是“旧poller未被停止”的已证实重现。
+
+已读 `unified-task24-notification-joins-observed.log`、对应terminal输出与 `notification-joins-observed.json`：一次只读join观察窄跑 **1 passed/1.9秒**，两个原3秒join实际约0.006302与0.709027秒，均alive=false、无失败栈；finally两个1秒join均立即返回。两份输出不能计作两个独立失败现场或据此关闭原红。
+
+`tui_gateway/session_notifications.py:750` 在进入loop前先绑定profile scope、import/restore completions，loop内还会真实执行orphan sweep、goal/heartbeat、kanban、park/routing和退出后的drain。只有queue等待最多0.5秒，不等于任意一个在途步骤可在0.5秒内被stop中断。现有证据没有replacement在原3秒窗口的实际栈，不能指认哪条调用阻塞，更不能通过禁用这些业务或放宽join解除红。最小后续证据是在本测持有的replacement handle原join失败时立即记录栈及当前scope/阶段，同时保留stop/退出/drain时间；不再仅做无失败观察的重复窄跑。
+
+本轮确认测试自有build线程清理minor及其mock污染可能，尚未实证server产品scope泄漏或具体15秒/3秒超时根因。两个server红、poller红及其他分域失败仍需按真实整改和证据处置；非WSL POSIX七项平台缺口不变。**Task24仍 FAILED / CHANGES_REQUIRED**，本节不批准合并或发布。
+
+## 两个 profile build 用例 cleanup 的局部红绿与整文件结算
+
+只读复核 `fb48321d7d06997b787b0ec8e855a74527179ec4` 上的测试候选及实际产物；未代跑、连库、修改实现/测试或提交。`git diff --numstat` 为6新增/6删除，删除的是过时“延长等待即可稳定”注释和一空行；两个case各新增从自己session取实际 `_agent_build_thread`、真实 `join(timeout=15)`、随后pop session、断言线程已退出。原 `built.wait(15)`、`ready.wait(5)`、MCP home和完整secret scope业务断言均保留。
+
+**新增的15秒是独立清理上限，不能称所有时序不变。** 它不让原built/ready断言多等：原失败在进入finally前已确定；若线程能在清理上限内结束，旧mock在该线程结束之前继续有效，随后才让pytest撤销。清理耗尽仍alive会明确失败，不合成成功、不删除额外调用。该有界清理不是对任意永久挂起线程“保证已退出”的声明，也不证明原15秒慢阶段已修复。
+
+`task24_prepare_build_cleanup_probe.py` 保留真实scope绑定、真实线程和最终真实 `_open_profile_session_db` 调用，只在该本测调用前用真实Event门闩暂停。原built Event的probe wait等待实际进入门闩后返回False，确定触发原准确AssertionError；这不是原15秒自然超时的再现。join wrapper仅对 `real_start` 实际返回并保存的本测thread handle释放门闩，再转调真实join；未信号扫描或join其他进程/服务线程。probe自身finally也释放并真实join，旧红不会把门闩泄漏到后续case。
+
+- `unified-task24-profile-build-cleanup-original-red.log`：旧99bd测试 **1 failed、2.3秒**。已通过 `pytest.raises` 捕获原“agent build thread never called _make_agent” AssertionError，之后明确观察到本测构建线程仍alive。
+- `unified-task24-profile-build-cleanup-candidate.log` 中同probe **1 passed、3.0秒**；仍要求原异常类型/准确正文，本测线程已在异常返回后退出。它直接证明此次失败清理路径的改善，不证明旧宽批额外None属于前一个线程。
+
+`task24-server-cleanup-overlay-state.json` 指向新的fb483独立候选，overlay只有该测试文件；SHA256 `f85b555d992786fb0db76d1f9b76aea1b3b6f6a88ec81a6b558cb118c64b388d` 与Reviewer实际读取文件一致。候选运行期间已真实结算：PM Linux、canonical runner、retries=0、`-j1`，**2文件638 passed/0 failed、110.4秒**，即原完整文件637 passed/107.4秒和上述probe1 passed/3.0秒。不能把runner初始估计614项当作实际执行数，也不把terminal副本当另一轮执行。
+
+已核对附加只读observer及两个JSON：它转发原Event.wait，不改变返回/期限，记录实际session build handle；profile记录当前home、sid、scope是否严格为None和键名，不记录秘密值。此次MCP case built/ready等待约0.270780/0.973593秒；secret case约0.255482/0.496395秒，均原期限内成功，ready返回时owned线程已退出。secret make入口实际sid/home属于本case，返回时scope非None且只有目标fixture键。它们是本次成功现场，不能解释旧15秒失败，也不能替代旧额外None所缺失的sid/thread归属；先后线程可复用ident，判断仍按各自session持有handle与sid。
+
+**此次cleanup局部整改可接受，前节两个case的线程清理minor按上述有界范围闭合，未发现新增blocking/major。** 原服务器两红现有完整637项补验，但不宣称已定位其历史慢阶段或多余调用根因；原poller3秒退出失败未由这次文件通过覆盖。20a478宽批非零、其余分域失败与非WSL POSIX七项证据缺口继续保留。全局仍 **FAILED / CHANGES_REQUIRED**。

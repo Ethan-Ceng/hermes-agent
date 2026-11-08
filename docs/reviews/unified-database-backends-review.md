@@ -82,6 +82,10 @@ hygiene后续局部结算：独立foundation已读取上述实际证据，接受
 
 async-age后续局部结算：独立plugins已核对当前测试源码、模块本地clock反例、精确hash及原整文件/同probe36pass1skip，接受固定年龄上限minor整改。最新暂存CI14检查通过、health1文件0/0；当前完整Native仍按原20a478的63150pass/15fail/726skip结算，不以局部补测冲掉原红。后续继续四文件五参数取证和适用平台门禁。
 
+server cleanup局部补证：原两profile测试finally缺自有thread join已由原函数故障红→同probe绿及当前原完整637项通过支持，合计638pass/110.4秒。独立foundation接受该minor；原built15/ready5不变，新每case15秒是独立cleanup上限。当前成功phase/sid/scope观察不关闭旧15秒超时根因或旧None归属。groups四项只读阶段观察4绿同样只属未复现，原Native失败和全局门禁继续保留；最新静态待结算。
+
+server cleanup最终静态14检查通过、health1文件0/0；独立foundation接受该minor，collaboration只核对groups成功观察的边界。当前四个剩余完整文件-j4联合观察尚运行，尚不能计绿；本地恢复标题`test: join profile build threads before releasing mocks`，生产仍120bf8，无需因本次测试小修重复PG/发行。
+
 ## 合并门禁
 
 | 门禁 | 当前结果 | 理由 |

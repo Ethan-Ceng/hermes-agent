@@ -829,7 +829,6 @@ def test_profile_scoped_agent_build_starts_mcp_discovery_in_profile_home(
 
     seen = []
     built = threading.Event()
-
     monkeypatch.setattr(
         server,
         "_make_agent",
@@ -844,9 +843,6 @@ def test_profile_scoped_agent_build_starts_mcp_discovery_in_profile_home(
     monkeypatch.setattr(server, "_SlashWorker", lambda *args: None)
     monkeypatch.setattr(server, "_attach_worker", lambda *args: None)
     monkeypatch.setattr(server, "_config_model_target", lambda: ("", ""))
-    # CI runs this huge file serially under load; a prior session's _build can
-    # still be finishing (session.info emit) when the next test starts, so a
-    # 2s Event wait flakes. Unique sid + longer bound; still fail closed.
     monkeypatch.setattr(server, "_start_notification_poller", lambda *a, **k: None)
     monkeypatch.setattr(server, "_schedule_mcp_late_refresh", lambda *a, **k: None)
     monkeypatch.setattr(server, "_emit", lambda *a, **k: None)
@@ -865,7 +861,10 @@ def test_profile_scoped_agent_build_starts_mcp_discovery_in_profile_home(
         assert built.wait(timeout=15), "agent build thread never called _make_agent"
         assert ready.wait(timeout=5), "agent_ready never set after build"
     finally:
+        build_thread = session["_agent_build_thread"]
+        build_thread.join(timeout=15)
         server._sessions.pop(sid, None)
+        assert not build_thread.is_alive(), "profile build outlived its test's mocks"
 
     assert seen == [str(profile_home)]
 
@@ -907,8 +906,6 @@ def test_profile_scoped_agent_build_installs_secret_scope(monkeypatch, tmp_path)
     monkeypatch.setattr(server, "_SlashWorker", lambda *args: None)
     monkeypatch.setattr(server, "_attach_worker", lambda *args: None)
     monkeypatch.setattr(server, "_config_model_target", lambda: ("", ""))
-    # Same CI flake class as the MCP profile-home test: bound wait + less work
-    # on the build thread (no poller / late MCP refresh / session.info emit).
     monkeypatch.setattr(server, "_start_notification_poller", lambda *a, **k: None)
     monkeypatch.setattr(server, "_schedule_mcp_late_refresh", lambda *a, **k: None)
     monkeypatch.setattr(server, "_emit", lambda *a, **k: None)
@@ -927,7 +924,10 @@ def test_profile_scoped_agent_build_installs_secret_scope(monkeypatch, tmp_path)
         assert built.wait(timeout=15), "agent build thread never called _make_agent"
         assert ready.wait(timeout=5), "agent_ready never set after build"
     finally:
+        build_thread = session["_agent_build_thread"]
+        build_thread.join(timeout=15)
         server._sessions.pop(sid, None)
+        assert not build_thread.is_alive(), "profile build outlived its test's mocks"
 
     assert scopes == [{"PROXMOX_TOKEN": "grace-secret"}]
 

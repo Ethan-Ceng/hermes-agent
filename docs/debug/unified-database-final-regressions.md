@@ -219,3 +219,21 @@ async实际失败22.1>20源于测试base_ts在真实dispatch前设为当时减12
 新261f3fcc04隔离候选state=`task24-activity-age-overlay-state.json`，单文件SHA256=`641d0ac71508edbebf8f3c70d3bd43ba018613c532aaf783b070b236fdc21c74`。初次复制因Windows命令长度206失败，后续缺state没有测试；该准备错误单独保留。改为从已知挂载读取源文件并验证SHA后，经`run_matrix_linux.py --state task24-activity-age-overlay-state.json --tools-state task24-linux-tools-state.json --native --log unified-task24-activity-age-verified-candidate.log tests/tools/test_async_delegation.py tests/tools/test_task24_live_activity_elapsed_dispatch.py -j1 --file-timeout1200 -- -m 'not live'`调用canonical脚本，实际**2文件36pass/0fail/1个macOS平台skip、退出0、113.9秒**。原整文件35pass/1skip，原函数同一反例1pass；没有声称验证macOS或整个Native。独立plugins已读取diff/probe/hash和终态，当前静态尚待。
 
 最终局部独立plugins复审已关闭原固定上限minor，接受真实Event就绪与年龄包围合同；不关闭原宽验延迟归因。`PM Python scripts/check --staged --base 261f3fcc04f6f25965e1e78ae5fc7e324fa35aa2`全部14检查通过、health1个Python文件0blocking/0advisory、退出0（activity-age-checks）。随后只补本结果/独立结论及pause/groups只读followup；diff-check另核。本地恢复标题`test: compare delegation activity age at sampling time`，不是Task24完成提交。
+
+## 2026-11-09：profile build 测试线程清理
+
+独立foundation核对原两个profile build测试的finally都仅pop session，没有等待自己保存于`_agent_build_thread`的确切线程。生产build捕获current后，在make-agent之前不会因记录被pop就停下；make-agent/helper又按server的绑定globals实际取值。故测试patch撤销后线程仍可执行，是已确认的生命周期窗口；旧额外None尚缺sid/thread归属，且记录表达式把空{}与真正未绑定None合并，不能据此报生产秘密泄漏或宣称原超时已定因。
+
+先用`task24_prepare_build_cleanup_probe.py`调用原首case：真实scope、实际构建线程及最终store acquire保留，只在原built.wait处返回False触发准确原AssertionError；真实open前用本测Event门闩停住线程。join wrapper只对已保存的本测thread释放该门闩后调用真实join；probe自身finally也释放/等待，避免旧函数泄漏。原候选实际**1fail/2.3秒/退出1**，原错误已捕获后仍观察到自有build alive（profile-build-cleanup-original-red）。该反例证明清理缺口，不复刻原15秒慢阶段。
+
+原两case的finally各增加获取自身handle、join15秒、pop session并断言thread不存活。原built15/ready5和全部home/scope断言不变，没有修改生产。**每case新15秒是独立清理上限**，不能写成所有时序未改，也不能承诺超出该上限的线程必定已退出；超限仍报失败。清除旧时序注释后文件diff6+/6-，不增长原巨型文件。
+
+当前fb48321d7d独立candidate state=`task24-server-cleanup-overlay-state.json`，单文件SHA256=`f85b555d992786fb0db76d1f9b76aea1b3b6f6a88ec81a6b558cb118c64b388d`。经`run_matrix_linux.py --state task24-server-cleanup-overlay-state.json --tools-state task24-linux-tools-state.json --native --log unified-task24-profile-build-cleanup-candidate.log tests/tui_gateway/test_tui_gateway_server.py tests/tui_gateway/test_task24_profile_build_failure_cleanup.py -j1 --file-timeout1200 -- -m 'not live' -p _task24_server_build_observer`调用canonical runner：**2文件638pass/0fail、退出0、110.4秒**，原完整文件637pass/107.4秒、相同错误路径probe1pass/3.0秒。该probe仍要求原AssertionError类型及正文，同时自有真实线程已结束。
+
+只读observer记录确切线程、phase与原Event.wait结果，不预热/替换store，也不记录秘密值。此次两个built等待约.271/.255秒，ready约.974/.496秒；实际目标profile acquire约.261/.248秒。secret mock只见本次拥有者sid/home，scope严格非None、键归属正确。它只证明本次成功，不补造旧15秒失败栈/旧None归属。独立foundation已核对实际源码/红绿/hash/637整文件，接受cleanup minor局部闭合；静态待执行，Task24整体不变。
+
+另原完整groups-route四项只读阶段观察**4pass/0fail/退出0/33.9秒**（groups-route-phase-observed），原期限10/5/.4与固定业务clock全保留。document/image case共44个事件、dropped0，实际room_once约.136秒，两次附件read、submit/callback及settle均成功、generation1；没有失败前stop快照。这只是未复现原红，wholefile33.9秒不是该case的room阶段时长。观察器挂实际fixture读取的_wait_for，在原超时后/stop前捕获并重抛，只记录原调用已返回的task/lease，没有新增业务探测；独立collaboration正核对其边界。
+
+最终静态`PM Python scripts/check --staged --base fb48321d7d06997b787b0ec8e855a74527179ec4`实际14检查通过、health1个Python文件0blocking/0advisory、退出0（profile-build-cleanup-checks）。独立collaboration已核对groups观察器与原业务字节断言并保留未复现边界。随后仅补入本结果/独立报告和恢复点，diff-check另核；以本地唯一标题`test: join profile build threads before releasing mocks`保存cleanup恢复提交，不是Task24完成提交。
+
+同一精确fb+f85b测试overlay现正通过canonical runner执行四个剩余原完整文件（pause-record、groups-route-parity、notification-poller、tui-gateway-server）`-j4 --file-timeout1200 -- -m 'not live'`，四个只读插件分别保存joint命名产物，原正向/红产物不覆盖（remaining-native-joint-observed，session41931）。全部原业务期限/文件内顺序/真实持久化保留；尚无完整终态，不计通过。

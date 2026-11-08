@@ -1751,6 +1751,12 @@ pause-record原完整文件只读分叉观察43pass/40.1秒，false实际asked/u
 
 async-age最终独立plugins复审已接受源码/原函数红/新36绿1skip，原固定上限minor按局部闭合。最新`PM Python scripts/check --staged --base 261f3fcc04f6f25965e1e78ae5fc7e324fa35aa2`14检查通过、health1个Python文件0blocking/0advisory、退出0（activity-age-checks）；后续仅补实际结果、独立结论和pause/groups只读报告，diff-check通过。以唯一标题`test: compare delegation activity age at sampling time`保存本地测试恢复点；Task24仍FAILED/in_progress，不把补测从原宽批15红中扣成全绿。
 
+server两个profile build测试失败清理已单独验证并最小整改：原finally只pop，确切自有thread可越过patch生命周期。原函数故障probe保留真实scope/线程/store acquire，只迫使原built断言失败；旧1fail/2.3秒（原异常已捕获后thread仍alive），新同probe1pass/3.0秒。两case各join自身handle15秒再pop/assert退出，原业务built15/ready5及scope/home断言不改；新增15秒明确为cleanup独立上限，超限仍红，不宣称完全相同时序或原15秒慢因已修。当前fb483 overlay SHA f85b555d...64b388d，原完整637项+probe共638pass/0fail/退出0/110.4秒（profile-build-cleanup-candidate），独立foundation接受cleanup minor局部闭合，静态待。observer本次只见成功的自有sid/home/scope，旧额外None归属及旧超时仍未关闭。
+
+groups原完整4项在只读phase observer下4pass/0fail/退出0/33.9秒；document/image真实room_once约.136秒、两read/submit/settle均有返回，44events/dropped0、无失败快照，只记未复现。观察保留原10/5/.4及固定业务clock，在原timeout/stop前仅保存实际调用状态和自有线程栈，不额外连库探测。下一步按四个原失败完整文件的联合现场继续取证，未闭合仍4文件5参数及非WSL7项，全局FAILED/in_progress。
+
+server cleanup最新`PM Python scripts/check --staged --base fb48321d7d06997b787b0ec8e855a74527179ec4`14检查通过、health1文件0blocking/0advisory、退出0（profile-build-cleanup-checks），独立foundation已接受故障probe红绿与完整637项结算；collaboration已接受groups未复现的准确边界。之后仅补本结果/审查/恢复文字并diff-check。本地恢复标题`test: join profile build threads before releasing mocks`，Task24仍23/24、FAILED/in_progress。当前同一fb+f85b overlay正以-j4跑四个剩余完整文件联合观察（remaining-native-joint-observed/session41931），全部原期限/真实存储/文件内顺序保持，joint产物单独命名，尚无完整终态，不重启/覆盖。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |
@@ -1793,7 +1799,9 @@ Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣
 
 ## 恢复点
 
-Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。最新测试恢复`261f3fcc04`（hygiene真实库准备/清理），probe为99bd；生产仍`120bf8c9d6`。当前完整PG127文件689绿、双宿主DB绿和四套发行已结算；目录外mixed-root1项与删除/混合房间7项另补且独立核对。原20a478宽批已退出1，state task24-current-wide-native-state.json、log unified-task24-20a478-full-native-observed.log，6412文件63150pass/15fail/726skip；不重启，原失败及观察artifact保留，FAL同ref另38项已过。probe/hygiene局部已闭环、async-age新候选36绿/1平台skip待静态及终态复审；原wide15红不抹去。下一步整改pause-record、groups-route、notification-poller和server两项共4文件5参数，按实际线程/身份/状态现场定因，不能以单次串行绿关闭。非WSL七项仍缺适用主机，全局独立终审未完成；历史managed/Host间歇未知因果仍保留，不重复已结算PG/发行。
+Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。最新测试恢复按唯一标题`test: join profile build threads before releasing mocks`定位，父提交fb48321d7d（async-age）；hygiene261f、probe99bd均已局部闭合，生产仍120bf8。当前完整PG127文件689绿、双宿主DB绿、四套发行及目录外mixed/deletion另8项均已结算，不因测试/文档重复运行。
+
+原20a478宽批已退出1，state task24-current-wide-native-state.json、log unified-task24-20a478-full-native-observed.log，6412文件63150pass/15fail/726skip；原红/现场保留，FAL另38绿。probe/hygiene/async-age三项局部已闭环；server自有线程cleanup minor现有正确红绿/完整637绿/独立复审/14静态，但原15秒慢因及旧None归属不冒称已修。仍需处置pause、groups、notification及server共4文件5参数和非WSL7项。当前同一fb+f85b候选四完整文件-j4联合观察session41931（remaining-native-joint-observed）仍在运行；下一步读其终态及joint观察产物，不重启或用前次窄绿替代。全局独立终审未完成，历史managed/Host因果保留。
 
 metrics恢复`2a2684390016a1bfadc4c759bf2151945425f077`已实际Linux13文件34项及新冻结Native36文件714项全过；先前ed0真实worker模型PG计数0的红已由owner通道局部整改，不用旧owner20项替代。RetainDB `ed0cdbe604`与verification `c0558e9c13`证据继续保留，三个真实managed领域在加入quiesce后另6项通过。
 

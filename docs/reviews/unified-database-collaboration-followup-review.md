@@ -237,3 +237,43 @@ RecordingTurnLocks 是原测试的立即进入 context manager，不是实际等
 当前缺的最小判断是：task/lease 在 10 秒内走到了哪一阶段、有没有发生静默 fence、submit/callback 是否真正到达，以及原 predicate 是否长时间停在自己的读调用。取得这些数据前，不能归因为 IO、CPU、固定 clock 或某个数据库冷启动，更不能用调大 timeout 宣布修复。
 
 本节确认两份新观察的准确范围：pause **未复现**；groups 是尚未定因的真实 Native 超时。原红和所有总体平台/宽回归限制继续保留，Task24 与全局结论仍 **`FAILED / CHANGES_REQUIRED`**。
+
+## Groups 首次 phase observer 的独立只读核对
+
+已读取 `.build/postgresql/task24_prepare_groups_observer.py`、其 state 绑定、四个 JSON 摘要及目标 case 的全部事件，并核对 `unified-task24-groups-route-phase-observed.log`。父任务实际运行原完整文件 **4 passed / 0 failed，exit 0，33.9 秒**；本 Reviewer 未代跑、连库、操作服务/进程或改生产/测试。
+
+该次输入为 `task24-hygiene-warm-overlay-state.json` 指向的 99bd snapshot，加 unrelated hygiene 单测试 overlay；groups 的测试、fixture 和 driver/attachment 相关源码相对原 wide 的 20a 没有 diff。不能将本次文件结果计成当前全 Native 宽批通过。
+
+### Observer 完整性
+
+wrapper 对实际 runtime/state/AttachmentStore.read/ServerRPC._call 使用原 args/kwargs，原样返回结果；异常记录类型后 bare raise。hookwrapper 不改测试 outcome，finally 撤销 monkeypatch。它没有新增业务 get 或 SQL 探测，没有修改原 10 秒 wait、5 秒 stop、0.4 秒 lease 或 fixture 的固定业务 clock。
+
+`fixture._wait_for` 确实是原 helper 实际读取的 seam：wrapper 先调用 real_wait，若抛错，便从 caller 的原 runtime 采集当时字段及自有 supervisor/room thread stacks，保存后重抛，随后才进入原 helper 的 finally stop。这在代码顺序上符合前节的最小方案。
+
+方法事件在内存中有界记录，最终统一写入 JSON，没有逐调用新增 fsync。summary 只取标量状态/identity/generation 字段，未打印附件正文。数据是分阶段观测，不是一个事务内的统一快照。
+
+### Document/image case 的实际返回链
+
+`groups-route-observed-test_tui_member_turn_receives_its_document_and_image.json` 的 test node 精确匹配原失败 case：**44 events、dropped=0、snapshots=[]，已记录方法无 error**。本次关键阶段如下；嵌套区间重叠，不能相加当总耗时：
+
+| 实际调用 | 本次 monotonic 时间 / 用时 | 返回证据 |
+| --- | --- | --- |
+| `_run_room_once` | 264275.423855150 → 264275.559589864，**135.735 ms** | 正常返回 |
+| `acquire_lease` | 11.337 ms | lease_generation=1 |
+| `recover_room` | 16.281 ms | 正常返回 |
+| `start_task` | 20.553 ms | execution_generation=1 |
+| RPC `session.list` / `session.create` | 0.008 / 0.005 ms | 原 fake RPC 路径返回 |
+| 两次 AttachmentStore.read | 4.408 / 4.607 ms | 均正常返回 |
+| RPC `prompt.submit` | 264275.531611015 → 264275.546049527 | 同一 room thread 内包含同步 `_on_terminal` |
+| callback 内 `settle_task` | 14.364 ms | status=settled、execution_generation=1 |
+| 原后续 get_task | room thread 与 main poll 均返回 | 多次 settled/generation=1，最终读亦相同 |
+
+记录中的 task 状态依次出现 queued/generation0、running/generation1、settled/generation1；本次没有记录到 LeaseHeld/StaleLease/StaleTask 异常。两次 read 的 summary 本身不含 byte 内容，准确字节由**原测试随后的文档及 PNG 断言通过**证明，不能把 observer summary 当成额外正文校验。
+
+### 未复现边界
+
+- 135.735 ms 只覆盖这次 room thread 的 `_run_room_once`，不是整个 case，更不是文件的 33.9 秒。fixture、admit/bind、其他 case、未包装的准备与清理不由该区间说明；本 observer 也未单独计量 capture_native_media/restore_native_media，不能推导其各自耗时。
+- snapshots=[] 表示本次原 wait 没有抛错；pre-stop 失败快照与线程栈路径**没有实际触发**。目前只审查了该路径的代码顺序，不能声称已经捕获或验证原超时现场。
+- 本次真实成功链排除了“此次没有 submit/settle”的解释，但没有排除原 wide 的调度、持久状态、静默 fence 或阻塞分叉，也不能据本次各阶段很快反推原失败必为 IO/负载。
+
+该结果准确结算为**原四项本次未复现失败**。若父任务后续选择联合观察，应继续保留原文件内顺序、期限、固定 clock 和业务断言，按原失败时点的数据分支定位；本 Reviewer 未启动任何联合批次。pause 和 groups 的原 wide 红均保留，Task24 与全局仍 **`FAILED / CHANGES_REQUIRED`**。
