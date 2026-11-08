@@ -421,7 +421,8 @@ def _setup_worktree(repo_root: str | None = None, sync_base: bool = True,
 
     # Lock so other processes (and `git worktree remove`) see it is in use; fail-soft.
     try:
-        reason = f"hermes pid={os.getpid()}" + (f" db={retain_db}" if retain_db is not None else "")
+        from hermes_cli.worktree_storage import lock_suffix
+        reason = f"hermes pid={os.getpid()}" + lock_suffix(retain_db)
         _git(["worktree", "lock", "--reason", reason, str(wt_path)], repo_root)
         logger.debug("Worktree locked: %s (pid=%s)", wt_path, os.getpid())
     except Exception as e:
@@ -763,7 +764,7 @@ def _worktree_branch_pushed_exact(
 # and ``hermes session=<id> db=<state.db>`` (re-lock when the TUI exits). Read raw from the admin
 # dir: plain ``list --porcelain`` C-quotes a reason holding a backslash, a quote, a control or a
 # non-ASCII byte (every Windows path), and the ``db=`` path would never parse.
-_HERMES_LOCK_RE = re.compile(r"hermes (?:pid=(\d+)|session=\S+)(?: db=(.+))?", re.DOTALL)
+_HERMES_LOCK_RE = re.compile(r"hermes (?:pid=(\d+)|session=\S+)(?: db=(.+)| store=(\S+))?", re.DOTALL)
 
 
 def _retain_worktree_for_session(repo_root: str, worktree_path: str, session_id: str, db_path) -> bool:
@@ -775,7 +776,8 @@ def _retain_worktree_for_session(repo_root: str, worktree_path: str, session_id:
     """
     _git_quiet(["worktree", "unlock", worktree_path], repo_root, log="worktree unlock before retain failed")
     try:
-        result = _git(["worktree", "lock", "--reason", f"hermes session={session_id} db={db_path}",
+        from hermes_cli.worktree_storage import lock_suffix
+        result = _git(["worktree", "lock", "--reason", f"hermes session={session_id}" + lock_suffix(db_path),
                        worktree_path], repo_root)
     except (OSError, subprocess.SubprocessError) as exc:
         logger.debug("worktree retain lock failed for %s: %s", worktree_path, exc)
@@ -816,6 +818,11 @@ def _tree_still_served(db_path: str, worktree_path: str) -> Optional[str]:
     (``workdir``) or is bound to such a session's local chat. Reads only; unreadable fails SAFE."""
     import sqlite3
     from urllib.parse import quote
+    from hermes_cli.worktree_storage import ProfileStore, tree_still_served, sqlite_locator_selected
+    if isinstance(db_path, ProfileStore):
+        return tree_still_served(db_path, worktree_path)
+    if not sqlite_locator_selected(db_path):
+        return "unreadable"
 
     path = Path(db_path)
     chats: set = set()
@@ -868,6 +875,11 @@ def _retained_tree_is_live(db_path: str, worktree_path: str, *, pending_only: bo
     profile is gone; unreadable fails SAFE (live)."""
     import sqlite3
     from urllib.parse import quote
+    from hermes_cli.worktree_storage import ProfileStore, retained_tree_is_live, sqlite_locator_selected
+    if isinstance(db_path, ProfileStore):
+        return retained_tree_is_live(db_path, worktree_path, pending_only=pending_only)
+    if not sqlite_locator_selected(db_path):
+        return True
 
     path = Path(db_path)
     if not path.is_file():
@@ -937,7 +949,7 @@ def _worktree_lock_is_live(repo_root: str, worktree_path: str, timeout: int = 10
     lock = _HERMES_LOCK_RE.fullmatch(reason)
     if lock is None:
         return "live"
-    pid, db_path = lock.groups()
+    pid, db_path, store_ref = lock.groups()
     if pid is not None:
         if int(pid) == os.getpid():
             return "live"
@@ -947,6 +959,13 @@ def _worktree_lock_is_live(repo_root: str, worktree_path: str, timeout: int = 10
                 return "live"
         except Exception:
             return "live"
+    if store_ref is not None:
+        from hermes_cli.worktree_storage import decode_store
+        try:
+            reference = decode_store(store_ref)
+        except (ValueError, TypeError):
+            return "live"
+        return "live" if _retained_tree_is_live(reference, worktree_path) else "dead"
     if db_path is not None:
         return "live" if _retained_tree_is_live(db_path, worktree_path) else "dead"
     return "dead" if pid is not None else "live"  # a session lock without its store: unverifiable

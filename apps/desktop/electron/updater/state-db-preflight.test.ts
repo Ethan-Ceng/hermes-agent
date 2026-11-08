@@ -6,14 +6,14 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { test } from 'vitest'
+import { test, vi } from 'vitest'
 
 import { preflightStateDb, stateDbPreflightTimeoutMs } from './state-db-preflight'
 
 test('the desktop preflight publishes committed WAL rows before its caller can stop the backend', async (): Promise<void> => {
   const home: string = fs.mkdtempSync(path.join(os.tmpdir(), 'desktop-db-'))
   const python: string = process.env.HERMES_PYTHON || 'python3'
-  const script: string = fileURLToPath(new URL('../../../../hermes_cli/backup_sqlite.py', import.meta.url))
+  const script: string = fileURLToPath(new URL('../../../../hermes_cli/backup_preflight.py', import.meta.url))
 
   const child = spawn(
     python,
@@ -91,17 +91,17 @@ test('a managed installation runs the snapshot through the installation launcher
   const home: string = fs.mkdtempSync(path.join(os.tmpdir(), 'managed-preflight-'))
   const shims: string = fs.mkdtempSync(path.join(os.tmpdir(), 'launcher-shim-'))
   const python: string = process.env.HERMES_PYTHON || 'python3'
-  const script: string = fileURLToPath(new URL('../../../../hermes_cli/backup_sqlite.py', import.meta.url))
+  const script: string = fileURLToPath(new URL('../../../../hermes_cli/backup_preflight.py', import.meta.url))
 
   // Stand-in for the installation launcher under `.hermes/bin`: it must accept
-  // exactly what the runtime passes it — `--run-module hermes_cli.backup_sqlite
+  // exactly what the runtime passes it — `--run-module hermes_cli.backup_preflight
   // <home>` — and publish the snapshot like the real launcher does.
   const shim: string = path.join(shims, process.platform === 'win32' ? 'hermes.cmd' : 'hermes')
   fs.writeFileSync(
     shim,
     process.platform === 'win32'
-      ? `@echo off\r\n"${python}" -I -S "${script}" %3\r\n`
-      : `#!/bin/sh\nexec "${python}" -I -S "${script}" "$3"\n`
+      ? `@echo off\r\nif not "%~1"=="--run-module" exit /b 2\r\nif not "%~2"=="hermes_cli.backup_preflight" exit /b 2\r\n"${python}" -I "${script}" %3\r\n`
+      : `#!/bin/sh\n[ "$1" = '--run-module' ] && [ "$2" = 'hermes_cli.backup_preflight' ] || exit 2\nexec "${python}" -I "${script}" "$3"\n`
   )
 
   if (process.platform !== 'win32') {
@@ -163,26 +163,47 @@ test('an older selected checkout without the snapshot helper refuses before back
   }
 })
 
-test('the deadline grows with the main database and WAL, but stays bounded', (): void => {
-  const home: string = fs.mkdtempSync(path.join(os.tmpdir(), 'preflight-budget-'))
+test('PostgreSQL preflight preserves legacy SQLite and declares the external backup boundary', async (): Promise<void> => {
+  const home: string = fs.mkdtempSync(path.join(os.tmpdir(), 'pg-preflight-'))
+  const python: string = process.env.HERMES_PYTHON || 'python3'
+  const script: string = fileURLToPath(new URL('../../../../hermes_cli/backup_preflight.py', import.meta.url))
+  const legacy: string = path.join(home, 'state.db')
+  const logs: string[] = []
 
   try {
-    const floor = stateDbPreflightTimeoutMs(home)
+    fs.writeFileSync(path.join(home, 'config.yaml'), 'storage:\n  backend: postgresql\n')
+    fs.writeFileSync(legacy, 'preserve old SQLite bytes')
+    await preflightStateDb({ python, script, home, log: (message: string): void => { logs.push(message) } })
+    assert.equal(fs.readFileSync(legacy, 'utf8'), 'preserve old SQLite bytes')
+    assert.deepEqual(fs.readdirSync(home).filter((name: string): boolean => name.endsWith('.bak')), [])
+    assert.ok(logs.some((message: string): boolean => message.includes('operator-managed')))
+    assert.ok(logs.some((message: string): boolean => message.includes('"database_included": false')))
+  } finally {
+    assert.equal(path.dirname(fs.realpathSync(home)), fs.realpathSync(os.tmpdir()))
+    fs.rmSync(home, { recursive: true, force: true })
+  }
+})
 
-    for (const name of ['state.db', 'state.db-wal']) {
-      fs.writeFileSync(path.join(home, name), '')
-      fs.truncateSync(path.join(home, name), 2 * 1024 ** 3)
-    }
+test('the deadline grows with the main database and WAL, but stays bounded', (): void => {
+  let sizes: Record<string, number> = {}
+  const stat = vi.spyOn(fs, 'statSync').mockImplementation(((file: fs.PathLike): fs.Stats => {
+    const size = sizes[path.basename(String(file))]
+    if (size === undefined) throw new Error('missing')
+    return { size } as fs.Stats
+  }) as typeof fs.statSync)
 
-    const withWal = stateDbPreflightTimeoutMs(home)
-    fs.unlinkSync(path.join(home, 'state.db-wal'))
-    const withoutWal = stateDbPreflightTimeoutMs(home)
+  try {
+    const floor = stateDbPreflightTimeoutMs('profile')
+    sizes = { 'state.db': 2 * 1024 ** 3, 'state.db-wal': 2 * 1024 ** 3 }
+    const withWal = stateDbPreflightTimeoutMs('profile')
+    delete sizes['state.db-wal']
+    const withoutWal = stateDbPreflightTimeoutMs('profile')
     assert.ok(floor >= 5 * 60_000)
     assert.ok(withWal > withoutWal && withoutWal > floor)
-    fs.truncateSync(path.join(home, 'state.db'), 100 * 1024 ** 3)
-    assert.ok(stateDbPreflightTimeoutMs(home) <= 30 * 60_000)
+    sizes['state.db'] = 100 * 1024 ** 3
+    assert.equal(stateDbPreflightTimeoutMs('profile'), 30 * 60_000)
   } finally {
-    fs.rmSync(home, { recursive: true, force: true })
+    stat.mockRestore()
   }
 })
 

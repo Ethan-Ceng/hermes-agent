@@ -39,11 +39,16 @@ def _execute(connection, ref, params, command):
     context = frozen_context(connection, ref, params)
     if params["operation"] == "board.resolve":
         return pack(context)
-    context = dict(context, principal=connection.actor.subject)
+    from hermes_db.health import profile_home_for_store
+    from hermes_db.move_values import resource_key
+    database = connection.authority.db
+    context = dict(context, principal=connection.actor.subject, session_store={
+        "home": str(profile_home_for_store(database)), "store_id": database.scope.require_store_id(),
+        "target": resource_key(database._transactions)})
     if params["operation"] == "attachment.chunk":
         from gateway.session_worker_kanban_upload import write_chunk
-        with open_board_owner(context["owner"]):
-            return pack(write_chunk(context, params, connection.actor.subject))
+        with open_board_owner(context["owner"]) as store:
+            return pack(write_chunk(dict(context, board_target=resource_key(store._transactions)), params, connection.actor.subject))
     if not command:
         with open_board_owner(context["owner"]) as store:
             return pack(invoke(store, context, params, params["operation"], params["payload"]))
@@ -53,6 +58,7 @@ def _execute(connection, ref, params, command):
     receipt = CommandReceipt(params["command_id"], digest)
     try:
         with open_board_owner(context["owner"], command=receipt) as store:
+            context = dict(context, board_target=resource_key(store._transactions))
             with store.read() as conn:
                 receipt.check_replay(conn, store)
             try:

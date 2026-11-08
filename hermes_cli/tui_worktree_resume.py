@@ -125,7 +125,8 @@ def recreate_tui_worktree(cwd: str, session_id: str) -> Optional[str]:
             logger.warning("could not recreate worktree %s: %s", tree, result.stderr.strip())
             return None
         _copy_worktree_includes(repo_root, tree)
-        _retain_worktree_for_session(repo_root, str(tree), session_id, get_hermes_home() / "state.db")
+        from hermes_cli.worktree_storage import capture_worktree_store
+        _retain_worktree_for_session(repo_root, str(tree), session_id, capture_worktree_store())
     except (OSError, subprocess.SubprocessError) as exc:
         logger.warning("could not recreate worktree %s: %s", tree, exc)
         return None

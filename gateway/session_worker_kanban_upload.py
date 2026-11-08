@@ -26,7 +26,8 @@ def _proof(upload_id, size, digest):
 
 def _manifest(context, params, principal, upload_id, size, digest):
     _proof(upload_id, size, digest)
-    return {"owner": context["owner"], "execution_id": params["execution_id"], "generation": params["generation"],
+    return {"owner": context["owner"], "board_target": context["board_target"], "session_store": context["session_store"],
+            "execution_id": params["execution_id"], "generation": params["generation"],
             "principal": principal, "upload_id": upload_id, "size": size, "sha256": digest}
 
 
@@ -47,6 +48,8 @@ def _stage(manifest):
     if fd is None:
         raise StorageBusyError("Worker upload stage is busy")
     try:
+        if (root / ".reclaimed").exists():
+            raise RuntimeStoreError("upload_completed")
         path = root / "manifest.json"
         if path.is_symlink():
             raise StorageConfigurationError("Worker upload manifest is redirected")
@@ -99,6 +102,14 @@ def commit_upload(store, context, params, principal, args, kwargs):
     task_id, filename, upload_id, size, digest = args
     manifest = _manifest(context, params, principal, upload_id, size, digest)
     with _stage(manifest) as root:
+        from utils import atomic_json_write
+        marker = root / "command.json"
+        command = {"command_id": store.command.command_id, "request_digest": store.command.request_digest}
+        if marker.is_symlink():
+            raise RuntimeStoreError("permission_denied")
+        if marker.exists() and json.loads(marker.read_text(encoding="utf-8-sig")) != command:
+            raise RuntimeStoreError("admission_conflict")
+        atomic_json_write(marker, command, mode=0o600)
         count = max(1, (size + CHUNK_BYTES - 1) // CHUNK_BYTES)
         chunks = []
         for index in range(count):

@@ -116,17 +116,19 @@ def _iter_terminal_calls(con: sqlite3.Connection, since_ts: float) -> Iterator[t
         (since_ts,),
     )
     for (raw,) in _fetch_rows(cur):
-        calls = _json_or_none(raw)
-        for call in calls if isinstance(calls, list) else ():
-            fn = call.get("function") or {} if isinstance(call, dict) else {}
-            if fn.get("name") != "terminal":
-                continue
-            args = _json_or_none(fn.get("arguments") or "{}")
-            if args is None:
-                continue
-            command = args.get("command")
-            if isinstance(command, str) and command.strip():
-                yield (call.get("id") or "", command)
+        yield from _terminal_calls(raw)
+
+
+def _terminal_calls(raw):
+    calls = _json_or_none(raw)
+    for call in calls if isinstance(calls, list) else ():
+        fn = call.get("function") or {} if isinstance(call, dict) else {}
+        if not isinstance(fn, dict) or fn.get("name") != "terminal":
+            continue
+        args = _json_or_none(fn.get("arguments") or "{}")
+        command = args.get("command") if isinstance(args, dict) else None
+        if isinstance(command, str) and command.strip():
+            yield (call.get("id") or "", command)
 
 
 def _blocked_tool_call_ids(con: sqlite3.Connection, since_ts: float) -> set:
@@ -148,29 +150,36 @@ def scan_approval_history(db_path: Optional[Path] = None, days: int = 90) -> lis
     """``(command, dangerous_class_description)`` records for dangerous-classified terminal commands
     that actually executed (i.e. carried an implied user approval).
     """
-    from tools.approval_detection import detect_dangerous_command, detect_hardline_command
+    from hermes_cli.db_setup import storage_backend
+    from hermes_constants import get_hermes_home
+    since_ts = 0.0 if days <= 0 else time.time() - days * 86400
+    if storage_backend() == "postgresql":
+        from hermes_db.observations import approval_history_rows
+        from hermes_db.errors import StorageConfigurationError
+        if db_path is not None and Path(db_path).resolve() != default_db_path().resolve():
+            raise StorageConfigurationError("PostgreSQL approval history belongs to the selected Profile; --db is SQLite-only")
+        calls, results = approval_history_rows(get_hermes_home(), since_ts)
+        blocked = {identity for identity, content in results if content and any(marker in content for marker in _BLOCK_MARKERS)}
+        return _approved_calls((call for raw in calls for call in _terminal_calls(raw)), blocked)
     path = Path(db_path) if db_path else default_db_path()
     if not path.exists():
         return []
-
-    since_ts = 0.0 if days <= 0 else time.time() - days * 86400
-
-    records: list[tuple[str, str]] = []
     con = _connect_readonly(path)
     try:
-        blocked = _blocked_tool_call_ids(con, since_ts)
-        for tool_call_id, command in _iter_terminal_calls(con, since_ts):
-            if tool_call_id in blocked:
-                continue
-            # Hardline commands are unconditionally blocked at runtime; never mine them (defense in
-            # depth against stale DB rows).
-            if detect_hardline_command(command)[0]:
-                continue
-            is_dangerous, _key, description = detect_dangerous_command(command)
-            if is_dangerous:
-                records.append((command, description))
+        return _approved_calls(_iter_terminal_calls(con, since_ts), _blocked_tool_call_ids(con, since_ts))
     finally:
         con.close()
+
+
+def _approved_calls(calls, blocked):
+    from tools.approval_detection import detect_dangerous_command, detect_hardline_command
+    records = []
+    for tool_call_id, command in calls:
+        if tool_call_id in blocked or detect_hardline_command(command)[0]:
+            continue
+        dangerous, _key, description = detect_dangerous_command(command)
+        if dangerous:
+            records.append((command, description))
     return records
 
 
@@ -317,7 +326,8 @@ def suggest_command(args) -> int:
     """Entry point for ``hermes approvals suggest``."""
     db_path = Path(args.db) if getattr(args, "db", None) else default_db_path()
     days = getattr(args, "days", 90)
-    if not db_path.exists():
+    from hermes_cli.db_setup import storage_backend
+    if storage_backend() == "sqlite" and not db_path.exists():
         print(f"Session database not found: {db_path}")
         return 1
 

@@ -4,7 +4,7 @@ from sqlalchemy import Column, Index, LargeBinary, Text
 from hermes_db.tables.metadata import scoped_fk, scoped_table
 
 paths = scoped_table("kanban_workspace_paths", Column("path_key", LargeBinary, nullable=False),
-    Column("cleanup_token", Text), key=("path_key",))
+    Column("cleanup_token", Text), Column("cleanup_payload", LargeBinary), key=("path_key",))
 references = scoped_table("kanban_workspace_refs", Column("board_id", Text, nullable=False),
     Column("task_id", LargeBinary, nullable=False), Column("path_key", LargeBinary, nullable=False),
     key=("board_id", "task_id"), constraints=(

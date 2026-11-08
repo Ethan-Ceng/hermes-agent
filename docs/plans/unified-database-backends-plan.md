@@ -10,9 +10,9 @@
 ## 当前进度
 
 - 整体状态：`IN_PROGRESS`。
-- 当前阶段：Matrix协议已验收，进入生命周期、健康与运维旁路。
-- 当前任务：Task 20（pending；Task19提交标题 `feat(storage): persist Matrix SDK crypto on unified PostgreSQL backend`）。
-- 已完成：19 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前阶段：全入口与直接 SQL 消费者闭合。
+- 当前任务：Task 21（pending；Task20完成并准备立即创建本地提交，前置基线 `90f82575b0`）。
+- 已完成：20 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-08（Asia/Shanghai）。
@@ -1155,7 +1155,7 @@ Task19最终结果：已实现实际mautrix0.21.1 CryptoStore37方法和SyncStor
 
 ## Task 20：消除生命周期、健康与运维旁路
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -1196,11 +1196,65 @@ Task19最终结果：已实现实际mautrix0.21.1 CryptoStore37方法和SyncStor
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+实施中，基线Task19提交90f82575b0。已按所有者矩阵核对lifecycle/readiness、install_state、approvals_suggest、worktree、backup/restore、doctor与Desktop preflight；会话阶段backup仅声明排除session，尚不足覆盖新的全部领域。已明确发现脏退出会探测遗留state.db/journal、安装证据和审批历史以state.db存在性判断无数据、worktree仍使用SQLite SQL/文件路径定位、Desktop直接-S运行SQLite snapshot。Kanban文件job/import/upload stage、中断token和提交后副作用及房间附件cleanup仍需实际维护入口闭合；未宣称这些已完成。
+
+首批修改：增加driver-free导入的具名PG只读observations，消息存在性和审批历史按拥有Profile/store_id查询；安装探测PG故障按UNREADABLE处理，不伪造无使用数据；审批矿取复用真实危险分类/拒绝标记过滤，PG不因无本地文件返回空结果，--db异Profile文件明确SQLite-only。脏退出/deferred检查先选择后端，PG读真实Schema/会话状态，不对旧SQLite运行quick_check/journal；既有SQLite检查移到主题sibling，原patch seam保留。readiness故障仍报告选中backend和安全错误类别，不回落。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+`scripts/run_tests.sh tests/hermes_db/postgresql/test_profile_observations.py -j 1 -- -m integration --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml` 首次3 failed/1 teardown error：真实SQLite guard捕获legacy连接、缺文件造成消息/审批假空（unified-task20-observations-red.log）。实施后先2passed/1failed，修复新查询对既有tool_calls Text字段误作BYTEA解码；下一次2passed/1failed是测试用了普通git push而非实际危险命令，按既有classifier使用--force后exit0、3passed/0skip/retry（unified-task20-observations-classified.log），包括真实PG持久数据/跨Profile隔离和旧文件原样保留。
+
+Windows原生4文件首次41passed/6failed/2skipped（unified-task20-native-observations.log）：approvals15和lifecycle10通过，install_state5项因主机无symlink特权失败（WinError1314），readiness健康fixture依赖宿主磁盘<90%而实际_probe_disk为93.3% degraded。未改宿主权限/文件/正式Profile；健康fixture改为明确给定健康磁盘观测，将在真实Linux补验symlink合同。Task20继续in_progress，尚无本项commit；下一恢复点是剩余运维/备份/工作树/维护job和补充故障合同。
+
+Task20后续实施恢复点：工作树锁采用不含秘密的Profile/store/目标标记，旧db=字段在PG配置下拒绝SQLite探测并保守保留；TUI创建/恢复/退出均捕获拥有者。真实PG工作树2项通过（unified-task20-worktree-green.log）。原生GC13项曾失败，systematic-debugging证明机器Git autocrlf=true使fixture工作树在隔离Git配置下显脏；只固定测试仓库local autocrlf=false，GC27项全通过（unified-task20-native-gc-fixture-fixed.log），未放松生产Git安全隔离。quit/resume/retained-cwd/readiness另外26项通过。
+
+Linux原生install/lifecycle/approvals/readiness共49项全通过（unified-task20-linux-observations.log），实际覆盖Windows缺权限的symlink和POSIX合同。备份增加所选后端策略、全Profile ZIP范围标记、quick覆盖清单及恢复前校验；PG历史库/sidecar不打开不导入，opaque用户db文件仍可恢复。初步6项PG备份恢复全通过（unified-task20-backup-restore.log），扩展自动ZIP/旧档案拒绝后8项通过（unified-task20-management-expanded.log）。Windows原生备份首轮91pass/6fail/1error/11skip：未关闭测试reader句柄妨碍Windows备份轮换、有限全局monotonic mock污染teardown、POSIX wrapper/路径/换行/权限假设。按原生路径API、实际源字节、独立topic时钟和显式close修正测试后97pass/0fail/11平台skip（unified-task20-native-backup-fixed.log）；真实Linux108pass/0skip（unified-task20-linux-backup.log）。
+
+PM已在隔离task20-js-home/runtime供应Node26.12.1/npm12.0.2，并用canonical scripts/build/node-deps.mjs准备Desktop workspace（ignore_scripts、不安装Electron二进制、不启动桌面实例、无manifest变化）。Desktop6项首次5pass/1fail因原超时测试truncate100GiB触发ENOSPC；改为受控stat大小观测，实际新preflight下SQLite WAL、managed launcher协议和PG排除范围共6项全通过（unified-task20-desktop-preflight-fixed.log）。
+
+维护第一轮4项红测记录unified-task20-maintenance-red.log；补齐owner-scoped maintain_profile、退休/import重放和workspace token续作后9项通过（unified-task20-maintenance-green.log）。扩展含真实新解释器的SQLite审计、跨ambient Profile、退休slug重建、25MiB upload实际回执恢复；4文件17pass/1fail（unified-task20-maintenance-expanded.log），唯一失败是新增档案测试调用内部签名错误，已修正。补充0028 outbox与数据删除后5文件26pass/1fail（unified-task20-management-expanded.log）：completion/回执恢复/备份均通过，数据删除3pass，Cron新fixture遗漏source参数1fail已修正；Core表删除顺序曾有kanban循环FK warning，已改按deferrable边排序。后续operations-final实测5文件24pass/0skip（含Schema0028、备份10、删除/doctor4、观察3和worktree2），无该warning。尚未将Task20标为完成，尚无commit。
+
+后续补齐：附件删除只有unlink成功才释放token；PG准备文件使用带Profile/store/目标标记的独立generation，normal准备/SQL确认与维护共用文件门，未知COMMIT在新快照中对账。workspace token保存完整清理snapshot，任务行后来删除也能续作；import stage和worker chunk同样保留目标身份，切换数据集不清理旧文件。plugin TTL回收不删除namespace revision，room附件重放复用持久cleanup表。完成后的outbox保存冻结board/assignee/run，支持Board随后归档；活动图投影在归档后已过期，文件清理和observer仍以原代次处理。
+
+首次扩展9文件40pass/4fail（unified-task20-lifecycle-complete.log）：已确认回滚后残留owner marker两项；新的全局文件门让并发metadata引用先等待OS锁而非立即命中SQL退休/删除栅栏两项。整改为准备代次补偿、门前只读快速拒绝+门内权威写栅栏后，cleanup-retest 5文件28pass/0skip，含真实PG未知COMMIT、下游ready、删除任务后的workspace恢复、房间blob中断、插件TTL revision及旧dataset文件保留。原生management 7文件61pass/1平台skip（unified-task20-native-management-fixed.log），此前一轮命令误用不存在的test文件名exit2已纠正，未将usage error计为验证。
+
+元数据/配置矛盾ZIP与quick两个红测（unified-task20-backup-metadata-red.log）确认会把PG配置恢复成SQLite；已在写入前核对实际YAML，并延迟读取无关Native配置以保持逐文件原子失败合同。PG根下Native子Profile仍拥有旧shared-state.db的情况通过真实SQLite ZIP回环证明：该文件按Native子Profile归属保存/恢复，PG根旧state.db保持不打开不导入；元数据按各Profile选择登记。Windows最终backup/bytecode 3文件85pass/11平台skip（unified-task20-native-backup-accepted.log）。
+
+Linux原生运维首轮8文件103pass/1fail/4skip（unified-task20-linux-management.log）：SQLite恢复CLI超时，独立faulthandler进程确认堵在启动bytecode sweep遍历.build中的PM SDK环境（unified-task20-linux-cli-probe.log），并非恢复SQL。已核对原意提交c4cf20f564：原本就排除venv/node_modules；新回归在未修复前证明工具runtime缓存被误删（unified-task20-bytecode-red.log），最小增加.build排除，Linux恢复12+范围回归1全通过（unified-task20-linux-recovery-green.log）。4skip是可选sqlite3 shell缺少sqlite_dbpage/.recover能力，核心损坏页range salvage与CLI已真实通过。未放大超时或禁用业务。
+
+Desktop PM Node26原生Vitest6pass；tsc --build tsconfig.electron.json exit0（unified-task20-desktop-typecheck.log）。第一次静态63文件失败于BOM读取/超长facade净增/分派梯；逐项整改后14checks全部通过、0health阻断/建议（unified-task20-checks-refined.log）；新补充修改后还需最终重跑。当前待验证：最终14文件PG组合、真实Matrix SDK在0028下重启回归、Native Profile/serve归档，以及最终暂存区静态检查。恢复基线仍90f82575b0，未提交修改均为Task20；不得将局部通过当成全系统PG完成。
+
+Task20最终结果：所列生命周期/安装/审批/工作树/doctor/备份/恢复/Desktop入口已遵守统一后端，PG不以本地库文件存在性判断数据，不进行SQLite物理取证/修复。维护与session retention开关独立；Kanban退休/import/workspace/附件/chunk和提交后outbox已有持久恢复协议；Profile数据删除先捕获身份，PG仅删除该store的系统表行，故障或未知提交保留本地文件。迁移head为0028，0001–0027未修改。正式实例/配置/数据保持原样，没有操作数据库服务或扩展，没有推送/发布/PR/合并。
+
+最终PG命令（沿用前述PM解释器、私有配置和标准runner）：
+
+```powershell
+$task20PgFiles = @(
+  'tests/hermes_db/postgresql/test_domain_maintenance.py',
+  'tests/hermes_db/postgresql/test_management_storage.py',
+  'tests/hermes_db/postgresql/test_backup_backend.py',
+  'tests/hermes_db/postgresql/test_profile_observations.py',
+  'tests/hermes_db/postgresql/test_worktree_storage.py',
+  'tests/hermes_db/postgresql/test_schema.py',
+  'tests/hermes_db/postgresql/test_kanban_workspaces.py',
+  'tests/hermes_db/postgresql/test_kanban_board_files.py',
+  'tests/hermes_db/postgresql/test_kanban_transfer.py',
+  'tests/hermes_db/postgresql/test_kanban_artifacts.py',
+  'tests/hermes_db/postgresql/test_kanban_worker_upload.py',
+  'tests/hermes_db/postgresql/test_kanban_review.py',
+  'tests/hermes_db/postgresql/test_kanban_completion.py',
+  'tests/hermes_db/postgresql/test_kanban_command_receipts.py'
+)
+& $testRunner scripts/run_tests.sh @task20PgFiles -j 3 -- -m integration --postgres-test-config=$pgTestConfig
+```
+
+结果exit0、14文件71passed/0skip/retry（unified-task20-pg-final.log）。全部PG业务测试进程拒绝SQLite，包括真实新解释器恢复；实际SQL持久数据、同ID跨store、真实文件/25MiB chunk、丢失确认/回滚、中断恢复及配置retarget均有断言。删除retarget新增合同证明两store数据和本地文件均未被清除。
+
+实际mautrix/Linux SDK环境的`scripts/run_tests.sh tests/hermes_db/postgresql/test_matrix_crypto_store.py tests/hermes_db/postgresql/test_matrix_recovery.py -j 2 -- -m integration --postgres-test-config=<同一私有配置>` exit0、3passed/0skip/retry（unified-task20-matrix-schema-regression.log），验证0028显式升级下真实CryptoStore私钥与新进程恢复，未借Windows缺SDK的skip代替实测。
+
+原生Profile/serve命令`scripts/run_tests.sh tests/hermes_cli/test_profiles.py tests/hermes_cli/test_web_server_auto_archive_profile_config.py tests/hermes_cli/test_web_server_auto_archive_gateway_lock.py tests/hermes_cli/test_backup_storage.py -j 3`在真实Linux exit0、113passed/3 Windows平台skip（unified-task20-linux-profile-maintenance.log）。此前Windows管理61pass/1 POSIX skip、backup/bytecode85pass/11平台skip、Linux backup108pass、SQLite恢复补验13pass及Desktop6pass/tsc exit0均保留各自实际范围，不相加冒充完整系统计数。
+
+最新`PM Python scripts/check --staged --base 90f82575b0` exit0、14 checks全部通过，health66文件0blocking/0advisory（unified-task20-checks-final.log）；最后文档状态更新另以git diff --cached --check核对。未验证项：本任务未运行完整daemon/全入口/独立发行验收，未完成最终独立code-review；对应Task21–24仍pending。可选sqlite3 shell的sqlite_dbpage/.recover及各原生主机平台skip照实保留，不据此扩大声明。恢复点：立即提交本Task20状态与代码，随后从Task21消费者调用图与旧test_surface_flow配置、普通kanban_full_gateway场景继续；实际Task20提交号在Task21起始记录。
 
 ## Task 21：闭合全部入口与直接 SQL 消费者
 

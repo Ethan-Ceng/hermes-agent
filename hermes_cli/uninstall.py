@@ -651,11 +651,13 @@ def run_data_uninstall(args):
     except (OSError, ValueError, RuntimeError) as exc:
         log_warn(str(exc))
         raise SystemExit(1) from exc
-    if not plan.remove:
+    if not plan.remove and plan.database is None:
         print(f"No Hermes user data found in {home}.")
         return
     print("Data-only removal: installed code and other profiles stay intact.")
     print("Will remove:")
+    if plan.database is not None:
+        print(f"  PostgreSQL system data for this Profile's store_id {plan.database.store_id}")
     for path in plan.remove:
         print(f"  {path}")
     if plan.keep:
@@ -673,7 +675,7 @@ def run_data_uninstall(args):
         with quiescent_home(plan.home):
             removed, failed = remove_data(plan)
     except (OSError, ValueError, RuntimeError) as exc:
-        log_warn(f"No data removed: {exc}")
+        log_warn(f"No local files removed: {exc}")
         raise SystemExit(1) from exc
     for path in removed:
         log_success(f"Removed {path}")

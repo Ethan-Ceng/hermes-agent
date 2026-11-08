@@ -3636,7 +3636,7 @@ function resolveCheckoutUpdateStrategy(): CheckoutStrategy {
       await preflightStateDb({
         python: managed ? null : await findPythonForRoot(root),
         launcher,
-        script: path.join(root, 'hermes_cli', 'backup_sqlite.py'),
+        script: path.join(root, 'hermes_cli', 'backup_preflight.py'),
         home,
         log
       })

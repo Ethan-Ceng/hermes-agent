@@ -183,6 +183,10 @@ Task18实际协议细化：RetainDB的_Client.ingest_session(user_id,session_id,
 
 线程只持捕获的Profile/store/target，provider初始化先绑定拥有者，再读配置/秘密并启动上下文线程。入队先提交，Event仅唤醒；claim用短事务/SKIP LOCKED和持久token/到期时间，成功确认与失败延期都做精确token CAS。HTTP、等待、退避和join均在连接外；未知claim提交不授予发送权，未知确认不猜测回滚。关闭先拒绝新入队，再唤醒并限时等待，失败/未完成记录继续在数据库，不能用丢弃队列完成关闭。PG worker持续读取有界批次，不沿用旧启动LIMIT200后其余pending被搁置的实现；SQLite旧队列继续原生可用，不读取它来补PG数据。
 
+### 运维作用域标记
+
+工作树保留锁原来只有SQLite文件路径，不能据此推断PG Profile/数据集。Task20将新PG锁写成独立`store=`字段，保存版本化、无凭据的拥有者Profile绝对路径及store_id/数据库目标摘要；SQLite保留旧`db=`协议。旧Hermes无法解析新字段时按已有规则保持live，不会把未知PG标记当成不存在的文件删除。后续GC/退出检查重新绑定明确拥有者并核对捕获的store/目标，读取失败或配置更换一律保留；不在PG状态中以本机路径替代逻辑身份。
+
 ### Matrix SDK
 
 Matrix 单独实现 SDK CryptoStore 协议适配，PG SQL/表/事务由 `hermes_db` 管理，异步 SDK 接口在明确边界调用同步存储并保留 Profile scope。不得只把 SDK URL 从 sqlite 改成 PG 后另起不受管的异步池或失去 `store_id` 隔离。
@@ -198,6 +202,16 @@ Matrix 单独实现 SDK CryptoStore 协议适配，PG SQL/表/事务由 `hermes_
 此前正式实例仍为 SQLite、最近一次重启已加载 `a875342384`。本轮规划不改运行配置、不操作网关、不安装或管理 PG 服务，也不把历史会话阶段测试结果外推到全系统。
 
 备份/恢复、健康、诊断、安装使用状态探测、Desktop updater 和数据库路径存在性判断都必须使用选定后端的能力；PG 的本地文件备份不能假装包含数据库数据。
+
+Task20运维合同细化：文件快照和ZIP登记各Profile的所选后端，PG排除所有已知系统数据库及sidecar，用户内容中不属于系统库的`.db`按不透明文件保存。PG文件恢复只恢复文件，不导入SQLite镜像，不声称恢复PG数据；旧档案无法证明PG配置作用域时在任何配置写入之前拒绝。Desktop先运行后端选择preflight，再允许停止backend；所选安装无法加载配置能力时明确终止更新，不回退到SQLite独立救援脚本。原stdlib-only物理SQLite工具保留给显式SQLite运行环境。
+
+数据删除使用确认前捕获的Profile、store_id及不含凭据的目标指纹，执行时重新核对；显式数据清除/删除Profile只删除该store_id的所有已登记系统表行，不DROP Schema、不操作扩展/服务、不触碰其他store。先在短事务内解除该store房间的历史证据删除栅栏并按外键顺序删除，再删除本地文件；两者不是原子事务，SQL故障或COMMIT确认丢失保留配置/秘密/文件并明确报告。调用方沿用既有离线所有权与确认边界；Cron持有者取证也读取所选后端。Profile删除对默认Profile路由身份的旧purge保留原历史语义，不能代替删除被删Profile自身的域数据。
+
+维护由Gateway拥有者启动/定时、经典CLI启动和独立serve拥有者调用，与session自动归档开关独立。Board退休/import作业和workspace删除token只按持久意图重放，永不按超时释放删除栅栏；文件锁等待、文件/工作树操作和插件hook执行时不借用SQL连接。import准备与引用确认共用本机文件锁，维护取得store文件栅栏并开启新快照后才能移除未引用的私有stage。Worker大文件stage带冻结的会话store身份，只有精确command回执或同generation的terminal执行证明才回收chunk，保留小型回收标记拒绝同upload_id再次写入；未知/运行中的执行不因时间流逝而回收。
+
+PG附件准备generation和私有import stage记录Profile/store/连接目标，不清理其他数据集的旧文件；数据库提交和文件IO之间的中断由同一文件门+store写栅栏后的新快照对账。workspace删除token同时保存清理snapshot，不依赖任务行始终存在；附件unlink失败保留token。全Profile文件备份逐Profile决定数据库能力，SQLite子Profile沿用的机器根shared-state.db按其SQLite归属快照，不能因根Profile选PG而遗漏它，也不能把它计作PG数据。启动字节码维护排除.build内的PM运行时，保持依赖环境与checkout源缓存的边界。
+
+提交后副作用新增显式`0028_kanban_effects`，不修改0001–0027：主业务事务同时登记逐阶段outbox，完成、claim、block的hook和完成后的ready/工作区/告警处理可在回执重放或重启后继续。短事务领取有界租约并逐阶段CAS确认，外部hook保留既有best-effort observer语义；执行中崩溃可能重复尝试同一transition/run的observer，不声称外部exactly-once。工作区清理由独立持久删除token保护，不能以outbox租约过期解除文件引用栅栏。
 
 ## 验收与证据
 

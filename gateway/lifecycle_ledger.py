@@ -245,6 +245,9 @@ def check_state_db_integrity(home: Optional[Path] = None, *, deadline_s: Optiona
     return ``"check-incomplete: exceeded <N>s"``.  ``deadline_s=None`` (default) is the
     historic unbounded behaviour -- the progress handler never aborts the PRAGMA.
     """
+    from gateway.lifecycle_storage import configured_integrity
+    if (configured := configured_integrity(home)) is not None:
+        return configured
     path = _home_path(home, "state.db")
     if not path.exists():
         return "absent"
@@ -370,19 +373,8 @@ def run_deferred_integrity_check(
     on-disk mode decides, not config; an undeterminable mode is skipped too.
     """
     try:
-        path = _home_path(home, "state.db")
-        mode = _state_db_journal_mode(path) if path.exists() else "wal"
-        if mode != "wal":
-            verdict = (f"skipped: rollback-journal store (journal_mode={mode or 'unknown'}), "
-                       "scan would block live writes")
-            logger.warning(
-                "Previous gateway exit was unclean, but the state.db integrity check was skipped: %s is a "
-                "rollback-journal store (journal_mode=%s) and a background scan would block live writes. "
-                "To check it, stop the gateway and run: sqlite3 %s 'PRAGMA quick_check'",
-                path, mode or "unknown", path,
-            )
-        else:
-            verdict = check_state_db_integrity(home=home, deadline_s=deadline_s)
+        from gateway.lifecycle_storage import deferred_integrity
+        verdict = deferred_integrity(home, deadline_s)
         if verdict not in ("ok", "absent") and not verdict.startswith("skipped:"):
             logger.error(
                 "state.db FAILED integrity check after an unclean gateway exit: %s — sessions may read as "

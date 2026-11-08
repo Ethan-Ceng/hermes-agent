@@ -1,5 +1,6 @@
 """Preflight must work while the app is broken and its database is still live."""
 import json
+from contextlib import closing
 import sqlite3
 import subprocess
 import sys
@@ -76,7 +77,7 @@ runpy.run_path(sys.argv[0], run_name='__main__')
             )
             assert result.returncode == 0, result.stderr
             backup = Path(json.loads(result.stdout)["path"])
-            with sqlite3.connect(backup) as snapshot:
+            with closing(sqlite3.connect(backup)) as snapshot:
                 assert snapshot.execute("SELECT * FROM messages").fetchall() == [("committed only in WAL",)]
                 assert snapshot.execute("PRAGMA integrity_check").fetchone() == ("ok",)
         assert len(list(home.glob("state.db.pre-update-emergency-*.bak"))) == 2

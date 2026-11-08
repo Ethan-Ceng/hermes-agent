@@ -5,7 +5,7 @@ def snapshot_storage(home, files=()):
     from hermes_cli.db_setup import storage_backend
     backend = storage_backend(home)
     if backend == "postgresql":
-        print("PostgreSQL session data is excluded from this file backup; database backup and restore are operator-managed.")
+        print("PostgreSQL system database data is excluded from this file backup; database backup and restore are operator-managed.")
     return {"backend": backend, "included": backend == "sqlite" and "state.db" in files}
 
 
@@ -18,7 +18,7 @@ def full_backup_notice(root):
     if profiles.is_dir():
         homes.extend(path for path in profiles.iterdir() if path.is_dir() and named_profile_has_identity(path))
     if any(storage_backend(home) == "postgresql" for home in homes):
-        print("PostgreSQL session data is excluded from this file backup; database backup and restore are operator-managed.")
+        print("PostgreSQL system database data is excluded from this file backup; database backup and restore are operator-managed.")
 
 
 def run_quick_backup(args):

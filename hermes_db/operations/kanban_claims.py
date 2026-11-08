@@ -55,9 +55,12 @@ def _claim(store, task_id, source, ttl_seconds, claimer, *, dispatch_permit=None
         extra = {"source_status": "review"} if source == "review" else {}
         repo.event(conn, store, task_id, "claimed", {"lock": lock, "expires": expires, "run_id": run_id, **extra}, run_id)
         claimed = kb.Task.from_row(repo.get(conn, store, task_id))
+        from hermes_db.operations.kanban_effects import enqueue, hook_step
+        effect_id = enqueue(conn, store, [hook_step(store, repo.get(conn, store, task_id), "kanban_task_claimed", run_id)]) if source == "ready" else None
         store.command_result(conn, claimed)
     if source == "ready":
-        kb._fire_task_hook("kanban_task_claimed", claimed, task_id, run_id)
+        from hermes_db.operations.kanban_effects import after_commit
+        after_commit(store, effect_id)
     return claimed
 
 

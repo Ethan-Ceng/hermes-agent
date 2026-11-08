@@ -6,6 +6,7 @@ from pathlib import Path
 import stat
 
 from pm.filesystem import is_junction
+from hermes_cli.data_cleanup_storage import StoreRemoval, capture_removal
 
 
 @dataclass(frozen=True)
@@ -13,6 +14,7 @@ class DataRemovalPlan:
     home: Path
     remove: tuple[Path, ...]
     keep: tuple[Path, ...]
+    database: StoreRemoval | None = None
 
 
 def plan_data_removal(home: Path, project: Path, userdata: Path | None = None) -> DataRemovalPlan:
@@ -76,11 +78,18 @@ def plan_data_removal(home: Path, project: Path, userdata: Path | None = None) -
         if userdata.resolve() == Path.home().resolve() or home.is_relative_to(userdata.resolve()):
             raise ValueError(f"desktop data directory must not contain the Hermes or user home: {userdata}")
         visit(userdata.parent.resolve() / userdata.name)
-    return DataRemovalPlan(home, tuple(remove), tuple(sorted(keep)))
+    return DataRemovalPlan(home, tuple(remove), tuple(sorted(keep)), capture_removal(home))
 
 
 def remove_data(plan: DataRemovalPlan) -> tuple[list[Path], list[tuple[Path, str]]]:
     import shutil
+    if plan.database is not None:
+        from hermes_cli.data_cleanup_storage import purge_store
+        purge_store(plan.database)
+    else:
+        from hermes_cli.db_setup import storage_backend
+        if storage_backend(plan.home) != "sqlite":
+            raise RuntimeError("Database backend changed after the removal plan; preserve all local files")
 
     removed: list[Path] = []
     failed: list[tuple[Path, str]] = []

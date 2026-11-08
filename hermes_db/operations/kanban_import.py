@@ -82,8 +82,11 @@ def _prepare_rows(tables, fields):
     return parked
 
 
-def _stage(extracted, home, board_id):
+def _stage(extracted, resource, board_id):
     from hermes_cli.archive_safe import copy_regular_files
+    from hermes_db.move_values import resource_key
+    from utils import atomic_json_write
+    home = resource.scope.profile_home
     root = home / "kanban" / "imports"
     if root.resolve() != home.resolve() / "kanban" / "imports":
         raise StorageConfigurationError("Board import staging root is redirected")
@@ -91,6 +94,8 @@ def _stage(extracted, home, board_id):
     stage = root / board_id
     stage.mkdir(mode=0o700)
     try:
+        atomic_json_write(stage / ".owner.json", {"store_id": resource.scope.require_store_id(),
+            "home": str(home), "target": resource_key(resource._transactions)}, mode=0o600)
         for name in ("manifest.json", "board.json", "data.json"):
             shutil.copyfile(extracted / name, stage / name)
         for name in ("attachments", "logs"):
@@ -129,15 +134,16 @@ def _import(extracted, requested, *, activate):
         board_id = uuid4().hex
         fields = files.prepare(resource, {"board_id": board_id, "slug": requested})
         parked = _prepare_rows(tables, fields)
-        stage = _stage(extracted, resource.scope.profile_home, board_id)
-        try:
-            target = _commit_graph(resource, requested, board_id, stage, tables, fields, parked)
-        except UnknownCommitError as error:
-            error.add_note(f"Board import {board_id} may be committed; retain its original stage and inspect the file job")
-            raise
-        except BaseException as primary:
-            compensate_stage(stage, resource.scope.profile_home / "kanban" / "imports", primary)
-            raise
+        with files.local_files_lock(resource.scope.profile_home):
+            stage = _stage(extracted, resource, board_id)
+            try:
+                target = _commit_graph(resource, requested, board_id, stage, tables, fields, parked)
+            except UnknownCommitError as error:
+                error.add_note(f"Board import {board_id} may be committed; retain its original stage and inspect the file job")
+                raise
+            except BaseException as primary:
+                compensate_stage(stage, resource.scope.profile_home / "kanban" / "imports", primary)
+                raise
         result = files.run_job(resource, board_id)
     if activate:
         kb.set_current_board(target)

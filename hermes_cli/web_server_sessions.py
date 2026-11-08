@@ -482,8 +482,6 @@ def _maybe_auto_archive_for_profile(profile: Optional[str]) -> None:
             cfg = (_load_full_config().get("sessions") or {})
         finally:
             reset_hermes_home_override(_home_token)
-        if not cfg.get("auto_archive", False):
-            return
         from hermes_cli.profiles import _check_gateway_running
 
         # A live gateway owns this profile's store and runs the same sweep on its own
@@ -495,6 +493,10 @@ def _maybe_auto_archive_for_profile(profile: Optional[str]) -> None:
         # multiplexer rung catches a served secondary, which owns no gateway.pid or lock
         # of its own and a bare lock-file probe would report stopped.
         if _check_gateway_running(profile_home):
+            return
+        from hermes_db.maintenance import maintain_profile
+        maintain_profile(profile_home)
+        if not cfg.get("auto_archive", False):
             return
         db = _open_session_db_for_profile(profile, read_only=False)
         try:

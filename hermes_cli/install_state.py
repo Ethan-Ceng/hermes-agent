@@ -17,6 +17,7 @@ import json
 import os
 import re
 import sqlite3
+from hermes_db.errors import StorageError
 import sys
 import threading
 from collections.abc import Callable, Iterable, Iterator
@@ -330,7 +331,7 @@ def root_evidence(root: Path, places: Places) -> Finding | None:
         try:
             if check(home):
                 return Finding(evidence, root)
-        except (OSError, ValueError, UnicodeError, sqlite3.Error):
+        except (OSError, ValueError, UnicodeError, sqlite3.Error, StorageError):
             return Finding(Evidence.UNREADABLE, root)
     return None
 
@@ -434,6 +435,10 @@ _DB_BUSY_ERRORS = frozenset({"SQLITE_BUSY", "SQLITE_LOCKED"})
 
 
 def _messages(home: _Root) -> bool:
+    from hermes_cli.db_setup import storage_backend
+    if storage_backend(home.path) == "postgresql":
+        from hermes_db.observations import has_messages
+        return has_messages(home.path)
     db = home.file("state.db")
     if not db.is_file():
         return False

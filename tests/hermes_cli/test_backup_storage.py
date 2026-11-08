@@ -30,3 +30,33 @@ def test_session_backend_config_failure_is_a_storage_error_not_daemon_exit(tmp_p
     monkeypatch.setattr(config_effective, "load_user_config_effective", unavailable)
     with pytest.raises(StorageConfigurationError, match="configuration is unavailable"):
         db_setup.storage_backend(tmp_path)
+
+
+def test_pg_root_file_backup_preserves_sqlite_child_owned_shared_room_database(tmp_path):
+    from contextlib import closing
+    import sqlite3
+    import zipfile
+    from hermes_cli.backup import _write_full_zip_backup, _import_members
+    from hermes_cli.config import atomic_config_write
+    root = tmp_path / "home"
+    child = root / "profiles" / "native"
+    child.mkdir(parents=True)
+    atomic_config_write(root / "config.yaml", {"storage": {"backend": "postgresql"}})
+    atomic_config_write(child / "config.yaml", {"storage": {"backend": "sqlite"}})
+    shared = root / "shared-state.db"
+    with closing(sqlite3.connect(shared)) as connection:
+        connection.execute("CREATE TABLE proof(value)")
+        connection.execute("INSERT INTO proof VALUES ('native child room state')")
+        connection.commit()
+    (root / "state.db").write_bytes(b"inactive PG root legacy file")
+    archive = tmp_path / "mixed.zip"
+    assert _write_full_zip_backup(archive, root) == archive
+    with zipfile.ZipFile(archive) as zipped:
+        assert "shared-state.db" in zipped.namelist() and "state.db" not in zipped.namelist()
+        with closing(sqlite3.connect(shared)) as connection:
+            connection.execute("DELETE FROM proof")
+            connection.commit()
+        assert _import_members(zipped, zipped.namelist(), "", root, len(zipped.namelist()))[0] > 0
+    with closing(sqlite3.connect(shared)) as connection:
+        assert connection.execute("SELECT value FROM proof").fetchall() == [("native child room state",)]
+    assert (root / "state.db").read_bytes() == b"inactive PG root legacy file"

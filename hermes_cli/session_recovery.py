@@ -356,6 +356,8 @@ def _snapshot_and_inspect(
 
 def inspect_session_database(source_path: Path, *, work_dir: Optional[Path] = None) -> dict[str, Any]:
     """Inspect canonical table readability without opening the source itself."""
+    from hermes_cli.session_recovery_storage import require_sqlite_recovery
+    require_sqlite_recovery()
     source, _, work_root = _validate_paths(source_path, work_dir=work_dir)
     disk_space = _disk_space_preflight(source, work_root, None)
     temp_dir, _, inspection = _snapshot_and_inspect(source, work_root)
@@ -1203,6 +1205,8 @@ def recover_session_database(
     """Separate-output salvage is allowed; a canonical output requires offline ownership."""
     from gateway.runtime_ownership import OwnershipConflict, exclusive_maintenance
     from contextlib import nullcontext
+    from hermes_cli.session_recovery_storage import require_sqlite_recovery
+    require_sqlite_recovery()
     # Validate before creating any lock or output. Reserve only a canonical
     # destination, not the live source or an unrelated requested output file.
     _, output, _ = _validate_paths(source_path, output_path=output_path, work_dir=work_dir)

@@ -93,7 +93,10 @@ def finish_import(store, row):
         expected_parent = Path(row["owner_home"]) / "kanban" / "imports"
         if not stage.is_relative_to(expected_parent) or stage.resolve() != stage or stage == expected_parent:
             raise StorageConfigurationError("Private Board import stage escaped its owning directory")
-        manifest, _tables, metadata = read_archive(stage)
+        from hermes_db.operations.kanban_maintenance import owns_import_stage
+        if not owns_import_stage(store, stage):
+            raise StorageConfigurationError("Private import stage belongs to another database dataset")
+        manifest, _tables, metadata = read_archive(stage, private_stage=True)
         for name in ("attachments", "logs"):
             _publish(stage / name, row[name + "_root"], row["board_id"], manifest["files"])
         directory = _configuration(row, metadata)

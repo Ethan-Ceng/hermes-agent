@@ -91,20 +91,23 @@ def request_review(store, task_id, *, summary=None, metadata=None, reviewer=None
     summary, metadata = kb.redact_review_value(summary), kb.redact_review_value(metadata)
     metadata = kb._merge_completion_prose_artifacts(store, task_id, metadata, summary=summary, result=None)
     metadata = dict(metadata) if isinstance(metadata, dict) else metadata
-    staged, rows = _prepare_files(store, task_id, metadata)
-    durable = False
-    try:
-        with store.write() as conn:
-            completed = _write_review(conn, store, task, reviewer, implementer, summary, metadata, rows)
-            reason = None if completed else "task changed during review handoff"
-            store.command_result(conn, (completed, reason) if with_reason else completed)
-        durable = completed
-    except UnknownCommitError:
-        durable = True
-        raise
-    finally:
-        if staged and not durable:
-            kb._discard_staged_copies(staged, staged[0].parent)
+    from hermes_db.operations.kanban_file_jobs import local_files_lock
+    with local_files_lock(store.scope.profile_home):
+        staged, rows = _prepare_files(store, task_id, metadata)
+        durable = False
+        try:
+            with store.write() as conn:
+                completed = _write_review(conn, store, task, reviewer, implementer, summary, metadata, rows)
+                reason = None if completed else "task changed during review handoff"
+                store.command_result(conn, (completed, reason) if with_reason else completed)
+            durable = completed
+        except UnknownCommitError:
+            durable = True
+            raise
+        finally:
+            if staged and not durable:
+                from hermes_db.operations.kanban_attachment_cleanup import discard_copies
+                discard_copies(store, staged)
     reason = None if durable else "task changed during review handoff"
     return (durable, reason) if with_reason else durable
 

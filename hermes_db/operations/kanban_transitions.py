@@ -41,9 +41,11 @@ def block_task(store, task_id, *, reason=None, kind=None, expected_run_id=None):
         if run_id is None and reason:
             run_id = run_repo.synthesize(conn, store, row, outcome="blocked", summary=reason)
         repo.event(conn, store, task_id, event, payload, run_id)
-        task = kb.Task.from_row(repo.get(conn, store, task_id))
+        from hermes_db.operations.kanban_effects import enqueue, hook_step
+        effect_id = enqueue(conn, store, [hook_step(store, repo.get(conn, store, task_id), "kanban_task_blocked", run_id, reason=reason)])
         store.command_result(conn, True)
-    kb._fire_task_hook("kanban_task_blocked", task, task_id, run_id, reason=reason)
+    from hermes_db.operations.kanban_effects import after_commit
+    after_commit(store, effect_id)
     return True
 
 

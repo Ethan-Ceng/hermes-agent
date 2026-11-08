@@ -90,6 +90,12 @@ def _refuse_backend_writers(home: Path) -> None:
 
 
 def _refuse_cron_writers(home: Path) -> None:
+    from hermes_cli.db_setup import storage_backend
+    from hermes_cli.data_cleanup_storage import refuse_cron_writers
+    if storage_backend(home) == "postgresql":
+        from hermes_db.observations import cron_writers
+        refuse_cron_writers(home, cron_writers(home))
+        return
     from contextlib import closing
     import sqlite3
     from gateway.status import get_process_start_time, _pid_exists

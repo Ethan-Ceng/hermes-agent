@@ -172,7 +172,7 @@ def _fire_kanban_lifecycle_hook(event: str, task_id: str, **fields: Any) -> None
 def _fire_task_hook(event: str, task: Optional[Task], task_id: str, run_id: Optional[int], **fields: Any) -> None:
     """Lifecycle hook for a task transition; ``assignee`` from the (possibly missing) row."""
     _fire_kanban_lifecycle_hook(
-        event, task_id, board=get_current_board(),
+        event, task_id, board=fields.pop("board", get_current_board()),
         assignee=task.assignee if task else None, run_id=run_id, **fields,
     )
 
@@ -2725,7 +2725,7 @@ def _merge_completion_prose_artifacts(
 
 
 def _persist_scratch_completion_artifacts(
-    conn: sqlite3.Connection, task_id: str, metadata: dict,
+    conn: sqlite3.Connection, task_id: str, metadata: dict, *, attachment_dir: Optional[Path] = None,
 ) -> None:
     """Copy scratch-workspace completion artifacts before cleanup removes them."""
     # Compensation authority comes only from files this invocation actually created.
@@ -2746,7 +2746,7 @@ def _persist_scratch_completion_artifacts(
     except OSError:
         return
 
-    attachment_dir = task_attachments_dir(task_id, board=board)
+    attachment_dir = attachment_dir if attachment_dir is not None else task_attachments_dir(task_id, board=board)
     persisted: list[str] = []
     used_destinations: dict[Path, None] = {}
     changed = False

@@ -509,7 +509,7 @@ def _zip_sqlite_snapshot(zf: zipfile.ZipFile, abs_path: Path, rel_path: Path, ou
 
 def _write_zip_entries(
     zf: zipfile.ZipFile, files_to_add: list[tuple[Path, Path]], out_path: Path,
-    *, on_db_failure, on_error, on_progress, track_bytes: bool) -> int:
+    *, on_db_failure, on_error, on_progress, track_bytes: bool, snapshot_database=None) -> int:
     """Add every ``(abs_path, rel_path)`` to *zf*, WAL-safe for ``*.db``; return bytes archived.
 
     ``on_db_failure(rel_path)`` runs when a SQLite snapshot fails (may raise to abort);
@@ -519,7 +519,8 @@ def _write_zip_entries(
     total_bytes = 0
     for i, (abs_path, rel_path) in enumerate(files_to_add, 1):
         try:
-            if abs_path.suffix == ".db":
+            needs_snapshot = snapshot_database(abs_path) if snapshot_database is not None else abs_path.suffix == ".db"
+            if needs_snapshot:
                 size = _zip_sqlite_snapshot(zf, abs_path, rel_path, out_path)
                 if size is None:
                     on_db_failure(rel_path)
@@ -617,13 +618,16 @@ def run_backup(args) -> bool:
 def _run_backup_locked(args, hermes_root: Path) -> bool:
     """Write a full backup while the cross-process backup slot is held."""
     from hermes_cli.backup_storage import full_backup_notice
+    from hermes_cli.backup_database_policy import DatabaseBackupPolicy
+    database_policy = DatabaseBackupPolicy(hermes_root)
     full_backup_notice(hermes_root)
     out_path = _resolve_backup_output_path(args.output)
     scan_started = time.monotonic()
     logger.info("backup phase=scan status=started")
     print(f"Scanning {display_hermes_home()} ...")
     skipped_dirs: set = set()
-    files_to_add: list[tuple[Path, Path]] = list(_iter_backup_files(hermes_root, out_path, skipped_dirs))
+    files_to_add: list[tuple[Path, Path]] = [(path, rel) for path, rel in _iter_backup_files(hermes_root, out_path, skipped_dirs)
+        if database_policy.include(path)]
     external_to_add, skipped_external = _collect_external_entries()
     if not files_to_add and not external_to_add:
         logger.info("backup phase=scan status=empty duration_ms=%.1f", (time.monotonic() - scan_started) * 1000)
@@ -644,10 +648,11 @@ def _run_backup_locked(args, hermes_root: Path) -> bool:
 
     with _atomic_output_path(out_path) as archive_path, zipfile.ZipFile(
             archive_path, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
+        zf.comment = database_policy.zip_comment()
         total_bytes = _write_zip_entries(
             zf, files_to_add, out_path, on_progress=_progress, track_bytes=True,
             on_db_failure=lambda rel: errors.append(f"{rel}: SQLite safe copy failed"),
-            on_error=lambda rel, exc: errors.append(f"{rel}: {exc}"))
+            on_error=lambda rel, exc: errors.append(f"{rel}: {exc}"), snapshot_database=database_policy.snapshot)
         # External memory-provider state never includes ``.db`` files in practice, so no
         # SQLite snapshot is needed; _write_zip_file still drops a failed partial member.
         for abs_path, arcname in external_to_add:
@@ -805,7 +810,7 @@ def run_import(args) -> Optional[int]:
         try:
             restored, restored_external, errors, skipped_runtime, db_shrunk = _import_members(
                 zf, members, prefix, hermes_root, file_count)
-        except OwnershipConflict as exc:
+        except (OwnershipConflict, ValueError) as exc:
             print(f"\nImport refused; no files restored: {exc}")
             sys.exit(1)
         elapsed = time.monotonic() - t0
@@ -920,6 +925,8 @@ def _import_members(
 ) -> tuple[int, int, list[str], list[str], list[tuple[str, tuple[int, int], tuple[int, int]]]]:
     """Reserve all affected profiles before publishing even the first config file."""
     from gateway.runtime_ownership import exclusive_maintenance
+    from hermes_cli.backup_database_policy import policy_for_archive
+    database_policy = policy_for_archive(hermes_root, zf, members, prefix)
     root_res = hermes_root.resolve()
     homes = {hermes_root}
     for member in members:
@@ -932,10 +939,10 @@ def _import_members(
             if home.resolve().is_relative_to(root_res):
                 homes.add(home)
         target = hermes_root / rel
-        if target.suffix == ".db" and target.resolve().is_relative_to(root_res):
+        if database_policy.snapshot(target) and target.resolve().is_relative_to(root_res):
             homes.update([target.absolute().parent, target.resolve().parent])
     with exclusive_maintenance(homes):
-        return _import_members_exclusive(zf, members, prefix, hermes_root, file_count)
+        return _import_members_exclusive(zf, members, prefix, hermes_root, file_count, database_policy=database_policy)
 
 
 def _import_external_member(
@@ -966,13 +973,15 @@ def _import_external_member(
 
 
 def _import_members_exclusive(
-    zf: zipfile.ZipFile, members: list[str], prefix: str, hermes_root: Path, file_count: int
+    zf: zipfile.ZipFile, members: list[str], prefix: str, hermes_root: Path, file_count: int, *, database_policy=None
 ) -> tuple[int, int, list[str], list[str], list[tuple[str, tuple[int, int], tuple[int, int]]]]:
     """Publish every member; return ``(restored, restored_external, errors, skipped_runtime, db_shrunk)``.
 
     ``db_shrunk`` holds ``(rel, live_counts, imported_counts)`` for every session database the
     import replaced with one holding fewer rows — allowed, but never silently (#100960).
     """
+    from hermes_cli.backup_database_policy import policy_for_archive
+    database_policy = database_policy or policy_for_archive(hermes_root, zf, members, prefix)
     errors = []
     restored = 0
     restored_external = 0
@@ -1049,7 +1058,10 @@ def _import_members_exclusive(
 
         try:
             target.parent.mkdir(parents=True, exist_ok=True)
-            if target.suffix == ".db":
+            if not database_policy.include(target):
+                skipped_runtime.append(rel)
+                continue
+            if database_policy.snapshot(target):
                 # Count before the write: afterwards the rows this import
                 # drops are gone and there is nothing left to compare.
                 before = _count_session_rows(target)
@@ -1275,6 +1287,8 @@ def _create_quick_snapshot_locked(
         Snapshot ID (timestamp-based), or None if no files found.
     """
     home = hermes_home or get_hermes_home()
+    from hermes_cli.backup_database_policy import DatabaseBackupPolicy
+    database_policy = DatabaseBackupPolicy(home)
     root = _quick_snapshot_root(home)
 
     def _too_large(path: Path, rel_name: str) -> bool:
@@ -1325,6 +1339,8 @@ def _create_quick_snapshot_locked(
 
     for rel in _QUICK_STATE_FILES:
         src = home / rel
+        if not database_policy.include(src):
+            continue
         if not src.exists():
             continue
 
@@ -1332,17 +1348,10 @@ def _create_quick_snapshot_locked(
             # Walk the directory and record each file individually in the
             # manifest so restore can treat them uniformly.  Empty dirs are
             # skipped (nothing to snapshot).
-            for sub in src.rglob("*"):
-                if not sub.is_file():
-                    continue
-                sub_rel = sub.relative_to(home).as_posix()
-                # Skip heavy, regenerable per-board subtrees (scratch
-                # workspaces and task attachments can be large); we only need
-                # the board databases + their metadata to restore a board.
-                if "/workspaces/" in f"/{sub_rel}/" or "/attachments/" in f"/{sub_rel}/":
-                    continue
+            from hermes_cli.backup_snapshot_files import directory_files
+            for sub, sub_rel in directory_files(src, home, database_policy):
                 if _too_large(sub, sub_rel):
-                    if sub.suffix == ".db":
+                    if database_policy.snapshot(sub):
                         oversized_skipped.append(sub_rel)
                     continue
                 dst = staging_dir / sub_rel
@@ -1351,7 +1360,7 @@ def _create_quick_snapshot_locked(
                     # Route SQLite DBs through the WAL-safe backup() path so a
                     # board DB with an open WAL (the gateway may hold it at
                     # snapshot time) is captured consistently.
-                    if sub.suffix == ".db":
+                    if database_policy.snapshot(sub):
                         if not _safe_copy_db(sub, dst):
                             failed_dbs.append(sub_rel)
                             print(
@@ -1375,7 +1384,7 @@ def _create_quick_snapshot_locked(
             continue
 
         if _too_large(src, rel):
-            if src.suffix == ".db":
+            if database_policy.snapshot(src):
                 oversized_skipped.append(rel)
             continue
 
@@ -1440,6 +1449,7 @@ def _create_quick_snapshot_locked(
         "failed_dbs": failed_dbs,
         "oversized_skipped": oversized_skipped,
         "session_storage": snapshot_storage(home, manifest),
+        "database_storage": database_policy.describe(manifest),
     }
     with open(staging_dir / "manifest.json", "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
@@ -1551,8 +1561,9 @@ def restore_quick_snapshot(
     home = hermes_home or get_hermes_home()
     try:
         with exclusive_maintenance([home]):
-            return _restore_quick_snapshot_exclusive(snapshot_id, home)
-    except OwnershipConflict as exc:
+            from hermes_cli.backup_restore_quick import restore_snapshot_exclusive
+            return restore_snapshot_exclusive(snapshot_id, home)
+    except (OwnershipConflict, ValueError) as exc:
         logger.error("%s", exc)
         return False
 
@@ -1570,10 +1581,11 @@ def _snapshot_epochs_restorable(files, entry_paths) -> bool:
     return True
 
 
-def _restore_snapshot_entry(rel: str, src: Path, dst: Path) -> bool:
+def _restore_snapshot_entry(rel: str, src: Path, dst: Path, *, sqlite_snapshot=None) -> bool:
     """Publish one quick-snapshot file over ``dst``; False (logged) when refused or failed."""
     try:
-        if dst.suffix == ".db":
+        needs_snapshot = sqlite_snapshot if sqlite_snapshot is not None else dst.suffix == ".db"
+        if needs_snapshot:
             # Restore through SQLite backup API so live connections
             # (gateway, dashboard, another CLI session) see the
             # restored data instead of continuing to serve stale
@@ -1619,65 +1631,6 @@ def quick_snapshot_dir(snapshot_id: str, hermes_home: Optional[Path] = None) -> 
     return snap_dir
 
 
-def _restore_quick_snapshot_exclusive(snapshot_id: str, home: Path) -> bool:
-    """Restore state from a quick snapshot while ``home`` is reserved."""
-    from gateway.runtime_ownership import exclusive_maintenance
-    snap_dir = quick_snapshot_dir(snapshot_id, home)
-    if snap_dir is None:
-        return False
-    with open(snap_dir / "manifest.json", encoding="utf-8-sig") as f:
-        meta = json.load(f)
-
-    snap_res, home_res = snap_dir.resolve(), home.resolve()
-
-    def _entry_paths(rel: str) -> Optional[tuple[Path, Path]]:
-        # Security: reject absolute paths and traversals in manifest entries
-        src, dst = snap_dir / rel, home / rel
-        if not src.resolve().is_relative_to(snap_res):
-            return None
-        if not dst.resolve().is_relative_to(home_res):
-            # Named profiles may deliberately share the machine-root auth store via an
-            # auth.json symlink. Let only that exact trusted alias reach _restore_auth_json;
-            # every other manifest destination outside the profile remains a traversal.
-            if rel != "auth.json" or not _is_trusted_root_auth_alias(dst, home):
-                return None
-        return src, dst
-
-    homes = {home}
-    for rel in meta.get("files", {}):
-        entry = _entry_paths(rel)
-        if entry and entry[1].suffix == ".db":
-            homes.update([entry[1].absolute().parent, entry[1].resolve().parent])
-    with exclusive_maintenance(homes):
-        # Epoch safety is a whole-profile preflight: copying config first would
-        # both partially roll back the profile and report a refused DB as success.
-        if not _snapshot_epochs_restorable(meta.get("files", {}), _entry_paths):
-            return False
-
-        restored = 0
-        auth_restore_failed = False
-        for rel in meta.get("files", {}):
-            entry = _entry_paths(rel)
-            if entry is None:
-                logger.error("Manifest path traversal blocked: %s", rel)
-                if rel == "auth.json":
-                    auth_restore_failed = True
-                continue
-            src, dst = entry
-            if not src.exists():
-                if rel == "auth.json":
-                    logger.error("Snapshot auth.json listed in manifest is missing: %s", src)
-                    auth_restore_failed = True
-                continue
-
-            dst.parent.mkdir(parents=True, exist_ok=True)
-            if _restore_snapshot_entry(rel, src, dst):
-                restored += 1
-            elif rel == "auth.json":
-                auth_restore_failed = True
-
-    logger.info("Restored %d files from snapshot %s", restored, snapshot_id)
-    return restored > 0 and not auth_restore_failed
 
 
 def restore_cron_jobs_if_emptied(
@@ -2051,10 +2004,12 @@ def _write_full_zip_backup(out_path: Path, hermes_root: Path) -> Optional[Path]:
 
 
 def _write_full_zip_backup_locked(out_path: Path, hermes_root: Path) -> Optional[Path]:
+    from hermes_cli.backup_database_policy import DatabaseBackupPolicy
+    database_policy = DatabaseBackupPolicy(hermes_root)
     scan_started = time.monotonic()
     logger.info("automatic backup phase=scan status=started")
     try:
-        files_to_add = list(_iter_backup_files(hermes_root, out_path))
+        files_to_add = [(path, rel) for path, rel in _iter_backup_files(hermes_root, out_path) if database_policy.include(path)]
     except OSError as exc:
         logger.warning("Full-zip backup: walk failed: %s", exc)
         return None
@@ -2095,8 +2050,10 @@ def _write_full_zip_backup_locked(out_path: Path, hermes_root: Path) -> Optional
     try:
         with _atomic_output_path(out_path, _publish_path) as archive_path, zipfile.ZipFile(
                 archive_path, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
+            zf.comment = database_policy.zip_comment()
             _write_zip_entries(
                 zf, files_to_add, out_path, on_db_failure=_db_failure, track_bytes=False,
+                snapshot_database=database_policy.snapshot,
                 on_error=lambda rel, exc: errors.append(f"{rel}: {exc}"),
                 on_progress=lambda i: logger.info(
                     "automatic backup phase=archive status=progress completed=%d total=%d", i, len(files_to_add)))

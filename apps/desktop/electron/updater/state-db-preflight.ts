@@ -57,7 +57,7 @@ export async function preflightStateDb({
       throw new Error('Python not found')
     }
 
-    const args: string[] = launcher ? ['--run-module', 'hermes_cli.backup_sqlite', home] : ['-I', '-S', script, home]
+    const args: string[] = launcher ? ['--run-module', 'hermes_cli.backup_preflight', home] : ['-I', script, home]
 
     // Node refuses direct .cmd execFile; an older published launcher can still
     // be one. Same fail-closed guard as the update check: shell:true would
@@ -81,7 +81,7 @@ export async function preflightStateDb({
       })
     )
 
-    log(`[updates] state.db pre-flight: ${stdout.trim()}`)
+    log(`[updates] storage pre-flight: ${stdout.trim()}`)
   } catch (error: unknown) {
     const message =
       `state.db pre-flight failed: ${error instanceof Error ? error.message : String(error)}. ` +

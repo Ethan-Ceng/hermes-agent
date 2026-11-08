@@ -52,6 +52,8 @@ def repo(tmp_path, monkeypatch):
 
     clone = tmp_path / "repo"
     _git(["clone", str(origin), str(clone)], tmp_path)
+    # Automatic GC excludes machine Git config; pin the fixture's byte policy for both callers.
+    _git(["config", "core.autocrlf", "false"], clone)
     (clone / "README.md").write_text("hello\n")
     _git(["add", "."], clone)
     _git(["commit", "-m", "init"], clone)
@@ -69,6 +71,7 @@ def local_repo(tmp_path, monkeypatch):
     (tmp_path / "home").mkdir()
     repo = tmp_path / "local-repo"
     _git(["init", "-b", "main", str(repo)], tmp_path)
+    _git(["config", "core.autocrlf", "false"], repo)
     (repo / "README.md").write_text("hello\n")
     _git(["add", "."], repo)
     _git(["commit", "-m", "init"], repo)

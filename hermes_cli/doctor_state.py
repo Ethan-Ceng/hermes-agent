@@ -486,9 +486,9 @@ def _check_state_db(should_fix: bool, f: Finding) -> None:
     from hermes_db.health import configured_probe
     if (storage := configured_probe(HERMES_HOME)) is not None:
         if storage["status"] == "ok":
-            check_ok("PostgreSQL session storage is reachable and schema-compatible")
+            check_ok("PostgreSQL system database storage is reachable and schema-compatible")
         else:
-            check_warn("PostgreSQL session storage is unavailable; inspect `hermes db status`")
+            check_warn("PostgreSQL system database storage is unavailable; inspect `hermes db status`")
             f.manual_issues.append("PostgreSQL connectivity, credentials or schema require operator attention")
         return
     state_db_path = HERMES_HOME / "state.db"

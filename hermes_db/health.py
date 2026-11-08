@@ -34,12 +34,14 @@ def persisted_profile_id(authority):
 
 def configured_probe(home):
     from hermes_cli.config_backend import ConfigBackendUnavailable
-    from hermes_cli.db_setup import resolve_db_configuration
+    from hermes_cli.db_setup import resolve_db_configuration, storage_backend
 
+    backend = "unknown"
     try:
-        settings, scope = resolve_db_configuration(home)
-        if settings.backend == "sqlite":
+        backend = storage_backend(home)
+        if backend == "sqlite":
             return None
+        settings, scope = resolve_db_configuration(home)
         from sqlalchemy import select
         from hermes_db.engine import read_connection
         from hermes_db.errors import StorageSchemaError
@@ -56,4 +58,4 @@ def configured_probe(home):
             conn.execute(select(sessions.c.id).where(sessions.c.store_id == scope.require_store_id()).limit(1)).first()
         return {"backend": "postgresql", "status": "ok"}
     except (ConfigBackendUnavailable, Exception) as exc:  # health: allow BLE001 -- diagnostics redact every backend/config failure
-        return {"status": "degraded", "detail": type(exc).__name__}
+        return {"backend": backend, "status": "degraded", "detail": type(exc).__name__}

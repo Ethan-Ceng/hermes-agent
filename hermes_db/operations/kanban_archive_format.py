@@ -91,7 +91,7 @@ def _graph(tables):
         raise ValueError("Board archive dependency graph contains a cycle")
 
 
-def read_archive(root):
+def read_archive(root, *, private_stage=False):
     from hermes_cli.kanban_transfer import ARCHIVE_FORMAT
     manifest = _json(root / "manifest.json")
     if (not isinstance(manifest, dict) or manifest.get("format") != ARCHIVE_FORMAT
@@ -99,6 +99,8 @@ def read_archive(root):
             or manifest.get("backend") != "postgresql"):
         raise ValueError("PostgreSQL imports require a PG v2 Board archive; cross-backend migration is unsupported")
     allowed = {"manifest.json", "board.json", "data.json", "attachments", "logs"}
+    if private_stage:
+        allowed.add(".owner.json")
     if any(path.name not in allowed for path in root.iterdir()):
         raise ValueError("Unexpected member in PG Board archive")
     data = _json(root / "data.json")

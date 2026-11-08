@@ -1766,20 +1766,20 @@ def delete_profile(name: str, yes: bool = False) -> Path:
     if wrapper_path and remove_wrapper_script(canon):
         print(f"✓ Removed {wrapper_path}")
 
-    # 4. Remove profile directory
     remove_error: Exception | None = None
     try:
         # A multiplexer still tearing the profile down holds its gateway.lock: never remove a home
         # a live runtime owns (its writers would recreate the tree under the tombstone).
         if not wait_profile_unowned(profile_dir):
             raise RuntimeError("a running gateway still owns this profile; retry the delete once it settles")
+        from hermes_cli.data_cleanup_storage import purge_profile_store
+        purge_profile_store(profile_dir)
         _rmtree_with_retry(profile_dir, _rmtree_make_writable)
         print(f"✓ Removed {profile_dir}")
     except Exception as e:
         print(f"⚠ Could not remove {profile_dir}: {e}")
         remove_error = e
 
-    # 5. Clear active_profile if it pointed to this profile
     _retarget_active_profile(canon, "default", "✓ Active profile reset to default")
     if remove_error is not None:
         raise RuntimeError(f"Could not remove profile directory {profile_dir}: {remove_error}") from remove_error

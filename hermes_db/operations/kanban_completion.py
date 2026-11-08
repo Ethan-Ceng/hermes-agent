@@ -7,7 +7,8 @@ from hermes_db.errors import UnknownCommitError
 from hermes_db.operations import kanban_completion_acceptance as acceptance
 from hermes_db.operations.kanban_completion_guards import verify_on_connection
 from hermes_db.operations.kanban_artifacts import insert_attachment
-from hermes_db.operations.kanban_graph import _unsatisfied, recompute_ready
+from hermes_db.operations.kanban_graph import _unsatisfied
+from hermes_db.operations.kanban_effects import enqueue, hook_step, after_commit
 from hermes_db.repositories import kanban as repo, kanban_runs as run_repo
 
 SNAPSHOT_FIELDS = ("status", "current_run_id", "claim_lock", "worker_pid", "worker_started_at", "workspace_kind",
@@ -22,7 +23,14 @@ def _prepare_files(store, task_id, metadata):
     from hermes_cli import kanban_db as kb
     if not isinstance(metadata, dict):
         return [], []
-    kb._persist_scratch_completion_artifacts(store, task_id, metadata)
+    from hermes_db.operations.kanban_attachment_cleanup import prepare_directory
+    directory = prepare_directory(store, kb.task_attachments_dir(task_id))
+    try:
+        kb._persist_scratch_completion_artifacts(store, task_id, metadata, attachment_dir=directory)
+    except Exception:
+        from hermes_db.operations.kanban_attachment_cleanup import discard_empty_generation
+        discard_empty_generation(store, directory)
+        raise
     staged = [Path(value) for value in metadata.pop("_staged_artifacts", [])]
     try:
         from hermes_db.repositories.kanban_workspaces import canonical_path
@@ -46,7 +54,7 @@ def _close_completed(conn, store, task, result, summary, metadata):
     return run_id, handoff
 
 
-def _write_completion(conn, store, captured, expected_run_id, result, summary, metadata, verified, prepared, rows):
+def _write_completion(conn, store, captured, expected_run_id, result, summary, metadata, verified, prepared, rows, fire_lifecycle_hook):
     from hermes_cli import kanban_db as kb
     task_id = captured["id"]
     task = repo.get(conn, store, task_id)
@@ -64,8 +72,13 @@ def _write_completion(conn, store, captured, expected_run_id, result, summary, m
     run_id, handoff = _close_completed(conn, store, task, result, summary, metadata)
     event_summary = handoff or (kb._REVIEW_APPROVED_NOTE if task["status"] == "review" else None)
     repo.event(conn, store, task_id, "completed", kb._completed_event_payload(result, event_summary, verified, metadata), run_id)
+    steps = [dict(kind="phantom", task_id=task_id, run_id=run_id, summary=summary, result=result, verified=verified),
+        dict(kind="ready"), dict(kind="workspace", task_id=task_id)]
+    if fire_lifecycle_hook:
+        steps.append(hook_step(store, task, "kanban_task_completed", run_id, summary=handoff))
+    effect_id = enqueue(conn, store, steps)
     store.command_result(conn, True)
-    return run_id, handoff
+    return run_id, handoff, effect_id
 
 
 def _prepare_completion(store, task_id, result, summary, metadata, created_cards, expected_run_id, force):
@@ -104,25 +117,23 @@ def complete_task(store, task_id, *, result=None, summary=None, metadata=None, c
     if preparation is None:
         return False
     task, verified, metadata, prepared = preparation
-    staged, rows = _prepare_files(store, task_id, metadata)
-    durable = False
-    try:
-        with store.write() as conn:
-            completed = _write_completion(conn, store, task, expected_run_id, result, summary, metadata, verified, prepared, rows)
-        durable = completed is not None
-    except UnknownCommitError:
-        # COMMIT may have published the attachment rows; retain their content for reconciliation.
-        durable = True
-        raise
-    finally:
-        if staged and not durable:
-            kb._discard_staged_copies(staged, staged[0].parent)
+    from hermes_db.operations.kanban_file_jobs import local_files_lock
+    with local_files_lock(store.scope.profile_home):
+        staged, rows = _prepare_files(store, task_id, metadata)
+        durable = False
+        try:
+            with store.write() as conn:
+                completed = _write_completion(conn, store, task, expected_run_id, result, summary, metadata, verified, prepared, rows, fire_lifecycle_hook)
+            durable = completed is not None
+        except UnknownCommitError:
+            # COMMIT may have published the attachment rows; retain their content for reconciliation.
+            durable = True
+            raise
+        finally:
+            if staged and not durable:
+                from hermes_db.operations.kanban_attachment_cleanup import discard_copies
+                discard_copies(store, staged)
     if completed is None:
         return False
-    run_id, handoff = completed
-    kb._flag_phantom_prose_refs(store, task_id, run_id, summary, result, verified)
-    recompute_ready(store)
-    kb._cleanup_workspace(store, task_id)
-    if fire_lifecycle_hook:
-        kb._fire_task_hook("kanban_task_completed", kb.get_task(store, task_id), task_id, run_id, summary=handoff)
+    after_commit(store, completed[2])
     return True
