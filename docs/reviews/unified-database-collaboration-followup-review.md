@@ -132,3 +132,52 @@ scripts/run_tests.sh tests/hermes_db/postgresql/test_domain_maintenance.py -j 1 
 4. 其他领域审查、当前生产与发行产物的最终门禁仍由总体审查合并，不将局部合同成功外推为全部并发、故障和平台情形已穷尽。
 
 因此当前全局继续 **`FAILED / CHANGES_REQUIRED`**，Task24 不标完成，不给出全系统 `APPROVED` 或 `READY_TO_MERGE`。本节取代前文“等待 PG 完整批次”的当前状态，同时保留全部原失败、当时未完成项及其后续整改记录。
+
+## 2026-11-09：Native pause-record 新失败的只读诊断
+
+本轮仅按父任务要求读取原日志、生产/测试源码、CLI/项目指引与 Git 历史，没有重跑用例、连库、读取活进程状态、操作进程/服务或改生产/测试。检查时 HEAD 为 `99bd92d5ecdf63c93a01561d58769fd51360cbdf`，生产仍为 120bf8c9d6c9；该恢复点对本问题的相关代码没有修改。
+
+### 确定事实
+
+仍在执行的 20a478 全宽日志 `.build/postgresql/unified-task24-20a478-full-native-observed.log:4877` 结算原文件 **42 passed / 1 failed，53.7 秒**。失败为 `tests/hermes_cli/test_update_pause_record.py:739` 的 `test_an_accepted_stop_the_record_could_not_checkpoint_outlives_the_request_ttl[False]`，实际 `owed={'p': 71887}`，预期 `{}`。这是该文件的终态，不是整轮宽回归终态。
+
+原 testcase 的 checkpoint 前提成立：`root.chmod(0o555)` 后 mark_stop_sent 的原始输出为 PermissionError(13)，且 `saved['stop_sent']==[]` 已通过；不能把问题解释成该次 checkpoint 实际成功。之后原目录已恢复 0755，marker 的 written_at 被改成当前 UTC 的 120 秒前。`gateway/status.py:1606` 的 TTL 为 **60 秒**，`:1619` 的 stale 判断为 UTC age > TTL。此 case 未调用 consume；同一参数化的 consumed=True 则要求已接受的 stop 在整个 drain 期间保留 restart debt。
+
+### 实际协议与尚缺的分支证据
+
+`hermes_cli/update_pause_record.py:857` 的实际算法为：先取得 `(asked, unknown)=_asked(token)`，再仅移除 `_live_pids(token) - asked - unknown` 中的 PID。因此，在本案 stop_sent 为空的前提下，p 保留至少有以下一种原因：
+
+| 分支 | 必须补看的实际值 |
+| --- | --- |
+| PID 不在 live 集合 | saved.identities 中的 ct、真正 incarnation verdict；不能只由 os.getpid() 推断此协议的 live=True |
+| asked 包含 PID | 主 marker/accepted receipt 的实际匹配结果；原请求过期不意味着 accepted receipt 也过期 |
+| unknown 包含 PID | marker 或 `.accepted` 的真实读/解析拒绝；源码有意保持未知 stop 的债务 |
+
+`_request_on_disk`（`:811`）同时读取原请求（60 秒 TTL）和 accepted receipt（无 TTL）。`_names_request`（`:828`）把 FileNotFoundError 判为 False，其余读/解析错误判为 None；匹配的 accepted receipt 或原请求 accepted=true 可以越过原请求 TTL。现有 traceback 没有保存两个 reader 的返回值、marker 的 accepted 字段、accepted 路径/内容或读错误，不能从最终 profiles 反推出是哪条证据分支。
+
+identity 还有一条需要观察、尚未证实的分叉：`identity()`（`:74`）调用 fresh `update_lock.process_create_time`，记录 `ct:<seconds.3f>`；`identity_is_live()`（`:86`）调用统一 incarnation 协议。对本 PID，`update_lock._real_world()` / `_own_create_time()` 使用按 PID 缓存的 `_OWN_CT`，`_incarnation`（`:326`）通常要求两者在 **0.005 秒**内一致，另保留既有整秒兼容规则。若缓存 ct 与新读 ct 不一致，或缓存 ct 为空而新录 ct 非空，本 PID 可以被判为不同 incarnation，因而不会作为“同一 live、从未被 stop”移除。这只是源码允许的解释；日志没有两份 ct，不能据此声称缓存或宿主时钟已是根因。
+
+需区分未知与明确不匹配：`identity_is_live` 使用 `incarnation_live(...) is not False`，通常的不可证明结果 None 仍算 live；笼统的“读进程状态失败”不能直接解释本案。另 `gateway.status` 的 Linux target_start_time 使用内核 start ticks，与 pause record 的 epoch ct 是两套各自同源比较的指纹，源码没有拿两者混比。
+
+### 历史与基线关系
+
+- `cff9e7a0f5` 的意图是 accepted stop 的无 TTL receipt，提交说明同时明确“Unconsumed requests still expire”。
+- `7b68039222` 明确规定读拒绝/畸形为 unknown，继续保留债务；未消费的过期请求仍应过期。
+- `ab8ef5a850` 统一本 PID 的 incarnation 判断，避免只因 PID 相同就接管旧 incarnation；不能为了这条断言改成裸 PID liveness。
+- 对 `a875342384..20a4789b35` 和 `a875342384..99bd92d5ecdf`，`update_pause_record.py`、`update_lock.py`、`gateway/status.py` 与该原测试文件均 **无 diff**。已有 58d 宽日志中原文件 **43 passed / 33.3 秒**，69d 宽日志中 **43 passed / 32.6 秒**。
+
+这些事实表明没有本分支直接修改该协议的证据；它们不是同一现场的 fresh baseline A/B，也不能排除分支的间接触发、既有问题或宿主条件变化。当前不能把失败定性为“已知基线问题”“负载导致”或“仅测试假设错误”。两个 wide diagnostics 插件的源码 hook 仅针对 managed-worker/压缩及 keyless-host 文件，没有为 pause-record 捕获上述分支值。
+
+### 最小后续证据建议（由 Root 决定执行）
+
+保留原 non-root Linux 宿主、chmod 前提、60/120 秒语义、actor/marker 和全部原断言。若进行下一次 canonical runner 观察，优先保持原**完整文件内顺序**，因为 `_OWN_CT` 是同一 pytest 进程内的缓存；只窄跑 False 的新进程可能隐藏此前缓存条件。一次绿应记录“未复现”，不能替代原红或反复盲跑。
+
+观测层只包装实际调用并原样返回/重抛：记录 `_asked` 的 A/U、`_live_pids` 的 L、两个 `_names_request` verdict；在真实 `_incarnation(pid, recorded, world)` 调用处记录 recorded、world.pid/world.ct 和结果；在真实 creation-time/cache 调用处记录已发生的返回值。不要额外调用 `_asked`、`identity_is_live` 或 creation-time probe 来“再检查一次”，以免首次填充缓存或改变观察时点。
+
+失败时另存本测试的 marker/accepted 的路径及白名单字段（target_pid、stopper_pid、target_start_time、written_at、accepted）和实际 read errno/解析错误，以及 drop 输入/输出中的 stop_sent、identities、profiles。原样保存到不会随 pytest fixture 清理的本次诊断目录，不扫描其他 Profile 或测试 home；不以这些读数执行 stop、restart、kill 或服务操作。
+
+该最小证据可以将原因分到 TTL/accepted/unknown/identity 中的一条，再决定是否需要针对性复现或基线对照。当前不建议改 TTL、删除 chmod 控制、强行清债务、重置缓存或放宽 incarnation 规则。
+
+### 本轮结论
+
+已确认真实合同失败及其精确源码分叉，**根因尚未获得必要现场数据**。没有新增已验证的生产 major 归因，但该失败继续作为未闭合 Native 门禁；不能用历史 43 项绿或当前 PG 689 项绿将其关闭。Task24 和全局审查继续 **`FAILED / CHANGES_REQUIRED`**。

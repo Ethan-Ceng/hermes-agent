@@ -1731,6 +1731,18 @@ CLI两份fixture最后静态首轮13/14通过，health指出原service test超�
 
 启动锁probe夹具整改已由独立foundation逐行核对真实I/O、模块clock隔离、两个预算分支和原六项接线合同，局部可接受、无新增blocking/major；未要求或执行生产改动。`PM Python scripts/check --staged --base 8c75a83c35`14检查通过、health1个Python文件0blocking/0advisory、退出0（unified-task24-probe-budget-checks.log），后续只补入审查结论/结果文字，diff-check通过。以唯一标题`test: make probe deadline coverage deterministic`保存父提交8c75上的本地测试恢复点；PG/发行不因测试修改重跑，仍以120bf8真实生产689/四载荷为准。原20a478宽批仍在运行，现进入managed相关文件，已记录旧probe单红，不能改称当前整批全绿或Task24完成。
 
+当前原20a478宽批内，managed launch7pass/64.5秒（含controls/history）、Host injection5pass/37.9秒和managed压缩2pass/170.8秒已真正原期限通过；它们属于该宽批子范围，不与先前timed14相加、不反推旧失败因果。第二个非零文件为hygiene turnhold adoption，2pass/1fail、28.4秒，inline尚缺原具体断言；整批仍live。Root受控阶段观测原文件3pass/4.3秒，仅测得该次whole1.0396/wait0.300855秒。核对完整runner身份后Python调试只读请求被OS EPERM拒绝，未取得原failure，未改内核/服务或重启原批次。
+
+该hygiene首case的失败前release缺finally已由独立foundation确认minor，Root先对这一独立问题做精确红绿：原函数/真实Events/强制result断言失败的probe实际close0而红，1fail/9.7秒；只给原断言段加try/finally release+await原deferred drain，原5/15/commit5秒和全部业务断言不动，probe现1pass/10.5秒且原AssertionError正文保留、close1和任务空。candidate state task24-hygiene-cleanup-candidate-state.json、单hygiene文件SHA ffac74a5...badd59f，源候选另外持有已提交probe测试overlay；未修改运行中的20a478。独立foundation已接受这项局部cleanup整改，静态待结算。
+
+新candidate原adoption整文件仍2pass/1fail，真正完整复现whole elapsed11.010960637<5失败；合批2文件3pass/1fail/退出1/34.6秒（hygiene-cleanup-candidate）。后来method观察另3pass/5.1秒、call-only原首case另1pass/2.6秒只属于成功时序，不能记根因已修。慢阶段继续调查，未改生产或期限。详见debug和foundation followup，Task24仍FAILED/in_progress，非WSL平台缺口保留。
+
+后续hygiene call-only失败profile已取得真实慢阶段：whole8.811243883秒中post-turn hooks7.3143秒，首次真实goal store warm7.29866秒；summary等待仍约0.3秒。skeleton未准备真实post-turn库，故当前保留实际goal/loop/SQLite初始化但移到原计时起点前，另保留失败finally release/drain。原期限/业务断言全保留，生产无修改。第一次bootstrap顺序probe监视错接缝、结果[]，不计有效红；更正包装真实_acquire_session_db后旧cleanup-only候选明确in_handler=True而1fail/13.7秒。新99bd候选state task24-hygiene-warm-overlay-state.json、源SHA da3e7ec2...c7b943e，原3项+cleanup错误路径+真实acquire计时边界共3文件5pass/0fail/退出0/45.9秒（hygiene-real-warm-accepted）。首次WSL服务启动错误零测试单独保留，不算业务失败/通过。独立复审及最新静态待结算，详见debug；Task24仍FAILED/in_progress。
+
+当前20a478宽批仍经原session64460运行，不重启；截至96.7%已有6个非零文件、12个失败参数（probe、hygiene、pause-record、private-launch七项、async-delegation、groups-route-parity），只作中途快照。probe已提交局部闭环，hygiene最终候选5绿待独立复审；pause-record身份/marker分叉及groups真实断言待取证，async-age错误墙钟上限待最小验证。七项非WSL适用主机仍缺；旧managed/Host因果不能由本批局部14绿倒推。未创建Task24完成提交，PG689/四套载荷不因测试/文档变化重复运行。
+
+hygiene最终独立foundation复审已接受该fixture小修：正确acquire红/5绿、真实hooks/库及全部原期限均核对，无新增blocking/major。最新`PM Python scripts/check --staged --base 99bd92d5ecdf63c93a01561d58769fd51360cbdf`14检查全过、health1文件0blocking/0advisory、退出0（hygiene-real-warm-checks）；随后仅补入本结果及独立结论并diff-check。以唯一标题`test: prepare real hygiene state before timing`保存本地恢复提交；Task24仍23/24、FAILED/in_progress。下一步继续原宽批终态和pause-record完整文件只读分叉观察，不延长TTL/改权限/重置身份缓存。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |

@@ -161,3 +161,21 @@ metrics本批确有普通/config-only真实managed两参数、owner同意不被a
 ### 仍未关闭的总体门禁
 
 完整PG真实集成、当前Native DB与现有发行/构建范围现可记为上述各自通过；此前“仅准备好载荷/完整PG仍待重跑”的状态由本节取代。**不能据689宣称整个Native或平台门禁通过。** loaded批的managed launch controls失败仍留账；随后timed三文件14项全绿只说明该次未复现。Host全文件两次5项及前次单项1项通过不能重写原三worker批20秒TURN_TEXT缺note或证明根因修复，独立Host报告的证据限制继续适用。managed历史/compress先前等待失败及后续两参数通过同样分别留账，不由此推定并发负载因果；带现有观察的最终Native宽验仍需结算。非WSL七项适用主机仍缺证据，其他领域最终结算由对应独立报告负责。本范围未发现需要重新打开已闭合插件/SDK major的新证据；Task24和整体审查仍 **FAILED / CHANGES_REQUIRED**。
+
+## Native live-activity 年龄断言的只读补查
+
+范围为20a478冻结宽验日志 `unified-task24-20a478-full-native-observed.log:5432` 附近的 `tests/tools/test_async_delegation.py`：**34 passed / 1 failed / 1 skipped，文件runner133.8s（pytest132.95s）**。失败是 `test_list_async_delegations_exposes_live_activity:462` 的 child age **22.1 > 20.0**；此前 status=running、in_tool=True、api_calls=3、current_tool=web_search及进度字段存在断言均已通过。本轮只读源码/Git历史和该原输出，无代跑、数据库访问、生产/测试修改或提交；宽批当时仍运行，不用中途通过数作完整Native结算。读取时本地HEAD已为99bd92d5ec，相关async模块/该原测试未新增修改。
+
+### [minor，测试合同边界] 固定20秒上限把 dispatch 和调度耗时算进年龄投影
+
+位置：`tests/tools/test_async_delegation.py:442`、451、462；实际计算为 `tools/async_delegation.py:1324`，采样入口1336行。
+
+`base_ts = time.time() - 12` 在dispatch之前求值。list自身取 `now = time.time()`，在records锁外直接调用progress_fn，并用其第三项返回 `round(max(0, now - timestamp), 1)`；因此本测试的合同期望是 `round(12 + (t_list - t_base), 1)`。返回22.1对应约10.1秒墙钟差，完全可能是年龄字段按合同继续增长，并非必须落在10..20。实际dispatch在启动runner/monitor前还同步执行 `_persist_dispatch`（959行），包括真实ledger连接/事务和prune；后续调度与原sleep(.1)也在两个时刻之间。日志没有阶段时间/堆栈，**不能把约10.1秒具体定到某次SQLite锁、fsync、线程启动或其他运行阶段**。
+
+child age不是monitor缓存：monitor的 `_progress_ts` 是“多久未见token变化”的clock，仅投影为 `seconds_since_progress`；`children_activity` 则由list即时progress_fn取得。故缩短monitor interval到.03不会使给定base_ts的年龄保持12，也不能以此失败宣称monitor漏采样。当前读取未发现这条年龄计算/字段来源的生产错误。
+
+历史 `b792bd0529` 同时引入该测试、同样的12秒base/10..20上限和当前年龄公式；提交意图是向/agents公开真实child live activity及进度，并未给dispatch设置8秒性能合同。`a875342384..当前HEAD` 的async模块和该测试无diff；child-run另有worker store context变更，但此测试传的是自己的固定lambda和gate runner，没有进入真实child.run_conversation。**没有同条件基线A/B，因此不称原失败已在a875复现，也不据直接文件未改认定整个分支与延迟无关。**
+
+最小建议是保留真实dispatch、ledger、runner、monitor和状态/字段/私有数据不泄露断言，改用实际list前后clock相对同一base_ts的年龄包围验证；这使延迟仍计入真实年龄，而不是增大20秒上限。用Event同步真实runner启动/采样，可移除sleep(.1)对安静runner的假设，原有有界等待/cleanup仍须保留。若要精确验证12.0→13.0投影，可仅替换ad模块的time**绑定**为本地受控clock proxy，或对已有显式now参数的年龄投影函数验证已知值；不可直接patch `ad.time.time`，因为那会改共享stdlib time模块、污染真实worker/monitor及DB时钟。仅把base_ts移到dispatch后仍可能受调度延迟影响，不算完整处理。若怀疑dispatch性能另有回归，应补独立阶段timing证据，不能让本年龄断言代替延迟诊断。
+
+这是原测试固定上限的已证实观测边界，尚未实施或绿验；不是新生产major，也不抹去该Native文件失败。Root后续fixture处置须重新按合同验证，整体 **FAILED / CHANGES_REQUIRED** 和非WSL适用主机缺口继续保留。

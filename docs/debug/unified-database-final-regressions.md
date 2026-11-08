@@ -174,4 +174,34 @@ PG/Windows两批终止后，同三个原文件在相同120bf8冻结、原-j3/期
 
 修正只涉及原持久probe测试：原wait_s=0.3不变，实际ProfileOwnership.reserve、flock、PID记录/真实fsync及release均保留；该模块私有clock和已有cancel.wait接缝控制预算。两个参数分别让一次复核成本为0.001秒（必须重试，gap和每次wait均至少0.01秒，最终deadline拒绝）与0.31秒（必须一次拒绝、无wait/额外尝试）。直接测试boot/hot-serve共用的生产helper，原六个boot facade/跨进程真实probe与foreign owner/取消用例完全不改；finally关闭本测试owner。这里验证算法预算与退避参数，不冒称此单例测量了物理墙钟300ms的性能；生产期限、锁/身份或协议均未改，也没有伪装OS。
 
-新独立候选从8c75a83c35提交创建，overlay仅该测试文件，SHA256为`92182b8cea73b662cdde0f7d85941d8a55a85e0340158a7a32aee4cbef1c1b0c`（task24-probe-budget-candidate-state.json）。原整文件现8pass/0fail、退出0、1.5秒（unified-task24-probe-budget-candidate.log），含两个预算参数和原六项；runner对any-of Linux/macOS marker输出macOS提示，但实际8项都在Linux执行，没有skip计数，不声称跑过macOS。独立foundation已核对源码、历史意图、原红与候选绿，接受该局部测试整改；静态14检查通过、health1个Python文件0blocking/0advisory、退出0（probe-budget-checks）。当前6412文件宽批仍在原20a478输入上继续，不修改或重启它，原红保留；该夹具前提问题不解释其他managed/Host时序故障。
+新独立候选从8c75a83c35提交创建，最初overlay仅该测试文件，SHA256为`92182b8cea73b662cdde0f7d85941d8a55a85e0340158a7a32aee4cbef1c1b0c`（task24-probe-budget-candidate-state.json）。原整文件现8pass/0fail、退出0、1.5秒（unified-task24-probe-budget-candidate.log），含两个预算参数和原六项；runner对any-of Linux/macOS marker输出macOS提示，但实际8项都在Linux执行，没有skip计数，不声称跑过macOS。独立foundation已核对源码、历史意图、原红与候选绿，接受该局部测试整改；静态14检查通过、health1个Python文件0blocking/0advisory、退出0（probe-budget-checks）。该修正已提交99bd92d5ec。当前6412文件宽批仍在原20a478输入上继续，不修改或重启它，原红保留；该夹具前提问题不解释其他managed/Host时序故障。
+
+## 2026-11-09：hygiene adoption 失败清理与未定位的整段耗时
+
+原20a478宽批第二个非零文件为`test_session_hygiene_turnhold_adoption.py`，2pass/1fail、28.4秒；inline只含末尾provider MagicMock/缺get_session的warning，具体原断言须等整批完整输出。不能据warning定因。历史69d同首case真实完整输出是whole `_handle_message`耗时9.0357秒违反原<5秒断言；旧59-file replay又曾3pass/4.4秒。两者分别留账。
+
+Root未改原业务断言的阶段observer在当前隔离候选得到原文件3pass/4.3秒；该次whole handle1.0396秒、实际wait_for_summary0.300855秒、turn-hold处理0.000612秒。它只证明此成功时序；不能替代失败现场。曾核对原runner完整argv/cwd/UID及PID/birth后，尝试用安装的Python3.14 `sys.remote_exec`只读提取已收集failure；OS以EPERM拒绝，未取得快照，没有改内核、服务、其他进程或重启原批次。该诊断失败不是自动审批拒绝，也不是runner已终止的证据。
+
+独立foundation确认firstcase在第一个result/elapsed断言至release_worker.set之间没有finally；前段断言失败时，真实fake compressor仍touch_progress直到其20秒自限。这个尾部清理缺陷不能解释它之前的整段9秒，但有独立可验证的错误路径。Root用原函数/真实四个Events，只把最终模型结果设为固定forced failure，捕获原result AssertionError后要求agent已close一次、cleanup event已置位且deferred任务排空；probe自己的finally仍负责释放/等待，避免旧测试泄漏。原函数实际1fail，close.call_count=0，退出1、9.7秒（hygiene-cleanup-original-red）。
+
+修正只给原firstcase的原断言段加try/finally：release_worker.set及await原_drain_deferred；`git diff -w`仅这四行新增。生产代码和原hold0.3/handler15/elapsed<5/commit5及业务/恰一次断言全部不变。对应candidate SHA256 `ffac74a596c7ff2354ff629c17dee2481841c824bc9e23a14afd567afbadd59f`（task24-hygiene-cleanup-candidate-state.json，源为原probe候选，另有已提交probe测试overlay；原wide未改）。相同错误probe现1pass/10.5秒，原AssertionError类型及forced正文仍保留、真实close一次、任务为空；独立foundation已读取并接受这项cleanup minor的局部整改。
+
+该candidate合批不能记绿色：两个文件合计3pass/1fail、退出1、34.6秒；原adoption全文件2pass/1fail，首case实际whole elapsed11.010960637秒仍违反5秒（hygiene-cleanup-candidate）。这证明清理没有吞掉原时间断言，也提供新的完整慢调用复现；尚未定位哪个phase耗时。随后带method phase的同文件另3pass/5.1秒，whole handle1.475秒、等待约0.301秒；不预先import/wrap GatewayRunner的call-only profile原首case另1pass/2.6秒（hygiene-unwarmed-profile）。两份绿色时序仍不关闭慢阶段，未继续叠加生产修改或延长期限。
+
+当前同一20a478宽批内，原managed launch7pass/64.5秒、Host injection5pass/37.9秒、managed compression2pass/170.8秒均已按原期限通过；这14项是宽批本身的子范围，不与独立timed14相加，也不反推历史失败根因。原宽批仍只有probe和hygiene两份非零记录且未结束；非WSL七项主机证据缺口另行保留。
+
+## 2026-11-09：hygiene 慢调用的实际失败现场与真实库准备
+
+后续call-only profile没有预先import/wrap GatewayRunner，实际失败已捕获：`hygiene-profile-attempt-1.json`对应原首case whole8.200599493秒；`hygiene-profile-goals-attempt-2.json`对应whole8.811243883秒。后一份中inner handler约1.4894秒结束，outer在`run_inbound.py`的`_run_post_turn_hooks`等待7.3143秒；首个`_warm_goals_session_db`实际耗时7.29866秒，真实SQLite audit记录隔离home的state.db与内存探测。watermark summary等待仍约0.3秒。两个有界重现helper均在首次失败后停止，保留此前成功轮次，不以helper退出0冒称业务通过。
+
+真实调用链为post-turn goal/loop manager→`_warm_goals_session_db`→executor中的`goals._get_session_db`→`_acquire_session_db(home)`。该skeleton测试通过`object.__new__`构造runner，原计时起点之前没有准备这份真实post-turn持久状态；冷库初始化被计入hygiene延迟。此证据没有测得某一个fsync的具体成本，也不声称生产启动一定调用同一warm helper。
+
+保留前述finally清理，再在原计时前`await runner._warm_goals_session_db("hygiene test setup")`。实际goal/loop hooks、SQLite状态库、executor和真实压缩线程都保留，原hold0.3、handler15、elapsed<5、worker20和全部业务断言不改。新候选来自99bd92d5ec，state=`task24-hygiene-warm-overlay-state.json`，单文件SHA256=`da3e7ec22ffde8e4617dd83d201123e59971f525d554ad91483f7da99c7b943e`；原20a478宽批不受改动。
+
+第一版顺序probe错误监视`_bootstrap_session_db`，实际观测为空列表，`hygiene-warmup-boundary-red`不能作为冷acquire顺序的有效红证据。独立foundation指出后改为包装真正发生的`_acquire_session_db`，保持真实函数调用和原异常：旧cleanup-only候选实际取得`in_handler=True`及唯一隔离home，1fail/13.7秒/退出1（`unified-task24-hygiene-acquire-boundary-red.log`）。新候选要求真实acquire全部先于handler且同home，同时不得吞掉原测试AssertionError。
+
+新候选首次WSL调用在runner启动前返回`Wsl/Service/0x8007274c`，没有收集测试（`hygiene-real-warm-candidate.log`）；只读核对执行通道恢复后重新执行，不重启WSL、数据库或原宽批。最终canonical命令经PM解释器的`run_matrix_linux.py --state task24-hygiene-warm-overlay-state.json --tools-state task24-linux-tools-state.json --native --log unified-task24-hygiene-real-warm-accepted.log tests/gateway/test_task24_hygiene_real_warmup_acquire.py tests/gateway/test_task24_hygiene_failure_cleanup.py tests/gateway/test_session_hygiene_turnhold_adoption.py -j1 --file-timeout1200 -- -m 'not live'`调用`scripts/run_tests.sh`：**3文件5pass/0fail、退出0、45.9秒**，原文件3项、错误清理及真实库准备各1项。诊断probe仅在ignored独立候选，永久原文件保留业务断言与fixture修正。独立复审及最终静态尚待记录，不把此局部绿计为完整Native通过。
+
+截至宽批96.7%的中途快照已有6个非零文件/12个失败参数：probe、hygiene、pause-record、非WSL private-launch七项、async-delegation和groups-route-parity。前两项有局部整改证据；pause-record和groups尚待失败现场定因，async-age已发现错误固定墙钟上限但尚未修改/验证。原批仍运行，所有计数须以最终终态为准；历史managed/Host间歇因果和非WSL主机缺口继续保留。
+
+最终独立foundation已读取真实失败profile、正确acquire红、候选hash/diff和5项终态，接受该fixture局部整改，无新增blocking/major；未代跑或连库。`PM Python scripts/check --staged --base 99bd92d5ecdf63c93a01561d58769fd51360cbdf`实际14检查通过、health1个Python文件0blocking/0advisory、退出0（`unified-task24-hygiene-real-warm-checks.log`）。本段仅在检查后补入结果，另运行diff-check；本地恢复标题`test: prepare real hygiene state before timing`，不是Task24完成提交。

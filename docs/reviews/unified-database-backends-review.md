@@ -43,7 +43,7 @@
 | 当前完整分支静态/生成/构建 | `unified-task24-20a478-full-branch-checks.log`：**14 checks ok，598 Python files health 0 blocking/0 advisory，退出0**；120bf8生成契约check、strict TypeScript及完整TUI实际build退出0。旧Electron noEmit/预检22项只保留其原源码未改的历史范围 |
 | Native原失败文件覆盖 | 69d完整6412文件为**63024 passed / 140 failed / 726 skipped，退出1**；最终63个非零文件中，120的59文件replay与额外3文件精确覆盖62，唯一缺失private launch平台文件。replay为315 pass/4 fail/7 skip，额外3文件239 pass/1 macOS skip；不能说62文件全绿 |
 | 最新三文件实际观察 | `worker-host-loaded-observed`：**13 passed / 1 failed，369.7秒，退出1**，controls原20秒未见approval；PG/Windows批结束后 `worker-host-timed-observed`：**14 passed / 0 failed / 0 skipped，112.6秒，退出0**。保留原20/30秒及所有业务断言，仅增加现场观察；后次绿不证明旧失败因果 |
-| 当前20a478最终 Native | `unified-task24-20a478-full-native-observed.log`：**原八目录6412文件仍在运行，已见启动锁probe一项红**，-j4、原期限、retries0并保留worker/Host观察。该旧测试错误要求0.3秒预算内至少两次尝试，原函数受控复核耗时反例同断言1红，保留真实flock的双预算参数候选整文件8绿、独立复审接受、14静态/health1文件0通过；不将候选绿改成原批绿。FAL同ref独立PM环境另38 pass/0 fail/0 skip、退出0、1.9秒 |
+| 当前20a478最终 Native | `unified-task24-20a478-full-native-observed.log`：**原八目录6412文件仍在运行，已有probe和hygiene两项红**，-j4、原期限、retries0。probe旧前提由99bd的双预算真实flock8绿/独立复审/静态闭合，不改原批红。宽批内原managed launch7/Host5/managed压缩2均已通过原期限。hygiene清理minor独立红→绿，但原whole elapsed<5在候选仍报11.01秒，未关闭慢阶段；不将窄绿改成整批绿。FAL同ref独立PM环境另38 pass/0 fail/0 skip、退出0、1.9秒 |
 
 ### 历史检查点结果
 
@@ -75,6 +75,10 @@
 3. 非WSL POSIX私有启动页七项仍缺适用主机。Windows与真实Ubuntu/WSL不能证明该政策；没有伪造OS/is_wsl，也没有删除这些原用例，仍等用户可用的现成执行入口。
 4. 之前的数据库服务中断不因串行689通过而被解释为已修复。69d完整126文件157 pass/533 errors、120并行127文件240 pass/1 fail/451 errors均退出1；真实WAL中断/UnknownCommit及recovery症状、只核对归属的中断Schema清理继续留账。应用未管理服务，当前业务复验已有真实绿色，但不外推为所有跨文件负载组合通过。
 5. 完整批次结束及失败处置后仍需独立全局终审，并按实际整改影响复验。本文件只是实施Agent对独立分域报告和原日志的汇总；各独立报告当前整体仍为CHANGES_REQUIRED，没有授权全系统完成或合并。
+
+当前Native中途补充（2026-11-09）：截至96.7%已有6个非零文件/12个失败参数，尚无最终结算。probe局部整改已提交99bd并独立接受；hygiene实际失败profile定位真实post-turn冷库准备，保留真实goal/loop/SQLite及原期限后，新候选原3项与两个诊断回归共5pass/0fail/45.9秒，独立复审/静态待补。pause-record、async-age与groups-route新失败须按实测分叉继续处理；private-launch七项仍缺非WSL主机。全部原红、历史managed/Host未知因果保留，局部绿不覆盖完整Native门禁。
+
+hygiene后续局部结算：独立foundation已读取上述实际证据，接受fixture整改、无新增blocking/major；最新暂存CI14检查通过、health1文件0/0。该结论只覆盖计时前真实状态库准备与失败清理，不声明生产性能修复或全局通过。原wide还在20a478上运行，本地测试恢复提交按唯一标题`test: prepare real hygiene state before timing`定位。
 
 ## 合并门禁
 

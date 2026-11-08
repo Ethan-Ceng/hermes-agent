@@ -627,3 +627,92 @@ Root 的独立 counterfactual 日志 `unified-task24-probe-budget-original-red.l
 已读取 `unified-task24-probe-budget-candidate.log`：PM Linux解释器、canonical runner、retries=0、`-j1`，整文件 **8 passed / 0 failed / 0 skipped、exit0、1.5s**，即两个策略预算参数和原六个真实case。runner对模块any-of Linux/macOS marker打印macOS note，不能将其改写为在macOS执行过；本次pytest八项均在真实Linux执行，没有skip计数。
 
 **该局部测试整改可接受，未发现新增blocking/major。** 它精确补足旧用例的两种预算分支，保留所有权保护与实际I/O，不是生产修复。原冻结宽批仍含未修改旧case的失败，必须保留其真实非零结果和后续补验关系；当前宽批尚live，不能据候选8项计为全局绿色。其他managed定时失败、历史未定因边界和非WSL七项主机缺口不由本项关闭。全局仍 **FAILED / CHANGES_REQUIRED**。
+
+## 2026-11-09：hygiene turn-hold 原生失败的有界独立诊断
+
+本次只读核对当前 `99bd92d5ecdf63c93a01561d58769fd51360cbdf` 的原测试、调用链、历史意图和既有观察产物；没有代跑、连库、修改生产/测试或提交。20a478宽批仍在运行，本节不预记终态。
+
+### 两次失败与两次成功不能合并定因
+
+| 证据 | 能证明的内容 |
+| --- | --- |
+| `unified-task24-69d455-full-native.log:21725` 起的完整输出 | 首case返回后 `elapsed=9.035713315999601`，在测试第241行 `elapsed < 5.0` 失败；文件2 passed/1 failed，pytest31.29s。这是已知的总handler耗时失败，没有该次各phase时序。 |
+| `unified-task24-20a478-full-native-observed.log:2684` 起的inline输出 | 当前同文件2 passed/1 failed、runner28.4s；short summary确认首case失败，但仅保留最后30行，**尚没有完整断言/实际elapsed**。不能因文件名、warnings或时长相似，就认定与69d同一断言或同因。 |
+| `unified-task24-120bf8-partial-native-replay.log:131` | 该原文件3 passed/4.4s；是59文件重放中的一次成功，不是失败现场或根因证明。 |
+| `unified-task24-hygiene-phase-observed.log` 与首case同名 `hygiene-observed-*.json` | 未改原用例的阶段observer运行3 passed/0 failed、4.3s。首case真实 `_handle_message` 1.039588s，summary wait 0.300855s、turn-hold handler 0.000612s；只证明这次成功路径。 |
+
+阶段观察使用已结束的probe候选source（8c75基准、overlay仅probe测试），不修改运行中的20a478快照。已读observer生成helper：包装真实方法、保存enter/exit和真实monotonic，转发原返回/异常，finally恢复方法；没有替换timer/result/timeout或假worker输出。其当前方法集合能区分总handler、内层handler、hygiene settings/plan/build/wait/on-hold等粗粒度阶段，不能把未观测的内部间隙自动归因给某个I/O。
+
+### 5秒确实包含 hygiene 前后工作
+
+原测试 `tests/gateway/test_session_hygiene_turnhold_adoption.py:235` 在调用整个 `_handle_message` 前开始计时，await返回后立即取elapsed，第241行才检查5秒；不是以 `attempt.wait_started` 为起点。实际链路为：
+
+- `gateway/run_inbound.py:1266` 的admission、命令/slot处理、active marker，以及调用内层handler后的post-turn hooks和finally清理，都在该计时内。
+- `gateway/run_turn.py:200` 与 `gateway/run_turn_prepare.py:646` 的session解析、open、context、lease、durable marker、transcript加载先于hygiene；hygiene后仍有输入准备、mock live agent、transcript/response处理与外层marker清理。
+- `gateway/run_turn_hygiene.py:744` 在agent构造和executor提交之后才记录 `attempt.wait_started`。第230行的wait函数按这个起点约束0.3秒turn-hold；配置/模型解析、构造以及on-hold通知不在这个0.3秒起点之前的预算内，但都在测试的5秒内。
+
+已核对 `9de9d7613cd6b20250bba3666f924377f050c79b` 的意图：维持用户turn释放预算，同时允许watermark-fenced摘要后续提交，不延长hold、不取消安全的晚提交。原测试及上述四个调用链文件在a875→当前没有diff；这不是基准A/B，也不足以排除其调用到的其他变更或宿主调度。**目前不能证明新统一backend造成实际turn-hold超时，也不能证明该端到端5秒断言本身应被放宽。**
+
+### [minor] 首个断言失败后测试没有及时释放自己持有的 worker
+
+位置：`tests/gateway/test_session_hygiene_turnhold_adoption.py:207`、`:241`、`:255`。
+
+`release_worker.set()` 位于结果、总耗时、worker-start、run-agent及cooldown断言之后；测试没有覆盖这些语句的finally。假compressor在Event未释放时持续touch progress并sleep，直至从自身启动算起超过20秒才返回。因而在69d已知第241行失败且worker尚运行的分支，正常释放和后续 `_drain_deferred` 均被跳过；剩余executor工作可继续至自身20秒上限。`gateway/run_shutdown.py:1211` 的deferred cleanup会shield future，loop取消cleanup waiter也明确不会停止真实executor线程。这是由实际控制流证明的失败清理缺口。
+
+该尾巴发生在elapsed断言之后，**不能反向解释已经测得的9.0357秒**；当前28.4秒文件时长亦不能分配成精确的wait/cleanup时长。尚未捕获跨case污染、资源争用或其导致第二/第三case失败的证据，本次不能声称已有此种因果。原20秒自限避免永久挂起，但没有实现即时失败清理。最小建议是保留原断言/5秒和15秒期限，在finally始终释放本测Event并等待自己已启动的worker/deferred清理；原业务异常须继续失败，清理不得合成成功adoption或吞掉原异常。其他两个case有相同“先断言、后释放”的形状，可按同一测试资源约束处理。
+
+### warnings 与下一份必要证据
+
+`get_model_override` 未配置的MagicMock会变成假provider，实际provider resolver抛AuthError后被 `_resolve_session_agent_runtime` 捕获，再走已patch的默认runtime；缺失async `get_session` 则在hygiene构造时被捕获并用空prompt继续。这些warnings确实在失败输出中，但成功observer中两个真实runtime解析分别仅约29ms和11ms、构造约1.5ms。没有失败时对应时序/栈，不能将warnings直接认作5秒失败根因，也不能用成功时很快证明失败时必然很快。
+
+最小后续取证先等待当前原宽批终态，取得该首case的完整断言和实际elapsed；此刻不需要另开runner。若最终确为总elapsed断言，下一次被授权且需要的同条件复验应保留原期限/断言，在ignored诊断层记录handler→session/prepare→hygiene wait/on-hold→handler退出的实际phase，以及本测worker start/release/future完成/cleanup；在原5秒失败窗口结束前取得**本测进程**栈，避免只保存成功路径。若慢在粗粒度前后间隙，再按实际慢phase加更窄观察，不先改生产或扩大deadline。
+
+本次没有新增已实证产品blocking/major；已确认测试失败清理minor，实际端到端deadline失败及当前未知断言继续作为未关闭验收问题。Root通知当前原宽批中的managed launch7、Host5、compression2也已在原期限下通过，仍不能解释历史失败。原Native宽批尚live、非WSL POSIX七项缺适用主机，**Task24继续 FAILED / CHANGES_REQUIRED**。
+
+## hygiene 首case cleanup 的局部整改复审
+
+只读复核同一原测试的当前小改动、probe生成helper、candidate state与真实日志，没有代跑、连库、修改生产/测试或提交。`git diff -w` 恰增加 `try`、`finally`、`release_worker.set()`、`await _drain_deferred(runner)` 四行；原计时起点/5秒断言、handler15秒、commit和cleanup各5秒Event等待（外层wait_for仍6秒）、原10秒drain及全部adoption/watermark/cooldown/streak/notice断言均未改变。只包住firstcase，另两case没有借此次修改改变合同。
+
+finally覆盖整个handler调用与断言段，任何其中的异常都会先释放本测Event，再调用原有deferred drain；正常路径的第二次set/drain是幂等清理。没有新增except、return、合成结果或删断言，不会把业务失败改成成功。`task24-hygiene-cleanup-candidate-state.json` 仍指向已结束的8c75独立候选，两个overlay分别是此前probe预算测试及本文件；本文件SHA256 `ffac74a596c7ff2354ff629c17dee2481841c824bc9e23a14afd567afbadd59f` 与实际读取工作区匹配，未覆盖或重启20a478宽批。
+
+已读 `task24_prepare_hygiene_cleanup_probe.py`：它调用原firstcase，Event factory仍返回真实 `threading.Event`，只记录四个实际Event；真实构建runner后将mock live agent的final_response设为强制错误，触发原 `result == "ok"` 断言。probe要求异常仍是AssertionError且正文含强制值，worker已启动、真实agent.close恰一次、cleanup Event已set且deferred task集合为空；probe自身也有finally释放/排空，因此旧版红测不会把相同泄漏带到probe之外。它未替代真实executor compressor、fence或close。
+
+| 实际结果 | 边界 |
+| --- | --- |
+| `unified-task24-hygiene-cleanup-original-red.log`：**1 failed、runner9.7s** | 已捕获原AssertionError后，`agent.close.call_count == 1` 实际得到0；确定旧版在异常传播前未排空本测worker。不是原5秒慢阶段的定因测试。 |
+| `unified-task24-hygiene-cleanup-candidate.log` 中同probe：**1 passed、10.5s** | 原错误类型/正文保留，同时实际close一次、cleanup Event完成、任务集合为空；证明此强制结果失败路径已及时释放并等待。 |
+| 同一candidate批次的原完整文件：**2 passed/1 failed、24.0s**；两文件总计 **3 passed/1 failed、exit1、34.6s** | 原首case仍在第242行以 `11.010960637009703 < 5.0` 失败。新finally没有隐藏该真实错误；没有取得这次失败各phase时序，不能判定11秒在哪一步。整批绝非全绿。 |
+| `unified-task24-hygiene-slow-phase-observed.log`：原文件 **3 passed/0 failed、5.1s** | 另一次成功观察；首casewhole handler1.475341s、summary wait0.300932s、on-hold0.000497s。不是上一项11秒失败现场，不能据此关闭慢阶段。 |
+
+**该测试cleanup局部整改可接受，前节firstcase失败清理minor按此范围闭合，未发现新增blocking/major。** 该结论不承诺所有未执行的清理自身故障路径，也不声称修复原handler延迟；当前20a478宽批首case完整断言仍待终态，原已复现的端到端超时、其他历史未定因问题和非WSL七项主机缺口继续保留。全局仍 **FAILED / CHANGES_REQUIRED**。
+
+## hygiene 真实 post-turn 冷初始化与最终 fixture 候选
+
+本次独立只读核对新的失败现场、corrected acquire probe、最终候选diff/hash及结算；没有代跑、连库、修改生产/测试或提交。本节补充前两节当时缺失的失败phase证据，不覆盖其原始记录，也不把新重现冒称为20a478原宽批现场。
+
+### 新捕获失败把慢段定位到 post-turn 持久层准备
+
+已读 `task24_prepare_hygiene_profile.py`、有界最多6次且首个非零即停的driver，以及各自完整失败log/JSON。call-only profiler通过 `sys.setprofile` 记录真实call/return、单调时间、行号和opcode，不预先import/wrap GatewayRunner；审查时按coroutine的首次call至最终return计算，未把yield当完成，也未把被复用的frame id误当同一次调用。
+
+- `unified-task24-hygiene-profile-attempt-1.log` / `hygiene-profile-attempt-1.json`：第一轮即真实失败，`elapsed=8.200599492993206 < 5.0`；summary wait约0.300797秒，内层handler在外层启动后约1.108秒已最终返回，外层随后在 `gateway/run_inbound.py:1365` 等待post-turn hooks约7.08秒。该次没有细分goal方法，不能单靠它声称数据库内部哪一步慢。
+- 加入post-hook/manager/warm方法和SQLite audit后的有界观察保留一绿一红：goals attempt1通过，attempt2实际 `elapsed=8.811243882984854 < 5.0` 失败。`hygiene-profile-goals-attempt-2.json` 显示wait约0.300915秒、内层handler在外层启动后约1.489秒完成，`_run_post_turn_hooks` 约7.314272秒；第一轮 `_warm_goals_session_db` 从260937.445766至260944.744424，约7.298658秒，其间真实连接 `state.db` 与 `:memory:`。后面的同名warm很快且复用了frame id，不能把两次调用拼成单次。
+
+由此可证明**这两个新重现的5秒失败不是hygiene summary wait超过0.3秒，而是整个handler计时把随后真实goal库的冷准备算入**。warm的await包含executor调度和实际store初始化；本证据没有细分内部SQL/fsync耗时，不能声称某一数据库语句或统一backend实现存在已定位性能回归。69d原9.0357秒、cleanup候选11.01096秒以及尚未终态20a478的具体失败时序仍不能用这些新JSON替换。
+
+已核对 `246477a80986f2af64fd00181eeb4ed5c5b6330c` 的历史意图：goal/heartbeat/post-turn manager在构造之前，用保留ContextVars的executor真实预热SessionDB，避免冷初始化造成读写丢失；不是“启动必定单独调用warm”的保证。当前 `gateway/run_goals.py:49`、`:298` 和 `hermes_cli/goals.py:539` 保持该按需合同，a875以来没有相关生产diff。raw测试通过 `object.__new__` 和mock SessionStore跳过正常持久层准备，故本次补的是此fixture准备边界，不是改变生产首次turn合同。
+
+### corrected acquire red/green 与无效旧 probe 分开记录
+
+此前 `unified-task24-hygiene-warmup-boundary-red.log` 的probe只spy `_bootstrap_session_db`，失败实际是 `bootstraps=[]`。off-loop `_get_session_db` 直接调用 `_acquire_session_db`，该旧probe挂错接缝，**不能当作“已观察到初始化在handler内”的有效红证据**。首份 `hygiene-real-warm-candidate.log` 亦只有WSL Service启动错误，没有pytest结算，不计作通过或产品失败。
+
+修正后的 `task24_prepare_hygiene_warm_probe.py` 保存并转调真实 `_acquire_session_db(home)`，只记录是否位于原handler与实际home；没有替换store、返回值、时钟或deadline。`unified-task24-hygiene-acquire-boundary-red.log` 在cleanup-only原fixture上 **1 failed、13.7s**，实际记录为 `acquisitions=[{in_handler: True, home: <本测隔离home>/hermes_test}]`。这一红确实见证真实acquire进入了被计时handler。
+
+最终顺序probe要求至少一次真实acquire、所有acquire都发生在handler外、实际home集合恰一项；若原测试自身有AssertionError，检查准备边界后还会重抛，不能把业务失败伪装成顺序通过。`_get_session_db`按实际 `get_hermes_home()` 缓存，warm通过 `copy_context()` executor保留同一作用域；本例只有隔离的单Profile，原fake `_set_session_env`也不切换home。证据只覆盖这个真实fixture，不外推为新的multiplex范围测试。
+
+### 最终候选结算与局部判断
+
+最终 `task24-hygiene-warm-overlay-state.json` 是新的99bd独立clone，overlay只有本测试文件；SHA256 `da3e7ec22ffde8e4617dd83d201123e59971f525d554ad91483f7da99c7b943e` 与Reviewer实际读取工作区一致，旧ffac候选物理保留。完整diff相对cleanup前只增加原firstcase的try/finally和计时之前真实 `await runner._warm_goals_session_db("hygiene test setup")`。真实goal/loop hooks、SQLite持久层与全部fence/adoption/watermark断言仍执行，原0.3秒hold、5秒elapsed、15秒handler、20秒fake-worker上限及commit/cleanup/drain期限均未提高。
+
+已读取 `unified-task24-hygiene-real-warm-accepted.log` 的完整终态：PM Linux、canonical runner、retries=0、`-j1`，**3文件5 passed/0 failed、45.9秒**，分项原文件3 passed/12.5秒、强制原断言失败的cleanup恢复probe1 passed/31.3秒、真实acquire顺序probe1 passed/2.1秒。文件总时长包含真实预热和测试进程开销，不能把31.3秒改写为5秒计时内的handler耗时；probe同时保留原AssertionError/强制正文及close一次/任务排空要求。
+
+**本项fixture最终候选可接受，未发现新增blocking/major。** 它将已实证的真实post-turn冷准备移到hygiene计时之前，保留原预算及真实功能，已有正确acquire红绿和原合同通过支持；firstcase cleanup minor按前节范围保持闭合。没有生产性能修复声明，不将旧红记录抹除或预记仍live的20a478全宽终态；其他历史定时问题、非WSL POSIX七项主机缺口和最终全域验收仍需按各自证据处理。全局继续 **FAILED / CHANGES_REQUIRED**。

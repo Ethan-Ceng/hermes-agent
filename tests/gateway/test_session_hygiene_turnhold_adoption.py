@@ -232,50 +232,57 @@ async def test_turn_hold_keeps_admission_and_adopts_watermark_fenced_summary(
     adapter = _CaptureAdapter()
     runner = _build_runner(gateway_run, adapter, fake_db)
 
-    started = time.monotonic()
-    result = await asyncio.wait_for(runner._handle_message(_make_event()), timeout=15)
-    elapsed = time.monotonic() - started
+    # The skeleton skips gateway startup; initialize real post-turn state before timing hygiene.
+    await runner._warm_goals_session_db("hygiene test setup")
 
-    # #90845/#92318 invariant intact: the turn is released at the budget.
-    assert result == "ok"
-    assert elapsed < 5.0, f"turn held for {elapsed:.1f}s despite the turn-hold budget"
-    assert worker_started.is_set()
-    assert runner._run_agent.await_count == 1
+    try:
+        started = time.monotonic()
+        result = await asyncio.wait_for(runner._handle_message(_make_event()), timeout=15)
+        elapsed = time.monotonic() - started
 
-    # (b) NO retry-after was armed while the attempt is still running —
-    # arming it would block the agent-side preflight from adopting the
-    # finished summary ("same-session cooldown active", #97963).
-    assert not fake_db.record_compression_failure_cooldown.called, (
-        "keep-admission path must not arm the retry-after while the "
-        "detached attempt is still running"
-    )
+        # #90845/#92318 invariant intact: the turn is released at the budget.
+        assert result == "ok"
+        assert elapsed < 5.0, f"turn held for {elapsed:.1f}s despite the turn-hold budget"
+        assert worker_started.is_set()
+        assert runner._run_agent.await_count == 1
 
-    # The detached worker finishes late; its commit is ADMITTED (adoption),
-    # not refused — the summary attempt is no longer burned.
-    release_worker.set()
-    await asyncio.wait_for(asyncio.to_thread(committed.wait, 5), timeout=6)
-    assert committed.is_set(), (
-        "watermark-fenced worker must keep its commit admission after "
-        "turn-hold expiry (fence was cancelled — attempt burned)"
-    )
-    fake_db.archive_and_compact.assert_called_once()
-    # The commit went through the watermark-fenced path (concurrent tail
-    # rows above the watermark survive the compaction).
-    assert fake_db.archive_and_compact.call_args.kwargs.get("watermark") == 6
+        # (b) NO retry-after was armed while the attempt is still running —
+        # arming it would block the agent-side preflight from adopting the
+        # finished summary ("same-session cooldown active", #97963).
+        assert not fake_db.record_compression_failure_cooldown.called, (
+            "keep-admission path must not arm the retry-after while the "
+            "detached attempt is still running"
+        )
 
-    await _drain_deferred(runner)
-    await asyncio.wait_for(asyncio.to_thread(cleanup_done.wait, 5), timeout=6)
-    FencedStreamingAgent.last_instance.close.assert_called_once()
+        # The detached worker finishes late; its commit is ADMITTED (adoption),
+        # not refused — the summary attempt is no longer burned.
+        release_worker.set()
+        await asyncio.wait_for(asyncio.to_thread(committed.wait, 5), timeout=6)
+        assert committed.is_set(), (
+            "watermark-fenced worker must keep its commit admission after "
+            "turn-hold expiry (fence was cancelled — attempt burned)"
+        )
+        fake_db.archive_and_compact.assert_called_once()
+        # The commit went through the watermark-fenced path (concurrent tail
+        # rows above the watermark survive the compaction).
+        assert fake_db.archive_and_compact.call_args.kwargs.get("watermark") == 6
 
-    # Successful adoption resets the hygiene failure streak and still never
-    # advances it (the deferral is not a failure).
-    assert not fake_db.increment_hygiene_failure_streak.called
-    assert fake_db.reset_hygiene_failure_streak.called
-    # Deferral notice still reaches the user.
-    sent = [m["content"] for m in adapter.sent]
-    assert any(
-        "deferred" in c.lower() or "still streaming" in c.lower() for c in sent
-    ), f"turn-hold must send deferral notice, got: {sent}"
+        await _drain_deferred(runner)
+        await asyncio.wait_for(asyncio.to_thread(cleanup_done.wait, 5), timeout=6)
+        FencedStreamingAgent.last_instance.close.assert_called_once()
+
+        # Successful adoption resets the hygiene failure streak and still never
+        # advances it (the deferral is not a failure).
+        assert not fake_db.increment_hygiene_failure_streak.called
+        assert fake_db.reset_hygiene_failure_streak.called
+        # Deferral notice still reaches the user.
+        sent = [m["content"] for m in adapter.sent]
+        assert any(
+            "deferred" in c.lower() or "still streaming" in c.lower() for c in sent
+        ), f"turn-hold must send deferral notice, got: {sent}"
+    finally:
+        release_worker.set()
+        await _drain_deferred(runner)
 
 
 @pytest.mark.asyncio
