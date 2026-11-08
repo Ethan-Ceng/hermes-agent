@@ -7,6 +7,11 @@ import subprocess
 import sys
 
 
+def safe_diagnostic(stderr):
+    return "\n".join("[redacted storage detail]" if re.search(r"(?i)dsn|password|postgres(?:ql)?(?:\+psycopg)?://", line) else line
+                     for line in stderr.splitlines())
+
+
 def run(backend, role, homes, *, matrix=False):
     from tests.gateway.fixtures.local_recovery_probe import child_env
     root = Path(__file__).resolve().parents[2]
@@ -18,9 +23,7 @@ def run(backend, role, homes, *, matrix=False):
         command.append("--matrix")
     result = subprocess.run(command, cwd=root, env=env, capture_output=True, text=True, encoding="utf-8", timeout=180, check=False)
     # Storage errors are sanitized by production boundaries; never attach private configuration.
-    diagnostic = "\n".join("[redacted storage detail]" if re.search(r"(?i)dsn|password|postgres(?:ql)?(?:\+psycopg)?://", line) else line
-                           for line in result.stderr.splitlines())
-    assert result.returncode == 0, diagnostic
+    assert result.returncode == 0, safe_diagnostic(result.stderr)
     report = json.loads(result.stdout.splitlines()[-1])
     assert report["backend"] == backend and report["role"] == role
     assert len(report["domains"]) == (10 if backend == "postgresql" or matrix else 9)

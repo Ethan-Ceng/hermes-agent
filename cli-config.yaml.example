@@ -10,8 +10,33 @@
 _config_version: 52
 
 # =============================================================================
+# Profile-wide Database Backend
+# =============================================================================
+# One selection covers sessions, Projects, verification, Cron, Kanban, rooms,
+# attachment metadata, metrics and maintained plugin stores. Content stays in files.
+storage:
+  backend: sqlite
+  # For a fresh PG dataset, install the postgresql extra with Hermes PM, change
+  # backend to postgresql, and configure the following section. Keep the DSN
+  # in this Profile's .env or existing secret source; do not put it in this YAML.
+  # postgresql:
+  #   dsn_env: HERMES_POSTGRES_DSN
+  #   schema: hermes
+  #   store_id: personal-main  # stable; independent Profiles need different IDs
+  #   pool_size: 5
+  #   max_overflow: 5
+  #   connection_budget: 10  # per process/configuration, including overflow
+  #   pool_timeout_seconds: 30
+  #   connect_timeout_seconds: 10
+  #   write_lock_timeout_seconds: 10
+  #   statement_timeout_seconds: 60
+# Explicit initialization: hermes db upgrade. PostgreSQL/pg_trgm are user-managed.
+# New PG data only: no SQLite migration, dual-write or reverse migration.
+
+# =============================================================================
 # Database Configuration
 # =============================================================================
+# These journal settings apply to SQLite.
 # WAL is the normal default. Hermes automatically falls back to DELETE when
 # SQLite reports that WAL is incompatible with the filesystem. Set this to
 # "delete" explicitly for deployments whose backing filesystem is not WAL

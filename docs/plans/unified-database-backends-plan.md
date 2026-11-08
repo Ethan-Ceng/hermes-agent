@@ -5,21 +5,21 @@
 - 设计：[系统统一数据库后端](../designs/unified-database-backends.md)。
 - 前置成果：[会话阶段计划](postgresql-session-storage-plan.md)，基准提交 `a875342384`。
 - 分支：`feat/postgresql-session-storage`；沿用独立普通分支，不重建、不覆盖已有成果。
-- 用户最新要求：SQLite/PGSQL 是 `hermes_db` 的可选实现；选择 PG 后系统自有数据库不能仍依赖 SQLite。先完成计划，再实施。
+- 用户最新要求：SQLite/PGSQL是`hermes_db`的可选实现；选择PG后系统自有数据库不能仍依赖SQLite。按已有规划直接实施并逐项创建本地commit，不重新规划。
 
 ## 当前进度
 
 - 整体状态：`IN_PROGRESS`。
-- 当前阶段：统一配置文档与独立发行验证。
-- 当前任务：Task23（pending；Task22已验收，立即本地提交）。
-- 已完成：22 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 当前阶段：原生启动复验、最终验证与独立审查。
+- 当前任务：Task24（pending；Task23已验收，立即本地提交）。
+- 已完成：23 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-08（Asia/Shanghai）。
 
 ## 目标、约束与范围变化
 
-1. 用统一的 `storage.backend` / `storage.postgresql` 选择整个Profile的自有数据库；这是目标配置，实施前旧会话配置仍是当前实现。
+1. 用统一的`storage.backend`/`storage.postgresql`选择整个Profile的自有数据库；旧`storage.session`开发配置已显式拒绝，不静默回落。
 2. 复用SQLAlchemy Core、同步psycopg、Alembic、共享Schema和稳定store_id。SQLite模式无需PG extra；PG模式不创建/打开应用自有SQLite。
 3. 不迁移旧SQLite数据、不双写、不回迁；不新增账号/K8s，不安装管理PG服务。
 4. 配置、Markdown、工作区、附件blob和既有JSON文件格式不因本计划迁入数据库。附件元数据等数据库数据属于本计划。
@@ -1390,7 +1390,7 @@ SQLite SDK细化与真实证据：上游mautrix SQLite类确实从asyncpg导入U
 
 ## Task 23：完善统一配置文档与独立发行验证
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -1426,11 +1426,25 @@ SQLite SDK细化与真实证据：上游mautrix SQLite类确实从asyncpg导入U
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+从Task22本地提交2219b69afd的干净工作区开始。文档已改为Profile统一后端范围，补全所有领域、插件portable边界、Matrix实际SDK/Linux限制、PG文件备份与数据库备份区别、故障/未知提交、pool预算、稳定store_id及新数据集/不双写规则。CLI示例加入全局storage块，.env.example只保留秘密引用说明；新增开发指南并更新架构、所有权和会话入口，旧代码布局文档明确归为历史、链接当前实际实现，不重写旧研究或旧计划。
+
+从实际提交2219b69afd经git archive导出无.git/秘密的独立载荷，通过pm.build_environment(frozen=True, explicit=True)分别构建Windows和Linux的SQLite/PG共4个新环境。Windows载荷位于.build独立目录，Linux另解包到/tmp/hermes-unified-matrix-5bb7b10a96b1/task23-source-2219b69afd，两个Linux环境均包含项目锁定Matrix extra，SQLite环境没有postgreSQL extra。没有原环境覆盖、裸pip/uv或数据库服务操作。构建状态路径仅保存在忽略目录task23-{windows,linux}-bundle-state.json；源码恢复依据是已提交ref，秘密不在载荷或argv。
+
+安装探针用-I、在载荷/checkout之外的临时目录启动，先验证installed hermes_db位于独立source且原checkout不在sys.path，再加载该提交内导出的业务测试驱动。PG初始化及业务全程SQLite拒绝；显式核对目标数据库及随机Schema归属标记后，升级新Schema、重复升级、全部域真实写读、双Profile反序新进程恢复以及真实Matrix SDK加解密均通过。通用PG资源探针去掉旧版无条件SQLite写入，验证完整领域注册表与迁移资源；SQLite安装确认无psycopg并在禁止PG依赖/连接下恢复真实业务。
+
+已修复两个验收fixture问题：Linux旧安装测试将venv解释器resolve为基础Python而丢失安装，首轮5pass/1fail（unified-task23-linux-distribution-first.log），改为保留解释器绝对入口后6pass；补充旧PG 0004有历史数据的前向升级时，首轮手工插入普通UTF-8字节被消息envelope校验正确拒绝（unified-task23-upgrade-diagnostic.log，previous-history-read/Invalid message content envelope），现用实际PostgresSessionStore API在0004保存合法提示/历史，再升级0028并在新进程验证保真。Windows该补验已1pass/1Linux skip（unified-task23-windows-forward-upgrade-final.log），最新Linux全组及最终静态复验运行中。
+
+文档站是独立npm项目，初次误当根workspace的依赖准备被边界校验拒绝，未改根node_modules。改用PM install_node_sidecar按website自身package-lock准备，再用PM Node26.12.1/npm12.0.2执行build:fast，英文生产站构建退出0（unified-task23-website-build-final.log）。保留输出中的llms.txt/llms-full.txt索引资产缺失及其他页面两处锚点告警，不将其说成无告警全站发布；新数据库用户/开发页面实际生成HTML，已读取确认标题与内容。没有发布网站。
+
+最终结果：最新Linux6项全部通过、0skip/retry，包含有效旧PG历史前向升级、新Schema重复升级、双Profile/完整SDK重启；Windows独立双安装通用4项通过/2Linux SDK skip，最新旧PG前向升级补验另1pass/1Linux SDK skip。静态14检查通过。两处其他页面锚点已用git diff a875342384 --quiet核对，与会话基准内容相同；保留为站点既有告警，不掩盖或修改它们。Task23完成后立即本地提交；Task24最终原生回归、verification-before-completion、独立审查及整改复验仍未执行，不据此声称READY_TO_MERGE。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+- 构建：从ref2219b69afd git archive的独立载荷，通过PM build_environment构建4个全新环境；Windows两环境输出unified-task23-windows-pm-build.log，Linux两环境输出unified-task23-linux-pm-build.log，均退出0。SQLite无postgreSQL extra，Linux两环境有实际锁定Matrix SDK。
+- 两主机统一`scripts/run_tests.sh tests/hermes_db/test_distribution.py tests/hermes_db/postgresql/test_distribution_initialization.py -j 2 -- -m 'integration or not integration' --postgres-test-config=<私有路径> --hermes-distribution-source=<独立载荷> --hermes-sqlite-python=<PM独立SQLite解释器> --hermes-postgresql-python=<PM独立PG解释器>`：Windows4passed/2Linux SDK skip、退出0（unified-task23-windows-distribution-first.log）；Linux最新6passed/0skip、退出0（unified-task23-linux-distribution-accepted.log）。每次-I子进程的CWD在载荷及checkout之外，断言原checkout不在sys.path，实际包位于独立source。
+- Windows最新同参数仅test_distribution_initialization.py：1passed/1Linux SDK skip、退出0（unified-task23-windows-forward-upgrade-final.log）；该版本先在真实0004创建合法提示和NUL历史，前向升级0028后重开仍保真，不导入SQLite。Linux最新六项包含同一版本该合同。PG全部SQLite拒绝；10领域业务与Matrix SDK均实际读写及重启。
+- PM Node/npm、website自身锁文件，`npm run build:fast`（cwd website）退出0，unified-task23-website-build-final.log；源码目录之外未部署/发布。实际HTML用户与开发两页存在并包含新标题；初次沙箱中PM Python基解释器访问被限制，改用PowerShell原生只读核对成功。站点保留两条索引资源链接和两个不相关历史锚点告警（上述基准diff退出0），本次数据库页面链接无错误。
+- PM解释器`scripts/check --staged --base 2219b69afd`：14检查通过、health4代码文件0blocking/advisory，退出0，unified-task23-checks-final.log；`git diff --cached --check`退出0。随后仅补写本账本完成记录并立即本地commit。
 
 ## Task 24：原生启动复验、最终验证与独立审查
 
@@ -1509,7 +1523,7 @@ SQLite SDK细化与真实证据：上游mautrix SQLite类确实从asyncpg导入U
 
 ### 未通过与未验证
 
-Task1–22已完成，Task23–24尚未实施；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
+Task1–23已完成，Task24尚未实施；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
 
 ### 最终状态
 
@@ -1517,6 +1531,6 @@ Task1–22已完成，Task23–24尚未实施；不得宣称全系统PG已完成
 
 ## 恢复点
 
-Task1–22已验收并按任务创建本地commit（Task21 `17078105be`；Task22标题`test(storage): prove complete single-backend business recovery`）。下一项Task23：统一文档/示例、从本地提交导出独立source-bundle，经PM双安装环境验证全部域初始化、迁移资源和重启隔离；Task24最终独立review仍未实施。Task22最新PG矩阵49pass、最新SDK/全域进程2pass、Linux SQLite含SDK4pass、Windows共同合同4pass/2平台skip，14静态检查通过。分支仍为`feat/postgresql-session-storage`，正式实例保持SQLite，未写正式Profile、秘密或业务表；不能由此宣称全系统PG已完成。
+Task1–23已验收并按任务创建本地commit（Task21 `17078105be`，Task22 `2219b69afd`；Task23标题`docs(storage): verify unified backend source-bundle installations`）。下一项Task24：读取verification-before-completion和code-review skill，完成所有PG域/原生入口广泛回归、受隔离Profile的原生启动复验、独立code-review、整改和最新复验，再作最终判定。独立安装Linux最新6pass/0skip，Windows通用4pass/2SDK平台skip及最新前向升级1pass/1平台skip，四个PM新环境完成，14静态检查通过。文档站英文构建成功、保留已核对的不相关既有告警。正式实例保持SQLite，未写正式Profile、秘密或业务表；不能由此宣称全系统PG已完成。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

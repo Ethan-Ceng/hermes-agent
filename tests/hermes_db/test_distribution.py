@@ -20,15 +20,14 @@ from hermes_db.scope import DatabaseScope
 from hermes_db.settings import DatabaseSettings
 
 source, home = map(Path, sys.argv[1:3])
+backend = sys.argv[3]
 package = Path(hermes_db.__file__).resolve()
 assert package.is_relative_to(source.resolve() / 'hermes_db'), package
-with acquire_db(DatabaseSettings(), DatabaseScope(home)) as handle:
-    handle.sessions.create_session('installed', 'cli')
-    handle.sessions.append_message('installed', 'user', 'installed history')
-    assert handle.sessions.get_messages_as_conversation('installed')[0]['content'] == 'installed history'
-
-backend = sys.argv[3]
 if backend == 'sqlite':
+    with acquire_db(DatabaseSettings(), DatabaseScope(home)) as handle:
+        handle.sessions.create_session('installed', 'cli')
+        handle.sessions.append_message('installed', 'user', 'installed history')
+        assert handle.sessions.get_messages_as_conversation('installed')[0]['content'] == 'installed history'
     assert importlib.util.find_spec('psycopg') is None
     assert not any(name.split('.')[0] in {'sqlalchemy', 'psycopg', 'alembic'} for name in sys.modules)
     from hermes_db.errors import StorageDriverError
@@ -41,6 +40,11 @@ if backend == 'sqlite':
     else:
         raise AssertionError('Missing PostgreSQL extra must fail explicitly')
 else:
+    import sqlite3
+    def reject_sqlite(event, args):
+        if event == 'sqlite3.connect':
+            raise AssertionError('SQLite is forbidden in the installed PG resource probe')
+    sys.addaudithook(reject_sqlite)
     from alembic.config import Config
     from alembic.script import ScriptDirectory
     from hermes_db.engine import require_postgresql_driver
@@ -55,7 +59,13 @@ else:
     assert scripts.get_current_head() == REQUIRED_REVISION
     assert scripts.get_revision(REQUIRED_REVISION).path
     assert (migrations / 'env.py').is_file()
-print(json.dumps({'backend': backend, 'package': str(package), 'sqlite_history': True}))
+    from hermes_db.tables import load_metadata
+    from hermes_db.domains.catalog import POSTGRES_DOMAINS, KNOWN_DOMAINS, required_tables
+    metadata = load_metadata()
+    assert set(POSTGRES_DOMAINS) == set(KNOWN_DOMAINS)
+    present = {table.name for table in metadata.tables.values()}
+    assert all(required_tables(spec) <= present for spec in POSTGRES_DOMAINS.values())
+print(json.dumps({'backend': backend, 'package': str(package), 'resources': True}))
 '''
 
 
@@ -73,4 +83,19 @@ def test_distribution_has_sessions_and_migration_resources(request, tmp_path, ba
     result = subprocess.run([executable, '-I', '-c', _PROBE, source, str(home), backend],
                             cwd=tmp_path, env=env, capture_output=True, text=True, timeout=120, check=False)
     assert result.returncode == 0, result.stdout + result.stderr
-    assert json.loads(result.stdout.splitlines()[-1])['sqlite_history']
+    assert json.loads(result.stdout.splitlines()[-1])['resources']
+
+
+def test_installed_sqlite_bundle_runs_business_without_pg(request, tmp_path):
+    from tests.hermes_db.distribution_support import business_process
+    first = business_process(request, tmp_path, "sqlite", "write")
+    restarted = business_process(request, tmp_path, "sqlite", "read")
+    assert first["pid"] != restarted["pid"] and len(restarted["domains"]) == 9
+
+
+@pytest.mark.platforms("linux")
+def test_installed_sqlite_bundle_restores_actual_sdk_crypto(request, tmp_path):
+    from tests.hermes_db.distribution_support import business_process
+    first = business_process(request, tmp_path, "sqlite", "write", matrix=True)
+    restarted = business_process(request, tmp_path, "sqlite", "read", matrix=True)
+    assert first["pid"] != restarted["pid"] and len(restarted["domains"]) == 10

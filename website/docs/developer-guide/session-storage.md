@@ -4,8 +4,10 @@ Hermes Agent defaults to a profile-local SQLite database to persist session
 metadata, full message history, and model configuration across CLI and gateway
 sessions. Explicit PostgreSQL selection uses `hermes_db`, shared schema tables
 scoped by stable `store_id`, and the same canonical owner/worker boundary. See
-[PostgreSQL session storage](../user-guide/postgresql-session-storage.md) for
+[SQLite and PostgreSQL storage](../user-guide/postgresql-session-storage.md) for
 configuration, schema administration, and the current verification limits.
+The same profile selection also applies to Projects, Cron, Kanban, hosted rooms,
+metrics and maintained plugin databases; see [Database Backends](./database-backends.md).
 
 The profile's gateway is the **only writer of canonical sessions**: `hermes chat`,
 the TUI, Desktop (local), the API server, ACP, cron, Bot Chat and Kanban workers are

@@ -17,6 +17,11 @@ import sys
 
 phase = 'imports'
 try:
+    import sqlite3
+    def reject_sqlite(event, args):
+        if event == 'sqlite3.connect':
+            raise AssertionError('SQLite forbidden in installed PostgreSQL initialization')
+    sys.addaudithook(reject_sqlite)
     import hermes_db
     from hermes_yaml import safe_load
     from sqlalchemy import text
@@ -41,7 +46,27 @@ try:
     scope = DatabaseScope(home, 'installed-store')
     nul = chr(0)
     if sys.argv[6] == 'write':
-        phase = 'upgrade'
+        phase = 'previous-pg-revision'
+        from alembic import command
+        from alembic.config import Config
+        from hermes_db.schema import _prepare_schema
+        from contextlib import closing
+        from hermes_db.session_store import PostgresSessionStore
+        from hermes_db.postgresql.transactions import Transactions
+        migrations = Path(hermes_db.__file__).parent / 'migrations'
+        config = Config(str(migrations / 'alembic.ini'))
+        config.set_main_option('script_location', str(migrations).replace('%', '%%'))
+        config.attributes['schema'] = settings.schema
+        with get_engine(settings).begin() as conn:
+            _prepare_schema(conn, settings)
+            config.attributes['connection'] = conn
+            command.upgrade(config, '0004_model_markers')
+        # Seed through the real session API and its content envelope, not malformed raw bytes.
+        previous_scope = DatabaseScope(home / 'previous-pg', 'previous-pg')
+        with closing(PostgresSessionStore(Transactions(get_engine(settings), settings.schema), previous_scope)) as previous:
+            previous.create_session('before', 'cli', system_prompt='previous' + nul + 'prompt')
+            previous.append_message('before', 'user', 'previous' + nul + 'history')
+        phase = 'forward-upgrade'
         first = upgrade_schema(settings)
         assert first['ready'] and upgrade_schema(settings) == first
         phase = 'write'
@@ -64,6 +89,11 @@ try:
             assert epoch == old_epoch + 1
         args = dict(epoch=epoch, session_id='installed', principal_id='human', request_id='request', payload={'text': 'retained'})
     phase = 'reopen'
+    with acquire_db(database, DatabaseScope(home / 'previous-pg', 'previous-pg')) as previous:
+        phase = 'previous-session-read'
+        assert previous.sessions.get_session('before')['system_prompt'] == 'previous' + nul + 'prompt'
+        phase = 'previous-history-read'
+        assert previous.sessions.get_messages_as_conversation('before')[0]['content'] == 'previous' + nul + 'history'
     with acquire_db(database, scope) as handle:
         assert handle.sessions.get_messages_as_conversation('installed')[0]['content'] == 'body' + nul + 'exact'
         assert handle.sessions.get_session('installed')['system_prompt'] == 'prompt' + nul + 'exact'
@@ -79,7 +109,11 @@ try:
     print(json.dumps({'ok': True, 'revision': REQUIRED_REVISION, 'scope_isolated': True, 'reopened': True,
         'pid': os.getpid(), 'epoch': epoch, 'admission_id': admission_id}))
 except Exception as error:
-    print(json.dumps({'ok': False, 'phase': phase, 'error_type': type(error).__name__}))
+    import re
+    detail = str(error)
+    if re.search(r'(?i)dsn|password|postgres(?:ql)?(?:\+psycopg)?://', detail):
+        detail = 'redacted storage detail'
+    print(json.dumps({'ok': False, 'phase': phase, 'error_type': type(error).__name__, 'detail': detail[:300]}))
     sys.exit(1)
 '''
 
@@ -91,7 +125,8 @@ def test_installed_bundle_initializes_and_reopens_real_postgresql(request, postg
         pytest.skip('Explicit PM-built installed PostgreSQL interpreter and independent payload required')
     from hermes_db.schema import REQUIRED_REVISION
 
-    executable, source = str(Path(executable).resolve()), str(Path(source).resolve())
+    # Resolving a venv's interpreter symlink selects the base Python and loses its installation.
+    executable, source = str(Path(executable).absolute()), str(Path(source).resolve())
     private_config = str(Path(request.config.getoption('--postgres-test-config')).resolve())
     assert Path(executable).is_file() and Path(source).is_dir()
     home = tmp_path / 'installed-home'
@@ -111,3 +146,13 @@ def test_installed_bundle_initializes_and_reopens_real_postgresql(request, postg
     assert report['epoch'] == first['epoch'] + 1
     assert report['ok'] and report['scope_isolated'] and report['reopened']
     assert report['revision'] == REQUIRED_REVISION and report['admission_id'] == first['admission_id']
+
+
+@pytest.mark.platforms("linux")
+def test_installed_bundle_runs_all_pg_domains_and_actual_sdk_after_restart(request, postgres_schema, postgres_test_config, tmp_path):
+    from tests.hermes_db.distribution_support import business_process
+    first = business_process(request, tmp_path, "postgresql", "write", schema=postgres_schema, database=postgres_test_config.database)
+    restarted = business_process(request, tmp_path, "postgresql", "read", schema=postgres_schema, database=postgres_test_config.database)
+    assert first["pid"] != restarted["pid"]
+    assert len(restarted["domains"]) == 10 and restarted["profiles"] == 2
+    assert first["sqlite_connections"] == restarted["sqlite_connections"] == 0

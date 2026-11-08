@@ -223,9 +223,11 @@ Central tool registry (`tools/registry.py`) with 70+ registered tools across ~28
 
 ### Session Persistence
 
-SQLite-based session storage with FTS5 full-text search. Sessions have lineage tracking (parent/child across compressions), per-platform isolation, and atomic writes with contention handling.
+Profile-wide SQLite or PostgreSQL selection covers system-owned databases. SQLite retains FTS5; PostgreSQL uses the unified Core schema and scoped repositories. Sessions retain lineage tracking (parent/child across compressions), per-profile isolation and atomic writes with contention handling.
 
 → [Session Storage](./session-storage.md)
+
+→ [Database Backends](./database-backends.md)
 
 ### Messaging Gateway
 
