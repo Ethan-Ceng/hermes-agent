@@ -12,7 +12,7 @@
 - 整体状态：`VERIFYING`。
 - 当前阶段：原生启动复验、最终验证与独立审查。
 - 当前验证判定：`FAILED`；三份独立审查均为`CHANGES_REQUIRED`，正在Task24内整改，未完成本项。
-- 当前任务：Task24（in_progress；Task23本地提交`3febe6fc31`，verification恢复提交`c0558e9c13`，本次RetainDB整改另存恢复提交）。
+- 当前任务：Task24（in_progress；Task23本地提交`3febe6fc31`，verification恢复提交`c0558e9c13`，RetainDB恢复提交`ed0cdbe604`）。
 - 已完成：23 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：非WSL POSIX私有启动页七项仍缺适用主机。验收PG已恢复；旧生产实现114文件659项全绿不代表最新整改完成。Native宽回归已失败；RetainDB托管消费者局部整改已通过，metrics缺口与最终全域复验/独立审查尚未完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
@@ -1625,9 +1625,27 @@ RetainDB整改进行中：真实owner-only红测与独立boundary review确认�
 
 RetainDB最新局部收敛：原先首轮managed+Core合批3pass/1fail，失败为非法同会话双活worker夹具；改合法跨会话接管后Core3pass。其真实managed文件先Windows1pass/47.7秒、Linux与Core合批4pass/76.4秒。新增真实WebSocket断线永久合同先2fail，根因SDK的ConnectionClosed不属于OSError；队列在enqueue/loop/shutdown处理WebSocketException及OSError，保留原异常/request_id与sticky journal，不改变WorkerRPC未知提交重试。独立原红probe不变复验1pass，另独立实际enqueue提交丢确认/journal/peer/flush/finish1pass。
 
-最新Windows `unified-task24-retain-lifecycle-green.log`两文件4pass/0fail/107.4秒，包含实际provider sync_turn、PG budget1下HTTP挂起仍由同owner读取会话、503失败与HTTP未结束worker退出两种持久恢复、新owner/新会话重放原body、peer隔离及所有进程SQLite尝试0。此前生命周期批次3pass/2fail保留：read测试在HTTP调用与ack开始间隙提前观察，现等PG acknowledged及空journal；另一项误查daemon的worker警告，现核对实际worker退出、HTTP仍未release及PG claimed，不放宽join10或业务断言。`unified-task24-retain-request-id-green.log`两文件6pass/0fail/19.2秒，包括新增enqueue实际commit/丢确认原异常携request_id、必要回执阻止finish、显式重放后仅一行和旧renew回执/新租约反例；JSON False/0/None/NUL/Unicode均保留。
+最新Windows `unified-task24-retain-lifecycle-green.log`两文件4pass/0fail/107.4秒，包含实际provider sync_turn、PG budget1下HTTP挂起仍由同owner读取会话、503失败与HTTP未结束worker退出两种持久恢复、新owner/新会话重放原body、peer隔离及所有进程SQLite尝试0。此前生命周期批次5pass/2fail保留：read测试在HTTP调用与ack开始间隙提前观察，现等PG acknowledged及空journal；另一项误查daemon的worker警告，现核对实际worker退出、HTTP仍未release及PG claimed，不放宽join10或业务断言。`unified-task24-retain-request-id-green.log`两文件6pass/0fail/19.2秒，包括新增enqueue实际commit/丢确认原异常携request_id、必要回执阻止finish、显式重放后仅一行和旧renew回执/新租约反例；JSON False/0/None/NUL/Unicode均保留。
 
 最终Linux同一生产实现7文件19pass/0fail/0skip、退出0、206.1秒（unified-task24-retain-owner-linux-final.log），包括全部Retain PG原合同及三个新永久文件的实际业务、线程/通道故障、重启/peer。Windows SQLite/插件6文件44pass/0fail、退出0、8.6秒（retain-sqlite-contracts）；`scripts/check --staged --base c0558e9c13`14检查通过、health9个Python文件0blocking/0advisory（retain-owner-checks-final）。独立retaindb-worker-boundary-review已读取最终日志及diff，关闭本通道major，保持全局FAILED。当前保存标题`fix(storage): persist retained memory through owner receipts`的本地恢复commit，Task24仍in_progress，后续先整改metrics托管major，再新冻结完整PG/发行/Native/平台复验与独立终审；不将以上19项当全系统矩阵。
+
+ed0冻结Native六文件19pass/0fail/0skip、退出0、16.5秒（unified-task24-retain-frozen-native.log），包括原完整safe-mode（原断言未改）与实际SQLite SDK独立合同，真实checkout ref为ed0cdbe604cded73026f28f4b96937c6e204a5cf。metrics永久真实消费者已在该生产版本实际1fail/1pass、退出1、47.98秒（managed-metrics-permanent-red）：普通opt-in模型成功/重开但PG模型调用数0；ignore默认不采集、owner同意窗口及遗留文件保持通过。另新增PG owner engagement合同实际1fail Path(None)（metrics-owner-engagement-red）；直接一律改profile_home会破坏SQLite仅给自定义数据库路径的两项旧合同（14pass2fail），现只对无文件PG使用明确home，SQLite保持原路径合同。PG两文件5pass（metrics-owner-engagement-green），SQLite原全文件16pass（metrics-engagement-native-preserved）；不据此关闭worker major。
+
+metrics下一步闭合方案已做有界独立协议复审并补设计：公开具名短写/owner同意、metric_state root待办与本地receipt共事务、domain.metrics.flush提交后连接外维护与重放、root独立后端/opt-in/晚到退休、finish前显式quiesce。没有新任务或整轮重规划，尚未实现通道，未声称通过。最新源码只增加上述PG engagement窄修和两份永久测试，未重建最终发行载荷。
+
+metrics通道实施进展：已复用实际owner identity、封闭worker.persist CoreEffect与同Connection指标锁，覆盖counter/day/interval/feature/milestone/install snapshot/age/engagement/consent及只读查询。source/root分事务待办沿metric_state，不新增Schema；domain.metrics.flush先提交空回执再在owner连接外维护，缓存回执也重跑维护，失败保留原journal；有界128批次若仍有待办明确拒绝ACK。owner实际当前collection/send决定导出/发送及撤回；worker默认send=false不能撤销owner窗口。严格quiesce在必要title完成后、execution.finish前停止新指标生产、等待异步flush、实际SDK订阅flush与所需回执；入口仅用owner绑定的纯Profile ContextVar scope，不读取worker.env。
+
+首步Core真实红为1fail/1pass（worker-metrics-core-red）；第一次接入因把facade当scope resource出现AttributeError，改用既有ReceiptDomainResource后通过。Windows最初三文件5pass（worker-metrics-port-first），随后strict barrier与三个真实managed领域合批3文件6pass/0fail（worker-metrics-quiesce-first），包含verification普通/ignore与Retain两种关闭恢复。扩大owner发送实测后root+HTTP两文件5pass/0fail/77.7秒（worker-metrics-root-http-first）：普通模型持久重开、ignore默认不采集且保留owner窗口、已存在合格日期包由owner真实HTTP发送，普通send-off零HTTP。Core named interval/feature/day latches补验3pass（worker-metrics-named-operations）。
+
+SDK barrier窄测最初两批各2fail：首批夹具绕过正常factory的identity缓存，第二批后台ThreadPoolExecutor不传播Profile而查错runtime；未把这些算成真实adopted主线程失败。现在quiesce从owner_binding显式绑定纯路径scope，实际Relay SDK订阅事件被gate时不提前返回，PG实际提交丢确认后保留journal并拒绝finish，原回执恢复后可结束；线程caller scope恢复。scoped两项2pass，增加明确混合Profile测试后两文件3pass（worker-metrics-mixed-barrier），PG子Profile无SQLite连接、root只在自己的SQLite scope真实提交，单独归类为混合配置，不充当全PG零SQLite证明。
+
+真实gateway handler持久化窄测3文件6pass（worker-metrics-maintenance-first）：实际存活同用户child PID/birth、register/adopt/claim/verify不跳过，flush回执commit后实际维护故障，受保护journal原seq保留、finish拒绝、同receipt重放再次维护并仅一条回执，恢复后可结束；明确未走WebSocket线路。root用另一已核对归属随机Schema的不同PG target新合同正在Linux合批复验。独立foundation另真实撤回1pass、实际claim/postmaint replay1pass；plugins独立pool1/root实际commit/source CAS故障/withdraw/晚日3pass，报告保留当前范围与未验证项。
+
+最新Windows指标原生30文件688pass/0fail/7个POSIX平台skip、退出0、69.2秒（worker-metrics-native-regressions）；这些7项后续在Linux验证，与尚缺的非WSL私有启动页七项不是同组。当前暂存14静态检查通过，health23个Python文件0blocking/0advisory（worker-metrics-checks-first）；补测后的最后统一检查尚待。Linux首批误把scenarios/metrics.py普通子进程驱动当测试文件，产生collection error；实际测试尚运行，不计该整批全绿，将按明确test_*.py清单重新结算。后续仍需当前生产冻结、完整PG/发行/Native宽回归未决项整改及全局独立终审，Task24保持FAILED/in_progress。
+
+metrics最新完整局部结算：校正清单后的Linux13文件34pass/0fail/0error/0skip、退出0、182.7秒（unified-task24-worker-metrics-linux-accepted.log），包含真实ordinary/config-only daemon/采用worker/模型/SDK/PG计数与engagement、新owner恢复、peer、发送同意及真实HTTP，Core锁/回执故障/具名latch、实际SDK关闭屏障、实际存活child claim/register/adopt的维护失败缓存重放、独立SQLite root及第二owned Schema的不同PG ResourceKey。后两种handler/跨backend窄合同不冒充WebSocket失联后新worker恢复；第二Schema不是第二数据库服务。此前错误清单整批确为14文件33pass/1个collection error/退出1，不抹除；scenarios驱动仍由原process测试以正确配置/参数实跑。
+
+补测后静态`PM Python scripts/check --staged --base ed0cdbe604`全部14检查通过、health23个Python文件0blocking/0advisory、退出0（worker-metrics-checks-final）。当前生产候选将保存标题`fix(storage): persist worker metrics through owner receipts`的本地恢复提交；Task24仍23/24、FAILED/in_progress。下一步在该ref新冻结Native验证原指标30文件、原完整CLI安全启动与SQLite实际SDK独立合同，并继续宽回归未决项；所有必需生产整改收敛后才重建最终四套PM发行载荷和完整PG/故障/平台复验，避免用即将过时的载荷反复声明完成。全局独立终审仍待，非WSL私有启动页七项主机仍缺。
 
 ## 计划变更
 
@@ -1668,6 +1686,8 @@ Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣
 
 ## 恢复点
 
-Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。后续58d/d402/66a/dcb/8d6/51b3均为恢复提交，未标完成。51b3已通过原完整safe-mode独立1项，8d6配置/Profile/备份原生22文件415项及四套独立PM载荷已保留。旧58d生产的完整PG659绿/Native62870pass44fail220errors726skip均不外推到当前代码；后续工具424、Photon16、FAL38及各局部整改真实证据见Task24执行结果。当前首步worker verification owner通道已通过Core/Windows完整普通+config-only重启/peer及独立Linux实证，14检查/health11文件通过，需保存本地恢复commit并新冻结Native复验；worker metrics正常采集及遗留SQLite反例、RetainDB实际初始化/队列仍为已证实未修major。下一步沿已补设计接通这些owner领域通道，再统一重建发行载荷和完整PG/Native/故障/平台复验及独立终审。非WSL七项仍待现成主机，不伪装OS；正式实例仍SQLite a875342384，未写正式Profile/秘密/既有业务表，不管理数据库服务，不推送/发布/PR/合并。
+Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。最新`ed0cdbe604cded73026f28f4b96937c6e204a5cf`包含RetainDB真实worker领域整改，Linux7文件19项、Windows实际managed HTTP/关闭恢复和通道故障已通过，静态14检查与独立局部审查通过；`c0558e9c13`的verification通道已通过冻结Linux8项。ed0全新Native checkout已按完整ref核对，已完成原完整safe-mode及SQLite独立合同六文件19pass/0fail/0skip、退出0（unified-task24-retain-frozen-native.log）。当前新增真实managed metrics永久合同在ed0生产实现实际1fail/1pass（managed-metrics-permanent-red），它包含真实模型计数/engagement、新owner重开、peer、遗留SQLite与owner consent窗口；普通模型PG计数0的major仍未修，不以旧owner20项关闭worker major。
+
+下一步根据独立有界协议复审修复metrics，保留owner-only与agent collection/owner send-consent分离、同连接回执、连接外维护/HTTP和finish前Relay排空；再统一重建发行载荷、完整PG/Native/故障/适用平台复验及独立终审。旧58d生产的完整PG659绿及Native62870pass44fail220errors726skip不外推到当前代码；后续工具424、Photon16、FAL38及局部整改证据见本账本。非WSL七项仍待现成主机，不伪装OS；正式实例仍SQLite a875342384，未写正式Profile/秘密/既有业务表，不管理数据库服务，不推送/发布/PR/合并。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

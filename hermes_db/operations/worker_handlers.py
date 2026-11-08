@@ -148,7 +148,7 @@ def usage_main(conn, scope, session_id, payload, *, auxiliary=False):
     return {"value": None}
 
 
-def handlers():
+def handlers(metrics_policy=None):
     from hermes_db.operations import worker_lifecycle as life
     from hermes_db.operations.worker_compression_state import handlers as compression_handlers
     from hermes_db.operations.worker_turn import turn
@@ -164,5 +164,5 @@ def handlers():
               "session.message_api_content": partial(life.api_content, addressed=True), "session.user_content": life.user_content}
     values.update({"turn." + action: partial(turn, action=action) for action in ("acquire", "renew", "release")})
     values.update(compression_handlers())
-    values.update(write_handlers())
+    values.update(write_handlers(metrics_policy))
     return {name: CoreEffect(function) for name, function in values.items()}

@@ -72,15 +72,20 @@ def record_verification(resource, session_id, payload):
                   per_root_limit=_MAX_EVENTS_PER_SESSION_ROOT, total_limit=_MAX_TOTAL_UNREFERENCED_EVENTS)
 
 
-def write_handlers():
+def write_handlers(metrics_policy=None):
     from hermes_db.operations.worker_retain_queue import write_handlers as queue_handlers
+    from hermes_db.operations.worker_metrics import handlers as metric_handlers
     values = {'domain.verification.' + name: partial(verification, operation=name) for name in ('record', 'mark_edited')}
     values.update(queue_handlers())
+    values.update(metric_handlers(metrics_policy))
     return values
 
 
 def read(conn, scope, session_id, name, arguments):
     from hermes_db.operations import worker_retain_queue as queue
+    from hermes_db.operations import worker_metrics as metrics
+    if name in metrics.READS:
+        return metrics.read(conn, scope, session_id, name, arguments)
     if name in queue.READS:
         return queue.read(conn, scope, session_id, name, arguments)
     if name != 'verification.status':

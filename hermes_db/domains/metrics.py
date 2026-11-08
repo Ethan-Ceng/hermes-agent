@@ -22,6 +22,11 @@ def capture_metrics(profile_home=None):
 
 @contextmanager
 def open_metrics(reference, *, write=False):
+    from hermes_db.domains.metrics_bound import BoundMetricsRef, open_bound
+    if isinstance(reference, BoundMetricsRef):
+        with open_bound(reference, write=write) as value:
+            yield value
+        return
     from hermes_cli.db_setup import _owning_profile
     from hermes_db.factory import acquire_profile_domain
     from hermes_db.move_values import resource_key

@@ -96,4 +96,6 @@ RetainDB初版桥接另有确定根因：WorkerRPC原样重抛实际WebSocket断
 
 ## 调试结论
 
+metrics最新整改已补闭合owner领域短写、KV root intent及提交后维护，业务/SDK/PG回执与Windows原生指标688项的局部证据见实施计划。owner engagement Path(None)永久红测已关闭且SQLite路径调用兼容；真实SDK barrier测试前两次的缓存/线程Profile夹具问题保留原日志，并据HX002让入口按实际owner绑定路径scope后通过。必要journal仍阻止提前finish，没以模型成功替代指标持久。当前Linux指标全域、最后静态及冻结发行尚未完成，全局依然FAILED。
+
 保持 **UNRESOLVED / FAILED**。配置归属、verification及RetainDB等分域有上述确定的整改/独立证据，不能替代metrics托管缺口、宽回归红测的逐项闭合和新生产载荷完整复验。下一步继续这些实际失败的证据驱动整改，再执行最终独立审查。非WSL POSIX七项适用主机证据仍另行缺失，不能由以上WSL调试替代。

@@ -1270,6 +1270,8 @@ class _Runtime:
 
     def _export(self) -> None:
         exported = self._safe(self.subscriber.store.create_and_export_package_if_due)
+        if getattr(self.subscriber.store, 'owner_managed', False):
+            return
         # Sending must never delay the caller: _export runs on finish_task, the user's
         # interactive path. The thread is about latency, not correctness.
         if exported is not None:

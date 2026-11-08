@@ -97,6 +97,10 @@ async def worker_request(connection, ref, params, *, operation):
                                        **scope, adoption_secret=claim)
     result = await asyncio.to_thread(mutate_worker_execution, authority.db, epoch=params['epoch'],
         **scope, sequence=params['sequence'], operation=params['operation'], payload=params['payload'])
+    if params['operation'] == 'domain.metrics.flush':
+        from gateway.session_worker_metrics import maintain
+        # Includes cached receipt replay: an earlier COMMIT may have outlived its maintenance/ACK.
+        await asyncio.to_thread(maintain, authority.db)
     if params['operation'] == 'execution.finish':
         # Queued input parked behind this worker; nothing else would restart its FIFO.
         authority.wake_after_worker(params['session_id'])

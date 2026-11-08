@@ -46,7 +46,9 @@ class RuntimeWorkers:
 
     def mutate_worker(self, **kwargs):
         from hermes_db.operations.worker_handlers import handlers
-        return self.apply_worker_receipt(**kwargs, handlers=handlers())
+        from hermes_db.operations.worker_metrics import prepare_policy
+        policy = prepare_policy(self.scope.profile_home, kwargs.get('operation'))
+        return self.apply_worker_receipt(**kwargs, handlers=handlers(metrics_policy=policy))
 
     def worker_claim_origin(self, params):
         from hermes_db.repositories.workers import claim_origin

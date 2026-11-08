@@ -408,6 +408,8 @@ def execute(frame, channel):
             # after execution.finish is a stale_generation write that fails the close-time flush.
             from agent.title_generator import wait_for_title_upgrades
             wait_for_title_upgrades()
+            from hermes_cli.observability.worker_metrics_shutdown import quiesce
+            quiesce(store)
             store.flush_token_counts()
             if result.get('final_response') is None and (result.get('interrupted') or result.get('failed')):
                 result['final_response'] = ''

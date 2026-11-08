@@ -107,7 +107,11 @@ def turn_route(event: Any) -> tuple[str, str] | None:
 def record(store: Any, resource: dict[str, str], *, surface: str | None, route: tuple[str, str] | None) -> None:
     """The clock is read inside each write transaction: writers then apply in clock order, so no
     process closes a day another already closed. A busy store defers the interaction, never drops it."""
-    profile_home = Path(store.database_path).parent.parent.parent
+    if getattr(store, 'owner_managed', False):
+        store.record_engagement(resource, surface=surface, route=route)
+        return
+    # Existing SQLite callers may supply only a database path; PG carries an explicit owning Profile.
+    profile_home = Path(store.profile_home) if store.database_path is None else Path(store.database_path).parent.parent.parent
     root_home = _root_home(profile_home)
     owner = root_home == profile_home
     profile = _profile_hash(profile_home) if surface is not None else None
