@@ -8,8 +8,8 @@ from hermes_cli import relaunch as relaunch_mod
 
 
 class TestResolveHermesBin:
-    def test_prefers_absolute_argv0_when_executable(self, monkeypatch):
-        fake = "/nix/store/abc/bin/hermes"
+    def test_prefers_absolute_argv0_when_executable(self, tmp_path, monkeypatch):
+        fake = str(tmp_path / "hermes.exe")
         monkeypatch.setattr(sys, "argv", [fake])
         monkeypatch.setattr(relaunch_mod.os.path, "isfile", lambda p: p == fake)
         monkeypatch.setattr(relaunch_mod.os, "access", lambda p, mode: p == fake)
@@ -86,7 +86,9 @@ class TestBuildRelaunchArgv:
 
 
 class TestRelaunch:
-    def test_calls_execvp(self, monkeypatch):
+    @pytest.mark.platforms("posix")
+    @pytest.mark.parametrize("inherited", [[], ["-m", "fixture-model"]])
+    def test_calls_execvp(self, monkeypatch, inherited):
         calls = []
 
         def fake_execvp(path, argv):
@@ -95,11 +97,12 @@ class TestRelaunch:
 
         monkeypatch.setattr(relaunch_mod.os, "execvp", fake_execvp)
         monkeypatch.setattr(relaunch_mod, "resolve_hermes_bin", lambda: "/usr/bin/hermes")
+        monkeypatch.setattr(relaunch_mod.sys, "argv", ["/usr/bin/hermes", *inherited])
 
         with pytest.raises(SystemExit):
             relaunch_mod.relaunch(["--resume", "abc"])
 
-        assert calls == [("/usr/bin/hermes", ["/usr/bin/hermes", "--resume", "abc"])]
+        assert calls == [("/usr/bin/hermes", ["/usr/bin/hermes", *inherited, "--resume", "abc"])]
 
     @pytest.mark.platforms("windows")
     def test_windows_uses_subprocess_not_execvp(self, monkeypatch):

@@ -141,3 +141,13 @@ Matrix真实PG补验现已完成局部闭环：服务Windows/Linux只读确认�
 候选准备失败的实际errno为No space left，容量观察明确旧测试根tmpfs仍余约1GB却可用inode为0，而实际pytest临时文件系统容量/inode充足。Gateway控制socket必须在其IPC目录创建短路径，宽Native因同一inode约束出现明确control listener启动失败；不据此概括所有失败。全局proc引用检查在删除前因同UID系统进程cwd不可读停止，未执行删除；后仅对本轮从未执行且准备失败的精确partial clone核对路径/owner/Git origin/未发布state与未到可执行准备阶段后删除，释放19031inode，其余快照/实例保留。未来新候选与PM载荷放入独立大容量根，避免再次挤占IPC inode。
 
 原冻结normal_runtime_boot文件在inode恢复后、源码/期限未改2pass/0fail/54.7秒（native-control-after-inode-recovery）；这证明该文件环境反例恢复，不关闭所有后续失败。69d宽批次仍运行，环境失败/旧fixture失败原数及日志保持；须用最终失败清单逐项复验。
+
+后续完整69d批次已终态63024pass/140fail/726skip、63文件非零；120bf8的59文件先行重放315pass/4fail/7skip，三个最终新增文件再串行239pass/0fail/1平台skip。非WSL七项、managed history/压缩间歇超时及host注入仍保持未闭合。当前CLI两项最小fixture修正及其红绿见计划和foundation复审，不改变生产继承或unit身份规则。独立候选两份全内容校验后移至大容量根、原路径保留链接，释放72606个inode；源代码内容、原日志和运行路径保持。
+
+## managed后续回合的实测观测边界
+
+120bf8的history参数在59-file重放30秒等待terminal失败；新只读startup observer保持原audit site、ordinary daemon命令和实际fsync，自动保存自有进程线程栈。一次实际True/HISTORY5失败时，SQLite行仍started、execution running；worker采样在真实RuntimeSessionStore._save→atomic_write os.fsync或RPC receive，owner主循环在selector。此为失败现场，不能从一个20秒采样推导单个fsync已阻塞20秒，也不能推断host插件超时同因。
+
+宽回归结束后同一冻结代码安静串行三参数3pass/0fail/135.1秒。实际原fsync测量：history372次合计1.225秒/max0.132；压缩True2676次8.228秒/max0.348、False2703次8.670秒/max0.095。没有改fsync语义、持久性、SDK功能或原30秒期限。缺少负载失败时的同类耗时对照，故I/O压力仅为假设，未标根因已修复；下一步继续有界现场和独立host重入/注入审查。
+
+两个CLI fixture已完成有界整改：relaunch隔离pytest argv并直接证明空/model参数两种继承，absolute路径用宿主tmp_path；unit身份夹具同时提供安全account默认目录，真实sync与服务名断言保留。Linux两文件125pass/7平台skip；最后absolute路径修正Linux/Windows各12pass/4skip，原Windows Unix路径1fail保留。静态首轮仅health因旧超长文件+2行失败，在已修改方法压缩两处空行后14检查全过、health2文件0/0；生产代码无改动，独立foundation接受。Host取证插件第一版引号错误零收集，修正后重新取证，不将零测试当通过或归成产品问题。

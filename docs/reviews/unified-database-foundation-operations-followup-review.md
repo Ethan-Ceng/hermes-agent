@@ -444,3 +444,50 @@ canonical runner、retries 0、原各阶段 deadline；实际 **1 passed、0 fai
 据此，Store double 及其 authority helper 复用路径、Relay 原十项合同在上述候选/宿主范围内均已实际通过，局部整改可以接受。它们没有关闭 PG 服务故障、原 69d 全 Native 运行结果、其他分域最终复审或非 WSL 平台缺口。37/288/48 三批有重叠且候选目录不同，不能相加作为独立覆盖数。本 Reviewer 只核对产物与源码，没有代跑；当前最终统一静态检查仍在运行，不提前计为通过。
 
 这两项局部测试修正未发现新增 blocking/major，也没有通过修改保护/关闭功能取得绿色。69d 完整 PG 批次真实失败、其他 Native 结果和适用平台证据仍须各自结算；全局继续 **FAILED / CHANGES_REQUIRED**。
+
+## 120bf8 原失败 replay：relaunch 与 system-unit 夹具诊断
+
+本节首轮仅只读核对 `120bf8c9d6c9f3ac9e2d35e995ed976a4e175c3b` 的两项失败、源码及 `git log -p -S` 意图，不实施修正、不代跑、不操作服务。`unified-task24-120bf8-partial-native-replay.log` 的 59 文件结算为 **315 passed / 4 failed / 7 skipped、exit 1**；下面两项不是全部四项的根因结论。首轮诊断时尚无这两文件的新 diff 或修正后绿测；后续实际候选另列于本节末。
+
+### Relaunch live argv 被 pytest 选择参数污染
+
+位置：`tests/hermes_cli/test_relaunch.py:89–102`；`hermes_cli/relaunch.py::build_relaunch_argv/relaunch`；`hermes_cli/_parser.py:165,254`。
+
+实际红输出明确为 `['/usr/bin/hermes', '-m', 'not live', '--resume', 'abc']`，旧断言预期没有这两个继承参数。生产默认读取 `sys.argv[1:]`，`-m/--model` 在真实 parser 上被标记 `inherit_on_relaunch`；`95f2802f842d7fa4cb3c477729dec82bab94d0b9` 的最初合同已明确保留 model，Windows 相邻测试也已经专门固定 live sys.argv 以避免同一个 pytest `-m` 冲突。不能据此从生产继承表删除 `-m`、默认禁用 preserve 或过滤 pytest 字符串。
+
+最小正确测试接缝：给这一用例设置受控 Hermes `sys.argv`（只测 exec handoff 时可为 `['/usr/bin/hermes']`），或调用已经公开的 `original_argv=[]`；原 execvp path/完整 argv 精确断言保留。若携带一个受控 `-m fixture-model` 并在期望中要求它原样继承，还可直接验证没有破坏模型选择。该 execvp 断言本身属于 POSIX；当前用例未标平台，若本轮整理它，应使用 `platforms('posix')`，Windows 保留已有 subprocess/exit 专属测试，不 fake `sys.platform`。这是测试输入/宿主合同修正建议，无当前生产整改依据。
+
+### Unit sync 的模拟 account home 与模拟 process home 不一致
+
+位置：`tests/hermes_cli/test_gateway_service.py:2906–2927`；`hermes_cli/gateway.py::_native_service_homes/_profile_suffix/get_systemd_unit_path/_sync_hermes_home_from_systemd_unit`。
+
+实际红是 `_sync_hermes_home_from_systemd_unit(system=True)` 返回后 `os.environ['HERMES_HOME']` 仍缺失；原文件其余 **112 passed / 3 skipped**。夹具创建 bare unit 指向临时 alice home、模拟 elevated system scope，但只替换旧 `_get_platform_default_hermes_home` 为临时 root home。`9248d847d0` 出于防止 scratch HOME 操作真实账户 unit 的明确保护，把 `_native_service_homes` 改用 `account_default_hermes_home()`（系统账户来源），不再把任意进程 HOME 当宿主默认身份；`hermes_constants.account_default_hermes_home` 在进程 home 不等于实际账户 home 时会避开旧平台默认分支。
+
+源码因此足以解释当前夹具：模拟的临时 root home 不再必然是账户默认 home；pre-sync name 可成为带 hash 的名称，真实 sync 根据该名称找 unit，而夹具只准备 bare unit，最终无法采纳 alice home。原失败没有打印 pre_sync_name，本 Reviewer 不将这个静态推导冒称为现场打印值；后续正向修正应把前提直接断言出来。历史 `1ff56d9ed9ec1c4d1113abe2101443266196c45f` 原测试的意图正是执行真实 sync 并保持 bare unit 的命名，不是只用 setenv 模拟成功。
+
+最小正确接缝：在当前临时 system-unit 夹具中，同时把 `hermes_constants.account_default_hermes_home` 绑定到同一 root_home，保留现有平台默认模拟；先断言 `pre_sync_name == _SERVICE_BASE`，再执行不修改的生产 sync、原 HERMES_HOME 确已采纳与名称保持断言。这样继续验证真实 unit 读取、Environment 解析和命名稳定性；不 mock sync/get_service_name 或预置目标 env 来越过关键行为。若出现意外 systemctl fallback，测试应明确拒绝该宿主管理调用，而非访问正式服务。不能将生产回退为基于 process HOME 的命名，否则重新打开 `9248d847d0` 已明确修复的跨安装误操作边界。
+
+以上是首轮诊断状态：当时仅支持两项最小夹具修正方向，没有实际新 diff 或绿测，未宣称闭合。另已读取 120bf8 的 Linux DB 非 integration **228 文件584 passed/0 failed** 与 Windows 新载荷 **2 文件4 passed/2 Linux skipped**，范围各自保留；同 ref 完整 PG 为 **127 文件240 passed/1 failed/451 errors、87 文件非零、exit 1**，不能据非 PG 绿测或已准备载荷宣称通过。PG 首故障/随后 recovery 的根因由实际诊断另行处理，本节没有操作或归因服务。managed history/压缩原 30 秒失败亦不在此两项 fixture 结论内。全局保持 **FAILED / CHANGES_REQUIRED**。
+
+### 最终 CLI 夹具 diff 与分阶段候选结算
+
+Root 实施后，本 Reviewer 再次只读完整实际 diff，并逐项匹配当前 `task24-cli-fixture-candidate-state.json` 的两个 SHA256：`test_relaunch.py`=`bde2a9e3a5060ba50b1efe8cbfc90dbefe2628c37792090d3bde69f19d05b4aa`，`test_gateway_service.py`=`5e991ff377e1394f4598032add50470c647f0059afbb92cf25ff23c7a30f5b8a`，均与当前工作区相符。当前状态的独立 source 为 `task24-cli-fixture-65eb472904`、基准仍 120bf8；它是含最终原生路径修正的第二版候选，不将它冒称为先前 125 项运行的目录。
+
+最终两文件改动符合前述意图，未发现新增 blocking/major：
+
+- relaunch 在真实 POSIX execvp 用例固定 Hermes live argv；以空继承/`['-m','fixture-model']` 两参数保留精确 execvp path 与完整 argv 断言，新增正向模型继承证明。它没有删生产 `-m` 或关闭 preserve。该用例新增 POSIX marker，Windows 继续运行原 subprocess/exit 分支，未 fake OS。
+- `test_prefers_absolute_argv0_when_executable` 原来使用 Unix 绝对路径，首轮真实 Windows 对该字符串不作其所期望的本机绝对路径解释。最终只将输入改为 `str(tmp_path / 'hermes.exe')`，沿用原 isfile/access seam 与原 resolve 结果相等断言；两个宿主使用各自真实路径语法，不靠修改 `isabs`/`sys.platform` 取绿。这是绝对可执行入口的原 unit 合同，并非放弃某项 Nix 发布验收。
+- service 只增加账户默认 home 返回原 root_home 及 `pre_sync_name == _SERVICE_BASE` 前置断言；原临时 unit 文件、Environment 解析、实际 `_sync_hermes_home_from_systemd_unit`、采纳后的 HERMES_HOME 和前后同名断言全部保留。生产 `gateway.py`、`relaunch.py`、parser 相对 120bf8 无 diff；没有恢复不安全的 process-HOME 服务命名。
+
+已读取的 Root 执行日志如下，均经 PM 解释器/canonical runner、retries=0；本 Reviewer 没有代跑：
+
+| 日志 | 实际阶段与结算 |
+| --- | --- |
+| `unified-task24-cli-service-relaunch-candidate.log` | 第一版 Linux 两文件 **125 passed / 0 failed / 7 原宿主 skipped、exit 0、7.0s**，service 113 pass/3 skip，relaunch 12 pass/4 skip；发生在后续 Windows 原生路径修正之前，不把这批改写为最终两文件同次执行。 |
+| `unified-task24-cli-service-relaunch-windows.log` | 第一版 Windows 两文件 **11 passed / 1 failed / 5 skipped、exit 1、2.4s**；真实红明确旧 Unix 路径解析结果 None，原日志保留。不计为业务成功。 |
+| `unified-task24-cli-relaunch-path-final-linux.log` | 最终路径版本原 relaunch 全文件 **12 passed / 0 failed / 4 Windows skipped、exit 0、0.7s**。 |
+| `unified-task24-cli-relaunch-path-final-windows.log` | 同最终 relaunch 全文件在原生 Windows **12 passed / 0 failed / 4 POSIX skipped、exit 0、2.2s**。不把 Windows 上未执行的 systemd service 全文件说成已通过。 |
+
+service 在第二版没有再改变，首轮完整原生 Linux 文件绿色及当前同一 service 输入可组合支持这两处夹具的局部闭合；最终 relaunch 的两个宿主结果补齐路径调整范围。没有增加或放宽任何生产/测试期限，也没有删除原安全断言。125/12/12 存在重复且属于不同执行阶段，不能相加为独立覆盖数。当前静态检查仍在运行，不提前写通过；如果旧大测试文件触及 ratchet，应由 Root 按真实检查结果处理，不能删断言规避。
+
+局部测试整改可接受，原失败证据继续保留。69d 原完整 Native **6412 文件63024 passed/140 failed/726 skipped**、120bf8 的 59 文件 replay **315 passed/4 failed/7 skipped**、其他额外窄组及当前完整 PG 非零均各自独立，未由这两项夹具取代。全局仍 **FAILED / CHANGES_REQUIRED**。

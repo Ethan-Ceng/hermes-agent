@@ -12,7 +12,7 @@
 - 整体状态：`VERIFYING`。
 - 当前阶段：原生启动复验、最终验证与独立审查。
 - 当前验证判定：`FAILED`；三份独立审查均为`CHANGES_REQUIRED`，正在Task24内整改，未完成本项。
-- 当前任务：Task24（in_progress；Task23本地提交`3febe6fc31`，verification恢复提交`c0558e9c13`，RetainDB恢复提交`ed0cdbe604`，metrics恢复提交`2a26843900`，Telegram恢复`692382575f`，宿主夹具恢复`29796fc67d`，更新编译夹具恢复`69d455ccd3`）。
+- 当前任务：Task24（in_progress；Task23本地提交`3febe6fc31`，verification恢复提交`c0558e9c13`，RetainDB恢复提交`ed0cdbe604`，metrics恢复提交`2a26843900`，Telegram恢复`692382575f`，宿主夹具恢复`29796fc67d`，更新编译夹具恢复`69d455ccd3`，Matrix关闭/生命周期恢复`120bf8c9d6`）。
 - 已完成：23 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：非WSL POSIX私有启动页七项仍缺适用主机。验收PG已恢复；旧生产实现114文件659项全绿不代表最新整改完成。RetainDB/metrics托管消费者已局部整改通过；Native宽回归未决项、最终全域/发行复验及独立终审仍未完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
@@ -1684,6 +1684,18 @@ PG再次只读核对Windows/Linux均身份匹配、in_recovery=false且可连接
 测试环境新增约束已实证：旧隔离Linux根所在tmpfs仍有约1GB可用却available_inodes=0，而独立测试tmp目录所在文件系统约992GB/6664万inode可用（linux-filesystem-inventory）。此前候选clone准备两次因No space失败且未开始测试；首个谨慎清理脚本因同UID系统进程cwd不可读而在删除前停止，未伪称完成。随后仅对本轮失败、从未执行的确切partial clone核对解析绝对路径/当前owner/Git origin/未到node_modules准备阶段/无state引用后回收，释放19031inode（partial-checkout-cleanup）；其余已验证目录及所有运行路径保留。后续新候选与PM发行/冻结树改用已核对空间充足的独立文件系统，不清理正式实例。
 
 运行中的69d Native批次因此出现一批明确的control socket No space错误，原失败日志与计数保留，不将所有失败概括成环境问题。原冻结test_normal_runtime_boot.py在释放inode后、源码/期限未改的同环境2pass/0fail、退出0/54.7秒（native-control-after-inode-recovery），只关闭本文件对应环境反例，其他失败待逐文件复验。该宽回归尚未终态，不作最新全绿证据。新真实PG test的失败清理又经独立检查修正：未完成closing显式取消，COMMIT等待有10秒异步边界且只有真实成功后才启5秒关闭硬观察，不伪造成功信号。最后统一静态待补；下一本地恢复提交仍不是Task24完成提交。
+
+最新实际恢复提交`120bf8c9d6c9f3ac9e2d35e995ed976a4e175c3b`已保存，四套全新PM载荷构建退出0，Linux产物/最新冻结树均位于已核对容量和owner的大容量隔离根。相同ref生成契约check、strict TypeScript及完整TUI产品退出0。Linux数据库非集成完整228文件584pass/0fail/0skip、退出0/563.9秒（120bf8c9d6c9-db-native-linux）；Windows新载荷真实初始化/资源/SQLite独立业务两文件4pass/0fail/2个Linux SDK平台skip、退出0/31.7秒（distribution-windows）。这两个SDK分支已由Linux相应批次实际执行，不将Windows跳过当通过。
+
+本ref完整PG127文件再次未通过：240pass/1fail/451errors，87文件非零、退出1/423.7秒（120bf8c9d6c9-full-pg-linux）。首故障是kanban_sweeps正常COMMIT的UnknownCommitError，后续全为recovery mode；当时本地IPC tmpfs仍有7292 inode，不把本次服务故障归因到先前inode耗尽。核对测试信号仅作用其明确Popen child，无PG服务管理。随后只读Linux确认恢复，核对日志唯一Schema的数据库/owner/marker后清理1项（120bf8-interrupted-cleanup）。现以同一冻结源码/新载荷、全部127文件、`-j1 --file-timeout1200 -- -m 'not live'`串行跨文件复验（full-pg-linux-serial），保留文件内真实并发、所有原业务期限及retries=0；仅减少跨文件DDL叠加，不将改变调度称作已确认服务根因。
+
+69d完整八目录Native已终态：6412文件63024pass/140fail/726skip，63文件非零、退出1/7788.5秒（69d455-full-native）。旧临时盘约束修复后，在120bf8冻结树先复验已完成的59个失败文件，实际315pass/4fail/7skip、退出1/868.8秒（120bf8-partial-native-replay）；最终新增四个失败文件中，三个已在安静串行同ref复验239pass/0fail/1个macOS平台skip、退出0/66.9秒（native-final-additional-files），另一个为非WSL私有启动页七项，适用主机仍未提供。以上是不同批次、部分合同重叠，不合计成一次全绿或抹掉原失败。
+
+重放余下四个文件中两份CLI夹具根因已由源码/历史独立审查确认。relaunch按95f2802/parser合同继承CLI model，旧test误带pytest的`-m not live`；现固定实际Hermes argv，POSIX execvp标记并新增受控model继承参数，保留精确exec断言。Windows复验又发现原绝对路径fixture使用Unix字面路径，改为宿主tmp_path绝对路径；不伪装OS。service unit夹具按9248d847d0的account home安全来源补模拟account默认目录，与其已有platform默认目录一致，并先断言确实选裸unit，再保留真实sync/env/name断言；不改变生产逻辑。首轮Linux两文件125pass/0fail/7平台skip，最终path调整后relaunch Linux12pass/4Windows skip、Windows12pass/4平台skip，均退出0；Windows首轮原Unix路径1fail真实保留。最后静态/独立候选复核仍待。
+
+另外两个未闭合文件是managed_worker_launch的history与plugin_keyless_inject的host路径超时。增加忽略目录只读观测，保留真实ordinary daemon/原SQLite审计/30秒期限：一次两文件观测2pass/1fail，压缩True在HISTORY5失败；采样显示worker主线程在真实journal fsync或RPC，owner主循环可运行，不能据采样断定单次fsync持续多久或排除产品问题。随后宽批结束的安静串行、同原业务期限复验3pass/0fail、退出0/135.1秒（worker-history-fsync-observed）；实际调用原fsync并测量，history372次总1.225秒/max0.132，压缩两参数2676/2703次总8.228/8.670秒、max0.348/0.095。保留间歇失败，仍待根因及host注入边界审查，不用这次绿直接声称修复。为保障IPC inode，另把两份已结束候选源码逐项校验复制到大容量根、保留旧路径链接后释放tmpfs副本（retired-candidates-relocation），原内容和日志均保留，空闲inode由7029升至79635。
+
+CLI两份fixture最后静态首轮13/14通过，health指出原service test超长文件2929>2927；仅减少已修改函数内两处空行抵消增长，行为与所有断言不变。最终`PM Python scripts/check --staged --base 120bf8c9d6c9`14检查全过、health2文件0blocking/0advisory、退出0（cli-fixture-checks-final）。foundation已独立核对真实历史、完整diff、两阶段候选hash和Linux/Windows结果；将以`test: isolate relaunch and system unit fixtures`保存本地恢复提交，仅含测试/账本/审查，不改变120bf8生产实现或宣称Task24完成。Host注入取证插件首轮嵌套引号错误零收集，已编译校验修正后重跑（host-injection-observed-corrected），不是业务红绿证据；该验收与原生间歇仍未闭合。
 
 ## 计划变更
 
