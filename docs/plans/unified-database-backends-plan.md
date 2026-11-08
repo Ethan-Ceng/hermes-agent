@@ -1715,6 +1715,10 @@ CLI两份fixture最后静态首轮13/14通过，health指出原service test超�
 
 已开始一次最终当前代码宽复验：冻结`20a4789b35d4b38eec098c5a1203699200833474`（与120bf8生产相同，包含最终CLI测试修正），独立native-filesystem checkout及锁定Node真实compilers已准备。开跑前核对owner、完整ref/无tracked修改、专有根空闲inode66,253,099及tmp78,008，不再使用原inode耗尽的源副本。通过`scripts/run_tests.sh tests/cron tests/hermes_cli tests/gateway tests/tui_gateway tests/acp_adapter tests/plugins tests/agent tests/tools -j4 --file-timeout1200 -- -m 'not live' --ignore=tests/tools/test_fal_sdk.py`，仅添加现有worker/Host只读观察插件，retries=0，原6412文件/原期限/平台行为全部保留（unified-task24-20a478-full-native-observed.log）。此批用于结算当前宽回归及保留压力现场，不代表历史偶发已定因；七个缺适用主机的私有页测试没有被删除或改OS。FAL同ref用既有独立PM环境另行38pass/0fail/0skip、退出0、1.9秒（20a478-fal-native），不与正在运行的6412文件混报整批全绿。最新宽批次尚运行，Task24保持in_progress。
 
+补齐最终选择范围的两处实库证据：独立审查指出contracts下的mixed-root带integration标记，被Native的not-integration排除，也不在PG目录127文件中。Root在当前20a478独立冻结中通过标准runner显式执行`tests/hermes_db/contracts/test_worker_metrics_mixed_root.py -j1 --file-timeout1200 -- -m integration --postgres-test-config=<既有私密验收路径>`，实际1pass/0fail/0skip、退出0、4.5秒（unified-task24-20a478-mixed-profile-backends.log）。PG子Profile真实effect/receipt和待办排空、SQLite根Profile实际指标持久结果、源scope恢复及所有SQLite连接只属于明确SQLite根scope断言保留；该合同明确允许另一个Profile选择SQLite，不计作全PG进程零SQLite的689项。
+
+进一步核对PG目录外使用integration/实际PG fixture的现有合同，另有`tests/hermes_db/test_profile_deletion_storage.py`的七项集成参数，亦不在689和Native584/579中。Root按相同命令前提单独执行该文件`-m integration`，实际7pass/0fail/0skip、退出0、24.4秒（unified-task24-20a478-profile-deletion-integration.log），包括PG source→显式SQLite房间target、确认后root/target retarget拒绝、check/open间改配置仍只写冻结store，以及SQLite→PG切换拒绝和peer保留。原非integration的四项由前述NativeDB批负责，不重复。两份新结果与689分别留账，不改称一次697项全PG；本轮没有源码/测试变更、服务运维、正式Profile操作或现有表操作，真实Schema仍由原fixture核对归属后创建/清理。后续最终独立终审应同时读取这两份补证日志，旧报告“本轮尚未重跑mixed-root”仅保留为其检查点的历史状态。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |
@@ -1730,6 +1734,7 @@ CLI两份fixture最后静态首轮13/14通过，health指出原service test超�
 
 - 单元/SQLite回归：120bf8 Linux数据库完整228文件584pass/0fail/0skip；Windows同ref完整228文件579pass/0fail/5平台skip，两批均退出0。69d八目录原生完整6412文件63024pass/140fail/726skip、退出1；120失败清单59文件315pass/4fail/7skip，最终额外三文件239pass/0fail/1个macOS skip，非WSL私有页另七项缺主机。CLI两项已最小夹具整改及双平台有界复验；三文件联合先13pass/1fail（controls20秒无approval），宽批次结束后增加timed观察同三个文件14pass/0fail，两次不互相覆盖。managed history/压缩/审批与Host偶发原因未明，不用安静绿测认定根因已修；最后当前ref八目录宽复验仍待。Matrix/SDK与生命周期候选局部37、288、48项的重叠范围见账本，不相加。
 - 真实PG各域/并发/故障/单后端审计：120bf8完整127文件689pass/0fail/0error/0skip、退出0、2474.4秒，只跨文件-j1，文件内真实并发/故障及期限不改。最新采用worker领域和Matrix实际SDK均包含其中；Matrix局部31项与其重叠，不相加。历史69d完整157pass/533errors及120并行240pass/1fail/451errors均退出1、服务进入恢复，保留原首故障与安全归属清理，不抹去或归因新代码。旧114文件659仅作历史。
+- PG目录外补证：当前20a478冻结的mixed-root 1pass/4.5秒与Profile删除/混合房间投递integration 7pass/24.4秒，分别退出0；原marker筛选遗漏已显式补齐，属于允许不同Profile选择不同后端的合同，不计入689的全PG零SQLite范围。原源码、fixture和业务断言未改。
 - 独立安装/显式迁移/原生重启：120bf8已重建Windows/Linux、SQLite/PG四套独立PM载荷；Windows新载荷两文件4pass/0fail/2个Linux SDK skip，Linux完整PG689批次已包含其新载荷和原生全业务/daemon跨域入口。20a478只有CLI测试/文档变化，生产blob与120bf8相同，无需为该测试修正重复打包。整体Native关闭/平台验收缺口仍单列。
 - 静态/生成契约/适用构建：20a478完整分支CI artifact相对a875全部14检查通过，health598个Python文件0blocking/0advisory、退出0。120bf8生成契约check、strict TypeScript及完整TUI实际产品均退出0；先前Desktop Electron noEmit/预检22pass是源码未改的历史范围，不声称本轮重跑。
 - 独立审查：Matrix关闭major经原probe、永久双红及实际PG对照红/修正绿局部闭合；identity/Relay与两项CLI夹具复核接受。Host最新单项观察通过的ledger/模型精确一次及路由证据已独立阅读，但原并发缺note原因未定。三域全局仍CHANGES_REQUIRED，最终完整矩阵与适用主机门禁未闭合。
@@ -1754,7 +1759,7 @@ Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣
 
 ## 恢复点
 
-Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。代码恢复为`20a4789b35`（CLI测试/文档），生产仍`120bf8c9d6`（Matrix关闭）。当前完整PG127文件689绿与双宿主数据库完整绿已结算；Native三文件先13pass/1fail（controls20秒红）、宽批次结束后timed观察14pass/0fail，原history/压缩/审批及Host偶发原因仍未明确。现有三域报告已读取；最新20a478八目录6412文件宽批次运行中，state为task24-current-wide-native-state.json、日志unified-task24-20a478-full-native-observed.log，保留worker/Host现场观察，FAL同ref独立38项已过。下一步读取该宽批次终态/失败artifact，不用单次绿删除旧红；不重复已结算PG/发行。适用非WSL主机七项仍缺，全局独立终审未完成。
+Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。证据恢复`bdb2bf505d`，代码恢复`20a4789b35`（CLI测试/文档），生产仍`120bf8c9d6`（Matrix关闭）。当前完整PG127文件689绿与双宿主数据库完整绿已结算；PG目录外integration已另补mixed-root1项与删除/混合房间7项，均退出0，不混入全PG689。Native三文件先13pass/1fail（controls20秒红）、宽批次结束后timed观察14pass/0fail，原history/压缩/审批及Host偶发原因仍未明确。现有三域报告已读取；最新20a478八目录6412文件宽批次运行中，state为task24-current-wide-native-state.json、日志unified-task24-20a478-full-native-observed.log，保留worker/Host现场观察，FAL同ref独立38项已过。下一步读取该宽批次终态/失败artifact，并将两份integration补证交最终独立审查，不用单次绿删除旧红；不重复已结算PG/发行。适用非WSL主机七项仍缺，全局独立终审未完成。
 
 metrics恢复`2a2684390016a1bfadc4c759bf2151945425f077`已实际Linux13文件34项及新冻结Native36文件714项全过；先前ed0真实worker模型PG计数0的红已由owner通道局部整改，不用旧owner20项替代。RetainDB `ed0cdbe604`与verification `c0558e9c13`证据继续保留，三个真实managed领域在加入quiesce后另6项通过。
 
