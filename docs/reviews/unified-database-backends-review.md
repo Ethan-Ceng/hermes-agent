@@ -86,6 +86,10 @@ server cleanup局部补证：原两profile测试finally缺自有thread join已�
 
 server cleanup最终静态14检查通过、health1文件0/0；独立foundation接受该minor，collaboration只核对groups成功观察的边界。当前四个剩余完整文件-j4联合观察尚运行，尚不能计绿；本地恢复标题`test: join profile build threads before releasing mocks`，生产仍120bf8，无需因本次测试小修重复PG/发行。
 
+四文件joint现已结算682pass/3fail、退出1；notification和server仍红，另两个完整文件绿只记本次未复现。notification新的实际失败栈定位loop首次真实store打开，raw fixture补真实库准备后原期限下Linux原+顺序probe2绿、Windows原1绿，独立最终复审/静态待；不外推首次初始化中stop的一般期限。server新profile初始化23.44秒/DDL现场和另nested5红继续按各自证据取证，不把故障清理minor或单次成功当全局关闭。
+
+notification局部最终独立foundation已接受，当前暂存CI14检查通过、health1文件0/0；本地恢复标题`test: prepare real store before polling lifecycle`。server真实引用准备仍为未验证工作区增量，原两项相位probe确切红2项，新nested5现场尚待；整体继续FAILED/CHANGES_REQUIRED。
+
 ## 合并门禁
 
 | 门禁 | 当前结果 | 理由 |

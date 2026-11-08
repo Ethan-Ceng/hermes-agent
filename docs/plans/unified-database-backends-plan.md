@@ -1757,6 +1757,14 @@ groups原完整4项在只读phase observer下4pass/0fail/退出0/33.9秒；docum
 
 server cleanup最新`PM Python scripts/check --staged --base fb48321d7d06997b787b0ec8e855a74527179ec4`14检查通过、health1文件0blocking/0advisory、退出0（profile-build-cleanup-checks），独立foundation已接受故障probe红绿与完整637项结算；collaboration已接受groups未复现的准确边界。之后仅补本结果/审查/恢复文字并diff-check。本地恢复标题`test: join profile build threads before releasing mocks`，Task24仍23/24、FAILED/in_progress。当前同一fb+f85b overlay正以-j4跑四个剩余完整文件联合观察（remaining-native-joint-observed/session41931），全部原期限/真实存储/文件内顺序保持，joint产物单独命名，尚无完整终态，不重启/覆盖。
 
+四文件joint已终态682pass/3fail/退出1/574.6秒；pause43及groups4只记本次通过，notification原第二join3红真实捕获loop→goals→registry首次SessionDB/WAL路径；server635pass/2fail分别secret built15及新增queued notification nested_started5。原MCPhome built15本次已过但不反推旧因果，新增5秒缺线程现场，不泛归DB。server secret真实open23.438762秒，15秒现场最后在schema DDL（不同于notification WAL）；随后owned scope/sid/home正确且cleanup线程确实退出，不能再声称额外None是产品泄漏。
+
+notification raw fake-agent夹具现仅补真实goals store/nonNone准备，保留完整poller/loop/goal/SQLite及两条join3/原唯一线程断言。正确真实_acquire相位probe旧1fail/31.8秒，明确after_services=True/同一隔离home；先前WSL准备失败及缺文件退出2零测试不计红绿，已记录依赖启动错误并修正编排。新d010候选state task24-poller-warm-overlay-state.json、SHA09ac2921...5c11928，Linux原1+同probe1共2pass/0fail/退出0/15.3秒，Windows同源原1pass/0fail/退出0/10.8秒。原实际join约.014/.509秒，独立最终复审/静态待；不声明通用cold-init stop或WAL内部性能已修。
+
+下一步先结算通知fixture局部小修，然后用真实profile store ref覆盖server scope测试的timed build/join并验证同一handle与实际worker open；两个相位probe的原红正在非运行旧候选执行（profile-store-preparation-original-red/session51770），尚未计结果。新增nested_started5先取所属线程实际phase，不加期限/不禁用tick；当前仍Task24 FAILED/in_progress及非WSL7项缺口。
+
+notification最终独立foundation已接受局部红绿和准确边界，最新`PM Python scripts/check --staged --base d0101fe64df16b4db716af9ea55b66d8bd05b5d2`14检查通过、health1个Python文件0blocking/0advisory、退出0（poller-real-store-checks）。随后只补实际结果/恢复文字并diff-check，以唯一标题`test: prepare real store before polling lifecycle`保存本地恢复点，Task24仍FAILED/in_progress。工作区server另有closing真实ref准备增量、未纳入此提交；旧两profile相位probe现已2fail/28.7秒（实际first open after_start=True），候选仍待，不能预记通过。新nested5待原失败窗口线程现场。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |
@@ -1799,7 +1807,7 @@ Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣
 
 ## 恢复点
 
-Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。最新测试恢复按唯一标题`test: join profile build threads before releasing mocks`定位，父提交fb48321d7d（async-age）；hygiene261f、probe99bd均已局部闭合，生产仍120bf8。当前完整PG127文件689绿、双宿主DB绿、四套发行及目录外mixed/deletion另8项均已结算，不因测试/文档重复运行。
+Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。最新测试恢复按唯一标题`test: prepare real store before polling lifecycle`定位，父提交d0101fe64d（server线程清理）；async-age fb483、hygiene261f、probe99bd均已局部闭合，生产仍120bf8。当前完整PG127文件689绿、双宿主DB绿、四套发行及目录外mixed/deletion另8项均已结算，不因测试/文档重复运行。
 
 原20a478宽批已退出1，state task24-current-wide-native-state.json、log unified-task24-20a478-full-native-observed.log，6412文件63150pass/15fail/726skip；原红/现场保留，FAL另38绿。probe/hygiene/async-age三项局部已闭环；server自有线程cleanup minor现有正确红绿/完整637绿/独立复审/14静态，但原15秒慢因及旧None归属不冒称已修。仍需处置pause、groups、notification及server共4文件5参数和非WSL7项。当前同一fb+f85b候选四完整文件-j4联合观察session41931（remaining-native-joint-observed）仍在运行；下一步读其终态及joint观察产物，不重启或用前次窄绿替代。全局独立终审未完成，历史managed/Host因果保留。
 

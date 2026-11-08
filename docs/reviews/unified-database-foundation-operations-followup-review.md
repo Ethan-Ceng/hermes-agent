@@ -765,3 +765,51 @@ secret case的mock在第898行用 `dict(scope) if scope else None` 记录：正�
 已核对附加只读observer及两个JSON：它转发原Event.wait，不改变返回/期限，记录实际session build handle；profile记录当前home、sid、scope是否严格为None和键名，不记录秘密值。此次MCP case built/ready等待约0.270780/0.973593秒；secret case约0.255482/0.496395秒，均原期限内成功，ready返回时owned线程已退出。secret make入口实际sid/home属于本case，返回时scope非None且只有目标fixture键。它们是本次成功现场，不能解释旧15秒失败，也不能替代旧额外None所缺失的sid/thread归属；先后线程可复用ident，判断仍按各自session持有handle与sid。
 
 **此次cleanup局部整改可接受，前节两个case的线程清理minor按上述有界范围闭合，未发现新增blocking/major。** 原服务器两红现有完整637项补验，但不宣称已定位其历史慢阶段或多余调用根因；原poller3秒退出失败未由这次文件通过覆盖。20a478宽批非零、其余分域失败与非WSL POSIX七项证据缺口继续保留。全局仍 **FAILED / CHANGES_REQUIRED**。
+
+## notification replacement 原3秒失败的真实线程栈
+
+本节只读核对联合批中的真实失败窗口、原fixture及正常构建调用链；未代跑、连库、修改生产/测试或提交。`unified-task24-remaining-native-joint-observed.log` 此检查点仍在运行，不预记四文件终态。notification原用例已实际重现 **1 failed、pytest6.78秒（runner13.5秒）**；此前只读窄跑1 passed/1.9秒继续保留，不能覆盖这次新红。
+
+已读取 `notification-joins-joint.json` 的确切handle记录：first join约0.003000秒退出；replacement收到stop后的原第二个 `join(3.0)` 实际3.000108秒，仍alive。该时刻栈为：`_notification_poller_scoped_loop:786` → `_maybe_fire_tui_loop_tick:385` → `LoopManager.__init__` → `load_loop` → `loops._get_session_db` → `goals._get_session_db:589` → `_acquire_session_db` → `hermes_db.access.acquire_sessions` → registry首次 `_open_session_db` → `SessionDB.__init__` → writer init → `apply_wal_with_fallback` → `_enable_wal:358`。本测finally对同一replacement的1秒join也仍alive，并取得同类栈。
+
+这些是失败时真正运行的线程栈，已把停留路径从“可能某一poll/tick”收窄到loop manager触发的冷store构造；原replacement stopEvent已set而在途同步调用尚未返回，故没有机会回到外层stop检查。它们**不是内部WAL耗时分解**：两个采样不能证明全部3秒都在同一SQL，也不能区分文件系统、调度、锁等待或其他内部原因；不据此报已定位WAL产品缺陷、PG故障或统一backend回归。它们同样不是原20a478失败的当时栈，而是新同条件联合重现。
+
+### 是否允许真实预热作为 fixture 准备
+
+本case的 `_session()` 直接放入 `types.SimpleNamespace()` 假agent和session_key，然后启动完整真实poller，没有建立正常agent持有的store。正常路径在 `tui_gateway/agent_factory.py:669`、`:679` 为AIAgent传入已打开profile store或真实 `_get_db()`；`_start_agent_build` 在随后attach/wiring/announce阶段才调用 `_start_session_services`。SQLite helper和goals都通过同路径registry共享SessionDB，因此正常已构建session的poller通常不会首次执行这次冷writer/WAL初始化。该静态顺序支持补齐真实持久层准备，而非关闭poller的goal/loop业务。
+
+已查 `652e4b9194b5315d8bf47a0769488b2da205fe86` 与 `cb1722523a34767eee57eb4a54903304be475bb9`：原合同是重建时先set旧stop、旧线程退出、仅有一个replacement并能停止；后一次历史修改按旧stop Event取得准确thread，以join替代sleep。没有证据说明本单测要覆盖“在任意首次store构造/迁移内部都能3秒强制中断”。本次只读未发现新的生产blocking/major，也不能通过提高join期限、禁用真实tick或假SQLite实现去消除此红。
+
+拟在services启动前调用真实 `goals._get_session_db()`，对本unit的作用域/fixture准备静态合理；应要求实际返回非None、home属于本测隔离Profile。它仍保留两条原3秒join、真实stop/唯一线程断言和完整poller/loop/goal/SQLite路径。必须用正确 `_acquire_session_db` 接缝的真实phase probe见证首次acquire在services之前，且后续poller没有再次冷构造；保留实际store调用、归属与旧红，不能复用此前hygiene `_bootstrap` 空记录错误。
+
+**此处尚未审查任何notification源整改或取得其红绿终态，只接受上述有界准备方向。** 后续即使该fixture通过，也只证明已准备session在重建/stop下的原合同；不覆盖store被关闭/替换后重开、首次初始化中stop的一般响应期限，亦不能宣称WAL慢的底层原因已修复。联合批仍需真实结算，原20a478非零和非WSL POSIX七项缺口继续保留。全局仍 **FAILED / CHANGES_REQUIRED**。
+
+## 联合批终态与两个真实 store 准备边界
+
+只读续审，无代跑、连库、生产/测试编辑或提交。`unified-task24-remaining-native-joint-observed.log:84` 现已真实结算：**4文件682 passed/3 failed、exit1、574.6秒**。pause43和groups4通过，notification原第二join仍红；server635 passed/2 failed。此前638项窄绿并未保证这一并发组合通过，旧红继续保留。
+
+### secret build 新现场支持把冷 store 准备与 scope 断言分开
+
+已逐项读取 `server-build-joint-test_profile_scoped_agent_build_installs_secret_scope.json`：原built Event在15.000114秒返回False，精确owned thread仍alive。实际 `_open_profile_session_db` 从264723.880266到264747.319027，约**23.438762秒**；失败时栈经过registry首次构造、`SessionDB.__init__`、connect/init，并停在 `hermes_state_schema._execute_ddl_skipping_settled_triggers:335`。**这张15秒栈是schema DDL阶段，不能与notification的WAL栈混写。** 两者都在真实首次SessionDB初始化链中，但不是同一内部操作的耗时证明。
+
+原新增finally15秒清理上限内，secret owned线程最终在264747.842492返回；make-agent只调用一次，实际sid/home属于该secret profile，scope严格非None且键名正确。这是cleanup整改在新失败路径仍有效的实证：业务15秒断言继续失败，线程在mock撤销前退出，没有上次额外None。仍不据此反推原20a478多余调用的真实归属。
+
+拟在两个profile case调用原build以前，用 `contextlib.closing(server._open_profile_session_db(profile_home))` 持有真实共享引用直到原build和finally join完成，静态上是可审的Native SQLite fixture准备：
+
+- helper使用明确目标home的 `state.db`，`resolve_db_configuration`按该home绑定owner配置后选择后端，保留失败拒绝及真实schema/WAL I/O；不是创建fake DB或强制回落。
+- SQLite `SessionDB.close:1523` 遇到registry-owned handle只release一个引用。预热引用必须包住build/join，不能先close到最后引用归零再让worker冷重开；worker仍应实际执行自己的 `_open_profile_session_db`，registry在原代际仍live时返回同一实际handle。
+- 原build仍须真实绑定home/secret/terminal并执行MCP/make/attach/finally，scope断言不应因准备store被删除；原built15/ready5和清理15须分别保留。需用真实open phase、目标home与同一handle的红绿见证准备边界，不能只查源码或以最终无异常代替。
+
+**此检查点尚未审查server的第二次fixture整改或取得其候选结果，仅认可这一有界准备方向。** 它不承诺生产冷启动15秒内完成，不掩称底层23秒的原因已经修复，也不外推为PG resource代理对象必须具有相同Python identity。
+
+server另一个新红 `test_run_prompt_submit_requeues_all_unstarted_notifications_with_real_threading` 在原 `nested_started.wait(5)` 失败（原文件第8069行）。该case有自己的真实线程记录、finally release/join，但当前没有失败窗口的nested线程栈或phase；不能因同文件有冷store现场便把此5秒红也归到DB。原断言/5秒期限和该未定因事实继续保留，后续只围绕其实际owned线程取证。
+
+### notification 四行真实预热的实际红绿结算
+
+已读取当前diff：仅新增导入真实goals `_get_session_db`、说明raw fake agent缺失准备的注释以及 `assert _get_session_db() is not None`。完整poller/goal/loop/SQLite路径、旧stop先set、唯一replacement与两条原3秒join断言都保留，无OS伪装或deadline增加。
+
+`task24_prepare_notification_warm_probe.py` spy并转调真实 `_acquire_session_db(home)`，记录services启动前后；其原start wrapper等待真实acquire入口以避免未走路径的空记录，自己的finally只停止/等待实际捕获的owned poller。它保留原case的AssertionError，不能把原case失败当顺序通过。有效旧fixture红 `unified-task24-poller-acquire-order-original-red.log` **1 failed/31.8秒**，确有 `after_services=True`、唯一隔离home的实际acquire；此前WSL启动/缺文件而零测试的产物不计作红证据。
+
+最终 `task24-poller-warm-overlay-state.json` 以d0101fe独立候选为基准，只overlay该notification文件；SHA256 `09ac29210a6c10e05183c325c4e6a85992d9e1f910862004863f344375c11928` 与实际工作区一致。新实际终态为：Linux `unified-task24-poller-real-store-candidate.log` **2文件2 passed/0 failed、15.3秒**（真实phase probe1/9.2秒，原case1/5.9秒）；Windows `unified-task24-poller-real-store-windows.log` **原case1 passed/0 failed、10.8秒**。`notification-joins-warm.json` 另确认本次两个原3秒join实际约0.013827和0.509024秒，均退出，不是原失败现场。
+
+**notification这项fixture准备局部可接受，未发现新增blocking/major。** 它有正确实际acquire的红绿及原合同通过支持，仍只覆盖已准备session的重建/停止；原cold初始化中stop的一般期限和底层WAL/DDL慢原因并未因此新增保证。server真实引用准备与nested5秒红仍待后续实际证据，原四文件联合非零、20a478全宽非零和非WSL POSIX七项缺口继续保留。全局仍 **FAILED / CHANGES_REQUIRED**。

@@ -19,6 +19,10 @@ def test_session_rebuild_stops_previous_notification_poller(monkeypatch):
     Otherwise the orphaned poller keeps draining the process-global completion queue for the
     session (two live loops per rebuild) until the session itself is finalized — close can only
     signal the newest event."""
+    from hermes_cli.goals import _get_session_db
+
+    # The synthetic agent has not opened its profile's real store.
+    assert _get_session_db() is not None
     monkeypatch.setattr(server, "_notify_session_boundary", lambda *a, **k: None)
     sess = _session()
     server._sessions["sid_rebuild"] = sess

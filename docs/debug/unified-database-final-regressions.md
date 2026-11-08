@@ -237,3 +237,21 @@ async实际失败22.1>20源于测试base_ts在真实dispatch前设为当时减12
 最终静态`PM Python scripts/check --staged --base fb48321d7d06997b787b0ec8e855a74527179ec4`实际14检查通过、health1个Python文件0blocking/0advisory、退出0（profile-build-cleanup-checks）。独立collaboration已核对groups观察器与原业务字节断言并保留未复现边界。随后仅补入本结果/独立报告和恢复点，diff-check另核；以本地唯一标题`test: join profile build threads before releasing mocks`保存cleanup恢复提交，不是Task24完成提交。
 
 同一精确fb+f85b测试overlay现正通过canonical runner执行四个剩余原完整文件（pause-record、groups-route-parity、notification-poller、tui-gateway-server）`-j4 --file-timeout1200 -- -m 'not live'`，四个只读插件分别保存joint命名产物，原正向/红产物不覆盖（remaining-native-joint-observed，session41931）。全部原业务期限/文件内顺序/真实持久化保留；尚无完整终态，不计通过。
+
+## 2026-11-09：联合失败现场与 poller 真实库准备
+
+上述joint批次已自然退出1：**4文件682pass/3fail、574.6秒**。pause原完整43pass、groups原完整4pass；notification1fail、server635pass/2fail。server本次MCPhome原15秒断言通过，secret profile的built15失败；另新增`test_run_prompt_submit_requeues_all_unstarted_notifications_with_real_threading`在nested_started5秒失败。不能把该新5秒红直接归于store或旧poller，也不从本次前两文件绿关闭历史原因。
+
+`notification-joins-joint.json`取得实际失败：原first join约.003秒退出；replacement的第二join实际3.000108秒后alive，栈位于loop tick→LoopManager→goals._get_session_db→registry首次SessionDB打开→`_enable_wal`，finally1秒join结束也仍在该路径。这定位了期限到达时的真实阶段；两张栈不能证明全部3秒都花在WAL，更不提供其底层锁/磁盘原因。原raw `_session()`放假agent，绕过正常agent先持有实际store、之后才启动services的准备顺序。独立foundation核对652e/cb172历史意图是重建时旧stop/唯一poller，并非任意首次迁移的强制中止合同。
+
+修正仅在该测试启动services之前调用真实`goals._get_session_db()`并要求非None；完整loop/goal/通知/SQLite保持，两条join3、finally join1及所有stop/唯一线程断言不动。正确phase probe包装实际`_acquire_session_db`，转调真实函数并记录相位和home；原函数明确见到after_services=True/同一隔离home而**1fail/31.8秒/退出1**（poller-acquire-order-original-red）。probe只等待已启动真实poller到达实际acquire，不替换store；其finally释放/等待自有poller，原业务错误仍会重抛。
+
+先前准备调用发生一次WSL Service/0x8007274c超时；Root错误地在准备未确认完成时启动依赖诊断，该轮因文件不存在退出2，零测试（poller-store-preparation-original-red）。保留这两份错误，不计业务红绿。只读执行通道确认恢复后先完成准备再启动上述有效红，未重启WSL/数据库或原joint批次。
+
+新d0101fe64d隔离候选state=`task24-poller-warm-overlay-state.json`，单文件SHA256=`09ac29210a6c10e05183c325c4e6a85992d9e1f910862004863f344375c11928`。canonical命令由`run_matrix_linux.py --state task24-poller-warm-overlay-state.json --tools-state task24-linux-tools-state.json --native --log unified-task24-poller-real-store-candidate.log tests/tui_gateway/test_tui_gateway_notification_poller.py tests/tui_gateway/test_task24_poller_real_store_preparation.py -j1 --file-timeout1200 -- -m 'not live' -p _task24_notification_warm`发出：**2文件2pass/0fail/退出0/15.3秒**，原1项5.9秒、真实acquire顺序probe1项9.2秒。原实际join分别约.013827/.509024秒且均退出；probe要求真实acquire先于services/唯一home，若原业务断言失败仍会重抛。Windows同一源经隔离HERMES_HOME/runtime的`scripts/run_tests.sh tests/tui_gateway/test_tui_gateway_notification_poller.py -j1 --file-timeout1200 -- -m 'not live'`实际**1pass/0fail/退出0/10.8秒**（poller-real-store-windows）。静态及独立最终结算待记录，只支持已准备session重建合同，不外推首次初始化中的通用stop期限。
+
+server secret的真实phase另行留证：`_open_profile_session_db`从264723.880265624到264747.319027298，23.438762秒；原built15失败栈最后在`hermes_state_schema._execute_ddl_skipping_settled_triggers`，不是notification的WAL栈。随后make-agent确切一次、owned sid/home正确、scope严格非None，cleanup内线程实际结束。Root早先内部将server也描述为WAL过细，按原JSON修正为首次SessionDB初始化整体/该时点DDL。拟用实际目标store的真实共享ref包住timed build与join，另做相位/同handle红绿；目前尚未改该方向的server源码。新增nested_started5仍缺其线程现场，单独保留。
+
+notification最终独立foundation已逐项接受实际源diff、有效acquire红、双宿主原合同与Linuxprobe绿，无新增blocking/major，保持通用cold-stop及全局未通过边界。最新`PM Python scripts/check --staged --base d0101fe64df16b4db716af9ea55b66d8bd05b5d2`全部14检查通过、health1文件0blocking/0advisory、退出0（poller-real-store-checks）。随后只补本结果/恢复信息，另核diff-check，以本地标题`test: prepare real store before polling lifecycle`保存，不是Task24完成提交。
+
+下一工作区增量已经给两个profile case加真实store的closing上下文，覆盖timed build及finally join；原业务15/5、cleanup15保持，文件diff22+/22-，尚未纳入本次notification提交。实际open相位/同handle probe在旧两case均明确first after_start=True而红，2fail/28.7秒（profile-store-preparation-original-red；pytest28.21秒）；候选尚未验证，不宣称profile准备完成。清理故障probe另适配为只在worker打开时持有Event、允许真实main预持有引用，新版本独立红正在运行；新nested5 observer已准备记录原等待失败时本case持有的真实线程栈，尚未取得新现场。
