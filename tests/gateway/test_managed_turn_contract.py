@@ -8,6 +8,8 @@ from types import SimpleNamespace
 
 import pytest
 
+from tests.gateway.fixtures.worker_store_identity import SQLiteWorkerStoreIdentity
+
 
 def assignment(tmp_path, monkeypatch, *, finite=True, unattended=False, yolo=False):
     from gateway.session_local import _bypass_policy
@@ -52,8 +54,7 @@ def test_child_executes_under_finite_policy_and_preserves_receipt(tmp_path, monk
                     'completion_tokens': 23, 'estimated_cost_usd': .02, 'model': 'fixture', 'provider': 'custom',
                     'messages': [{'role': 'assistant', 'content': 'large history'}]}
 
-    class Store:
-        def __init__(self, *args): pass
+    class Store(SQLiteWorkerStoreIdentity):
         def get_messages_as_conversation(self, sid): return []
         def flush_token_counts(self): pass
         def finish(self): pass

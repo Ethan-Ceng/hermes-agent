@@ -405,3 +405,42 @@ canonical runner、retries 0、原各阶段 deadline；实际 **1 passed、0 fai
 修正只在 `_npm_graph:424–427` 用 `shutil.copy2` 把仓库实际两个 helper 作为真实输入放入所选临时 source，不预制 dist、不替换 builder/编译器、不略过 helper 发布。成功用例 `:456–457` 新增两个 `dist/scripts` 文件存在断言。原真实 Node 运行、npm lifecycle 所选解释器、web 编译、父 update lock 保留、配置迁移、原 receipt/plan/token、install stamp 与 completion 结果断言均保留。真实 TypeScript 失败用例 `:486–522` 也保持原非零编译输出、成功 TUI/缺失 web、维护和重启继续、receipt build follow-up、pending tail 与无 install stamp；并未把失败改成成功。
 
 候选完整文件现已结束，本 Reviewer 已读取 `.build/postgresql/unified-task24-update-compiler-candidate.log`：canonical runner、`-j 1`、retries=0，**16 passed / 0 failed / 0 skipped、exit 0、40.4s**。原 `platforms('posix')` 和 child 90 秒 deadline 未改，没有 fake OS、增加期限、削弱 lock/receipt 或关闭失败路径。本结果为 Root 在独立候选执行，本 Reviewer 未冒称代跑，也不将它外推到 Windows、完整更新发行 E2E、全后端/全原生矩阵或其余失败根因。另行进行的 managed compression 30 秒失败诊断不在本节结论中，局部重跑通过不能由此宣称其根因已确认或修复。整体仍 **FAILED / CHANGES_REQUIRED**。
+
+## 69d Managed Store double 与 Relay 同步合同复审
+
+本节只读 HEAD `69d455ccd377085b15dbb49f789bc9a3d5e8b8aa` 后的测试夹具候选，不修改生产/仓库测试、不提交、不重复 runner。原 69d 全矩阵仍不得外推为通过；本节不代替等待最终日志后的分域结论。
+
+### Store double 的身份缺口
+
+源码阶段发现 `test_managed_worker_rpc_close._execute` 的 Store double 不含 owner_read；新生产执行入口确实会 `quiesce→owner_binding→owner_read('storage.identity')`。Root 扩展核对同类五文件后，真实日志 `unified-task24-69d455-managed-fixtures-red.log` 为 **10 passed / 21 failed**，均保留实际 AttributeError 栈；69d 宽回归的 `test_authority_turn_error_surface.py` 另有 **7 passed / 1 failed**，失败项复用 `test_managed_worker_route_key._execute` 的同一个 Store double。这是新增必需身份合同未补入单元替身的测试门禁缺口，不能把真实生产 quiesce 改成对缺方法容错来消除它。
+
+当前 `tests/gateway/fixtures/worker_store_identity.py::SQLiteWorkerStoreIdentity` 的修正合理：
+
+- `__init__(rpc, scope, *args)` 从真实 RuntimeSessionStore 构造参数的 `scope['profile_id']` 取得本测试 owner home；这些 caller 均由原 assignment 使用绝对 tmp_path 构建。没有硬编码默认 Profile、读取真实用户配置或从 ambient env 另猜身份。
+- `owner_read` 只允许 `storage.identity` 且参数为空；返回与真实 SQLite owner 相同的五字段 `{version:1, backend:'sqlite', profile_home, store_id:None, target:None}`，由原 `owner_binding` 校验/缓存。没有预填 PG 绑定、伪造 worker 进程标志或 monkeypatch quiesce。
+- 五个 Store 只继承此方法并删除原空构造；各自 get_messages、token flush、finish、close、事件记录和全部业务断言未动。生产 `managed_worker.py`、`worker_metrics_shutdown.py` 相对 69d 无 diff。SQLite 正确早返不等于省略 PG 指标屏障，后者仍有独立真 PG/SDK 合同。
+
+上一轮读取 `task24-runtime-candidate-state.json` 时，其 source 为目录 `task24-runtime-candidate-4a8548b0a1`，八个 overlay SHA256 已逐项与当时实际文件核对一致；identity helper SHA256=`8c6ac6de7ceef2ff1bdf27d67f3f62698c86e76bcd0853bd7fb0d199f7e051dc`。该候选还含另一个 Reviewer 范围的 Matrix 关闭实现/测试，不能把它当成纯测试候选或声称本 Reviewer 通过了 Matrix 实现审查。下文新九文件候选是另一个目录与另次执行。
+
+已读取 Root 独立候选日志 `unified-task24-runtime-close-candidate.log`：canonical runner、retries=0、`-j 3`，七文件 **37 passed / 0 failed、exit 0、40.3s**。其中五个 managed 单元文件 **31 passed**，Matrix close **2 passed**，实际 SQLite SDK 独立合同 **4 passed**。本 Reviewer 未代跑；当时这批没有 authority error-surface 或 Relay 全文件，不能把后来结果追记入此 37 项。
+
+### Relay 的 ACK 与实际模型入口
+
+69d 宽回归 `test_relay_native_turn_lifecycle.py` 为 **9 passed / 1 failed**；实际失败在旧 `:249`，首条已有 EYES、第二条 admission 已提交但 `executed=[]`。已读取 `02438db863e199431b85021806a3467b0c9324a4` 的意图及当前生产调用链：`producer_turn` 先 `await _open`，其中先执行 `on_processing_start`（发送 EYES），随后才 yield 给实际模型路径。因此“EYES 已出现”不能证明 `_stub_model` 已经 append 执行记录；不据原断言失败猜测业务队列已乱序。
+
+当前测试只有三行同步增量：创建 entered Event；在原 held 模型入口、原 release.wait 之前 set；在发送第二条之前真实等待 entered。`_stub_model` 先 append `executed` 再调用 held，故该 Event 正好确认首模型已入场，且 release 尚未设置，第二条仍排在一个实际被 gate 的运行 turn 后。它没有伪造 executed/reply/ACK 或先放行首条。原第二条提交后无 ACK、`executed=['first']`、释放后 `['first','second']`、两条各自精确反应序列、首条 reply 先于第二条 ACK 的断言全部保留。
+
+新增 entered 阶段等待使用 20 秒；既有 ACK/commit/settled 各 20 秒上限不变，生产期限和 OS 判断未动。这个新语义阶段是补齐错误同步前提，不是将原失败等待直接延长；总测试可能多等待该阶段，不能宣称总 wall-clock 上限完全没变。当前 relay 文件 SHA256=`a7a0bcb5d789992d028e7e12a2e67cf1fbf4cfc54a1e40aefddc11cc07d0c9b2`。首次源码复审只接受方向并保留待验；现以下述真实结算更新该局部状态。
+
+### 两批后续真实结算
+
+再次读取当前 `task24-runtime-candidate-state.json`，source 已为新的 `task24-runtime-candidate-37e796ff48`，仍以 69d 为基准，九个 overlay 比前一候选多 Relay 文件。九个 SHA256 已重新逐项核对当前文件全部一致。该目录不冒称为运行旧 37 项的目录；也不把运行中的原冻结 69d 宽回归换成候选源码。
+
+| 已完整读取的 Root 日志 | 本次实际结算与范围 |
+| --- | --- |
+| `unified-task24-matrix-and-relay-native-candidate.log` | PM Linux、canonical runner、retries=0、`-j 3`，**25 files、288 passed / 0 failed / 1 原有 xfailed、exit 0、64.9s**。Relay 全文件 10 pass，authority error-surface 全文件 8 pass；其余为列出的文件名含 matrix 的 gateway 合同，包含普通矩阵命名，不能泛称整个 Matrix SDK/PG 协议验收。原 xfail 位于 suppression contract matrix，未由本次测试修正新增。 |
+| `unified-task24-worker-fixtures-relay-windows.log` | PM Windows、canonical runner、retries=0、`-j 3`，**7 files、48 passed / 0 failed / 1 Linux 平台 skipped、exit 0、70.7s**。五个 managed 文件、authority 全文件 8 pass、Relay 全文件 10 pass；原 Linux 专属 hard-stop 用例按真实宿主跳过，不修改或假冒 OS。 |
+
+据此，Store double 及其 authority helper 复用路径、Relay 原十项合同在上述候选/宿主范围内均已实际通过，局部整改可以接受。它们没有关闭 PG 服务故障、原 69d 全 Native 运行结果、其他分域最终复审或非 WSL 平台缺口。37/288/48 三批有重叠且候选目录不同，不能相加作为独立覆盖数。本 Reviewer 只核对产物与源码，没有代跑；当前最终统一静态检查仍在运行，不提前计为通过。
+
+这两项局部测试修正未发现新增 blocking/major，也没有通过修改保护/关闭功能取得绿色。69d 完整 PG 批次真实失败、其他 Native 结果和适用平台证据仍须各自结算；全局继续 **FAILED / CHANGES_REQUIRED**。

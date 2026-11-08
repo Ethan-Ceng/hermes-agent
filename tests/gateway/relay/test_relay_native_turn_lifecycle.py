@@ -229,8 +229,10 @@ async def test_an_interrupted_turn_only_removes_the_in_progress_reaction(tmp_pat
 @pytest.mark.asyncio
 async def test_a_follow_up_queued_behind_a_running_turn_is_acknowledged_when_it_starts(tmp_path, monkeypatch):
     release = asyncio.Event()
+    entered = asyncio.Event()
 
     async def held(_event):
+        entered.set()
         await release.wait()
         execution_result.get()['result'] = {'final_response': 'first done', 'messages': []}
         return 'first done'
@@ -240,6 +242,7 @@ async def test_a_follow_up_queued_behind_a_running_turn_is_acknowledged_when_it_
         await send('1700000000.000400', 'D4', 'first')
         await async_wait_until(lambda: _reacts(outgoing, '1700000000.000400') == [(EYES, False)], timeout=20,
                                what='the first message acknowledged')
+        await asyncio.wait_for(entered.wait(), timeout=20)
         await send('1700000000.000401', 'D4', 'second', thread_id='1700000000.000400')
         await async_wait_until(
             lambda: authority.db._read_all("SELECT 1 FROM session_admissions WHERE request_id='1700000000.000401'"),

@@ -13,6 +13,7 @@ import pytest
 
 from gateway.session_contract import SessionActor, SessionRef
 from tests.gateway.test_managed_turn_contract import assignment
+from tests.gateway.fixtures.worker_store_identity import SQLiteWorkerStoreIdentity
 
 
 class _Agent:
@@ -39,8 +40,7 @@ def test_worker_stop_hard_cancels_the_agent_before_and_after_construction(tmp_pa
     controls.stop()
     frame, _ = assignment(tmp_path, monkeypatch)
 
-    class Store:
-        def __init__(self, *args): pass
+    class Store(SQLiteWorkerStoreIdentity):
         def get_messages_as_conversation(self, sid): return []
         def flush_token_counts(self): pass
         def finish(self): pass

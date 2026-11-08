@@ -108,10 +108,36 @@ metrics最新整改已补闭合owner领域短写、KV root intent及提交后维
 
 冻结297原失败清单实跑48文件761pass/10fail，另FAL38pass。实际编译器已在隔离checkout按锁安装，更新收尾原文件14pass/2fail；只读观测插件保留两个child输出，原2项复现仍2fail。两者相同根因是微型workspace没有ui-tui/scripts/gateway_bootstrap.py与clipboard_image.py；真实esbuild先成功，随后生产builder复制必需运行时辅助脚本时ENOENT，故无TUI产品。源码历史c1f19acb7f已明确该发布输入，不能修改生产builder跳过它。
 
-候选只在_npm_graph补齐这两个真实输入，并检查成功产品包含它们；原编译产物执行、web bundle内容、selected PM Python、更新锁/回执和故意TypeScript失败的owed-build断言均保留。红测日志unified-task24-update-compiler-observed.log，脱敏child输出update-finish-test_*.json；候选与冻结297源码分开，证据state为task24-update-candidate-state.json并记录修改文件SHA256。完整原文件已实际16pass/0fail/0skip、退出0/40.4秒（unified-task24-update-compiler-candidate.log）；独立复核和静态仍待，不据此关闭全局验收。
+候选只在_npm_graph补齐这两个真实输入，并检查成功产品包含它们；原编译产物执行、web bundle内容、selected PM Python、更新锁/回执和故意TypeScript失败的owed-build断言均保留。红测日志unified-task24-update-compiler-observed.log，脱敏child输出update-finish-test_*.json；候选与冻结297源码分开，证据state为task24-update-candidate-state.json并记录修改文件SHA256。完整原文件已实际16pass/0fail/0skip、退出0/40.4秒（unified-task24-update-compiler-candidate.log）；独立复核及14静态检查已通过并以69d455ccd3保存；此为局部修正，不关闭全局验收。
 
 ## managed压缩的间歇性终态超时
 
 同一297冻结失败清单48文件中，False分支在HISTORY_8的30秒admission终态期限失败，True通过；没有以单项历史绿掩盖它。新增仅在未跟踪pytest插件的daemon yield异常边界保存本次拥有者日志及session_admissions/worker_executions，先于测试自有进程finally清理，脱敏且只写忽略目录。没有更改生产行为、测试期限或接受条件。
 
 原冻结单文件实跑2pass/0fail/102.5秒（compress-observed）；原失败清单同组6文件-j4实跑52pass/0fail/107.8秒（compress-load-observed），均退出0。仍未再次触发原超时，故没有失败时新增日志，不能宣称根因已确认或生产修复。后续完整门禁保留该原红与故障观测；若重现继续沿最早偏差追踪。
+
+## Matrix关闭的已完成回调与取消边界
+
+预期：取消SDK caller或关闭等待者不取消实际同步驱动，disconnect等到已开始的工作真实结束、清理回调执行后才返回。独立probe以生产MatrixAdapter.disconnect→_StoreLifecycle.stop→PostgresCryptoStore.close→MatrixRuntime.close取得3秒硬截断栈；pending Task已done但_finished尚排队，Python3.14全done gather会同步返回，使while永不让出事件循环。另一个永久合同确认取消gather会cancel所等待的to_thread Task、清空pending，而真实线程尚未退出。
+
+原独立1fail（review-matrix-close-scheduler）未访问PG。永久双合同首版1pass1fail：本助手误用AssertionError做首项硬期限，会被真实adapter普通异常边界捕获而误报绿；已改专用BaseException并保留原3秒期限，校正版原生产实现确为2fail（matrix-close-permanent-red-corrected）。这次测试错误及首版日志保留，不算生产通过。
+
+最小修正仅把close的pending gather换成asyncio.wait；_wait shield、_finished异常观察、事务done及单线程排空顺序不变。独立候选七文件37pass/0fail/40.3秒中，close两项实际0.9秒、SQLite单后端四项（其中含真实SDK）、五managed夹具31项；独立Reviewer原probe完全不变另1pass/5.4秒（review-matrix-close-candidate-fixed）。这证明关闭调度局部修正，尚未证明真实PG提交边界。
+
+已另写PG永久双参数合同tests/hermes_db/postgresql/test_matrix_close.py：真实拥有者Schema、实际_unit/Core写及COMMIT完成观察、取消SDK caller/关闭者、正常disconnect、新store读回游标、peer隔离和checkedout=0。因服务仍不可用尚未执行，不声称红绿或PG关闭验收完成。69d完整PG原批次真实157pass/533errors，最早WAL写入Interrupted system call、继而连接断开/recovery；用户已获异步通知，未管理服务。该批日志一个随机Schema候选已记忽略manifest，恢复后逐个验证数据库/owner/唯一标记再处理。
+
+## managed单位夹具与Relay执行阶段
+
+quiesce要求真实owner identity，五处最小Store double没有owner_read。69d原文件批次10pass/21fail（managed-fixtures-red），另authority错误界面复用route_key._execute也7pass/1fail。当前以共享SQLiteWorkerStoreIdentity从真实构造scope['profile_id']返回SQLite身份，只允许具名storage.identity及空参数；不跳过生产quiesce、不伪造PG，原资源关闭、策略、凭证、路由及错误面板合同均保留。独立foundation接受此fixture适配。
+
+69d宽回归的Relay队列用例9pass/1fail：EYES后第二admission已提交但executed仍为空。_stub_model仅在实际模型入口append，生产bracket在yield模型前发EYES；02438db原意是执行bracket开始而非模型已入场。当前只在held设置entered Event、按原20秒预算等待该语义阶段再发second，保留全部原有执行顺序、无提前ACK及reply-before-second-ACK断言。多一个显式入场阶段可能增加整项wall-clock预算，不改变已有各20秒deadline或生产期限。
+
+最新Linux25文件288pass/0fail、1个原expected failure、退出0/64.9秒（matrix-and-relay-native-candidate）；其中含全部文件名含matrix的网关合同、Relay10项和authority8项，不冒称288项都是实际SDK/PG。Windows对应七文件48pass/0fail/1个Linux平台skip、退出0/70.7秒（worker-fixtures-relay-windows）。冻结69d完整八目录仍运行，原红和最终未验证项保持。
+
+Matrix真实PG补验现已完成局部闭环：服务Windows/Linux只读确认恢复后先核对归属清理旧批次唯一随机Schema。新关闭双参数2pass/7.6秒；同一候选完整Matrix PG文件组10文件31pass/0fail/0error/0skip、退出0/72.5秒（matrix-sdk-pg-after-close-fix）。同一新PG test、仅旧69d runtime的独立对照2fail/14.0秒，实际COMMIT后close热循环和取消close丢driver追踪均重现。相应新10-overlay候选位于独立大容量文件系统，独立Reviewer核对原/新hash与日志后接受本major局部整改；全域PG/新发行/宽Native仍未通过或未完成。
+
+## 隔离临时盘inode耗尽
+
+候选准备失败的实际errno为No space left，容量观察明确旧测试根tmpfs仍余约1GB却可用inode为0，而实际pytest临时文件系统容量/inode充足。Gateway控制socket必须在其IPC目录创建短路径，宽Native因同一inode约束出现明确control listener启动失败；不据此概括所有失败。全局proc引用检查在删除前因同UID系统进程cwd不可读停止，未执行删除；后仅对本轮从未执行且准备失败的精确partial clone核对路径/owner/Git origin/未发布state与未到可执行准备阶段后删除，释放19031inode，其余快照/实例保留。未来新候选与PM载荷放入独立大容量根，避免再次挤占IPC inode。
+
+原冻结normal_runtime_boot文件在inode恢复后、源码/期限未改2pass/0fail/54.7秒（native-control-after-inode-recovery）；这证明该文件环境反例恢复，不关闭所有后续失败。69d宽批次仍运行，环境失败/旧fixture失败原数及日志保持；须用最终失败清单逐项复验。

@@ -126,4 +126,5 @@ class MatrixRuntime:
         self.closed = True
         await asyncio.gather(*(actor.done.wait() for actor in tuple(self.transactions)))
         while self.pending:
-            await asyncio.gather(*tuple(self.pending), return_exceptions=True)
+            # Yield to release callbacks even for done tasks; cancellation must retain live drivers.
+            await asyncio.wait(tuple(self.pending))

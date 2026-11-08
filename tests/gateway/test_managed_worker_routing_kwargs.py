@@ -8,6 +8,7 @@ from types import SimpleNamespace
 import pytest
 
 from tests.gateway.test_managed_turn_contract import assignment
+from tests.gateway.fixtures.worker_store_identity import SQLiteWorkerStoreIdentity
 
 ROUTING = {'only': ['Anthropic'], 'ignore': ['DeepInfra'], 'order': ['Anthropic'], 'sort': 'price',
            'require_parameters': True, 'data_collection': 'deny'}
@@ -32,8 +33,7 @@ def test_managed_worker_agent_gets_the_session_provider_routing(tmp_path, monkey
         def run_conversation(self, text, **kwargs):
             return {'final_response': 'ok', 'completed': True}
 
-    class Store:
-        def __init__(self, *args): pass
+    class Store(SQLiteWorkerStoreIdentity):
         def get_messages_as_conversation(self, sid): return []
         def flush_token_counts(self): pass
         def finish(self): pass

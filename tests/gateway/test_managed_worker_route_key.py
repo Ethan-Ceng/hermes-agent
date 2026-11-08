@@ -10,6 +10,7 @@ from types import SimpleNamespace
 import pytest
 
 from tests.gateway.test_managed_turn_contract import assignment
+from tests.gateway.fixtures.worker_store_identity import SQLiteWorkerStoreIdentity
 
 BASE_URL = 'https://api.minimax.io/anthropic'
 KEY_ENV = 'KB5_MINIMAX_TEST_KEY'
@@ -41,8 +42,7 @@ def _execute(frame, monkeypatch, base=object, built=None, result=None, sent=None
         def run_conversation(self, text, **kwargs):
             return dict(result or {'final_response': 'ok', 'completed': True})
 
-    class Store:
-        def __init__(self, *args): pass
+    class Store(SQLiteWorkerStoreIdentity):
         def get_messages_as_conversation(self, sid): return []
         def flush_token_counts(self): pass
         def finish(self): pass
