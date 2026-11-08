@@ -80,13 +80,25 @@ def _resolve_settings(config, home):
     return DatabaseSettings(backend, settings), scope
 
 
+def _storage_config(home):
+    from hermes_cli.config_effective import load_user_config_effective
+    from hermes_yaml import YAMLError
+    try:
+        return load_user_config_effective(home / "config.yaml", fail_closed=True)
+    except (YAMLError, OSError):
+        # Parser exceptions can include the offending config values. Expose only the owning path.
+        raise StorageConfigurationError(
+            f"Hermes stopped because your settings file ({home / 'config.yaml'}) could not be read; "
+            "repair it before retrying storage operations"
+        ) from None
+
+
 def resolve_db_configuration(profile_home: Path | None = None):
     from hermes_constants import get_hermes_home
-    from hermes_cli.config_effective import load_user_config_effective
 
     home = Path(profile_home if profile_home is not None else get_hermes_home()).resolve()
     with _owning_profile(home):
-        config = load_user_config_effective(home / "config.yaml", fail_closed=True)
+        config = _storage_config(home)
         return _resolve_settings(config, home)
 
 
@@ -102,10 +114,9 @@ def open_profile_db(profile_home: Path | None = None):
 def storage_backend(profile_home: Path | None = None):
     """Driver/secret-free backend selection for file-tooling and cache boundaries."""
     from hermes_constants import get_hermes_home
-    from hermes_cli.config_effective import load_user_config_effective
     home = Path(profile_home if profile_home is not None else get_hermes_home()).resolve()
     with _owning_profile(home):
-        config = load_user_config_effective(home / "config.yaml", fail_closed=True)
+        config = _storage_config(home)
         return _backend(_storage(config))
 
 

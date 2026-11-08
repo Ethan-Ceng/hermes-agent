@@ -26,6 +26,8 @@ class PostgresCryptoStore(CryptoStore, SyncStore):
         self.runtime = None
         self._open_lock = asyncio.Lock()
         self._pid = os.getpid()
+        from hermes_db.matrix_olm_cache import OlmSessions
+        self._olm_sessions = OlmSessions(self)
 
     async def open(self):
         self._assert_owner()
@@ -51,7 +53,13 @@ class PostgresCryptoStore(CryptoStore, SyncStore):
         self._assert_owner()
         if self.runtime is None:
             raise StorageClosedError("Open Matrix encryption store before use")
-        return await self.runtime.call(operation, write=write, **arguments)
+        from hermes_db.errors import StorageError
+        from hermes_db.matrix_failures import remember
+        try:
+            return await self.runtime.call(operation, write=write, **arguments)
+        except StorageError as error:
+            remember(error)
+            raise
 
     def _assert_owner(self):
         if self._pid != os.getpid():
@@ -62,8 +70,19 @@ class PostgresCryptoStore(CryptoStore, SyncStore):
         self._assert_owner()
         if self.runtime is None:
             raise StorageClosedError("Open Matrix encryption store before use")
-        async with self.runtime.transaction():
-            yield
+        async with self._olm_sessions.guard():
+            writes = self._olm_sessions.writes
+            try:
+                async with self.runtime.transaction():
+                    yield
+            except BaseException as error:
+                if self._olm_sessions.writes != writes:
+                    self._olm_sessions.failed = True
+                from hermes_db.errors import StorageError
+                from hermes_db.matrix_failures import remember
+                if isinstance(error, StorageError):
+                    remember(error)
+                raise
 
     async def delete(self):
         await self._call(accounts.delete_account, write=True)
@@ -89,20 +108,23 @@ class PostgresCryptoStore(CryptoStore, SyncStore):
         await self._call(accounts.put_next_batch, write=True, next_batch=next_batch)
 
     async def has_session(self, key):
-        return await self._call(sessions.has_session, sender_key=key)
+        self._olm_sessions.require_usable()
+        present = await self._call(sessions.has_session, sender_key=key)
+        self._olm_sessions.require_usable()
+        return present
 
     async def get_sessions(self, key):
-        return [codec.restore_session(row, self.pickle_key) for row in await self._call(sessions.get_sessions, sender_key=key)]
+        return await self._olm_sessions.read(key)
 
     async def get_latest_session(self, key):
-        rows = await self._call(sessions.get_sessions, sender_key=key, latest=True)
-        return codec.restore_session(rows[0], self.pickle_key) if rows else None
+        rows = await self._olm_sessions.read(key, latest=True)
+        return rows[0] if rows else None
 
     async def add_session(self, key, session):
-        await self._call(sessions.add_session, write=True, record=codec.session_record(key, session, self.pickle_key))
+        await self._olm_sessions.save(key, session, add=True)
 
     async def update_session(self, key, session):
-        await self._call(sessions.update_session, write=True, record=codec.session_record(key, session, self.pickle_key))
+        await self._olm_sessions.save(key, session)
 
     async def put_group_session(self, room_id, sender_key, session_id, session):
         if (room_id, sender_key, session_id) != (session.room_id, session.sender_key, session.id):

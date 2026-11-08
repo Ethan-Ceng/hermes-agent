@@ -16,6 +16,19 @@ class CommandReplay(Exception):
         self.result = result
 
 
+def refusal(error):
+    from hermes_cli import kanban_db as kb
+    from hermes_db.domains.kanban_wire import CommandRefusal
+    if isinstance(error, kb.HallucinatedCardsError):
+        return CommandRefusal("HallucinatedCardsError", (error.phantom, error.completing_task_id))
+    if isinstance(error, kb.EmptyCompletionError):
+        return CommandRefusal("EmptyCompletionError", (error.task_id,))
+    if isinstance(error, kb.LiveClaimError):
+        return CommandRefusal("LiveClaimError", (error.task_id,))
+    name = type(error).__name__ if isinstance(error, (kb.ArtifactPreservationError, kb.AttachmentTooLarge)) else "ValueError"
+    return CommandRefusal(name, (str(error),))
+
+
 class CommandReceipt:
     def __init__(self, command_id, request_digest):
         self.command_id = command_id

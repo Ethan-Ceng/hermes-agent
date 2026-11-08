@@ -53,10 +53,10 @@ def test_domain_resource_persistence_isolation_pool_and_lifetime(settings, tmp_p
     assert not (tmp_path / "cron/unused.db").exists()
 
 
-def test_missing_and_unsupported_domains_never_initialize_at_open(settings, tmp_path):
+def test_missing_domains_never_initialize_at_open_and_all_capabilities_require_tables(settings, tmp_path):
     from sqlalchemy import inspect, text
     from hermes_db.engine import get_engine
-    from hermes_db.errors import StorageNotReadyError, StorageSchemaError
+    from hermes_db.errors import StorageSchemaError
     from hermes_db.factory import acquire_domain
     from hermes_db.schema import schema_status, upgrade_schema
     from hermes_db.scope import DatabaseScope
@@ -69,10 +69,20 @@ def test_missing_and_unsupported_domains_never_initialize_at_open(settings, tmp_
     status = upgrade_schema(settings)
     assert status == upgrade_schema(settings)
     assert status["domains"]["sessions"]["ready"]
+    assert status["full_system_ready"]
+    assert all(domain["ready"] and domain["supported"] for domain in status["domains"].values())
+    with acquire_domain("matrix_crypto", config, scope) as resource:
+        assert resource.scope == scope
+    from hermes_db.tables.matrix_crypto import olm_sessions
+    with get_engine(settings).begin() as conn:
+        quoted = conn.dialect.identifier_preparer.quote(settings.schema)
+        conn.execute(text(f"DROP TABLE {quoted}.{olm_sessions.name} CASCADE"))
+    status = schema_status(settings)
     assert not status["full_system_ready"]
-    assert not status["domains"]["matrix_crypto"]["supported"]
-    with pytest.raises(StorageNotReadyError, match="matrix_crypto.*not implemented"):
+    assert olm_sessions.name in status["domains"]["matrix_crypto"]["missing_tables"]
+    with pytest.raises(StorageSchemaError):
         acquire_domain("matrix_crypto", config, scope)
+    assert olm_sessions.name not in inspect(get_engine(settings)).get_table_names(schema=settings.schema)
     with get_engine(settings).begin() as conn:
         quoted = conn.dialect.identifier_preparer.quote(settings.schema)
         conn.execute(text(f"DROP TABLE {quoted}.system_prompts CASCADE"))

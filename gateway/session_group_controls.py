@@ -63,8 +63,9 @@ async def dispatch_group_control(connection, method, params):
         raise RuntimeStoreError('invalid_params')
     home = Path(authority.profile_id)
     from gateway.session_hosted_storage import coordination_path
-    db_path = await asyncio.to_thread(coordination_path(authority.db).resolve)
-    if db_path.parent != await asyncio.to_thread(home.resolve):
+    from hermes_db.domains.rooms import location_root
+    db_home = await asyncio.to_thread(location_root(coordination_path(authority.db)).resolve)
+    if db_home != await asyncio.to_thread(home.resolve):
         raise RuntimeStoreError('profile_mismatch')
     from hermes_cli.profiles import profile_matches_home
     profile = params.get('profile')

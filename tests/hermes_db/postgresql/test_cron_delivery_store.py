@@ -10,6 +10,18 @@ import pytest
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 
 
+@pytest.mark.parametrize("entry", ["storage_backend", "resolve_db_configuration"])
+def test_malformed_selected_storage_config_is_redacted_and_never_opens_sqlite(queue_profiles, entry):
+    import traceback
+    from hermes_cli import db_setup
+    from hermes_db.errors import StorageConfigurationError
+    with queue_profiles("invalid") as home:
+        (home / "config.yaml").write_text("storage: [\n secret: do-not-echo-config-value", encoding="utf-8")
+        with pytest.raises(StorageConfigurationError, match="Hermes stopped because your settings file") as failure:
+            getattr(db_setup, entry)(home)
+        assert "do-not-echo-config-value" not in "".join(traceback.format_exception(failure.value))
+
+
 @pytest.fixture
 def queue_profiles(postgres_test_config, postgres_schema, tmp_path, monkeypatch):
     from agent.secret_scope import reset_secret_scope, set_secret_scope
@@ -52,9 +64,11 @@ def test_pg_delivery_contract_and_store_isolation(queue_profiles, monkeypatch):
         assert queue.claim_next() is None
 
 
-def test_gateway_watch_drains_without_file_and_send_holds_no_connection(queue_profiles):
+def test_gateway_watch_drains_without_file_and_send_holds_no_connection(queue_profiles, monkeypatch):
     from cron import delivery_queue as queue
+    from cron import scheduler
     from gateway.run_delivery_queue_watch import DeliveryQueueWatch
+    from gateway import run as gateway
     from hermes_cli.db_setup import resolve_db_configuration
     from hermes_db.engine import get_engine
 
@@ -62,13 +76,24 @@ def test_gateway_watch_drains_without_file_and_send_holds_no_connection(queue_pr
         settings, _scope = resolve_db_configuration()
         pool = get_engine(settings.postgresql)
         sent = []
-        def send(job, content, failure):
+        adapters, loop = {}, object()
+        def send(job, content, **options):
             assert pool.pool.checkedout() == 0
+            assert options["adapters"] is adapters and options["loop"] is loop
             sent.append(content)
-        watch = DeliveryQueueWatch(lambda: [home], lambda: queue.drain(send))
+        monkeypatch.setattr(scheduler, "_deliver_result", send)
+        monkeypatch.setattr(gateway, "_handoff_watch_scopes", lambda runner: [(None, home)])
+        watch = DeliveryQueueWatch(lambda: [home], lambda: gateway._drain_restart_safe_cron_deliveries(adapters, loop, object()))
         queue.enqueue("watched", {"id": "job"}, "persisted")
+    with queue_profiles("two"):
+        queue.enqueue("watched", {"id": "peer-job"}, "peer stays queued")
         assert watch.changed()
-        assert watch.drain() == 1
+        watch.drain()
+        assert sent == ["persisted"]
+        assert queue.get_status("watched")["status"] == "pending"
+    with queue_profiles("one"):
+        assert queue.get_status("watched")["status"] == "delivered"
+        watch.drain()
         assert sent == ["persisted"]
         assert not (home / "cron/deliveries.db").exists()
 

@@ -102,4 +102,9 @@ def finish_import(store, row):
         directory = _configuration(row, metadata)
         _activate(store, row)
     pending = _cleanup_stage(row)
+    if not pending and row["stage_root"] is not None:
+        with store.write() as conn:
+            lock_files(conn, store)
+            conn.execute(update(file_jobs).where(job_key(store, row["board_id"]),
+                file_jobs.c.action == "import", file_jobs.c.state == "done").values(stage_root=None))
     return {"new_path": str(directory), "files_pending": False, "stage_cleanup_pending": pending}

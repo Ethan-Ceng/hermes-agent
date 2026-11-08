@@ -155,6 +155,7 @@ def remove_board(store, slug, *, archive=True):
         if pending is not None:
             return {"slug": slug, "action": "deleted", **files.run_job(store, pending)}
         raise ValueError(f"board {slug!r} does not exist")
+    files.settle_import_stage(store, captured["board_id"])
     prepared = files.prepare(store, captured)
     with store.write() as conn:
         files.lock_files(conn, store)

@@ -558,13 +558,17 @@ def migrate_gateway_profile_identity(home: Path, old_name: str, new_name: str, *
 
 
 def purge_gateway_profile_identity(home: Path, name: str, *,
-                                   timeout: float = 8.0) -> Optional[dict[str, Any]]:
+                                   timeout: float = 8.0, expected_identity=None) -> Optional[dict[str, Any]]:
     """Ask the multiplexer serving ``home`` to drop a deleted profile's routing identity now — the
     in-memory index AND the durable rows, neither of which a CLI-side delete can settle: this process
     writes its in-memory copy back, so it re-creates what the CLI removed. Returns its
     ``{"ok": True, "dropped": N, ...}`` answer, or None when no gateway answers / the gateway predates
     the verb."""
-    return query_gateway_control(home, "purge-profile-identity", params={"name": name}, timeout=timeout)
+    params = {"name": name}
+    if expected_identity is not None:
+        params["expected_identity"] = expected_identity
+    verb = "purge-profile-identity-checked" if expected_identity is not None else "purge-profile-identity"
+    return query_gateway_control(home, verb, params=params, timeout=timeout)
 
 
 def reload_gateway_plugins(home: Path, *, profile_home: Optional[Path] = None,

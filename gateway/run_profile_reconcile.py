@@ -735,7 +735,7 @@ def migrate_profile_identity_verb(runner):
     return _handler
 
 
-def purge_profile_identity_verb(runner):
+def purge_profile_identity_verb(runner, *, checked=False):
     """Build the ``purge-profile-identity`` control-verb handler for ``hermes profile delete``
     (#111926, delete side). The live multiplexer owns the routing index in memory and writes it back
     periodically, so a CLI-side DELETE of ``agent:<name>:*`` rows would be undone by its next save;
@@ -751,16 +751,24 @@ def purge_profile_identity_verb(runner):
         name = str(params.get("name") or "").strip()
         if not name:
             return {"ok": False, "error": "name required"}
+        if checked and params.get("expected_identity") is None:
+            return {"ok": False, "error": "confirmed storage identity required"}
         store = getattr(runner, "session_store", None)
         if store is None:
             return {"ok": False, "error": "live gateway has no session store"}
         try:
             db_counts: dict[str, dict[str, int]] = {}
             routing_db = getattr(store, "_routing_db", None)
+            from hermes_cli.profiles_deletion_storage import identity_token
+            from hermes_db.health import storage_identity
+            expected = params.get("expected_identity")
+            actual = identity_token(storage_identity(routing_db)) if expected is not None and routing_db is not None else None
+            if expected is not None and actual != expected:
+                return {"ok": False, "error": "routing database differs from confirmed deletion target"}
             if routing_db is not None and hasattr(routing_db, "purge_profile_state"):
                 db_counts["routing"] = routing_db.purge_profile_state(name)
             dropped = store.purge_profile_routing(name)
-            return {"ok": True, "dropped": dropped, "db": db_counts}
+            return {"ok": True, "dropped": dropped, "db": db_counts, "storage_identity": actual}
         except Exception as exc:
             logger.warning("Profile identity purge failed for %r: %s", name, exc)
             return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}

@@ -5,7 +5,7 @@ import asyncio
 from hermes_db.domains.kanban_owner import open_board_owner
 from hermes_db.domains.kanban_wire import pack
 from hermes_db.errors import StorageError
-from hermes_db.operations.kanban_command_receipts import CommandReceipt, CommandReplay
+from hermes_db.operations.kanban_command_receipts import CommandReceipt, CommandReplay, refusal
 from hermes_state_keys import admission_fingerprint
 from hermes_state_runtime import RuntimeStoreError
 
@@ -34,7 +34,7 @@ def _execute(connection, ref, params, command):
     from hermes_cli.kanban_db import ArtifactPreservationError
     from gateway.session_worker_recall import verify_read
     from gateway.session_worker_kanban_context import frozen_context
-    from gateway.session_worker_kanban_operations import invoke, refusal
+    from gateway.session_worker_kanban_operations import invoke
     verify_read(connection, ref, params)
     context = frozen_context(connection, ref, params)
     if params["operation"] == "board.resolve":
@@ -66,7 +66,7 @@ def _execute(connection, ref, params, command):
             except (StorageError, RuntimeStoreError):
                 raise
             except (ValueError, ArtifactPreservationError) as error:
-                result = refusal(error, context)
+                result = refusal(error)
             if not receipt.committed:
                 with store.write() as conn:
                     store.command_result(conn, result)

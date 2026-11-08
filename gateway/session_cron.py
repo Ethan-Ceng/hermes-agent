@@ -271,7 +271,13 @@ def _run_identified(run_job, job, execution_id, **kwargs):
     the caller entered (so the row and the profile name are this profile's)."""
     from cron.execution_identity import enter_cron_execution, exit_cron_execution
     from cron.executions import get_execution
-    token = enter_cron_execution(job, execution_id, get_execution(execution_id) or {})
+    from hermes_db.errors import StorageError
+    try:
+        record = get_execution(execution_id) or {}
+    except StorageError as error:
+        from cron.scheduler_diagnostics import format_run_error
+        return False, format_run_error(error), '', f'{type(error).__name__}: {error}'
+    token = enter_cron_execution(job, execution_id, record)
     try:
         return run_job(job, execution_id=execution_id, **kwargs)
     finally:

@@ -55,6 +55,7 @@ def test_current_revision_is_not_ready_when_extension_is_missing(settings, postg
     upgrade_schema(settings)
     scope = DatabaseScope(tmp_path, 'startup')
     monkeypatch.setattr(db_setup, 'resolve_db_configuration', lambda home: (DatabaseSettings('postgresql', settings), scope))
+    monkeypatch.setattr(db_setup, 'storage_backend', lambda home: 'postgresql')
     with _capture_ddl(postgres_engine, hide_extension=True) as ddl:
         status = schema_status(settings)
         assert not status['ready']
@@ -62,7 +63,7 @@ def test_current_revision_is_not_ready_when_extension_is_missing(settings, postg
         assert 'CREATE EXTENSION IF NOT EXISTS pg_trgm' in status['action_required']
         with pytest.raises(StorageSchemaError, match='CREATE EXTENSION IF NOT EXISTS pg_trgm'):
             acquire_db(DatabaseSettings('postgresql', settings), scope)
-        assert configured_probe(tmp_path) == {'status': 'degraded', 'detail': 'StorageSchemaError'}
+        assert configured_probe(tmp_path) == {'backend': 'postgresql', 'status': 'degraded', 'detail': 'StorageSchemaError'}
         assert len(ddl) == 0
 
 

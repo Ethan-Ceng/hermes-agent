@@ -49,6 +49,8 @@ def delete_files(store, row):
     if row["state"] == "pending":
         home = Path(row["owner_home"])
         _remove_directory(home / "kanban" / "boards" / row["slug"], parent=home / "kanban" / "boards")
+        _remove_directory(home / "kanban" / "boards" / "_archived" / f"{row['slug']}-{row['board_id']}",
+                          parent=home / "kanban" / "boards" / "_archived")
         set_job_state(store, row["board_id"], "content_pending")
     roots = sorted({row[name] for name in ROOT_FIELDS}, key=lambda value: len(Path(value).parts))
     with store.write() as conn:

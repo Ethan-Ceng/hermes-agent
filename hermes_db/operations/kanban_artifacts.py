@@ -28,7 +28,7 @@ def lock_blob(conn, store, path):
 def insert_attachment(conn, store, task_id, *, filename, stored_path, file_key, content_type=None, size=0, uploaded_by=None, created_at=None):
     from hermes_db.operations.kanban_file_jobs import guard_reference
     guard_reference(conn, store, file_key)
-    lock_blob(conn, store, stored_path)
+    lock_blob(conn, store, file_key)
     values = {key: encode_text(value) for key, value in dict(task_id=task_id, filename=filename,
               stored_path=stored_path, content_type=content_type, uploaded_by=uploaded_by).items()}
     attachment_id = conn.scalar(attachments.insert().values(**repo.owner(store), **values, path_key=encode_text(file_key), size=int(size),
@@ -41,6 +41,7 @@ def add_attachment(store, task_id, *, filename, stored_path, content_type=None, 
     _preflight_reference(store, stored_path)
     from hermes_db.operations.kanban_file_jobs import local_files_lock
     with local_files_lock(store.scope.profile_home):
+        _preflight_reference(store, stored_path)
         return _add_attachment(store, task_id, filename, stored_path, content_type, size, uploaded_by)
 
 
@@ -50,8 +51,10 @@ def _preflight_reference(store, path):
     key = canonical_path(path)
     with store.read() as conn:
         guard_reference(conn, store, key)
-        token = conn.scalar(select(blobs.c.cleanup_token).where(_blob_key(store, path)))
-    if token is not None:
+        pending = list(conn.scalars(select(blobs.c.path).where(blobs.c.store_id == store.scope.require_store_id(),
+            blobs.c.cleanup_token.is_not(None))))
+    from hermes_db.values import decode_text
+    if any(canonical_path(decode_text(raw)) == key for raw in pending):
         raise StorageBusyError("Attachment file cleanup is pending; retain the file and retry after reconciliation")
 
 
@@ -61,6 +64,7 @@ def _add_attachment(store, task_id, filename, stored_path, content_type, size, u
     if not stored_path or not stored_path.strip():
         raise ValueError("attachment stored_path is required")
     from hermes_db.repositories.kanban_workspaces import canonical_path
+    stored_path = str(Path(stored_path).expanduser().resolve())
     file_key = canonical_path(stored_path)
     with store.write() as conn:
         repo.require_task(conn, store, task_id)
@@ -121,18 +125,25 @@ def list_attachments(store, task_id):
 
 def _retire_attachment(store, attachment_id):
     from hermes_cli.kanban_db import Attachment
+    from hermes_db.repositories.kanban_workspaces import canonical_path
+    captured = get_attachment(store, attachment_id)
+    file_key = canonical_path(captured.stored_path) if captured is not None else None
     with store.write() as conn:
         row = conn.execute(select(attachments).where(_id(store, attachment_id))).mappings().one_or_none()
         if row is None:
             return None, None
         attachment = Attachment.from_row(repo.decode_record(row))
-        lock_blob(conn, store, attachment.stored_path)
+        if captured != attachment or row["path_key"] != encode_text(file_key):
+            raise StorageBusyError("Attachment path changed or is unresolved; preserve its file for reconciliation")
+        lock_blob(conn, store, file_key)
         conn.execute(delete(attachments).where(_id(store, attachment_id)))
         remaining = conn.scalar(select(attachments.c.id).where(attachments.c.store_id == store.scope.require_store_id(),
-            attachments.c.stored_path == encode_text(attachment.stored_path)).limit(1))
-        token = uuid4().hex if remaining is None else None
+            attachments.c.path_key == encode_text(file_key)).limit(1))
+        unresolved = conn.scalar(select(attachments.c.id).where(attachments.c.store_id == store.scope.require_store_id(),
+            attachments.c.path_key.is_(None)).limit(1))
+        token = uuid4().hex if remaining is None and unresolved is None else None
         if token is not None:
-            conn.execute(update(blobs).where(_blob_key(store, attachment.stored_path)).values(cleanup_token=token))
+            conn.execute(update(blobs).where(_blob_key(store, file_key)).values(cleanup_token=token))
         repo.event(conn, store, attachment.task_id, "attachment_removed", {"filename": attachment.filename})
         return attachment, token
 
@@ -143,5 +154,6 @@ def delete_attachment(store, attachment_id):
     with local_files_lock(store.scope.profile_home):
         attachment, token = _retire_attachment(store, attachment_id)
         if token is not None:
-            finish(store, attachment.stored_path, token)
+            from hermes_db.repositories.kanban_workspaces import canonical_path
+            finish(store, attachment.stored_path, token, blob_path=canonical_path(attachment.stored_path))
     return attachment

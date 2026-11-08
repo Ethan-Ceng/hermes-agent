@@ -82,6 +82,7 @@ def test_configured_readiness_and_archive_refs_without_local_file(pg_store, post
     from tools import tool_result_storage as tools
     pg = replace(postgres_test_config.settings, schema=pg_store._transactions.schema)
     monkeypatch.setattr(db_setup, "resolve_db_configuration", lambda home: (DatabaseSettings("postgresql", pg), pg_store.scope))
+    monkeypatch.setattr(db_setup, "storage_backend", lambda home: "postgresql")
     root = pg_store.scope.profile_home / "cache" / "spillover"
     root.mkdir(parents=True)
     path = root / "held.txt"

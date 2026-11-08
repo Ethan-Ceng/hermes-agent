@@ -2,7 +2,6 @@
 
 import inspect
 
-from hermes_db.domains.kanban_wire import CommandRefusal
 from hermes_state_runtime import RuntimeStoreError
 
 READS = frozenset({"get_task", "get_run", "latest_run", "list_runs", "latest_summary", "latest_summaries",
@@ -85,15 +84,3 @@ def invoke(store, context, params, operation, payload):
             raise RuntimeStoreError("permission_denied")
         bound.arguments["expected_child_run_id"] = context["run_id"]
     return handler(*bound.args, **bound.kwargs)
-
-
-def refusal(error, context):
-    from hermes_cli import kanban_db as kb
-    if isinstance(error, kb.HallucinatedCardsError):
-        return CommandRefusal("HallucinatedCardsError", (error.phantom, error.completing_task_id))
-    if isinstance(error, kb.EmptyCompletionError):
-        return CommandRefusal("EmptyCompletionError", (error.task_id,))
-    if isinstance(error, kb.LiveClaimError):
-        return CommandRefusal("LiveClaimError", (error.task_id,))
-    name = type(error).__name__ if isinstance(error, (kb.ArtifactPreservationError, kb.AttachmentTooLarge)) else "ValueError"
-    return CommandRefusal(name, (str(error),))

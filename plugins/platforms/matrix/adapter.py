@@ -1802,27 +1802,8 @@ class MatrixAdapter(BasePlatformAdapter):
             caption, reply_to, metadata, is_voice, voice_metadata)
 
     async def _sync_loop(self) -> None:
-        client = self._client
-        next_batch = await client.sync_store.get_next_batch()  # resume from the initial sync
-        while not self._closing:
-            try:
-                # 45s outer cap guards TCP-level hangs the 30s long-poll timeout cannot catch.
-                # mautrix raises on every non-2xx, so a non-dict here is never an error object.
-                sync_data = await asyncio.wait_for(client.sync(since=next_batch, timeout=30000), timeout=45.0)
-                if isinstance(sync_data, dict):
-                    next_batch = await self._absorb_sync(client, sync_data) or next_batch
-                    await asyncio.sleep(0)  # let fresh invite joins start before the next sync
-            except asyncio.CancelledError:
-                return
-            except Exception as exc:
-                if self._closing:
-                    return
-                # Detect permanent auth/permission failures. Transient 5xx outages must retry.
-                if _is_permanent_matrix_auth_error(exc):
-                    logger.error("Matrix: permanent auth error, stopping sync: %s", exc)
-                    return
-                logger.warning("Matrix: sync error: %s — retrying in 5s", exc)
-                await asyncio.sleep(5)
+        from plugins.platforms.matrix.adapter_sync import sync_loop
+        await sync_loop(self)
 
     async def _absorb_sync(self, client: Any, sync_data: dict[str, Any], *, initial: bool = False) -> Optional[str]:
         from plugins.platforms.matrix.adapter_sync import absorb_sync

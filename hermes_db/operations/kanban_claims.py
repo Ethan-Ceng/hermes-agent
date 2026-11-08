@@ -34,14 +34,14 @@ def _claim(store, task_id, source, ttl_seconds, claimer, *, dispatch_permit=None
     with store.write() as conn:
         row = repo.get(conn, store, task_id)
         if row is None:
-            return None
+            return store.command_result(conn, None)
         if _unsatisfied(conn, store, task_id):
             _reject_parents(conn, store, row, source)
-            return None
+            return store.command_result(conn, None)
         if row["status"] != source or row["claim_lock"] is not None:
-            return None
+            return store.command_result(conn, None)
         if dispatch_permit is not None and not dispatch_permit.admit(conn, store, row):
-            return None
+            return store.command_result(conn, None)
         if source == "ready":
             _close_dangling(conn, store, row, now)
         # Board lock serializes state decisions; the affected-row CAS is the transition verdict.
@@ -49,7 +49,7 @@ def _claim(store, task_id, source, ttl_seconds, claimer, *, dispatch_permit=None
             tasks.c.claim_lock.is_(None)).values(status=b"running", claim_lock=lock.encode(), claim_expires=expires,
             started_at=row["started_at"] if row["started_at"] is not None else now)).rowcount
         if changed != 1:
-            return None
+            return store.command_result(conn, None)
         run_id = run_repo.open_run(conn, store, row, lock, expires, now)
         repo.task_update(conn, store, task_id, current_run_id=run_id)
         extra = {"source_status": "review"} if source == "review" else {}
@@ -77,7 +77,7 @@ def heartbeat_worker(store, task_id, *, note=None, expected_run_id=None):
     with store.write() as conn:
         row = repo.get(conn, store, task_id)
         if row is None or row["status"] != "running" or (expected_run_id is not None and row["current_run_id"] != int(expected_run_id)):
-            return False
+            return store.command_result(conn, False)
         repo.task_update(conn, store, task_id, last_heartbeat_at=now)
         run_id = row["current_run_id"]
         if run_id is not None:
@@ -94,7 +94,7 @@ def heartbeat_claim(store, task_id, *, ttl_seconds=None, claimer=None):
     with store.write() as conn:
         row = repo.get(conn, store, task_id)
         if row is None or row["status"] != "running" or row["claim_lock"] != lock:
-            return False
+            return store.command_result(conn, False)
         repo.task_update(conn, store, task_id, claim_expires=expires)
         if row["current_run_id"] is not None:
             run_repo.update_run(conn, store, row["current_run_id"], claim_expires=expires)

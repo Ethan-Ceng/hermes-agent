@@ -9,6 +9,36 @@ from hermes_db.errors import StorageError
 logger = logging.getLogger("plugins.platforms.matrix.adapter")
 
 
+async def sync_loop(adapter):
+    from plugins.platforms.matrix.adapter import _is_permanent_matrix_auth_error
+    client = adapter._client
+    try:
+        next_batch = await client.sync_store.get_next_batch()
+        while not adapter._closing:
+            try:
+                # Bound TCP hangs as well as the homeserver's long poll.
+                data = await asyncio.wait_for(client.sync(since=next_batch, timeout=30000), timeout=45.0)
+                if isinstance(data, dict):
+                    next_batch = await adapter._absorb_sync(client, data) or next_batch
+                    await asyncio.sleep(0)
+            except asyncio.CancelledError:
+                return
+            except StorageError:
+                raise
+            except Exception as error:  # health: allow BLE001 -- SDK polling boundary retries transient failures without logging crypto key material in tracebacks
+                if adapter._closing:
+                    return
+                if _is_permanent_matrix_auth_error(error):
+                    logger.error("Matrix: permanent auth error, stopping sync: %s", error)
+                    return
+                logger.warning("Matrix: sync error: %s — retrying in 5s", error)
+                await asyncio.sleep(5)
+    except StorageError:
+        # Restart through the existing adapter supervisor; a poisoned ratchet cannot be reused.
+        adapter._set_fatal_error("matrix_storage", "Matrix storage failed; reconnecting with durable crypto state", retryable=True)
+        await adapter._notify_fatal_error()
+
+
 async def initial_sync(adapter, client):
     try:
         arguments = dict(timeout=10000, full_state=True)
@@ -58,11 +88,14 @@ async def dispatch_sync(adapter, sync_data):
     client = adapter._client
     if not client or not hasattr(client, "handle_sync"):
         return
-    tasks = client.handle_sync(sync_data)
-    if inspect.isawaitable(tasks):
-        tasks = await tasks
-    if tasks:
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+    if getattr(adapter, "_storage_backend", None) == "postgresql":
+        results = await client.dispatch_sync_batch(sync_data)
+    else:
+        tasks = client.handle_sync(sync_data)
+        if inspect.isawaitable(tasks):
+            tasks = await tasks
+        results = await asyncio.gather(*(tasks or []), return_exceptions=True)
+    if results:
         failed_storage = next((result for result in results if isinstance(result, StorageError)), None)
         for result in results:
             if isinstance(result, BaseException):

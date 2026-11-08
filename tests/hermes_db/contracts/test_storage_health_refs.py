@@ -16,6 +16,7 @@ def _configured(monkeypatch, store):
         return settings, store.scope
 
     monkeypatch.setattr(db_setup, "resolve_db_configuration", resolve)
+    monkeypatch.setattr(db_setup, "storage_backend", lambda home: "postgresql")
 
 
 def test_core_storage_identity_and_health_do_not_require_a_local_database_file(core_pair):

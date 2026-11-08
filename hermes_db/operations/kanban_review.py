@@ -121,15 +121,15 @@ def request_changes(store, task_id, *, reason, expected_run_id=None):
         task = repo.get(conn, store, task_id)
         error = _changes_error(task, expected_run_id)
         if error:
-            return False, error
+            return store.command_result(conn, (False, error))
         if run_repo.retry_status(conn, store, task_id, task["current_run_id"]) != "review":
-            return False, "active run was not claimed from review"
+            return store.command_result(conn, (False, "active run was not claimed from review"))
         requested = _latest(conn, store, task_id, "review_requested")
         if requested is None:
-            return False, "no prior review_requested event"
+            return store.command_result(conn, (False, "no prior review_requested event"))
         implementer = kb._nonblank_str(requested.get("implementer"))
         if implementer is None:
-            return False, "review handoff has no valid implementer provenance"
+            return store.command_result(conn, (False, "review handoff has no valid implementer provenance"))
         reviewer = kb._canonical_assignee(kb._nonblank_str(task["assignee"]))
         status = "todo" if _unsatisfied(conn, store, task_id) else "ready"
         repo.task_update(conn, store, task_id, status=status, assignee=implementer, claim_lock=None,

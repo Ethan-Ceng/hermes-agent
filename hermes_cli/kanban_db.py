@@ -2669,13 +2669,12 @@ def _completed_event_payload(
     return payload
 
 
+@domain_operation("completion_guards")
 def _flag_phantom_prose_refs(
     conn: sqlite3.Connection, task_id: str, run_id: Optional[int],
     summary: Optional[str], result: Optional[str], verified_cards: list[str],
 ) -> None:
-    """Advisory post-commit scan of summary+result for unresolvable ``t_<hex>``
-    references; emits ``suspected_hallucinated_references`` in its own txn so
-    the completion is already durable. Never blocks."""
+    """Audit unresolvable prose references after completion is durable."""
     scan_text = " ".join(filter(None, [summary, result]))
     if not scan_text:
         return

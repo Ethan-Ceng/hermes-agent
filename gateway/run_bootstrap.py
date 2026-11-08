@@ -359,6 +359,7 @@ async def _start_gateway_start_control_socket(runner):
                            "unserve-profile": unserve_profile_verb(runner),
                            "serve-profile": serve_profile_verb(runner),
                            "purge-profile-identity": purge_profile_identity_verb(runner),
+                           "purge-profile-identity-checked": purge_profile_identity_verb(runner, checked=True),
                            # `hermes gateway stop/restart` refuse while this names live work.
                            "active-work": active_work_verb(runner, _main_loop),
                            # A plugin installed/enabled by another process loads now and re-wires the

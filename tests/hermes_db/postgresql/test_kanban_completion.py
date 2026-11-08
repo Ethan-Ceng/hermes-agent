@@ -63,6 +63,7 @@ def test_declared_artifact_failure_preserves_run_then_success_is_durable(pg_prof
 
 def test_completion_unknown_commit_retains_committed_artifact(pg_profiles, monkeypatch):
     import psycopg
+    from sqlalchemy import event
     from sqlalchemy.exc import OperationalError
     from hermes_db.errors import UnknownCommitError
     with pg_profiles("one"), kbc.connect_closing() as store:
@@ -75,13 +76,23 @@ def test_completion_unknown_commit_retains_committed_artifact(pg_profiles, monke
         claim = kb.claim_task(store, tid)
         dialect = store._transactions.engine.dialect
         commit = dialect.do_commit
+        wrote_attachment = []
+        def observe(connection, cursor, statement, parameters, context, executemany):
+            if statement.lstrip().upper().startswith("INSERT") and "kanban_attachments" in statement:
+                wrote_attachment.append(True)
         def lose_ack(connection):
             commit(connection)
-            raise OperationalError(None, None, psycopg.OperationalError("commit acknowledgement lost"))
-        with monkeypatch.context() as failure:
-            failure.setattr(dialect, "do_commit", lose_ack)
-            with pytest.raises(UnknownCommitError):
-                kb.complete_task(store, tid, summary="proof", metadata={"artifacts": [str(proof)]}, expected_run_id=claim.current_run_id)
+            if wrote_attachment:
+                raise OperationalError(None, None, psycopg.OperationalError("commit acknowledgement lost"))
+        event.listen(store._transactions.engine, "after_cursor_execute", observe)
+        try:
+            with monkeypatch.context() as failure:
+                failure.setattr(dialect, "do_commit", lose_ack)
+                with pytest.raises(UnknownCommitError):
+                    kb.complete_task(store, tid, summary="proof", metadata={"artifacts": [str(proof)]}, expected_run_id=claim.current_run_id)
+        finally:
+            event.remove(store._transactions.engine, "after_cursor_execute", observe)
+        assert wrote_attachment
         assert kb.get_task(store, tid).status == "done"
         attachment = kb.list_attachments(store, tid)[0]
         assert Path(attachment.stored_path).read_text(encoding="utf-8") == "committed"

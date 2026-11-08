@@ -58,11 +58,11 @@ def _record_task_failure(store, task_id, error, *, outcome, failure_limit=None, 
     with store.write() as conn:
         task = repo.get(conn, store, task_id)
         if task is None or task["status"] in {"done", "archived"}:
-            return False
+            return store.command_result(conn, False)
         if expected_run_id is not None and task["current_run_id"] != int(expected_run_id):
-            return False
+            return store.command_result(conn, False)
         if release_claim and task["status"] != "running":
-            return False
+            return store.command_result(conn, False)
         result = record_failure(conn, store, task, error, outcome=outcome, failure_limit=failure_limit,
             force_trip=force_trip, release_claim=release_claim, end_run=end_run,
             event_payload_extra=event_payload_extra, infrastructure=infrastructure)

@@ -193,6 +193,8 @@ Matrix 单独实现 SDK CryptoStore 协议适配，PG SQL/表/事务由 `hermes_
 
 实际SDK协议、方法覆盖及PG同步游标错误传播见[Matrix协议核对](unified-database-matrix-protocol.md)。SDK默认吞掉handler异常并允许加密handler在后台执行，PG客户端需等待处理并传播存储错误，成功后才持久化同步游标；不能把网络处理放入长数据库事务。
 
+Task24实际消费者审查细化：mautrix 0.21.1在取得Olm锁前读取Session，群密钥发送与普通to-device发送都可能持有旧快照。因此同一CryptoStore按账号/设备generation共享同一可变Olm Session对象，所有读取仍访问PG验证捕获身份；不能用缓存绕过数据库故障或代次护栏。异步gate在显式SDK transaction的数据库锁之前取得，嵌套同task可重入，子task继承事务仍明确拒绝。保存失败或取消（包括等待gate）使原ratchet不可继续，不把排队者持有的旧对象悄悄换成新副本；已有adapter supervisor负责重新创建SDK/store并读取持久游标。SDK内部吞掉的存储异常和事务COMMIT异常由handler checkpoint保留，解密后再次派发的所有子handler也属于同一sync batch，排空成功后才推进游标。
+
 需覆盖账号/设备、identity/Olm 会话、群组会话、设备列表、密钥请求和 SDK 版本要求的完整协议；必须核对实际安装版本的协议并运行真实密钥 round-trip。PG 模式不读取/删除旧 SQLite 或 pickle 来补数据，不自动删除远端设备或重置密钥。旧设备在新库中缺少原密钥时明确提示管理员使用新设备身份，不能承诺解密未迁移的旧历史。
 
 ## 初始化、切换与运维
@@ -206,6 +208,8 @@ Matrix 单独实现 SDK CryptoStore 协议适配，PG SQL/表/事务由 `hermes_
 Task20运维合同细化：文件快照和ZIP登记各Profile的所选后端，PG排除所有已知系统数据库及sidecar，用户内容中不属于系统库的`.db`按不透明文件保存。PG文件恢复只恢复文件，不导入SQLite镜像，不声称恢复PG数据；旧档案无法证明PG配置作用域时在任何配置写入之前拒绝。Desktop先运行后端选择preflight，再允许停止backend；所选安装无法加载配置能力时明确终止更新，不回退到SQLite独立救援脚本。原stdlib-only物理SQLite工具保留给显式SQLite运行环境。
 
 数据删除使用确认前捕获的Profile、store_id及不含凭据的目标指纹，执行时重新核对；显式数据清除/删除Profile只删除该store_id的所有已登记系统表行，不DROP Schema、不操作扩展/服务、不触碰其他store。先在短事务内解除该store房间的历史证据删除栅栏并按外键顺序删除，再删除本地文件；两者不是原子事务，SQL故障或COMMIT确认丢失保留配置/秘密/文件并明确报告。调用方沿用既有离线所有权与确认边界；Cron持有者取证也读取所选后端。Profile删除对默认Profile路由身份的旧purge保留原历史语义，不能代替删除被删Profile自身的域数据。
+
+Task24删除竞态细化：确认前同时冻结root路由库和target库，SQLite也具有明确冻结身份；执行校验后仍使用冻结的settings/scope取得实际handle，避免校验至开库之间再解析配置而换库。live mux对其已持有routing_db核对目标，受约束删除走新的checked verb，旧进程在unknown verb处零副作用拒绝，不能先向旧verb写入再因缺回传token报告失败。target本地身份由随后整store删除覆盖；保留独立purge-identity历史入口。
 
 维护由Gateway拥有者启动/定时、经典CLI启动和独立serve拥有者调用，与session自动归档开关独立。Board退休/import作业和workspace删除token只按持久意图重放，永不按超时释放删除栅栏；文件锁等待、文件/工作树操作和插件hook执行时不借用SQL连接。import准备与引用确认共用本机文件锁，维护取得store文件栅栏并开启新快照后才能移除未引用的私有stage。Worker大文件stage带冻结的会话store身份，只有精确command回执或同generation的terminal执行证明才回收chunk，保留小型回收标记拒绝同upload_id再次写入；未知/运行中的执行不因时间流逝而回收。
 

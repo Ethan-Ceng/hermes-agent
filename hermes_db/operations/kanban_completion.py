@@ -59,10 +59,13 @@ def _write_completion(conn, store, captured, expected_run_id, result, summary, m
     task_id = captured["id"]
     task = repo.get(conn, store, task_id)
     if not _matches(task, captured) or _unsatisfied(conn, store, task_id):
+        store.command_result(conn, False)
         return None
     if expected_run_id is not None and task["current_run_id"] != int(expected_run_id):
+        store.command_result(conn, False)
         return None
     if verify_on_connection(conn, store, task_id, verified)[1] or not acceptance.record(conn, store, task, prepared):
+        store.command_result(conn, False)
         return None
     repo.task_update(conn, store, task_id, status="done", result=result, completed_at=int(time.time()),
         claim_lock=None, claim_expires=None, worker_pid=None, block_kind=None, block_recurrences=0,
@@ -83,17 +86,20 @@ def _write_completion(conn, store, captured, expected_run_id, result, summary, m
 
 def _prepare_completion(store, task_id, result, summary, metadata, created_cards, expected_run_id, force):
     from hermes_cli import kanban_db as kb
-    with store.read() as conn:
+    with store.write() as conn:
         task = repo.get(conn, store, task_id)
         if _unsatisfied(conn, store, task_id):
+            store.command_result(conn, False)
+            return None
+        if task is None or task["status"] not in {"running", "ready", "blocked", "review"}:
+            store.command_result(conn, False)
+            return None
+        if expected_run_id is not None and task["current_run_id"] != int(expected_run_id):
+            store.command_result(conn, False)
             return None
     cards = tuple(created_cards or ())
     verified = kb._gate_created_cards(store, task_id, cards, summary or result)
     kb._gate_empty_completion(store, task_id, result=result, summary=summary)
-    if task is None or task["status"] not in {"running", "ready", "blocked", "review"}:
-        return None
-    if expected_run_id is not None and task["current_run_id"] != int(expected_run_id):
-        return None
     if expected_run_id is None and not force and kb._claim_is_live(task):
         raise kb.LiveClaimError(task_id)
     prepared = acceptance.prepare(store, task, expected_run_id, metadata)
@@ -104,6 +110,7 @@ def _prepare_completion(store, task_id, result, summary, metadata, created_cards
             current = repo.get(conn, store, task_id)
             if _matches(current, task):
                 acceptance.record(conn, store, current, prepared)
+            store.command_result(conn, False)
         return None
     metadata = kb._merge_completion_prose_artifacts(store, task_id, metadata, summary=summary, result=result)
     metadata = dict(metadata) if isinstance(metadata, dict) else metadata

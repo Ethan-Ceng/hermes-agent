@@ -108,9 +108,11 @@ def _server_module():
 
 
 def _legacy_runtime(db: Path, rpc: HostedRoomServerRPC) -> HostedRoomRuntime:
+    # These contracts exercise attachment routing; disk/CPU latency must not simulate lease expiry.
+    now = time.time()
     return HostedRoomRuntime(
         db_path=db, rooms=[BINDING], rpc=rpc, turn_lock=RecordingTurnLocks(),
-        lease_ttl_seconds=0.4, poll_interval_seconds=0.01)
+        lease_ttl_seconds=0.4, poll_interval_seconds=0.01, clock=lambda: now)
 
 
 class DispatchingPeerClient:

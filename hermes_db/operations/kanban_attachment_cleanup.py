@@ -43,16 +43,30 @@ def discard_copies(resource, staged):
     discard_empty_generation(resource, staged[0].parent)
 
 
-def finish(resource, path, token):
+def finish(resource, path, token, *, blob_path=None):
+    from hermes_db.repositories.kanban_workspaces import canonical_path
+    original = str(path) if blob_path is None else blob_path
     path = Path(path)
-    if not path.is_absolute() or path.resolve() != path:
-        raise StorageConfigurationError("Attachment cleanup path escaped or redirected its captured location")
+    if not path.is_absolute() or any(part.is_symlink() for part in (path, *path.parents)):
+        raise StorageConfigurationError("Attachment cleanup path is relative or redirected; preserve its file")
+    path = path.resolve()
+    key = canonical_path(path)
+    with DomainResource.write(resource) as conn:
+        lock_files(conn, resource)
+        held = conn.scalar(select(blobs.c.cleanup_token).where(blobs.c.store_id == resource.scope.require_store_id(),
+            blobs.c.path == encode_text(original)))
+        live = conn.scalar(select(attachments.c.id).where(attachments.c.store_id == resource.scope.require_store_id(),
+            (attachments.c.path_key == encode_text(key)) | attachments.c.path_key.is_(None)).limit(1))
+        if held != token:
+            raise StorageBusyError("Attachment cleanup token changed; preserve its file")
+        if live is not None:
+            raise StorageBusyError("Retired attachment path still has a live or unresolved reference; preserve its file")
     if path.is_dir():
         raise StorageConfigurationError("Attachment cleanup expected a file")
     path.unlink(missing_ok=True)
     with DomainResource.write(resource) as conn:
         conn.execute(update(blobs).where(blobs.c.store_id == resource.scope.require_store_id(),
-            blobs.c.path == encode_text(str(path)), blobs.c.cleanup_token == token).values(cleanup_token=None))
+            blobs.c.path == encode_text(original), blobs.c.cleanup_token == token).values(cleanup_token=None))
 
 
 def reconcile(resource):
@@ -62,10 +76,10 @@ def reconcile(resource):
         with resource.read() as conn:
             pending = list(conn.execute(select(blobs.c.path, blobs.c.cleanup_token).where(
                 blobs.c.store_id == resource.scope.require_store_id(), blobs.c.cleanup_token.is_not(None))))
-            live = set(conn.scalars(select(attachments.c.stored_path).where(attachments.c.store_id == resource.scope.require_store_id())))
+            live = set(conn.scalars(select(attachments.c.path_key).where(attachments.c.store_id == resource.scope.require_store_id())))
+        if None in live:
+            raise StorageBusyError("Unresolved attachment paths require reconciliation before file cleanup")
         for raw, token in pending:
-            if raw in live:
-                raise StorageBusyError("Retired attachment path still has a live reference; preserve its file")
             finish(resource, decode_text(raw), token)
         _orphans(resource, live)
 
@@ -84,6 +98,7 @@ def _orphans(resource, live):
 
 
 def _sweep_generation(marker, root, owner, live):
+    from hermes_db.repositories.kanban_workspaces import canonical_path
     directory = marker.parent
     if not re.fullmatch("[0-9a-f]{32}", directory.name):
         return
@@ -95,7 +110,7 @@ def _sweep_generation(marker, root, owner, live):
     for path in directory.iterdir():
         if path == marker:
             continue
-        if encode_text(str(path)) in live:
+        if encode_text(canonical_path(path)) in live:
             retained = True
         elif path.is_file() and not path.is_symlink():
             path.unlink()

@@ -1355,26 +1355,8 @@ def _reclaim_fds_best_effort() -> None:
 
 def drain_delivery_queue(adapters, loop) -> int:
     """Send queued worker results through this gateway's live adapters."""
-    from cron.delivery_queue import _path, drain
-
-    # Only restart-safe workers create the queue file.  Every gateway (macOS,
-    # Windows, launchd, Docker) runs this housekeeping tick, so skip the sqlite
-    # open/create entirely until a worker has actually queued something.
-    if not _path().exists():
-        return 0
-    def send(queued_job, queued_content, queued_for_failure):
-        error = _deliver_result(
-            queued_job, queued_content, adapters=adapters, loop=loop,
-            for_failure=queued_for_failure,
-        )
-        # The ping left the process: book the incident alerted. A notice every target hid
-        # (warning notifications suppressed) is a durable disposition, not an alert.
-        if (not error and queued_for_failure
-                and not queued_job.get("_notification_all_targets_suppressed")):
-            _mark_incident_alerted(queued_job.get("_failure_incident_id"))
-        return error
-
-    return drain(send)
+    from cron.scheduler_delivery_queue import drain_delivery_queue as drain
+    return drain(adapters, loop)
 
 
 _DEFAULT_SCRIPT_TIMEOUT = 3600  # seconds (1 hour)

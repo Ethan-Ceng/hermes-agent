@@ -721,7 +721,7 @@ def test_retry_and_approval_controls_forward_only_exact_local_coordinates(
         thread_id="thread-1",
         turn_id="turn-1",
     )
-    service = SimpleNamespace(
+    service = SimpleNamespace(db_path=hosted_rooms_default_db_path(),
         retry_room_task=lambda room_id, **kwargs: (
             calls.append(("retry", room_id, kwargs))
             or {
@@ -964,6 +964,8 @@ def test_approve_routes_one_exact_peer_action(home, monkeypatch):
     captured = {}
 
     class FakeService:
+        db_path = hosted_rooms_default_db_path()
+
         def approve_room_task(self, room_id, **kwargs):
             captured["room_id"] = room_id
             captured.update(kwargs)

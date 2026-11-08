@@ -41,17 +41,23 @@ def resolve_room_target(job: dict, address: str) -> Optional[dict]:
     return {"platform": ROOM_PLATFORM, "chat_id": address, "thread_id": None}
 
 
-def _room_stores(profile: Optional[str]) -> list[Path]:
-    """Where a room can live: the hosting profile's session store (rooms its gateway owns), then the
-    install's shared room store (rooms the dashboard backend owns)."""
-    from gateway.hosted_rooms import default_db_path
+def _profile_home(profile):
     from hermes_constants import get_hermes_home
     if profile:
         from hermes_cli.profiles import get_profile_dir
-        home = get_profile_dir(profile)
-    else:
-        home = get_hermes_home()
-    return [home / "state.db", default_db_path()]
+        return get_profile_dir(profile)
+    return get_hermes_home()
+
+
+def _room_stores(profile: Optional[str]):
+    """The selected Profile's session/room references; SQLite keeps its shared-store protocol."""
+    from gateway.hosted_rooms import default_db_path
+    home = _profile_home(profile)
+    from hermes_cli.db_setup import _owning_profile
+    from hermes_db.domains.rooms import RoomStoreRef
+    with _owning_profile(home):
+        shared = default_db_path()
+    return [shared if isinstance(shared, RoomStoreRef) else home / "state.db", shared]
 
 
 def _find_room_store(room_id: str, profile: Optional[str]) -> Optional[Path]:
@@ -62,6 +68,9 @@ def _find_room_store(room_id: str, profile: Optional[str]) -> Optional[Path]:
     session_store, shared_store = _room_stores(profile)
     if _serves(session_store, room_id):
         return session_store
+    from hermes_db.domains.rooms import RoomStoreRef
+    if isinstance(shared_store, RoomStoreRef):
+        return None
     if not probe_hosted_room(shared_store, room_id=room_id):
         return None
     # A shared room the root gateway imported is fenced here and lives on in the ROOT home's state.db
@@ -81,10 +90,6 @@ def _serves(store: Path, room_id: str) -> bool:
 
 def deliver_to_room(job: dict, content: str, address: str, *, for_failure: bool = False) -> Optional[str]:
     """Post one cron output into a hosted room. None on success, else an error string."""
-    from cron.scheduler_delivery import _redact_cron_payload
-    from gateway.hosted_room_context import post_scheduled_message
-    from gateway.hosted_rooms import AuthorityConflictError
-
     target = f"room:{address}"
     match = _ROOM_TOKEN_RE.fullmatch(address)
     if match is None:
@@ -93,6 +98,15 @@ def deliver_to_room(job: dict, content: str, address: str, *, for_failure: bool 
     from hermes_cli.profiles import profile_exists
     if profile and not profile_exists(profile):
         return f"{target}: no profile named {profile!r} on this machine (Room settings shows the exact target)"
+    from hermes_cli.db_setup import _owning_profile
+    with _owning_profile(_profile_home(profile)):
+        return _post(job, content, target, room_id, profile, for_failure)
+
+
+def _post(job, content, target, room_id, profile, for_failure):
+    from cron.scheduler_delivery import _redact_cron_payload
+    from gateway.hosted_room_context import post_scheduled_message
+    from gateway.hosted_rooms import AuthorityConflictError
     try:
         store = _find_room_store(room_id, profile)
         if store is None:

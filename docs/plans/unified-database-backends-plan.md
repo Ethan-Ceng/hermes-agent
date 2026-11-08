@@ -9,9 +9,10 @@
 
 ## 当前进度
 
-- 整体状态：`IN_PROGRESS`。
+- 整体状态：`VERIFYING`。
 - 当前阶段：原生启动复验、最终验证与独立审查。
-- 当前任务：Task24（pending；Task23已验收，立即本地提交）。
+- 当前验证判定：`FAILED`；三份独立审查均为`CHANGES_REQUIRED`，正在Task24内整改，未完成本项。
+- 当前任务：Task24（in_progress；Task23本地提交`3febe6fc31`）。
 - 已完成：23 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：无待用户重新选择的技术方案；Matrix SDK/原生依赖和外部插件能力按对应任务核验，缺证据不得完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
@@ -1448,7 +1449,7 @@ SQLite SDK细化与真实证据：上游mautrix SQLite类确实从asyncpg导入U
 
 ## Task 24：原生启动复验、最终验证与独立审查
 
-状态：pending
+状态：in_progress
 
 ### 目标
 
@@ -1486,11 +1487,35 @@ SQLite SDK细化与真实证据：上游mautrix SQLite类确实从asyncpg导入U
 
 ### 执行结果
 
-本任务尚未实施；实施后记录实际修改、偏差、提交与恢复点。
+已启动最终验证和三份独立代码审查（见docs/reviews/unified-database-{foundation-operations,collaboration,plugins-acceptance}-review.md）。独立审查复现：Profile删除确认后重新解析配置可误删peer store（blocking）；PG Bot Chat/定向Cron房间/原生及Desktop群聊入口残留SQLite路径假设；Kanban附件别名误删、完成file_job阻断后续生命周期、拒绝claim缺少原事务回执；实际Matrix SDK吞掉存储异常后推进游标及并发Olm快照导致消息无法解密（major）。全部保持未整改/待复验，不用已有绿测抵消。
+
+整改决定：删除流程在确认前冻结target与root路由数据集（包括SQLite），实际写入从冻结settings/scope取得并核对handle；live mux核对已持有routing_db身份并回传匹配token，旧handler忽略token不能计成功；target本地身份由随后整store删除覆盖。该改动收紧原设计的删除确认合同，不扩大功能或改数据迁移边界。其余整改继续沿用类型化资源、原子回执与真实SDK协议，不重新规划。
+
+当前整改实现（尚待最终门禁）：受约束删除使用新的purge-profile-identity-checked verb，旧网关unknown verb拒绝发生在任何写之前；PG与SQLite的root/target均冻结，实际资源按冻结settings/scope打开。Bot Chat按所选session_store存在性而非文件探测；定向Cron从解析至发布绑定目标完整scope；native groups使用location_root，Desktop本地handler按目标完整scope读取并核对服务ref。附件使用规范path_key计数/锁，全store活引用和null引用保护cleanup，旧raw alias和pending token继续可对账；Board已完成import/archive允许后续退休，待清stage仍阻止切换。claim、heartbeat、failure、block/schedule及request_changes事务内拒绝均有原子回执，completion audit同时记录CommandRefusal。另新发现phantom prose审计遗漏PG分流会卡住outbox，现补具名Core审计和同run/payload幂等，需永久复验。
+
+Matrix整改按实际mautrix 0.21.1协议：get_sessions/get_latest_session仍每次真实PG读取核对generation，但共享同一可变Olm Session对象；异步gate和显式SDK transaction采用同一顺序，保存失败/取消包括等待gate时使旧ratchet明确不可继续，不能更换已被排队SDK捕获的对象。handler checkpoint保留SDK内部吞掉的StorageError，包含SDK transaction的COMMIT错误；sync batch等待所有解密后派生handler完成再推进游标。PG存储失败通过已有adapter fatal/retry supervisor请求完整重连、重建SDK对象并读取持久游标，不在同一poisoned store中每5秒无限重试或保持虚假connected。没有修改远端设备、添加数据库服务或扩大外部exactly-once声明。
 
 ### 验证证据
 
-验证命令尚未执行；不借用会话阶段测试将其标为通过。实施后记录实际命令、退出码、数量、环境和失败/跳过项目。
+所有Python测试仍经scripts/run_tests.sh、retries=0；真实PG仅核对归属的随机Schema并全拒绝SQLite。最新红测：test_review_foundation_profile_delete.py 1failed；test_review_foundation_room_routing.py 1failed；test_cron_bot_delivery.py 2failed（unified-task24-bot-chat-red.log）；Reviewer群聊/附件/生命周期/回执共7个实际PG场景失败；真实Linux Matrix SDK两例失败（review-matrix-key-request.log）。命令、边界和原始见证详见三份review。
+
+第一轮全PG目录结束：test_domain_schema.py 1fail、test_health_archive_refs.py 2fail、test_startup_requirements.py 1fail，另test_retirement_rewrites.py未收集完成，日志unified-task24-full-pg-first.log；旧session配置/旧Matrix unsupported断言及PG进程直接开SQLite输入与新合同不符，须修为有意义的当前合同再重跑。Windows contracts批次3个文件4fail，另private_launch文件未执行测试，日志unified-task24-windows-contracts-first.log。Linux原生宽回归仍运行；ACP fixture setup有超时，独立取栈显示Git/文件复制/Path.resolve冷启动接近40秒边界，同fixture单进程34.27秒ready，尚无基准A/B，不能据此归为既有问题或增加timeout。非WSL POSIX私有启动页7项仍缺适用主机，已向用户询问现有执行入口；没有收到主机信息。
+
+补充精确汇总：首轮全PG为103文件569passed/4failed/1error、退出1，1625.5秒；retirement_rewrites已执行17个case后触及runner默认300秒文件cap，非零测试收集。后续显式--file-timeout1200仅为完整多case实库文件提供总预算，不增加业务deadline/重试。Windows修复后删除/Bot Chat2文件3pass（unified-task24-delete-bot-first-fix.log）、房间/协作原始红测2文件8pass（unified-task24-collaboration-first-fix.log）；Matrix真实Linux3文件11pass（unified-task24-matrix-first-fix.log）。独立foundation追加11pass、Matrix原两例加四项补查均pass，分别见新增foundation-operations-followup-review与matrix-followup-review；它们保留全局CHANGES_REQUIRED，不替代本任务全回归。
+
+永久化复验：第一次foundation-kanban批次缺显式-m，只有Native14pass且实库case被默认marker排除，不能计为PG证据（unified-task24-foundation-kanban-regressions.log）。修正显式-m 'not live'的8文件实际72pass/1fail、退出1（unified-task24-foundation-kanban-selected.log）；唯一失败为新SQLite输入子进程未设置独立USERPROFILE/HOME，现已补隔离home，待回归。其余通过包括永久11项删除/混合路由、实际PG房间授权与FIFO同连接及确认丢失恢复、schema完整能力与真实缺Matrix表拒绝/零startup DDL、5项扩展要求、Kanban任务/回执/审查。旧“PG+独立SQLite房间”合同已改为纯身份合同，实际业务改由test_hosted_submission_receipt.py及已有真实test_surface_flow/test_room_coordination证明，未放宽SQLite guard。
+
+静态首轮14检查失败于两处未用测试变量、两个新增SDK边界的BLE001；变量已更正，边界说明按项目health规则记录任务排空/秘密安全原因，尚待最新重跑（unified-task24-checks-first-fix.log）。当前正跑unified-task24-collaboration-recovery-regressions.log和unified-task24-matrix-recovery-final.log；不得提前计成功。宽原生回归仍有ACP setup和若干业务deadline失败，必须读取完整汇总、按相同原生条件复现/核对基准，不能用旧阶段835项或局部绿色覆盖。
+
+整改恢复点验证：上述协作7文件69pass/0fail/退出0，包含修正独立输入home后health全部35项与既有附件/Board退休/主完成事务真实COMMIT丢ACK文件保留；closure-edges五文件14pass/0fail/退出0，包含真实server capabilities通过所选open_run_store短期acquire/close、零SQLite和两类completion audit+CommandRefusal原子重放。Matrix最新Linux6文件17pass/0fail/退出0（Native single_backend被integration marker排除，不计新Native证据），包含永久真实SDK并发/派生handler/取消/重开/受控supervisor回调；独立新增实测真实Gateway重连队列、取消carrier及has_session读中poison两项pass，正常tests曾因混用-p重复注册零收集，不计业务失败，正在单独补验。
+
+Native最新：Linux10文件145pass/0fail/5平台skip、退出0（unified-task24-native-profile-delete.log）；Windows群聊8文件初次58pass/3fail，修正后60pass/1fail（unified-task24-native-groups-accepted.log），剩余为附件路由测试0.4秒lease因文件/CPU耗时自然过期。该合同只验证文件传递，现使用已有注入clock固定测试时间，不增加production或业务deadline；连同独立租约失效套件和Windows持文件句柄删除七文件复跑53pass/0fail/2平台skip、退出0（unified-task24-native-files-leases.log）。两个原FakeService已提供真实选择的db_path；Native允许同home显式state.db/shared-state.db，PG服务仍精确匹配捕获ref。
+
+最新静态：scripts/check --staged --base 3febe6fc31全部14检查通过，55个Python文件health 0blocking/0advisory（unified-task24-checks-accepted.log）。前两次静态的ruff未用探针变量及重构后BLE001已整改，四个保留的异常边界有明确health原因。三份独立follow-up均记录所列blocking/major关闭及本范围绿测，但总体保留CHANGES_REQUIRED；宽回归目前仍运行且有失败，非WSL POSIX七项主机仍缺。为重建包含整改的新发行载荷，将创建明确标注Task24仍in_progress的本地恢复commit；不是Task24完成提交，不能据此将24/24或全系统PG标完成。
+
+恢复提交前追加两项独立发现并已红绿整改：真实gateway→scheduler的投递wrapper先按SQLite文件存在性返回，PG持久队列从不排空（unified-task24-cron-gateway-red.log）；坏YAML在执行账本backend解析时抛出ParserError，绕过run_job失败tuple（unified-task24-cron-config-red.log）。投递行为已抽至scheduler_delivery_queue sibling，保留facade transport/通知补丁缝，只对Native无文件快返；配置读取将YAMLError/OSError转为仅含拥有者路径的StorageConfigurationError，执行身份准备失败明确返回失败tuple，不启动模型、不读SQLite。最新PG队列全文件7pass/0fail（unified-task24-cron-delivery-accepted.log），同ID peer保持pending、目标实际送达并重开读取、send不持连接；坏配置原生窄测1pass/0fail（unified-task24-cron-config-accepted.log）。中间名为green的混合命令因状态术语queued/pending及给非hermes_db文件传PG自定义参数而失败/零收集，保留原日志，不计通过。独立配置边界3pass及源码复审记录在cron-consumers-followup-review，Matrix永久7pass+监督器实证2pass记录在matrix-supervisor-followup-review，均不扩大总体门禁结论。
+
+恢复提交静态终验：scripts/check --staged --base a875342384退出0，全部14检查通过、完整分支547个Python文件health 0blocking/0advisory（unified-task24-all-branch-checks.log）；git diff --cached --check通过。局部整改恢复提交标题为`fix(storage): close unified backend review gaps`，Task24仍in_progress、整体FAILED，剩余全域/发行/平台任务照旧。原生宽回归跨整改版本运行，结果仅作为缺陷发现依据，不能当作某个固定新提交的最终验收；接下来在已有Linux的独立本机文件系统checkout中按冻结恢复提交重跑，避免/mnt/d源代码I/O争用，继续保留所有初轮失败和未验证项，不调大业务deadline、不伪装OS。
 
 ## 计划变更
 
@@ -1505,11 +1530,11 @@ SQLite SDK细化与真实证据：上游mautrix SQLite类确实从asyncpg导入U
 
 ### 执行结果
 
-- 单元/SQLite回归：未执行本计划验证。
-- 真实PG各域/并发/故障/单后端审计：未执行。
+- 单元/SQLite回归：Task22/23及Task24所列局部有真实证据；最终宽回归仍运行且已有失败，尚未通过。
+- 真实PG各域/并发/故障/单后端审计：Task24首轮103文件569pass/4fail/1error及文件超时，正在整改/重跑，尚未通过。
 - 独立安装/显式迁移/原生重启：未执行本计划全域验证。
 - 静态/生成契约/适用构建：业务实现后按实际变化运行。
-- 独立审查：未执行本计划代码审查；会话阶段报告保留为前置证据。
+- 独立审查：三份独立初审CHANGES_REQUIRED；foundation及Matrix增量已有独立通过证据，协作域追加整改和全局最终复审尚未完成。
 
 ### 验收标准检查
 
@@ -1523,14 +1548,14 @@ SQLite SDK细化与真实证据：上游mautrix SQLite类确实从asyncpg导入U
 
 ### 未通过与未验证
 
-Task1–23已完成，Task24尚未实施；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。
+Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣称全系统PG已完成。会话阶段已知的非WSL私有启动页适用平台缺口和波动记录继续保留，最终门禁需说明实际范围。生产整改后旧2219b69afd独立发行载荷不含本轮代码，必须以新恢复提交重建和复验。
 
 ### 最终状态
 
-尚未进入最终验证。当前为IN_PROGRESS；实施后的最终判定只用READY_TO_MERGE / BLOCKED / FAILED。
+当前最终验证判定`FAILED`，Task24保持in_progress。未处理blocking/major和宽回归红测必须先整改；非WSL POSIX平台证据缺口单独保留，不得宣称全系统PG完成或可合并。
 
 ## 恢复点
 
-Task1–23已验收并按任务创建本地commit（Task21 `17078105be`，Task22 `2219b69afd`；Task23标题`docs(storage): verify unified backend source-bundle installations`）。下一项Task24：读取verification-before-completion和code-review skill，完成所有PG域/原生入口广泛回归、受隔离Profile的原生启动复验、独立code-review、整改和最新复验，再作最终判定。独立安装Linux最新6pass/0skip，Windows通用4pass/2SDK平台skip及最新前向升级1pass/1平台skip，四个PM新环境完成，14静态检查通过。文档站英文构建成功、保留已核对的不相关既有告警。正式实例保持SQLite，未写正式Profile、秘密或业务表；不能由此宣称全系统PG已完成。
+Task1–23已验收并按任务创建本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`）。Task24整改代码、永久PG/Native回归及三份独立follow-up已保存，局部证据见本任务；当前判定FAILED，仍23/24。下一步：用明确的整改恢复commit重新导出无.git/秘密的独立source-bundle，经PM构建SQLite/PG四个新环境并重新验证；完整PG目录采用适合多case文件的1200秒总cap重跑；等原生宽回归完整汇总后逐项定位/同条件基准和复验；重做覆盖全分支的静态、实际daemon/Worker联合恢复及最终独立审查。非WSL私有启动页七项依然等待适用主机，不能以WSL或Windows伪装替代。正式实例仍SQLite a875342384，未写正式Profile、秘密或业务表，不推送/发布/PR/合并。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

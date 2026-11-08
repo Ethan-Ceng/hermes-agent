@@ -86,14 +86,32 @@ def test_core_move_keeps_source_owned_spillover_after_donor_retirement(core_pair
 def test_core_pg_move_rejects_sqlite_snapshot_and_ledgered_source(core_pair, tmp_path):
     from hermes_db.errors import StorageConfigurationError
     from hermes_db.runtime_store import PostgresRuntimeStore
-    from hermes_state import SessionDB
+    import pickle
+    import subprocess
+    import sys
+    from tests.gateway.fixtures.local_recovery_probe import child_env
     from hermes_state_profile_repair import SessionLedgeredError
     source, target = core_pair
-    with SessionDB(db_path=tmp_path / "legacy.db") as sqlite:
-        sqlite.create_session("sqlite", "cli")
-        sqlite.append_message("sqlite", "user", "old SQLite data")
-        with pytest.raises(StorageConfigurationError, match="PostgreSQL|PG"):
-            target.import_moved_session(sqlite.export_session_for_move("sqlite"), profile_name="target")
+    # A real user-owned SQLite input is created in its own process, outside the PG business guard.
+    script = """
+import pathlib, pickle, sys
+from hermes_state import SessionDB
+root = pathlib.Path(sys.argv[1])
+with SessionDB(db_path=root / 'legacy.db') as db:
+    db.create_session('sqlite', 'cli')
+    db.append_message('sqlite', 'user', 'old SQLite data')
+    (root / 'input-snapshot').write_bytes(pickle.dumps(db.export_session_for_move('sqlite')))
+"""
+    child_home = tmp_path / "sqlite-input-home"
+    child_home.mkdir()
+    environment = dict(child_env(), HOME=str(child_home), USERPROFILE=str(child_home), HERMES_HOME=str(child_home),
+        HERMES_RUNTIME_DIR=str(child_home / "runtime"))
+    process = subprocess.run([sys.executable, "-c", script, str(tmp_path)], env=environment,
+        capture_output=True, text=True, timeout=60, check=False)
+    assert process.returncode == 0, process.stderr
+    snapshot = pickle.loads((tmp_path / "input-snapshot").read_bytes())
+    with pytest.raises(StorageConfigurationError, match="PostgreSQL|PG"):
+        target.import_moved_session(snapshot, profile_name="target")
     source.create_session("live", "cli")
     runtime = PostgresRuntimeStore(source)
     epoch = runtime.begin_epoch(instance_id="owner")

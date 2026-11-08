@@ -147,15 +147,23 @@ def _room_link_run_storage_durable() -> bool:
     if _bound_server is None:
         # Embedded callers without a bound server expose no peer-run transport.
         return True
+    from hermes_cli.db_setup import storage_backend
+    from hermes_constants import get_hermes_home
+    from hermes_db.api_resources import open_run_store
+    from gateway.platforms.api_server_run_idempotency import RunIdempotencyStore
+    home = get_hermes_home()
+    if storage_backend(home) == "postgresql":
+        # Capabilities only probe durability; no cached Profile resource needs a new lifecycle.
+        with contextlib.closing(open_run_store(home, RunIdempotencyStore)) as selected:
+            return selected.durable
     store = getattr(_bound_server, "_run_idempotency_store", None)
     if store is None:
         # This process does not construct the API adapter that owns the store; open the
         # same shared SQLite store lazily so negotiation reflects the real replay boundary.
-        from gateway.platforms.api_server_run_idempotency import RunIdempotencyStore
         with _run_store_lock:
             store = getattr(_bound_server, "_run_idempotency_store", None)
             if store is None:
-                store = _bound_server._run_idempotency_store = RunIdempotencyStore()
+                store = _bound_server._run_idempotency_store = open_run_store(home, RunIdempotencyStore, launch=True)
     return bool(getattr(store, "durable", False))
 
 
@@ -198,12 +206,20 @@ def _room_method(
 
     def dec(fn):
         def handler(rid, params: dict) -> dict:
+            from tui_gateway.methods_groups_scope import invoke
+            try:
+                return invoke(params, lambda: dispatch(rid, params))
+            except ValueError as error:
+                return _err(rid, 4000, str(error))
+
+        def dispatch(rid, params):
             if (forwarded := owner_call(rid, name, params)) is not None:
                 return forwarded
             args = (rid, params)
             if service_code is not None:
                 service = get_hosted_room_service()
-                if service is None:
+                from tui_gateway.methods_groups_scope import service_matches
+                if service is None or not service_matches(service):
                     return _err(rid, service_code, service_message)
                 args += (service,)
             if db:
@@ -211,7 +227,7 @@ def _room_method(
                 args += (default_db_path(),)
             try:
                 return fn(*args)
-            except Exception as exc:
+            except Exception as exc:  # health: allow BLE001 -- room RPC boundary preserves typed refusals for local, peer, and driver failures
                 if room_code is not None and isinstance(exc, error_class(replica_only)):
                     reason = getattr(exc, "reason", None) if with_reason else None
                     return _err(rid, room_code, str(exc), {"reason": reason} if reason else None)
@@ -224,11 +240,21 @@ def _room_method(
 @method("groups.capabilities")
 def _(rid, params: dict, _catalog=_local_catalog, _methods=_METHODS, _owner=_forward_to_owner) -> dict:
     """Describe the hosted-room protocol implemented by this gateway."""
+    from tui_gateway.methods_groups_scope import invoke
+    try:
+        return invoke(params, lambda: _group_capabilities(rid, params, _catalog, _methods, _owner))
+    except ValueError as error:
+        return _err(rid, 4000, str(error))
+
+
+def _group_capabilities(rid, params, _catalog, _methods, _owner):
+    from hermes_db.errors import StorageError
     if (forwarded := _owner(rid, "groups.capabilities", params)) is not None:
         return forwarded
     from gateway.hosted_rooms import MAX_LOG_LIMIT, PROTOCOL_VERSION, local_authority_gateway_id
     service = get_hosted_room_service()
-    driver_ready = bool(service and service.runtime.status()["running"])
+    from tui_gateway.methods_groups_scope import service_matches
+    driver_ready = bool(service and service_matches(service) and service.runtime.status()["running"])
     try:
         from gateway.hosted_room_peer import gateway_room_grant_secret
         profile = _requested_profile(params)
@@ -240,7 +266,9 @@ def _(rid, params: dict, _catalog=_local_catalog, _methods=_METHODS, _owner=_for
         room_link = {
             "enabled": True, "profile": profile, "catalog": catalog,
             "endpoint": catalog["endpoint"]}
-    except Exception:
+    except StorageError:
+        raise
+    except Exception:  # health: allow BLE001 -- optional RoomLink catalog/secret failures disable advertisement; selected-store failures propagate above
         room_link = {"enabled": False, "reason": (
             "durable_run_storage_required" if not _room_link_run_storage_durable()
             else "gateway_roomlink_secret_unavailable")}
@@ -578,4 +606,6 @@ _passthrough(
 
 
 def register(server) -> None:
+    from .method_ctx import rebind
+    server._group_capabilities = rebind(_group_capabilities, vars(server))
     _registry.install(server)

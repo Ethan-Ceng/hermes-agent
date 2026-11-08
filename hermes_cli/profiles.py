@@ -1427,11 +1427,13 @@ def _notify_multiplexer(canon: str) -> None:
     notify_multiplexer_profiles_changed(canon)
 
 
-def _purge_identity(canon: str) -> bool:
+def _purge_identity(canon: str, *, deletion=None) -> bool:
     """Settle a deleted profile's durable identity (``profile_identity.purge_profile_identity``).
 
     False means the filesystem delete happened but the identity settlement did not — the caller
     reports that as a pending settlement rather than a clean success."""
+    if deletion is not None:
+        return deletion.purge_identity(canon, _live_default_multiplexer())
     from hermes_cli.profile_identity import purge_profile_identity
     return purge_profile_identity(canon)
 
@@ -1692,12 +1694,8 @@ class ProfileIdentitySettlementPending(RuntimeError):
 def delete_profile(name: str, yes: bool = False) -> Path:
     """Delete a profile, its wrapper script, and its gateway service (service disabled first
     to prevent auto-restart, gateway stopped if running)."""
-    canon = normalize_profile_name(name)
-    if canon == "default":
-        raise ValueError("Cannot delete the default profile (~/.hermes).\nTo remove everything, use: hermes uninstall")
-    canon, profile_dir = _existing_profile_dir(canon)
-    gw_running = _check_gateway_running(profile_dir)
-    wrapper_path = _find_our_wrapper(canon)
+    from hermes_cli.profiles_deletion_storage import prepare
+    canon, profile_dir, gw_running, wrapper_path, deletion = prepare(name)
     _print_delete_summary(canon, profile_dir, gw_running, wrapper_path)
     if not yes:
         print()
@@ -1710,6 +1708,7 @@ def delete_profile(name: str, yes: bool = False) -> Path:
             print("Cancelled.")
             return profile_dir
 
+    deletion.verify()
     # 1. Disable service (prevents auto-restart); drop the s6 slot on container (host no-op).
     _cleanup_gateway_service(canon, profile_dir)
     _maybe_unregister_gateway_service(canon)
@@ -1729,7 +1728,7 @@ def delete_profile(name: str, yes: bool = False) -> Path:
     # operation below: an ordinary unserve must preserve identity, because a rename's old name
     # leaves the served set exactly like a deleted one does (#111926, delete side).
     _notify_multiplexer(canon)
-    identity_settled = _purge_identity(canon)
+    identity_settled = _purge_identity(canon, deletion=deletion)
 
     # The main serve process survives this deletion. Stop only this profile's MCP
     # transports and release cached stderr handles, including completed probes.
@@ -1772,8 +1771,7 @@ def delete_profile(name: str, yes: bool = False) -> Path:
         # a live runtime owns (its writers would recreate the tree under the tombstone).
         if not wait_profile_unowned(profile_dir):
             raise RuntimeError("a running gateway still owns this profile; retry the delete once it settles")
-        from hermes_cli.data_cleanup_storage import purge_profile_store
-        purge_profile_store(profile_dir)
+        deletion.purge()
         _rmtree_with_retry(profile_dir, _rmtree_make_writable)
         print(f"✓ Removed {profile_dir}")
     except Exception as e:

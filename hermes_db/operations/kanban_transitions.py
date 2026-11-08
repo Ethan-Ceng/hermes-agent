@@ -23,11 +23,11 @@ def block_task(store, task_id, *, reason=None, kind=None, expected_run_id=None):
     with store.write() as conn:
         row = repo.get(conn, store, task_id)
         if row is None:
-            return False
+            return store.command_result(conn, False)
         if row["status"] == "blocked":
             return store.command_result(conn, _classify_blocked(conn, store, row, kind, reason, expected_run_id))
         if row["status"] not in {"running", "ready"} or (expected_run_id is not None and row["current_run_id"] != int(expected_run_id)):
-            return False
+            return store.command_result(conn, False)
         source = run_repo.retry_status(conn, store, task_id, row["current_run_id"]) if row["status"] == "running" else "ready"
         requested = kind
         if kind == "dependency" and not _unsatisfied(conn, store, task_id):
@@ -53,7 +53,7 @@ def unblock_task(store, task_id):
     with store.write() as conn:
         row = repo.get(conn, store, task_id)
         if row is None or row["status"] not in {"blocked", "scheduled"}:
-            return False
+            return store.command_result(conn, False)
         resume = repo.resume_status(repo.history(conn, store, task_id)) if row["status"] == "blocked" else "ready"
         _close_dangling(conn, store, row, int(time.time()), "invariant recovery on unblock")
         status = "todo" if _unsatisfied(conn, store, task_id) else resume
@@ -68,9 +68,9 @@ def schedule_task(store, task_id, *, reason=None, expected_run_id=None):
     with store.write() as conn:
         row = repo.get(conn, store, task_id)
         if row is None or row["status"] not in {"todo", "ready", "running", "blocked"}:
-            return False
+            return store.command_result(conn, False)
         if expected_run_id is not None and row["current_run_id"] != int(expected_run_id):
-            return False
+            return store.command_result(conn, False)
         repo.task_update(conn, store, task_id, status="scheduled", claim_lock=None, claim_expires=None, worker_pid=None)
         run_id = run_repo.close_run(conn, store, row, outcome="scheduled", status="scheduled", summary=reason)
         if run_id is None and reason:

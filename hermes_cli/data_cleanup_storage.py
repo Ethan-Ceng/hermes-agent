@@ -24,16 +24,19 @@ def capture_removal(home):
         return StoreRemoval(scope.profile_home, scope.require_store_id(), resource_key(Transactions(get_engine(pg), pg.schema)))
 
 
-def purge_store(captured):
+def purge_store(captured, *, selected=None):
     from hermes_cli.db_setup import _owning_profile
     from hermes_db.errors import StorageConfigurationError
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_db.factory import acquire_domain, acquire_profile_domain
     from hermes_db.move_values import resource_key
     from hermes_db.tables import load_metadata
     from hermes_db.tables.rooms import rooms
     from sqlalchemy import update
     from sqlalchemy.sql.ddl import sort_tables
-    with _owning_profile(captured.home), acquire_profile_domain("sessions", profile_home=captured.home) as resource:
+    with _owning_profile(captured.home):
+        resource = (acquire_domain("sessions", selected.settings, selected.scope) if selected is not None
+                    else acquire_profile_domain("sessions", profile_home=captured.home))
+    with resource:
         if (resource.settings.backend != "postgresql" or resource.scope.store_id != captured.store_id
                 or resource_key(resource._transactions) != captured.target):
             raise StorageConfigurationError("Selected database identity changed after the removal plan; preserve all local files")

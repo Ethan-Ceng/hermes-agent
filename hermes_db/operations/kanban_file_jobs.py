@@ -82,8 +82,15 @@ def record(conn, store, row, fields, *, archive):
     action = "archive" if archive else "delete"
     existing = conn.execute(select(jobs).where(job_key(store, row["board_id"]))).mappings().one_or_none()
     if existing is not None:
-        if existing["action"] != action:
+        if existing["action"] == action:
+            return
+        allowed = {("import", "archive"), ("import", "delete"), ("archive", "delete")}
+        if (existing["state"] != "done" or (existing["action"], action) not in allowed
+                or existing["stage_root"] is not None):
             raise StorageBusyError("Complete the existing Board file operation before changing its action")
+        conn.execute(update(jobs).where(job_key(store, row["board_id"])).values(
+            action=action, state="pending", created_at=int(time.time()),
+            **{key: encode_text(value) for key, value in fields.items()}))
         return
     conn.execute(jobs.insert().values(store_id=store.scope.require_store_id(), board_id=row["board_id"],
         slug=row["slug"], action=action, created_at=int(time.time()), **{key: encode_text(value) for key, value in fields.items()}))
@@ -138,6 +145,13 @@ def pending_delete(store, slug):
     with store.read() as conn:
         return conn.scalar(select(jobs.c.board_id).where(jobs.c.store_id == store.scope.require_store_id(), jobs.c.slug == slug,
             jobs.c.action == "delete", jobs.c.state != "done", jobs.c.owner_home == encode_text(str(store.scope.profile_home))))
+
+
+def settle_import_stage(store, board_id):
+    with store.read() as conn:
+        row = conn.execute(select(jobs.c.action, jobs.c.state, jobs.c.stage_root).where(job_key(store, board_id))).first()
+    if row is not None and row.action == "import" and row.state == "done" and row.stage_root is not None:
+        run_job(store, board_id)
 
 
 def run_job(store, board_id):

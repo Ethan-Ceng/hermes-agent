@@ -54,7 +54,8 @@ def find_canonical_live_owner(profile_home: Path | str) -> dict[str, Any] | None
     discovery = discover_gateway_endpoint(home, timeout=5)
     if discovery.state != 'ready' or discovery.endpoint is None:
         raise ValueError('profile authority is not ready')
-    if not (home / 'state.db').is_file():
+    from hermes_db.access import session_store_exists
+    if not session_store_exists(home / 'state.db'):
         return None
     tip = _bot_chat_tip(home)
     return dict(profile_home=str(home), session_id=tip or '', canonical=True,
