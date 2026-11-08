@@ -1531,6 +1531,12 @@ Matrix sessions失败来自测试在store重开并读取loaded_inbound后，继�
 
 仅测试合同及脱敏诊断修正的静态门禁：PM解释器`scripts/check --staged --base 58d0003f83`全部14检查通过，3个Python文件health 0blocking/0advisory，退出0（unified-task24-test-contract-checks.log）；git diff --cached --check通过。随后只补账本与独立复审记录并保存本地恢复commit；Task24仍in_progress。生产代码及58d四套发行载荷未变，新冻结测试快照将重跑完整PG与显式普通daemon联合合同，不以局部pass替代完整结果。
 
+上述测试恢复commit为`d402ff3a06b15c45a150eb2459191bfc5a4a7e22`，新独立checkout状态记录于忽略目录task24-pg-corrected-state.json，没有更换仍运行中的58d Native checkout。新冻结PG命令在前述完整目录/新安装参数基础上显式加入`tests/hermes_db/postgresql/scenarios/kanban_full_gateway.py`，共114文件、retries0、-j3/--file-timeout1200，日志unified-task24-corrected-pg-and-daemon.log，仍运行，当前结果不得计完整通过。相同新checkout的`contracts/test_single_backend.py -j1`已实际4pass/0skip/退出0、11.5秒（unified-task24-sqlite-sdk-final.log），包含真实SQLite Matrix SDK、全域双Profile及新解释器恢复、禁止PG服务、SQLite guard正控制和单独输入进程。
+
+原生Windows最新显式`scenarios/kanban_full_gateway.py test_kanban_worker_e2e.py test_kanban_interactive_worker.py -j2 --file-timeout1200 -- <PG参数>`：3文件4pass/0skip/退出0、111.9秒（unified-task24-windows-daemon-workers.log），普通gateway.run daemon、同/跨执行Profile worker、交互入口、实际工具写入、持久回执及重启均通过，进程SQLite全拒绝。不据此删除前次Linux全量的Worker超时记录。
+
+冻结Native宽回归随后新增shutdown_interrupt两项失败，当前共3fail、尚无完整汇总。独立Reviewer确认第二项多余mark来自前一barrier失败测试的same-job/old-owner线程，前一测试在barrier.wait(2)失败前没有finally release/join，存在跨测试污染；第一barrier为何超时仍缺线程栈。以原deadline顺序在a875/58d执行同文件各25pass/0fail（review-foundation-shutdown-{baseline,head}-ab.log），不能将窄跑绿写成失败已解决或归为既有问题。新增观察和未验证边界已补foundation-operations-followup-review，未改Agent核心、业务deadline或全局门禁。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |
@@ -1570,6 +1576,6 @@ Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣
 
 ## 恢复点
 
-Task1–23已验收并按任务创建本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`）；Task24生产整改恢复提交`58d0003f83`未标本项完成。该ref的四套新PM发行环境已验证；当前判定FAILED，仍23/24。下一步：读Matrix双向重开窄验结果与Worker脱敏日志；将测试修正和证据创建本地恢复commit后在新冻结checkout完成全PG绿色复验；等待当前冻结Linux八目录宽回归完整汇总再逐项定位/基准和复验；完成实际普通daemon/Worker联合恢复、最新静态及全局最终独立审查。非WSL私有启动页七项依然等待适用主机，不能以WSL或Windows伪装替代。正式实例仍SQLite a875342384，未写正式Profile、秘密或业务表，不推送/发布/PR/合并。
+Task1–23已验收并按任务创建本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`）；Task24生产整改恢复提交`58d0003f83`，测试合同恢复提交`d402ff3a06`，均未标本项完成。58d四套新PM发行环境已验证；当前判定FAILED，仍23/24。运行中：最新d402完整PG/独立发行/普通daemon联合114文件批次，以及58d Linux八目录Native宽回归；状态与日志名见本项。最新SQLite SDK合同4pass、Windows显式daemon/Worker4pass；原全量Worker超时和Native compression/shutdown失败仍未定根因。下一步：读取两个完整批次汇总，按原deadline失败时线程栈/脱敏日志定位，整改后复验；完成最新静态和全局最终独立审查。非WSL私有启动页七项依然等待适用主机，不能以WSL或Windows伪装替代。正式实例仍SQLite a875342384，未写正式Profile、秘密或业务表，不推送/发布/PR/合并。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

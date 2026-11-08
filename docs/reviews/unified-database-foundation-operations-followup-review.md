@@ -75,3 +75,47 @@
 本次指定生产整改范围未发现仍未处理的 blocking/major；原数据误删、房间选错 Profile 和 Bot Chat 文件 guard 三项业务发现已由当前实现与上述证据闭合。Schema 门禁的测试合同已正确更新，正式运行结果仍待复跑登记。
 
 整体交付结论仍为 `CHANGES_REQUIRED`：完整最终验证和适用平台验收尚未完成。本报告仅记录局部整改复审通过，不批准合并、不声明 `READY_TO_MERGE`，也不改写前次固定提交的审查结论。
+
+## 冻结 58d 原生宽回归补证
+
+本节追加于冻结提交 `58d0003f83d1c99505e1173508ea7e2934d89411` 的原生宽回归期间。Reviewer 只读检查生产与仓库测试，未修改它们；按主 Agent 明确要求，顺序执行一次 shutdown 的 baseline/head 窄复验。本节不把先前 `/mnt/d` 跨版本 runner 的 partial 输出当作冻结验收，也不以窄跑通过冲销宽回归失败。生产冻结版本仍为 58d；主 Agent 后来保存的仅测试修正提交 `d402ff3a06` 不在本节实际 A/B checkout 中。
+
+### Compression deterministic fallback：因果未定
+
+冻结日志 `.build/postgresql/unified-task24-frozen-native-areas.log:389` 记录 `test_compression_stall_deterministic_fallback.py` 为 5 passed、1 failed。失败项为 `test_over_window_request_commits_the_deterministic_fallback_on_the_first_stall`。第 406–418 行可见：primary summary 已 dispatch，随后记录 `stall_interrupted`，取消 worker 在 2 秒 grace 内未退出；deterministic rung 已启动，但在 `conversation_compression.py:2983` 的 summary dispatch 前检查到 fence 取消，最终 `no_progress`。两个 attempt 的 telemetry 分别为 aborted、4048/3988 ms。当前 inline 仅保留失败文件输出最后 30 行（`scripts/run_tests_parallel.py:890`），没有完整 assertion traceback；不能将推断的失败断言冒充已观察的 traceback。
+
+测试与实际调用链的核对结果：
+
+- `tests/agent/test_compression_stall_deterministic_fallback.py:36` 明确构造临时路径的原生 SQLite `SessionDB`，并传入真实 `AIAgent`；`agent/agent_init.py:1115` 保存该实例，`conversation_compression.py:2731` 的 lease、其 cooldown 读写使用该实例。没有发现该测试把 session lease 改选到 PostgreSQL 的直接路径。
+- 测试把 `call_llm` 替换为等待取消的 stub，关闭 fallback chain；`fast_timeouts` 保留原合同 `(2.0, 20.0)`。本用例的 70k tokens 超过 64k window，`conversation_compression.py:1210` 将 primary pre-commit ceiling 收敛到 idle 2 秒；`_run_pinned_compression_retry` 又为 deterministic rung 分配自己的预算。日志中的网络围栏 metadata 警告早于压缩开始，不能据此认定 summary 网络调用卡住。
+- deterministic worker 在 dispatch 前仍要做 snapshot、lease/cooldown 读取、memory context 和 heartbeat 等准备（`compression_facade.py:144`、`conversation_compression.py:4078`、`:4105`、`:3809`）。当前日志没有阶段耗时或超时瞬间线程栈，无法区分 SQLite/锁等待、文件系统或调度延迟及其他间接影响。压缩入口的 `shared_metrics_events.begin_compression_attempt` 只写 `threading.local`，本身不打开新 metrics store。
+- a875→58d 的 compression facade、conversation compression、context compressor、thread context、原生 `hermes_state*` 与该测试没有 diff。这缩小直接修改面，但不能排除新增 backend 消费者造成的间接资源争用，也不证明问题已存在于 baseline。
+
+主 Agent 同环境按 a875→58d 顺序执行的 `.build/postgresql/unified-task24-compression-baseline.log` 与 `unified-task24-compression-head.log` 均为 6 passed、0 failed，分别约 14.2/13.8 秒；它们是单文件 `-j 1`，冻结宽回归为 6412 文件 `-j 3`。因此本项分类为 **需要同条件观测，尚不能判定 backend 实质因果**，不归为已证实的环境问题或既有失败。
+
+下一最小观测是在保留原 deadline 的前提下，取得最终完整 traceback，并仅在隔离诊断层记录 primary/retry 的 worker 入场、lease 取得、cooldown 读取、summary dispatch 时间及取消时线程栈；随后比较 a875/58d 在相同并发负载下的同一合同。不建议先扩大 timeout、跳过断言或修改 Agent 核心。
+
+### Shutdown：窄 A/B 未复现，宽回归存在跨测试污染证据
+
+同一冻结日志第 1414–1435 行另有 2 项失败：
+
+1. `TestRunningFireOwnerRegistry.test_shutdown_sees_all_concurrent_direct_fire_owners` 在 `tests/cron/test_shutdown_interrupt.py:211` 的 `entered.wait(timeout=2)` 抛 `BrokenBarrierError`。测试第 208–210 行启动线程，第 217–220 行才 `release.set()`/join，失败路径没有 `try/finally` 收束；autouse fixture 第 20–32 行只清 module 集合，不 join 工作线程。现有日志未给出两个 worker 在 barrier 前的阻塞栈，第一超时根因未定。
+2. 后续 `TestExecutionScopedInterruption.test_replacement_execution_of_same_job_is_not_poisoned` 在第 373 行要求一次 `mark_job_run`，实际收到两次。其中 `job-1/replacement-owner` 匹配当前用例输入；额外 `same-job/old-owner` 匹配前一 barrier 用例的输入，强支持前一失败线程在 fixture 清理后继续运行并命中下一测试的 facade mock seam。尚未观察 thread id，不能把该推断升级为完整线程级根因证明；也不能将第二失败独立登记为 ownership 业务回归。
+
+`run_one_job` 在进入被测试替换的 `_run_with_fire_claim_heartbeat` 前，仍会创建 durable execution、处理 handoff 和绑定 owner（`cron/scheduler.py:2792` 起）。新增 execution domain wrapper 与 SQLite 防误连 backend 检查属于该路径的变化面，可能增加配置访问；没有阻塞采样就不能排除它们，也不能用 scheduler facade 主体无 diff 来判定既有。第一失败应继续作为未分类的宽回归失败保留。
+
+Reviewer 实际按顺序执行以下两条命令，测试均经 helper 内的 `scripts/run_tests.sh`；共享已准备的 PM Linux 解释器，`HERMES_TEST_FILE_RETRIES=0`，`-j 1`，原 deadline，`--tb=long`，未操作正式 Profile/服务，也未传 PostgreSQL 凭据：
+
+```text
+.build/postgresql/full-test-env/Scripts/python.exe .build/postgresql/run_matrix_linux.py --native --state task24-baseline-linux-state.json --log review-foundation-shutdown-baseline-ab.log tests/cron/test_shutdown_interrupt.py -j 1 -- --tb=long
+.build/postgresql/full-test-env/Scripts/python.exe .build/postgresql/run_matrix_linux.py --native --state task24-native-checkout-state.json --log review-foundation-shutdown-head-ab.log tests/cron/test_shutdown_interrupt.py -j 1 -- --tb=long
+```
+
+| 实际 checkout（另行只读 rev-parse 核对） | 结果 | 原始日志 |
+| --- | --- | --- |
+| `a8753423841362c6c8d76e2dca094c95d690ba27` | 25 passed、0 failed，退出 0，11.9 秒 | `.build/postgresql/review-foundation-shutdown-baseline-ab.log` |
+| `58d0003f83d1c99505e1173508ea7e2934d89411` | 25 passed、0 failed，退出 0，4.7 秒 | `.build/postgresql/review-foundation-shutdown-head-ab.log` |
+
+这一次顺序窄 A/B 没有复现，不能说明在冻结宽回归的并发条件下两版本等价，也不能据运行时间差宣布性能结论。若继续诊断，最小观测是在隔离层于原 2 秒 barrier 失败时捕获两个 worker 栈，并在保留业务断言的前提下确保诊断清理始终 release/join，防止首个失败污染后续证据。
+
+本次观察时冻结宽回归已经累计上述 3 failed 且仍运行；不能用任何局部绿测报告整体通过。全局结论保持 **`FAILED` / `CHANGES_REQUIRED`**，完整冻结回归、这些失败的处置与原 7 项适用非 WSL POSIX 主机验收仍未由本节闭合。
