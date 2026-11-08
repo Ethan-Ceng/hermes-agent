@@ -345,3 +345,21 @@ conversation_loop._restore_or_build_system_prompt
 最小整改必须同时保持两种边界：纯 backend 探测应尊重已绑定的冻结 worker 配置，且不 hydrate Profile 秘密/文件；真实持久 acquire 仍须使用明确 owner/settings/scope 与 owner-only 约束，不能因为 agent 默认 snapshot 缺 storage 字段而给 PG owner 改开 SQLite。若 consent store 仅 owner 持有，应沿 owner 明确资源处理；不以关闭 config-only 的插件/lifecycle、删除 `.env` 断言或 SQLite/内存 fallback 掩盖问题。该交界已及时发给主 Agent，请其与 metrics Reviewer 一起处理。
 
 本节未修改生产、仓库测试或快照 tracked 文件。原 Projects major 目标闭合，新 config-only metrics major **未整改验收**，原完整 safe-mode 合同及全局仍为 **`FAILED` / `CHANGES_REQUIRED`**。
+
+### 51b3 原完整 CLI 合同通过，局部 major 闭合
+
+主 Agent 的 selector 窄修为 `51b3e61c6c2c6338f84acc5965f32c078a58d520`。Reviewer 独立核对 `task24-selector-checkout-state.json` 对应该完整 ref、tracked clean，沿用原 task24-full-test-env；未修改快照、生产、测试断言或期限。`db_setup.py` 受审 blob 为 `380006f7c23d1b6250a3d6572494fc403eeb537d`。原 safe-mode 测试 blob 仍为 `592775ba89d09819b573e17e0cc3a6015c82445a`，与 58d/8d6f 相同。
+
+本次实际运行原文件，而非诊断包装或 selector mock：
+
+```text
+.build/postgresql/full-test-env/Scripts/python.exe .build/postgresql/run_matrix_linux.py --native --state task24-selector-checkout-state.json --log review-foundation-safe-mode-selector-accepted.log tests/hermes_cli/test_safe_mode.py -j 1 -- --tb=long
+```
+
+canonical runner、retries 0、原各阶段 deadline；实际 **1 passed、0 failed、退出 0，总 case 96.1 秒**。日志 `.build/postgresql/review-foundation-safe-mode-selector-accepted.log` 记录 100% 完成，无文件重试。原断言全部执行通过：普通 owner sentinel 正向控制、safe worker 隔离/持久 admission、坏 YAML 后第二次 safe launch 且配置内容未改、工具保持一致，以及 config-only 保留插件 discovery、worker 未打开 config.yaml 或 `.env`。
+
+窄修只在 `worker_config_snapshot() is not None` 时跳过多余的 `_owning_profile` 秘密 hydration；仍通过原 snapshot-aware `_storage_config`、`_storage`、`_backend`，没有新增 backend 默认值或 fake policy 来源。未绑定 worker policy 的普通 owner 路径、真实 `resolve_db_configuration`/acquire、owner-only、明确资源身份检查均未由该 diff 放宽。六项永久新进程合同的源码另已静态核对：ordinary/ignore/safe × SQLite/PG，真实绑定 snapshot、阻止 Profile config/.env 打开并禁止导入 PG drivers；不以这些窄探测替代本次真实 CLI 全链通过。
+
+据此，**本 Reviewer 发现的 CLI Projects 展示击穿创建，以及 config-only selector 触碰 `.env` 两项 major，按原完整 CLI 合同均已整改验收闭合**。保留原 a875 绿、58d Projects 红、8d6f 末阶段 `.env` 红及审计栈，不覆写失败证据。
+
+批准范围必须限定：这个原 CLI 用例没有 PG opt-in managed worker 的指标持久化，也没有 PG Profile 遗留 metrics.sqlite3 反例。plugins/metrics Reviewer 正在处理这两项真实交界（`review-pg-managed-metrics-red.log`），不能用本次 CLI 绿外推所有 worker 指标或全部 PG no-SQLite 业务均通过。owner PG 组、Root 报告的其他检查以及本次 CLI 独立结果各自保留归属；完整全局结算、其他原生失败和适用平台缺口仍未由本节验收。整体继续 **`FAILED` / `CHANGES_REQUIRED`**。

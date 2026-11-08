@@ -169,6 +169,12 @@ Task14文件边界细化：PG附件在store内持久分配一次内容namespace�
 
 指标保留当前安装/拥有者语义与 consent 状态，不能以换库扩大遥测发送范围。聚合、打包水位与 outbox 去重在一个短事务完成，导出文件及网络发送仍在事务外。
 
+Task24真实managed worker验收补充：agent的冻结配置只决定模型、工具和可选功能，不能决定它所使用的持久数据集。特别是ignore-user-config采用默认SQLite选择（或缺少storage）的快照，不能因此让已选PG的Profile打开遗留指标SQLite。Worker通过已认证、已采用且受epoch/generation约束的owner协议取得非秘密数据集身份；取得失败或旧owner不支持该协议时明确失败，不回落本地库。
+
+Worker所触发的验证证据、指标和维护插件队列继续通过owner RPC持久化，不移除factory的owner-only防线，也不让Worker获得PG连接或DSN。相同执行Profile/共享PG目标内的具名短领域写操作复用现有worker.persist序号、受保护outbox及Core回执事务：领域主写与执行回执使用同一Connection、一次提交，未知提交按原序号/原payload恢复。领域读使用同一执行身份核对后的闭合读协议；不提供任意SQL、动态模块/方法或由Worker选择Profile/Schema/store_id的入口。跨Profile的Kanban仍沿既有独立Board命令回执，不混入本事务。
+
+指标本地聚合仍服从冻结会话的collection选择，实际PG存储身份始终来自owner；Profile发送同意的读取和撤回应在真实owner配置范围内处理，不能用config-only默认send=false撤销Profile的既有窗口。打包水位在PG短事务提交，文件导出、网络发送和RetainDB HTTP请求在连接外；Worker的必要指标/队列回执在execution.finish前排空，不靠atexit中已经关闭的RPC完成。验收需真实ordinary daemon→managed worker→模型/工具→PG，核对持久重开、peer隔离及保留旧SQLite时的零连接；仅owner指标/插件独立进程测试不足以证明这条路径。
+
 Task15协议核对：`SharedMetricsStore`按显式拥有者Profile选择实现，PG捕获非秘密target/store_id引用，每次短操作重新绑定拥有者并核对配置；指标文件路径不能反推Profile。每Profile的指标范围锁保留原SQLite写事务的聚合、once/day/interval、rollup、打包与claim串行化语义。PG操作同步提交或明确失败，不用内存队列冒充持久化；SQLite原有短busy延迟队列继续只服务SQLite。安装身份、任意state键值、版本和JSON使用无损字节编码，发送字段与内容合同不扩大。
 
 consent的obs/data高水位、前向时钟上限、回拨关闭钳制、完整日期窗口判据保留；启动对账标记按Profile记录，opt-out在PG仍访问实际consent表，不能用不存在metrics.sqlite3跳过。setup/relay/installer改为具名领域操作，安装年龄从所选会话表读取。包插入、水位推进和data mark同事务；文件导出失败从持久包重放。sender沿用实际HTTP/压缩/状态/退避实现，claim token、冻结发送身份、续租与终态CAS由Core完成；POST确认丢失保留at-least-once语义，重发同一字节，不凭客户端错误猜测远端未收到。导出、文件清理、POST与重试等待期间不借用PG连接。

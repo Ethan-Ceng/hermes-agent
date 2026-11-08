@@ -1607,6 +1607,18 @@ Achievements三个失败已由独立保留原断言的观测定位为替身缺�
 
 冻结selector窄修本地恢复门禁：`scripts/check --staged --base 8d6f7bdaeb`全部14检查通过，2个Python文件health0blocking/0advisory、退出0（unified-task24-frozen-selector-checks.log）；不把局部health2文件写成完整分支555文件已检查。随后保存明确Task24未完成的本地恢复commit，下一步新快照执行原完整CLI合同；新发现的managed PG指标范围仍等实际反例，未标完成，不重建最终发行载荷。
 
+51b3新冻结原完整safe-mode CLI独立复验已1pass/0fail、退出0、96.1秒（review-foundation-safe-mode-selector-accepted.log），原test blob及期限/断言未变；关闭此前Projects inventory与selector额外.env读取两个局部major，不能外推PG managed指标。
+
+新的实际PG联合证据确认必要功能缺口，当前全局仍FAILED：普通启用指标的真实worker模型已完成、scope/peer正确且SDK真实加载，但采集开启后的_get_runtime→capture_metrics被owner-only拒绝，PG模型指标为0；config-only同Profile保留旧指标SQLite时实际尝试连接该文件，被严格guard拒绝。独立最终负例准确在SQLite-attempt断言红，早先业务/aux计数观测误差全部保留在metrics-worker-snapshot-followup-review。另一实际write_file→turn-stop链两次verification领域获取受同一guard拒绝，PG状态空；RetainDB正常初始化的PG队列也被拒绝，最终模型成功不能当作记忆工作。Projects经真实GUI/CLI可达性核对目前是owner消费者，不据不可达CLI工具泛报。
+
+设计补充及整改决定已写入unified-database-backends.md“指标与插件”：保留owner-only，先补闭合的owner数据集身份/领域读通道，再以现有worker.persist受保护outbox和同Connection Core回执承接相同Profile领域短操作，首项修verification，再接RetainDB与指标。数据集身份独立于agent默认快照；不接受Worker自选DSN/Schema/Profile/store_id，不添加任意SQL RPC。外部HTTP、文件导出及发送保持事务外，必要回执在execution.finish前排空。该补充纠正原Task2/3/15/18局部owner验证未覆盖的实际消费者，不新增任务数、不撤销功能或放宽SQLite验收；Task24持续整改，旧659/owner20项均不代表这些新路径通过。
+
+verification首步实际结果：新Core合同第一次因测试表名导入失误为collection error（unified-task24-worker-domain-core-red.log），修正后真正2fail（worker-domain-core-target-red），再与原workers/verification合批3文件21pass/0fail/退出0（worker-domain-core-first）。独立复审随后用未来cutoff真实删除同store foreign state/events，作为新增major保留red；现已移除worker时钟/清理/配额参数，owner在同一回执事务生成，普通owner API自定义参数保留。永久Core2项与独立反向1项分别通过（worker-domain-policy-green、unified-review-worker-domain-retention-green），含真实业务SQL后回滚、实际COMMIT丢ACK、原序号重放、同ID peer隔离、拒绝跨会话/任意SQL/保留策略伪造。
+
+真实消费永久化：Windows原普通daemon→采用worker→模型write_file→PG证据→退出→新owner恢复→peer空已1pass（managed-verification-first）。扩为普通/ignore-user-config的首批1pass/1fail是默认关闭验证功能后没有证据的测试前提错误，保留managed-verification-accepted.log；config-only现通过已有公开HERMES_VERIFY_ON_STOP启动override显式opt-in，不改生产开关/断言/guard。最新永久两项2pass/0fail/0skip、退出0、106.3秒（unified-task24-managed-verification-opt-in.log），每个owner进程连接预算1。独立Linux普通1pass46秒、config-only1pass62.3秒（worker-domain-first-fix-review），实测默认snapshot_backend=sqlite而实际证据在owner PG；此前“默认snapshot字面缺storage”的额外观测误判已纠正并留原日志，未计生产失败。
+
+原生证据/停止/保留/FD/缓存及worker读线程8文件90pass/0fail/3平台skip、退出0（unified-task24-worker-domain-native-evidence.log）；SQLite独立全域/新进程恢复+统一选择2文件8pass/0fail/1 Linux SDK skip（worker-domain-sqlite-independent），PG导入/服务拒绝保持。当前暂存首步`scripts/check --staged --base 51b3e61c6c`全部14检查通过、11个Python文件health0blocking/0advisory（unified-task24-worker-domain-checks.log），准备保存明确Task24未完成的本地恢复commit；独立worker-domain-first-fix-review关闭本通道及retention问题，RetainDB和metrics已实证的worker major仍保留，整体CHANGES_REQUIRED。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |
@@ -1646,6 +1658,6 @@ Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣
 
 ## 恢复点
 
-Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`）；Task24所有58d/d402/66a/dcb恢复均未标完成，当前仍FAILED、23/24。58d生产版本对应完整PG/发行/普通daemon659pass及Windows核心573pass；Native完整6412文件62870pass/44fail/220errors/726skip、退出1。PM工具补齐后29文件424pass，hot-profile全文件Linux7pass、shutdown双主机25项、SQLite SDK4项已通过，其他原失败保留。当前工作区新增归档原始配置owner、inventory所属scope/bypass和remote fresh Profile边界修复；局部独立复审及PG3项/备份10项、配置48项已绿，生产已不同于58d，不能继承旧659为当前最终证据。下一步：当前完整静态通过后保存明确Task24未完成的本地恢复commit、创建新的独立Native快照复验safe-mode/remote/备份等受影响文件，重建四套发行载荷并验证新生产版本；继续处理未决失败/缺SDK和构建工具前提，非WSL七项等待现成主机入口，最后独立全局终审及整改后复验。正式实例仍SQLite a875342384，未写正式Profile、秘密或既有业务表，不推送/发布/PR/合并。
+Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。后续58d/d402/66a/dcb/8d6/51b3均为恢复提交，未标完成。51b3已通过原完整safe-mode独立1项，8d6配置/Profile/备份原生22文件415项及四套独立PM载荷已保留。旧58d生产的完整PG659绿/Native62870pass44fail220errors726skip均不外推到当前代码；后续工具424、Photon16、FAL38及各局部整改真实证据见Task24执行结果。当前首步worker verification owner通道已通过Core/Windows完整普通+config-only重启/peer及独立Linux实证，14检查/health11文件通过，需保存本地恢复commit并新冻结Native复验；worker metrics正常采集及遗留SQLite反例、RetainDB实际初始化/队列仍为已证实未修major。下一步沿已补设计接通这些owner领域通道，再统一重建发行载荷和完整PG/Native/故障/平台复验及独立终审。非WSL七项仍待现成主机，不伪装OS；正式实例仍SQLite a875342384，未写正式Profile/秘密/既有业务表，不管理数据库服务，不推送/发布/PR/合并。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。

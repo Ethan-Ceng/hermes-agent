@@ -4,8 +4,10 @@ import asyncio
 
 from hermes_state_runtime import RuntimeStoreError
 from tools.session_store_reads import cron_run_usage, owns_result, persisted_session
+from gateway.session_worker_domains import storage_identity
 
 _READS = {
+    "storage.identity": (storage_identity, set()),
     "result.owns": (owns_result, {"owner", "parent"}),
     "session.persisted": (persisted_session, {"session_id"}),
     "cron.usage": (cron_run_usage, {"job_id", "execution_id"}),
@@ -21,6 +23,9 @@ async def worker_read(connection, ref, params):
     if "worker:adopt" not in connection.actor.capabilities:
         raise RuntimeStoreError("permission_denied")
     operation, payload = params["operation"], params["payload"]
+    if operation == 'domain.read' and isinstance(payload, dict):
+        from gateway.session_worker_domains import worker_domain_read
+        return await worker_domain_read(connection, ref, params)
     if not isinstance(operation, str) or operation not in _READS or not isinstance(payload, dict):
         raise RuntimeStoreError("invalid_params")
     handler, fields = _READS[operation]

@@ -4,6 +4,11 @@ from hermes_db.operations import workers
 
 
 class RuntimeWorkers:
+    def read_domain(self, session_id, name, arguments):
+        from hermes_db.operations.worker_domains import read
+        with self._store._read() as conn:
+            return read(conn, self.scope, session_id, name, arguments)
+
     def worker_session(self, execution_id):
         from hermes_db.repositories.workers import execution
         with self._store._read() as conn:

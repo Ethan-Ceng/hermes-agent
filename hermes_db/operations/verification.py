@@ -6,6 +6,10 @@ from hermes_db.repositories import verification as repo
 
 
 def record(resource, evidence, created_at, *, cutoff, per_root_limit, total_limit):
+    from agent.runtime_domain_store import WorkerDomainStore
+    if isinstance(resource, WorkerDomainStore):
+        # Retention and clock policy belong to the owner, not the compute producer.
+        return resource.command('verification.record', {'evidence': evidence})
     with resource.write() as conn:
         repo.lock_store(conn, resource.scope)
         event_id = repo.save_event(conn, resource.scope, evidence, created_at)
@@ -17,6 +21,9 @@ def record(resource, evidence, created_at, *, cutoff, per_root_limit, total_limi
 
 
 def mark_edited(resource, session_id, root, changed, edited_at):
+    from agent.runtime_domain_store import WorkerDomainStore
+    if isinstance(resource, WorkerDomainStore):
+        return resource.command('verification.mark_edited', dict(session_id=session_id, root=root, changed=changed))
     with resource.write() as conn:
         repo.lock_store(conn, resource.scope)
         repo.mark_edited(conn, resource.scope, session_id, root, changed, edited_at)
@@ -24,6 +31,9 @@ def mark_edited(resource, session_id, root, changed, edited_at):
 
 
 def status(resource, session_id, root):
+    from agent.runtime_domain_store import WorkerDomainStore
+    if isinstance(resource, WorkerDomainStore):
+        return resource.query('verification.status', dict(session_id=session_id, root=root))
     with resource.read() as conn:
         state = repo.state(conn, resource.scope, session_id, root)
         result = {"evidence": None, "root": root, "session_id": session_id, "changed_paths": []}

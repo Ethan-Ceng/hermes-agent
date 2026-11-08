@@ -152,6 +152,7 @@ def handlers():
     from hermes_db.operations import worker_lifecycle as life
     from hermes_db.operations.worker_compression_state import handlers as compression_handlers
     from hermes_db.operations.worker_turn import turn
+    from hermes_db.operations.worker_domains import write_handlers
     values = {"session.context": context, "session.prompt": prompt, "session.sidecars": sidecars,
               "session.tools": tools, "session.tail_role": tail_role, "session.row_role": row_role,
               "transcript.append": append, "execution.finish": finish, "usage.main": usage_main,
@@ -163,4 +164,5 @@ def handlers():
               "session.message_api_content": partial(life.api_content, addressed=True), "session.user_content": life.user_content}
     values.update({"turn." + action: partial(turn, action=action) for action in ("acquire", "renew", "release")})
     values.update(compression_handlers())
+    values.update(write_handlers())
     return {name: CoreEffect(function) for name, function in values.items()}
