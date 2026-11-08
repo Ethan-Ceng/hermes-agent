@@ -38,7 +38,7 @@
 | 静态、契约与 Desktop | 58d 全分支 14 检查通过、547 个 Python 文件 health 0 blocking/0 advisory；d402 测试修正 14 检查通过、3 个 Python 文件 health 0。生成契约 check、strict TypeScript、Electron noEmit 退出 0；Desktop 备份预检 Vitest 22 passed |
 | 58d Linux 八目录 Native 宽回归 | `unified-task24-frozen-native-areas.log` 仍运行，已有 compression、shutdown 及 command discovery 共 4 项失败；没有完整成功汇总 |
 | 仅观测的 Native 诊断 | 忽略目录探针导入原两文件合同，在原 deadline 观察线程栈；31 passed，退出 0，未复现失败。导入式探针不替代原文件隔离回归，也没有捕获原失败瞬间的栈 |
-| shutdown fixture 清理修正 | 仅测试改为 finally release/abort/join 所有实际启动线程；原2秒边界、owner与registry断言保留，原barrier失败输出栈后重抛。Windows原文件25 passed；独立确定性barrier失败/owner断言失败两项证明原异常保留且线程退出。尚未证明原始超时根因已解决 |
+| shutdown fixture 清理修正 | 仅测试改为 finally release/abort/join 所有实际启动线程；原2秒边界、owner与registry断言保留，原barrier失败输出栈后重抛。Windows原文件25 passed，冻结66a Linux原文件25 passed；独立确定性barrier失败/owner断言失败两项证明原异常保留且线程退出。尚未证明原始超时根因已解决 |
 
 局部批次可能相互重叠，不将计数相加为所谓总通过数。每条完整命令、初轮失败、资源归属和恢复点以实施账本 Task24 为准。忽略目录原始日志不含 DSN/密码；重跑仅传私有配置路径。
 
@@ -49,7 +49,7 @@
 3. 原 PG 跨执行 Profile Worker 结果回执超时尚缺稳定复现；新完整批次中两项实际通过，但整批因 recovery mode 非零，不能宣布根因解决。不得延长 deadline、关闭功能或绕开真实 owner/worker 协议取得绿色结果。
 4. 非 WSL POSIX 私有启动页七项缺适用主机。当前 Windows 与真实 Ubuntu/WSL SDK 测试不能证明非 WSL 政策；没有伪造 OS/is_wsl 或跳过必需验收，仍等待用户可用的现有执行入口。
 5. 完整批次结束及失败处置后，仍需独立全局终审，并按审查整改的实际影响复验。此汇总不是该独立终审。
-6. d402 完整批次已因测试数据库返回 recovery mode 而非零结束；随后 Windows/Linux 两次只读身份/恢复状态探针均在建立连接阶段报 OperationalError/recovery_mode，退出2。未执行服务管理或调参，恢复模式的原因尚未查明。已通知用户依赖状态，服务可连接前不启动新实库宽回归；fixture 清理可能未完成，日志提取的两个随机 Schema 候选只存在忽略目录，尚未核对拥有者标记，未执行删除。
+6. d402 完整批次因测试数据库 recovery mode 非零结束，恢复模式原因尚未查明。用户处理服务后第一次仍not yet accepting connections，后续Windows/Linux只读探测均核对指定测试数据库及in_recovery=false。对两个日志候选先核对数据库、角色owner及唯一标记，只删除仍存在的一项，另一项已不存在；未操作其他Schema。66a完整114文件PG/发行/daemon已重新启动，日志unified-task24-pg-after-service-recovery.log，结果尚未返回；恢复连接不替代完整业务验收。
 7. Native command discovery 比较时 daemon 缺少 legacy 已看到的 `/sdlc-review` bundled skill，原断言及完整批次失败保留，尚未确定与本次 backend 变更的因果；独立 A/B 核对中。
 
 ## 合并门禁
