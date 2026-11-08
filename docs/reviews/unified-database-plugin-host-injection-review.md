@@ -34,3 +34,26 @@
 若 Root 进行后续安静串行对照，最小观测应在原超时后、原 teardown 前保存：本测试原 note/restart/agent/error 日志；HOOK_TEXT、TURN_INJECT TURN_TEXT、TURN_TEXT 的只读 canonical admission 状态和已观察模型请求；插件 hook 的 enter/ctx-before/ctx-after、对应父子 request id/origin；以及已核对持有 PID/birth 的 owner/Host 线程栈。由此分别判断是否未轮到目标 admission、未触发匹配 hook、嵌套 RPC 等待还是返回后记录异常。保留原20/30秒边界、真实 daemon/Host/loopback/SQLite FIFO、全部后续唯一执行与目标隔离断言；不通过跳过 host、改 in_process、禁用 hook 或只等返回 True 来取绿。
 
 当前只读证据未给出需要修改哪一行生产代码的充分根因，因此不提出猜测性实现修正，也没有代跑。该失败继续列入最终 Native 未闭合项；完整 PG recovery-mode 失败、最新发行/全域结算与非 WSL 七项适用主机缺口亦不由本局部审查解除。
+
+## 原单项增加观测后的串行一次通过（不关闭原失败根因）
+
+Reviewer 已只读核对 `.build/postgresql/unified-task24-host-injection-observed-corrected.log`、`.build/postgresql/host-injection-observed-test_a_key_less_inject_goes_to_the_session_the_plugin_is_working_for[host].json` 及诊断准备脚本 `task24_prepare_host_injection_diagnostics.py`。本轮没有运行测试/daemon、访问数据库或修改实现/测试。该日志为 canonical runner **1文件、1 passed / 0 failed，15.4s，-j1**；只选择原 host 单项，不称原五项文件或59文件批次全绿。
+
+所用 native state 的 revision/source 仍冻结于生产 `120bf8c9d6c9f3ac9e2d35e995ed976a4e175c3b`。当前本地 HEAD `20a4789b35d4b38eec098c5a1203699200833474` 相对120bf8仅含两项 CLI 测试及文档变化，已核对文件列表；不能将本次结果误记为新增生产修复的红→绿。
+
+准备脚本将原测试模块 `_probe_plugin` 包装为先生成原 probe，再加 hook-enter/ctx-before/ctx-after 单调时钟记录及10秒重复 faulthandler；对原 `keyless_gateway` 仅在退出前采日志、只读 SQLite ledger 和 loopback 请求。没有替换原测试函数、改变20秒 note/30秒 terminal 期限、插入前序 terminal 屏障或移除目标/精确一次断言。生产 Host/owner 路由、真实 daemon、真实 Host 进程、loopback 模型和持久 admission 保留。
+
+这次已证实的范围为：
+
+| 证据 | 本次实际观察 |
+| --- | --- |
+| phase | 插件进程 PID 3755054 依次记录各输入的 pre_llm hook-enter；`TURN_INJECT TURN_TEXT` 进入后真正调用注入，TURN_TEXT before→after约 **0.56ms**，随后目标 TURN_TEXT 自身也进入 pre_llm hook |
+| notes | command两项、HOOK_TEXT、KEYED_TEXT、TURN_TEXT五项均为 True；这是调度回执，需与下面两行共同阅读 |
+| canonical SQLite ledger | CMD_TEXT、TUI_TEXT、HOOK_TEXT、TURN_INJECT TURN_TEXT、TURN_TEXT **五条均 terminal**；前两项各在独立 cli2/TUI session，后三项同在 cli1；原 `landed_once` 与最终目标断言实际执行并通过 |
+| loopback model | 正好五个请求的 last_user 分别为上述五项，各一次；不是只有返回 HTTP 或只读到 admission 已排队 |
+| keyed 隔离 | KEYED_TEXT 没有成为上述 ledger/model 任一项，保留 `plugin=probe-inj session=agent:main:telegram:dm:nobody` 的 keyed 路径未路由日志，原无本地误投断言通过 |
+| FIFO 进度 | gateway/agent 日志显示 cli1 先执行 HOOK_TEXT，再执行 TURN_INJECT TURN_TEXT，最后执行 TURN_TEXT；此运行没有复现前序阻塞 |
+
+JSON 内的10秒 faulthandler 文本虽然以 `Timeout (0:00:10)!` 开头，但这是诊断主动定时 dump，**不是测试20秒等待失败**。本次样本中 Host reader 在 readline、async loop 在 select、主线程在停止 Event 等待，没有正在等待嵌套 ctx 回包的请求处理线程；不能将这个绿色运行的空闲样本用作原失败实例的堆栈。
+
+证据限制仍保留：这是加了额外日志 IO/watchdog 的串行单次通过，调度和原三 worker 并发批次不同；没有在原失败实例中记录的 hook 阶段、父子 request id/origin 或 owner/Host 堆栈，也没有证明该失败可稳定归因于负载。上述结果证明 **120bf8 的这条实际业务链在本次完整原断言下能够成功，原故障本次未复现**；不证明已修复根因、不称环境抖动、也不称 a875 既有问题。Host 原并发20秒缺 note 继续未解释；未结算的全PG串行批次不以中途通过数并入本报告结论。总体仍为 **FAILED / CHANGES_REQUIRED**。

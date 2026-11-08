@@ -1,6 +1,8 @@
-# 69d 候选 Plugins / SDK 独立分域审查（进行中）
+# Plugins / SDK 独立候选复审（69d → 120bf8）
 
 输入为 `69d455ccd377085b15dbb49f789bc9a3d5e8b8aa`，重点复核冻结 58d 之后 Plugins/RetainDB/metrics/Matrix/Telegram 与单后端、发行验收增量，并重读当前生产代码及此前独立 major 的闭环记录。Reviewer 仅写本报告和 ignored 诊断，不改生产/仓库测试、安装、提交、管理数据库服务或正式 Profile。完整结果仍待 Root 汇总；本报告不是全域最终批准。
+
+最新增量结算见末节“120bf8 冻结生产的终态分域结算”。前文按当时证据保留69d原失败、候选整改及局部运行，不用新通过改写旧结果；当前总体仍为 **FAILED / CHANGES_REQUIRED**。
 
 ## 当前新问题
 
@@ -116,3 +118,46 @@ Root 已只读核对服务恢复后完成以下标准 runner 实证；Reviewer �
 结合 Reviewer 原独立无PG有界红→绿、永久无PG两项校正红→绿、当前真实PG旧runtime双红/修正双绿及完整Matrix文件组，**本次 Matrix close major 的代码、实际SDK关闭调度及同步PG提交/关闭持久化边界已有充分局部整改证据，局部状态可关闭**。此前被怀疑的取消close丢driver跟踪也已由真实PG对照直接证实并随同修正。未发现该最小等待修改的新问题。
 
 这不批准69d原生产代码，也不把未提交overlay当最终发行。Root仍需最后静态结算、保存明确恢复提交后按统一新ref重跑完整PG、完成Native宽回归/故障与新的独立发行载荷复验，非WSL七项适用主机证据仍缺；旧69d完整PG recovery-mode失败和未结束的Native批不抹除。Task24与总体审查继续 **FAILED / CHANGES_REQUIRED**。
+
+## 120bf8 冻结生产的终态分域结算
+
+本节输入为已提交生产 `120bf8c9d6c9f3ac9e2d35e995ed976a4e175c3b`；当前本地 HEAD `20a4789b35d4b38eec098c5a1203699200833474` 仅追加两项 CLI 测试修正和文档，已核对完整文件列表。69d→120bf8 在本报告 Plugins/DB 生产范围的增量只有 `matrix_runtime.py` 三行差异，即前述 close 的 `asyncio.wait` 修正；其当前 SHA256 仍为 `d775f4ff...71f3bc`，PG close 合同仍为 `1aab841c...bacbc06`。本轮只读日志、state、测试合同与范围 diff，并更新本报告；**没有运行测试/daemon、连接数据库、修改实现/仓库测试、安装或提交**。
+
+### 当前批次的准确结果
+
+| 原始日志（均在 `.build/postgresql/`） | 终态与可声明范围 |
+| --- | --- |
+| `unified-task24-120bf8c9d6c9-full-pg-linux-serial.log` | **127文件、689 passed / 0 failed / 0 errors / 0 skipped，2474.4s，退出0**。选择 PostgreSQL集成目录、独立发行两类测试与显式 Kanban gateway scenario；本次真正执行完，不再是 setup recovery-mode 中途计数 |
+| `unified-task24-120bf8c9d6c9-db-native-windows.log` | **228文件、579 passed / 0 failed / 5 skipped，520.0s**。Native DB选择范围；不能称这228个文件的PG集成用例均执行，日志中仅标“n tests”、累计通过数不增加的PG文件是被 marker 筛除 |
+| `unified-task24-120bf8c9d6c9-db-native-linux.log` | **228文件、584 passed / 0 failed / 0 skipped，563.9s**。同样是Native DB选择范围；其中实际SQLite SDK单后端、无PG依赖与关闭调度合同有通过，不能把收集过的PG文件再计作集成通过 |
+| `unified-task24-120bf8c9d6c9-distribution-windows.log` | **2文件、4 passed / 0 failed / 2 Linux适用项skip，31.7s**。含已安装PG初始化/升级/新进程重开与SQLite核心业务；两项Linux实际SDK业务不冒充Windows通过 |
+| `unified-task24-20a478-full-branch-checks.log` | 完整分支相对a875 **14 checks ok，598个Python文件health 0 blocking / 0 advisory**。明确是20a478测试/文档后分支检查，不把69d旧587文件结果当新结果 |
+| `unified-task24-120bf8c9d6c9-contracts-and-tui-build.log` | 冻结120bf8 source 的 generated contracts、strict TypeScript及TUI bundle构建成功；不是Desktop全平台安装或全部Native行为门禁 |
+| `unified-task24-worker-host-loaded-observed.log` | 带观测的Native **3文件、13 passed / 1 failed，369.7s**：原Host全文件5项通过，managed compress两参数通过，managed launch为6通过/controls一项失败，仍在原20秒观察内没有approval prompt；整批失败 |
+| `unified-task24-worker-host-timed-observed.log` | 随后在PG/WinDB结束后的同三文件 **14 passed / 0 failed / 0 skipped，112.6s，-j3**：Host5、launch7、compress2。Reviewer已读取完整终态日志；Root记录保留原20/30秒期限及原断言，仅补5秒watchdog/失败timing/started观察。它是另一次未复现，不能替换上一行红结果或证明其原因 |
+
+旧 `unified-task24-120bf8c9d6c9-full-pg-linux.log` 的 **240 passed / 1 failed / 451 errors**、423.7s，以及69d服务中断批次均继续留账，不能用新绿覆盖为“原批通过”。新串行结果也不能反推旧连接中断或单项失败的因果。跨文件调度改为 `-j1`；重读的文件内并发仍保留，包括真实SDK `asyncio.gather` 收发/群密钥、portable plugin两个独立解释器的CAS/配额竞争、线程和失败观察边界，没有将这些改成顺序内存替代；原SDK/guard/硬观察期限没有为本批放宽。此结果证明该冻结输入在此串行集成调度下通过，不额外声称PG服务多文件并行负载已验证。
+
+### Matrix 与插件领域在689中的实际覆盖
+
+Matrix十文件 **31项**全部在本批执行：adapter storage4、close2、faults5、crypto store2、SDK edges5、SDK flows3、devices3、SDK concurrency2、recovery1、sessions4。它们包含真实mautrix/libolm对象与SDK处理函数、PG CryptoStore/SyncStore、共享Olm ratchet并发、群会话加解密及重开、SDK内部吞错的handler边界、cursor失败与监督恢复、设备身份和本轮真实COMMIT/关闭取消双参数。`matrix_support.sdk_machine` 的MemoryStateStore只提供SDK client房间元数据，**没有替换被审的PG CryptoStore/SyncStore**；网络响应在特定SDK测试边界受控，不声称连接过远端Matrix服务。两个close参数须在实际 `_unit` COMMIT后正常adapter关闭、fresh store读回、peer为空、pool归还才通过，不是只靠返回/构造成功。
+
+因此 Matrix close 的原独立红→绿及上文局部PG31项，现已有**已提交120bf8完整PG批次的再验证**；此前 ratchet/吞错两项major的真实合同也继续通过。该31项是689的子集，不再相加为720；新增完整PG通过也不等于Native/platform总体关闭。
+
+portable plugins两文件 **9项**实际通过，含固定Profile/plugin/namespace、CAS/ABA、TTL修剪单调revision、key/byte quota、真实两进程竞争和第三进程恢复读回、COMMIT丢确认可观察且禁止盲重试。Discord backfill/recovery/faults/process四文件 **12项**实际通过，另有portable consumer路径验证，不以HTTP或游标函数被调用代替持久化。
+
+RetainDB七文件 **19项**实际通过，包含真实adopted managed worker的sync→HTTP、owner池连接外HTTP、503/pending或未释放HTTP后关闭、下一owner/会话重放同body并最终PG acknowledged、peer隔离、所有SQLite尝试拒绝；另有封闭命令/receipt、旧lease与WebSocket确认丢失/sticky journal合同。联合单后端脚本中的Retain远端是受控Client替身，因此该脚本只能证明其PG持久队列/线程与跨进程恢复；真实HTTP/SDK消费证据来自上述独立managed测试，不能混称。
+
+metrics本批确有普通/config-only真实managed两参数、owner同意不被agent默认snapshot撤销、旧metrics.sqlite3全拒绝、PG重开/peer；另有consent/package/HTTP/faults、root四项（pool1提交确认丢失/late/withdraw三参数及一项不同拥有者Schema target）、receipt/SDK屏障及维护失败缓存seq重放。gateway maintenance测试仍是持有真实child claim/adopt事实的**进程内handler调用**，不是WebSocket故障线路；不同随机Schema仍是同一授权数据库的两个PG target，不称第二数据库服务。
+
+一个不能漏写的范围限制：`contracts/test_worker_metrics_mixed_root.py` 标有integration，但不在本批127文件选择集合内；两份Native DB日志对此文件都只记录收集且通过数未增加。故**本轮689/584/579没有重跑PG satellite→SQLite root这个混合后端合同**。此前独立局部green及已审源码仍保留（这段生产代码未再改动），不能冒充本轮新证据。
+
+### 四套独立载荷与单后端强验收
+
+已读取120bf8 snapshot导出日志、Linux/Windows各自PM准备日志及两份bundle state：revision均为120bf8，Linux和Windows各有独立source payload及SQLite/PG解释器，未复用69d导出物。Linux完整PG批次中的 `test_distribution.py` **4项**与 `test_distribution_initialization.py` **2项**均实际通过，包含已安装SQLite完整SDK业务、新进程PG schema升级/历史NUL数据/epoch与admission恢复，以及独立已安装PG十域/双Profile业务和真实SDK加密重开；对应Windows两项Linux限定场景保持skip。
+
+发行helper先断言应用来自独立payload且非当前checkout，以 `-I`、树外cwd启动新解释器；guard安装后才跑业务。PG仍拒绝所有SQLite连接（包括memory/alias/直接构造），且实库归属须核对随机Schema marker/database；SQLite拒绝PG依赖，实际SDK必要的asyncpg异常类型保留但连接入口拒绝。PG单后端联合业务本批也实际通过，不把“无.db文件”当唯一证明。owner联合脚本不能代替真实worker业务，二者按上述各自证据组合。
+
+### 仍未关闭的总体门禁
+
+完整PG真实集成、当前Native DB与现有发行/构建范围现可记为上述各自通过；此前“仅准备好载荷/完整PG仍待重跑”的状态由本节取代。**不能据689宣称整个Native或平台门禁通过。** loaded批的managed launch controls失败仍留账；随后timed三文件14项全绿只说明该次未复现。Host全文件两次5项及前次单项1项通过不能重写原三worker批20秒TURN_TEXT缺note或证明根因修复，独立Host报告的证据限制继续适用。managed历史/compress先前等待失败及后续两参数通过同样分别留账，不由此推定并发负载因果；带现有观察的最终Native宽验仍需结算。非WSL七项适用主机仍缺证据，其他领域最终结算由对应独立报告负责。本范围未发现需要重新打开已闭合插件/SDK major的新证据；Task24和整体审查仍 **FAILED / CHANGES_REQUIRED**。

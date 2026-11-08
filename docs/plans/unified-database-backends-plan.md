@@ -12,9 +12,9 @@
 - 整体状态：`VERIFYING`。
 - 当前阶段：原生启动复验、最终验证与独立审查。
 - 当前验证判定：`FAILED`；三份独立审查均为`CHANGES_REQUIRED`，正在Task24内整改，未完成本项。
-- 当前任务：Task24（in_progress；Task23本地提交`3febe6fc31`，verification恢复提交`c0558e9c13`，RetainDB恢复提交`ed0cdbe604`，metrics恢复提交`2a26843900`，Telegram恢复`692382575f`，宿主夹具恢复`29796fc67d`，更新编译夹具恢复`69d455ccd3`，Matrix关闭/生命周期恢复`120bf8c9d6`）。
+- 当前任务：Task24（in_progress；Task23本地提交`3febe6fc31`，verification恢复提交`c0558e9c13`，RetainDB恢复提交`ed0cdbe604`，metrics恢复提交`2a26843900`，Telegram恢复`692382575f`，宿主夹具恢复`29796fc67d`，更新编译夹具恢复`69d455ccd3`，Matrix关闭/生命周期恢复`120bf8c9d6`，CLI夹具恢复`20a4789b35`）。
 - 已完成：23 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
-- 阻塞：非WSL POSIX私有启动页七项仍缺适用主机。验收PG已恢复；旧生产实现114文件659项全绿不代表最新整改完成。RetainDB/metrics托管消费者已局部整改通过；Native宽回归未决项、最终全域/发行复验及独立终审仍未完成。
+- 阻塞：非WSL POSIX私有启动页七项仍缺适用主机。验收PG恢复后当前生产120bf8完整127文件689项已通过，前两次中断记录保留。Native managed history/压缩、审批提示与Host注入偶发超时根因未明，最后宽复验及独立终审仍未闭合。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-08（Asia/Shanghai）。
 
@@ -1697,6 +1697,24 @@ PG再次只读核对Windows/Linux均身份匹配、in_recovery=false且可连接
 
 CLI两份fixture最后静态首轮13/14通过，health指出原service test超长文件2929>2927；仅减少已修改函数内两处空行抵消增长，行为与所有断言不变。最终`PM Python scripts/check --staged --base 120bf8c9d6c9`14检查全过、health2文件0blocking/0advisory、退出0（cli-fixture-checks-final）。foundation已独立核对真实历史、完整diff、两阶段候选hash和Linux/Windows结果；将以`test: isolate relaunch and system unit fixtures`保存本地恢复提交，仅含测试/账本/审查，不改变120bf8生产实现或宣称Task24完成。Host注入取证插件首轮嵌套引号错误零收集，已编译校验修正后重跑（host-injection-observed-corrected），不是业务红绿证据；该验收与原生间歇仍未闭合。
 
+20a478本地恢复提交已核对存在，工作区没有生产改动。完整分支CI artifact `PM Python scripts/check --staged --base a875342384`最新14检查全过，health598个Python文件0blocking/0advisory、退出0（unified-task24-20a478-full-branch-checks.log）；不是仅两文件的局部检查。Host原单项在120bf8冻结增加只读phase/ledger/model/watchdog观察后1pass/15.4秒（host-injection-observed-corrected），原20/30秒和精确一次/目标断言保留，5条terminal与5个真实模型输入及同会话FIFO均成立；该串行绿测没有解释原并发缺note，独立Host报告亦保留FAILED。原观察插件首轮引号错误零测试的日志仍保留，不计业务红/绿。
+
+继续从120bf8实际生产冻结运行原三个未决文件的`-j3 --file-timeout1200 -- -m 'not live'`，只添加各自独立命名的诊断插件，不覆盖已有失败/安静证据（unified-task24-worker-host-loaded-observed.log）。完整PG127文件本次仅改跨文件`-j1`调度，文件内并发与故障/业务期限均不变（unified-task24-120bf8c9d6c9-full-pg-linux-serial.log）；Windows同生产ref数据库完整回归也在执行（db-native-windows）。这些命令尚未终止时不记通过，不关闭Task24。
+
+上述三个文件现已终止：13pass/1fail/0skip、退出1、369.7秒，Host5项和managed压缩2项均通过，launch6pass/1fail；新红是`[controls]`原20秒等待无approval prompt，已保存当时started admission/running execution及owner线程栈。实际worker启动较晚、已有agent初始化日志但尚未看到模型/审批记录；该轮20秒watchdog未能在worker退出前采样，不据owner fsync采样猜完整因果。失败home随后按原runner清理，精确路径的只读timing恢复未找到，没有扫描/操作别的进程/Profile。安静压缩两项2676/2703次真实fsync总8.228/8.670秒，本次并发同类2653/2657次总107.774/91.614秒，最大1.768/1.800秒；这些属于通过用例的累计调用时长，不能证明controls具体哪步耗时或关闭其失败。后续观察已补5秒watchdog及失败时timing采集，但未运行新批次，先结算现有PG/Windows任务。
+
+独立foundation按69d最终非零清单做集合差：63−59−额外3恰好剩private_launch一个文件，没有多余或漏记的失败文件；可以说最终62/63非零文件已复验，不能说62文件均绿或20a478完整6412已执行通过。69d→120唯一生产差异是MatrixRuntime.close，20a478只改CLI测试/文档；旧成功路径与当前受影响Matrix组可作为有界组合支持，不能自动替换本计划的当前完整Native门禁。问题收敛后才安排一次最终不可变生产ref的八目录宽复验，不在已知红未收敛时新增数小时runner。
+
+当前完整实库批次已真实终止退出0：120bf8新冻结/新载荷，127文件689pass/0fail/0error/0skip、2474.4秒（unified-task24-120bf8c9d6c9-full-pg-linux-serial.log）。范围为整个PG目录、独立distribution及明确显式收集的ordinary Kanban daemon/采用worker/真实模型业务场景，包含最新managed verification/RetainDB/metrics与Matrix SDK关闭/加解密/并发/重启。只将跨文件调度改为-j1，文件内并发/故障、真实PG与作用域/恢复/SQLite audit和原期限均保持；不据该结果解释之前WAL中断的服务原因。Windows同生产ref完整数据库228文件579pass/0fail/5平台skip、退出0、520.0秒；Linux同ref数据库228文件584pass/0fail/0skip、退出0、563.9秒，五项差异为宿主真实SDK/协议合同。SQLite独立发行子进程与PG禁止SQLite业务进程范围各自核对，不把前者伪称全PG零SQLite。
+
+四份证据文档相对20a478的CI artifact检查14项通过（final-evidence-docs-checks），无Python measured改动；以上两个完整批次终止后补入本结算，再次核对文档检查后保存本地恢复点。三域Reviewer已收到实际最新日志进行只读增量结算，尚不预判全局APPROVED。原三文件13pass/1fail的controls失败仍未解释；现有宽批次全部结束后才开始同一三文件-j3的下一次取证（worker-host-timed-observed），增加早至5秒watchdog、失败timing和单次started时间，保持真实fsync/原期限/所有业务断言，独立输出名保留此前失败现场。
+
+新增timed观察已终态：同三个文件14pass/0fail/0skip、退出0、112.6秒，launch7项包含controls及history、压缩2项、Host5项全部原期限通过。PG/Windows批次在该次开始前均已终止；增加的5秒watchdog及单次timing只属于这次绿色运行，不能替代前次controls失败缺失的关键worker时间线，也不能把此前并发红删掉或称根因已修。没有生产修改，不为单次绿重建载荷或重复PG689；后续应利用保留观察在一次最终宽复验中核对压力下实际表现，平台主机缺口仍独立保留。
+
+三域独立Reviewer现均已只读核对127/689、双宿主数据库/发行/静态与当前生产blob，现有领域未发现新增未处理blocking/major；全局仍FAILED/CHANGES_REQUIRED。plugins特别区分本轮没有重跑contracts下integration标记的mixed-root合同，先前局部证据保留，不计入689/584/579；维护handler不是WS失联全链，第二owned Schema不是第二数据库服务。本次七份证据文档检查14项通过、无Python measured变化（pg-final-ledger-checks）；新增本段仅记录检查后执行状态，另运行diff-check保存。
+
+已开始一次最终当前代码宽复验：冻结`20a4789b35d4b38eec098c5a1203699200833474`（与120bf8生产相同，包含最终CLI测试修正），独立native-filesystem checkout及锁定Node真实compilers已准备。开跑前核对owner、完整ref/无tracked修改、专有根空闲inode66,253,099及tmp78,008，不再使用原inode耗尽的源副本。通过`scripts/run_tests.sh tests/cron tests/hermes_cli tests/gateway tests/tui_gateway tests/acp_adapter tests/plugins tests/agent tests/tools -j4 --file-timeout1200 -- -m 'not live' --ignore=tests/tools/test_fal_sdk.py`，仅添加现有worker/Host只读观察插件，retries=0，原6412文件/原期限/平台行为全部保留（unified-task24-20a478-full-native-observed.log）。此批用于结算当前宽回归及保留压力现场，不代表历史偶发已定因；七个缺适用主机的私有页测试没有被删除或改OS。FAL同ref用既有独立PM环境另行38pass/0fail/0skip、退出0、1.9秒（20a478-fal-native），不与正在运行的6412文件混报整批全绿。最新宽批次尚运行，Task24保持in_progress。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |
@@ -1710,25 +1728,25 @@ CLI两份fixture最后静态首轮13/14通过，health指出原service test超�
 
 ### 执行结果
 
-- 单元/SQLite回归：69d Windows数据库完整226文件579pass/0fail/3平台skip；新关闭/fixture候选另Linux37pass、网关/Relay288pass（含1原expected failure），Windows48pass/1平台skip，范围与重叠见本账本，不相加。69d冻结八目录宽回归仍运行，期间tmpfs inode耗尽产生明确启动错误，回收本轮失败副本后原冻结启动文件2pass；其余失败待逐文件复验。旧58d完整6412文件62870pass/44fail/220errors/726skip保留为历史，不能作为当前门禁。
-- 真实PG各域/并发/故障/单后端审计：69d完整126文件157pass/0fail/533errors、退出1，服务WAL写入中断/失连恢复，未通过。后续Windows/Linux只读恢复核对、唯一中断Schema归属核对清理已完成；当前关闭修正候选真实Matrix组10文件31pass/0fail/0error/0skip（关闭两参数原实现真实PG对照2fail），整体全域复验仍待。旧66a/58d生产114文件659全过仅保留历史。
-- 独立安装/显式迁移/原生重启：69d四套新PM载荷构建成功，Windows数据库批次已传新载荷参数；Linux同载荷的initialization在服务中断前2项通过，完整独立业务/普通daemon跨域必须结合整批失败阅读。新Matrix生产关闭修正需要新ref载荷，不能沿用69d发行结果宣称最新实现完成。
-- 静态/生成契约/适用构建：69d全分支CI artifact14检查通过、587个Python文件health 0；新关闭/fixture首轮14检查通过、10个Python文件health 0，PG test清理调整及报告后最终检查待补。69d生成契约check、契约strict TypeScript及完整TUI实际产品均退出0；先前Desktop Electron noEmit/预检22pass是其源码未改的历史范围，不声称本轮重新运行。
-- 独立审查：三域已复核69d以来增量，新的Matrix关闭major经原probe、永久双红及实际PG对照红/修正绿局部闭合；fixture/Relay复核接受，当前ref全局仍CHANGES_REQUIRED，完整矩阵与适用主机未闭合。
+- 单元/SQLite回归：120bf8 Linux数据库完整228文件584pass/0fail/0skip；Windows同ref完整228文件579pass/0fail/5平台skip，两批均退出0。69d八目录原生完整6412文件63024pass/140fail/726skip、退出1；120失败清单59文件315pass/4fail/7skip，最终额外三文件239pass/0fail/1个macOS skip，非WSL私有页另七项缺主机。CLI两项已最小夹具整改及双平台有界复验；三文件联合先13pass/1fail（controls20秒无approval），宽批次结束后增加timed观察同三个文件14pass/0fail，两次不互相覆盖。managed history/压缩/审批与Host偶发原因未明，不用安静绿测认定根因已修；最后当前ref八目录宽复验仍待。Matrix/SDK与生命周期候选局部37、288、48项的重叠范围见账本，不相加。
+- 真实PG各域/并发/故障/单后端审计：120bf8完整127文件689pass/0fail/0error/0skip、退出0、2474.4秒，只跨文件-j1，文件内真实并发/故障及期限不改。最新采用worker领域和Matrix实际SDK均包含其中；Matrix局部31项与其重叠，不相加。历史69d完整157pass/533errors及120并行240pass/1fail/451errors均退出1、服务进入恢复，保留原首故障与安全归属清理，不抹去或归因新代码。旧114文件659仅作历史。
+- 独立安装/显式迁移/原生重启：120bf8已重建Windows/Linux、SQLite/PG四套独立PM载荷；Windows新载荷两文件4pass/0fail/2个Linux SDK skip，Linux完整PG689批次已包含其新载荷和原生全业务/daemon跨域入口。20a478只有CLI测试/文档变化，生产blob与120bf8相同，无需为该测试修正重复打包。整体Native关闭/平台验收缺口仍单列。
+- 静态/生成契约/适用构建：20a478完整分支CI artifact相对a875全部14检查通过，health598个Python文件0blocking/0advisory、退出0。120bf8生成契约check、strict TypeScript及完整TUI实际产品均退出0；先前Desktop Electron noEmit/预检22pass是源码未改的历史范围，不声称本轮重跑。
+- 独立审查：Matrix关闭major经原probe、永久双红及实际PG对照红/修正绿局部闭合；identity/Relay与两项CLI夹具复核接受。Host最新单项观察通过的ledger/模型精确一次及路由证据已独立阅读，但原并发缺note原因未定。三域全局仍CHANGES_REQUIRED，最终完整矩阵与适用主机门禁未闭合。
 
 ### 验收标准检查
 
 - [ ] 单个Profile的所有自有数据库均服从一个后端选择。
-- [ ] PG下完整业务矩阵实际工作且自有SQLite连接尝试为0。
-- [ ] SQLite模式独立运行，不要求PG驱动/实例。
+- [x] PG下完整业务矩阵实际工作且自有SQLite连接尝试为0（120bf8完整PG689及实际联合业务/新解释器审计范围）。
+- [x] SQLite模式独立运行，不要求PG驱动/实例（当前双宿主DB合同、独立SQLite发行及实际SDK/新进程恢复）。
 - [ ] 所有域作用域、幂等、锁、配额、重启和错误语义通过真实验证。
-- [ ] 包括Matrix在内的维护插件有真实协议/存储证据，未用禁用功能通过。
+- [x] 包括Matrix在内的维护插件有真实协议/存储证据，未用禁用功能通过（实际SDK/PG31项及managed Retain/portable/Discord合同，均为689子集）。
 - [ ] 显式迁移、独立发行及原生启动/关闭通过，数据库服务仍由用户管理。
 - [ ] 最终验证与独立审查通过；无未处理blocking/major。
 
 ### 未通过与未验证
 
-Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣称全系统PG已完成。69d完整PG126文件157pass/533errors未通过，当前关闭修正的Matrix31项仅为局部实库证据，新全域/发行仍待。69d宽Native尚运行，环境inode失败和旧fixture已获有界整改，不能抹去原红或推断所有余项都同因。非WSL私有启动页七项仍缺适用主机，已异步询问现成入口，不伪装OS或WSL策略。旧完整Native/PG证据均按原ref保留，全局最终复审未闭合。
+Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣称全系统PG已完成。当前120bf8完整PG127文件689绿与双宿主数据库完整批次已结算，两个PG服务恢复失败批次继续保留。69d原生全批非零，最终62/63失败文件已复验但组合仍非全绿；managed history/压缩、controls审批与Host注入偶发超时仍未解释，不一律归因inode或用单次安静绿关闭。非WSL私有启动页七项仍缺适用主机，已异步询问现成入口，不伪装OS或WSL策略。当前发行新载荷已验证，全局最终复审未闭合。
 
 ### 最终状态
 
@@ -1736,7 +1754,9 @@ Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣
 
 ## 恢复点
 
-Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。当前metrics恢复`2a2684390016a1bfadc4c759bf2151945425f077`已实际Linux13文件34项及新冻结Native36文件714项全过；先前ed0真实worker模型PG计数0的红已由owner通道局部整改，不用旧owner20项替代。RetainDB `ed0cdbe604`与verification `c0558e9c13`证据继续保留，三个真实managed领域在加入quiesce后另6项通过。
+Task1–23已验收并逐项本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`），Task24仍FAILED/in_progress、23/24。恢复提交均不是Task24完成提交。代码恢复为`20a4789b35`（CLI测试/文档），生产仍`120bf8c9d6`（Matrix关闭）。当前完整PG127文件689绿与双宿主数据库完整绿已结算；Native三文件先13pass/1fail（controls20秒红）、宽批次结束后timed观察14pass/0fail，原history/压缩/审批及Host偶发原因仍未明确。现有三域报告已读取；最新20a478八目录6412文件宽批次运行中，state为task24-current-wide-native-state.json、日志unified-task24-20a478-full-native-observed.log，保留worker/Host现场观察，FAL同ref独立38项已过。下一步读取该宽批次终态/失败artifact，不用单次绿删除旧红；不重复已结算PG/发行。适用非WSL主机七项仍缺，全局独立终审未完成。
+
+metrics恢复`2a2684390016a1bfadc4c759bf2151945425f077`已实际Linux13文件34项及新冻结Native36文件714项全过；先前ed0真实worker模型PG计数0的红已由owner通道局部整改，不用旧owner20项替代。RetainDB `ed0cdbe604`与verification `c0558e9c13`证据继续保留，三个真实managed领域在加入quiesce后另6项通过。
 
 Telegram原基线pre-entry取消major的实际恢复提交为`692382575f`，宿主两项夹具恢复为`29796fc67d3580adbea66ce83306ded4ee7007c0`。在297新冻结且实际准备Node compilers后，原失败48文件761pass/10fail，另同ref的FAL38pass；十项集中非WSL私有页7、真实更新编译2、managed压缩1。两份旧tools失败已局部闭合，不再列为下一步。
 

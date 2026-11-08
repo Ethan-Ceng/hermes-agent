@@ -491,3 +491,78 @@ Root 实施后，本 Reviewer 再次只读完整实际 diff，并逐项匹配当
 service 在第二版没有再改变，首轮完整原生 Linux 文件绿色及当前同一 service 输入可组合支持这两处夹具的局部闭合；最终 relaunch 的两个宿主结果补齐路径调整范围。没有增加或放宽任何生产/测试期限，也没有删除原安全断言。125/12/12 存在重复且属于不同执行阶段，不能相加为独立覆盖数。当前静态检查仍在运行，不提前写通过；如果旧大测试文件触及 ratchet，应由 Root 按真实检查结果处理，不能删断言规避。
 
 局部测试整改可接受，原失败证据继续保留。69d 原完整 Native **6412 文件63024 passed/140 failed/726 skipped**、120bf8 的 59 文件 replay **315 passed/4 failed/7 skipped**、其他额外窄组及当前完整 PG 非零均各自独立，未由这两项夹具取代。全局仍 **FAILED / CHANGES_REQUIRED**。
+
+## 20a478 最终证据范围与后续宽复验判断
+
+本节只读核对 `20a4789b35d4b38eec098c5a1203699200833474` 的 Git 增量、实际最终日志和失败 manifest；没有执行测试/数据库操作、修改实现或提交。最后生产实现仍是 120bf8。已完整读取 `unified-task24-20a478-full-branch-checks.log`：相对 a875 的全分支 artifact **14 checks ok、598 Python files health 0 blocking / 0 advisory、exit 0**。此处更新原“最后静态待结算”的状态，但静态结果不替代业务门禁。
+
+### 文件集合和 revision 的真实关系
+
+从 `unified-task24-69d455-full-native.log` 的最终 `63 files with test failures` 区段提取、去重并与 `task24-120bf8-partial-native-failures.json` 逐文件比较，结果是：
+
+- 最终非零文件 63；59 文件 manifest 全部在最终集合中，没有多余路径。manifest 本身保留 `source_log_complete:false`，不能直接当最终失败清单。
+- `native-final-additional-files.log` 中的 `test_web_server.py`、`test_async_delegation.py`、`test_delegate_capacity_interrupt.py` 三文件全部在最终差集中；该批实际 **239 passed / 0 failed / 1 macOS skipped、exit 0、66.9s**。
+- 最终集合减去 59 和额外三文件，唯一剩余为 `tests/hermes_cli/test_webapp_private_launch.py`，即七项非 WSL POSIX 私有启动页主机缺口。因此可以精确声称“原最终 63 个非零文件已复验其中 62 个，另一个平台文件仍缺适用主机”；不能只靠 59+3 的数字凑齐或把这个集合覆盖说成全部绿色。
+
+69d→120bf8 的唯一生产变更是 `hermes_db/matrix_runtime.py::close` 将 pending driver 的 `gather` 改成 `wait`，等待 done callback 释放并避免同步热循环；其余是新 close 合同、Store double、Relay 同步和文档。120bf8→20a478 只有前节两 CLI 测试/文档，生产代码完全相同。局部测试中的空行压缩也不改变业务断言；先前候选的 SHA/目录与运行归属仍按当时记录保留，不把旧候选 hash 冒称为新 commit 的整个文件身份。
+
+### 可以沿用及不能外推的证据
+
+| 证据 | 可支持的范围 | 不能据此声称 |
+| --- | --- | --- |
+| 69d 八目录完整 Native：6412 文件63024 pass/140 fail/726 skip，退出1 | 该冻结生产及实际环境的一轮完整历史结果；返回成功的未变路径仍是可沿用的回归支持，不因文档或两处 CLI 夹具变化机械作废 | 20a478 已实际运行完整6412并通过；所有旧红均由环境造成；宿主跳过的行为已执行 |
+| 120bf8 Matrix 关闭和受影响组、真 SQLite SDK、当前真实 PG close 合同 | 相应生产增量及 SDK 关闭/资源释放的定向支持，具体结果须保留原运行 ref 与分域审查范围 | 所有文件名含 matrix 的测试等于完整SDK/PG；当前完整PG尚未结束就已全绿 |
+| 120bf8 59-file replay、额外三文件、后续已审 CLI/Store/Relay 候选 | 原失败文件集合的逐项复验与明确夹具整改证据；可与未变路径旧绿组合描述当前生产的分域覆盖 | 一次最新完整 Native 全绿；相加为互不重叠用例数；用后来的通过删除原失败 |
+| 当前静态14检查、Linux DB584、新载荷和正在运行的PG/WindowsDB | 已结算的各自范围，运行中批次只可报告进度 | 用静态或非integration结果关闭PG/完整业务门禁 |
+
+当前59-file replay仍有四个非零文件。CLI两文件已有本报告前节的最小修正及相应 Linux/Windows 正例；`test_managed_worker_launch.py` 和 `test_plugin_keyless_inject.py` 不因其他组通过自动关闭。原 managed history/压缩失败的根因也尚未确定，不能按文件名将它先归为算法或基础设施。
+
+本次读取 `worker-host-loaded-observed.log` 时，三文件 `-j3` 仍未出现最终汇总：Host injection 文件已有5 pass；managed launch 已实际 **6 pass/1 fail**，失败为 `[controls]` 在原20秒内没有 open approval prompt，源码未改。这个新并发失败说明当前仍有待解释的运行证据，不能把它只称作已消失的历史偶发；本 Reviewer 没有据此推断其产品/环境根因，也不把未结束的 compression 文件预记为结果。
+
+### 最小后续门禁
+
+现在应先等待已在运行的 PG 单 worker 完整批、Windows 全 DB 和三文件观察批终态，并处理该批已有红及剩余平台证据；不启动第二轮PG、不重复598文件静态、已绿DB合同或同样的无观测窄跑。新的源码变更才扩大对应回归范围。
+
+若最终声称满足原“当前完整 Native”门禁，历史69d整批失败加多个候选 replay 不能冒充该门禁的执行记录。在必要问题与测试输入收敛后，应只安排**一次**最终不可变 ref 的原八目录宽复验：相同 PM/真实工具前提、拥有者临时文件位置、原业务期限、retries=0，并保留与原 `-j4` 同等的并发压力和必要观测；FAL 按既定独立 PM 环境补验，清楚标注不在这次八目录批内。当前三文件 `-j3` 有真实非绿，构成这样一次最终宽复验的具体理由；不建议现在抢跑、反复重建载荷或在问题未收敛时重复数小时批次。
+
+若最终仅采用分域/逐文件组合证据，应如实以此名称报告其覆盖与剩余不确定性，不能由本 Reviewer 擅自把它改写为“一次当前完整全绿”，或豁免未通过项。即便后续单个观察批全绿，也不等于根因已经修复。非 WSL POSIX 主机缺口、PG服务故障与未终态批次依旧独立保留。
+
+本节没有新增猜测性的 blocking/major，但最终验收尚未满足；整体继续 **FAILED / CHANGES_REQUIRED**。
+
+## 120bf8 完整 PG 与双宿主 DB 终态补证
+
+本节更新前一检查点仍在运行的批次；只读最终日志、载荷 state 和 Git diff，不执行测试、不连库、不改实现、不提交。当前本地 HEAD 仍是 `20a4789b35d4b38eec098c5a1203699200833474`，相对 `120bf8c9d6c9f3ac9e2d35e995ed976a4e175c3b` 只有两处 CLI 测试及文档，最后生产实现没有变化。因此以下 120bf8 生产证据可支持当前生产实现，仍保留原测试执行 ref，不改称20a原生完整八目录已通过。
+
+### 已完整读取的最新终态
+
+| 日志/载荷 | 真实结果与范围 |
+| --- | --- |
+| `unified-task24-120bf8c9d6c9-full-pg-linux-serial.log` | **127 files、689 passed / 0 failed / 0 errors / 0 skipped、exit 0、2474.4s**。清单为完整 `tests/hermes_db/postgresql`、`test_distribution.py` 及显式 `scenarios/kanban_full_gateway.py`，不是仅基础 domain 单元测试。 |
+| `unified-task24-120bf8c9d6c9-db-native-linux.log` | Linux 非 integration DB 原生合同 **228 files、584 passed / 0 failed / 0 skipped、exit 0、563.9s**。不计作真实PG实库批。 |
+| `unified-task24-120bf8c9d6c9-db-native-windows.log` | Windows 同类 DB/新载荷合同 **228 files、579 passed / 0 failed / 5 原宿主 skipped、exit 0、520.0s**。integration 文件被 marker 排除时进度行不算实库执行，Linux/POSIX skips 仍如实保留。 |
+| `task24-{linux,windows}-bundle-120bf8c9d6c9-state.json` | 两 state 均指向120bf8独立 source 及新 SQLite/PG PM 环境，共四套载荷；Linux/Windows源及解释器路径分别独立，不复用旧69d载荷冒充新产品。实际载荷外子进程合同由 distribution 项执行。 |
+| `unified-task24-120bf8c9d6c9-contracts-and-tui-build.log` | 记录 generated_contracts=true、strict_typescript=true，并实际输出新 TUI `dist/entry.js` built；Root 结算 exit0。该证据不等于全部桌面/网站发行矩阵。 |
+| `unified-task24-20a478-full-branch-checks.log` | 当前分支相对a875 **14 checks ok、598 Python files health 0 blocking / 0 advisory、exit0**；不是以前547/587文件结果的替称。 |
+
+PG 的 `-j1` 是文件间串行调度。原文件内 competing receipts、线程/进程、租约、真实daemon/Worker、SDK及故障测试照常执行，原业务 deadline、SQLite guard、回执/peer断言未因串行文件而放宽。该批可以准确称“当前生产完整PG矩阵在文件间串行条件下通过”；不能称“旧并行批的服务故障根因已修复”或“所有并行压力组合均通过”。
+
+### Foundation/operations/worker 当前可证明的范围
+
+本 Reviewer 逐项核对该新日志中的实际文件结算，而非仅看总数：
+
+- 统一 factory/entry、Profile 文件归属和删除、健康/归档引用、备份/恢复、Projects、验证证据、Cron executions/notepad/delivery/bot，以及实际 room target 边界均有当前对应合同执行。DB原生批另实际执行冻结 storage selection、资源/health refs 与 Profile 删除测试，不把PG批之外的合同遗漏成默认通过。
+- verification 的普通/ignore 真 managed 消费者、新 owner 重开和 peer，以及 Core effect/receipt 回滚/丢提交确认，当前分别2项与2项通过；owner时钟/保留策略和作用域约束仍按已审代码执行。
+- RetainDB 真 managed 两项、Core三项与真实WS transport三项均在当前PG批通过，覆盖原 provider sync/连接外HTTP、未确认队列保留、稳定request_id、必要journal拒绝finish和新owner/会话恢复；不冒称远端 exactly-once。
+- metrics 真 managed 两项、Core三项、SDK barrier两项、认证handler maintenance一项及root四项均实际执行通过；本 Profile effect与receipt同Connection、真实owner consent、缓存回执重维护、原journal/finish栅栏的局部整改有当前ref支持。原专用metrics WS丢确认→新worker/新owner采用同journal的全链并未因此新增实测，仍按前节的组合证据边界描述，不以该未测组合虚构新产品major。
+
+这些新终态补足当前生产全PG和新发行载荷的证据归属，不能替代其他 Reviewer 的分域最终结论或擅自关闭其仍保留的问题。原 Foundation 已证实的问题按各自红绿/冻结合同记录，不因以前总门禁尚未通过便否定已完成的局部整改，也不以689总数覆盖不在该批的Native/平台要求。
+
+### 原失败与全局剩余
+
+两次先前PG失败原样保留：69d **126文件157 passed/533 errors**，120bf8并行 **127文件240 passed/1 failed/451 errors**。其服务断开、真实UnknownCommit和随后recovery症状不能因本次串行通过而删除、改成通过或擅自断言根因。应用和Reviewer没有接管PG服务管理。
+
+`worker-host-loaded-observed.log` 现在也已终态：**3文件13 passed/1 failed/0 skipped、exit1、369.7s**。Host injection5 pass、managed compression2 pass；managed launch6 pass/1 fail，`controls` 仍在原20秒内无approval prompt。Root说明本次失败没有取得该关键窗口的worker timing、精确临时home已由原runner清理，后续只读恢复结果为not-retained；不能把通过分支的慢fsync累计或别次owner栈当作这个失败的确定因果。压缩本轮通过也不说明先前history/压缩偶发已定位或修复。
+
+当前全局仍缺：该实际Native失败/历史未定因问题的处置与必要的最终宽复验、非WSL POSIX私有启动页七项适用主机证据，以及绑定最终结果的各分域独立终审。原69d八目录非零及本报告前节的63文件集合核对继续有效，不由当前PG/DB绿色覆盖。已结算PG和WindowsDB无需再以相同输入重复一轮；后续只按实际整改影响复验，最终Native的范围与一次性执行条件沿前节判断。
+
+本次没有发现新的已证实 foundation/operations/worker blocking/major；当前生产分域证据显著补齐，**Task24仍 FAILED / CHANGES_REQUIRED**。不批准全局完成、合并或发布。

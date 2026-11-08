@@ -82,3 +82,53 @@ scripts/run_tests.sh tests/hermes_db/postgresql/test_domain_maintenance.py -j 1 
 仍使用既有 PM Windows 解释器、retries=0、归属核对的随机 Schema/临时 Profile/SQLite audit guard。结果 **2 passed / 0 failed，退出 0，34.6 秒**；日志 `.build/postgresql/unified-review-maintenance-ack-independent.log`。另读取 Root 全文件日志 `.build/postgresql/unified-task24-maintenance-confirmation-final.log`，确认 10 passed / 0 failed 的原始汇总，但不冒称本 Reviewer 重跑全部十项。
 
 本次测试整改复核通过；它只补正这两项 unknown-commit 恢复证据，不改变前述总体门禁状态。全 PG、Native 与其他最终验证仍须按实际最终汇总判定，不能用此 2 项或全文件 10 项提前宣布总体验收通过。
+
+## 最后生产 120bf8c9d6c9 / HEAD 20a4789b35 的有界复审
+
+本轮只读复核最后生产提交 `120bf8c9d6c9f3ac9e2d35e995ed976a4e175c3b` 与当前 HEAD `20a4789b35d4b38eec098c5a1203699200833474`。HEAD 相对最后生产提交只有 CLI 测试及文档；当前其他 Reviewer 的暂存变化也仅为文档。本 Reviewer 未代跑测试、连库、修改生产/测试或提交，仅核对实际源码、已有永久合同与父任务产物日志。
+
+增量范围仍以此前独立复核的 58d→69d 为基础：Kanban、Cron、rooms、附件、工作区、outbox 及 Profile 改名核心实现没有在该增量继续变化；相关交界新增 owner storage identity、verification/RetainDB 的 worker 通道、metrics quiesce、inventory 归属与非文件 Profile 初始化已逐项追到实际调用者。69d→当前 HEAD 没有再修改这些协作生产路径；唯一新增生产修改为 MatrixRuntime.close 的 pending task 等待方式，由 Matrix 专域审查负责。本域未发现这项变更引入新的 Profile 路由或协作持久化入口。
+
+同时读取 69d 后的 worker 生命周期单测整改：SQLiteWorkerStoreIdentity 只为原有 SQLite store doubles 补充 storage.identity 协议，未替换生产 guard 或取消原行为断言。relay 排队测试新增真实执行进入事件，再提交第二条输入，固定“已运行”的前提；原业务等待与结果断言保留。这些单测不充当 PG worker 持久化证据，后者由下表实际 managed 合同提供。
+
+### 当前实际 PG 结算
+
+已只读核对 `.build/postgresql/unified-task24-120bf8c9d6c9-full-pg-linux-serial.log` 的收集范围、逐文件结果和终态：**127 files / 689 passed / 0 failed / 0 skipped，exit 0，2474.4 秒**。范围明确包含全部 PG 目录、distribution 和显式的普通 Kanban daemon 场景。本轮采用跨文件 `-j 1`；文件内并发、故障注入、业务期限和 SQLite guard 没有因串行调度而取消。以下是该完整批次内的实际结果，不能再与 689 相加：
+
+| 原发现 / 实际交界 | 永久合同及本次结果 |
+| --- | --- |
+| 普通 Kanban owner→真实 worker→模型工具→重开回执 | `scenarios/kanban_full_gateway.py` **1 passed**；另 `test_kanban_worker_e2e.py` **2 passed** |
+| done file_job 转移、活引用附件路径别名、拒绝 claim 回执、原生/桌面 group typed ref | `test_review_collaboration.py` **7 passed** |
+| 旧 raw alias/token、foreign Profile、实际 server 注册/capabilities、phantom warning 与 COMMIT-loss outbox 恢复 | `test_collaboration_recovery_edges.py` **8 passed** |
+| Cron 显式房间 Profile 的同 room_id 隔离 | `test_review_foundation_room_routing.py` **1 passed** |
+| 完成审计/产物/COMMIT-loss、具名命令回执 | `test_kanban_completion.py` **6 passed**；`test_kanban_command_receipts.py` **4 passed** |
+| 工作区/Board 退休/附件删除意图、实际完成提交丢确认后的维护恢复 | `test_domain_maintenance.py` **10 passed** |
+| 真实 CanonicalService 普通/文件 Send、冻结附件与物化 | `test_room_attachment_service.py` **1 passed**，并保留同批 rooms/附件并发、故障、限制等合同 |
+| verification 普通/config-only 真实 worker、owner 重启与 peer 隔离 | `test_managed_verification.py` **2 passed** |
+| worker 时间/retention 权限、同 Connection 回执、真实 COMMIT 丢确认与重放 | `test_worker_domain_receipts.py` **2 passed** |
+| RetainDB 实际 sync_turn 持久入队、HTTP 等待、原 worker 退出、新 owner/worker 恢复与 peer 隔离 | `test_managed_retain_queue.py` **2 passed** |
+| RetainDB typed namespace/token、旧 lease receipt 非当前授权、真实通道断开与 sticky journal | `test_worker_retain_commands.py` **3 passed**；`test_worker_retain_transport.py` **3 passed** |
+
+本次结果补齐了本 Reviewer 旧 `worker-domain-consumers-review.md` / `worker-domain-first-fix-review.md` 中 RetainDB“尚未实施”的历史状态。当前 owner proxy、固定 store/plugin/destination、同事务 receipt、发送前 fresh owns_claim、断线 sticky 与真实 managed 恢复实现/合同已核对，原 owner-only 获取失败及后续通道问题在上述范围内已有整改证据；未发现以关闭 provider、删除 sync_turn、内存 pending、放宽 guard 或延长生产期限取绿。细节同时保留在独立插件 Reviewer 的 `unified-database-retaindb-worker-boundary-review.md`，这里不改写其原红现场。
+
+### 其他当前产物与历史失败
+
+另已读取以下真实终态，均为父任务执行产物，**不冒称本 Reviewer 独立重跑**：
+
+- Windows 数据库 Native 合同：`unified-task24-120bf8c9d6c9-db-native-windows.log`，**228 files / 579 passed / 0 failed / 5 skipped，520.0 秒**；Linux 对应日志 `...-db-native-linux.log`，**228 files / 584 passed / 0 failed / 0 skipped，563.9 秒**。它们不等同于全部 Native 八目录宽回归。
+- `unified-task24-20a478-full-branch-checks.log`：**14 checks ok，598 Python files，相对 a87534238413 的 health 0 blocking / 0 advisory**。这不是本轮追加报告后的再次静态运行。
+- 最后生产的 Windows/Linux SQLite、PostgreSQL 四套独立 PM 环境准备日志均已读取；完整 PG 中 distribution **4 passed**、distribution initialization **2 passed**。Windows distribution 独立批次为 **4 passed / 0 failed / 2 skipped**，平台 skip 不冒算通过。
+- `unified-task24-120bf8c9d6c9-contracts-and-tui-build.log` 包含 generated_contracts=true、strict_typescript=true 及新 TUI entry 产物；父账本记录退出 0。
+
+前两份完整 PG 失败仍保留：`unified-task24-69d455-full-pg-linux.log` 为 **157 passed / 0 failed / 533 errors**；`unified-task24-120bf8c9d6c9-full-pg-linux.log` 为 **240 passed / 1 failed / 451 errors**，均为 `-j 3` 的非零批次。最新 `-j 1` 全绿证明当前列出的业务合同实际执行通过，不能反向证明旧 recovery 失败已定因或只由资源竞争造成，更不能删除它们的日志与账本。
+
+### 剩余限制与结论
+
+当前协作域源码、旧 major 的永久合同与最新 PG 真实执行未发现新增未处理 blocking/major；这是一项**有界领域结论**。以下总体限制继续有效：
+
+1. `unified-task24-worker-host-loaded-observed.log` 的三个 Native 原文件联合批次仍为 **13 passed / 1 failed，exit 1，369.7 秒**。失败为 `test_managed_worker_launch.py::test_ordinary_owner_launches_tool_worker_and_detach_does_not_cancel[controls]`，原 20 秒窗口未见 approval prompt。不能由 owner 的 fsync/selector 采样推断 worker 根因，也不能因为 PG 串行通过就宣称它与本分支无关。
+2. 旧 history、压缩和 host 的间歇失败仍未完成根因闭环；窄绿及负载观测不替代解释。最后生产的完整 Native 宽复验仍待结算。
+3. 非 WSL 私有启动页七项仍缺适用主机证据，PG/WSL/当前双主机数据库合同不能代替它们。
+4. 其他领域审查、当前生产与发行产物的最终门禁仍由总体审查合并，不将局部合同成功外推为全部并发、故障和平台情形已穷尽。
+
+因此当前全局继续 **`FAILED / CHANGES_REQUIRED`**，Task24 不标完成，不给出全系统 `APPROVED` 或 `READY_TO_MERGE`。本节取代前文“等待 PG 完整批次”的当前状态，同时保留全部原失败、当时未完成项及其后续整改记录。

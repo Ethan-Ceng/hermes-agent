@@ -151,3 +151,15 @@ Matrix真实PG补验现已完成局部闭环：服务Windows/Linux只读确认�
 宽回归结束后同一冻结代码安静串行三参数3pass/0fail/135.1秒。实际原fsync测量：history372次合计1.225秒/max0.132；压缩True2676次8.228秒/max0.348、False2703次8.670秒/max0.095。没有改fsync语义、持久性、SDK功能或原30秒期限。缺少负载失败时的同类耗时对照，故I/O压力仅为假设，未标根因已修复；下一步继续有界现场和独立host重入/注入审查。
 
 两个CLI fixture已完成有界整改：relaunch隔离pytest argv并直接证明空/model参数两种继承，absolute路径用宿主tmp_path；unit身份夹具同时提供安全account默认目录，真实sync与服务名断言保留。Linux两文件125pass/7平台skip；最后absolute路径修正Linux/Windows各12pass/4skip，原Windows Unix路径1fail保留。静态首轮仅health因旧超长文件+2行失败，在已修改方法压缩两处空行后14检查全过、health2文件0/0；生产代码无改动，独立foundation接受。Host取证插件第一版引号错误零收集，修正后重新取证，不将零测试当通过或归成产品问题。
+
+## 120bf8 并发现场与证据范围补证
+
+实际本地CLI夹具恢复为20a4789b35，最后生产仍120bf8。相对a875完整CI artifact检查14项全过，health598个Python文件0blocking/0advisory、退出0。独立复核最终失败文件集合：69d的63个非零文件中，59文件replay加额外3文件恰好覆盖62，唯一缺失private_launch一个文件含七个非WSL适用用例；不是用数字估计覆盖，也不是62文件全绿。
+
+Host原单项保留20/30秒及原唯一执行/目标断言，仅加phase/watchdog与teardown前只读快照后1pass15.4秒；5个真实模型输入、5条terminal、三条同cli1的FIFO和keyed无误投均实证成立。其0.56ms的嵌套注入和10秒空闲线程栈只属于这次绿色实例，独立报告没有据此关闭原并发超时。
+
+同生产冻结的三个原文件-j3联合观察最终13pass/1fail/0skip、退出1、369.7秒（unified-task24-worker-host-loaded-observed.log）。Host5pass，压缩2pass，launch6pass/1fail。新controls红是在20秒内没看到approval prompt，现场admission started、execution running；已有worker agent初始化但没有模型/审批阶段证据。owner主循环在selector，其他线程有真实fsync与DB读取采样；worker实际启动较晚，20秒watchdog未在退出前留下栈，不能由owner采样推断worker根因。
+
+本次通过的压缩True/False实际fsync累计107.774/91.614秒（2653/2657次），安静同类为8.228/8.670秒（2676/2703次），本次单次最大1.768/1.800秒。显著负载差异支持继续观察持久化延迟，但不能证明controls失败就是fsync、也不能据它延长期限或删除持久性。该失败home已被原runner清理，随后仅对已知精确路径的timing恢复未找到，没有扫描其他测试home。后续观察器准备了5秒watchdog及失败timing采集，尚未代替已有红证据；当前先结算PG127文件串行与Windows数据库全批，不叠加新的宽runner。
+
+PG/Windows两批终止后，同三个原文件在相同120bf8冻结、原-j3/期限/断言下，增加5秒watchdog及每次fsync started、失败timing采集：14pass/0fail/0skip、退出0、112.6秒（worker-host-timed-observed）。这一实际绿色覆盖controls/history、两个压缩模式和Host全部五项；没有生产修改。新的成功时间线不补造此前失败缺失的关键worker栈，故仅证明当前有界运行，不写根因已修，也不抹去13pass/1fail。最新全PG127文件689pass与WindowsDB579pass/5平台skip、LinuxDB584pass均退出0，证明各自实际范围，不替代Native最后宽复验或非WSL七项主机证据。

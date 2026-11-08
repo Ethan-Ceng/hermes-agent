@@ -56,3 +56,7 @@ RetainDB 原 major 未实施/未重跑。实际终端工具的证据分类到 wo
 ## 结论
 
 verification 的 owner 转发、owner 时钟/保留策略和已执行消费者复审通过。总体继续 **`CHANGES_REQUIRED`**：RetainDB 仍有实际复现的未处理 major，且本轮局部结果不能替代最终全域验收。
+
+## 后续最终生产状态
+
+上节 RetainDB“未实施/未重跑”是本报告首步检查点的历史状态。最后生产 `120bf8c9d6c9` 的完整实际 PG 串行批次已结算 127 文件、689 passed / 0 failed / 0 skipped，其中真实 managed verification 两项、managed RetainDB 两项、RetainDB Core 三项和通道三项均通过。本 Reviewer 已只读核对当前实现、永久合同及原始日志；当前有界状态、旧 major 整改和仍未关闭的 Native/平台门禁统一记录于 `unified-database-collaboration-followup-review.md` 最后生产复审节。原红证据及本报告当时的范围限制保留，不再将 RetainDB 描述为当前尚未实施；总体仍 FAILED / CHANGES_REQUIRED。
