@@ -1593,6 +1593,10 @@ Achievements三个失败已由独立保留原断言的观测定位为替身缺�
 
 当前整改恢复提交前最新验证：`scripts/check --staged --base a875342384`全部14检查通过，554个Python文件health0blocking/0advisory、退出0（unified-task24-owner-checks-accepted.log）；保留此前两轮真实失败。Windows配置/归档/本地PG身份clone/MiniMax真实HTTP/Achievements五文件72pass/0fail、退出0（unified-task24-owner-contracts-final.log）；pytest_plugins复用fixture后实际PG inventory仍3pass/0fail、退出0（unified-task24-inventory-plugin-fixture.log）。Linux补PM Node的Photon三文件16pass/0fail/0skip、退出0（unified-task24-photon-tools-recheck.log）。另通过PM新建单独含锁定fal extra的测试环境成功，未修改原full环境，业务测试尚待。将保存本地恢复commit以建立新冻结验证点，Task24继续in_progress，不是完成提交；完整原safe-mode/remote/备份与新发行载荷门禁仍待。
 
+新生产恢复点为`8d6f7bdaebf8fc1749d155a455bbb2730d492ae3`（fix(storage): preserve configuration owner boundaries），Task24仍in_progress。新独立Native快照task24-owner-checkout-state.json已核对完整ref；Root22个受影响配置/Profile/remote/备份/恢复文件正运行unified-task24-owner-native-regressions.log，独立Reviewer另跑原完整safe-mode合同，尚无完整汇总，不计通过。Linux新PM fal环境的原真实SDK文件38pass/0fail/退出0（unified-task24-fal-sdk-recheck.log），实际SDK及HTTP叶子合同已执行，补齐原collection缺项。
+
+同一8d6生产提交的Windows/Linux SQLite/PG四套全新PM独立发行环境均已构建成功、退出0，日志unified-task24-{windows,linux}-pm-bundles-8d6f7bdaebf8.log，状态task24-{windows,linux}-bundle-8d6f7bdaebf8-state.json；旧58d载荷/环境保留。构建成功尚不等于新安装/全域业务通过，待当前Native受影响文件完整结算后，使用这套新参数复验完整PG/显式daemon及安装合同。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |
