@@ -96,6 +96,8 @@ RetainDB初版桥接另有确定根因：WorkerRPC原样重抛实际WebSocket断
 
 ## 调试结论
 
+两个宿主前提现已按原意图收窄：command guards使用独立临时审批目标并新增真实运行时目录优先硬拒；Termux fallback核对其成功notice，保留独立WSL警告，不再推断整台宿主音频可用。原2a冻结24pass/2fail→Windows/Linux各27pass；未修改生产guard/voice代码或fake机器事实。静态14检查和独立fixture复核通过，仍需其余原失败文件及实际编译器合同复验。
+
 Telegram原cancel-before-entry在2a当前冻结也稳定红。SDK22.8在stop开始即running=False，导致停止中派生的error callback没有SDK task-set所有权；Hermes原claim pin还在。初版Task集合gather候选在Python3.14全done优化下热循环，独立3秒及Root180.1秒栈均明确指向stop，而非让测试多等。现用真实清理完成后的settlement Future，原94项与平台3文件119项及独立正常/派生/取消stop三项通过；原断言/期限未改。旧候选进程已按出生时间、完整命令、解释器、cwd及专有测试临时根核对后终止，不再遗留热循环。
 
 metrics最新整改已补闭合owner领域短写、KV root intent及提交后维护，业务/SDK/PG回执与Windows原生指标688项的局部证据见实施计划。owner engagement Path(None)永久红测已关闭且SQLite路径调用兼容；真实SDK barrier测试前两次的缓存/线程Profile夹具问题保留原日志，并据HX002让入口按实际owner绑定路径scope后通过。必要journal仍阻止提前finish，没以模型成功替代指标持久。当前Linux指标全域、最后静态及冻结发行尚未完成，全局依然FAILED。

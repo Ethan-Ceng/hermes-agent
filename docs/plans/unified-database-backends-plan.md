@@ -1653,6 +1653,10 @@ Native Telegram基线major继续整改：2a冻结的原error_before_entry-cancel
 
 当前改为私有settlement Future，只在coroutine关闭及原claim释放完成后才完成该信号；stop在SDK stop之后用asyncio.wait等待这些清理信号，取消stop不取消marker。原单项1pass/2.4秒，原94项断言未改；完整原文件与平台三文件共4文件119pass/0fail/退出0/15.0秒（telegram-settlement-full）。独立真实SDK三项3pass/4.9秒，还覆盖stopping状态派生后继task及取消stop后真实释放；native-late-failures-review已记录局部闭合，未批准全局。静态首轮只发现slots排序，已修正排序待最终检查，功能/测试期限未放宽。当前修改准备另存标题`fix(telegram): settle admitted callbacks before shutdown`的恢复commit，Task24仍FAILED/in_progress，继续剩余Native fixture/生命周期问题。
 
+Telegram恢复提交已实际保存为`692382575fc9...`（完整ref由git记录），随后只整改Native宿主fixture。冻结2a原两文件实际24pass/2fail（native-host-fixtures-red），危险审批的/tmp目标包含真实解释器所以正确硬拒，Termux的成功fallback与真实WSL警告同时存在。现审批改用隔离子目标并保留原deny/callback/allow_permanent断言，另加真实sys.executable父目录即使请求session批准仍在callback前硬拒；Termux只要求其成功notice和不误报app缺失，保留其他宿主要求、clean no-match阻断与真实OS事实。生产guard/audio代码未改。Windows两文件27pass/4.2秒，Linux两文件27pass/7.0秒，均0fail/0skip/退出0；14静态检查/health2文件0blocking0advisory（host-fixtures-checks）通过。独立foundation复核接受并记录旧意图/当前范围，整体仍FAILED。将以标题`test: isolate approval targets and Termux capability checks`另存恢复commit。
+
+下一步按原完整失败输出生成逐文件复验清单；用已有PM管理的Linux工具链，依项目package-management说明在新隔离Native checkout准备锁定npm workspaces依赖，补原update_finish两项真实esbuild/TypeScript/Vite acceptance，不能把缺编译器的skip当通过。再以该冻结ref复验原失败文件及独立FAL PM环境；非WSL私有启动页七项继续保留主机缺口。未重写24任务范围，也未重建将过时的最终发行载荷。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |

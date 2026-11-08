@@ -363,3 +363,28 @@ canonical runner、retries 0、原各阶段 deadline；实际 **1 passed、0 fai
 据此，**本 Reviewer 发现的 CLI Projects 展示击穿创建，以及 config-only selector 触碰 `.env` 两项 major，按原完整 CLI 合同均已整改验收闭合**。保留原 a875 绿、58d Projects 红、8d6f 末阶段 `.env` 红及审计栈，不覆写失败证据。
 
 批准范围必须限定：这个原 CLI 用例没有 PG opt-in managed worker 的指标持久化，也没有 PG Profile 遗留 metrics.sqlite3 反例。plugins/metrics Reviewer 正在处理这两项真实交界（`review-pg-managed-metrics-red.log`），不能用本次 CLI 绿外推所有 worker 指标或全部 PG no-SQLite 业务均通过。owner PG 组、Root 报告的其他检查以及本次 CLI 独立结果各自保留归属；完整全局结算、其他原生失败和适用平台缺口仍未由本节验收。整体继续 **`FAILED` / `CHANGES_REQUIRED`**。
+
+## 6923825 后两项 Native 宿主夹具合同复审
+
+本节只读审查当前 HEAD `692382575fc96dcfc630be4e5f43ac8ea29fd2df` 后的两个未提交测试 diff，不修改生产或仓库测试、不运行新的重复 runner、不改原冻结报告。受审内容 blob：`tests/tools/test_command_guards.py`=`16f345b5ed0849617408e20f191ff5d965efb065`；`tests/tools/test_termux_api_detection.py`=`c9617690bbabecc08a250cc1817ce17df7deb1f9`。
+
+**本次两项测试修正未发现新增 blocking/major，可接受其局部合同调整；整体仍 FAILED / CHANGES_REQUIRED。** 它们没有修改生产保护、后端选择、OS 探测或任何 deadline。
+
+| 位置 | 冻结真实失败及修正后的合同 |
+| --- | --- |
+| `tests/tools/test_command_guards.py:80–94` | 冻结 `2a2684390016a1bfadc4c759bf2151945425f077` 的 PM Linux 解释器位于 `/tmp/...`。旧目标 `rm -rf /tmp` 是运行时解释器的祖先目录，实际日志明确 `Runtime self-delete block: the Python interpreter...`；返回 approved=False、callback=0 是正确硬保护，不应为了让 callback 被调用而关掉它。现 deny 测试只改为本测试 tmp_path 下独立 `approval-target`，保留 approved=False、callback 恰一次和 allow_permanent=True；新增真实 `Path(sys.executable).resolve().parent` 删除目标，令 callback 返回 session 仍要求 approved=False 且从未调用 callback，直接加强“不可审批覆盖运行时保护”的行为合同。两项只调用 guard 进行判定，没有执行删除命令。 |
+| `tests/tools/test_termux_api_detection.py:189–201` | 冻结结果已经含 `Termux:API microphone recording available (sounddevice not required)`，没有 app 缺失警告；available=False 来自原生 WSL 缺少音频转发的另一条警告。当前断言要求真实 detect_audio_environment 产出 Termux 成功 notice，并继续拒绝误导的 app 缺失 warning；不再将整台宿主的 available 强行规定为 True。邻接的 clean-probes-no-match 负例仍要求 available=False 和 app 缺失 warning，原探针 ladder 返回 True/False 的合同亦保留。 |
+
+生产顺序已逐行追踪：`tools/approval.py:1152–1174` 的 `_floor_block` 在 `check_all_command_guards:1248` 的人工/allowlist/模式判断前执行；运行时匹配来自 `agent.runtime_self_protection.command_deletes_runtime`，不是测试替换。`tools/voice_mode.py:255–277` 仅在 binary 和 app fallback 成功时给 Termux notice，而 `detect_audio_environment:328–351` 独立记录 WSL 警告、以 `not warnings` 汇总 available。新断言正好对应这两个不同层次，不删除或伪造实际警告、不把宿主其他不可用条件伪装为成功。
+
+按 root 意图核查要求还读取 `git log -p -S`：运行时不可删除 floor 来自 `541e4dc0ba6d50e3e4554611c3e6b2c0865187c4`，其注释明确不能由 yolo/mode=off/cron approve 覆盖；Termux 原回归测试来自 `0a5c5519fcb503fcff40f9183a4a0a72a6b42caf`，目标是探针不确定时信任已存在 binary、消除错误 app 缺失提示，并保留确认缺失的反例。`a875342384..692382575f` 对 `tools/approval.py`、`agent/runtime_self_protection.py`、`tools/voice_mode.py` 无 diff；此事实仅支持这些生产合同未被本后端范围改写，不冒称它本身是宽回归基准通过证据。
+
+本次 diff 没有新增 `sys.platform`、`is_wsl`、container 等宿主事实补丁，没有改变 timeout/sleep。Termux package-manager 命令、PATH 和音频导入仍沿用原测试夹具；这是实际公开检测函数下的可控依赖合同，不是实际 Android/Termux 麦克风端到端验收，也不证明 WSL 音频已可用。
+
+已直接读取并保留以下 Root 执行日志；本 Reviewer 未冒称独立代跑：
+
+- `.build/postgresql/unified-task24-native-host-fixtures-red.log`：冻结 2a 的原两文件 **24 passed / 2 failed，exit 1**，包含以上完整真实输出。
+- `.build/postgresql/unified-task24-windows-host-fixtures-green.log`：当前两文件 **27 passed / 0 failed，runner 4.2s**，19 个 guard 与 8 个 Termux 项。
+- `.build/postgresql/unified-task24-native-host-fixtures-green.log`：当前两文件 **27 passed / 0 failed，runner 7.0s**，原生 Linux PM 解释器，19+8 项均执行。
+
+上述日志都通过 canonical `scripts/run_tests.sh`、无文件重试结算；本次不重复已完成的同一窄范围测试。该证据允许局部测试整改，不能擦除此前冻结宽回归失败、代替后续新冻结完整验收、关闭其他 metrics/发行门禁或填补非 WSL POSIX 私有启动页的平台证据缺口。全局结论保持 **FAILED / CHANGES_REQUIRED**。
