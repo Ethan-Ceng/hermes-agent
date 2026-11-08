@@ -141,6 +141,26 @@ def wait_recorded(root, predicate, what):
     return recorded_served(root)
 
 
+def rescan_and_wait_parked(mux, names):
+    root = mux['root']
+    result = control(root, 'rescan-profiles')
+    if result.get('pending') is not True:
+        assert sorted(result['parked']) == sorted(names), (result, tail(mux))
+        return control(root, 'identify')
+
+    # The control handler bounds its wait at 5s; an accepted slow refresh keeps running.
+    assert result['multiplex'] is True, result
+    homes = {(root / 'profiles' / name).resolve() for name in names}
+
+    def settled():
+        desc = control(root, 'identify')
+        if set(desc.get('parked_profiles', {})) == set(names) and not (homes & served_homes(desc)):
+            return desc
+        return None
+
+    return wait_until(settled, timeout=20, interval=.05, what='pending rescan parked and withdrew profiles')
+
+
 async def open_session_for(root, home, desc):
     """A ticket bound to *home* opens a session the multiplexer commits into *home*'s state.db."""
     grant = control(root, 'session-ticket', {'profile_id': str(home.resolve()),
@@ -290,9 +310,7 @@ def test_invalid_hot_profile_config_is_parked_and_unserved(mux):
         added = root / 'profiles' / 'invalid-hot'
         added.mkdir(parents=True, mode=0o700)
         (added / 'config.yaml').write_text(json.dumps(invalid), encoding='utf-8')
-        result = control(root, 'rescan-profiles')
-        desc = control(root, 'identify')
-        assert result['parked'] == ['invalid-hot'], (result, tail(mux))
+        desc = rescan_and_wait_parked(mux, ['invalid-hot'])
         assert added.resolve() not in served_homes(desc), desc
         assert 'invalid-hot' in desc.get('parked_profiles', {}), desc
         wait_recorded(root, lambda r: 'invalid-hot' not in r, 'invalid-hot never recorded')
@@ -301,11 +319,9 @@ def test_invalid_hot_profile_config_is_parked_and_unserved(mux):
         # into an invalid configuration.
         assert mux['boot'].resolve() in served_homes(desc)
         (mux['boot'] / 'config.yaml').write_text(json.dumps(invalid), encoding='utf-8')
-        result = control(root, 'rescan-profiles')
-        desc = control(root, 'identify')
         # An explicit control-socket rescan retries parked profiles by design, so the still-invalid
         # 'invalid-hot' is re-parked alongside 'boot' (never served in between).
-        assert sorted(result['parked']) == ['boot', 'invalid-hot'], (result, tail(mux))
+        desc = rescan_and_wait_parked(mux, ['boot', 'invalid-hot'])
         assert added.resolve() not in served_homes(desc), desc
         assert mux['boot'].resolve() not in served_homes(desc), desc
         assert 'boot' in desc.get('parked_profiles', {}), desc

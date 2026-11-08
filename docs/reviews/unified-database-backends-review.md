@@ -31,12 +31,13 @@
 | 上述 Matrix sessions 失败 | 旧测试在重开后仍提交旧 store 的独立 ratchet；当前用重新加载的对象继续真实双向加解密及保存，再次重开验证时间和加解密。全文件 4 passed，独立 1 passed；均退出 0 |
 | 上述跨执行 Profile Worker 超时 | 原 30 秒结果回执边界失败，独立全文件 2 passed。只补脱敏日志，未增 deadline/放松断言。尚未稳定复现原超时，不能宣布根因已解决 |
 | d402 新冻结全 PG、发行、普通 daemon | `unified-task24-corrected-pg-and-daemon.log`：114 文件、336 passed / 0 failed / 325 errors，49 文件非零、退出 1、681.9 秒。原 maintenance/Matrix sessions/Worker 四项均实际通过，普通 daemon 通过；约58%时首见数据库 recovery mode，后续 setup/teardown 大量连接失败。不是完整绿色门禁 |
+| 服务恢复后66a完整 PG/发行/daemon | `unified-task24-pg-after-service-recovery.log`：114 文件、659 passed / 0 failed / 0 errors / 0 skipped、退出0、1276.2秒。标准runner、retries0、原SQLite guard及真实业务/双store/重启/SDK合同均开启；生产仍58d，后续只有测试/文档变更。不外推为Native或全局门禁通过 |
 | Windows 核心普通合同 | `unified-task24-windows-core-final.log`：212 文件、573 passed / 0 failed / 3 平台 skipped，退出 0。integration 被排除，不计为完整 PG 证据 |
 | Windows 实际 daemon/worker | `unified-task24-windows-daemon-workers.log`：3 文件、4 passed / 0 skipped，退出 0。实际 gateway.run、同/跨执行 Profile worker、交互入口、工具写入、持久回执及重启，SQLite 全拒绝 |
 | d402 SQLite 独立能力 | `unified-task24-sqlite-sdk-final.log`：4 passed / 0 skipped，退出 0。实际 SQLite SDK、全域双 Profile、新进程恢复；核心拒绝 PG 依赖，SDK 特例只允许上游实际依赖的异常类型但拒绝 PG connect/create_pool |
 | 58d 四套新 PM 发行环境 | 新 Windows/Linux × SQLite/PG source-bundle 构建成功；`-I`、载荷外 CWD、installed source 归属及完整业务/显式升级证明：Windows 4 passed / 2 Linux SDK skipped，Linux 6 passed / 0 skipped。仅测试/文档后续变化没有改变该生产载荷 |
 | 静态、契约与 Desktop | 58d 全分支 14 检查通过、547 个 Python 文件 health 0 blocking/0 advisory；d402 测试修正 14 检查通过、3 个 Python 文件 health 0。生成契约 check、strict TypeScript、Electron noEmit 退出 0；Desktop 备份预检 Vitest 22 passed |
-| 58d Linux 八目录 Native 宽回归 | `unified-task24-frozen-native-areas.log` 仍运行，已有 compression、shutdown 及 command discovery 共 4 项失败；没有完整成功汇总 |
+| 58d Linux 八目录 Native 宽回归 | `unified-task24-frozen-native-areas.log` 仍运行，已有 compression、shutdown、command discovery、arrival-order、hot-profile及managed普通turn共7项失败；没有完整成功汇总 |
 | 仅观测的 Native 诊断 | 忽略目录探针导入原两文件合同，在原 deadline 观察线程栈；31 passed，退出 0，未复现失败。导入式探针不替代原文件隔离回归，也没有捕获原失败瞬间的栈 |
 | shutdown fixture 清理修正 | 仅测试改为 finally release/abort/join 所有实际启动线程；原2秒边界、owner与registry断言保留，原barrier失败输出栈后重抛。Windows原文件25 passed，冻结66a Linux原文件25 passed；独立确定性barrier失败/owner断言失败两项证明原异常保留且线程退出。尚未证明原始超时根因已解决 |
 
@@ -50,7 +51,8 @@
 4. 非 WSL POSIX 私有启动页七项缺适用主机。当前 Windows 与真实 Ubuntu/WSL SDK 测试不能证明非 WSL 政策；没有伪造 OS/is_wsl 或跳过必需验收，仍等待用户可用的现有执行入口。
 5. 完整批次结束及失败处置后，仍需独立全局终审，并按审查整改的实际影响复验。此汇总不是该独立终审。
 6. d402 完整批次因测试数据库 recovery mode 非零结束，恢复模式原因尚未查明。用户处理服务后第一次仍not yet accepting connections，后续Windows/Linux只读探测均核对指定测试数据库及in_recovery=false。对两个日志候选先核对数据库、角色owner及唯一标记，只删除仍存在的一项，另一项已不存在；未操作其他Schema。66a完整114文件PG/发行/daemon已重新启动，日志unified-task24-pg-after-service-recovery.log，结果尚未返回；恢复连接不替代完整业务验收。
-7. Native command discovery 比较时 daemon 缺少 legacy 已看到的 `/sdlc-review` bundled skill，原断言及完整批次失败保留，尚未确定与本次 backend 变更的因果；独立 A/B 核对中。
+7. Native command discovery 比较时 daemon 比 legacy 多出 `/sdlc-review` bundled skill（delta tuple 为 daemon 值/legacy 值；原汇总方向记反，已按真实断言纠正），原断言及完整批次失败保留，尚未确定与本次 backend 变更的因果；独立 A/B 核对中。
+8. hot-profile只修原测试与异步pending合同的兼容，真实正向门闩1passed；Root/mnt/d整文件6passed/1个独立startup90秒超时，未整体通过。新helper静态首轮输出GBK错误，UTF-8完整重跑尚在执行；待恢复commit后新native checkout整文件复验。managed普通turn HISTORY_9原30秒超时仍另行调查，不能假称压缩算法已定位。
 
 ## 合并门禁
 
@@ -59,7 +61,8 @@
 | 原已证实 blocking 整改 | 指定范围复审通过 | 确认前冻结身份、实际 handle 核对、新 checked verb 的真实红绿证据 |
 | 原已发现 major 整改 | 指定范围复审通过，不能外推全局 | 分域独立 follow-up；未知回归因果尚未关闭 |
 | 全部验收标准满足 | 未通过 | 完整回归、适用主机、最终独立门禁仍不齐 |
-| 最新完整 PG/Native 绿色 | 未通过 | PG新批次也非零且依赖当前recovery mode；Native仍运行且已有失败 |
+| 最新完整 PG 绿色 | 通过 | 服务恢复后66a完整114文件659项全绿、退出0，保留先前非零记录 |
+| 最新完整 Native 绿色 | 未通过 | 冻结宽回归仍运行，已观察到7项失败，指定fixture整改/复验不覆盖其他失败 |
 | 独立安装与显式迁移 | 指定范围通过 | 四套新 PM 环境，0004 有效历史前向升级与重复升级、完整域、双 Profile 新进程恢复 |
 | 静态/契约/适用类型检查 | 已记录范围通过 | 上述真实结果，不替代业务验收 |
 | 最终独立审查 APPROVED | 未完成 | 本文件为实施 Agent 汇总；现有各独立报告总体仍 CHANGES_REQUIRED |

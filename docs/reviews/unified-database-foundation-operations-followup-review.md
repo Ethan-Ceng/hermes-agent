@@ -132,3 +132,124 @@ Reviewer 实际按顺序执行以下两条命令，测试均经 helper 内的 `s
 首次将真实 faulthandler 输出至诊断临时文件，2 passed（`review-foundation-shutdown-cleanup-probe.log`）；随后专门核对与原测试相同的默认 stderr 路径，在 pytest 捕获下仍输出实际线程栈并保留原异常，2 passed（`review-foundation-shutdown-cleanup-default-stack.log`，退出 0、3.7 秒）。两次均为原生 Windows PM 解释器、canonical runner、`HERMES_TEST_FILE_RETRIES=0`、单 runner `-j 1`。主 Agent 的 `unified-task24-shutdown-cleanup-windows.log` 另记录原 25 项为 25 passed、0 failed，已独立读取。
 
 本范围未发现整改会吞掉已观察的 barrier/owner 失败或制造错误通过。它改善失败后的清理和证据质量，**没有修复或解释原始 2 秒超时**。若 worker 阻塞在 Event/Barrier 以外的不可中断 I/O，bounded join 不能强制终止它；存活断言仍会让测试失败，不能把本次 probe 扩大为所有阻塞情形都保证无存活线程。冻结 58d 宽回归现已新增 command discovery 第 4 项失败，尚未因本次测试清理而重跑或关闭；全局仍为 `FAILED`。
+
+### Command discovery：原技能差异与新增 RPC 超时分开保留
+
+冻结日志第 1808–1825 行的实际失败是 `test_ordinary_daemon_discovery_matches_legacy_extensions`，第 134 行报告 daemon 比 legacy 多一个 `/sdlc-review`（usage 0、origin bundled），该文件 1 failed、1 passed。Reviewer 按相同 PM Linux 环境、原 deadline、retries 0、canonical runner `-j 1 -- --tb=long`，在上述两个固定 checkout 顺序 A/B：
+
+| checkout | 窄跑结果 | 原始日志 |
+| --- | --- | --- |
+| a875 baseline | 2 passed、0 failed，退出 0，16.2 秒 | `.build/postgresql/review-foundation-command-discovery-baseline-ab.log` |
+| 58d head | 1 failed、1 passed，退出 1，59.1 秒 | `.build/postgresql/review-foundation-command-discovery-head-ab.log` |
+
+58d 窄跑没有重现技能差异，而是在 `_legacy_ws_snapshot`→`_rpc_result(ws, rid=0)` 的原 20 秒 `asyncio.timeout` 内收不到 legacy WebSocket 的第一个 `commands.catalog` 结果，实际抛 `TimeoutError`。这是另一个失败信号，不能替换冻结日志的技能差异，也不能由 baseline 一次通过便认定是新增 backend 的稳定回归。原 runner 会在文件完成后删除测试 temproot（`scripts/run_tests_parallel.py:685–691`），这次输出没有保留超时瞬间的服务子进程栈。
+
+按主 Agent 随后要求，Reviewer 在 58d 原生 checkout 的忽略 `.build` 内加入独立观察层，tracked 源码/测试保持 clean、ref 仍为 58d：`review_foundation/test_command_discovery_stack_probe.py` 直接调用原用例；仅对本测实际创建并持有的 `Popen`、且精确启动序列为当前解释器 `-m gateway.run` 或 `-m hermes_cli.main serve` 的两个子进程，在其 env 的 PYTHONPATH 前置临时 sitecustomize 注册 SIGUSR1 faulthandler。只有原 `_rpc_result` 实际触发 20 秒 `TimeoutError` 后，才向仍活的这些 handle 发信号、从新增日志内容输出仅含路径/行号/函数名的栈帧，并重抛原异常；不扫描其他进程，不重新发请求，不增加 RPC deadline。追加的最多 2 秒仅等待已经失败后的诊断输出，不把观察等待变成业务通过。
+
+这一次有观测的原单用例为 **1 passed**、退出 0、11.5 秒（`.build/postgresql/review-foundation-command-discovery-owned-stack.log`）。原技能差异和 RPC 超时都未发生，因此本次没有发送 SIGUSR1，也没有失败栈；不将无异常的一次观察称为找到了根因或修复。
+
+静态调用链缩小了下一次观察范围：
+
+- `run_bootstrap.py:784` 同步调用 bundled `sync_skills`，返回后才构造 runner；READY 在第 881 行发布。没有直接证据支持“bundled sync 在 READY 之后还未完成”。`sync_skills`、技能 catalog/cache、command discovery 和该测试在 a875→58d 没有修改；这不能排除间接时序影响。
+- `/sdlc-review` 带有 `environments: [kanban]`。该 relevance gate 经 `agent.skill_utils._detect_kanban`→`tools.kanban_tools._profile_has_kanban_toolset`，读取 ContextVar/配置，无直接数据库调用。`gateway/session_local_inventory.py:116–124` 会暂时 pop 全局技能 cache，在 `scoped_kanban_toolset_selection(["kanban"])` 下扫描后恢复；`tools.skills_tool.py:85` 的 cache signature 只含目录、disabled 与平台，不含该 ContextVar。并发 discovery 若在临时发布窗口读取，存在看见不同 relevance 结果的静态可能，但这段逻辑 baseline 已有，尚未证明它发生在本次失败。该文件本次后端变更仅涉及项目查询的 StorageError 传播，不能把相关性当作技能差异的因果。
+
+后续最小证据应是失败时两个实际服务进程栈，以及同次请求的技能文件集合/manifest、relevance ContextVar、cache signature 和 cache 命中状态；不应先增加 deadline 或把业务对比断言删除。此处不登记未经复现的 cache 猜测为已确认产品缺陷。
+
+截至本节，冻结原生宽回归 4 项失败仍未闭合。主 Agent 另已报告 PostgreSQL 处于 recovery mode；本 Reviewer 本节未运行 PG 测试、未操作服务或正式 Profile，也不把该不可用状态登记为功能通过或跳过。全局继续为 **`FAILED` / `CHANGES_REQUIRED`**，包括原 7 项非 WSL POSIX 主机证据缺口。
+
+### 技能 cache 窗口的确定性行为见证与反证
+
+随后按主 Agent 要求，Reviewer 在相同 a875/58d 隔离 checkout 中对上述 cache 候选做了确定性见证。先以 `git log -p -S 'saved = skills_tool._SKILLS_CACHE.pop' -- gateway/session_local_inventory.py` 核对意图：`c31291a765e4e8c59f59a9ecc242637a8739a4f2` 明确要求 CLI snapshot 临时纳入 Kanban 技能计数，并恢复 cache，使 TUI/Desktop/messaging 和 agent 自身技能索引保留各自视图。`80f37e36eda72c612c1ad8a87cd528b1c46786ee` 对 environment detector 的历史修复也明确指出 Kanban relevance 依赖执行上下文，不能记住进程第一个调用者的答案。
+
+探针 `.build/postgresql/review_foundation/test_skill_inventory_cache_overlap.py` 使用临时 Profile、固定无 Kanban opt-in 的真实配置和实际 `environments: [kanban]` SKILL.md。两个线程各自绑定同一个 owning Profile：inventory 线程调用原 `_cli_skills`，仅在实际 `find_all_skills` 已扫描、写入 cache 并返回后，通过包装调用的 Event 暂停；普通线程仍处于原 `kanban_toolset_requested() is None`、真实 environment detector 为 false 的 scope。没有构造假 cache 记录、没有把普通 scope 改为 Kanban，没有读取源码作测试断言；所有数据与线程均为该 probe 所有，finally 释放并 join worker。
+
+先行版本只检查真实 `scan_skill_commands`/`get_skill_commands`，a875 为 1 passed（`review-foundation-skill-cache-baseline-command-guard-green.log`）。这给出重要反证：`agent/skill_commands.py:486` 会再次读取 SKILL.md 并执行 environment relevance 检查，不能从底层 catalog 暂时含有该技能就推断 slash 命令一定被污染。此前本报告的静态候选推测由此收窄，**未证实普通 slash 层泄漏，不能解释冻结 `/sdlc-review` delta**。
+
+补充记录底层真实列表后，两个 revision 都实际失败在同一列表隔离断言，canonical runner、retries 0、`-j 1 -- --tb=long`，均退出 1：
+
+| 真实观察 | a875 baseline | 58d head |
+| --- | --- | --- |
+| 普通 scope environment detector / inventory selection | false / true | false / true |
+| inventory 开始前普通 `find_all_skills` 含 gated skill | false | false |
+| inventory 实际扫描结果含 gated skill | true | true |
+| 暂停窗口内普通 `find_all_skills` 含 gated skill | **true** | **true** |
+| 同窗口普通 `scan_skill_commands` 含 gated command | false | false |
+| inventory 恢复后普通 catalog / command cache 含 gated skill | false / false | false / false |
+| worker 完整退出 | true | true |
+
+原始红测：`.build/postgresql/review-foundation-skill-cache-baseline-red.log`、`review-foundation-skill-cache-head-red.log`，分别 1 failed（pytest 0.34/0.30 秒）。精确触发位置为 `_cli_skills` 第 117–124 行临时发布/恢复同一全局 entry，普通 `tools.skills_tool._skill_catalog` 第 241–245 行命中仅由目录/disabled/platform 签名约束的 cached relevance 结果。恢复后原 catalog 被恢复，普通命令层自身的二次 relevance 检查在观察全过程中有效。
+
+此项分级为 **minor：既有的底层技能列表 relevance 隔离问题**。它不是 PostgreSQL 业务问题，不是经验证的未授权工具执行，也不是本次新增 backend 回归；a875 与 58d 的真实行为证据一致。按主 Agent 的范围要求，只独立记录，不扩展本次后端生产整改。若后续单独修复，最小方向是让 CLI inventory 的临时 relevance 扫描不发布到普通调用者共用的 catalog entry，或为不同 relevance scope 提供完整一致的 cache 隔离；保留 CLI 正确计数及普通 slash 二次检查。
+
+原 command discovery 技能差异和独立 RPC 超时仍待失败时证据闭合，不因这个已存在的列表问题而被标记为已解释。主 Agent 此后通知 PostgreSQL 已由用户恢复并核对两主机 readiness/非 recovery，66a 完整 PG 批次已重启；本节没有代替其最终结果验收。总体仍为 **`FAILED` / `CHANGES_REQUIRED`**。
+
+### Hot Profile park：有观测窄跑未复现，冻结失败保留
+
+冻结 Native 后续增至 6 failed。其中 `tests/gateway/test_multiplex_hot_serve_live.py::test_invalid_hot_profile_config_is_parked_and_unserved` 在第 295 行读取 `result['parked']` 时抛 `KeyError`（冻结日志第 2446–2453 行）；原 assertion 的诊断 tuple 尚未求值，因而没有实际 result 或 mux 日志。此处只审计这一项，新增 admission arrival-order 超时不在本节的独立诊断范围内。
+
+Reviewer 在忽略的 `.build/postgresql/review_foundation/test_hot_profile_park_observation.py` 包装原模块实际 `control` 调用，直接运行原用例与原 mux/peer fixtures。只有 `rescan-profiles` 返回缺少 parked 或原 control 本身抛异常时，才输出完整脱敏 return/异常与该 fixture 所有的 stdout、gateway.log、errors.log；原 return 原样交给原测试，不更改任何 assertion、90 秒 boot、10 秒 socket、5 秒服务 future 或其他 deadline。两个 checkout 均只新增自有 `.build` 观察层，无生产或仓库测试修改。
+
+按 **58d→a875** 顺序执行一次同环境、有观测的原单 case，canonical runner、retries 0、`-j 1 -- --tb=long`：
+
+| checkout | 结果 | 日志 |
+| --- | --- | --- |
+| 58d head | 1 passed、退出 0，7.1 秒 | `.build/postgresql/review-foundation-hot-profile-head-observed.log` |
+| a875 baseline | 1 passed、退出 0，8.1 秒 | `.build/postgresql/review-foundation-hot-profile-baseline-observed.log` |
+
+原 case 对新建 invalid-hot 和把已服务 boot 改为无效配置的两条 rescan/park/撤销路由合同都执行通过；本次没有出现缺 parked，观察器未触发失败日志输出。因此既没有失败时真实 reply，也没有证据将冻结失败定性为既有问题或环境时序。
+
+静态异常边界的具体结论：
+
+- 原 `control` 第 44 行先断言 socket envelope `ok`，然后才返回 `result`。直接由 handler 外逸的 `StorageConfigurationError` 属于 Exception，`GatewayControlServer` 第 352–353 行会生成 `ok: false`，原测试应先在 control 内失败，而不是走到第 295 行的 KeyError。
+- `_serve_profile_runtime` 第 431–444 行对构建/打开 secondary runtime 的 Exception（包括 StorageConfigurationError）已有 park 路径；adapter validation 的 `MultiplexConfigError` 在 `_apply_profile_changes` 第 278–289 行撤销并 park。reconcile 的普通返回合同包含 parked，当前 diff 没有改写这些 park 分支。
+- `run_bootstrap.py:350–353` 的控制 handler 在原 5 秒 `future.result` 超时后，会正常返回 `{multiplex, pending, served_profiles}`，其中没有 parked。这是与现有 KeyError 相容的具体代码候选，但没有失败时 reply 就不能认定此次实际发生了 pending；也不能排除先 pending、后台稍后才失败的其他根因。
+
+本节未发现可凭当前证据确认的新增配置异常外逸，也没有宣布原失败已经修复。观察层可在下一次原条件失败时保留缺失的结果与自有日志；不建议凭一次窄跑绿修改原 deadline 或放宽 parked 业务断言。冻结 Native 的 6 项失败、完整 PG 新批次最终结果及原平台缺口继续保留，总体 **`FAILED` / `CHANGES_REQUIRED`**。
+
+### 原 5 秒 pending 合同的确定性 daemon 见证
+
+主 Agent 随后要求只验证上述异步控制合同。Reviewer 先用 `git log -p -S` 核对 `ae601a7632824571b56c2788df17e0c92558d5b5` 与 `291959504057e02e2659a30e35219f352e97c648`：原设计在 a875 之前就明确为控制请求设置 5 秒 bounded wait；慢 adapter/reconcile 在后台继续执行，调用者得到 pending，不能把 pending 当作终态失败或已经完成。
+
+新增自有诊断文件 `.build/postgresql/review_foundation/test_hot_profile_pending_gate.py` 与 `hot_profile_gate_sitecustomize/sitecustomize.py`，两个隔离 checkout 的 tracked 源码和仓库测试不变。观察层只给本测实际创建并持有、精确 argv 为当前解释器 `-m hermes_cli.main gateway run --quiet` 的子进程注入临时 import hook；在正常模块导入时包装实际 `_serve_profile_runtime`，仅当 name 为 invalid-hot 且 home 等于本 fixture 的临时 Profile 路径时，在第一次实际 serve 之前等待本测文件门闩。它保持事件循环可响应，不改 clock、socket response、future timeout、park 结果或原用例的任何 assertion；其他 Profile 和进程不被暂停。
+
+原 control 返回后，观察层确认已进入实际门闩并记录完整真实 result，再释放门闩，通过原 identify 和状态文件观察实际的无效 WhatsApp 配置最终 park/unserve。随后仍将先前真实 pending result 原样返回给原用例，原用例继续在第 295 行读取不存在的 parked 而失败。finally 释放门闩并收束本测所有持有的子进程；未扫描或暂停其他进程。
+
+按 a875→58d 顺序、同一原生 PM Linux 环境、canonical runner、retries 0、`-j 1 -- --tb=long` 的实际结果：
+
+| 观察 | a875 baseline | 58d head |
+| --- | --- | --- |
+| 原 control 的 ok 断言 | 通过 | 通过 |
+| 实际 rescan result | `{multiplex: true, pending: true, served_profiles: [default, boot]}` | 同左 |
+| 原 control 请求实测耗时 | 5.0056 秒 | 5.0055 秒 |
+| 释放门闩后的真实 identify / gateway_state | 两者均记录 invalid-hot parked | 同左 |
+| 实际 served set | 只含 default、boot；invalid-hot 已 unserved | 同左 |
+| 实际 mux 日志 | 原 WhatsApp open-policy `MultiplexConfigError`，随后 invalid-hot unserved | 同左 |
+| 保留的原用例失败 | 第 295 行 `KeyError: 'parked'` | 同左 |
+| pytest / runner | 1 failed、退出 1（10.43 秒） | 1 failed、退出 1（9.98 秒） |
+
+完整红测日志：`.build/postgresql/review-foundation-hot-profile-pending-baseline-red.log`、`review-foundation-hot-profile-pending-head-red.log`。两日志另有诊断目录下 `spawns_gateway_lookalike` 的 UnknownMarkWarning，未跳过测试、未改变上述真实 daemon 执行或失败位置；失败原因明确为原用例 KeyError。
+
+由此可以确认：**当实际 reconcile 超过原 5 秒控制预算时，原测试直接索引 parked 与既有异步 pending 合同不兼容；这个受控失败路径在 a875 已存在，58d 的实际 park/unserve 流程仍能完成。** 这不是把 fake parked 回包代替业务执行，也没有证据支持为本路径修改生产的配置异常边界或延长控制 timeout。
+
+本见证仍不能补造冻结宽回归当时未打印的 reply，不能断定那次 6 项失败中的此项实际就是 pending，更不证明使那次 reconcile 变慢的具体原因。冻结原生失败日志继续保留；如后续整改测试，必须明确区分 pending 和终态，并验证真实 park、撤销服务及状态发布，不能只接受 pending 就判通过。全局继续 **`FAILED` / `CHANGES_REQUIRED`**。
+
+### 新测试 helper 复审与真实 pending 正向复验
+
+主 Agent 依据上述合同只修改测试，新增 `rescan_and_wait_parked`；本 Reviewer 未编辑生产或仓库测试。受审及实跑文件 blob 为 `c4c46a7bf2bafcab33a782036dee1fd302ca6d22`。静态复审未发现放宽业务门禁：每个场景只发一次 rescan；非明确 `pending is True` 时仍要求原 parked 字段并精确比较集合，缺字段/错误回包继续失败；pending 分支要求 multiplex 为 True，在该文件已有的 20 秒 eventual 窗口中只轮询实际 identify，要求精确 parked 集合及全部目标 home 已撤出 served set。原新建/已服务 Profile 两场景的 served 和 gateway_state 断言均保留，生产原 5 秒等待没有改动。
+
+独立正向 probe 为 `.build/postgresql/review_foundation/test_hot_profile_pending_gate_positive.py`，复用前节同一真实 daemon 文件门闩。它在当前 Root 的 `task24-linux-state.json`（source 为 `/mnt/d/AI/hermes-agent`）运行，没有修改正在做冻结宽回归的 58d/66a checkout。与前次红测不同：实际 pending 返回后，观察层不等待最终 park；新 helper 的第一个 identify 得到真实 parked 空集合，观察层才释放门闩，并原样返回该尚未完成的 reply。因此后续等待和终态判据由受审 helper 自身执行，没有合成或提前等待终态。
+
+实际命令经既有 helper 内的 canonical runner、PM Linux 解释器、retries 0、`-j 1 -- --tb=long`：
+
+```text
+.build/postgresql/full-test-env/Scripts/python.exe .build/postgresql/run_matrix_linux.py --native --state task24-linux-state.json --log review-foundation-hot-profile-pending-positive.log .build/postgresql/review_foundation/test_hot_profile_pending_gate_positive.py -j 1 -- --tb=long
+```
+
+结果为 **1 passed、0 failed、退出 0，case 68.0 秒**（不含 `/mnt/d` canonical 预编译等待）。持久的原始行为观察在 `.build/postgresql/review-foundation-hot-profile-pending-positive-observation.json`，`validated: true`：
+
+- 两个原场景共 2 次 rescan，每个场景仅一次；第一实际 result 为 multiplex/pending True、served default/boot，原控制请求实测 5.00546 秒。
+- 新 helper 自己读取了 58 次实际 identify，其中前 56 次 parked 仍为空；之后实际 invalid-hot 被 park/withdraw，新 helper 才让原用例继续。
+- 第二场景的实际 rescan 终态 parked 为 invalid-hot/boot，实际 served 只剩 default；原用例全部状态文件与 served 断言执行完成。
+- 唯一持有的本测 daemon 已退出并被回收，门闩 finally 释放。所有数据都是临时 Profile/文件，未操作正式实例。
+
+这项局部测试整改及其 pending 等待路径已得到独立正向证据。原 a875/58d 两份门闩红测、冻结原生失败及当时 reply 未知的边界全部保留；主 Agent 的整文件 7 项日志 `unified-task24-hot-profile-async-contract.log` 在本节读取时仍运行，本报告不以单个 probe 代替其最终结果。其他未闭合失败、完整冻结/PG 门禁和平台证据缺口均不受本次通过影响，整体仍 **`FAILED` / `CHANGES_REQUIRED`**。

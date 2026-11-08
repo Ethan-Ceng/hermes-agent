@@ -14,7 +14,7 @@
 - 当前验证判定：`FAILED`；三份独立审查均为`CHANGES_REQUIRED`，正在Task24内整改，未完成本项。
 - 当前任务：Task24（in_progress；Task23本地提交`3febe6fc31`，整改恢复提交`58d0003f83`）。
 - 已完成：23 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
-- 阻塞：非WSL POSIX私有启动页七项仍缺适用主机。验收PG经用户处理后已在Windows/Linux核对恢复，完整PG重跑中；Native宽回归尚未通过，不能用局部绿测代替。
+- 阻塞：非WSL POSIX私有启动页七项仍缺适用主机。验收PG已恢复并完成114文件659项全绿；Native宽回归仍运行且已有失败，最终独立审查尚未完成。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-08（Asia/Shanghai）。
 
@@ -1541,7 +1541,7 @@ Matrix sessions失败来自测试在store重开并读取loaded_inbound后，继�
 
 不依赖PG的整改继续：仅观测探针在d402独立checkout导入原compression/shutdown合同，保留原deadline并在超时记录无局部变量的线程栈，31pass/0fail（unified-task24-timing-stack-probe.log）、退出0，未复现原失败，导入探针不计为原文件完整隔离验收。已给原shutdown barrier测试增加finally release Event/abort Barrier/join全部实际启动线程，保留2秒rendezvous/join、全部owner及registry断言；只在原BrokenBarrierError输出无局部变量的faulthandler栈并重抛。Windows原文件25pass/0fail、退出0（unified-task24-shutdown-cleanup-windows.log）；独立Reviewer确定性barrier失败/owner断言失败两项证明原异常仍抛、线程退出及清理全执行（review-foundation-shutdown-cleanup-default-stack.log），复审接受此测试修正，但不能据此宣称首个barrier超时根因解决。生产实现未变。
 
-冻结Native宽回归另新增command_discovery一项：daemon缺legacy已看到的/sdlc-review bundled skill，当前已有4fail。独立同条件A/B正在核对，未提前归为既有问题或backend缺陷，未改技能/缓存/提示前缀。新增总审查汇总docs/reviews/unified-database-backends-review.md把三份原独立发现及增量复审、当前范围/命令/结果、PG恢复模式和平台缺口逐项关联；明确该文件由实施Agent汇总，不冒充尚未执行的独立全局终审，保持FAILED/CHANGES_REQUIRED。
+冻结Native宽回归另新增command_discovery一项：daemon比legacy多出/sdlc-review bundled skill（原delta tuple为daemon值/legacy值，先前账本将方向记反，现按真实断言纠正），当前已有4fail。独立同条件A/B正在核对，未提前归为既有问题或backend缺陷，未改技能/缓存/提示前缀。新增总审查汇总docs/reviews/unified-database-backends-review.md把三份原独立发现及增量复审、当前范围/命令/结果、PG恢复模式和平台缺口逐项关联；明确该文件由实施Agent汇总，不冒充尚未执行的独立全局终审，保持FAILED/CHANGES_REQUIRED。
 
 线程清理与汇总恢复前静态：PM解释器`scripts/check --staged --base d402ff3a06`全部14检查通过、1个Python文件health 0blocking/0advisory，退出0（unified-task24-shutdown-cleanup-checks.log）；git diff --cached --check通过。之后只补写实际依赖中断、复审与执行结果，不改变已检查的测试代码。本地恢复提交后需在新的独立Linux checkout复验原shutdown文件，仍保留58d Native宽回归失败和原deadline，不改变生产实现。
 
@@ -1550,6 +1550,18 @@ Matrix sessions失败来自测试在store重开并读取loaded_inbound后，继�
 用户通知PG服务已恢复后，第一次双主机探测仍不可连接，脱敏服务端明细为not yet accepting connections/Consistent recovery state has not been yet reached（unified-task24-pg-restored-diagnostic.log）；未立即重启宽回归。随后只读探测在Windows/Linux均验证current_database匹配独立测试配置、pg_is_in_recovery=false（unified-task24-pg-readiness-after-recovery-wait.log、unified-task24-pg-ready-linux-confirmed.log），退出0。对日志中两个随机Schema候选，在单事务先核对数据库、当前角色owner及hermes-pg-tests唯一标记，全部核对后只删除其中仍存在的一项，另一项已经不存在，退出0（unified-task24-interrupted-schema-cleanup.log）；忽略目录manifest已记checked/dropped/absent，没有删除其他Schema或既有业务表，没有管理数据库服务。
 
 已在冻结66a独立checkout重新启动同一114文件完整PG/发行/普通daemon批次，retries0、-j3、--file-timeout1200、-m 'not live'，其余私有配置及58d生产载荷/双PM解释器参数与d402批次一致，日志unified-task24-pg-after-service-recovery.log。66a仅多测试清理与文档，生产代码仍为58d；完整结果尚未返回，不计通过。原d402的336pass/325errors及恢复前失败全部保留，服务可连接不等于这批业务已验收完成。
+
+新增Native证据与整改决定：冻结宽回归新增arrival-order paused的原3秒both-kept超时，以及hot-profile原control结果没有parked键，两项使当前观察到的失败达6。arrival-order仅观测原用例1pass/0fail（unified-review-native-arrival-observation.log），未复现/未取到失败时栈，不归因资源或既有问题。hot-profile独立原用例head/baseline各1pass；随后只对本测实际持有的daemon注入invalid-hot首个真实serve的文件门闩，保持handler原5秒等待，a875/58d均取得真实pending回复，释放后真实park/unserve完成，但原测试仍精确KeyError红（review-foundation-hot-profile-pending-{baseline,head}-red.log）。历史ae601a7632/2919595040已明确允许慢刷新后台继续、返回pending；不能把正常pending当handler错误，亦不能声称已取得冻结当次reply。
+
+据此只修测试的异步合同：rescan请求仅发送一次；立即完成仍校验原parked列表；明确pending=true时按本文件已有的20秒eventual publication窗口轮询真实identify，要求精确parked集合及所有目标实际withdraw后才继续。无pending且无parked仍失败，不合成预期reply，不增加生产5秒等待或业务deadline、不停功能，保留真实park/unserve及gateway_state断言。生产实现保持58d。新增docs/debug/unified-database-final-regressions.md关联原失败、反证、未验证因果及下一观测；总门禁仍FAILED，不以fixture修正盖过其他失败。
+
+恢复后的完整PG结果已读取：冻结66a同一114文件批次659passed/0failed/0errors/0skipped、退出0、1276.2秒（unified-task24-pg-after-service-recovery.log），包括完整PG目录、独立发行/显式升级及实际普通gateway.run daemon；实际Matrix SDK、原维护确认丢失/重开ratchet/跨Profile Worker四项全过。自动SQLite guard和业务子进程guard全程开启，池/并发/故障/双store/真实持久化/新进程逆序恢复均按各文件原合同执行，没有功能禁用、重试或SQLite豁免。58d生产source-bundle双PM解释器参数不变，生产代码经diff核对仍相同；后续变化仅测试/诊断/文档。旧58d四失败及d402服务恢复325errors完整记录仍保留。该完整绿色PG门禁不替代仍运行且已有失败的Native宽回归或非WSL七项主机证据，也不提前改变FAILED/23项计数。
+
+独立cache反证已写foundation followup：a875/58d均在真实CLI inventory临时发布窗口令普通find_all_skills看到Kanban-only条目，但同窗口scan_skill_commands及恢复后的get_skill_commands都再次正确过滤；不能解释原daemon多出/sdlc-review。该底层列表既有minor保留两版本red及历史意图证据，本轮延后单独修复，不扩大数据库后端生产范围，不关闭原command discovery差异/RPC超时。arrival-order原paused单用例观测1pass，成功stdout未保留原始JSON，根因仍未知，详见native-admission-arrival-order-observation.md，不把缺失字段写成已观察事实。
+
+hot-profile新helper独立真实正向门闩1pass/退出0（review-foundation-hot-profile-pending-positive.log及旁置observation.json），两原场景各仅1次rescan；第一请求原5秒返回pending后，新helper先见真实空parked，再自行轮询到实际park/withdraw；第二终态也实际完成，全部原业务/状态文件断言保留。整7文件在Root/mnt/d窄验为6pass/1fail、退出1、489.5秒（unified-task24-hot-profile-async-contract.log），原invalid-hot用例已过，失败为另一create-profile场景的start_daemon原90秒仍starting、尚未调用新helper；该非零记录保留，不调大期限。当前新静态首轮因Windows GBK无法编码检查输出而退出1（unified-task24-hot-profile-contract-checks.log），改用PYTHONUTF8=1及PM Python -X utf8重跑完整14检查，日志unified-task24-hot-profile-contract-checks-utf8.log仍运行，不计通过。为在实际Linux文件系统完整复验，将保存明确Task24仍in_progress的测试/调试恢复commit再创建新native checkout；不是完成提交。
+
+冻结Native宽回归另出现managed-compress[False]在HISTORY_9普通turn terminal原30秒超时，尚未到实际compress操作，当前已观察7fail。独立只读诊断将捕获本测真实worker/admission及拥有者日志，不凭文件名或低并行绿测猜根因。除正在改的测试合同外，生产代码仍保持58d，不以完整PG659绿测抵消这些Native失败。
 
 ## 计划变更
 
@@ -1565,7 +1577,7 @@ Matrix sessions失败来自测试在store重开并读取loaded_inbound后，继�
 ### 执行结果
 
 - 单元/SQLite回归：最新Windows核心212文件573pass/0fail/3平台skip，局部Native合同见Task24；冻结Linux八目录宽回归仍运行且有失败，尚未通过。
-- 真实PG各域/并发/故障/单后端审计：冻结58d完整113文件654pass/4fail/0skip、退出1；d402新完整114文件336pass/0failed/325errors、退出1，数据库进入recovery mode。原四项红测在新批次均已通过，但完整绿色门禁缺失；现双主机只读核对服务恢复并完成中断候选清理，66a完整PG重跑中。
+- 真实PG各域/并发/故障/单后端审计：最新冻结66a完整114文件659pass/0fail/0error/0skip、退出0；含完整PG目录、独立发行及显式普通daemon。旧58d四失败、d402服务恢复模式325errors及确认/清理过程保留，不计作最新批次通过。
 - 独立安装/显式迁移/原生重启：58d四套新PM环境已构建；最新独立安装Windows4pass/2Linux SDK skip、Linux6pass/0skip；全域联合业务/SDK新进程恢复已真实通过，但最新普通daemon/Worker联合复验未闭合。
 - 静态/生成契约/适用构建：58d全分支14检查通过、547个Python文件health 0；d402测试合同及最新shutdown清理各14检查通过/health 0。最新生成契约check、契约strict TypeScript、Desktop Electron noEmit均退出0，Desktop预检22pass。
 - 独立审查：原三份初审CHANGES_REQUIRED；分域follow-up已记录已发现问题闭合，最新maintenance测试修正独立2pass；全局最终复审未完成。
@@ -1582,7 +1594,7 @@ Matrix sessions失败来自测试在store重开并读取loaded_inbound后，继�
 
 ### 未通过与未验证
 
-Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣称全系统PG已完成。PG依赖中断已在用户处理后核对恢复，两个日志候选已按数据库/角色owner/唯一标记核对，一项删除、一项原已不存在；66a全PG正在重跑，先前非零结果保留。非WSL私有启动页七项仍缺适用主机，不伪装OS或WSL策略。Native宽回归仍运行且已有4fail，全局最终复审未闭合。
+Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣称全系统PG已完成。最新66a完整PG114文件659项全绿，先前非零结果、服务恢复/两候选归属清理全部保留。非WSL私有启动页七项仍缺适用主机，不伪装OS或WSL策略。Native宽回归仍运行且已有6fail；hot-profile异步测试合同修正正在复验，其他失败因果未定，全局最终复审未闭合。
 
 ### 最终状态
 
