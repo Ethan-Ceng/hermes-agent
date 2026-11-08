@@ -195,3 +195,39 @@ Root 随后只改该原测试：加入真实 `progress()` 的 sampled Event，�
 | `unified-task24-activity-age-candidate-terminal.log` | 早期编排在读取缺失overlay state时就FileNotFoundError，未进入测试；不计为业务红或绿。Root另记录WinError206准备失败，同样不计入上述测试结果 |
 
 因此前节“固定年龄上限”minor现有保持真实执行链的源码修正、原函数确定性红及当前完整文件+同probe绿，**本测试合同范围可以局部关闭**。Reviewer未代跑/连库/修改实现或仓库测试；本轮仅更新报告。它没有定位原宽验约10.1秒墙钟差的具体运行阶段，也不证明整个Native宽验、平台或非WSL七项缺口完成，整体仍 **FAILED / CHANGES_REQUIRED**。
+
+## 当前范围最终只读更新：来源、补充结果与剩余门禁
+
+核对时HEAD为 `c1dffcc317ac9ded6077f219492489b3633d1cd8`，另有server测试工作区准备修正；生产最后仍为120bf8。本轮没有重启调研、运行测试/daemon、连接数据库、改生产/测试或提交，仅核对指定来源账本、已有终态日志和本报告的证据范围。
+
+### 原6412文件账本的逐项独立核对
+
+已读 `unified-task24-native-provenance-reconciliation.log` / `task24-native-provenance-reconciliation.json`，并另外只读解析原 `unified-task24-20a478-full-native-observed.log`、读取Git tree及计算工作树blob：
+
+- 原日志解析出 **6412行、6412个唯一文件**；逐一比较JSON内file/icon/stats，**0不匹配**。
+- `git ls-tree -r 20a478... -- tests` 对6412项original_blob **0不匹配**；`git hash-object --stdin-paths` 对6412项current_blob **0不匹配**，不是只抽查五个变更项。
+- 选择范围只有 **5个**测试文件改变：boot reserve、hygiene、async delegation age、notification poller、TUI server，全部来自原 **8个**非零文件；没有原绿色selected文件被改动。
+- 20a478→当前工作区，以及120bf8→当前工作区，除tests/docs以外的production diff均为 **[]**。notification/server SHA256仍与d010候选overlay的09ac/0e05值一致。
+
+以上只证明结果与代码来源关联。原完整Native批次仍为 **6412文件、63150 passed / 15 failed / 726 skipped，8文件非零，7722.3s，-j4**；不以6412项来源匹配或后续定向通过重写为原批次全绿，也不把旧15个失败自动全部归为环境。
+
+原20a478宽验中，本报告此前关注的managed launch **7通过/64.5s**、Host keyless全文件 **5通过/37.9s**、managed compress **2通过/170.8s**，其原blob与当前blob相同。它们是这一次宽验真实通过，不补造此前history、controls、Host20秒缺note或其他调度失败的因果；这些旧实例的限制继续留账。
+
+### 最新补充终态
+
+`unified-task24-profile-prepared-native-joint.log` 已真实结束：d010基础、notification/server两文件hash overlay，**6文件688 passed / 0 failed / 0 skipped，485.9s，-j4、退出0**；分解为原server637、pause43、groups4、notification1、实际profile准备参数2、cleanup1，合计688，不再保留“server尚live”的旧状态。实际profile/notif准备与原期限的局部源码/相位/cleanup审查由foundation报告负责，本报告仅确认该终态及来源，不把其中pause/groups通过写成旧失败机制已查明。当前server一文件静态日志 `unified-task24-profile-held-store-checks.log` 为 **14 checks ok、health 0/0**，不是再次声称整个598文件分支已在新测试输入上重跑。最终本地提交及总体门禁结算仍由Root负责。
+
+另已读取 `unified-task24-20a478-mixed-profile-backends.log` 完整终态，并重读原合同：PG satellite→独立选择SQLite的root **1 passed / 0 failed / 0 skipped，4.5s**。测试实际提交PG effect/receipt与intent、排空源pending、从SQLite root持久库读回profile set，核对源scope恢复，audit要求每次SQLite连接只属于明确SQLite root，子Profile没有metrics.sqlite3。这补齐前文指出的**选集外必要混合后端合同**；它不在689/584/579中，不重复累计，也不冒充“全PG业务进程零SQLite”的例外。
+
+### 分级与当前无法验证项
+
+| 项目 | 当前范围结论 |
+| --- | --- |
+| 未处理blocking | 本分域未发现有证据的未处理blocking |
+| 未处理插件/SDK major | 本分域未发现有证据的未处理major。原Matrix共享ratchet、SDK吞错/游标、close调度与实际COMMIT边界，RetainDB owner通道/未知确认/重放，metrics owner同意/持久化及跨root范围均按既有真实合同局部闭合；120bf8以后生产没有变化 |
+| 必需PG/SDK验收 | 所审领域已有完整127文件689通过（Matrix31为其子集）、独立混合root补验、真实managed消费/持久化与四PM载荷结果；本轮未发现仍缺少的本分域必需PG/SDK合同，不因tests/docs变化要求重复已结算PG批次 |
+| minor | async-age固定上限已由上述原函数红→当前完整文件/同probe绿局部关闭；本次未新增minor |
+| 尚无法验证的因果 | 原Host/managed等待、pause/groups以及server冷初始化等旧实例的完整原因不能由后续绿或来源账本补造。只将已有真实错误与fixture处置分别留账，不据此笼统判定为分支无关 |
+| 总体关键验收缺口 | 非WSL七项私有启动页仍缺真实适用主机；当前总体完成/最终提交与门禁结算未结束。这是仍未满足的关键验收条件，不是本轮新增七个生产缺陷 |
+
+**本审查范围没有需要重新打开的插件/PG/SDK重大问题，但不能给出全局APPROVED。** 当前来源核对和局部补充结果均可纳入各自范围；原完整Native失败保持原样，未完成的真实主机/最终总体门禁继续明确保留。Task24及整体结论仍为 **FAILED / CHANGES_REQUIRED**。

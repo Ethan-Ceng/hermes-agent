@@ -277,3 +277,52 @@ wrapper 对实际 runtime/state/AttachmentStore.read/ServerRPC._call 使用原 a
 - 本次真实成功链排除了“此次没有 submit/settle”的解释，但没有排除原 wide 的调度、持久状态、静默 fence 或阻塞分叉，也不能据本次各阶段很快反推原失败必为 IO/负载。
 
 该结果准确结算为**原四项本次未复现失败**。若父任务后续选择联合观察，应继续保留原文件内顺序、期限、固定 clock 和业务断言，按原失败时点的数据分支定位；本 Reviewer 未启动任何联合批次。pause 和 groups 的原 wide 红均保留，Task24 与全局仍 **`FAILED / CHANGES_REQUIRED`**。
+
+## 2026-11-09：六文件终态、来源对应与当前协作门禁分级
+
+本轮独立只读核对实际日志、JSON、准备脚本、当前测试 diff、Git blob 和初始计划。未运行测试、连库、操作进程/服务、改生产或仓库测试、提交。审查对象为生产 `120bf8c9d6c9`，当前恢复 HEAD `c1dffcc317ac` 加尚未提交的 server 测试准备增量；本节不外推到未来生产变化。
+
+### 六文件的可用终态与实际输入
+
+`unified-task24-profile-prepared-native-joint.log` 自然终态为 **6 文件 / 688 passed / 0 failed / 0 skipped，485.9 秒，4 workers，退出 0**。逐文件为 pause 43、groups 4、notification 1、原 server 637、profile 准备相位 2、失败清理 1。server 的 476.3 秒是完整文件用时，不是某个原失败业务阶段的耗时。
+
+`task24-profile-store-candidate-state.json` 指向独立 d0101fe64d snapshot，两个测试 overlay 的 SHA256 与本 Reviewer 读取当前实际文件计算的结果完全一致：notification `09ac29210a6c10e05183c325c4e6a85992d9e1f910862004863f344375c11928`，server `0e05b83d26c9a84cfff09713bcaf88bf10c923c4113d77651c3479b855659cf8`。该终态支持这两个实际候选文件，而不是只支持提交前的旧 d010 文件。
+
+测试前置修改没有伪造 scope、替换存储或放大原业务 deadline：
+
+- notification 在启动 services 前调用真实 `hermes_cli.goals._get_session_db()` 并要求非 None，保留两次 join 3 秒、finally join 1 秒、旧 stop、唯一活 poller 和关闭断言。该路径经实际 `acquire_sessions(home/state.db)`，没有内存库替代。
+- server 两个 profile case 在 `:857`、`:920` 持有实际目标 `_open_profile_session_db` 的 closing 引用，覆盖真实构建及 finally join；原 built 15 秒、ready 5 秒、cleanup 15 秒和 home/secret 断言保持。worker 自己仍调用真实 open，Profile 绑定仍发生在 build 内。只把首次库创建移入明确前置，不能外推为任何冷库初始化必在 15 秒内完成。
+- 两个相位 probe 要求第一次真实 open 先于 start、第二次在 start 后、同 home、同一实际 Native registry handle，且原业务 AssertionError 会重抛。清理 probe 故意让原 built 断言失败，再要求原 finally join 排空自己的实际 build thread；它是失败路径见证，不是原冷初始化故障的重现。probe 自身最后排空的 60 秒不替代原 fixture 的 15 秒清理断言。另有同源原两 case Windows **2 passed / 0 failed / exit 0** 记录。
+
+### Prepared pause 与 groups 的真实分支
+
+`pause-record-prepared-{false,true}.json` 的两个 node 均精确匹配原参数，failed=false。它们独立命名，没有覆盖此前 observed JSON。本次 PID 398316 的缓存、新读及 recorded ct 都为 1794162500.320，真实 incarnation verdict=True：
+
+- False：stop_sent=[]；主请求 TTL 60 返回 False，accepted 路径 FileNotFoundError/False；asked/unknown 均空，live 含本 PID，实际 drop 返回 profiles={}。
+- True：主请求过期 False，accepted receipt True；asked 含本 PID、unknown 空、live 含本 PID，实际保留 profiles，并记录 stop_sent。
+
+原 chmod 555、拒绝 checkpoint、saved stop_sent=[]、marker 回拨 120 秒、完整文件内顺序与全部业务断言未改。该次正确分支进一步覆盖当前合同，仍没有解释原 PID 71887 的异常 owed；不能宣称缓存差异、OS、负载或 TTL 已被证实为原根因。
+
+`groups-route-prepared-test_tui_member_turn_receives_its_document_and_image.json` 为 **67 events、dropped=0、snapshots=[]、无已记录 error**。实际 `_run_room_once` 为 266238.395869597 → 266238.686465871，约 **290.596 ms**；acquire lease_generation=1、recover、start execution_generation=1、两次附件 read、原 session.list/create、prompt.submit、同步 callback 和 settle 全部返回。settle 与原后续 get_task 均为 settled/generation1，原文档和 PNG 的准确字节断言通过。该次未记录静默 fence；snapshots=[] 表示原 wait 未失败，不能声称已验证旧失败时的 pre-stop 栈。原 10 秒 wait、5 秒 stop、0.4 秒 lease、固定业务 clock 及附件授权/结果断言没有变。
+
+### 原 6412 文件与当前来源的有界对应
+
+已审阅 `task24_reconcile_native_provenance.py` 和其 log/JSON。脚本要求原 summary 存在、文件行数匹配且 6412 路径唯一，对每个原选中文件用 20a478 Git blob 与当前实际工作区 hash-object 对应，并检查除 tests/docs 外的 diff。独立读取 manifest 得到：
+
+- 原完整批仍是 **6412 文件 / 63150 passed / 15 failed / 726 skipped，8 个非零文件**，没有被补测重写。
+- 20a478 至当前工作区的生产 diff=[]；全路径 diff 只有 docs 与五个 selected 测试文件，没有另改共享 fixture/helper。五个变化均属于原八个非零文件；其余 6404 个原非零以外的文件 blob 未变。
+- pause、groups、private-launch 的原测试 blob 没变。五个改变文件为 probe、hygiene、async-delegation、notification、server；本 Reviewer 对前两项及 async 的当前完整处置不代替各自责任 Reviewer 的结论。
+
+manifest 证明的是源码和原结果对应关系，不证明原运行环境、负载顺序或历史异常原因，也不自行证明五个修改后的业务覆盖。六文件当前终态是独立补充证据；它没有把原宽批变成一次完整 Native 绿。
+
+初始计划提交 `d9984f73af` 的 Task24 验证方式已经明确允许八个 Native 目录“**按依赖/原生平台分批并读取完整汇总**”，当前同一条在计划 `:1481`。因此不能临时新增“一次 6412 文件同批全绿”的必要条件，也不能因分批就拒绝全部有效证据。相反，原失败、skip、来源和各文件补测处置仍须逐项保留，不能只凭生产 diff 为空宣布验收完成。
+
+### 分级及具体下一门禁
+
+**当前协作范围未发现新增 blocking/major，也未发现尚缺正向当前执行证据的 pause/groups 必需业务合同。** 两文件现有完整文件复验、联合并发复验及真实调用记录；旧 collaboration major 的永久合同和当前生产完整 PG 127 文件/689 项证据仍见本报告前节。本节只更新此前“当前 pause/groups 回归门禁尚未复验通过”的状态为“当前合同复验通过，历史失败原因未明”，没有将历史失败改名为已修复。
+
+pause/groups 原宽失败应继续记为**原因未明的可靠性残余风险/无法验证项**。现有证据不足以将其归为已定位生产 major，也不足以排除既有或间接触发问题；没有代码行依据时不为它们编造根因或提出生产补丁。原红记录、尚未触发的失败观测路径、不能保证所有负载组合都绿等限制继续有效。
+
+下一门禁是由最终全域 Reviewer 对原八个非零文件逐项完成“当前来源—原失败—整改或未复现—完整文件结果—残余风险”的处置，明确非 WSL 私有启动页七项的适用主机证据，并核对最终实际 ref/diff 与必要静态检查。若没有新的生产或共享依赖变化，本协作范围不要求盲目重跑 6412 文件；若再次出现相同合同失败，应在原期限和真实业务路径下捕获原分叉，按新证据重新定级，不能用这次绿压过新红。
+
+全局适用主机证据与最终审查尚未闭合；本 Reviewer **不批准合并**，全局继续 **`FAILED / CHANGES_REQUIRED`**。该结论与“当前协作未发现未处理 blocking/major”同时成立。

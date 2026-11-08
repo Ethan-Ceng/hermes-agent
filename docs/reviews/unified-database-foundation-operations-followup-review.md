@@ -875,3 +875,43 @@ Task24原验证方式明确允许八个Native目录“按依赖/原生平台分�
 当前非平台仍需完成的具体**收尾门禁**是：把最终本地提交ref与以上实际测试/overlay哈希和分批文件集合冻结对应；在该最终输入上完成相对a875的完整分支 `scripts/check`/verification-before-completion和各分域最终独立结论。局部health1不能替代最终全分支检查，未提交候选不能冒称已绑定完成提交；若后续生产或相关测试再变更，按实际影响补验，不能继续使用本次provenance无变化前提。这些是最终证据绑定/审查工作，不是已发现的新产品缺陷；本轮不建议重复当前完整PG、发行或无影响Native文件。
 
 非WSL POSIX七项适用主机证据仍真实缺失，设计/计划要求全部必需验收和最终独立APPROVED才可READY_TO_MERGE。因此**全局继续 FAILED / CHANGES_REQUIRED、Task24未完成**；本节接受分域补证范围，不批准全局完成、合并或发布。
+
+## 最终冻结 6c9e286 的独立总体门禁结算
+
+本轮是既有独立源码/分域复审之后的总体证据与完成声明审查。代码冻结为 `6c9e28665b1766c295023018a03e390dd264c230`，基础 `a8753423841362c6c8d76e2dca094c95d690ba27`；Reviewer读取实际Git、日志/hash、设计九项、计划状态、Root当前canonical review及collaboration/plugins最终scope段落，未代跑测试、连库、修改实现/测试、操作服务或提交。不是把证据整理算成新业务运行，也不宣称本轮重新逐行审查所有历史代码。
+
+### 冻结输入和实际结果已对应
+
+已审阅 `task24_freeze_final_reference.py` 与成功freeze日志：使用真实Git show字节核对五个selected测试，要求当前分支/祖先关系、两生产基准diff空、24个任务状态中23个completed且最后in_progress，才生成 `task24-final-code-reference-6c9e286.json`。Reviewer另独立核对：
+
+- 五个冻结提交blob都与当前实际文件blob相同，当前文件SHA256均与freeze清单及此前实际overlay一致；a875确是该ref祖先。6c9e286→当前工作区只有待结算文档，没有生产或测试变化。
+- 6c9e286相对生产/发行来源120bf8及原Native20a478的tracked生产diff均为空。该等价关系允许匹配既有业务证据，**不等于在6c9重新运行PG或原完整Native**。
+- freeze内14份实际日志的SHA256和唯一canonical Summary全部匹配。689 PG、双宿主DB、发行、FAL、当前五测试完整文件补验及mixed/deletion目录外8项仍按各自来源/交集结算；没有将相互重叠数字相加，也没有给同Profile PG的SQLite连接开mixed例外。
+- `unified-task24-6c9e286-final-branch-checks.log` 对明确 `--commit 6c9e286… --base a875342384` 已 **14 checks ok、603 Python files health 0 blocking/0 advisory、exit0**。该日志实际SHA256为 `749c9243b43230084f56dae8b82228a1e0f60ba92ad015cc38a245d6f7998506`；它取代前节“最终全分支静态仍待”的代码门禁，当前文档增量检查另由Root收尾。
+- 计划24个任务正文状态实际为23 completed、Task24 in_progress；Root将历史恢复位置明确标为历史，没有把过期“下一步/仍live”混作当前任务。当前overall BLOCKED与原失败批次的FAILED同时保留，不篡改旧exit1。
+
+### 九项验收及分域闭环的总体判断
+
+Root当前 `unified-database-backends-review.md` 的九项逐条映射，与设计第232–242行及本报告/两份peer报告一致：SQLite独立、PG新数据集全域实际消费、PG audit拒绝SQLite、scope/并发/配额、错误/unknown、Schema/发行、真实Matrix SDK、标准runner/静态/独立复审分别有对应当前范围；第九项适用主机明确未满足。Root清楚标明该文档是实施Agent汇总而非独立批准。
+
+collaboration最终scope没有未处理的本域blocking/major，旧typed location/附件/事务拒绝/owner审计问题按永久PG合同闭合；pause/groups当前原完整文件和联合通过，旧原因未明仍为残余风险。plugins最终scope没有未处理的本域blocking/major，Matrix、RetainDB、metrics、真实managed与mixed-root仍按其真实合同闭合；未测交叉组合或旧Host/managed时序没有被虚构成已定位缺陷或已修复。两peer段落仍以c1d加候选叙述其当时输入，但其实际测试SHA与最终6c9一致、生产等价，故来源可对应；本轮不把它们改写为曾在6c9重新执行。
+
+原八个非零文件的逐项处置完整：七个非平台文件均有当前完整文件结果，最后四原文件包含于-j4联合688项；private launch七项单独未验收。Root保留原全宽 **6412/63150 passed/15 failed/726 skipped、exit1**，没有称“最新一次完整Native全绿”。原PG recovery失败、controls/history/Host、pause/groups/nested与真实初始化慢的完整因果仍明确无法验证，source provenance/绿色补验不能替它们补造原因。结合原Task24允许按依赖/平台分批，**当前所审非平台范围未发现遗漏的必需业务/并发门禁或需重新打开的产品blocking/major**；不要求没有具体代码/合同依据的整轮重跑。已明确延期的基线minor仍按原记录处理，不改称已修复。
+
+本轮未发现canonical review、计划或两peer结论存在不当完成声明；没有将23/24写成24/24、将Git等价写成新测试、或将packet/语法检查写成实机验收。
+
+### [major，既有必需验收证据缺口] 七项非WSL POSIX私有启动页尚无适用主机结果
+
+位置：`docs/designs/unified-database-backends.md:242`、`docs/plans/unified-database-backends-plan.md:1816`；原用例在 `tests/hermes_cli/test_webapp_private_launch.py:44`、`:62`（三参数）、`:77`、`:87`、`:99`。
+
+七项是private page/browser、no-open profile提示三参数、修正可被他人读取的目录、relative home及旧page清理。原20a478完整日志第7176–7182行的七红保留；Windows/WSL不满足该适用主机条件，文件另5项原通过不能替代这七项。这里分级为**关键验收证据major/门禁未满足，不是新增七个已定位生产缺陷**；它足以阻止全局批准。
+
+本轮只读查看 `private-launch-host-6c9e286/` 的README、真实runner、packet state和checksum；三个文件hash实际匹配，源码archive为91,102,713字节、标明Git冻结ref，runner使用真实host facts拒绝WSL/不适用host，创建自有Profile/runtime，经PM构建并由canonical runner执行原完整12项，retries=0。已有 `bash -n` 只证明脚本语法，**applicable_host_run仍明确not performed**；没有任何适用实机业务Summary/exit，不能接受packet准备代替通过。
+
+最小解除条件是在现有非WSL Linux或macOS适用主机上执行该冻结源码原完整文件，返回实际host facts、PM/canonical runner输入、完整Summary及exit，原用例/权限/browser/profile断言保持；如失败按真实输出处置。缺少现成主机时继续BLOCKED，不伪装OS、删除用例或放宽业务期限。
+
+### 最终无法验证项与结论
+
+当前无法验证项为上述七项真实适用主机结果，以及账本已逐项保留的历史异常完整因果；后者不是没有代码/合同依据便自动成立的新产品major。无法保证一切尚未执行的负载组合，本次未用该普遍限制无限新增测试门禁。当前报告等文档尚待Root完成staged检查和本地恢复提交；代码的最终ref/业务来源/全分支静态已闭合，不需要因本轮纯文档收尾重复PG/发行/无影响Native文件。
+
+**总体审查：CHANGES_REQUIRED；当前交付验证：BLOCKED；Task24保持in_progress、23/24。** 本轮没有新增产品blocking/major或必需非平台回归范围缺口，但必需平台验收未满足，不能给出APPROVED、READY_TO_MERGE或全系统完成声明。原各失败批次仍按真实FAILED保留；无合并、推送或发布批准。
