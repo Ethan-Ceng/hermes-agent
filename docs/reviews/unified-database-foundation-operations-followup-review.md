@@ -119,3 +119,16 @@ Reviewer 实际按顺序执行以下两条命令，测试均经 helper 内的 `s
 这一次顺序窄 A/B 没有复现，不能说明在冻结宽回归的并发条件下两版本等价，也不能据运行时间差宣布性能结论。若继续诊断，最小观测是在隔离层于原 2 秒 barrier 失败时捕获两个 worker 栈，并在保留业务断言的前提下确保诊断清理始终 release/join，防止首个失败污染后续证据。
 
 本次观察时冻结宽回归已经累计上述 3 failed 且仍运行；不能用任何局部绿测报告整体通过。全局结论保持 **`FAILED` / `CHANGES_REQUIRED`**，完整冻结回归、这些失败的处置与原 7 项适用非 WSL POSIX 主机验收仍未由本节闭合。
+
+### 后续测试清理整改的独立复核
+
+仅复核 `tests/cron/test_shutdown_interrupt.py` 当前未提交的唯一测试整改（新增 faulthandler 导入及第 210–230 行清理）；未修改生产或仓库测试。原 `entered.wait(timeout=2)`、每线程 `join(timeout=2)`、完整 owner 集合/重复 job 计数及最终 registry 清空断言均保留。`except BrokenBarrierError` 输出栈后 bare raise，没有返回成功或吞掉异常；其他业务断言仍直接失败。finally 先设置原 release Event、abort 原 Barrier，再 join 每个已成功启动的线程，最后统一断言没有线程存活，不会因第一个存活线程而跳过后续线程的 join。
+
+独立 `.build/postgresql/review_foundation/test_shutdown_cleanup_probe.py` 直接调用当前原测试方法，隔离 scheduler 的执行 seam，不读源码断言，也不操作数据库。两个确定性失败分支分别检查：
+
+- 将两个真实 worker 保留在 rendezvous 之前，直至原主线程 `wait(timeout=2)` 实际超时；原 `BrokenBarrierError` 仍向外抛出，原 Event 已 set、Barrier 已 broken、两个实际启动线程都已退出，恰好输出一次栈。
+- rendezvous 正常完成后，让原第一项业务断言失败；原 `AssertionError` 仍向外抛出，两个线程都已退出，未输出 barrier 诊断栈。未增加原 timeout 或修改任何业务断言。
+
+首次将真实 faulthandler 输出至诊断临时文件，2 passed（`review-foundation-shutdown-cleanup-probe.log`）；随后专门核对与原测试相同的默认 stderr 路径，在 pytest 捕获下仍输出实际线程栈并保留原异常，2 passed（`review-foundation-shutdown-cleanup-default-stack.log`，退出 0、3.7 秒）。两次均为原生 Windows PM 解释器、canonical runner、`HERMES_TEST_FILE_RETRIES=0`、单 runner `-j 1`。主 Agent 的 `unified-task24-shutdown-cleanup-windows.log` 另记录原 25 项为 25 passed、0 failed，已独立读取。
+
+本范围未发现整改会吞掉已观察的 barrier/owner 失败或制造错误通过。它改善失败后的清理和证据质量，**没有修复或解释原始 2 秒超时**。若 worker 阻塞在 Event/Barrier 以外的不可中断 I/O，bounded join 不能强制终止它；存活断言仍会让测试失败，不能把本次 probe 扩大为所有阻塞情形都保证无存活线程。冻结 58d 宽回归现已新增 command discovery 第 4 项失败，尚未因本次测试清理而重跑或关闭；全局仍为 `FAILED`。

@@ -11,6 +11,7 @@ Covers the cron/scheduler.py primitives directly:
     result AFTER its tool was already killed out from under it
 """
 
+import faulthandler
 import threading
 from unittest.mock import patch
 
@@ -206,18 +207,27 @@ class TestRunningFireOwnerRegistry:
             {"id": "same-job", "fire_claim": {"by": "replacement-owner"}},
         ]
         threads = [threading.Thread(target=sched.run_one_job, args=(job,)) for job in jobs]
-        for thread in threads:
-            thread.start()
-        entered.wait(timeout=2)
+        started = []
+        try:
+            for thread in threads:
+                thread.start()
+                started.append(thread)
+            entered.wait(timeout=2)
 
-        assert sched.get_running_job_ids() == frozenset({"same-job"})
-        assert sched.mark_running_jobs_interrupted("shutdown") == ["same-job", "same-job"]
-        assert set(marked_owners) == {"old-owner", "replacement-owner"}
-
-        release.set()
-        for thread in threads:
-            thread.join(timeout=2)
-            assert not thread.is_alive()
+            assert sched.get_running_job_ids() == frozenset({"same-job"})
+            assert sched.mark_running_jobs_interrupted("shutdown") == ["same-job", "same-job"]
+            assert set(marked_owners) == {"old-owner", "replacement-owner"}
+        except threading.BrokenBarrierError:
+            # Capture the original deadline's blocked workers without exposing their local values.
+            faulthandler.dump_traceback()
+            raise
+        finally:
+            # A failed rendezvous must not leave workers writing into the next test's mocks.
+            release.set()
+            entered.abort()
+            for thread in started:
+                thread.join(timeout=2)
+            assert all(not thread.is_alive() for thread in started)
         assert "same-job" not in sched.get_running_job_ids()
 
     def test_shutdown_marks_each_owner_in_its_profile_store(self, monkeypatch, tmp_path):

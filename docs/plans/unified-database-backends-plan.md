@@ -14,7 +14,7 @@
 - 当前验证判定：`FAILED`；三份独立审查均为`CHANGES_REQUIRED`，正在Task24内整改，未完成本项。
 - 当前任务：Task24（in_progress；Task23本地提交`3febe6fc31`，整改恢复提交`58d0003f83`）。
 - 已完成：23 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
-- 阻塞：无待用户重新选择的技术方案；非WSL POSIX私有启动页七项仍缺适用主机。最终宽回归尚未通过，不能用局部绿测代替。
+- 阻塞：验收PG当前返回recovery mode，Windows/Linux只读复核均无法连接；服务由用户管理，等待恢复。非WSL POSIX私有启动页七项仍缺适用主机。最终宽回归尚未通过，不能用局部绿测代替。
 - 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
 - 更新时间：2026-11-08（Asia/Shanghai）。
 
@@ -1537,6 +1537,14 @@ Matrix sessions失败来自测试在store重开并读取loaded_inbound后，继�
 
 冻结Native宽回归随后新增shutdown_interrupt两项失败，当前共3fail、尚无完整汇总。独立Reviewer确认第二项多余mark来自前一barrier失败测试的same-job/old-owner线程，前一测试在barrier.wait(2)失败前没有finally release/join，存在跨测试污染；第一barrier为何超时仍缺线程栈。以原deadline顺序在a875/58d执行同文件各25pass/0fail（review-foundation-shutdown-{baseline,head}-ab.log），不能将窄跑绿写成失败已解决或归为既有问题。新增观察和未验证边界已补foundation-operations-followup-review，未改Agent核心、业务deadline或全局门禁。
 
+新d402完整PG/独立发行/显式daemon批次现已真实结束：114文件336passed/0failed/325errors，49文件非零、退出1、681.9秒。maintenance全部10项、Matrix sessions全部4项、同/跨Profile embedded worker两项及普通daemon均已在此批次通过；约58%开始的metrics_store、messages准备/清理首先报FATAL database system is in recovery mode，后续49文件大量连接失败，不能宣称完整PG通过。随后在Windows和Linux分别以已有私有测试配置，只读SELECT current_database/pg_is_in_recovery核对；两边都在建立连接时OperationalError/recovery_mode、退出2（unified-task24-pg-readiness-{windows,linux}.log）。不打印连接秘密、不操作服务；已异步请求用户在其管理的服务恢复后告知，当前原因未查明，不擅自归因。只提取本日志的两个随机Schema候选至忽略目录task24-interrupted-schema-candidates.json，归属标记未能核对、未清理；恢复后仅能在核对测试数据库与该候选拥有者标记后清理，不能枚举删除其他Schema。
+
+不依赖PG的整改继续：仅观测探针在d402独立checkout导入原compression/shutdown合同，保留原deadline并在超时记录无局部变量的线程栈，31pass/0fail（unified-task24-timing-stack-probe.log）、退出0，未复现原失败，导入探针不计为原文件完整隔离验收。已给原shutdown barrier测试增加finally release Event/abort Barrier/join全部实际启动线程，保留2秒rendezvous/join、全部owner及registry断言；只在原BrokenBarrierError输出无局部变量的faulthandler栈并重抛。Windows原文件25pass/0fail、退出0（unified-task24-shutdown-cleanup-windows.log）；独立Reviewer确定性barrier失败/owner断言失败两项证明原异常仍抛、线程退出及清理全执行（review-foundation-shutdown-cleanup-default-stack.log），复审接受此测试修正，但不能据此宣称首个barrier超时根因解决。生产实现未变。
+
+冻结Native宽回归另新增command_discovery一项：daemon缺legacy已看到的/sdlc-review bundled skill，当前已有4fail。独立同条件A/B正在核对，未提前归为既有问题或backend缺陷，未改技能/缓存/提示前缀。新增总审查汇总docs/reviews/unified-database-backends-review.md把三份原独立发现及增量复审、当前范围/命令/结果、PG恢复模式和平台缺口逐项关联；明确该文件由实施Agent汇总，不冒充尚未执行的独立全局终审，保持FAILED/CHANGES_REQUIRED。
+
+线程清理与汇总恢复前静态：PM解释器`scripts/check --staged --base d402ff3a06`全部14检查通过、1个Python文件health 0blocking/0advisory，退出0（unified-task24-shutdown-cleanup-checks.log）；git diff --cached --check通过。之后只补写实际依赖中断、复审与执行结果，不改变已检查的测试代码。本地恢复提交后需在新的独立Linux checkout复验原shutdown文件，仍保留58d Native宽回归失败和原deadline，不改变生产实现。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |
@@ -1551,9 +1559,9 @@ Matrix sessions失败来自测试在store重开并读取loaded_inbound后，继�
 ### 执行结果
 
 - 单元/SQLite回归：最新Windows核心212文件573pass/0fail/3平台skip，局部Native合同见Task24；冻结Linux八目录宽回归仍运行且有失败，尚未通过。
-- 真实PG各域/并发/故障/单后端审计：冻结58d完整113文件654pass/4fail/0skip、退出1。两项maintenance夹具整改已10pass且独立2pass；Matrix夹具全文件4pass且独立1pass；Worker单独2pass但原超时根因未确认，完整绿色门禁缺失。
+- 真实PG各域/并发/故障/单后端审计：冻结58d完整113文件654pass/4fail/0skip、退出1；d402新完整114文件336pass/0failed/325errors、退出1，数据库进入recovery mode。原四项红测在新批次均已通过，但完整绿色门禁缺失；当前服务不可连接，不能复验。
 - 独立安装/显式迁移/原生重启：58d四套新PM环境已构建；最新独立安装Windows4pass/2Linux SDK skip、Linux6pass/0skip；全域联合业务/SDK新进程恢复已真实通过，但最新普通daemon/Worker联合复验未闭合。
-- 静态/生成契约/适用构建：58d全分支14检查通过、547个Python文件health 0；最新生成契约check、契约strict TypeScript、Desktop Electron noEmit均退出0，Desktop预检22pass。新测试整改后还须静态检查。
+- 静态/生成契约/适用构建：58d全分支14检查通过、547个Python文件health 0；d402测试合同及最新shutdown清理各14检查通过/health 0。最新生成契约check、契约strict TypeScript、Desktop Electron noEmit均退出0，Desktop预检22pass。
 - 独立审查：原三份初审CHANGES_REQUIRED；分域follow-up已记录已发现问题闭合，最新maintenance测试修正独立2pass；全局最终复审未完成。
 
 ### 验收标准检查
@@ -1568,7 +1576,7 @@ Matrix sessions失败来自测试在store重开并读取loaded_inbound后，继�
 
 ### 未通过与未验证
 
-Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣称全系统PG已完成。非WSL私有启动页七项仍缺适用主机，没有收到新的主机入口；不伪装OS或WSL策略。58d新独立发行载荷已完成真实验证，但全PG及原生宽回归仍有失败，普通daemon联合补验及全局最终复审未闭合。
+Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣称全系统PG已完成。PG当前recovery mode，两主机只读探测均不可连接，等待用户管理的服务恢复；两个中断Schema候选尚无法核对/清理。非WSL私有启动页七项仍缺适用主机，不伪装OS或WSL策略。58d新独立发行载荷已完成真实验证，最新原生Windows/PG普通daemon联合已通过，但完整PG非零、Native宽回归仍运行且已有4fail，全局最终复审未闭合。
 
 ### 最终状态
 
@@ -1576,6 +1584,6 @@ Task1–23已完成，Task24实施/整改中，未创建完成提交；不得宣
 
 ## 恢复点
 
-Task1–23已验收并按任务创建本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`）；Task24生产整改恢复提交`58d0003f83`，测试合同恢复提交`d402ff3a06`，均未标本项完成。58d四套新PM发行环境已验证；当前判定FAILED，仍23/24。运行中：最新d402完整PG/独立发行/普通daemon联合114文件批次，以及58d Linux八目录Native宽回归；状态与日志名见本项。最新SQLite SDK合同4pass、Windows显式daemon/Worker4pass；原全量Worker超时和Native compression/shutdown失败仍未定根因。下一步：读取两个完整批次汇总，按原deadline失败时线程栈/脱敏日志定位，整改后复验；完成最新静态和全局最终独立审查。非WSL私有启动页七项依然等待适用主机，不能以WSL或Windows伪装替代。正式实例仍SQLite a875342384，未写正式Profile、秘密或业务表，不推送/发布/PR/合并。
+Task1–23已验收并按任务创建本地commit（Task21 `17078105be`，Task22 `2219b69afd`，Task23 `3febe6fc31`）；Task24生产整改恢复提交`58d0003f83`，测试合同恢复提交`d402ff3a06`，均未标本项完成。58d四套新PM发行环境已验证；当前判定FAILED，仍23/24。d402全PG/发行/daemon批次已336pass/325errors、退出1，PG当前recovery mode，Windows/Linux都不可连接；不重启服务或继续发起实库宽回归，等待外部依赖恢复后先核对归属并处理两个中断Schema候选。仍运行58d Linux八目录Native宽回归，已4fail；原Worker超时、compression/barrier及command discovery差异尚未定根因。下一步：保存线程清理与审查汇总恢复提交；新Linux checkout复验原shutdown文件；接收独立command discovery抓栈/A-B证据、等待Native完整汇总并整改复验。最新静态已通过，最终独立全局终审仍待。非WSL私有启动页七项仍缺适用主机。正式实例仍SQLite a875342384，未写正式Profile、秘密或业务表，不推送/发布/PR/合并。
 
 规划检查点提交标题：`docs(storage): plan unified database backends`，父提交`a875342384`；该本地提交包含本计划与范围修正，具体SHA通过该唯一标题定位。
