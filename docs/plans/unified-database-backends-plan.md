@@ -1721,6 +1721,10 @@ CLI两份fixture最后静态首轮13/14通过，health指出原service test超�
 
 独立foundation已读取上述两份补证的真实日志、原测试和实际删除/投递/指标调用链，并追加followup；没有代跑或连库。明确其中是6项删除身份参数+1项跨后端Cron room，和既有4项非integration共同给该原文件11个参数留下分批证据；mixed metrics每个SQLite连接都必须在明确root scope，source PG pool budget1及scope恢复保留。没有将8项归入689零SQLite或把分批说成同次11项。本次审查也读到timed14绿并保留前次13/1未定因，全局仍FAILED/CHANGES_REQUIRED。宽复验进程经原session 64460重新核对仍在运行，中途无新失败只作进度，不登记Task24完成。
 
+最终交付物核对发现`docs/reviews/unified-database-backends-review.md`的“当前”仍停在58d/d402/66a，落后于本账本与三域独立follow-up。现已更新汇总的当前生产120bf8/测试冻结20a478、689/双宿主DB/四套发行/静态构建、目录外integration8项、owner消费者与Matrix关闭/Telegram局部整改及仍在运行的6412文件宽批；旧批次结果明确标为历史保留。原不再存活的旧进程不继续写成当前运行，Native间歇/服务故障因果及非WSL主机缺口不降级。该文件明确由实施Agent汇总，不代替尚待宽批终态后的独立全局终审。此次只改证据文档，未改生产、测试、依赖或验收范围。
+
+审查汇总文档增量已执行`PM Python scripts/check --staged --base 8a3c2f39d8`，14检查全部通过、无Python measured修改、退出0（unified-task24-review-summary-checks.log）；diff-check亦通过。以标题`docs(storage): align final review with current evidence`保存本地证据恢复点。当前原生宽批仍经原session核对运行中，已进入Gateway文件、尚无新失败，不将该中途状态改成最终通过。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |
