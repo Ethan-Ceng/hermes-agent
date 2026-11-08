@@ -1719,6 +1719,8 @@ CLI两份fixture最后静态首轮13/14通过，health指出原service test超�
 
 进一步核对PG目录外使用integration/实际PG fixture的现有合同，另有`tests/hermes_db/test_profile_deletion_storage.py`的七项集成参数，亦不在689和Native584/579中。Root按相同命令前提单独执行该文件`-m integration`，实际7pass/0fail/0skip、退出0、24.4秒（unified-task24-20a478-profile-deletion-integration.log），包括PG source→显式SQLite房间target、确认后root/target retarget拒绝、check/open间改配置仍只写冻结store，以及SQLite→PG切换拒绝和peer保留。原非integration的四项由前述NativeDB批负责，不重复。两份新结果与689分别留账，不改称一次697项全PG；本轮没有源码/测试变更、服务运维、正式Profile操作或现有表操作，真实Schema仍由原fixture核对归属后创建/清理。后续最终独立终审应同时读取这两份补证日志，旧报告“本轮尚未重跑mixed-root”仅保留为其检查点的历史状态。
 
+独立foundation已读取上述两份补证的真实日志、原测试和实际删除/投递/指标调用链，并追加followup；没有代跑或连库。明确其中是6项删除身份参数+1项跨后端Cron room，和既有4项非integration共同给该原文件11个参数留下分批证据；mixed metrics每个SQLite连接都必须在明确root scope，source PG pool budget1及scope恢复保留。没有将8项归入689零SQLite或把分批说成同次11项。本次审查也读到timed14绿并保留前次13/1未定因，全局仍FAILED/CHANGES_REQUIRED。宽复验进程经原session 64460重新核对仍在运行，中途无新失败只作进度，不登记Task24完成。
+
 ## 计划变更
 
 | 日期 | 变更 | 原因与影响 |

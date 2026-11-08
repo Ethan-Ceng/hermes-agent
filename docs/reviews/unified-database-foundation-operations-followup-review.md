@@ -566,3 +566,39 @@ PG 的 `-j1` 是文件间串行调度。原文件内 competing receipts、线程
 当前全局仍缺：该实际Native失败/历史未定因问题的处置与必要的最终宽复验、非WSL POSIX私有启动页七项适用主机证据，以及绑定最终结果的各分域独立终审。原69d八目录非零及本报告前节的63文件集合核对继续有效，不由当前PG/DB绿色覆盖。已结算PG和WindowsDB无需再以相同输入重复一轮；后续只按实际整改影响复验，最终Native的范围与一次性执行条件沿前节判断。
 
 本次没有发现新的已证实 foundation/operations/worker blocking/major；当前生产分域证据显著补齐，**Task24仍 FAILED / CHANGES_REQUIRED**。不批准全局完成、合并或发布。
+
+## 20a478 目录外 integration 补证与最后时态
+
+只读补查原127文件PG目录清单之外的两份实际 integration 日志及其原测试/实现，不代跑、不连库、不修改生产或测试、不提交。当前 HEAD `194647f52bccea2417fdf89cbf352cc7e4399177` 相对20a478仅文档；最后生产仍120bf8，这两份原测试与 fixture/断言没有新 diff。
+
+| 当前冻结补验 | 真实结算与合同 |
+| --- | --- |
+| `unified-task24-20a478-mixed-profile-backends.log`；`contracts/test_worker_metrics_mixed_root.py` | **1 passed / 0 failed / 0 skipped、exit0、4.5s**。实际 PG satellite、明确 SQLite root、各自真实配置；source通过Core receipt生成root observation，连接归还后drain到root真实telemetry_state，source pending清空，root仅含child hash；返回后source scope恢复。 |
+| `unified-task24-20a478-profile-deletion-integration.log`；`tests/hermes_db/test_profile_deletion_storage.py` | **7 passed / 0 failed / 0 skipped、exit0、24.4s**。这是该文件7个integration参数，不是7个都只测删除；其中6项删除身份参数及1项PG源→SQLite房间目标路由，详见下文。 |
+
+两批均为PM Linux解释器、canonical runner、retries=0、`-j1`，使用已授权私有测试配置与归属fixture；此处只是读取Root运行产物，不冒称Reviewer执行。它们不在689项PG批内，**不把这8项并入689或称为新增8项零SQLite流程**。
+
+### 原删除身份问题的当前覆盖
+
+重新读取 `ProfileDeletion/SelectedStore`、`purge_store(selected=...)` 与checked control verb：确认前捕获settings/scope/identity；写前重新验证root及target；真实打开继续使用冻结settings且核对实际handle身份，live handler核对实际held routing_db，新checked verb不会被旧handler默默忽略。原已审重大问题的这些边界没有因本次补验变化。
+
+本文件当前6个integration删除参数分别证明：
+
+- 确认后改root或target为peer，`purge_identity`与`purge`都拒绝；三个实际PG数据集中同ID会话和routing保留（2参数）。
+- root在检查后、实际acquire前被改指peer，identity cleanup仍使用冻结root；原root routing删除、peer routing保留（1项）。
+- target在检查后、domain acquire前被改指peer，purge只清原target；peer同ID会话保留（1项）。
+- 确认时SQLite、之后切成peer PG，无论变更root还是target均在identity/purge前拒绝；peer会话/routing保留（2参数）。
+
+另1项integration实际给PG source和SQLite target创建同名room：真实Cron `same-room@target`只向目标发布，PG source事件为空、目标恰一条，证明整个目标操作的scope/选择合同。
+
+此前同一生产的Linux/Windows DB非integration批已各执行本文件4项：held routing store匹配/不匹配两参数、旧handler先拒绝不写、SQLite新进程禁止PG驱动并保留历史/清routing。因此当前为该原文件**4个非integration + 7个integration = 11个参数合同**分批都有实际证据；这是文件覆盖核对，不假称一次11项整文件执行。原blocking/major的冻结身份和改指窗口按其原局部范围保持闭合，不能外推为任意Profile删除竞态都已穷尽。
+
+### 混合Profile是独立后端选择，不是回落例外
+
+mixed metrics root测试的audit要求每一次实际SQLite连接都在明确的SQLite root scope，且source不产生metrics.sqlite3；sourcePG的pool budget为1，真实root提交之后才删除source intent。它证明一个PG Profile跨到另一个明确SQLite Profile的合法协作，既不允许同一个PG Profile回落，也不构成“整个进程没有SQLite连接”的证据。上述Cron跨Profile路由同理单列。Plugins Reviewer旧节“当时没有重跑mixed-root”是其历史检查点，本报告只追加新证据，不修改另一Reviewer旧记录。
+
+### 后续观察与仍未关闭的门禁
+
+已读取 `unified-task24-worker-host-timed-observed.log` 的新终态：同三文件、`-j3`、原断言/20秒controls及30秒history期限，**14 passed / 0 failed / 0 skipped、exit0、112.6s**，分项Host5、managed launch7、compression2。Root只增加5秒watchdog/失败timing和started观察，没有生产修正。此批证明本次通过，不能把其绿色时序当成上一批13pass/1fail controls的实际因果，不能据此声称旧失败根因已修复；旧failed timing未留存边界继续保留。
+
+原计划的一次20a478八目录最终宽复验现已开始，Root通知仍live；本 Reviewer没有代跑或拿中途零失败计数当最终通过。等待该批终态即可，不再建议开启重复runner。原非WSL POSIX私有启动页七项仍缺适用主机，历史间歇与PG并行服务故障的归因限制不变。全局继续 **FAILED / CHANGES_REQUIRED**，无完成、合并或发布批准。
