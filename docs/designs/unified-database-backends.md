@@ -85,6 +85,8 @@ storage:
 
 ## 代码布局与调用边界
 
+以下记录统一后端实现阶段的布局。后续按业务域分包和模块收敛采用[独立设计](hermes-db-package-layout.md)及[实施计划](../plans/hermes-db-package-layout-plan.md)，不改变本设计的后端、Schema、隔离和事务要求；当前只完成方案准备，未移动运行代码。
+
 ```text
 hermes_db/
   settings.py / scope.py / engine.py / factory.py
