@@ -24,7 +24,7 @@ def _quiesce_pg(store):
     if module is not None and isinstance(runtime, module._Runtime):
         close_runtime(runtime)
     else:
-        from hermes_db.domains.runtime.postgres.capabilities.worker_metrics_store import WorkerMetricsStore
+        from hermes_db.domains.runtime.postgres.metrics import WorkerMetricsStore
         WorkerMetricsStore().create_and_export_package_if_due()
     store.flush_token_counts()
 

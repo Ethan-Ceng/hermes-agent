@@ -74,7 +74,7 @@ async def test_room_fence_and_admission_are_atomic_and_replay_lost_confirmation(
     assert runtime_for_store(db).list_admissions(session_id=rpc.ref.session_id) == []
     with db._transactions.write() as conn:
         set_meta(conn, db.scope, "gateway.hosted.owner.v1:room", "alice")
-    original, apply = db._write, HostedAdmissionFence.apply
+    original, apply = db._context.write, HostedAdmissionFence.apply
     writer, authorized = [], []
 
     @contextmanager
@@ -90,7 +90,7 @@ async def test_room_fence_and_admission_are_atomic_and_replay_lost_confirmation(
         return apply(fence, connection, scope)
 
     with monkeypatch.context() as patch:
-        patch.setattr(db, "_write", confirmation_lost)
+        patch.setattr(db._context, 'write', confirmation_lost)
         patch.setattr(HostedAdmissionFence, "apply", same_connection)
         with pytest.raises(UnknownCommitError):
             await rpc._submit(args)

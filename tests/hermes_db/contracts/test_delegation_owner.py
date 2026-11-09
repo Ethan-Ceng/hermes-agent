@@ -6,8 +6,8 @@ from hermes_state_runtime import RuntimeStoreError
 
 
 def _ledger(store):
-    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
-    return PostgresRuntimeStore(store).delegations
+    from hermes_db.integration.runtime_composition import create_runtime_store
+    return create_runtime_store(store).delegations
 
 
 def _dispatch(ledger, delegation_id="d", *, timestamp=10):

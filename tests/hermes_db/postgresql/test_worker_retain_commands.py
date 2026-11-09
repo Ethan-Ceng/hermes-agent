@@ -37,7 +37,7 @@ def test_retain_enqueue_rolls_back_with_receipt_and_recovers_actual_commit_confi
             runtime.mutate_worker(**command)
     with pg_store._read() as conn:
         assert conn.scalar(select(func.count()).select_from(pending).where(pending.c.store_id == pg_store.scope.store_id)) == 0
-    write = runtime._write
+    write = runtime._context.write
 
     @contextmanager
     def lose_ack():
@@ -46,7 +46,7 @@ def test_retain_enqueue_rolls_back_with_receipt_and_recovers_actual_commit_confi
         raise UnknownCommitError('lost confirmation after actual queue and receipt commit')
 
     with monkeypatch.context() as patch:
-        patch.setattr(runtime, '_write', lose_ack)
+        patch.setattr(runtime._context, 'write', lose_ack)
         with pytest.raises(UnknownCommitError):
             runtime.mutate_worker(**command)
     committed = runtime.mutate_worker(**command)
@@ -102,7 +102,7 @@ def test_lost_renewal_confirmation_never_grants_current_lease_after_retake(pg_st
     row = runtime.mutate_worker(**args, sequence=2, operation='domain.retain_queue.claim', payload=selected)['value']
     token = dict(selected, request_id=payload['request_id'], token=row['claim_token'])
     renewal = dict(**args, sequence=3, operation='domain.retain_queue.renew', payload=token)
-    write = runtime._write
+    write = runtime._context.write
 
     @contextmanager
     def lose_ack():
@@ -111,7 +111,7 @@ def test_lost_renewal_confirmation_never_grants_current_lease_after_retake(pg_st
         raise UnknownCommitError('actual renewal committed without confirmation')
 
     with monkeypatch.context() as patch:
-        patch.setattr(runtime, '_write', lose_ack)
+        patch.setattr(runtime._context, 'write', lose_ack)
         with pytest.raises(UnknownCommitError):
             runtime.mutate_worker(**renewal)
     with pg_store._write() as conn:

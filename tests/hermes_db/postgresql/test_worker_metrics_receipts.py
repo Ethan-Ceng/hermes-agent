@@ -36,7 +36,7 @@ def test_metric_effect_receipt_rollback_actual_commit_loss_and_peer_scope(pg_pai
             runtime.mutate_worker(**command)
     with first._read() as conn:
         assert not conn.execute(select(counters).where(counters.c.store_id == first.scope.store_id)).first()
-    write = runtime._write
+    write = runtime._context.write
 
     @contextmanager
     def lose_confirmation():
@@ -45,7 +45,7 @@ def test_metric_effect_receipt_rollback_actual_commit_loss_and_peer_scope(pg_pai
         raise UnknownCommitError('metric and receipt actually committed')
 
     with monkeypatch.context() as patch:
-        patch.setattr(runtime, '_write', lose_confirmation)
+        patch.setattr(runtime._context, 'write', lose_confirmation)
         with pytest.raises(UnknownCommitError):
             runtime.mutate_worker(**command)
     receipt = runtime.mutate_worker(**command)

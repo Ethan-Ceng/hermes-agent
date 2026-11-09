@@ -48,7 +48,7 @@ def test_domain_write_and_worker_receipt_survive_rollback_and_lost_commit_ack(pg
     with first._read() as conn:
         assert conn.scalar(select(func.count()).select_from(events).where(events.c.store_id == first.scope.store_id)) == 0
 
-    write = runtime._write
+    write = runtime._context.write
 
     @contextmanager
     def lose_ack():
@@ -57,7 +57,7 @@ def test_domain_write_and_worker_receipt_survive_rollback_and_lost_commit_ack(pg
         raise UnknownCommitError('lost acknowledgement after actual PG commit')
 
     with monkeypatch.context() as patch:
-        patch.setattr(runtime, '_write', lose_ack)
+        patch.setattr(runtime._context, 'write', lose_ack)
         with pytest.raises(UnknownCommitError):
             runtime.mutate_worker(**mutation)
     committed = runtime.mutate_worker(**mutation)

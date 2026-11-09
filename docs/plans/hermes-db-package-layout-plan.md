@@ -6,8 +6,8 @@
 - 全量归属：[398项基准映射](../designs/hermes-db-package-map.json)。
 - 文档分支：`docs/hermes-db-package-layout`；实施分支：`refactor/hermes-db-packages`。
 - 源码基准：`cbfc773dd7`，运行实现等价`0d69702244`。
-- 整体状态：`IMPLEMENTING`；当前阶段：第二阶段规则/组件/工作流收敛；当前任务：Task13（pending）；完成：12 / 18。
-- 本轮已建立独立实施检出并完成Task1–12；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
+- 整体状态：`IMPLEMENTING`；当前阶段：第二阶段规则/组件/工作流收敛；当前任务：Task14（pending）；完成：13 / 18。
+- 本轮已建立独立实施检出并完成Task1–13；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
 - 核心设计待决策：无；Task1隔离PM与PG基线已通过，Matrix实际SDK已由Task6新环境核对并实测。原统一后端Task24及七项非WSL缺证独立保留。
 - 更新时间：2026-11-10（Asia/Shanghai）。恢复位置：`D:/AI/hermes-db-packages`；从首个in_progress任务继续，不重跑整轮数据库选型。
 
@@ -72,6 +72,7 @@ PG选项只用于tests/hermes_db下已注册该选项的文件；其他目录Nat
 | 2026-11-09 | IMPLEMENTING | Task10 Kanban五十八项与28-topic路由完成，10/18；全部320移动落实；Native536+Linux核心24、PG整改复验40、15静态通过 |
 | 2026-11-09 | IMPLEMENTING | Task11八组合并与共享规则完成，11/18；462→444；Native513、PG失败整改后62、15静态通过 |
 | 2026-11-10 | IMPLEMENTING | Task12 Session36 Mixin→六显式组件，12/18；444→419；Native整改复验560、PG160、15静态通过 |
+| 2026-11-10 | IMPLEMENTING | Task13 Runtime10 Mixin→五显式组件，13/18；419→415；Native504、PG43及15静态通过 |
 
 ## 方案准备自检
 
@@ -810,12 +811,12 @@ Worker原来借用Session类的未绑定方法改为复用Connection/scope的lin
 - Linux最终`bash scripts/run_tests.sh tests/hermes_db/postgresql/test_sessions.py tests/hermes_db/postgresql/test_messages.py tests/hermes_db/postgresql/test_retirement_rewrites.py tests/hermes_db/postgresql/test_search.py tests/hermes_db/postgresql/test_merge_storage_contracts.py tests/hermes_db/postgresql/test_merge_data_upgrade.py tests/hermes_db/postgresql/test_transaction_failures.py tests/hermes_db/postgresql/test_compression_leases.py tests/hermes_db/postgresql/test_profile_file_scope.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，exit0、9文件160passed/0failed/0skip，615.5秒（task12-pg-final.log）。PG随机Schema所有权由既有fixture验证，快照、并发回执、unknown、旧数据前向修复和真实Profile文件恢复均通过；未输出连接/密码/原始堆栈。
 - 补充静态审计exit0：51个共享纯方法体AST完全等价；267个组件方法在Context/窄回调和导入归一后主体完全一致；11个窄查询/纯规则适配、4个真实共享算法委托和1个共享snapshot入口单列核对，未改SQL或锁/事务规则。398个基准源项完整归属；61个table/version文件相对Task11原样（含tables初始化），原基准只含Task2必要catalog导入差异；总419文件、根11（task12-audit.log、task12-component-semantics-final.log）。
 - 最终`PM Python -X utf8 scripts/check --staged --base cbfc773dd7` exit0、15检查通过，health658文件0blocking/0advisory，198.3秒（task12-check-final.log）。首轮ruff两项多余括号及health三项已整改：恢复两条原有optional maintenance豁免注释，并具名记录既有optional persisted route解析的ambient fallback边界，保持原catch/恢复行为；不以改算法消除lint。首次收尾空白检查exit2指出coverage/search两个Native文件EOF空行；已去除多余末尾空行后复验整个Task12差异exit0，并修订本地提交。
-- 恢复点：本Task本地提交，标题`refactor(storage): compose session persistence and share pure rules`；下一Task13。忽略目录保留生成/审计和原始日志，apply脚本非幂等、不得重复运行。
+- 恢复点：本地提交`e7439e9b20`，标题`refactor(storage): compose session persistence and share pure rules`；下一Task13。忽略目录保留生成/审计和原始日志，apply脚本非幂等、不得重复运行。
 - 未验证：最终跨域/发行/SDK全量、Runtime10 Mixin、Kanban/Rooms工作流、最终发行/SDK/升级及独立审查；原统一Task24与七项非WSL缺证独立保留。
 
 ## Task 13：Runtime改显式组件与关闭所有权
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -855,11 +856,22 @@ Invoke-PgCases -Files @('tests/hermes_db/postgresql/test_runtime.py', 'tests/her
 
 ### 执行结果
 
-未执行。
+从Task12 `e7439e9b20`继续，将10个Runtime Mixin及原门面业务方法收敛到admissions/local/policy/workers/media五个明确组件，PostgresRuntimeStore改为显式82方法委托。RuntimeContext借用原SessionContext的read、scope、profile和关闭状态；write仍先激活所属Profile，再进入同一Session事务。AsyncDelegationStore改为接收RuntimeContext，并在原Connection内保持store fence；不向组件传完整Session/Runtime Facade，不创建新池。
+
+内部构造消费者改用integration/runtime_composition.create_runtime_store；WorkerMetricsStore保留实际RPC协议职责、从临时capabilities落到runtime/postgres/metrics.py，Native metrics耦合仍由Task16关闭。移除10旧Mixin文件/1个迁移的metrics文件及1个空namespace，新增context/组合入口，419→415个Python文件、根仍11；映射覆盖全部398源项。原public方法、FIFO/epoch/receipt/Worker命令字符串未改。
+
+9个测试文件的15处故障注入与单连接守卫改到实际Context.read/write读取点，同时更新原方法捕获，防止旧Facade patch静默失效或递归。更新器先保护性拒绝一个未列入白名单的实际runtime测试变量，核对PG fixture后补齐并完成；这不是业务失败或环境阻塞。候选apply非幂等，不得重复运行。当前合同与15项静态均已完成，不扩大为最终全系统验收。
 
 ### 验证证据
 
-未执行；实施时记录实际解释器/源码commit、展开命令、退出状态、计数、日志、未验证项和恢复commit。
+- 仍为Windows/Linux各自PM环境和隔离HERMES_HOME/HERMES_RUNTIME_DIR；本Task还用标准PYTHONPYCACHEPREFIX把两平台字节码缓存分别放到各自隔离runtime/pycache-tests，避免共享同一源码缓存，不改应用配置/依赖/数据库。
+- 构造/关闭/签名探针exit0：旧10 Mixin→object直接基类，五组件和委托账本共享一个RuntimeContext，其session为原SessionContext；构造拒绝一切事务仍成功；关闭Session后Runtime读和delegations访问均抛原StorageClosedError；85方法参数和返回注解完全保持（task13-probe.log）。
+- 独立AST审计exit0：82个方法经Context引用/导入归一后主体等价；61个table/version文件与Task12内容相同；398源项完整归属、当前415文件/根11（task13-audit.log）。F821/F822/F823和ruff均通过。
+- Windows `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts -j 4 --file-timeout 1200 -- --tb=short`，exit0，90文件504passed/0failed/4skipped，750.1秒（task13-native.log）；1 POSIX与3 Linux SDK skip单列，不算通过。Runtime隔离、同连接回执、关闭/取消和故障注入合同保持。
+- Linux `bash scripts/run_tests.sh tests/hermes_db/postgresql/test_runtime.py tests/hermes_db/postgresql/test_workers.py tests/hermes_db/postgresql/test_worker_domain_receipts.py tests/hermes_db/postgresql/test_worker_retain_transport.py tests/hermes_db/postgresql/test_merge_commit_recovery.py tests/hermes_db/postgresql/test_merge_process_recovery.py tests/hermes_db/postgresql/test_worker_metrics_receipts.py tests/hermes_db/postgresql/test_worker_retain_commands.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，exit0、8文件43passed/0failed/0skip，126.5秒（task13-pg.log）；包含当前源码Worker序号/unknown/metrics/retain及新进程恢复，不复用旧686/36/32证据。Schema仍由fixture验证随机所有权。
+- `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，exit0、15checks通过，health655文件0blocking/0advisory，142.2秒（task13-check.log）；没有新增豁免，沿用Task12具名边界。最终元数据更新后对整个Task13差异执行空白检查exit0。
+- 恢复点：本Task本地提交，标题`refactor(storage): compose runtime persistence with shared owner context`；下一Task14。忽略目录task13-virtual.json、生成/审计/patch脚本和日志保留；apply非幂等。
+- 未验证：后续Kanban/Rooms合并、Task16依赖闭环、Task17最终DB/SDK/独立载荷与Task18独立审查。原统一后端Task24与七项非WSL缺证独立保留。
 
 ## Task 14：Kanban按工作流合并
 
@@ -1133,7 +1145,7 @@ git diff --check
 
 ### 执行结果
 
-- 单元/Native/PG/实际SDK/并发/故障/关闭：Task1–12局部验证已执行并逐项记录；阶段二后最终完整验收待Task17。
+- 单元/Native/PG/实际SDK/并发/故障/关闭：Task1–13局部验证已执行并逐项记录；阶段二后最终完整验收待Task17。
 - Schema：设计要求零变化；旧数据前向/重复升级和0031重开仍须Task17实测。
 - 静态/类型/共享契约/发行：已完成Task的15项静态检查均有证据；最终共享契约/独立发行等仍待Task17。
 - 手工检查：独立checkout内已核对模块、路由、root11和固定锚点；未触碰正式Profile/源码/进程；不替代最终运行验证。
@@ -1151,7 +1163,7 @@ git diff --check
 
 ### 未通过项目与最终状态
 
-实施推进中，当前12/18；局部验证见已完成Task，最终重构验收仍未执行；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
+实施推进中，当前13/18；局部验证见已完成Task，最终重构验收仍未执行；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
 实施后仅可根据真实终态填写本次重构`READY_TO_MERGE / BLOCKED / FAILED`，并与原系统统一后端整体验收状态分别报告。
 
 ### Task5锚点计数说明更正

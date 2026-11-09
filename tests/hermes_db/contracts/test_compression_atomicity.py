@@ -47,13 +47,13 @@ def test_core_archive_failure_rolls_back_rows_config_counters_and_physical_stamp
 
 
 def test_core_worker_publication_origin_retry_and_scope_survive_new_handle(core_pair, tmp_path):
-    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
+    from hermes_db.integration.runtime_composition import create_runtime_store
     from hermes_db.integration.session_composition import create_session_store
 
     first, foreign = core_pair
     for store in core_pair:
         store.create_session("p", "test")
-    runtime = PostgresRuntimeStore(first)
+    runtime = create_runtime_store(first)
     epoch = runtime.begin_epoch(instance_id="owner")
     assignment = dict(epoch=epoch, execution_id="same", session_id="p", generation=0)
     runtime.register_worker(**assignment, kind="compute", adoption_secret="private")
@@ -66,11 +66,11 @@ def test_core_worker_publication_origin_retry_and_scope_survive_new_handle(core_
     expected = runtime.mutate_worker(**params)
     reopened = create_session_store(first._transactions, first.scope)
     try:
-        recovered = PostgresRuntimeStore(reopened)
+        recovered = create_runtime_store(reopened)
         assert recovered.mutate_worker(**params) == expected
         assert recovered.worker_claim_origin(params | {"session_id": "c"}) == "p"
         assert recovered.worker_retry_target(params) == "c"
-        assert PostgresRuntimeStore(foreign).worker_claim_origin(params | {"session_id": "foreign"}) == "foreign"
+        assert create_runtime_store(foreign).worker_claim_origin(params | {"session_id": "foreign"}) == "foreign"
         assert reopened.get_compression_chain("p") == ["p", "c"]
     finally:
         reopened.close()

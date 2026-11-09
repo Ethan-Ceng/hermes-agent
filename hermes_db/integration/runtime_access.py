@@ -9,8 +9,8 @@ def runtime_for_store(store):
     if isinstance(store, SessionResource):
         return store.runtime
     if is_postgresql_store(store):
-        from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
-        return PostgresRuntimeStore(store)
+        from hermes_db.integration.runtime_composition import create_runtime_store
+        return create_runtime_store(store)
     from hermes_db.backends.sqlite.acquire import SQLiteRuntime
     return SQLiteRuntime(store, DatabaseScope(profile_home_for_store(store)))
 

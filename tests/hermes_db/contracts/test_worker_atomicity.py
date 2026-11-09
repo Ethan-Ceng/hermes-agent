@@ -6,9 +6,9 @@ from hermes_state_runtime import RuntimeStoreError
 
 
 def _registered(store):
-    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
+    from hermes_db.integration.runtime_composition import create_runtime_store
     store.create_session("s", "cli")
-    runtime = PostgresRuntimeStore(store)
+    runtime = create_runtime_store(store)
     epoch = runtime.begin_epoch(instance_id="owner")
     assignment = dict(epoch=epoch, execution_id="worker", session_id="s", generation=0)
     runtime.register_worker(**assignment, kind="compute", adoption_secret="private-test")

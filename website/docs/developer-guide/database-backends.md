@@ -43,6 +43,11 @@ binds them to one captured context; transactions, deferred accounting, close sta
 and transcript snapshot pins retain the same resource identity. Native and PG
 share pure transcript, search and validation rules.
 
+Runtime admissions, local history, policy, workers and media borrow that session
+context through `hermes_db/integration/runtime_composition.py`. Writes retain the
+profile binding; runtime reads reuse session snapshot pins and close state. The
+delegation ledger keeps its additional store fence on the same Connection.
+
 SQLite retains its native implementations. Domain adapters select PG before a
 SQLite file-existence check or connection. There is no general SQLite SQL
 translator or PG object pretending to be a SQLite connection. A migrated

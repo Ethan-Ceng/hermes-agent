@@ -39,7 +39,7 @@ def test_routed_responses_share_native_storage_but_close_only_owned_handles(nati
             raise AssertionError("Profile response selection must defer PG work to the persistence worker")
 
         with monkeypatch.context() as patch:
-            patch.setattr(primary.sessions, "_write", no_constructor_transaction)
+            patch.setattr(primary.sessions._context, 'write', no_constructor_transaction)
             initialize_response_state(adapter, _no_sqlite)
         current_response_store(adapter).put("same", {"output": "alpha"})
         second_token = set_hermes_home_override(homes[1])
@@ -76,11 +76,11 @@ def test_pg_response_acquisition_refusal_never_uses_a_file_store(core_pair, unav
 def test_native_admission_lookup_reuses_the_response_connection_and_rejects_another_scope(core_pair, monkeypatch):
     from gateway.platforms.api_server_response_admissions import _lookup_admission
     from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
-    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
+    from hermes_db.integration.runtime_composition import create_runtime_store
     from hermes_state_runtime import RuntimeStoreError
     db, other = core_pair
     db.create_session("s", "api_server")
-    runtime = PostgresRuntimeStore(db)
+    runtime = create_runtime_store(db)
     epoch = runtime.begin_epoch(instance_id="owner")
     accepted = runtime.admit_input(epoch=epoch, principal_id="api", session_id="s", request_id="request", payload={"text": "ask"})
     responses = PostgresResponseStore(db)
@@ -91,7 +91,7 @@ def test_native_admission_lookup_reuses_the_response_connection_and_rejects_anot
         raise AssertionError("A second session read would deadlock a one-connection pool")
 
     try:
-        monkeypatch.setattr(db, "_read", no_second_connection)
+        monkeypatch.setattr(db._context, 'read', no_second_connection)
         found = responses.atomically(_lookup_admission, owner, responses, ("key", "fingerprint"), "request")
         assert found[2]["admission_id"] == accepted["admission_id"]
         foreign = SimpleNamespace(db=other, profile_id=owner.profile_id)

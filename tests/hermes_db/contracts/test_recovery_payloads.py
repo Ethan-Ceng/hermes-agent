@@ -4,10 +4,10 @@ import json
 
 
 def test_webhook_recovery_preserves_nul_and_automation_presence(core_pair):
-    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
+    from hermes_db.integration.runtime_composition import create_runtime_store
 
     store, other = core_pair
-    runtime = PostgresRuntimeStore(store)
+    runtime = create_runtime_store(store)
     epoch = runtime.begin_epoch(instance_id='recovery-owner')
     expected = []
     for session_id, automation in [('absent', 'missing'), ('null', None), ('object', {}), ('false', False)]:
@@ -27,15 +27,15 @@ def test_webhook_recovery_preserves_nul_and_automation_presence(core_pair):
     assert all(json.loads(row['payload_json'])['native_text_v1']['text'] == 'before\x00after' for row in payloads)
     assert {row['admission_id'] for row in runtime.webhook_finalizations()} == set(expected)
     assert runtime.webhook_payloads('other-chat') == []
-    assert PostgresRuntimeStore(other).webhook_payloads('signed-hook') == []
-    assert PostgresRuntimeStore(other).webhook_finalizations() == []
+    assert create_runtime_store(other).webhook_payloads('signed-hook') == []
+    assert create_runtime_store(other).webhook_finalizations() == []
 
 
 def test_webhook_recovery_scans_past_a_full_unrelated_batch(core_pair):
-    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
+    from hermes_db.integration.runtime_composition import create_runtime_store
 
     store, _ = core_pair
-    runtime = PostgresRuntimeStore(store)
+    runtime = create_runtime_store(store)
     epoch = runtime.begin_epoch(instance_id='paged-recovery')
     retained = {'native_text_v1': {'source': {'platform': 'webhook', 'chat_id': 'last'}, 'text': 'tail\x00body'}}
     for group in range(5):

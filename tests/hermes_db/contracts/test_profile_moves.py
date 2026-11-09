@@ -85,7 +85,7 @@ def test_core_move_keeps_source_owned_spillover_after_donor_retirement(core_pair
 
 def test_core_pg_move_rejects_sqlite_snapshot_and_ledgered_source(core_pair, tmp_path):
     from hermes_db.errors import StorageConfigurationError
-    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
+    from hermes_db.integration.runtime_composition import create_runtime_store
     import pickle
     import subprocess
     import sys
@@ -113,7 +113,7 @@ with SessionDB(db_path=root / 'legacy.db') as db:
     with pytest.raises(StorageConfigurationError, match="PostgreSQL|PG"):
         target.import_moved_session(snapshot, profile_name="target")
     source.create_session("live", "cli")
-    runtime = PostgresRuntimeStore(source)
+    runtime = create_runtime_store(source)
     epoch = runtime.begin_epoch(instance_id="owner")
     runtime.admit_input(epoch=epoch, principal_id="owner", session_id="live", request_id="r", payload={"text": "held"})
     with pytest.raises(SessionLedgeredError):

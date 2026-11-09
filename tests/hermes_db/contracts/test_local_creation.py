@@ -105,7 +105,7 @@ def test_core_unknown_create_ack_preserves_published_prefill_and_replays_receipt
             events.append("withdraw")
 
     receipt.on_create = Publication()
-    write = store._write
+    write = store._context.write
 
     @contextmanager
     def lost_ack():
@@ -114,7 +114,7 @@ def test_core_unknown_create_ack_preserves_published_prefill_and_replays_receipt
         raise UnknownCommitError("injected committed acknowledgement loss")
 
     with monkeypatch.context() as patch:
-        patch.setattr(store, "_write", lost_ack)
+        patch.setattr(store._context, 'write', lost_ack)
         with pytest.raises(UnknownCommitError):
             commit_local_session(store, epoch=epoch, receipt=receipt)
     assert store.get_session(receipt["session_id"]) is not None and events == ["read", "publish"]

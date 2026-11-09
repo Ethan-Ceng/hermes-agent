@@ -43,7 +43,7 @@ async def test_core_gateway_uses_process_scope_and_retains_claim_across_send(cor
     adapter, event = _ServedAdapter(), _event()
     runner = _runner(adapter)
     active = []
-    original_write, original_send = owner._write, adapter.send
+    original_write, original_send = owner._context.write, adapter.send
 
     @contextmanager
     def track_write():
@@ -58,7 +58,7 @@ async def test_core_gateway_uses_process_scope_and_retains_claim_across_send(cor
         assert not active, "the platform send must not hold a database transaction"
         return await original_send(**kwargs)
 
-    monkeypatch.setattr(owner, "_write", track_write)
+    monkeypatch.setattr(owner._context, 'write', track_write)
     monkeypatch.setattr(adapter, "send", send)
     try:
         with served._profile.activate():
@@ -86,7 +86,7 @@ def test_core_delivery_unknown_commit_keeps_uncertain_send_marked(core_pair, mon
     monkeypatch.setattr(time, "time", lambda: 1000000.0)
     ledger = PostgresDeliveryLedger(owner, instance_id="old", lease_ttl_seconds=1)
     proof = ledger.record_obligation(obligation_id="lost", session_key="route", platform="slack", chat_id="chat", thread_id=None, content="reply")
-    original = owner._write
+    original = owner._context.write
 
     @contextmanager
     def lose_ack():
@@ -95,7 +95,7 @@ def test_core_delivery_unknown_commit_keeps_uncertain_send_marked(core_pair, mon
         raise UnknownCommitError("injected acknowledgement loss")
 
     with monkeypatch.context() as patch:
-        patch.setattr(owner, "_write", lose_ack)
+        patch.setattr(owner._context, 'write', lose_ack)
         with pytest.raises(UnknownCommitError):
             ledger.mark_attempting(proof)
     successor = PostgresDeliveryLedger(owner, instance_id="new", lease_ttl_seconds=1)

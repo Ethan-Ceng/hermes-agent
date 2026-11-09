@@ -120,8 +120,8 @@ def runtime(store, tmp_path):
         from hermes_db.backends.sqlite.acquire import SQLiteRuntime
         from hermes_db.scope import DatabaseScope
         return SQLiteRuntime(store, DatabaseScope(tmp_path))
-    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
-    return PostgresRuntimeStore(store)
+    from hermes_db.integration.runtime_composition import create_runtime_store
+    return create_runtime_store(store)
 
 
 @pytest.fixture
@@ -131,7 +131,7 @@ def api_owner(core_pair, monkeypatch):
     from gateway.session import SessionStore
     from gateway.session_authority import SessionAuthority
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
-    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
+    from hermes_db.integration.runtime_composition import create_runtime_store
     db, other = core_pair
     home = db.scope.profile_home
     home.mkdir(parents=True)
@@ -141,7 +141,7 @@ def api_owner(core_pair, monkeypatch):
     store._db = db
     runner = SimpleNamespace(session_store=store, _session_db=db, adapters={}, _draining=False,
         config=GatewayConfig(), _adapter_for_source=lambda source: None)
-    runtime = PostgresRuntimeStore(db)
+    runtime = create_runtime_store(db)
     epoch = runtime.begin_epoch(instance_id="api-owner")
     authority = SessionAuthority(runner, profile_id=str(home), instance_id="api-owner", db=db, epoch=epoch)
     runner.session_authority = authority

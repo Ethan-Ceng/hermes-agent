@@ -13,16 +13,16 @@ from hermes_state_runtime import RuntimeStoreError
 
 
 class AsyncDelegationStore:
-    def __init__(self, session_store):
-        self._store = session_store
+    def __init__(self, context):
+        self._context = context
 
     @property
     def scope(self):
-        return self._store.scope
+        return self._context.scope
 
     @contextmanager
     def _write(self):
-        with self._store._profile.activate(), self._store._write() as conn:
+        with self._context.write() as conn:
             sessions.lock_store(conn, self.scope, exclusive=True)
             yield conn
 
@@ -58,7 +58,7 @@ class AsyncDelegationStore:
                                                          "updated_at": time.time()})
 
     def get(self, delegation_id):
-        with self._store._read() as conn:
+        with self._context.read() as conn:
             row = repo.get(conn, self.scope, delegation_id)
         if row is None:
             return None
@@ -83,13 +83,13 @@ class AsyncDelegationStore:
         if not selectors:
             return []
         columns = (table.c.delegation_id, table.c.state, table.c.dispatched_at, table.c.completed_at, table.c.task_json, table.c.result_json)
-        with self._store._read() as conn:
+        with self._context.read() as conn:
             return list(conn.execute(select(*columns).where(table.c.store_id == self.scope.require_store_id(), or_(*selectors),
                 table.c.state.not_in(("running", "finalizing")), table.c.completed_at >= cutoff)
                 .order_by(table.c.completed_at.desc()).limit(limit)).tuples())
 
     def _records(self, *conditions):
-        with self._store._read() as conn:
+        with self._context.read() as conn:
             rows = conn.execute(select(table).where(table.c.store_id == self.scope.require_store_id(), *conditions)
                 .order_by(table.c.completed_at.asc().nullsfirst(), table.c.delegation_id)).mappings()
             return [{key: value for key, value in row.items() if key != "store_id"} for row in rows]

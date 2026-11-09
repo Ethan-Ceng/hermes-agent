@@ -106,8 +106,8 @@ def test_core_empty_sweep_keeps_closed_ancestor_while_descendant_holds_root_leas
     assert store.get_compression_lineage("child") == ["root", "child"]
     assert not store.try_acquire_session_turn_lease("root", "other")
     store.release_session_turn_lease("child", "holder")
-    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
-    runtime = PostgresRuntimeStore(store)
+    from hermes_db.integration.runtime_composition import create_runtime_store
+    runtime = create_runtime_store(store)
     epoch = runtime.begin_epoch(instance_id="owner")
     runtime.register_worker(epoch=epoch, execution_id="worker", session_id="child", generation=0,
         kind="compute", adoption_secret="private")

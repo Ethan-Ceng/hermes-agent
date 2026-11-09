@@ -131,13 +131,13 @@ def test_native_run_poll_uses_epoch_recovery_and_never_local_pid_liveness(native
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
     from hermes_db import factory
     from hermes_db.integration.run_resources import ProfileRunStores
-    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
+    from hermes_db.integration.runtime_composition import create_runtime_store
     db = core_pair[0]
     registry, _ = native_registry
     monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope))
     token = set_hermes_home_override(_configure(db))
     stores = ProfileRunStores(_no_sqlite)
-    runtime = PostgresRuntimeStore(db)
+    runtime = create_runtime_store(db)
     db.create_session("s", "api_server")
 
     def no_pid_probe(*args):

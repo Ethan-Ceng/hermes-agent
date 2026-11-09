@@ -68,7 +68,7 @@ def test_core_run_lost_commit_ack_is_observed_by_original_key_without_reserving_
     from hermes_db.domains.runtime.postgres.idempotency import PostgresRunIdempotencyStore
     sessions, _ = core_pair
     store = PostgresRunIdempotencyStore(sessions)
-    original = sessions._write
+    original = sessions._context.write
 
     @contextmanager
     def lose_ack():
@@ -78,7 +78,7 @@ def test_core_run_lost_commit_ack_is_observed_by_original_key_without_reserving_
 
     try:
         with monkeypatch.context() as patch:
-            patch.setattr(sessions, "_write", lose_ack)
+            patch.setattr(sessions._context, 'write', lose_ack)
             with pytest.raises(UnknownCommitError):
                 store.reserve("scope", "key", "digest", "original", {"status": "running"})
         outcome, row = store.lookup("scope", "key", "digest")
@@ -91,11 +91,11 @@ def test_core_run_lost_commit_ack_is_observed_by_original_key_without_reserving_
 def test_core_response_identity_settles_from_same_store_retired_admission_without_observer(core_pair):
     from gateway.platforms.api_server_response_identity import durable_response_id
     from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
-    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
+    from hermes_db.integration.runtime_composition import create_runtime_store
 
     sessions, _ = core_pair
     sessions.create_session("s", "api_server")
-    runtime = PostgresRuntimeStore(sessions)
+    runtime = create_runtime_store(sessions)
     epoch = runtime.begin_epoch(instance_id="owner")
     args = dict(epoch=epoch, principal_id="api", session_id="s", request_id="r", payload={"text": "private\x00"})
     admitted = runtime.admit_input(**args)
@@ -114,12 +114,12 @@ def test_core_response_identity_settles_from_same_store_retired_admission_withou
 
 def test_core_response_pointer_repair_uses_existing_transaction_and_never_reopens_canonical_store(core_pair, monkeypatch):
     from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
-    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
+    from hermes_db.integration.runtime_composition import create_runtime_store
     from hermes_state_runtime import RuntimeStoreError
 
     sessions, _ = core_pair
     sessions.create_session("s", "api_server")
-    runtime = PostgresRuntimeStore(sessions)
+    runtime = create_runtime_store(sessions)
     epoch = runtime.begin_epoch(instance_id="owner")
     admitted = runtime.admit_input(epoch=epoch, principal_id="api", session_id="s", request_id="request", payload={"text": "held"})
     responses = PostgresResponseStore(sessions)
@@ -130,7 +130,7 @@ def test_core_response_pointer_repair_uses_existing_transaction_and_never_reopen
     try:
         responses.bind_request_key("idem:key", "digest")
         with monkeypatch.context() as patch:
-            patch.setattr(sessions, "_read", forbid_read)
+            patch.setattr(sessions._context, 'read', forbid_read)
             found = responses.atomically(responses.resolve_request_admission, "idem:key", "request")
         assert found["admission_id"] == admitted["admission_id"]
         assert responses.request_admission("idem:key") == admitted["admission_id"]
@@ -172,7 +172,7 @@ def test_core_api_connection_failure_never_creates_memory_identity(core_pair, mo
 
     try:
         with monkeypatch.context() as patch:
-            patch.setattr(sessions, "_write", unavailable)
+            patch.setattr(sessions._context, 'write', unavailable)
             with pytest.raises(StorageUnavailableError):
                 PostgresResponseStore(sessions)
             with pytest.raises(StorageUnavailableError):

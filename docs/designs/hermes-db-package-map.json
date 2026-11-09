@@ -1,7 +1,7 @@
 {
   "baseline": "cbfc773dd79241752697e647067c63338fc01680",
   "baseline_runtime": "0d69702244d623a31be149a9bac6a2658e0322ae",
-  "stage": "Stage2 Task12 verified: six explicit session components and shared pure rules; Task13 pending",
+  "stage": "Stage2 Task13 verified: five explicit runtime components share the Session owner context; Task14 pending",
   "hash_basis": "SHA256 of Git blob bytes at baseline; independent of checkout line endings",
   "counts": {
     "keep": 76,
@@ -3086,7 +3086,10 @@
       "lines": 36,
       "sha256": "62e24be89dc38e4dd6bff905d24ed18208d878c2e36662945debe9e7761651a7",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/runtime/postgres/admissions.py",
+      "consolidated_by_task": 13,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/runtime_bot.py",
@@ -3096,7 +3099,10 @@
       "lines": 32,
       "sha256": "e163cc4e13aaf32b80157773aceeee4987ffbcc97feda2f70137f0ecfa1b05b0",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/runtime/postgres/policy.py",
+      "consolidated_by_task": 13,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/runtime_calls.py",
@@ -3116,7 +3122,10 @@
       "lines": 15,
       "sha256": "0cff15d1e2cf4a0e08f66004aa4c9a78cc65da88242acfc651a34d4e3ad6e116",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/runtime/postgres/local.py",
+      "consolidated_by_task": 13,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/runtime_local.py",
@@ -3126,7 +3135,10 @@
       "lines": 111,
       "sha256": "34021178911d92cdff830a588d13de0e085c80d535dfba17ea0ecc584aead560",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/runtime/postgres/local.py",
+      "consolidated_by_task": 13,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/runtime_media.py",
@@ -3136,7 +3148,10 @@
       "lines": 66,
       "sha256": "6d2a2b5a7a60d31b69e5f3866b7a594847db89e5a50b2530ee4ea5547f2c54fd",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/runtime/postgres/media.py",
+      "consolidated_by_task": 13,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/runtime_policy.py",
@@ -3146,7 +3161,10 @@
       "lines": 13,
       "sha256": "db3620f9711906af5eb2bce9c347be73e17fa9241cf88b4c11c8ca138c98a0af",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/runtime/postgres/policy.py",
+      "consolidated_by_task": 13,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/runtime_recovery.py",
@@ -3156,7 +3174,10 @@
       "lines": 90,
       "sha256": "6d8dc5f0e8267f06a04a56a8656033c7135dabbe7b21c095ae21ae2693d7704f",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/runtime/postgres/admissions.py",
+      "consolidated_by_task": 13,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/runtime_store.py",
@@ -3176,7 +3197,10 @@
       "lines": 72,
       "sha256": "aff7cf408225c6534822399d3fb67e1af708f2aed6769f0e957ec4e695451355",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/runtime/postgres/admissions.py",
+      "consolidated_by_task": 13,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/runtime_viewer.py",
@@ -3186,7 +3210,10 @@
       "lines": 75,
       "sha256": "8ae4eedccbc0fa7d061db817f5522a135d3ffd22761f176c494830a7fe69dc85",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/runtime/postgres/policy.py",
+      "consolidated_by_task": 13,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/runtime_workers.py",
@@ -3196,7 +3223,10 @@
       "lines": 87,
       "sha256": "131ae4858cbc3ef6fec1bc8a7af1af2b9c990ab2585269bccc3faaebbfb81300",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/runtime/postgres/workers.py",
+      "consolidated_by_task": 13,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/schema.py",
@@ -4081,7 +4111,10 @@
       "lines": 75,
       "sha256": "fe254c78af986d3e512522b85dbca4668d48c8a293db2720075cf690888c6ea3",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/runtime/postgres/metrics.py",
+      "consolidated_by_task": 13,
+      "final_status": "verified"
     }
   ],
   "new_files": [
@@ -4377,7 +4410,10 @@
     {
       "path": "hermes_db/domains/runtime/postgres/capabilities/__init__.py",
       "task": 8,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 13,
+      "reason": "Runtime Mixin namespace replaced by explicit owner-scoped components"
     },
     {
       "path": "hermes_db/domains/rooms/attachments/__init__.py",
@@ -4478,6 +4514,16 @@
       "path": "hermes_db/integration/session_composition.py",
       "task": 12,
       "role": "explicit-session-composition-or-connection-query"
+    },
+    {
+      "path": "hermes_db/domains/runtime/postgres/context.py",
+      "task": 13,
+      "role": "runtime-owner-context"
+    },
+    {
+      "path": "hermes_db/integration/runtime_composition.py",
+      "task": 13,
+      "role": "explicit-runtime-composition"
     }
   ],
   "implementation_amendments": [
@@ -4643,6 +4689,56 @@
         "hermes_db/integration/transfer/session_capabilities/profile_repair.py"
       ],
       "purpose": "Explicit transfer component; injected callbacks: _after_session_delete, flush_for_read, flush_token_counts",
+      "status": "verified"
+    },
+    {
+      "task": 13,
+      "target": "hermes_db/domains/runtime/postgres/admissions.py",
+      "sources": [
+        "hermes_db/domains/runtime/postgres/capabilities/runtime_api.py",
+        "hermes_db/domains/runtime/postgres/capabilities/runtime_terminal.py",
+        "hermes_db/domains/runtime/postgres/capabilities/runtime_recovery.py"
+      ],
+      "purpose": "Explicit admissions operations sharing the owning session context and profile-bound writes",
+      "status": "verified"
+    },
+    {
+      "task": 13,
+      "target": "hermes_db/domains/runtime/postgres/local.py",
+      "sources": [
+        "hermes_db/domains/runtime/postgres/capabilities/runtime_local.py",
+        "hermes_db/domains/runtime/postgres/capabilities/runtime_history.py"
+      ],
+      "purpose": "Explicit local operations sharing the owning session context and profile-bound writes",
+      "status": "verified"
+    },
+    {
+      "task": 13,
+      "target": "hermes_db/domains/runtime/postgres/policy.py",
+      "sources": [
+        "hermes_db/domains/runtime/postgres/capabilities/runtime_policy.py",
+        "hermes_db/domains/runtime/postgres/capabilities/runtime_bot.py",
+        "hermes_db/domains/runtime/postgres/capabilities/runtime_viewer.py"
+      ],
+      "purpose": "Explicit policy operations sharing the owning session context and profile-bound writes",
+      "status": "verified"
+    },
+    {
+      "task": 13,
+      "target": "hermes_db/domains/runtime/postgres/workers.py",
+      "sources": [
+        "hermes_db/domains/runtime/postgres/capabilities/runtime_workers.py"
+      ],
+      "purpose": "Explicit workers operations sharing the owning session context and profile-bound writes",
+      "status": "verified"
+    },
+    {
+      "task": 13,
+      "target": "hermes_db/domains/runtime/postgres/media.py",
+      "sources": [
+        "hermes_db/domains/runtime/postgres/capabilities/runtime_media.py"
+      ],
+      "purpose": "Explicit media operations sharing the owning session context and profile-bound writes",
       "status": "verified"
     }
   ],

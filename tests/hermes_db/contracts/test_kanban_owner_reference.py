@@ -6,7 +6,7 @@ from hermes_db.errors import StorageUnavailableError
 def test_kanban_native_owner_reads_configured_scope_and_never_inferrs_remote_pid(core_pair, native_registry, monkeypatch):
     from hermes_cli import kanban_owner_recovery as recovery
     from hermes_db import factory
-    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
+    from hermes_db.integration.runtime_composition import create_runtime_store
     db, _other = core_pair
     home = db.scope.profile_home
     home.mkdir(parents=True)
@@ -15,7 +15,7 @@ def test_kanban_native_owner_reads_configured_scope_and_never_inferrs_remote_pid
     (home / ".env").write_text("HERMES_POSTGRES_DSN=postgresql://unused/db\n")
     registry, _opened = native_registry
     monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope))
-    runtime = PostgresRuntimeStore(db)
+    runtime = create_runtime_store(db)
     db.create_session("owner-session", "kanban")
     epoch = runtime.begin_epoch(instance_id="remote-owner")
     runtime.admit_input(epoch=epoch, principal_id="producer", session_id="owner-session", request_id="attempt", payload={})

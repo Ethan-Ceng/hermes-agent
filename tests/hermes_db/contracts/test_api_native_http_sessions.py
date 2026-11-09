@@ -48,7 +48,7 @@ async def test_native_http_creation_conflicts_retirement_and_unknown_commit(api_
                     headers={**headers, "X-Hermes-Session-Id": "created"})
                 assert history_error.status == 503, await history_error.text()
                 assert (await history_error.json())["error"]["code"] == "storage_unavailable"
-            original = db._write
+            original = db._context.write
 
             @contextmanager
             def unavailable():
@@ -56,7 +56,7 @@ async def test_native_http_creation_conflicts_retirement_and_unknown_commit(api_
                 yield  # pragma: no cover
 
             with monkeypatch.context() as patch:
-                patch.setattr(db, "_write", unavailable)
+                patch.setattr(db._context, 'write', unavailable)
                 failed = await client.post("/api/sessions", json={"id": "unavailable"}, headers=headers)
                 assert failed.status == 503 and (await failed.json())["error"]["code"] == "storage_unavailable"
 
@@ -67,7 +67,7 @@ async def test_native_http_creation_conflicts_retirement_and_unknown_commit(api_
                 raise UnknownCommitError("lost confirmation")
 
             with monkeypatch.context() as patch:
-                patch.setattr(db, "_write", confirmation_lost)
+                patch.setattr(db._context, 'write', confirmation_lost)
                 unknown = await client.post("/api/sessions", json={"id": "committed"}, headers=headers)
                 assert unknown.status == 503 and (await unknown.json())["error"]["code"] == "storage_unknown_commit"
                 assert unknown.headers["x-should-retry"] == "false"

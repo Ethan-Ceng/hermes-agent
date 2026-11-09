@@ -46,11 +46,11 @@ def _handle(key, entry):
 
 
 def _build(key, entry):
-    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
+    from hermes_db.integration.runtime_composition import create_runtime_store
     try:
         store = _construct_store(key.settings, key.scope)
         try:
-            runtime = PostgresRuntimeStore(store)
+            runtime = create_runtime_store(store)
         except BaseException:
             store.close()
             raise
