@@ -9,8 +9,8 @@ import pytest
 
 from hermes_cli import kanban_db as kb, kanban_db_connect as kbc, kanban_db_dispatch as dispatch
 from hermes_db.errors import StorageBusyError
-from hermes_db.domains.kanban.postgres.operations.dispatch_lease import DispatchLease, hold_dispatch_lease
-from hermes_db.domains.kanban.postgres.queries import kanban as repo
+from hermes_db.domains.kanban.postgres.dispatch import DispatchLease, hold_dispatch_lease
+from hermes_db.domains.kanban.postgres import repository as repo
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 
@@ -71,7 +71,7 @@ def test_lease_release_failure_preserves_unknown_primary_commit(pg_profiles, mon
 
 
 def test_operator_reclaim_during_workspace_preparation_fences_old_spawn(pg_profiles, dispatcher, monkeypatch):
-    from hermes_db.domains.kanban.postgres.operations import dispatch_lane as kanban_dispatch_lane
+    from hermes_db.domains.kanban.postgres import dispatch as kanban_dispatch_lane
     with pg_profiles("one"), kbc.connect_closing() as store:
         task_id = kb.create_task(store, title="operator race", assignee="coder", workspace_kind="scratch")
         prepare = kanban_dispatch_lane._workspace
@@ -92,7 +92,7 @@ def test_operator_reclaim_during_workspace_preparation_fences_old_spawn(pg_profi
 
 def test_lease_renews_during_wait_without_retaining_pool_connection(pg_profiles, monkeypatch):
     from sqlalchemy import func, select
-    from hermes_db.domains.kanban.postgres.operations import dispatch_lease as coordination
+    from hermes_db.domains.kanban.postgres import dispatch as coordination
     from hermes_db.tables.kanban_dispatch import dispatch_leases
     from tests.waiting import wait_until
     monkeypatch.setattr(coordination, "LEASE_SECONDS", 2)
@@ -203,23 +203,7 @@ with c.connect_closing() as store:
 def test_dead_dispatch_process_lease_expires_and_successor_takes_over(pg_profiles, tmp_path):
     with pg_profiles("one") as home, kbc.connect_closing() as store:
         ready = tmp_path / "lease-owned"
-        code = r'''
-import sqlite3, sys, time
-from pathlib import Path
-def reject(*args, **kwargs):
-    raise AssertionError('SQLite opened by PG lease owner')
-sqlite3.connect = reject
-from hermes_constants import set_hermes_home_override
-set_hermes_home_override(sys.argv[1])
-from hermes_cli import kanban_db_connect as c
-from hermes_db.domains.kanban.postgres.operations import dispatch_lease as leases
-leases.LEASE_SECONDS = 1
-with c.connect_closing() as store:
-    lease = leases.DispatchLease(store)
-    assert lease.acquire()
-    Path(sys.argv[2]).touch()
-    time.sleep(90)
-'''
+        code = "\nimport sqlite3, sys, time\nfrom pathlib import Path\ndef reject(*args, **kwargs):\n    raise AssertionError('SQLite opened by PG lease owner')\nsqlite3.connect = reject\nfrom hermes_constants import set_hermes_home_override\nset_hermes_home_override(sys.argv[1])\nfrom hermes_cli import kanban_db_connect as c\nfrom hermes_db.domains.kanban.postgres import dispatch as leases\nleases.LEASE_SECONDS = 1\nwith c.connect_closing() as store:\n    lease = leases.DispatchLease(store)\n    assert lease.acquire()\n    Path(sys.argv[2]).touch()\n    time.sleep(90)\n"
         child = subprocess.Popen([sys.executable, "-c", code, str(home), str(ready)],
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         try:

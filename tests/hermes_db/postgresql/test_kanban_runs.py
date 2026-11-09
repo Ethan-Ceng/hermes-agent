@@ -119,7 +119,7 @@ def test_block_dependencies_sticky_resume_and_loop_limit(pg_profiles):
 
 
 def test_pid_publication_and_adoption_keep_actual_process_fingerprint(pg_profiles):
-    from hermes_db.domains.kanban.postgres.queries import runs as run_repo
+    from hermes_db.domains.kanban.postgres import runs as run_repo
     with pg_profiles("one"), kbc.connect_closing() as store:
         tid = kb.create_task(store, title="pid", workspace_kind="scratch")
         run = kb.claim_task(store, tid)

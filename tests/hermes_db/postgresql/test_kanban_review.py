@@ -31,7 +31,7 @@ def test_review_changes_and_rereview_restore_original_provenance(pg_profiles):
 
 @pytest.mark.parametrize("failure_phase", ["body", "commit"])
 def test_review_failure_compensates_only_new_artifacts(pg_profiles, monkeypatch, failure_phase):
-    from hermes_db.domains.kanban.postgres.queries import kanban as repo
+    from hermes_db.domains.kanban.postgres import repository as repo
     from hermes_db.tables.kanban import events
     from hermes_db.errors import StorageConflictError
     with pg_profiles("one"), kbc.connect_closing() as store:

@@ -8,34 +8,34 @@ from hermes_db.core.resource import DomainResource
 from hermes_db.errors import StorageConfigurationError
 
 
-_KANBAN_MODULES = {'archive': 'hermes_db.domains.kanban.postgres.operations.archive',
- 'artifacts': 'hermes_db.domains.kanban.postgres.operations.artifacts',
- 'claims': 'hermes_db.domains.kanban.postgres.operations.claims',
- 'completion': 'hermes_db.domains.kanban.postgres.operations.completion',
- 'completion_guards': 'hermes_db.domains.kanban.postgres.operations.completion_guards',
- 'crash_sweeps': 'hermes_db.domains.kanban.postgres.operations.crash_sweeps',
- 'dashboard': 'hermes_db.domains.kanban.postgres.operations.dashboard',
- 'diagnostic_snapshot': 'hermes_db.domains.kanban.postgres.operations.diagnostic_snapshot',
- 'dispatch': 'hermes_db.domains.kanban.postgres.operations.dispatch',
- 'dispatch_lane': 'hermes_db.domains.kanban.postgres.operations.dispatch_lane',
- 'dispatch_queries': 'hermes_db.domains.kanban.postgres.operations.dispatch_queries',
- 'events': 'hermes_db.domains.kanban.postgres.operations.events',
- 'failures': 'hermes_db.domains.kanban.postgres.operations.failures',
- 'graph': 'hermes_db.domains.kanban.postgres.operations.graph',
- 'lease_sweeps': 'hermes_db.domains.kanban.postgres.operations.lease_sweeps',
- 'notify': 'hermes_db.domains.kanban.postgres.operations.notify',
- 'owner_recovery': 'hermes_db.domains.kanban.postgres.operations.owner_recovery',
- 'queries': 'hermes_db.domains.kanban.postgres.operations.queries',
- 'reopen': 'hermes_db.domains.kanban.postgres.operations.reopen',
- 'review': 'hermes_db.domains.kanban.postgres.operations.review',
- 'runs': 'hermes_db.domains.kanban.postgres.operations.runs',
- 'runtime_sweeps': 'hermes_db.domains.kanban.postgres.operations.runtime_sweeps',
- 'swarm': 'hermes_db.domains.kanban.postgres.operations.swarm',
- 'tasks': 'hermes_db.domains.kanban.postgres.operations.tasks',
- 'terminal_workers': 'hermes_db.domains.kanban.postgres.operations.terminal_workers',
- 'transitions': 'hermes_db.domains.kanban.postgres.operations.transitions',
- 'worker_identity': 'hermes_db.domains.kanban.postgres.operations.worker_identity',
- 'workspaces': 'hermes_db.domains.kanban.postgres.operations.workspaces'}
+_KANBAN_MODULES = {'archive': 'hermes_db.domains.kanban.postgres.catalog',
+ 'artifacts': 'hermes_db.domains.kanban.postgres.files',
+ 'claims': 'hermes_db.domains.kanban.postgres.claims',
+ 'completion': 'hermes_db.domains.kanban.postgres.completion',
+ 'completion_guards': 'hermes_db.domains.kanban.postgres.completion',
+ 'crash_sweeps': 'hermes_db.domains.kanban.postgres.maintenance',
+ 'dashboard': 'hermes_db.domains.kanban.postgres.catalog',
+ 'diagnostic_snapshot': 'hermes_db.domains.kanban.postgres.catalog',
+ 'dispatch': 'hermes_db.domains.kanban.postgres.dispatch',
+ 'dispatch_lane': 'hermes_db.domains.kanban.postgres.dispatch',
+ 'dispatch_queries': 'hermes_db.domains.kanban.postgres.dispatch',
+ 'events': 'hermes_db.domains.kanban.postgres.catalog',
+ 'failures': 'hermes_db.domains.kanban.postgres.runs',
+ 'graph': 'hermes_db.domains.kanban.postgres.catalog',
+ 'lease_sweeps': 'hermes_db.domains.kanban.postgres.maintenance',
+ 'notify': 'hermes_db.domains.kanban.postgres.notify',
+ 'owner_recovery': 'hermes_db.domains.kanban.postgres.owners',
+ 'queries': 'hermes_db.domains.kanban.postgres.catalog',
+ 'reopen': 'hermes_db.domains.kanban.postgres.catalog',
+ 'review': 'hermes_db.domains.kanban.postgres.review',
+ 'runs': 'hermes_db.domains.kanban.postgres.runs',
+ 'runtime_sweeps': 'hermes_db.domains.kanban.postgres.maintenance',
+ 'swarm': 'hermes_db.domains.kanban.postgres.swarm',
+ 'tasks': 'hermes_db.domains.kanban.postgres.catalog',
+ 'terminal_workers': 'hermes_db.domains.kanban.postgres.maintenance',
+ 'transitions': 'hermes_db.domains.kanban.postgres.claims',
+ 'worker_identity': 'hermes_db.domains.kanban.postgres.dispatch',
+ 'workspaces': 'hermes_db.domains.kanban.postgres.workspaces'}
 
 
 class BoardResource(DomainResource):
@@ -48,13 +48,13 @@ class BoardResource(DomainResource):
     @contextmanager
     def write(self, *, lock_timeout=None):
         from hermes_cli.kanban_db import _assert_not_delegated_child_mutation
-        from hermes_db.domains.kanban.postgres.queries.kanban import lock_board
-        from hermes_db.domains.kanban.postgres.operations.file_jobs import lock_files
+        from hermes_db.domains.kanban.postgres.repository import lock_board
+        from hermes_db.domains.kanban.postgres.files import lock_files
         _assert_not_delegated_child_mutation()
         with super().write(lock_timeout=lock_timeout) as conn:
             lock_files(conn, self)
             if self.slug == self.board_id == "default":
-                from hermes_db.domains.kanban.postgres.operations.boards import _lookup, _registry_lock, _save
+                from hermes_db.domains.kanban.postgres.catalog import _lookup, _registry_lock, _save
                 _registry_lock(conn, self)
                 row = _lookup(conn, self, self.slug)
                 if row is None:
@@ -97,7 +97,7 @@ def profile_operation(sqlite_operation):
     def operation(*args, **kwargs):
         from hermes_cli.db_setup import storage_backend
         if storage_backend() == "postgresql":
-            from hermes_db.domains.kanban.postgres.operations import boards as kanban_boards
+            from hermes_db.domains.kanban.postgres import catalog as kanban_boards
             from hermes_db.factory import acquire_profile_domain
             with acquire_profile_domain("kanban_tasks") as resource:
                 return getattr(kanban_boards, sqlite_operation.__name__)(resource, *args, **kwargs)
@@ -124,7 +124,7 @@ def owner_scoped_operation(file_operation):
 def connect(board=None):
     from hermes_cli import kanban_db as kb
     from hermes_db.factory import acquire_profile_domain
-    from hermes_db.domains.kanban.postgres.operations.boards import resolve_board
+    from hermes_db.domains.kanban.postgres.catalog import resolve_board
     slug = kb._explicit_board_slug(board) or kb.get_current_board()
     with acquire_profile_domain("kanban_tasks") as resource:
         board_id = resolve_board(resource, slug)

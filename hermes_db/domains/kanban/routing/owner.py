@@ -31,7 +31,7 @@ def validate_reference(reference):
 def open_board_owner(reference, *, command=None):
     from hermes_cli.db_setup import _owning_profile
     from hermes_db.factory import acquire_profile_domain
-    from hermes_db.domains.kanban.postgres.operations.boards import _lookup
+    from hermes_db.domains.kanban.postgres.catalog import _lookup
     reference = validate_reference(reference)
     with _owning_profile(Path(reference["profile_home"])), acquire_profile_domain(
             "kanban_tasks", profile_home=Path(reference["profile_home"])) as resource:

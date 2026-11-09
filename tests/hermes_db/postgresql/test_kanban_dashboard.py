@@ -84,8 +84,8 @@ async def test_dashboard_reopen_invalidates_live_descendants_atomically_and_arch
 
 
 def test_parent_and_descendant_reopen_roll_back_together_on_event_failure(pg_profiles, monkeypatch):
-    from hermes_db.domains.kanban.postgres.operations.dashboard import _set_status_direct
-    from hermes_db.domains.kanban.postgres.queries import kanban as repo
+    from hermes_db.domains.kanban.postgres.catalog import _set_status_direct
+    from hermes_db.domains.kanban.postgres import repository as repo
     with pg_profiles("one"), kbc.connect_closing() as store:
         parent = kb.create_task(store, title="completed")
         assert kb.complete_task(store, parent, summary="delivered")

@@ -114,7 +114,7 @@ def _require_cleanup_payload(raw):
 
 def reanchor(resource, old, new):
     from hermes_db.domains.sessions.postgres.queries.sessions import lock_store
-    from hermes_db.domains.kanban.postgres.operations.file_jobs import lock_files
+    from hermes_db.domains.kanban.postgres.files import lock_files
     from hermes_db.tables.conversations import sessions
     from hermes_db.tables.projects import projects, project_folders, discovered_repos
     from hermes_db.tables.cron import cron_incidents

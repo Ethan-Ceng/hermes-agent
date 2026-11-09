@@ -225,7 +225,7 @@ def count_notify_subs(
         if db_path is not None:
             from hermes_db.errors import StorageConfigurationError
             raise StorageConfigurationError("SQLite subscription path overrides cannot select a PostgreSQL Board")
-        from hermes_db.domains.kanban.postgres.operations.notify import count_notify_subs as count
+        from hermes_db.domains.kanban.postgres.notify import count_notify_subs as count
         return count(board=board, notifier_profiles=notifier_profiles, include_unowned=include_unowned,
                      platform=platform, chat_id=chat_id, thread_id=thread_id)
     path = db_path if db_path is not None else _kb.kanban_db_path(board=board)

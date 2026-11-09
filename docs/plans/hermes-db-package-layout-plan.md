@@ -6,8 +6,8 @@
 - 全量归属：[398项基准映射](../designs/hermes-db-package-map.json)。
 - 文档分支：`docs/hermes-db-package-layout`；实施分支：`refactor/hermes-db-packages`。
 - 源码基准：`cbfc773dd7`，运行实现等价`0d69702244`。
-- 整体状态：`IMPLEMENTING`；当前阶段：第二阶段规则/组件/工作流收敛；当前任务：Task14（pending）；完成：13 / 18。
-- 本轮已建立独立实施检出并完成Task1–13；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
+- 整体状态：`IMPLEMENTING`；当前阶段：第二阶段规则/组件/工作流收敛；当前任务：Task15（pending）；完成：14 / 18。
+- 本轮已建立独立实施检出并完成Task1–14；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
 - 核心设计待决策：无；Task1隔离PM与PG基线已通过，Matrix实际SDK已由Task6新环境核对并实测。原统一后端Task24及七项非WSL缺证独立保留。
 - 更新时间：2026-11-10（Asia/Shanghai）。恢复位置：`D:/AI/hermes-db-packages`；从首个in_progress任务继续，不重跑整轮数据库选型。
 
@@ -73,6 +73,7 @@ PG选项只用于tests/hermes_db下已注册该选项的文件；其他目录Nat
 | 2026-11-09 | IMPLEMENTING | Task11八组合并与共享规则完成，11/18；462→444；Native513、PG失败整改后62、15静态通过 |
 | 2026-11-10 | IMPLEMENTING | Task12 Session36 Mixin→六显式组件，12/18；444→419；Native整改复验560、PG160、15静态通过 |
 | 2026-11-10 | IMPLEMENTING | Task13 Runtime10 Mixin→五显式组件，13/18；419→415；Native504、PG43及15静态通过 |
+| 2026-11-10 | IMPLEMENTING | Task14 Kanban52→17工作流，14/18；415→378，净少于原398；Native536+Linux24、PG104及15静态通过 |
 
 ## 方案准备自检
 
@@ -870,12 +871,12 @@ Invoke-PgCases -Files @('tests/hermes_db/postgresql/test_runtime.py', 'tests/her
 - Windows `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts -j 4 --file-timeout 1200 -- --tb=short`，exit0，90文件504passed/0failed/4skipped，750.1秒（task13-native.log）；1 POSIX与3 Linux SDK skip单列，不算通过。Runtime隔离、同连接回执、关闭/取消和故障注入合同保持。
 - Linux `bash scripts/run_tests.sh tests/hermes_db/postgresql/test_runtime.py tests/hermes_db/postgresql/test_workers.py tests/hermes_db/postgresql/test_worker_domain_receipts.py tests/hermes_db/postgresql/test_worker_retain_transport.py tests/hermes_db/postgresql/test_merge_commit_recovery.py tests/hermes_db/postgresql/test_merge_process_recovery.py tests/hermes_db/postgresql/test_worker_metrics_receipts.py tests/hermes_db/postgresql/test_worker_retain_commands.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，exit0、8文件43passed/0failed/0skip，126.5秒（task13-pg.log）；包含当前源码Worker序号/unknown/metrics/retain及新进程恢复，不复用旧686/36/32证据。Schema仍由fixture验证随机所有权。
 - `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，exit0、15checks通过，health655文件0blocking/0advisory，142.2秒（task13-check.log）；没有新增豁免，沿用Task12具名边界。最终元数据更新后对整个Task13差异执行空白检查exit0。
-- 恢复点：本Task本地提交，标题`refactor(storage): compose runtime persistence with shared owner context`；下一Task14。忽略目录task13-virtual.json、生成/审计/patch脚本和日志保留；apply非幂等。
+- 恢复点：本地提交`683718050b`，标题`refactor(storage): compose runtime persistence with shared owner context`；下一Task14。忽略目录task13-virtual.json、生成/审计/patch脚本和日志保留；apply非幂等。
 - 未验证：后续Kanban/Rooms合并、Task16依赖闭环、Task17最终DB/SDK/独立载荷与Task18独立审查。原统一后端Task24与七项非WSL缺证独立保留。
 
 ## Task 14：Kanban按工作流合并
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -914,11 +915,49 @@ Invoke-PgCases -Files @('tests/hermes_db/postgresql/test_kanban_completion.py', 
 
 ### 执行结果
 
-未执行。
+从Task13 `683718050b`继续核对52个Kanban操作/查询模块，先冻结实际归组表与111路由入口。初拟16个目标，写源码前的eager依赖图检查拒绝repository↔runs环：evidence依赖run读，而合并后的run操作依赖基础repository。将43行evidence保留为独立Connection/scope窄查询，调整为17目标，保持原52源项、基准hash和所有SQL/事务不变；不靠lazy循环导入或shim绕过。第二次eager图核对发现Catalog经reopen.invalidate/terminate依赖Completion，而Completion经graph._unsatisfied依赖Catalog；将共享的父节点/后代撤回与DAG同置Catalog，使Completion单向使用Catalog。仍为17目标，无新增算法/接口。17目标重验无环、48候选文件F821/F822/F823/自导入检查无误后已应用。52操作/查询→17实际工作流/共享能力，移除两空namespace，415→378文件；相对原398已净减20，根仍11。所有生产导入、显式分发、测试patch和内嵌子进程Python读取点同步迁移；源码未添加shim。
+
+
+
+| 最终PG模块 | 源文件数 | 原始总行数 |
+| --- | --- | --- |
+| `catalog.py` | 10 | 953 |
+| `claims.py` | 2 | 235 |
+| `review.py` | 1 | 170 |
+| `completion.py` | 4 | 319 |
+| `dispatch.py` | 6 | 413 |
+| `runs.py` | 3 | 240 |
+| `files.py` | 5 | 590 |
+| `workspaces.py` | 3 | 291 |
+| `notify.py` | 1 | 199 |
+| `transfer.py` | 4 | 513 |
+| `owners.py` | 2 | 146 |
+| `maintenance.py` | 6 | 432 |
+| `effects.py` | 1 | 101 |
+| `swarm.py` | 1 | 88 |
+| `repository.py` | 1 | 105 |
+| `evidence.py` | 1 | 43 |
+| `receipts.py` | 1 | 58 |
+
+保留小模块理由：evidence为跨工作流同Connection/run快照；receipts统一主效应/回执与commit verdict；effects是独立持久副作用生命周期；notify有独立游标/投递声明；swarm是独立原子拓扑创建。未强造通用CRUD或空repository/service接口。
 
 ### 验证证据
 
-未执行；实施时记录实际解释器/源码commit、展开命令、退出状态、计数、日志、未验证项和恢复commit。
+- 解释器、隔离HOME/RUNTIME和平台独立PYTHONPYCACHEPREFIX沿用Task13，未改PM依赖或生产配置；Node/Schema/服务/角色均未操作。
+- 真实模块探针exit0：17个新模块在拒绝SQLite连接时成功导入；28个逻辑topic的111个现存注册函数逐一解析为callable，未改命令名（task14-probe.log、task14-routes.json）。
+- 独立源级审计exit0：331函数/类与13常量在真实导入/导出身份归一后完全等价；无可变/调用型全局同名误合并；61个table/version锚点与Task13相同；398源项完整归属、378模块/根11（task14-audit.log、task14-semantics.json）。这不是行为pytest，也不替代业务测试。
+- Native依计划92文件与扩大后的PG27文件均通过；命令清单如下。
+
+```text
+bash scripts/run_tests.sh tests/hermes_db/postgresql/test_kanban_artifacts.py tests/hermes_db/postgresql/test_kanban_audit_receipts.py tests/hermes_db/postgresql/test_kanban_board_files.py tests/hermes_db/postgresql/test_kanban_command_receipts.py tests/hermes_db/postgresql/test_kanban_completion.py tests/hermes_db/postgresql/test_kanban_dashboard.py tests/hermes_db/postgresql/test_kanban_dispatch.py tests/hermes_db/postgresql/test_kanban_failures.py tests/hermes_db/postgresql/test_kanban_integration.py tests/hermes_db/postgresql/test_kanban_interactive_process.py tests/hermes_db/postgresql/test_kanban_interactive_worker.py tests/hermes_db/postgresql/test_kanban_notify.py tests/hermes_db/postgresql/test_kanban_owner_policy.py tests/hermes_db/postgresql/test_kanban_owner_recovery.py tests/hermes_db/postgresql/test_kanban_review.py tests/hermes_db/postgresql/test_kanban_routing.py tests/hermes_db/postgresql/test_kanban_runs.py tests/hermes_db/postgresql/test_kanban_swarm.py tests/hermes_db/postgresql/test_kanban_sweeps.py tests/hermes_db/postgresql/test_kanban_tasks.py tests/hermes_db/postgresql/test_kanban_transfer.py tests/hermes_db/postgresql/test_kanban_watchers.py tests/hermes_db/postgresql/test_kanban_worker_e2e.py tests/hermes_db/postgresql/test_kanban_worker_rpc.py tests/hermes_db/postgresql/test_kanban_worker_upload.py tests/hermes_db/postgresql/test_kanban_workspaces.py tests/hermes_db/postgresql/test_merge_collaboration_consumers.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml
+```
+
+- Windows `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts tests/hermes_cli/test_kanban_core_functionality.py tests/hermes_cli/test_kanban_cli.py -j 4 --file-timeout 1200 -- --tb=short`，exit0，92文件536passed/0failed/6skipped，311.9秒（task14-native.log）。原4平台skip加core文件2个Linux专用，均未算通过。
+- Linux `bash scripts/run_tests.sh tests/hermes_cli/test_kanban_core_functionality.py -j 1 --file-timeout 1200 -- --tb=short`，exit0，完整1文件24passed/0failed/0skip，86.3秒（task14-native-linux.log）；当前源码覆盖Windows的2个core跳过项，不覆盖原非WSL缺证。
+- 上述完整PG27文件命令exit0，104passed/0failed/0skip，456.3秒（task14-pg.log）；所有Schema由fixture核对随机所有权，当前源码文件/Workspace生命周期、通知游标、Worker/RPC、命令/审计回执、dispatch租约、恢复与merge消费者均通过，无新DB服务/扩展/角色操作。
+- `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，exit0、15checks通过，health618文件0blocking/0advisory，136.9秒（task14-check.log）；无新增豁免。最终元数据更新后整个Task14差异空白检查通过。
+- 恢复点：本Task本地提交，标题`refactor(storage): consolidate kanban persistence by workflow`；下一Task15。忽略目录task14-virtual.json、groups、probe、audit、原始日志保留；apply非幂等。
+- 未验证：Rooms合并、Task16依赖闭环、Task17最终全DB/SDK/独立载荷及Task18独立审查；原统一Task24与七项非WSL缺证独立保留。
 
 ## Task 15：Rooms按工作流合并
 
@@ -1145,7 +1184,7 @@ git diff --check
 
 ### 执行结果
 
-- 单元/Native/PG/实际SDK/并发/故障/关闭：Task1–13局部验证已执行并逐项记录；阶段二后最终完整验收待Task17。
+- 单元/Native/PG/实际SDK/并发/故障/关闭：Task1–14局部验证已执行并逐项记录；阶段二后最终完整验收待Task17。
 - Schema：设计要求零变化；旧数据前向/重复升级和0031重开仍须Task17实测。
 - 静态/类型/共享契约/发行：已完成Task的15项静态检查均有证据；最终共享契约/独立发行等仍待Task17。
 - 手工检查：独立checkout内已核对模块、路由、root11和固定锚点；未触碰正式Profile/源码/进程；不替代最终运行验证。
@@ -1163,7 +1202,7 @@ git diff --check
 
 ### 未通过项目与最终状态
 
-实施推进中，当前13/18；局部验证见已完成Task，最终重构验收仍未执行；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
+实施推进中，当前14/18；局部验证见已完成Task，最终重构验收仍未执行；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
 实施后仅可根据真实终态填写本次重构`READY_TO_MERGE / BLOCKED / FAILED`，并与原系统统一后端整体验收状态分别报告。
 
 ### Task5锚点计数说明更正

@@ -50,7 +50,7 @@ async def call(connection, scope, operation, args=(), kwargs=None, *, target=Non
 @pytest.mark.asyncio
 async def test_interactive_resolution_first_write_receipt_and_child_reads(pg_profiles, monkeypatch):
     from hermes_db.factory import acquire_profile_domain
-    from hermes_db.domains.kanban.postgres.operations.boards import _lookup
+    from hermes_db.domains.kanban.postgres.catalog import _lookup
     from hermes_db.domains.runtime.postgres.operations.worker_children import reservation_effect
     with pg_profiles("one") as home, closing(open_session_store(home / "state.db")) as db:
         runtime, connection, scope = setup_owner(home, db, monkeypatch)

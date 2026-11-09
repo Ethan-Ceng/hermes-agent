@@ -52,7 +52,7 @@ def _describe(conn, task, params, retry, storage):
 def _postgresql_claim(params, authority):
     from hermes_cli import kanban_db as kb
     from hermes_db.domains.kanban.routing.owner import open_board_owner, validate_reference
-    from hermes_db.domains.kanban.postgres.operations.owner import inspect_claim
+    from hermes_db.domains.kanban.postgres.owners import inspect_claim
     validate_reference(params["owner"])
     if params["owner"]["board"] != params["board"]:
         raise RuntimeStoreError("invalid_kanban_claim")
@@ -97,6 +97,6 @@ def describe_claim(params, authority):
 
 def admit_postgresql_claim(context, params, receipt):
     from hermes_db.domains.kanban.routing.owner import open_board_owner
-    from hermes_db.domains.kanban.postgres.operations.owner import admit_claim
+    from hermes_db.domains.kanban.postgres.owners import admit_claim
     with open_board_owner(context["owner"]) as store:
         admit_claim(store, params, receipt)

@@ -10,7 +10,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 
 
 def test_workspace_fields_and_cross_board_live_reference_preserve_content(pg_profiles):
-    from hermes_db.domains.kanban.postgres.queries import kanban as repo
+    from hermes_db.domains.kanban.postgres import repository as repo
     with pg_profiles("one"):
         kb.create_board("alpha")
         kb.create_board("beta")
@@ -53,7 +53,7 @@ def test_resource_owner_binds_workspace_after_ambient_profile_change(pg_profiles
 @pytest.mark.parametrize("reference", ["create", "set"])
 def test_cleanup_fences_concurrent_cross_board_workspace_references(pg_profiles, monkeypatch, reference):
     from hermes_db.errors import StorageBusyError
-    from hermes_db.domains.kanban.postgres.queries import kanban as repo
+    from hermes_db.domains.kanban.postgres import repository as repo
     with pg_profiles("one"):
         kb.create_board("other")
         with kbc.connect_closing() as first, kbc.connect_closing(board="other") as second:
@@ -91,7 +91,7 @@ def test_cleanup_fences_concurrent_cross_board_workspace_references(pg_profiles,
 
 def test_cleanup_fences_new_live_child_and_interruption_survives_reopen(pg_profiles, monkeypatch):
     from hermes_db.errors import StorageBusyError
-    from hermes_db.domains.kanban.postgres.queries import kanban as repo
+    from hermes_db.domains.kanban.postgres import repository as repo
     with pg_profiles("one"):
         with kbc.connect_closing() as first, kbc.connect_closing() as second:
             parent = kb.create_task(first, title="finished", workspace_kind="scratch")

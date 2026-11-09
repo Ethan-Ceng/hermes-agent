@@ -11,7 +11,7 @@ from sqlalchemy.exc import OperationalError
 from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
 from hermes_db.domains.kanban.api import BoardResource
 from hermes_db.errors import UnknownCommitError
-from hermes_db.domains.kanban.postgres.operations.command_receipts import CommandReceipt, CommandReplay
+from hermes_db.domains.kanban.postgres.receipts import CommandReceipt, CommandReplay
 from hermes_state_runtime import RuntimeStoreError
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]

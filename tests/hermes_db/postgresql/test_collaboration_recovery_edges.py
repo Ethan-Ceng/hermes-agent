@@ -9,7 +9,7 @@ def test_request_changes_rejected_commit_records_original_verdict(pg_profiles, m
     from sqlalchemy.exc import OperationalError
     from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
     from hermes_db.domains.kanban.api import BoardResource
-    from hermes_db.domains.kanban.postgres.operations.command_receipts import CommandReceipt, CommandReplay
+    from hermes_db.domains.kanban.postgres.receipts import CommandReceipt, CommandReplay
     from hermes_db.errors import UnknownCommitError
     with pg_profiles("review-rejected-changes"), kbc.connect_closing() as board:
         task = kb.create_task(board, title="review", assignee="coder")
@@ -72,7 +72,7 @@ def test_old_raw_alias_attachment_rows_retain_file_until_last_reference(pg_profi
     from pathlib import Path
     from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
     from hermes_db.tables.kanban_artifacts import attachments, blobs
-    from hermes_db.domains.kanban.postgres.queries import kanban as repo
+    from hermes_db.domains.kanban.postgres import repository as repo
     from hermes_db.core.values import encode_text
     with pg_profiles("review-old-alias"), kbc.connect_closing() as board:
         task = kb.create_task(board, title="old aliases")
@@ -96,8 +96,8 @@ def test_old_raw_cleanup_token_reconciles_or_preserves_canonical_live_reference(
     from sqlalchemy import select
     from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
     from hermes_db.tables.kanban_artifacts import attachments, blobs
-    from hermes_db.domains.kanban.postgres.queries import kanban as repo
-    from hermes_db.domains.kanban.postgres.operations.attachment_cleanup import reconcile
+    from hermes_db.domains.kanban.postgres import repository as repo
+    from hermes_db.domains.kanban.postgres.files import reconcile
     from hermes_db.domains.kanban.routing.files import board_files
     from hermes_db.errors import StorageBusyError
     from hermes_db.core.values import encode_text
@@ -141,8 +141,8 @@ def test_phantom_warning_lost_commit_ack_replays_once_and_drains_following_phase
     from sqlalchemy.exc import OperationalError
     from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
     from hermes_db.errors import UnknownCommitError
-    from hermes_db.domains.kanban.postgres.operations import completion as kanban_completion, effects as kanban_effects
-    from hermes_db.domains.kanban.postgres.queries import kanban as repo
+    from hermes_db.domains.kanban.postgres import completion as kanban_completion, effects as kanban_effects
+    from hermes_db.domains.kanban.postgres import repository as repo
     from hermes_db.tables.kanban_effects import effects
     with pg_profiles("review-phantom-replay"), kbc.connect_closing() as board:
         parent = kb.create_task(board, title="parent")

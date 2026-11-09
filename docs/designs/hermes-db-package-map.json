@@ -1,7 +1,7 @@
 {
   "baseline": "cbfc773dd79241752697e647067c63338fc01680",
   "baseline_runtime": "0d69702244d623a31be149a9bac6a2658e0322ae",
-  "stage": "Stage2 Task13 verified: five explicit runtime components share the Session owner context; Task14 pending",
+  "stage": "Stage2 Task14 verified: Kanban 52 modules consolidated into 17 workflow owners; 378 total Python modules; Task15 pending",
   "hash_basis": "SHA256 of Git blob bytes at baseline; independent of checkout line endings",
   "counts": {
     "keep": 76,
@@ -1153,7 +1153,10 @@
       "lines": 25,
       "sha256": "5c92887c13ea19a779288c53f4c32fd6990a7827b385575e20673b39b60d870e",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/catalog.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_archive_format.py",
@@ -1163,7 +1166,10 @@
       "lines": 125,
       "sha256": "670f9cbf7b2130f75ea354ea3e35d27d783625e77c6bd4d16ba27e1419be2520",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/transfer.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_artifacts.py",
@@ -1173,7 +1179,10 @@
       "lines": 159,
       "sha256": "c942da399dda7df45a85c61bdc20510e7f7e0cb0d97e50dfface7d50482fa211",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/files.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_attachment_cleanup.py",
@@ -1183,7 +1192,10 @@
       "lines": 121,
       "sha256": "c513e64b0dc0351e53f5a6b31d07cbdbbe2912fb1132ae4338c50e1b06ff27f5",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/files.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_boards.py",
@@ -1193,7 +1205,10 @@
       "lines": 173,
       "sha256": "893b534376e1c14a24255c6d6651ea9910a80fe2106af2942ba5ed14d10c2b09",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/catalog.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_claims.py",
@@ -1203,7 +1218,10 @@
       "lines": 127,
       "sha256": "044bb1b0382ec39092ff698797962e6216eadf991f7bdd55f8eca17512b48557",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/claims.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_command_receipts.py",
@@ -1213,7 +1231,10 @@
       "lines": 58,
       "sha256": "6fb2f4e81421ba109be1cb605caae7e78b25871433a662147100b2e9bbc3737c",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/receipts.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_completion.py",
@@ -1223,7 +1244,10 @@
       "lines": 146,
       "sha256": "05942f94c5e8b42d5ff47eda0ee0bb7df60719a50b73fbdee6e151e4711a934a",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/completion.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_completion_acceptance.py",
@@ -1233,7 +1257,10 @@
       "lines": 42,
       "sha256": "aafd3737bb1532d46a8e67ab546f4eed2abec57d51b7030f10eac981415cdb9c",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/completion.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_completion_guards.py",
@@ -1243,7 +1270,10 @@
       "lines": 96,
       "sha256": "3ed63e3cda25a85a8be8a99e92f60955aa00edc8b5e94985d3c227ef630fb8fe",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/completion.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_crash_sweeps.py",
@@ -1253,7 +1283,10 @@
       "lines": 110,
       "sha256": "a229f9d950aa9bf5ebde36ff5836c1ce58d017112a4ee00fe9b0d3ae47210471",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/maintenance.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_create.py",
@@ -1263,7 +1296,10 @@
       "lines": 137,
       "sha256": "623fbbf5b84894c2ff6266aac7e8d96773d1e563527f37056fe241d86d777140",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/catalog.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_dashboard.py",
@@ -1273,7 +1309,10 @@
       "lines": 54,
       "sha256": "889c94da850c50559df2a77db55adadc66323866d0dce6a7d2306110e45047d6",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/catalog.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_diagnostic_snapshot.py",
@@ -1283,7 +1322,10 @@
       "lines": 32,
       "sha256": "9c8c135867d64e949a1f46aa229ec3c9cf25e90c14ec6ffa4f3f41905d402380",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/catalog.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_dispatch.py",
@@ -1293,7 +1335,10 @@
       "lines": 26,
       "sha256": "b47de8456a0272ae8196a3c5245a793c4e90a0979fe99aef11084fd2ab763c45",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/dispatch.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_dispatch_lane.py",
@@ -1303,7 +1348,10 @@
       "lines": 99,
       "sha256": "966e0e467a1405bdbfe33c0be8b00e6c64aec92e4325b2c08403cb2d419cfeff",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/dispatch.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_dispatch_lease.py",
@@ -1313,7 +1361,10 @@
       "lines": 99,
       "sha256": "fc35e19a5d977715ce93ebd10ad9898600bf8df178e1f7e222924b57245d7dc5",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/dispatch.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_dispatch_permit.py",
@@ -1323,7 +1374,10 @@
       "lines": 53,
       "sha256": "0649833714c215fab064cdf2738861c9494634c4769582ab7acfec78dd5b381f",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/dispatch.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_dispatch_queries.py",
@@ -1333,7 +1387,10 @@
       "lines": 95,
       "sha256": "573558a2c1f3d180d4ccac13984c0885ae797999c45bfaf4561c2341c37f0b78",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/dispatch.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_effects.py",
@@ -1343,7 +1400,10 @@
       "lines": 101,
       "sha256": "95fb62c49d851216e42d2e9821e0d67fd096a157a494fb079241b5582008c964",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/effects.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_events.py",
@@ -1353,7 +1413,10 @@
       "lines": 8,
       "sha256": "21a256d9a7963169b5470c32da877614384c92996bd8e73428ab1de3b87eb298",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/catalog.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_failures.py",
@@ -1363,7 +1426,10 @@
       "lines": 74,
       "sha256": "e703030b2b7cd7cd1bf7bdecfa80a83d3ea18a77e37fc7de712187c13673f117",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/runs.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_file_cleanup.py",
@@ -1373,7 +1439,10 @@
       "lines": 68,
       "sha256": "d5f593f7e83ff954cf8e6a8233e81dc1d3e06576a0cb0904690e8be93a0cce20",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/files.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_file_jobs.py",
@@ -1383,7 +1452,10 @@
       "lines": 171,
       "sha256": "c16ef7ac4e23de2939bad4ee1d844faf854f9374a6e8760d26ad7a532144ebe3",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/files.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_graph.py",
@@ -1393,7 +1465,10 @@
       "lines": 192,
       "sha256": "d558da108df401d6ec1ac47bc8d49fb92d932ddfa06784604d1752af249b070d",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/catalog.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_import.py",
@@ -1403,7 +1478,10 @@
       "lines": 171,
       "sha256": "a95ad3fc8308713e8cd61cca488e8fb99e4344ecaadcda552abeb29c21ba77e5",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/transfer.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_import_files.py",
@@ -1413,7 +1491,10 @@
       "lines": 110,
       "sha256": "befba613f446238eca6bbcb79ba83dbf473f6bbf2f3ad05b761583c75e4193b9",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/transfer.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_lease_sweeps.py",
@@ -1423,7 +1504,10 @@
       "lines": 60,
       "sha256": "bd3da6ad51e3d94e6fd97e51f1459f3cbd1affa6d24da7f4558ee49ef061d6a2",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/maintenance.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_maintenance.py",
@@ -1433,7 +1517,10 @@
       "lines": 85,
       "sha256": "04cf5c493195fb02abf6478f1b2789f0d681afa43ebc73aed7685a3cce802a5a",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/maintenance.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_notify.py",
@@ -1443,7 +1530,10 @@
       "lines": 199,
       "sha256": "650150096137d58bfa2cd5214aafae9ed408d1a94c11e004410e046804ba6651",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/notify.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_owner.py",
@@ -1453,7 +1543,10 @@
       "lines": 107,
       "sha256": "38acb8d4787213c00783133efa8af44d0cb5bbc2dcd42285819693d2d1355b7a",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/owners.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_owner_recovery.py",
@@ -1463,7 +1556,10 @@
       "lines": 39,
       "sha256": "883ea3cd436f17e2e1e5e5863633cf75945144931040352a9b597d625be40562",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/owners.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_queries.py",
@@ -1473,7 +1569,10 @@
       "lines": 60,
       "sha256": "71f960c010dd175a5fa96c0c256de96aefa1c591043135fb68fbf002c3604807",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/catalog.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_reopen.py",
@@ -1483,7 +1582,10 @@
       "lines": 55,
       "sha256": "3cf67085fa8af1b011772caca3be2185d458402a05ae6dfc0f01572c2d1ff9ac",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/catalog.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_result_edit.py",
@@ -1493,7 +1595,10 @@
       "lines": 35,
       "sha256": "cfc553385af5fb4e83f91abb5d1ab18c8b176815c3b586c47d3f26372b777918",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/completion.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_review.py",
@@ -1503,7 +1608,10 @@
       "lines": 170,
       "sha256": "3c84333cdb10421dd2fa708cbbadf590d91a941e93bd7c3d808ccb804b76a76a",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/review.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_runs.py",
@@ -1513,7 +1621,10 @@
       "lines": 99,
       "sha256": "e76408fafa87af8952b1bf9d4bb2652bdb8a443344597023719722cb805aa8ab",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/runs.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_runtime_sweeps.py",
@@ -1523,7 +1634,10 @@
       "lines": 64,
       "sha256": "ffc0e9661265e8b44546b3a3b5685851b5802f68b23b3622e2632e83c8d5e0f1",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/maintenance.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_swarm.py",
@@ -1533,7 +1647,10 @@
       "lines": 88,
       "sha256": "168b058a426aa76a2eb42df67258ce36cfcf9bc6ffb8c2d39ea117add807bde4",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/swarm.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_sweep_support.py",
@@ -1543,7 +1660,10 @@
       "lines": 64,
       "sha256": "3979147b07cce518eae553c3d926f8918563e0648f9551872c37b9234eb11bdd",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/maintenance.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_tasks.py",
@@ -1553,7 +1673,10 @@
       "lines": 217,
       "sha256": "94d5be534ab621b01b7962916f2e320bcf06df264e1c596e933c064c420efd7d",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/catalog.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_terminal_workers.py",
@@ -1563,7 +1686,10 @@
       "lines": 49,
       "sha256": "93175aedac2952a124a8e77ec0f3348b47c8efa27c6a038c534f5cb5bf9a2333",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/maintenance.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_transfer.py",
@@ -1573,7 +1699,10 @@
       "lines": 107,
       "sha256": "ce0fcf4f4048214784ae1b8b41a07802376665fefe1bad2fb17d61ec1a633ab3",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/transfer.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_transitions.py",
@@ -1583,7 +1712,10 @@
       "lines": 108,
       "sha256": "31655f30462507a215af45c365714ec84bea018cf64982223e58efecc981926e",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/claims.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_upload_cleanup.py",
@@ -1593,7 +1725,10 @@
       "lines": 71,
       "sha256": "8df7742195cee69233d39738d8f9d587c848a1f3e54bd26ebd6d40cf1f4c7ec1",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/files.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_worker_identity.py",
@@ -1603,7 +1738,10 @@
       "lines": 41,
       "sha256": "ef6ce77453992751443a8660f622ecb5e6fc07e5a0e94e6334477d0fa2bcac47",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/dispatch.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_workspace_cleanup.py",
@@ -1613,7 +1751,10 @@
       "lines": 122,
       "sha256": "8065987efc3c3a78545000bc484f97f48c255ead6dbb9cc5612644eb7532a0a4",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/workspaces.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_workspaces.py",
@@ -1623,7 +1764,10 @@
       "lines": 84,
       "sha256": "3ef9b1df970a5c83e0639cdb37328e8e67859dcce4317591629c3315b090e123",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/workspaces.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/leases.py",
@@ -2630,7 +2774,10 @@
       "lines": 105,
       "sha256": "5d34b61a327e52f266b889556ff879a2c9c51ab930ef5ee1a5b7ee7e9572a972",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/repository.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/repositories/kanban_evidence.py",
@@ -2640,7 +2787,10 @@
       "lines": 43,
       "sha256": "d0520a0b3f7a482a5814bbbc24a7bd4c857a6cd66fa2727adbcec8e0c09ce668",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/evidence.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/repositories/kanban_runs.py",
@@ -2650,7 +2800,10 @@
       "lines": 67,
       "sha256": "520892c5e2ea28fd36ebec566fcb8d341a66721d72cfe1a4725b05852d84f01a",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/runs.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/repositories/kanban_workspaces.py",
@@ -2660,7 +2813,10 @@
       "lines": 85,
       "sha256": "2cd265349ca9df5af47b9f3a2f52501e1605616fd46febb00956d6de0fd17935",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/postgres/workspaces.py",
+      "consolidated_by_task": 14,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/repositories/leases.py",
@@ -4468,7 +4624,10 @@
     {
       "path": "hermes_db/domains/kanban/postgres/operations/__init__.py",
       "task": 10,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 14,
+      "reason": "Workflow owners replace temporary operations/query namespaces"
     },
     {
       "path": "hermes_db/domains/kanban/postgres/__init__.py",
@@ -4478,7 +4637,10 @@
     {
       "path": "hermes_db/domains/kanban/postgres/queries/__init__.py",
       "task": 10,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 14,
+      "reason": "Workflow owners replace temporary operations/query namespaces"
     },
     {
       "path": "hermes_db/domains/projects/rules.py",
@@ -4739,6 +4901,211 @@
         "hermes_db/domains/runtime/postgres/capabilities/runtime_media.py"
       ],
       "purpose": "Explicit media operations sharing the owning session context and profile-bound writes",
+      "status": "verified"
+    },
+    {
+      "task": 14,
+      "target": "hermes_db/domains/kanban/postgres/catalog.py",
+      "sources": [
+        "hermes_db/domains/kanban/postgres/operations/boards.py",
+        "hermes_db/domains/kanban/postgres/operations/create.py",
+        "hermes_db/domains/kanban/postgres/operations/tasks.py",
+        "hermes_db/domains/kanban/postgres/operations/queries.py",
+        "hermes_db/domains/kanban/postgres/operations/dashboard.py",
+        "hermes_db/domains/kanban/postgres/operations/diagnostic_snapshot.py",
+        "hermes_db/domains/kanban/postgres/operations/events.py",
+        "hermes_db/domains/kanban/postgres/operations/archive.py",
+        "hermes_db/domains/kanban/postgres/operations/graph.py",
+        "hermes_db/domains/kanban/postgres/operations/reopen.py"
+      ],
+      "purpose": "Concrete catalog workflow / shared Connection queries",
+      "inlined_module_references": 0,
+      "status": "verified"
+    },
+    {
+      "task": 14,
+      "target": "hermes_db/domains/kanban/postgres/claims.py",
+      "sources": [
+        "hermes_db/domains/kanban/postgres/operations/claims.py",
+        "hermes_db/domains/kanban/postgres/operations/transitions.py"
+      ],
+      "purpose": "Concrete claims workflow / shared Connection queries",
+      "inlined_module_references": 0,
+      "status": "verified"
+    },
+    {
+      "task": 14,
+      "target": "hermes_db/domains/kanban/postgres/review.py",
+      "sources": [
+        "hermes_db/domains/kanban/postgres/operations/review.py"
+      ],
+      "purpose": "Concrete review workflow / shared Connection queries",
+      "inlined_module_references": 0,
+      "status": "verified"
+    },
+    {
+      "task": 14,
+      "target": "hermes_db/domains/kanban/postgres/completion.py",
+      "sources": [
+        "hermes_db/domains/kanban/postgres/operations/completion.py",
+        "hermes_db/domains/kanban/postgres/operations/completion_guards.py",
+        "hermes_db/domains/kanban/postgres/operations/completion_acceptance.py",
+        "hermes_db/domains/kanban/postgres/operations/result_edit.py"
+      ],
+      "purpose": "Concrete completion workflow / shared Connection queries",
+      "inlined_module_references": 3,
+      "status": "verified"
+    },
+    {
+      "task": 14,
+      "target": "hermes_db/domains/kanban/postgres/dispatch.py",
+      "sources": [
+        "hermes_db/domains/kanban/postgres/operations/dispatch.py",
+        "hermes_db/domains/kanban/postgres/operations/dispatch_lane.py",
+        "hermes_db/domains/kanban/postgres/operations/dispatch_lease.py",
+        "hermes_db/domains/kanban/postgres/operations/dispatch_permit.py",
+        "hermes_db/domains/kanban/postgres/operations/dispatch_queries.py",
+        "hermes_db/domains/kanban/postgres/operations/worker_identity.py"
+      ],
+      "purpose": "Concrete dispatch workflow / shared Connection queries",
+      "inlined_module_references": 0,
+      "status": "verified"
+    },
+    {
+      "task": 14,
+      "target": "hermes_db/domains/kanban/postgres/runs.py",
+      "sources": [
+        "hermes_db/domains/kanban/postgres/operations/runs.py",
+        "hermes_db/domains/kanban/postgres/operations/failures.py",
+        "hermes_db/domains/kanban/postgres/queries/runs.py"
+      ],
+      "purpose": "Concrete runs workflow / shared Connection queries",
+      "inlined_module_references": 6,
+      "status": "verified"
+    },
+    {
+      "task": 14,
+      "target": "hermes_db/domains/kanban/postgres/files.py",
+      "sources": [
+        "hermes_db/domains/kanban/postgres/operations/artifacts.py",
+        "hermes_db/domains/kanban/postgres/operations/attachment_cleanup.py",
+        "hermes_db/domains/kanban/postgres/operations/upload_cleanup.py",
+        "hermes_db/domains/kanban/postgres/operations/file_cleanup.py",
+        "hermes_db/domains/kanban/postgres/operations/file_jobs.py"
+      ],
+      "purpose": "Concrete files workflow / shared Connection queries",
+      "inlined_module_references": 0,
+      "status": "verified"
+    },
+    {
+      "task": 14,
+      "target": "hermes_db/domains/kanban/postgres/workspaces.py",
+      "sources": [
+        "hermes_db/domains/kanban/postgres/operations/workspaces.py",
+        "hermes_db/domains/kanban/postgres/operations/workspace_cleanup.py",
+        "hermes_db/domains/kanban/postgres/queries/workspaces.py"
+      ],
+      "purpose": "Concrete workspaces workflow / shared Connection queries",
+      "inlined_module_references": 12,
+      "status": "verified"
+    },
+    {
+      "task": 14,
+      "target": "hermes_db/domains/kanban/postgres/notify.py",
+      "sources": [
+        "hermes_db/domains/kanban/postgres/operations/notify.py"
+      ],
+      "purpose": "Concrete notify workflow / shared Connection queries",
+      "inlined_module_references": 0,
+      "status": "verified"
+    },
+    {
+      "task": 14,
+      "target": "hermes_db/domains/kanban/postgres/transfer.py",
+      "sources": [
+        "hermes_db/domains/kanban/postgres/operations/transfer.py",
+        "hermes_db/domains/kanban/postgres/operations/imports.py",
+        "hermes_db/domains/kanban/postgres/operations/import_files.py",
+        "hermes_db/domains/kanban/postgres/operations/archive_format.py"
+      ],
+      "purpose": "Concrete transfer workflow / shared Connection queries",
+      "inlined_module_references": 0,
+      "status": "verified"
+    },
+    {
+      "task": 14,
+      "target": "hermes_db/domains/kanban/postgres/owners.py",
+      "sources": [
+        "hermes_db/domains/kanban/postgres/operations/owner.py",
+        "hermes_db/domains/kanban/postgres/operations/owner_recovery.py"
+      ],
+      "purpose": "Concrete owners workflow / shared Connection queries",
+      "inlined_module_references": 0,
+      "status": "verified"
+    },
+    {
+      "task": 14,
+      "target": "hermes_db/domains/kanban/postgres/maintenance.py",
+      "sources": [
+        "hermes_db/domains/kanban/postgres/operations/crash_sweeps.py",
+        "hermes_db/domains/kanban/postgres/operations/lease_sweeps.py",
+        "hermes_db/domains/kanban/postgres/operations/runtime_sweeps.py",
+        "hermes_db/domains/kanban/postgres/operations/sweep_support.py",
+        "hermes_db/domains/kanban/postgres/operations/terminal_workers.py",
+        "hermes_db/domains/kanban/postgres/operations/maintenance.py"
+      ],
+      "purpose": "Concrete maintenance workflow / shared Connection queries",
+      "inlined_module_references": 8,
+      "status": "verified"
+    },
+    {
+      "task": 14,
+      "target": "hermes_db/domains/kanban/postgres/effects.py",
+      "sources": [
+        "hermes_db/domains/kanban/postgres/operations/effects.py"
+      ],
+      "purpose": "Concrete effects workflow / shared Connection queries",
+      "inlined_module_references": 0,
+      "status": "verified"
+    },
+    {
+      "task": 14,
+      "target": "hermes_db/domains/kanban/postgres/swarm.py",
+      "sources": [
+        "hermes_db/domains/kanban/postgres/operations/swarm.py"
+      ],
+      "purpose": "Concrete swarm workflow / shared Connection queries",
+      "inlined_module_references": 0,
+      "status": "verified"
+    },
+    {
+      "task": 14,
+      "target": "hermes_db/domains/kanban/postgres/repository.py",
+      "sources": [
+        "hermes_db/domains/kanban/postgres/queries/kanban.py"
+      ],
+      "purpose": "Concrete repository workflow / shared Connection queries",
+      "inlined_module_references": 0,
+      "status": "verified"
+    },
+    {
+      "task": 14,
+      "target": "hermes_db/domains/kanban/postgres/evidence.py",
+      "sources": [
+        "hermes_db/domains/kanban/postgres/queries/evidence.py"
+      ],
+      "purpose": "Concrete evidence workflow / shared Connection queries",
+      "inlined_module_references": 0,
+      "status": "verified"
+    },
+    {
+      "task": 14,
+      "target": "hermes_db/domains/kanban/postgres/receipts.py",
+      "sources": [
+        "hermes_db/domains/kanban/postgres/operations/command_receipts.py"
+      ],
+      "purpose": "Concrete receipts workflow / shared Connection queries",
+      "inlined_module_references": 0,
       "status": "verified"
     }
   ],

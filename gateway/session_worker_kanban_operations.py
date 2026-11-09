@@ -18,7 +18,7 @@ _LIFECYCLE = frozenset({"complete_task", "block_task", "schedule_task", "request
 
 
 def _owner_operation(store, context, params, operation, payload):
-    from hermes_db.domains.kanban.postgres.operations import owner
+    from hermes_db.domains.kanban.postgres import owners as owner
     if operation == "worker.bind":
         from hermes_cli.kanban_db_dispatch import _process_fingerprint, UNVERIFIED_WORKER_FINGERPRINT
         if payload:
@@ -34,7 +34,7 @@ def _owner_operation(store, context, params, operation, payload):
         raise RuntimeStoreError("invalid_params")
     if operation == "worker.claim_live":
         return owner.bound_claim_live(store, context, pid=params["pid"])
-    from hermes_db.domains.kanban.postgres.queries import runs as kanban_runs
+    from hermes_db.domains.kanban.postgres import runs as kanban_runs
     with store.read() as conn:
         run = kanban_runs.get(conn, store, context["run_id"])
     return {key: run[key] for key in ("worker_pid", "worker_started_at")} if run else None

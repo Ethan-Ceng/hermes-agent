@@ -33,7 +33,7 @@ def _result(connection, params):
         raise RuntimeStoreError("permission_denied")
     if "owner" in context:
         from hermes_db.domains.kanban.routing.owner import open_board_owner
-        from hermes_db.domains.kanban.postgres.operations.owner import worker_result
+        from hermes_db.domains.kanban.postgres.owners import worker_result
         with open_board_owner(context["owner"]) as board:
             return worker_result(board, context)
     from gateway.session_kanban import worker_result

@@ -48,6 +48,12 @@ context through `hermes_db/integration/runtime_composition.py`. Writes retain th
 profile binding; runtime reads reuse session snapshot pins and close state. The
 delegation ledger keeps its additional store fence on the same Connection.
 
+Kanban persistence lives in named workflows directly under
+`hermes_db/domains/kanban/postgres/`: catalog/DAG retraction, claims, review,
+completion, dispatch, runs, files, workspaces, notifications, transfer, owners and
+maintenance. Shared scoped statements and run evidence stay separate to preserve
+a one-way import graph; receipts, effects and swarm retain their own lifecycle.
+
 SQLite retains its native implementations. Domain adapters select PG before a
 SQLite file-existence check or connection. There is no general SQLite SQL
 translator or PG object pretending to be a SQLite connection. A migrated

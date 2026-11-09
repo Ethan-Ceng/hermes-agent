@@ -39,7 +39,7 @@ def frozen_context(connection, ref, params):
     from hermes_cli.db_setup import _owning_profile
     from hermes_db.factory import acquire_profile_domain
     from hermes_db.health import profile_home_for_store
-    from hermes_db.domains.kanban.postgres.operations.boards import _lookup
+    from hermes_db.domains.kanban.postgres.catalog import _lookup
     policy = _root_policy(connection.authority, params)
     if policy is not None and policy.source == "kanban" and policy.kanban_json:
         context = json.loads(policy.kanban_json)

@@ -52,6 +52,6 @@ def _watch_submitter():
 
 def record_loss(context, reason, *, pid, bound):
     from hermes_db.domains.kanban.routing.owner import open_board_owner
-    from hermes_db.domains.kanban.postgres.operations.owner import record_loss as write_loss
+    from hermes_db.domains.kanban.postgres.owners import record_loss as write_loss
     with open_board_owner(context["owner"]) as store:
         write_loss(store, context, reason, pid=pid, bound=bound)
