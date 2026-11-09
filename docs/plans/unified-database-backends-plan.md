@@ -1820,6 +1820,8 @@ server实际closing准备已有局部证据：原15/5/cleanup15及全业务断�
 
 七项非WSL POSIX私有启动页为必需条件，当前没有适用主机。已准备本地`private-launch-host-6c9e286/`：仅冻结Git源码archive、PM隔离runner、README及校验和；archive为91,102,713字节，SHA256 `891705faa5344a5e34593ba49a22a38419f4e5d597ee240eeec729c75910f33d`。runner的`bash -n`通过，但没有在适用主机执行；不计验收，也未把用例删除或伪装OS。已异步询问现有入口/执行日志，继续完成不依赖该主机的证据收尾。
 
+本机PG试运行完成后的现成平台入口排查已实际执行、命令均终态：SDK定位发现Docker及SSH；只读`docker info`返回29.9.2、Linux内核`6.18.33.2-microsoft-standard-WSL2`，现有上下文仅default/desktop-linux，因此不能作为非WSL补证。用户SSH config不存在，PATH及常见安装目录未发现独立VM工具。Hyper-V的Get-VM命令存在，但Windows明确拒绝当前会话读取清单（VirtualizationException）；此为Windows访问权限限制，不是工具自动审批拒绝，也不能据此断言不存在虚拟机。未安装、启动或调整VM/容器/服务/权限，未操作数据库。只读发现结果留在`.build/postgresql/task24-applicable-host-discovery.json`，没有启动适用平台测试，也没有可等待的该类进程句柄。已向用户说明具体限制并请求已授权适用主机入口或完整验收包结果，取得后直接运行原12项；不把Docker WSL2或OS伪装作为替代。本段仅记录新增环境证据，不改变23/24及BLOCKED判定。
+
 历史pause/groups/managed/Host/nested等待及PG服务恢复实例的完整原因仍未明，保留为可靠性残余风险/无法验证项。原Native全宽非零、服务中断批次及诊断自身失败保留。当前独立审查没有将未知原因臆断为新增生产major，也未宣称其已经根因修复；如再现，应按新现场处理。
 
 ### 最终状态
