@@ -3,7 +3,7 @@
 import uuid
 from sqlalchemy import LargeBinary, and_, select, update
 from sqlalchemy.dialects.postgresql import insert
-from hermes_db.domains.matrix_crypto import resource_for
+from hermes_db.domains.plugin_storage.matrix.api import resource_for
 from hermes_db.errors import StorageConfigurationError
 from hermes_db.tables.matrix_crypto import roots
 from hermes_db.core.values import encode_text, decode_text

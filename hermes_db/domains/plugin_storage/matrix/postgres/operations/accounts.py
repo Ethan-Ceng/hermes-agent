@@ -2,7 +2,7 @@
 
 from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert
-from hermes_db.repositories import matrix_crypto as repo
+from hermes_db.domains.plugin_storage.matrix.postgres.queries import crypto as repo
 from hermes_db.tables.matrix_crypto import roots, olm_sessions, outbound, tracked_users, devices, cross_signing, signatures, message_indices
 from hermes_db.core.values import encode_text
 

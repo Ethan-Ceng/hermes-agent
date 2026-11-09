@@ -9,7 +9,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network, pytest.mark.pl
 async def test_real_sdk_room_key_request_storage_error_reaches_cursor(pg_profiles, monkeypatch):
     from tests.hermes_db.postgresql.test_matrix_adapter_storage import adapter_client
     from hermes_db.errors import StorageUnavailableError
-    from hermes_db.operations import matrix_accounts
+    from hermes_db.domains.plugin_storage.matrix.postgres.operations import accounts as matrix_accounts
     with pg_profiles("one"):
         async with adapter_client(monkeypatch) as (adapter, client, api, state, _remote):
             assert await adapter._connect_setup_e2ee(client, api, state)

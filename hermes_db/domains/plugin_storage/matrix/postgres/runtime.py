@@ -7,7 +7,7 @@ from contextvars import ContextVar, copy_context
 import sys
 
 from sqlalchemy.exc import DBAPIError, IntegrityError
-from hermes_db.domains.matrix_crypto import unit_of_work
+from hermes_db.domains.plugin_storage.matrix.api import unit_of_work
 from hermes_db.errors import RetryableStorageError, StorageBusyError, StorageClosedError, StorageConflictError, StorageWriteError
 
 

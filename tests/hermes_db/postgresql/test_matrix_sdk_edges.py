@@ -13,7 +13,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network, pytest.mark.pl
 async def test_pg_sync_failure_requests_supervised_reconnect_and_keeps_cursor(pg_profiles, monkeypatch):
     from tests.hermes_db.postgresql.test_matrix_adapter_storage import adapter_client
     from hermes_db.errors import StorageUnavailableError
-    from hermes_db.operations import matrix_accounts
+    from hermes_db.domains.plugin_storage.matrix.postgres.operations import accounts as matrix_accounts
     with pg_profiles("one"):
         async with adapter_client(monkeypatch) as (adapter, client, api, state, _remote):
             assert await adapter._connect_setup_e2ee(client, api, state)
@@ -58,7 +58,7 @@ def request_event(sender="@bot:matrix.test"):
 async def test_real_sdk_swallowed_transaction_confirmation_loss_blocks_cursor(pg_profiles, monkeypatch):
     from tests.hermes_db.postgresql.test_matrix_adapter_storage import adapter_client
     from hermes_db.errors import UnknownCommitError
-    import hermes_db.matrix_runtime as runtime
+    from hermes_db.domains.plugin_storage.matrix.postgres import runtime
     from mautrix.crypto import OlmAccount
     from mautrix.types import QueryKeysResponse
     with pg_profiles("one"):
@@ -96,7 +96,7 @@ async def test_real_sdk_swallowed_transaction_confirmation_loss_blocks_cursor(pg
 async def test_real_encrypted_to_device_descendant_storage_error_blocks_cursor(pg_profiles, monkeypatch):
     from tests.hermes_db.postgresql.test_matrix_adapter_storage import adapter_client
     from hermes_db.errors import StorageUnavailableError
-    from hermes_db.operations import matrix_accounts
+    from hermes_db.domains.plugin_storage.matrix.postgres.operations import accounts as matrix_accounts
     from mautrix.crypto import OlmAccount
     with pg_profiles("one"):
         async with adapter_client(monkeypatch) as (adapter, client, api, state, _remote):

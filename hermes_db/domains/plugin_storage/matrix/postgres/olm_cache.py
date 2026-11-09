@@ -3,9 +3,9 @@
 import asyncio
 from contextlib import asynccontextmanager
 
-from hermes_db import matrix_codec as codec
+from hermes_db.domains.plugin_storage.matrix.postgres import codec
 from hermes_db.errors import StorageClosedError, StorageConflictError
-from hermes_db.operations import matrix_sessions as sessions
+from hermes_db.domains.plugin_storage.matrix.postgres.operations import sessions
 
 
 class OlmSessions:
@@ -22,7 +22,7 @@ class OlmSessions:
         # Explicit SDK transactions take the async gate before the database root lock too.
         if self.store.runtime is not None:
             from hermes_db.errors import StorageError
-            from hermes_db.matrix_failures import remember
+            from hermes_db.domains.plugin_storage.matrix.postgres.failures import remember
             try:
                 self.store.runtime._actor()
             except StorageError as error:
@@ -41,7 +41,7 @@ class OlmSessions:
 
     def require_usable(self):
         if self.failed:
-            from hermes_db.matrix_failures import remember
+            from hermes_db.domains.plugin_storage.matrix.postgres.failures import remember
             error = StorageClosedError("Olm persistence outcome is uncertain; recreate the Matrix crypto store before retrying")
             remember(error)
             raise error
@@ -73,7 +73,7 @@ class OlmSessions:
             identity = (key, session.id)
             old = self.values.get(identity)
             if old is not None and old is not session:
-                from hermes_db.matrix_failures import remember
+                from hermes_db.domains.plugin_storage.matrix.postgres.failures import remember
                 error = StorageConflictError("A stale independent Olm session cannot replace the active ratchet")
                 remember(error)
                 raise error

@@ -1,7 +1,7 @@
 {
   "baseline": "cbfc773dd79241752697e647067c63338fc01680",
   "baseline_runtime": "0d69702244d623a31be149a9bac6a2658e0322ae",
-  "stage": "Tasks2-5 verified; Matrix SDK move and verification continue from Task6",
+  "stage": "Tasks2-6 verified; mechanical Session domain move continues from Task7",
   "hash_basis": "SHA256 of Git blob bytes at baseline; independent of checkout line endings",
   "counts": {
     "keep": 76,
@@ -249,7 +249,8 @@
       "task": 6,
       "lines": 57,
       "sha256": "cd7dd2a6e86025f506de1c43ec3012489f309fb2b9f40f8bafd2965552802ddd",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/metrics.py",
@@ -456,7 +457,8 @@
       "task": 6,
       "lines": 89,
       "sha256": "f713866310db7c41f85ab71879fb5160c4a3502829749bb26cade34f887863c7",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/matrix_crypto.py",
@@ -465,7 +467,8 @@
       "task": 6,
       "lines": 206,
       "sha256": "9fe1970599c44e9af1ff7790208534bdb77ca90f0814a99e92a1d65e06aec120",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/matrix_failures.py",
@@ -474,7 +477,8 @@
       "task": 6,
       "lines": 24,
       "sha256": "50a3e03885b23b9669254644cef3d5cb11100172e345c207dc0313be86353379",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/matrix_olm_cache.py",
@@ -483,7 +487,8 @@
       "task": 6,
       "lines": 83,
       "sha256": "0940fc568194084167ddaa09ebaa84b4654962e114cfa23d5a9c9c22fcab1a36",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/matrix_runtime.py",
@@ -492,7 +497,8 @@
       "task": 6,
       "lines": 130,
       "sha256": "d775f4ff5b2ebd29d333d9dd938b1babc3187dc68b46a3ee97406a73cf71f3bc",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/message_codec.py",
@@ -1568,7 +1574,8 @@
       "task": 6,
       "lines": 88,
       "sha256": "aa7bec7601af516934485a3d2eb78177ea7a0ce02ea28f2472ede20a4a7131cd",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/matrix_sessions.py",
@@ -1577,7 +1584,8 @@
       "task": 6,
       "lines": 85,
       "sha256": "271366a2dd7d6e3bcb5a0c06eb682ba9a7545cce6c048e951ff5928a32640d10",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/messages.py",
@@ -2509,7 +2517,8 @@
       "task": 6,
       "lines": 55,
       "sha256": "5e7cb752f492aaa5654337d1100f8d34920bb879c2dfad0d3237bf884726ad81",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/media.py",
@@ -3864,6 +3873,26 @@
     {
       "path": "hermes_db/domains/plugin_storage/discord/postgres/queries/__init__.py",
       "task": 5,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/plugin_storage/matrix/__init__.py",
+      "task": 6,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/plugin_storage/matrix/postgres/__init__.py",
+      "task": 6,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/plugin_storage/matrix/postgres/operations/__init__.py",
+      "task": 6,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/plugin_storage/matrix/postgres/queries/__init__.py",
+      "task": 6,
       "role": "empty-package-namespace"
     }
   ]

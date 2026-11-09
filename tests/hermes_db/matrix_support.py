@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 
 def new_store(**overrides):
-    from hermes_db.matrix_crypto import PostgresCryptoStore
+    from hermes_db.domains.plugin_storage.matrix.postgres.crypto import PostgresCryptoStore
     return PostgresCryptoStore(**dict(dict(account_id="@bot:matrix.test", device_id="DEVICE", homeserver="https://matrix.test", pickle_key="isolated-test-key"), **overrides))
 
 

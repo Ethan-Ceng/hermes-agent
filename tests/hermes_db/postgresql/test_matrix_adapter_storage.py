@@ -83,7 +83,7 @@ async def test_fresh_pg_dataset_refuses_existing_remote_device_even_optional(pg_
 @pytest.mark.asyncio
 async def test_optional_mode_pg_storage_fault_is_fatal_not_plaintext(pg_profiles, monkeypatch):
     from hermes_db.errors import StorageUnavailableError
-    import hermes_db.matrix_crypto as module
+    import hermes_db.domains.plugin_storage.matrix.postgres.crypto as module
     def unavailable(reference):
         raise StorageUnavailableError("isolated database unavailable")
     with pg_profiles("one"):
@@ -98,7 +98,7 @@ async def test_sdk_swallowed_storage_error_cannot_advance_durable_sync_cursor(pg
     from hermes_db.errors import StorageUnavailableError
     from mautrix.types import EventType
     from tests.hermes_db.matrix_support import group_pair
-    import hermes_db.operations.matrix_sessions as operations
+    import hermes_db.domains.plugin_storage.matrix.postgres.operations.sessions as operations
     with pg_profiles("one"):
         async with adapter_client(monkeypatch) as (adapter, client, api, state, _):
             assert await adapter._connect_setup_e2ee(client, api, state)

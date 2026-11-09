@@ -9,12 +9,12 @@ from mautrix.client.state_store import SyncStore
 from mautrix.crypto.store import CryptoStore
 
 from hermes_constants import get_hermes_home
-from hermes_db import matrix_codec as codec
-from hermes_db.domains.matrix_crypto import capture_matrix
+from hermes_db.domains.plugin_storage.matrix.postgres import codec
+from hermes_db.domains.plugin_storage.matrix.api import capture_matrix
 from hermes_db.errors import StorageClosedError
-from hermes_db.matrix_runtime import MatrixRuntime
-from hermes_db.operations import matrix_accounts as accounts, matrix_sessions as sessions
-from hermes_db.repositories.matrix_crypto import initialize
+from hermes_db.domains.plugin_storage.matrix.postgres.runtime import MatrixRuntime
+from hermes_db.domains.plugin_storage.matrix.postgres.operations import accounts, sessions
+from hermes_db.domains.plugin_storage.matrix.postgres.queries.crypto import initialize
 from hermes_db.core.values import decode_text
 
 
@@ -26,7 +26,7 @@ class PostgresCryptoStore(CryptoStore, SyncStore):
         self.runtime = None
         self._open_lock = asyncio.Lock()
         self._pid = os.getpid()
-        from hermes_db.matrix_olm_cache import OlmSessions
+        from hermes_db.domains.plugin_storage.matrix.postgres.olm_cache import OlmSessions
         self._olm_sessions = OlmSessions(self)
 
     async def open(self):
@@ -54,7 +54,7 @@ class PostgresCryptoStore(CryptoStore, SyncStore):
         if self.runtime is None:
             raise StorageClosedError("Open Matrix encryption store before use")
         from hermes_db.errors import StorageError
-        from hermes_db.matrix_failures import remember
+        from hermes_db.domains.plugin_storage.matrix.postgres.failures import remember
         try:
             return await self.runtime.call(operation, write=write, **arguments)
         except StorageError as error:
@@ -79,7 +79,7 @@ class PostgresCryptoStore(CryptoStore, SyncStore):
                 if self._olm_sessions.writes != writes:
                     self._olm_sessions.failed = True
                 from hermes_db.errors import StorageError
-                from hermes_db.matrix_failures import remember
+                from hermes_db.domains.plugin_storage.matrix.postgres.failures import remember
                 if isinstance(error, StorageError):
                     remember(error)
                 raise

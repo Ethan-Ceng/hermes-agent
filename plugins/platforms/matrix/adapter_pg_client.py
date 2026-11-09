@@ -16,7 +16,7 @@ class PostgresMatrixClient(Client):
         self._sync_tasks = ContextVar("matrix_sync_tasks", default=None)
 
     async def _catch_errors(self, handler, data):
-        from hermes_db.matrix_failures import checkpoint
+        from hermes_db.domains.plugin_storage.matrix.postgres.failures import checkpoint
         with _owning_profile(self._profile_home), checkpoint():
             try:
                 await handler(data)

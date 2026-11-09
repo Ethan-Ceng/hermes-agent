@@ -51,7 +51,7 @@ def resource_for(reference):
 
 @contextmanager
 def unit_of_work(reference, *, write=False):
-    from hermes_db.repositories.matrix_crypto import check_generation
+    from hermes_db.domains.plugin_storage.matrix.postgres.queries.crypto import check_generation
     with resource_for(reference) as resource, (resource.write() if write else resource.read()) as conn:
         check_generation(conn, reference, lock=write)
         yield conn

@@ -27,7 +27,7 @@ def make_client(client_class, adapter, **arguments):
 
 def pg_dependencies_available():
     try:
-        from hermes_db.matrix_crypto import PostgresCryptoStore
+        from hermes_db.domains.plugin_storage.matrix.postgres.crypto import PostgresCryptoStore
         import psycopg
     except ImportError:
         return False
@@ -73,7 +73,7 @@ async def _verify_identity(adapter, client, store, *, published=False):
 
 async def connect_postgresql(adapter, client, api, state_store):
     from hermes_cli.db_setup import _owning_profile
-    from hermes_db.matrix_crypto import PostgresCryptoStore
+    from hermes_db.domains.plugin_storage.matrix.postgres.crypto import PostgresCryptoStore
     from mautrix.crypto import OlmMachine
     from mautrix.types import TrustState
     from plugins.platforms.matrix.adapter_crypto import _CryptoStateStore

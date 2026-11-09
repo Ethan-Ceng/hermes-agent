@@ -18,8 +18,8 @@ class _CloseDeadline(BaseException):
 def _adapter():
     from mautrix.client.state_store import SyncStore
     from mautrix.crypto.store import CryptoStore
-    from hermes_db.matrix_crypto import PostgresCryptoStore
-    from hermes_db.matrix_runtime import MatrixRuntime
+    from hermes_db.domains.plugin_storage.matrix.postgres.crypto import PostgresCryptoStore
+    from hermes_db.domains.plugin_storage.matrix.postgres.runtime import MatrixRuntime
     from plugins.platforms.matrix.adapter_storage import _StoreLifecycle
 
     # Only the close protocol is under test; no configuration, connection or SQL is substituted.

@@ -11,7 +11,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network, pytest.mark.pl
 
 @pytest.mark.asyncio
 async def test_cancelled_sdk_transaction_rolls_back_and_releases_connection(pg_profiles):
-    from hermes_db.operations.matrix_accounts import put_next_batch
+    from hermes_db.domains.plugin_storage.matrix.postgres.operations.accounts import put_next_batch
     with pg_profiles("one"):
         store = new_store()
         await store.open()
@@ -42,7 +42,7 @@ async def test_cancelled_sdk_transaction_rolls_back_and_releases_connection(pg_p
 
 @pytest.mark.asyncio
 async def test_unknown_commit_is_observable_without_retry_in_sdk_transaction(pg_profiles, monkeypatch):
-    import hermes_db.matrix_runtime as runtime
+    from hermes_db.domains.plugin_storage.matrix.postgres import runtime
     from hermes_db.errors import UnknownCommitError
     with pg_profiles("one"):
         store = new_store()
@@ -74,8 +74,8 @@ async def test_unknown_commit_is_observable_without_retry_in_sdk_transaction(pg_
 async def test_identity_collision_wrong_pickle_and_retired_dataset_are_explicit(pg_profiles):
     from mautrix.crypto import OlmAccount
     from hermes_db.errors import StorageConflictError, StorageConfigurationError
-    from hermes_db.domains.matrix_crypto import unit_of_work
-    from hermes_db.repositories.matrix_crypto import scope
+    from hermes_db.domains.plugin_storage.matrix.api import unit_of_work
+    from hermes_db.domains.plugin_storage.matrix.postgres.queries.crypto import scope
     from hermes_db.tables.matrix_crypto import roots
     from sqlalchemy import delete
     with pg_profiles("one"):

@@ -1,7 +1,7 @@
 """Olm and Megolm records preserve SDK metadata and redacted-key tombstones."""
 
 from sqlalchemy import delete, func, select, update
-from hermes_db.repositories import matrix_crypto as repo
+from hermes_db.domains.plugin_storage.matrix.postgres.queries import crypto as repo
 from hermes_db.tables.matrix_crypto import olm_sessions, inbound, outbound
 
 

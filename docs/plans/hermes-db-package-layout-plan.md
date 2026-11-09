@@ -6,9 +6,9 @@
 - 全量归属：[398项基准映射](../designs/hermes-db-package-map.json)。
 - 文档分支：`docs/hermes-db-package-layout`；实施分支：`refactor/hermes-db-packages`。
 - 源码基准：`cbfc773dd7`，运行实现等价`0d69702244`。
-- 整体状态：`IMPLEMENTING`；当前阶段：第一阶段机械落位；当前任务：Task6（待开始）；完成：5 / 18。
-- 本轮已建立独立实施检出并完成Task1–5；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
-- 核心设计待决策：无；Task1隔离PM与PG基线已通过，Matrix实际SDK由Task6核对。原统一后端Task24及七项非WSL缺证独立保留。
+- 整体状态：`IMPLEMENTING`；当前阶段：第一阶段机械落位；当前任务：Task7（待开始）；完成：6 / 18。
+- 本轮已建立独立实施检出并完成Task1–6；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
+- 核心设计待决策：无；Task1隔离PM与PG基线已通过，Matrix实际SDK已由Task6新环境核对并实测。原统一后端Task24及七项非WSL缺证独立保留。
 - 更新时间：2026-11-09（Asia/Shanghai）。恢复位置：`D:/AI/hermes-db-packages`；从首个in_progress任务继续，不重跑整轮数据库选型。
 
 ## 任务依赖与全局约束
@@ -65,6 +65,7 @@ PG选项只用于tests/hermes_db下已注册该选项的文件；其他目录Nat
 | 2026-11-09 | IMPLEMENTING | Task3 Projects/verification六项移动并验证，3/18；Native/CLI513、PG7、15静态通过，4平台skip单列 |
 | 2026-11-09 | IMPLEMENTING | Task4 Cron/metrics十六项及闭合动态路由验证，4/18；Native504、PG26、15静态通过，4平台skip单列 |
 | 2026-11-09 | IMPLEMENTING | Task5 插件十项移动、两条既有边界路径精确迁移并验证，5/18；Native504、PG25、15静态通过；更正表模块计数文字口径 |
+| 2026-11-09 | IMPLEMENTING | Task6 Matrix九项及真实Linux新PM SDK验证完成，6/18；SDK/完整PG32、Linux Native11、Windows Native504、最终15静态通过 |
 
 ## 方案准备自检
 
@@ -373,11 +374,11 @@ boundary baseline仅精确替换Retain PostgresWriteQueue及Discord PostgresDisc
 - 同runner `tests/hermes_db/postgresql/test_plugin_storage.py tests/hermes_db/postgresql/test_plugin_storage_process.py tests/hermes_db/postgresql/test_discord_backfill.py tests/hermes_db/postgresql/test_discord_recovery.py tests/hermes_db/postgresql/test_retain_queue.py tests/hermes_db/postgresql/test_retain_queue_transactions.py tests/hermes_db/postgresql/test_retain_queue_worker.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，exit0，7文件25passed/0failed/0skip，85.7秒（task5-pg.log）；真实PG持久读写、独立进程恢复、插件隔离和队列事务/关闭合同通过，均为所有权核对随机Schema。
 - `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，exit0，15checks通过，health409文件0blocking/0advisory（task5-check.log）。最终计数说明及状态元数据更正后暂存空白检查exit0；运行源码未再变化。
 - 未验证：Task6 Matrix实际SDK、最终发行/全量业务/旧Schema升级与组件收敛仍待后续；不以旧SDK32代替，原Task24缺证保持。
-- 恢复点：本地提交标题 `refactor(storage): package records discord and retain storage`；下一Task6。
+- 恢复点：本地提交 `0636043bb7`，标题 `refactor(storage): package records discord and retain storage`；下一Task6。
 
 ## Task 6：Matrix分包并验证真实SDK
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -416,11 +417,25 @@ Invoke-PgCases -Files @('tests/hermes_db/postgresql/test_matrix_adapter_storage.
 
 ### 执行结果
 
-未执行。
+从Task5 `0636043bb7`继续，Matrix九项按清单移动到domains/plugin_storage/matrix，更新SDK factory/延迟导入、codec/cache/fault通道及实际adapter/测试读取点。boundary baseline仅精确迁移checkpoint与PostgresCryptoStore两条路径，原计数1/2保持；未扩展公开API，无旧路径shim。新增4个空初始化文件已入图，累计39个、总Python437、根79。398模块机械等价，29表模块路径/身份及31 revision保持；28表定义和版本文件规范内容不变，tables init仍只有Task2 import差异。
+
+在已有Ubuntu-26.04 WSL2中绑定全新随机隔离根。旧临时SDK解释器已清理，改以系统/usr/bin/python3（3.14.4）bootstrap执行项目PM，从当前checkout锁文件新建dev/test+postgresql/matrix/telegram/discord环境；实际返回Python3.14.9、mautrix0.21.1、python-olm3.2.16。只读探针确认加载当前checkout、真实CryptoStore可实例化、独立验收DB/PG17.11/pg_trgm已就绪。未改变服务/扩展/角色/正式Profile。
+
+真实SDK/PG覆盖加密对象身份、异步gate、事务/COMMIT故障、SDK吞异常后的checkpoint、close、账户/设备/游标及新进程恢复。single_backend完整文件包含全部SQLite连接（含内存/URI）拒绝护栏、双PID真实持久重开与跨store隔离。Windows跳过的4项由Linux三个完整Native文件正向执行。WSL的SDK证据不解除原统一Task24七项非WSL缺证。
 
 ### 验证证据
 
-未执行；实施时记录实际解释器/源码commit、展开命令、退出状态、计数、日志、未验证项和恢复commit。
+Windows沿用Task1专用环境；Linux解释器为 `/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/test-env/bin/python`，home/runtime位于同一隔离根。所有批次retries=0，原始日志仅在本检出的 `.build/package-layout/`。
+
+- PM：WSL中绑定新home/runtime后 `python3 -m pm.build_env --source . --out /var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/test-env --group dev --group test --extra postgresql --extra matrix --extra telegram --extra discord`，exit0（task6-linux-pm.log）。既有临时解释器缺失探测非零，未安装前未计SDK通过；系统bootstrap与新PM环境成功。临时只读探针曾因scratch脚本导入根缺少tests非零，修正cwd导入根后exit0（task6-linux-probe.log），未改运行实现。
+- `PM Python .build/package-layout/audit_mechanical.py` exit0（task6-audit-final.log），398 AST机械等价、源/新增归属完整、固定锚点保持。
+- Windows `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts -j 4 --file-timeout 1200 -- --tb=short`，exit0，90文件504passed/0failed/4skipped，795.6秒（task6-native.log）。
+- Linux使用上述新解释器，经 `bash scripts/run_tests.sh tests/hermes_db/contracts/test_domain_resources.py tests/hermes_db/contracts/test_matrix_close.py tests/hermes_db/contracts/test_single_backend.py -j 2 --file-timeout 1200 -- --tb=short`，exit0，3文件11passed/0failed/0skip，103.6秒（task6-native-linux.log）；覆盖Windows4项skip的真实宿主正向合同。
+- Linux同runner完整文件：`tests/hermes_db/postgresql/test_matrix_adapter_storage.py tests/hermes_db/postgresql/test_matrix_close.py tests/hermes_db/postgresql/test_matrix_crypto_store.py tests/hermes_db/postgresql/test_matrix_devices.py tests/hermes_db/postgresql/test_matrix_faults.py tests/hermes_db/postgresql/test_matrix_recovery.py tests/hermes_db/postgresql/test_matrix_sdk_concurrency.py tests/hermes_db/postgresql/test_matrix_sdk_edges.py tests/hermes_db/postgresql/test_matrix_sdk_flows.py tests/hermes_db/postgresql/test_matrix_sessions.py tests/hermes_db/postgresql/test_single_backend.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，最终exit0，11文件32passed/0failed/0skip，124.3秒（task6-pg-linux-final.log）。首次109.4秒同样32passed；静态发现两个测试runtime别名冗余后改为from导入，并完整重跑以上11文件，而非复用旧基线32。随机Schema所有权fixture保持。
+- 最终验证候选暂存树 `a13f743f028d3c61c7aef795942e83844aa1a3be`（随后仅更新完成记录/状态元数据）；Linux探针checkout_source=true。相同数字32是当前新运行的结果，不能与旧统一后端SDK32混用。
+- `PM Python -X utf8 scripts/check --staged --base cbfc773dd7` 最终exit0，15checks通过，health426文件0blocking/0advisory（task6-check-final.log）。初轮ruff两处PLR0402已整改；最终计划/映射状态更新后暂存空白检查exit0。
+- 未验证：阶段二、完整DB/独立发行/旧Schema升级与最终审查仍属后续；Task24及非WSL七项缺证不变。
+- 恢复点：本地提交标题 `refactor(storage): package matrix storage with real SDK verification`；下一Task7。
 
 ## Task 7：Sessions机械分包
 
@@ -1062,7 +1077,7 @@ git diff --check
 
 ### 未通过项目与最终状态
 
-实施推进中，当前5/18；局部验证见已完成Task，最终重构验收仍未执行；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
+实施推进中，当前6/18；局部验证见已完成Task，最终重构验收仍未执行；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
 实施后仅可根据真实终态填写本次重构`READY_TO_MERGE / BLOCKED / FAILED`，并与原系统统一后端整体验收状态分别报告。
 
 ### Task5锚点计数说明更正
