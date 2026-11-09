@@ -48,3 +48,18 @@ def preferred_children(rows):
         if parent not in chosen or key > chosen[parent][0]:
             chosen[parent] = key, row["id"]
     return {parent: value[1] for parent, value in chosen.items()}
+
+import hashlib
+
+def _bytes(value):
+    if isinstance(value, (bytes, bytearray, memoryview)):
+        return {"bytes": bytes(value).hex()}
+    raise TypeError(f"Unsupported move snapshot value: {type(value).__name__}")
+
+def digest(value):
+    return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=True, separators=(",", ":"), default=_bytes).encode()).hexdigest()
+
+def resource_key(transactions):
+    url = transactions.engine.url
+    endpoints = {name: value for name, value in url.query.items() if name in ("host", "hostaddr", "port", "dbname", "database", "service")}
+    return digest([url.drivername, url.host, url.port, url.database, endpoints, transactions.schema])

@@ -117,7 +117,7 @@ def compact_settled_api_payloads(db, admission_id=None):
         from hermes_db.integration.runtime_access import runtime_for_store
         return runtime_for_store(db).compact_api_payloads(admission_id)
     import json
-    from hermes_state_runtime import _json
+    from hermes_db.domains.runtime.values import _json
     # LIKE, not instr(): SQLite LIKE is ASCII case-insensitive, as ``_data_url_bytes`` is.
     candidates = ("SELECT admission_id FROM session_admissions WHERE status='terminal' AND principal_id='api' "
                   "AND ((json_type(payload_json, '$.api_turn_v1.media') IS NOT NULL "

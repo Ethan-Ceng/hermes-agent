@@ -6,6 +6,8 @@ late-bound via ``_kb`` (import-cycle breaking) so monkeypatching
 """
 
 from __future__ import annotations
+from hermes_db.domains.kanban.rules import _path_key
+from hermes_db.domains.kanban.rules import _REMOVABLE_KINDS
 
 import os
 import shutil
@@ -25,20 +27,8 @@ from hermes_db.errors import StorageError
 if TYPE_CHECKING:
     from hermes_cli.kanban_db import Task
 
-_REMOVABLE_KINDS = ("scratch", "worktree")
 
 
-def _path_key(path: Path | str | None) -> str:
-    """Unicode-form-insensitive identity for a filesystem path.
-
-    macOS hands back DECOMPOSED path strings (NFD: ``o`` + U+0308) for names the
-    user typed in composed form (NFC: ``ö``) — a OneDrive/FileProvider path like
-    ``OneDrive-Persönlich`` round-trips through ``git rev-parse --show-toplevel``
-    as NFD while the DB row holds NFC. Raw ``Path`` equality then reports a real
-    repo root as "not a repo" purely on Unicode form, so every path identity
-    check here goes through this key.
-    """
-    return unicodedata.normalize("NFC", str(path)) if path is not None else ""
 
 # Statuses after which a task no longer needs a workspace: a child stops
 # needing its parent's handoff artifacts, and a sharer stops holding a dir.
@@ -293,7 +283,7 @@ def _managed_scratch_path_info(p: Path) -> tuple[bool, Optional[str]]:
                 board,
             ))
 
-    from hermes_db.domains.kanban.routing.files import managed_scratch_roots
+    from hermes_db.integration.kanban_owner import managed_scratch_roots
     for generation_root, generation_board in managed_scratch_roots():
         _add_root(generation_root.parent, generation_root.parent.resolve(strict=False), (generation_root.name,), generation_board)
     override = os.environ.get("HERMES_KANBAN_WORKSPACES_ROOT", "").strip()

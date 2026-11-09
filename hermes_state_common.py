@@ -1,5 +1,6 @@
 """Shared constants and helpers for the SessionDB family of modules.  Lives outside hermes_state so
 the mixin modules can import it without a cycle."""
+from hermes_db.domains.sessions.rules import FTS_TOOL_CONTENT_PREFIX_CHARS, FTS_TRIGRAM_EXCLUDED_SOURCES, MAX_FTS5_QUERY_CHARS, QUEUED_PROMPT_METADATA_KEY, _RECOVERABLE_END_REASONS, _RESET_END_REASONS, is_automatic_end_reason
 
 import contextlib
 import errno
@@ -29,7 +30,6 @@ TITLE_SOURCE_USER = "user"
 # tail where the typed instruction lands) and ``_shape_preview`` recovers ``/work — fix ...`` from it.
 _PREVIEW_HEAD_CHARS = 63
 _PREVIEW_SCAFFOLD_WINDOW = 400
-_PREVIEW_MAX_CHARS = 60
 
 
 def routed_sessions_setting(key: str, env_var: str) -> Any:
@@ -78,7 +78,6 @@ def _sql_literal(text: str) -> str:
 # the accept-time row, so ``reopen_session`` deactivates still-marked rows (#125577) — the marker
 # is exactly what distinguishes a never-drained accept row from a dispatched-then-interrupted
 # turn's row (which #123532 deliberately keeps active).
-QUEUED_PROMPT_METADATA_KEY = "_queued_prompt"
 
 
 # ``display_metadata = <this>`` merges a JSON object parameter into the column (its keys win, a null value
@@ -151,15 +150,6 @@ _PREVIEW_RAW_SELECT = (
     f" ELSE SUBSTR({_PREVIEW_CONTENT_SQL}, 1, {_PREVIEW_HEAD_CHARS}) END")
 
 
-def _shape_preview(raw: Any) -> str:
-    """Turn a ``_preview_raw`` column into the short preview callers show."""
-    text = str(raw or "").strip()
-    if not text:
-        return ""
-    text = text.replace("\n", " ").replace("\r", " ")
-    described = describe_skill_invocation(text)
-    text = described if described is not None else text.split(SKILL_EXCERPT_JOINT)[0]
-    return text[:_PREVIEW_MAX_CHARS] + "..." if len(text) > _PREVIEW_MAX_CHARS else text
 
 
 def _sql_preview_raw(session_id_expr: str = "s.id") -> str:
@@ -181,18 +171,15 @@ _COMPRESSION_CHILD_SQL = ("EXISTS (SELECT 1 FROM sessions p        WHERE p.id = 
 
 # 'session_switch' creates no child row today, but pre-marker DBs hold legacy reset children whose parent
 # ended that way.  Must stay identical to the recovery fence in find_latest_gateway_session_for_peer.
-_RESET_END_REASONS = ("session_reset", "session_switch", "idle", "daily", "suspended", "resume_pending_expired")
 _RESET_END_REASONS_SQL = ", ".join(f"'{reason}'" for reason in _RESET_END_REASONS)
 # Deliberate conversation boundaries: the reset set plus CLI /new, which ends the predecessor as
 # 'new_session' (hermes_cli/cli_session_mixin.py) without a reset child row.  A compression rotation must
 # never heal one of these (#106459); tools/session_search_tool.py derives its fresh-reset set from it.
-_BOUNDARY_END_REASONS = frozenset(_RESET_END_REASONS) | {"new_session"}
 
 # Accidental end reasons recovery treats as resumable (website/docs/developer-guide/gateway-session-lifecycle.md); single source of truth for
 # recovery SQL and SessionDB.RECOVERABLE_END_REASONS.  superseded_by_resume = sentinel-parked runtime replaced
 # by a fresh session.resume; startup_orphan_reap = dead-gateway sweep, same class as ws_orphan_reap but kept
 # distinct for forensics.
-_RECOVERABLE_END_REASONS = ("agent_close", "ws_orphan_reap", "superseded_by_resume", "startup_orphan_reap")
 # Startup sweep of rows orphaned by a dead gateway process (#65194): the in-process ws-orphan grace timer
 # died with the process, so the row was closed at the next boot instead.
 _RECOVERABLE_END_REASONS_SQL = ", ".join(f"'{reason}'" for reason in _RECOVERABLE_END_REASONS)
@@ -203,17 +190,8 @@ _RECOVERABLE_END_REASONS_SQL = ", ".join(f"'{reason}'" for reason in _RECOVERABL
 # Superset of the recoverable set: those are already resumable accidents; the extra TUI reasons are the same
 # accident class but were historically only known to tui_gateway's _AUTOMATIC_SESSION_END_REASONS. See
 # #88197.
-_AUTOMATIC_END_REASONS = frozenset(_RECOVERABLE_END_REASONS) | {
-    "tui_shutdown", "ws_disconnect", "idle_timeout", "lru_evict"}
 
 
-def is_automatic_end_reason(reason) -> bool:
-    """True when *reason* is an automatic-cleanup end stamp; compression-liveness sites must call this.
-
-    Single owner of the "accidental vs deliberate end" predicate — every compression-liveness site must call
-    this instead of re-implementing the reason taxonomy (#88197, never-patch-predicates).
-    """
-    return isinstance(reason, str) and reason in _AUTOMATIC_END_REASONS
 
 
 def _legacy_reset_child_sql(alias: str, reasons_sql: str) -> str:
@@ -325,7 +303,6 @@ FTS_STORAGE_VERSION = 3
 # mutable ``state_meta`` markers — which is what keeps the external-content
 # integrity checker and the trigger 'delete'/'update' commands in agreement
 # with the stored index forever.
-FTS_TOOL_CONTENT_PREFIX_CHARS = 8_192
 
 
 def _fts_indexed_content_sql(alias: str) -> str:
@@ -338,7 +315,6 @@ _FTS_NEW_INDEXED_CONTENT_SQL = _fts_indexed_content_sql("new")
 _FTS_OLD_INDEXED_CONTENT_SQL = _fts_indexed_content_sql("old")
 
 # Cap on user-controlled FTS5 query input before sanitizer processing.
-MAX_FTS5_QUERY_CHARS = 2_048
 
 
 def stat_db_file_identity(path) -> tuple[int, int] | None:
@@ -1060,7 +1036,6 @@ END;
 # (children spawned under a gateway turn inherit the gateway's source).
 # Compression/branch continuations of interactive sessions also carry
 # ``parent_session_id`` but NOT the marker, so they stay trigram-indexed.
-FTS_TRIGRAM_EXCLUDED_SOURCES = ("cron", "subagent")
 
 def fts_trigram_session_sql(alias: str = "") -> str:
     """Predicate over a ``sessions`` row selecting sessions whose rows belong in
@@ -1494,12 +1469,3 @@ def fts_rebuild_admission(db_path, *, timeout_seconds=None):
                     fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
         finally:
             handle.close()
-
-
-def _json_or(raw: Any, fallback: Any, warning: str) -> Any:
-    """``json.loads(raw)``; on failure log *warning* and return *fallback*."""
-    try:
-        return json.loads(raw)
-    except (json.JSONDecodeError, TypeError):
-        logger.warning(warning)
-        return fallback

@@ -11,7 +11,7 @@ from hermes_db.errors import StorageClosedError
 from hermes_db.domains.runtime.postgres.queries import api_runs as repo
 from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.api import run_idempotency as table
-from gateway.platforms.api_server_run_idempotency import _encode_status
+from hermes_db.domains.runtime.receipts import encode_run_status as _encode_status
 
 
 class PostgresRunIdempotencyStore:
@@ -68,8 +68,8 @@ class PostgresRunIdempotencyStore:
             return {key: value for key, value in repo.record(row).items() if key != "run_id"} if row else None
 
     def find_or_close(self, scope, key):
-        from gateway.hosted_room_peer import MAX_STATUS_GRANT_TTL_SECONDS
-        from gateway.platforms.api_server_run_idempotency import _CLOSED_FINGERPRINT
+        from hermes_db.domains.rooms.rules import MAX_STATUS_GRANT_TTL_SECONDS
+        from hermes_db.domains.runtime.receipts import CLOSED_RUN_FINGERPRINT as _CLOSED_FINGERPRINT
         now = time.time()
         retention = now + MAX_STATUS_GRANT_TTL_SECONDS
         with self._transaction() as conn:

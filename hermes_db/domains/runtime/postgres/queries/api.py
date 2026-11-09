@@ -6,7 +6,7 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.dialects.postgresql import insert
 
 from hermes_db.tables.api import conversations, responses, response_keys, response_admissions, response_output_order
-from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.values import RuntimeStoreError
 
 
 def where(scope, api_scope, table):

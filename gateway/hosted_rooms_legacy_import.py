@@ -14,7 +14,8 @@ import sqlite3
 from contextlib import closing
 from pathlib import Path
 
-from gateway.hosted_rooms_common import clock, table_columns, table_exists
+from hermes_db.domains.rooms.rules import clock
+from gateway.hosted_rooms_common import table_columns, table_exists
 
 logger = logging.getLogger(__name__)
 

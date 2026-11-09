@@ -437,7 +437,7 @@ class SessionStoredReadsMixin:
         (``session_viewer_close._physical_target``'s rule). Ids with no session row are absent.
 
         Storage interface: port as ``current_segments``."""
-        from hermes_state_local import POLICY_PREFIX
+        from hermes_db.domains.runtime.receipts import POLICY_PREFIX
         with self._read_ctx() as conn:
             rows = conn.execute(
                 "SELECT s.id, s.end_reason, (SELECT json_extract(m.value, '$.entry.session_id') FROM state_meta m "

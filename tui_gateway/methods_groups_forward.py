@@ -114,7 +114,8 @@ def _standalone_holder(room_id: str) -> str | None:
 
 def _standalone_rooms(params: dict | None = None) -> list[dict]:
     """The standalone store's rooms that were not handed to the gateway (the gateway-less list)."""
-    from gateway.hosted_rooms import MAX_ROOM_LIST_LIMIT, default_db_path, list_rooms
+    from hermes_db.domains.rooms.rules import MAX_ROOM_LIST_LIMIT
+    from gateway.hosted_rooms import default_db_path, list_rooms
     if not default_db_path().is_file():
         return []
     return local_rooms(list_rooms(default_db_path(), limit=MAX_ROOM_LIST_LIMIT,
@@ -190,7 +191,8 @@ def _list(server, rid, home, params: dict) -> dict | None:
     """One Group Chat list that hides no existing room: the profile's gateway rooms, plus (on the
     first page) the rooms only the standalone store holds and, for a named profile, the standalone
     rooms already handed to the root gateway."""
-    from gateway.hosted_rooms import MAX_ROOM_LIST_LIMIT, default_db_path
+    from hermes_db.domains.rooms.rules import MAX_ROOM_LIST_LIMIT
+    from gateway.hosted_rooms import default_db_path
     from gateway.hosted_rooms_gateway_import import handed_room_ids
     endpoint = owner_endpoint(home)
     root = _root_home()

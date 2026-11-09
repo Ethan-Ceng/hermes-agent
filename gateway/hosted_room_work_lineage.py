@@ -1,4 +1,5 @@
 """Validate passive evidence against committed authority spans, never elect an owner."""
+from hermes_db.domains.rooms.work_rules import validate_provenance
 from gateway.hosted_room_authority_history import TRANSFER_KINDS, at_sequence, read_history_locked, validate_history
 
 
@@ -24,15 +25,6 @@ def source_prefix_locked(conn, room_id, authority, seq):
     return spans, digest(history)
 
 
-def validate_provenance(record, spans):
-    from gateway.hosted_room_work_records import WorkRecordError
-    # Execution generation remains an independent per-task counter.
-    for task in record["tasks"]:
-        at_sequence(spans, task["source_event_seq"])
-    for receipt in record["receipts"]:
-        if not any(s.gateway_id == receipt["home_install_id"] == receipt["authority_gateway_id"]
-                   and s.epoch == receipt["authority_epoch"] for s in spans):
-            raise WorkRecordError("work record receipt has no original authority span")
 
 
 def task_origins(record, spans):

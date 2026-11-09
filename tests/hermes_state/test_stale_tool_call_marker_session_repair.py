@@ -13,10 +13,7 @@ fix, so resuming a polluted session doesn't re-teach the model to keep
 emitting the marker. Unaffected sessions pass through unchanged.
 """
 
-from hermes_state import (
-    _is_stale_tool_call_marker_message,
-    _strip_stale_tool_call_markers,
-)
+from agent.message_sanitization import _is_stale_tool_call_marker_message, _strip_stale_tool_call_markers
 
 
 class TestIsStaleToolCallMarkerMessage:

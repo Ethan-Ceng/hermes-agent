@@ -1,4 +1,5 @@
 """Deletion removes history but retains exact, scoped terminal evidence."""
+from hermes_db.domains.runtime import receipts as _storage_shared_1
 import sqlite3
 from types import SimpleNamespace
 
@@ -358,14 +359,14 @@ def test_tombstones_past_the_retry_horizon_are_reclaimed_by_the_prune_pass(tmp_p
         young, young_id = settle_and_delete('young', now - 6 * 86400)
 
         def rows_naming(sid, admission_id):
-            from hermes_state_terminal import ADMISSION_PREFIX, RESULT_PREFIX, identity_key
+            from hermes_db.domains.runtime.receipts import ADMISSION_PREFIX, RESULT_PREFIX, identity_key
             keys = (ADMISSION_PREFIX + admission_id, RESULT_PREFIX + admission_id,
-                    identity_key('api', sid, 'r'), retirement.RETIRED_PREFIX + sid)
+                    identity_key('api', sid, 'r'), _storage_shared_1.RETIRED_PREFIX + sid)
             return [k for k in keys if db.get_meta(k) is not None]
         assert len(rows_naming('old', old_id)) == 4
         db.prune_sessions(older_than_days=90)
         assert len(rows_naming('young', young_id)) == 4
-        assert rows_naming('old', old_id) == [retirement.RETIRED_PREFIX + 'old'], \
+        assert rows_naming('old', old_id) == [_storage_shared_1.RETIRED_PREFIX + 'old'], \
             'tombstones past the horizon were not reclaimed (the deletion fence stays)'
         with pytest.raises(rt.RuntimeStoreError, match='not_found'):
             rt.admit_session_input(db, epoch=epoch, **old)

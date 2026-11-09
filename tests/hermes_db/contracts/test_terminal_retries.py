@@ -28,7 +28,7 @@ def test_private_terminal_retry_requires_original_identity_digest_and_epoch(stor
         with pytest.raises(RuntimeStoreError, match=reason):
             _terminal(store, runtime, "retry_terminal_admission", **(args | changed))
     from hermes_state import SessionDB
-    from hermes_state_terminal import RESULT_PREFIX, load_result
+    from hermes_db.domains.runtime.receipts import RESULT_PREFIX, load_result
     saved = load_result(store.get_meta(RESULT_PREFIX + accepted["admission_id"])) if isinstance(store, SessionDB) else runtime.admission_result(accepted["admission_id"])
     assert saved == {"result": {"final_response": "reply\x00", "messages": [], "_messages_are_turn_suffix": True}, "usage": {"tokens": 7}}
 

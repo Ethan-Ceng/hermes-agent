@@ -3,18 +3,23 @@
 import json
 from datetime import timedelta
 from pathlib import Path
-from hermes_cli.observability import shared_metrics as native
-from hermes_db.domains.metrics.api import capture_metrics, open_metrics
+from hermes_db.domains.metrics import policy as native
+from hermes_db.domains.metrics.policy import MetricsPolicy
+from hermes_db.domains.metrics.package_exports import MetricsExport, _ensure_private
+from utils import atomic_json_write
+import logging
+logger = logging.getLogger("hermes_cli.observability.shared_metrics")
+from hermes_db.domains.metrics.api import open_metrics
 from hermes_db.errors import StorageConfigurationError
 from hermes_db.domains.metrics.postgres import records, outbox
 from hermes_db.tables.metrics import packages
 
 
-class PostgresMetricsStore(native.SharedMetricsStore):
+class PostgresMetricsStore(MetricsPolicy, MetricsExport):
     backend = "postgresql"
 
-    def __init__(self, database_path=None, outbox_directory=None, *, profile_home=None):
-        self.reference = capture_metrics(profile_home)
+    def __init__(self, reference, *, outbox_directory=None):
+        self.reference = reference
         self.profile_home = self.reference.profile_home
         # The legacy SQLite path is never used to infer a Profile or opened in PG.
         self.database_path = None
@@ -68,7 +73,7 @@ class PostgresMetricsStore(native.SharedMetricsStore):
         with open_metrics(self.reference) as (conn, store):
             return records.snapshot(conn, store)
 
-    def drain_deferred(self, busy_timeout_ms=native._SCHEMA_BUSY_TIMEOUT_MS):
+    def drain_deferred(self, busy_timeout_ms=5_000):
         # PG operations commit synchronously or raise; none are queued in memory.
         return None
 
@@ -90,10 +95,10 @@ class PostgresMetricsStore(native.SharedMetricsStore):
             rows = outbox.pending_exports(conn, store)
         exported = []
         if rows:
-            native._ensure_private(self.outbox_directory, 0o700)
+            _ensure_private(self.outbox_directory, 0o700)
         for row in rows:
             path = self.outbox_directory / f"{row['package_id']}.json"
-            native.atomic_json_write(path, json.loads(row["payload_json"]), indent=None, separators=(",", ":"), sort_keys=True, mode=0o600)
+            atomic_json_write(path, json.loads(row["payload_json"]), indent=None, separators=(",", ":"), sort_keys=True, mode=0o600)
             with open_metrics(self.reference, write=True) as (conn, store):
                 records.change_package(conn, store, packages, row["package_id"], {"exported_at": native._isoformat(native._utc_now())}, packages.c.exported_at.is_(None))
             exported.append(path)
@@ -109,7 +114,7 @@ class PostgresMetricsStore(native.SharedMetricsStore):
                 (self.outbox_directory / f"{package_id}.json").unlink(missing_ok=True)
                 removed.append(package_id)
             except OSError:
-                native.logger.warning("Unable to prune expired shared-metrics package %s", package_id, exc_info=True)
+                logger.warning("Unable to prune expired shared-metrics package %s", package_id, exc_info=True)
         with open_metrics(self.reference, write=True) as (conn, store):
             outbox.prune(conn, store, removed, cutoff)
 

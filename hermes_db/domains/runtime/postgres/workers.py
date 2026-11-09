@@ -20,7 +20,7 @@ class RuntimeWorkers:
     def reserve_admission_worker(self, **kwargs):
         from hermes_db.domains.runtime.postgres.operations.worker_reservation import reserve
         with self._context.write() as conn:
-            return reserve(conn, self._context.scope, **kwargs)
+            return reserve(conn, self._context.scope, same_owner=self._context.session.ownership.same_owner, **kwargs)
 
     def lose_admission_worker(self, **kwargs):
         from hermes_db.domains.runtime.postgres.operations.worker_reservation import lose
@@ -47,10 +47,8 @@ class RuntimeWorkers:
             return workers.apply_receipt(conn, self._context.scope, **kwargs)
 
     def mutate_worker(self, **kwargs):
-        from hermes_db.domains.runtime.postgres.operations.worker_handlers import handlers
-        from hermes_db.domains.runtime.postgres.operations.worker_metrics import prepare_policy
-        policy = prepare_policy(self._context.scope.profile_home, kwargs.get('operation'))
-        return self.apply_worker_receipt(**kwargs, handlers=handlers(metrics_policy=policy))
+        handlers = self._context.worker_handlers(self._context.scope.profile_home, kwargs.get('operation'))
+        return self.apply_worker_receipt(**kwargs, handlers=handlers)
 
     def worker_claim_origin(self, params):
         from hermes_db.domains.runtime.postgres.queries.workers import claim_origin
@@ -65,7 +63,7 @@ class RuntimeWorkers:
     def verify_worker_claim(self, params, claim, *, active_epoch=None):
         import hmac
         from hermes_db.domains.runtime.postgres.queries import runtime, workers as repo
-        from hermes_state_runtime import RuntimeStoreError, _secret_digest
+        from hermes_db.domains.runtime.values import RuntimeStoreError, _secret_digest
         with self._context.read() as conn:
             target = repo.retry_target(conn, self._context.scope, params)
             row = repo.execution(conn, self._context.scope, params['execution_id'])
@@ -82,7 +80,7 @@ class RuntimeWorkers:
 
     def persist_delegation(self, *, owner, **kwargs):
         from hermes_db.domains.runtime.postgres.operations.worker_delegations import handlers
-        from hermes_state_runtime import RuntimeStoreError
+        from hermes_db.domains.runtime.values import RuntimeStoreError
         callbacks = handlers(owner)
         if kwargs['execution_id'] != owner.execution_id:
             raise RuntimeStoreError('permission_denied')

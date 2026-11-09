@@ -157,7 +157,7 @@ def test_desktop_pick_resolves_a_provider_added_after_the_session_and_freezes_on
     ``key_env`` key, the receipt freezes only that one entry plus the pointer (never the key
     value), nothing else in the frozen config moves, and another profile's same-named provider
     is never read."""
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     root = Path(__file__).resolve().parents[2]
     home, user = tmp_path / 'state', tmp_path / 'user'
     home.mkdir(mode=0o700)

@@ -7,7 +7,7 @@ from hermes_db.errors import StorageBusyError
 from hermes_db.domains.sessions.postgres.operations import leases, housekeeping, gateway, gateway_peers as operations
 from hermes_db.domains.sessions.postgres.queries import retirement, retirement_housekeeping, sessions as housekeeping_sessions, retention, sessions as handoffs_sessions, gateway as gateway_repo, gateway_peers as gateway_peers_repo, sessions as gateway_peers_sessions
 from sqlalchemy import func, select, or_
-from hermes_db.integration.postgres.operations import maintenance
+from hermes_db.domains.sessions.postgres.operations import retention as maintenance
 from hermes_db.tables.conversations import sessions as maintenance_sessions, sessions as table, messages, sessions as health_sessions
 from sqlalchemy.dialects.postgresql import insert
 from hermes_db.tables.gateway import gateway_heartbeats as heartbeats, gateway_hygiene_state as hygiene
@@ -105,7 +105,7 @@ class SessionLifecycle:
         if include_compression_chain:
             return self.delete_sessions([session_id], sessions_dir=sessions_dir, exclude_active_write_guards=exclude_active_write_guards, include_compression_chain=True) > 0
         with self._context.write() as conn:
-            deleted, targets = operations.delete_one(conn, self._context.scope, session_id, expected_delete_ids=expected_delete_ids, expected_display_messages=expected_display_messages, exclude_active_write_guards=exclude_active_write_guards)
+            deleted, targets = operations.delete_one(conn, self._context.scope, session_id, expected_delete_ids=expected_delete_ids, expected_display_messages=expected_display_messages, exclude_active_write_guards=exclude_active_write_guards, media_references=self._context.media.admission_references)
         if deleted:
             self._after_session_delete(targets, primary=session_id, sessions_dir=sessions_dir)
         return deleted
@@ -113,7 +113,7 @@ class SessionLifecycle:
     def delete_sessions(self, session_ids, sessions_dir=None, exclude_active_write_guards=False, skipped_ids=None, include_compression_chain=False):
         from hermes_db.domains.sessions.postgres.operations import retirement as operations
         with self._context.write() as conn:
-            count, targets, skipped = operations.delete_many(conn, self._context.scope, session_ids, exclude_active_write_guards=exclude_active_write_guards, include_compression_chain=include_compression_chain)
+            count, targets, skipped = operations.delete_many(conn, self._context.scope, session_ids, exclude_active_write_guards=exclude_active_write_guards, include_compression_chain=include_compression_chain, media_references=self._context.media.admission_references)
         if skipped_ids is not None:
             skipped_ids.extend(skipped)
         if count:
@@ -121,26 +121,22 @@ class SessionLifecycle:
         return count
 
     def _after_session_delete(self, targets, *, primary=None, reason='delete', sessions_dir=None):
-        from hermes_db.integration.events import emit_deleted
         from hermes_db.domains.sessions.postgres.support.retired_files import remove
-        emit_deleted(self._context.profile, targets, reason=reason, primary=primary)
+        self._context.effects.deleted(targets, reason=reason, primary=primary)
         remove(sessions_dir, targets)
         self.collect_retired_media()
 
     def collect_retired_media(self):
-        from hermes_db.domains.sessions.postgres.support.retired_media import collect
-        collect(self._context)
+        self._context.effects.collect_media(self._context)
 
     def _export_limit(self, maximum):
         self._context.assert_open()
         if maximum is None:
-            from hermes_state import resolved_max_export_messages
             with self._context.profile.activate():
-                maximum = resolved_max_export_messages()
+                maximum = self._context.transcript_limits.export_limit()
         return maximum
 
     def assert_export_safe(self, session_id, max_messages=None):
-        from hermes_state import SessionExportTooLargeError
         maximum = self._export_limit(max_messages)
         if maximum < 0:
             raise ValueError('max_messages must be non-negative')
@@ -149,7 +145,7 @@ class SessionLifecycle:
         with self._context.read() as conn:
             count = retirement.export_count(conn, self._context.scope, session_id, maximum)
         if count > maximum:
-            raise SessionExportTooLargeError(session_id, count, maximum)
+            raise self._context.transcript_limits.export_error(session_id, count, maximum)
         return count
 
     def assert_exports_safe(self, session_ids, max_messages=None):
@@ -173,13 +169,13 @@ class SessionLifecycle:
 
     def prune_empty_ghost_sessions(self, sessions_dir=None):
         with self._context.write() as conn:
-            ids = housekeeping.prune_ghosts(conn, self._context.scope)
+            ids = housekeeping.prune_ghosts(conn, self._context.scope, media_references=self._context.media.admission_references)
         self._after_session_delete(ids, reason='ghost_prune', sessions_dir=sessions_dir)
         return len(ids)
 
     def delete_empty_sessions(self, sessions_dir=None):
         with self._context.write() as conn:
-            ids = housekeeping.delete_empty(conn, self._context.scope)
+            ids = housekeeping.delete_empty(conn, self._context.scope, media_references=self._context.media.admission_references)
         if ids:
             self._after_session_delete(ids, reason='empty_sweep', sessions_dir=sessions_dir)
         else:
@@ -188,7 +184,7 @@ class SessionLifecycle:
 
     def delete_session_if_empty(self, session_id, sessions_dir=None):
         with self._context.write() as conn:
-            deleted = housekeeping.delete_if_empty(conn, self._context.scope, session_id)
+            deleted = housekeeping.delete_if_empty(conn, self._context.scope, session_id, media_references=self._context.media.admission_references)
         if deleted:
             self._after_session_delete([session_id], reason='empty_sweep', sessions_dir=sessions_dir)
         else:
@@ -197,14 +193,14 @@ class SessionLifecycle:
 
     def discard_unadmitted_session(self, session_id):
         with self._context.write() as conn:
-            deleted, fenced = housekeeping.discard_unadmitted(conn, self._context.scope, session_id)
+            deleted, fenced = housekeeping.discard_unadmitted(conn, self._context.scope, session_id, media_references=self._context.media.admission_references)
         if fenced:
             self._after_session_delete(fenced, primary=session_id)
         return deleted
 
     def prune_never_active_keyed_sessions(self, *, older_than_days, sessions_dir=None, deleted_ids=None):
         with self._context.write() as conn:
-            count, removed, skipped, routes, reported = housekeeping.never_active(conn, self._context.scope, older_than_days)
+            count, removed, skipped, routes, reported = housekeeping.never_active(conn, self._context.scope, older_than_days, media_references=self._context.media.admission_references)
         if removed:
             self._after_session_delete(removed, sessions_dir=sessions_dir)
         if deleted_ids is not None:
@@ -278,15 +274,14 @@ class SessionLifecycle:
         return count
 
     def _emit_archives(self, events):
-        from hermes_db.integration.events import emit_deleted
         for primary, ids in events:
-            emit_deleted(self._context.profile, ids, reason='archive', primary=primary)
+            self._context.effects.deleted(ids, reason='archive', primary=primary)
 
     def prune_sessions(self, older_than_days=90, source=None, sessions_dir=None, exclude_active_write_guards=False, deleted_ids=None, **filters):
         if filters.get('include_open'):
             raise ValueError('prune_sessions never deletes open sessions')
         with self._context.write() as conn:
-            removed = maintenance.prune(conn, self._context.scope, older_than_days, source, filters, exclude_active_write_guards=exclude_active_write_guards)
+            removed = maintenance.prune(conn, self._context.scope, older_than_days, source, filters, exclude_active_write_guards=exclude_active_write_guards, media_references=self._context.media.admission_references)
         if deleted_ids is not None:
             deleted_ids.extend(removed)
         if removed:
@@ -323,7 +318,7 @@ class SessionLifecycle:
             return {'skipped': True, 'pruned': 0, 'closed': 0, 'vacuumed': False}
         try:
             with self._context.write() as conn:
-                result, removed = maintenance.auto_prune(conn, self._context.scope, retention_days, min_interval_hours)
+                result, removed = maintenance.auto_prune(conn, self._context.scope, retention_days, min_interval_hours, media_references=self._context.media.admission_references)
             if removed:
                 self._after_session_delete(removed, reason='prune', sessions_dir=sessions_dir)
             return result
@@ -416,9 +411,8 @@ class SessionLifecycle:
         return session_gateway_runtime(session_meta)
 
     def purge_profile_state(self, profile):
-        from hermes_db.integration.postgres.operations.profile_purge import purge
         with self._context.write() as conn:
-            return purge(conn, self._context.scope, profile)
+            return self._context.effects.purge_profile(conn, self._context.scope, profile)
 
     def rekey_profile_state(self, old_name, new_name):
         from hermes_db.domains.sessions.postgres.operations.gateway_rekey import rekey
@@ -459,7 +453,7 @@ class SessionLifecycle:
     def record_gateway_session_peer(self, session_id, *, source, user_id=None, session_key=None, chat_id=None, chat_type=None, thread_id=None, display_name=None, origin_json=None, include_compression_ancestors=False, transport_profile=None):
         with self._context.write() as conn:
             if session_id and session_key:
-                operations.record(conn, self._context.scope, session_id, source=source, own_profile=self._context.own_profile, include_compression_ancestors=include_compression_ancestors, user_id=user_id, session_key=session_key, chat_id=chat_id, chat_type=chat_type, thread_id=thread_id, display_name=display_name, origin_json=origin_json, transport_profile=transport_profile)
+                operations.record(conn, self._context.scope, session_id, source=source, messaging_platform=self._context.routes.messaging_platform, own_profile=self._context.own_profile, include_compression_ancestors=include_compression_ancestors, user_id=user_id, session_key=session_key, chat_id=chat_id, chat_type=chat_type, thread_id=thread_id, display_name=display_name, origin_json=origin_json, transport_profile=transport_profile)
 
     def list_gateway_sessions(self, *, platform=None, active_only=True):
         self._flush_for_read()

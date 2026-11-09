@@ -8,6 +8,7 @@ late-bound via ``_kb`` (import-cycle breaking) so monkeypatching
 """
 
 from __future__ import annotations
+from hermes_db.domains.kanban import rules as _storage_shared_1
 
 import json
 import time
@@ -28,7 +29,7 @@ def _dir_holds_board(d: Path) -> bool:
 
 def board_metadata_path(board: Optional[str] = None) -> Path:
     """``board.json`` path — display metadata only; the directory slug is the identity."""
-    return _kb.board_dir(_kb._slug_or_default(board)) / "board.json"
+    return _kb.board_dir(_storage_shared_1._slug_or_default(board)) / "board.json"
 
 
 def _default_board_display_name(slug: str) -> str:
@@ -45,7 +46,7 @@ def read_board_metadata(board: Optional[str] = None) -> dict:
 def _read_metadata_file(board: Optional[str] = None) -> dict:
     """``board.json`` merged over defaults, plus ``slug`` and ``db_path``. Never
     raises — a missing/malformed file yields the synthesized entry."""
-    slug = _kb._slug_or_default(board)
+    slug = _storage_shared_1._slug_or_default(board)
     meta: dict[str, Any] = {
         "slug": slug,
         "name": _default_board_display_name(slug),
@@ -93,7 +94,7 @@ def _write_metadata_file(
     set on first write. ``project_id``/``default_workdir``: ``None`` = unchanged,
     "" = clear (``project_id`` is not validated here)."""
     _kb._assert_not_delegated_child_mutation()
-    slug = _kb._slug_or_default(board)
+    slug = _storage_shared_1._slug_or_default(board)
     meta = read_board_metadata(slug)
     # db_path is derived on every read; never persist it into board.json.
     meta.pop("db_path", None)
@@ -125,7 +126,7 @@ def create_board(
     project_id: Optional[str] = None,
 ) -> dict:
     """Create board dir + DB + metadata (``mkdir -p`` semantics: existing board returns its metadata)."""
-    normed = _kb._require_slug(slug)
+    normed = _storage_shared_1._require_slug(slug)
     # Explicit creation clears any archived tombstone at this slug (left by
     # remove_board(archive=True)) — otherwise _kb.init_db() below would rightly
     # refuse to recreate the archived board's DB (#43243).
@@ -150,7 +151,7 @@ def list_boards(*, include_archived: bool = True) -> list[dict]:
             if not child.is_dir():
                 continue
             try:
-                normed = _kb._normalize_board_slug(child.name)  # skip junk dirs, don't raise
+                normed = _storage_shared_1._normalize_board_slug(child.name)  # skip junk dirs, don't raise
             except ValueError:
                 continue
             if not normed or normed in seen or not _dir_holds_board(child):
@@ -168,7 +169,7 @@ def remove_board(slug: str, *, archive: bool = True) -> dict:
     """Archive (to ``boards/_archived/<slug>-<ts>/``) or delete a board;
     ``default`` cannot be removed. Returns ``{"slug", "action", "new_path"}``."""
     _kb._assert_not_delegated_child_mutation()
-    normed = _kb._require_slug(slug)
+    normed = _storage_shared_1._require_slug(slug)
     if normed == _kb.DEFAULT_BOARD:
         raise ValueError("the 'default' board cannot be removed")
     d = _kb.board_dir(normed)

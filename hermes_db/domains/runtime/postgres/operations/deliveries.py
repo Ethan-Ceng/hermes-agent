@@ -3,13 +3,13 @@
 import time
 import uuid
 
-from gateway import delivery_ledger as policy
+from gateway import delivery_rules as policy
 from hermes_db.domains.runtime.postgres.delivery_claim import DeliveryClaim
 from hermes_db.domains.runtime.postgres.queries import deliveries as repo
 from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.gateway import delivery_obligations as table
 from hermes_db.core.values import encode_text
-from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.values import RuntimeStoreError
 
 
 def _proof(scope, row):

@@ -1,4 +1,5 @@
 """Actual dispatcher argv, ordinary daemon, loopback tool round, disposable board."""
+from hermes_db.domains.kanban import rules as _storage_shared_1
 import asyncio
 from contextlib import closing
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -156,7 +157,7 @@ def main():
                     from gateway.session_kanban import worker_exit_code
                     assert worker_exit_code(kb.kanban_db_path(board='owned'), params | {'claim_lock': 'foreign'}) == 1
                     receipt.update(task_status=task.status, failures=task.consecutive_failures, run_outcome=run['outcome'],
-                        run_metadata=kb._json_dict(run['metadata']), rate_limited=swept.rate_limited,
+                        run_metadata=_storage_shared_1._json_dict(run['metadata']), rate_limited=swept.rate_limited,
                         cooldown=dispatch.check_respawn_guard(conn, tid))
                     if peer.mode in {'rate_limit', 'billing'}:
                         assert task.status == 'ready' and task.consecutive_failures == 0 and run['outcome'] == 'rate_limited', receipt

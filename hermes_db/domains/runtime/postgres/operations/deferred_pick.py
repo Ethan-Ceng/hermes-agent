@@ -6,12 +6,12 @@ from hermes_db.domains.sessions.postgres.operations.mutations import replay_rece
 from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.runtime import state_meta
-from hermes_state_mutation_prepared import DEFERRED_PICK_PREFIX
-from hermes_state_runtime import _json
+from hermes_db.domains.runtime.receipts import DEFERRED_PICK_PREFIX
+from hermes_db.domains.runtime.values import _json
 
 
 def defer(conn, scope, *, epoch, session_id, key, digest, operation, pick, shown):
-    from gateway.session_deferred_pick import deferred_value
+    from hermes_db.domains.runtime.receipts import deferred_value
     runtime.require_epoch(conn, scope, epoch)
     sessions.lock_store(conn, scope)
     replay = replay_receipt(conn, scope, key, digest)

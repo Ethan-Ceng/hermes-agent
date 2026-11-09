@@ -4,15 +4,17 @@ from hermes_cli.db_setup import storage_backend
 from hermes_db.errors import StorageConfigurationError
 
 
-def postgres_store(cls, profile_home):
+def postgres_store(cls, database_path, outbox_directory, profile_home):
     from .shared_metrics import SharedMetricsStore
     from agent.runtime_domain_store import worker_resource
-    if cls is SharedMetricsStore and worker_resource('metrics', profile_home=profile_home) is not None:
+    worker = worker_resource('metrics', profile_home=profile_home) if cls is SharedMetricsStore else None
+    if worker is not None:
         from hermes_db.domains.runtime.postgres.metrics import WorkerMetricsStore
-        return object.__new__(WorkerMetricsStore)
+        return WorkerMetricsStore(worker)
     if cls is SharedMetricsStore and storage_backend(profile_home) == "postgresql":
         from hermes_db.domains.metrics.postgres.store import PostgresMetricsStore
-        return object.__new__(PostgresMetricsStore)
+        from hermes_db.domains.metrics.api import capture_metrics
+        return PostgresMetricsStore(capture_metrics(profile_home), outbox_directory=outbox_directory)
     return object.__new__(cls)
 
 

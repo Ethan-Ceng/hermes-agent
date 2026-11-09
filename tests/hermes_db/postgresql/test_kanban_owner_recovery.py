@@ -1,4 +1,5 @@
 """Board recovery uses the real scoped PG admission ledger and current-run evidence."""
+from hermes_db.domains.kanban import rules as kanban_rules
 
 from contextlib import closing
 
@@ -22,7 +23,7 @@ def test_owner_receipt_reads_real_admission_and_only_current_attempt(pg_profiles
         runtime.admit_input(epoch=epoch, principal_id="producer", session_id="owner", request_id="attempt", payload={})
         receipt = dict(storage_backend="postgresql", profile_home=str(home), store_id=db.scope.store_id,
                        principal_id="producer", session_id="owner", request_id="attempt")
-        from hermes_db.integration.transfer.move_values import resource_key
+        from hermes_db.core.values import resource_key
         receipt["target"] = resource_key(db._transactions)
         kb._append_event(store, task_id, "owner_admitted", receipt, run_id=first.current_run_id)
         assert recovery.owner_reclaim_paused(store, task_id)
@@ -49,7 +50,7 @@ def test_owner_receipt_reads_real_admission_and_only_current_attempt(pg_profiles
 
 
 def test_same_task_owner_evidence_never_crosses_board_or_store(pg_profiles, monkeypatch):
-    monkeypatch.setattr(kb, "_new_task_id", lambda: "t_same")
+    monkeypatch.setattr(kanban_rules, "_new_task_id", lambda: "t_same")
     with pg_profiles("one"):
         kb.create_board("other")
         with kbc.connect_closing() as store:
@@ -84,7 +85,7 @@ def test_owner_admission_receipt_refuses_same_ids_from_a_retargeted_schema(pg_pr
     from copy import deepcopy
     from dataclasses import replace
     from hermes_cli.config import atomic_config_write, read_user_config_raw
-    from hermes_db.integration.transfer.move_values import resource_key
+    from hermes_db.core.values import resource_key
     from hermes_db.schema import upgrade_schema
     from tests.hermes_db.pg_support import isolated_namespace
     with isolated_namespace(postgres_engine, postgres_test_config) as other_schema:

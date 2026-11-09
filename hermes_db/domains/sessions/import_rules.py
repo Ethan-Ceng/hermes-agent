@@ -235,3 +235,10 @@ class ImportValues:
         return item
 
 values = ImportValues()
+
+_IMPORT_PASSTHROUGH_COLS = (
+    "user_id", "model", "model_config", "end_reason", "cwd", "git_branch", "git_repo_root", "billing_provider",
+    "billing_base_url", "billing_mode", "cost_status", "cost_source", "pricing_version", "title",
+)
+
+_IMPORT_FLAG_COLS = ("archived", "auto_archived", "pinned", "hidden")

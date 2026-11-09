@@ -7,8 +7,8 @@ from sqlalchemy import select
 
 from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.tables.runtime import state_meta
-from hermes_state_runtime import RuntimeStoreError, _secret_digest
-from hermes_state_terminal import ADMISSION_PREFIX, RESULT_PREFIX, WORKER_PREFIX, load_result
+from hermes_db.domains.runtime.values import RuntimeStoreError, _secret_digest
+from hermes_db.domains.runtime.receipts import ADMISSION_PREFIX, RESULT_PREFIX, WORKER_PREFIX, load_result
 
 
 def admission(conn, scope, admission_id):

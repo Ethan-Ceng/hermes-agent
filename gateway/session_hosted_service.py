@@ -158,7 +158,7 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
     def authorize_room(self, actor_subject, room_id, *, create=False, conn=None):
         """Check (or, with ``create``, claim) room ownership. A ``conn`` runs the claim inside
         the caller's room-creation transaction, so owner and room commit or roll back together."""
-        from gateway.hosted_rooms_common import IDENTIFIER_RE
+        from hermes_db.domains.rooms.rules import IDENTIFIER_RE
         if (not isinstance(actor_subject, str) or not actor_subject
                 or not isinstance(room_id, str) or len(room_id) > 128
                 or not IDENTIFIER_RE.fullmatch(room_id)):
@@ -227,8 +227,8 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
             def authorized(conn, operation, identity, generation):
                 # Admission checks must share the FIFO writer's snapshot. Opening
                 # another transaction here would reintroduce the revocation race.
-                from gateway.hosted_rooms import _room_from_row
-                from gateway.hosted_room_driver import _task_from_row
+                from hermes_db.domains.rooms.rules import _room_from_row
+                from hermes_db.domains.rooms.driver_rules import _task_from_row
                 _epoch(conn, self.authority.epoch)
                 owned = conn.execute('SELECT value FROM state_meta WHERE key=?',
                                      (_OWNER + binding.room_id,)).fetchone()

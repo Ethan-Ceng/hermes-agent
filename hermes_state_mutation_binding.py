@@ -2,7 +2,7 @@
 import json
 from hermes_state_runtime import RuntimeStoreError
 
-BINDING_PREFIX = 'gateway.history_control.v1.'
+from hermes_db.domains.runtime.receipts import BINDING_PREFIX
 
 
 def _history_row(row):

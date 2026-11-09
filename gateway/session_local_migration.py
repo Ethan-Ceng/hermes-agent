@@ -57,7 +57,7 @@ def resolve_local_target(authority, actor, sid):
     row = db.get_session(sid)
     if row is None:
         raise RuntimeStoreError('not_found')
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(db):
         from gateway.session_native_history import resolve_native_target

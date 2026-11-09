@@ -7,7 +7,7 @@ from hermes_db.health import is_postgresql_store
 from hermes_db.integration.runtime_access import runtime_for_store, effect_for_store
 
 execution_result: ContextVar[dict | None] = ContextVar("execution_result", default=None)
-from hermes_state_terminal import RESULT_PREFIX as _RESULT_PREFIX, load_result
+from hermes_db.domains.runtime.receipts import RESULT_PREFIX as _RESULT_PREFIX, load_result
 
 
 def record_unexecuted_failure(reply, reason=None, error=None):
@@ -68,7 +68,7 @@ def prepare_result(row, response, outcome, result=None):
         value['failed' if outcome == 'failed' else 'interrupted'] = True
         value['completed'] = False
     # Compact before redacting, so the walk covers this turn's output, not every earlier turn.
-    from hermes_state_terminal import compact_result
+    from hermes_db.domains.runtime.receipts import compact_result
     return outcome, _redacted(compact_result(result, user_message=row['payload'].get('text')))
 
 

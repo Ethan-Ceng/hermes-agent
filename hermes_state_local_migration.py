@@ -3,7 +3,8 @@ import functools
 import json
 import time
 
-from hermes_state_runtime import RuntimeStoreError, _json
+from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.values import _json
 
 LEGACY_PREFIX = 'gateway.local_legacy.v1:'
 

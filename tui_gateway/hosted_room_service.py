@@ -1,6 +1,7 @@
 """Production coordinator for same-gateway hosted Discussion rooms."""
 
 from __future__ import annotations
+from hermes_db.domains.rooms import rules as _storage_shared_1
 
 import contextlib
 import logging
@@ -960,7 +961,7 @@ class HostedRoomService:
         """Stop the room's work; the count leaves out a deferred turn on another gateway that its
         gateway has not confirmed stopped (``_stop_deferred_peer``): it stays deferred."""
         # Every accepted spelling of a room shares its lock and its cached approvals.
-        room_id = hosted_rooms._room_id(room_id)
+        room_id = _storage_shared_1._room_id(room_id)
         with self._room_approval_stop_lock(room_id):
             return self._stop_room(room_id, cancel_id=cancel_id, require_acknowledged=require_acknowledged)
 
@@ -1100,7 +1101,7 @@ class HostedRoomService:
         self, room_id: str, *, member_id: str, task_id: str, execution_generation: int,
         choice: str, request_id: str | None = None) -> Mapping[str, Any]:
         """Resolve one exact local or peer approval and wake room observation."""
-        room_id = hosted_rooms._room_id(room_id)
+        room_id = _storage_shared_1._room_id(room_id)
         key = (room_id, member_id)
         route, client = self.peer_routes.get(key), self.peer_clients.get(key)
         requested_approval_id = str(request_id or "")

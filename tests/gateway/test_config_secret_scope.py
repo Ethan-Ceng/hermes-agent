@@ -48,7 +48,7 @@ def _older_gateway_reference(policy):
 
 
 def _store_reference(store, sid, ref):
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     def write(conn):
         saved = json.loads(conn.execute('SELECT value FROM state_meta WHERE key=?',
                                         (POLICY_PREFIX + sid,)).fetchone()[0])

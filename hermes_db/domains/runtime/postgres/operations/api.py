@@ -7,12 +7,12 @@ from sqlalchemy import func, literal, select
 from hermes_db.domains.runtime.postgres.queries import api as repo
 from hermes_db.tables.api import conversations, responses, response_keys, response_admissions
 from hermes_db.tables.runtime import session_admissions, state_meta
-from hermes_state_terminal import ADMISSION_PREFIX
+from hermes_db.domains.runtime.receipts import ADMISSION_PREFIX
 
 
 def resolve_admission(conn, scope, api_scope, key, request_id):
     from hermes_db.domains.runtime.postgres.queries import runtime, terminal
-    from hermes_state_runtime import RuntimeStoreError
+    from hermes_db.domains.runtime.values import RuntimeStoreError
 
     admission_id = repo.admission(conn, scope, api_scope, key)
     if admission_id:

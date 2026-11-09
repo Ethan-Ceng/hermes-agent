@@ -147,7 +147,7 @@ async def test_a_compacted_receipt_with_a_foreign_origin_stays_refused(tmp_path,
     """The catch-up runs only for a receipt that already matches this owner: one naming another
     profile in its origin is refused, unchanged, even with a well-formed compression child."""
     from gateway.session_local import create_local_session
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
 
     first, connection = await _owner(tmp_path, monkeypatch, 'first')
     ref = create_local_session(first, connection.actor, {'request_id': 'r', 'source': 'tui',
@@ -184,7 +184,7 @@ async def test_a_compacted_secondary_receipt_missing_its_origin_profile_restores
     from gateway.runtime_ownership import process_ownership
     from gateway.session_contract import SessionActor
     from gateway.session_local import create_local_session
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     from tests.gateway.test_session_authorities_multiplex import _reserve_homes, _runner
 
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'cli': []}})

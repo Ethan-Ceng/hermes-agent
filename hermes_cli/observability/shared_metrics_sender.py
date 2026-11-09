@@ -23,54 +23,41 @@ from datetime import datetime, timedelta, timezone, UTC
 from agent.retry_utils import parse_retry_after_seconds
 from hermes_cli.sqlite_util import write_txn
 
-from .shared_metrics import _isoformat, _utc_now
+from hermes_db.domains.metrics.policy import _isoformat, _utc_now
+from hermes_db.domains.metrics.sending import GZIP_THRESHOLD_BYTES, MAX_ATTEMPTS, MAX_OBS_ADVANCE_SECONDS, MAX_PACKAGES_PER_PASS, MAX_SEND_ATTEMPTS, MetricsTransport, REQUEST_TIMEOUT_SECONDS, _BACKOFF_BASE_SECONDS, _BACKOFF_FACTOR, _CLAIM_LEASE_SECONDS, _FAILURE_BACKOFF_SECONDS, _PERMANENT_STATUSES, _parse_stamp, _post, _retry_after_seconds
 
 logger = logging.getLogger(__name__)
 
 #: Contract recommends timing out at 30s and treating a timeout as retryable.
-REQUEST_TIMEOUT_SECONDS = 30
 
 #: In-process attempts per package per pass, then the package waits for a
 #: later pass. Backoff is 1s/5s/25s with full jitter.
-MAX_ATTEMPTS = 3
-_BACKOFF_BASE_SECONDS = 1
-_BACKOFF_FACTOR = 5
 
 #: Contract recommends gzip above roughly this size.
-GZIP_THRESHOLD_BYTES = 4096
 
 #: Packages per pass. Bounds work on an interactive hook even after an outage.
-MAX_PACKAGES_PER_PASS = 20
 
 #: Claim lease, written INTO THE FUTURE as next_attempt_at so no other process selects
 #: the row meanwhile. Must exceed one package's worst case (3x30s timeouts + 1s+5s
 #: backoff, ~96s) — hence packages are claimed one at a time right before sending; a
 #: batch of 20 under one lease can run ~1900s and get re-sent by another process.
-_CLAIM_LEASE_SECONDS = 300
 
 #: Floor applied after a pass fails to deliver, so a hard-down service is not
 #: retried on every task completion.
-_FAILURE_BACKOFF_SECONDS = 15 * 60
 
 #: Permanent statuses per the ingest contract, deliberately narrow: 400 never validates,
 #: 413 (over the 1 MiB cap) cannot shrink on retry. Everything else — including 403 from
 #: the origin guard and 404 from a bad path — is deployment/edge misconfiguration that
 #: resolves without the package changing, so it is retried.
-_PERMANENT_STATUSES = frozenset({400, 413})
 
 #: Attempts after which a package is abandoned; otherwise a poisoned row is retried until
 #: 30-day retention deletes it (~160 requests) and pins the head of the queue.
-MAX_SEND_ATTEMPTS = 25
 
 #: Max distance one reconcile can advance the 'obs' mark. Never binds for honest
 #: heartbeats (hours apart); bounds FORWARD clock poison, where one glitched sample (NTP
 #: flap reading 2099) would drag every window open and confirmation horizon decades ahead.
-MAX_OBS_ADVANCE_SECONDS = 30 * 24 * 3600
 
 
-def _parse_stamp(value: str) -> datetime:
-    """Parse a stamp this module itself wrote (Z-suffixed ISO-8601, UTC)."""
-    return datetime.fromisoformat(value).astimezone(UTC)
 
 
 @dataclass
@@ -82,48 +69,10 @@ class SendOutcome:
     deferred: int = 0
 
 
-@dataclass(slots=True)
-class _Response:
-    status: int
-    retry_after: str | None
-    body: str
 
 
-def _post(endpoint: str, payload: bytes, *, timeout: int) -> _Response:
-    """POST one package. Raises on transport failure; never on HTTP status."""
-    headers = {
-        "Content-Type": "application/json",
-        "User-Agent": "hermes-agent-shared-metrics/1",
-    }
-    body = payload
-    if len(payload) > GZIP_THRESHOLD_BYTES:
-        # mtime=0 keeps two sends of one package byte-identical on the wire too.
-        body = gzip.compress(payload, mtime=0)
-        headers["Content-Encoding"] = "gzip"
-
-    request = urllib.request.Request(endpoint, data=body, headers=headers, method="POST")
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            return _Response(
-                response.status,
-                response.headers.get("Retry-After"),
-                response.read(2048).decode("utf-8", "replace"),
-            )
-    except urllib.error.HTTPError as exc:
-        # An HTTP error status is a normal contract outcome, not a failure.
-        return _Response(
-            exc.code,
-            exc.headers.get("Retry-After") if exc.headers else None,
-            exc.read(2048).decode("utf-8", "replace") if exc.fp else "",
-        )
 
 
-def _retry_after_seconds(value: str | None, default: int) -> int:
-    seconds = parse_retry_after_seconds(value)
-    if seconds is None:
-        return default
-    # Clamp so a bogus value cannot park a package for years, and never go below one second.
-    return max(1, min(int(seconds), 86_400))
 
 
 def reconcile_send_consent(
@@ -203,13 +152,13 @@ CONSENT_GATE_SQL = """EXISTS (
 )"""
 
 
-class SharedMetricsSender:
+class SharedMetricsSender(MetricsTransport):
     """Sends exported packages, one bounded pass at a time."""
 
     def __new__(cls, store, *args, **kwargs):
         if cls is SharedMetricsSender and store.backend == "postgresql":
             from hermes_db.domains.metrics.postgres.sender import PostgresMetricsSender
-            return object.__new__(PostgresMetricsSender)
+            return PostgresMetricsSender(store, *args, outcome_factory=SendOutcome, **kwargs)
         return object.__new__(cls)
 
     def __init__(
@@ -223,15 +172,8 @@ class SharedMetricsSender:
         max_attempts: int = MAX_ATTEMPTS,
         consent_check=None,
     ) -> None:
-        self._store = store
-        self._endpoint = endpoint
-        self._post = post
-        self._sleep = sleep
-        self._now = now
-        self._max_attempts = max_attempts
-        # Called before every package. None disables the check for callers that have
-        # already established consent out of band (tests, E2E).
-        self._consent_check = consent_check
+        super().__init__(store, endpoint, post=post, sleep=sleep, now=now,
+                         max_attempts=max_attempts, consent_check=consent_check, outcome_factory=SendOutcome)
 
     @contextmanager
     def _write(self):
@@ -342,13 +284,6 @@ class SharedMetricsSender:
 
     # -- transmission ------------------------------------------------------
 
-    @staticmethod
-    def _body(payload_json: str, transmitted_id: str) -> bytes:
-        """Rebuild the exact bytes to send: deterministic json.dumps of the stored package
-        with install_id from the frozen ``sent_install_id`` column (resends are byte-identical)."""
-        payload = dict(json.loads(payload_json))
-        payload["install_id"] = transmitted_id
-        return json.dumps(payload, indent=2, sort_keys=True).encode("utf-8")
 
     def _mark(self, package_id: str, *, token: str | None = None, **columns) -> None:
         """Write send state for one package.
@@ -400,116 +335,11 @@ class SharedMetricsSender:
             logger.warning("Unable to renew shared-metrics claim", exc_info=True)
             return False
 
-    def _defer(
-        self, package_id: str, delay_seconds: int, reason: str, *, token: str | None = None
-    ) -> None:
-        # Clamp to >= 1s so a past deadline can never make the row instantly re-eligible.
-        retry_at = self._now().timestamp() + max(1, int(delay_seconds))
-        self._mark(
-            package_id,
-            token=token,
-            send_state="pending",
-            next_attempt_at=_isoformat(datetime.fromtimestamp(retry_at, tz=UTC)),
-            last_error=reason[:500],
-        )
 
-    def _send_one(self, package: dict) -> str:
-        """Try one package. Returns 'sent', 'rejected', or 'deferred'.
 
-        Delivery is at-least-once: renewal plus token-fenced writes close the claim->POST
-        and settle-after-reclaim gaps, but a suspension MID-POST can still duplicate.
-        """
-        package_id = package["package_id"]
-        token = package.get("claim_token")
-        body = self._body(package["payload_json"], package["derived"])
-
-        def defer(delay: int, reason: str) -> str:
-            self._defer(package_id, delay, reason, token=token)
-            return "deferred"
-
-        for attempt in range(1, self._max_attempts + 1):
-            # Renew before EVERY external POST so a lapsed claimant yields even before anyone
-            # reclaims. The ingest key is minute-prefixed: duplicates are distinct objects.
-            if not self._renew_claim(package_id, token):
-                logger.info(
-                    "Shared-metrics claim on %s superseded or expired; yielding", package_id
-                )
-                return "deferred"
-            try:
-                response = self._post(self._endpoint, body, timeout=REQUEST_TIMEOUT_SECONDS)
-            except Exception as exc:  # transport failure: offline, DNS, TLS
-                reason = f"{type(exc).__name__}: {exc}"
-            else:
-                if response.status == 202:
-                    self._mark(
-                        package_id, token=token, send_state="sent",
-                        sent_at=_isoformat(self._now()), last_error=None,
-                    )
-                    return "sent"
-                if response.status in _PERMANENT_STATUSES:
-                    logger.warning(
-                        "Telemetry package %s rejected with HTTP %s; not retrying",
-                        package_id,
-                        response.status,
-                    )
-                    self._mark(
-                        package_id, token=token, send_state="rejected",
-                        last_error=f"HTTP {response.status}: {response.body[:400]}",
-                    )
-                    return "rejected"
-                if response.status == 429:
-                    return defer(
-                        _retry_after_seconds(response.retry_after, _FAILURE_BACKOFF_SECONDS),
-                        "rate limited",
-                    )
-                # 5xx and anything unexpected: retryable.
-                reason = f"HTTP {response.status}"
-            if attempt >= self._max_attempts:
-                return defer(_FAILURE_BACKOFF_SECONDS, reason)
-            self._sleep(self._backoff(attempt))
-
-        return defer(_FAILURE_BACKOFF_SECONDS, "attempts exhausted")
-
-    @staticmethod
-    def _backoff(attempt: int) -> float:
-        """1s, 5s, 25s with full jitter."""
-        return random.uniform(0, _BACKOFF_BASE_SECONDS * (_BACKOFF_FACTOR ** (attempt - 1)))
 
     # -- entry point -------------------------------------------------------
 
-    def send_pending(self) -> SendOutcome:
-        """Run one bounded pass, one claim+send at a time, re-checking consent before each
-        send so revoking `send` mid-pass stops the remainder. Never raises."""
-        outcome = SendOutcome()
-        seen: set[str] = set()
-
-        for _ in range(MAX_PACKAGES_PER_PASS):
-            if not self._still_consented():
-                # Reconcile through the single consent writer so the window closes at its
-                # last confirmed moment.
-                logger.info("Shared-metrics sending disabled mid-pass; stopping")
-                self._reconcile(send_enabled=False)
-                break
-            try:
-                package = self._claim_next(self._now(), seen)
-            except Exception:
-                logger.warning("Unable to select shared-metrics packages", exc_info=True)
-                break
-            if package is None:
-                break
-
-            seen.add(package["package_id"])
-            if package.get("skip"):
-                # Unusable row already marked rejected during the claim.
-                result = "rejected"
-            else:
-                try:
-                    result = self._send_one(package)
-                except Exception:
-                    logger.warning("Unable to send shared-metrics package", exc_info=True)
-                    result = "deferred"
-            setattr(outcome, result, getattr(outcome, result) + 1)
-        return outcome
 
     def _reconcile(self, *, send_enabled: bool) -> None:
         """Run the single consent writer from within a pass."""
@@ -519,14 +349,6 @@ class SharedMetricsSender:
         except Exception:
             logger.warning("Unable to reconcile shared-metrics consent", exc_info=True)
 
-    def _still_consented(self) -> bool:
-        """Re-read profile-owned send consent: docs promise ``send: false`` stops transmission
-        immediately, and a pass can run for minutes."""
-        if self._consent_check is None:
-            return True
-        try:
-            return bool(self._consent_check())
-        except Exception:
-            # Fail CLOSED: if consent cannot be established, do not transmit.
-            logger.warning("Unable to confirm shared-metrics send consent; stopping", exc_info=True)
-            return False
+
+    def send_pending(self) -> SendOutcome:
+        return super().send_pending()

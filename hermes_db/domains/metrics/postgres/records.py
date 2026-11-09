@@ -39,7 +39,7 @@ def install_id(conn, store):
     return result
 
 def increment(conn, store, metric, dimensions, resource, period, amount=1):
-    from hermes_cli.observability.shared_metrics import _compact_json
+    from hermes_db.domains.metrics.policy import _compact_json
     data = dict(period_start=period, metric_name=metric, dimensions_json=_compact_json(dimensions), **resource, value=amount, packaged_value=0)
     stmt = insert(counters).values(store_id=store.scope.require_store_id(), **values(counters, data))
     conn.execute(stmt.on_conflict_do_update(index_elements=list(counters.primary_key.columns), set_={'value': counters.c.value + stmt.excluded.value}))
@@ -56,10 +56,10 @@ def record(conn, store, metric, dimensions, resource, now, amount=1):
     increment(conn, store, metric, dimensions, resource, now.date().isoformat(), amount)
 
 def once(conn, store, state_key, metric, dimensions, resource, now, *, interval=False, daily=False):
-    from hermes_cli.observability.shared_metrics import SharedMetricsStore, _isoformat
+    from hermes_db.domains.metrics.policy import MetricsPolicy, _isoformat
     previous = get_state(conn, store, state_key)
     if interval:
-        stamp = SharedMetricsStore._parse_state_timestamp(previous)
+        stamp = MetricsPolicy._parse_state_timestamp(previous)
         if stamp is not None and stamp > now:
             set_state(conn, store, state_key, _isoformat(now))
             return False
@@ -76,7 +76,7 @@ def latched(conn, store, prefix):
     return frozenset(name[len(prefix):] for raw in rows if (name := decode_text(raw)).startswith(prefix))
 
 def rollup(conn, store, state_key, update):
-    from hermes_cli.observability.shared_metrics import _compact_json
+    from hermes_db.domains.metrics.policy import _compact_json
     from hermes_cli.observability.shared_metrics_contract import counter_dimensions_are_valid, client_resource_is_valid
     raw = get_state(conn, store, state_key)
     try:

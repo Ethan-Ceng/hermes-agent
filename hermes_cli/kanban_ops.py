@@ -4,6 +4,7 @@
 """
 
 from __future__ import annotations
+from hermes_db.domains.kanban import rules as _storage_shared_1
 
 import argparse
 import json
@@ -88,7 +89,7 @@ def _cmd_dispatch(args: argparse.Namespace) -> int:
             dry_run=args.dry_run,
             max_spawn=max_spawn,
             max_in_progress=max_in_progress,
-            failure_limit=getattr(args, "failure_limit", kbd.DEFAULT_FAILURE_LIMIT),
+            failure_limit=getattr(args, "failure_limit", _storage_shared_1.DEFAULT_FAILURE_LIMIT),
             default_assignee=default_assignee,
             max_in_progress_per_profile=max_in_progress_per_profile,
         )
@@ -254,7 +255,7 @@ def _cmd_daemon(args: argparse.Namespace) -> int:
         kbd.run_daemon(
             interval=args.interval,
             max_spawn=args.max,
-            failure_limit=getattr(args, "failure_limit", kbd.DEFAULT_FAILURE_LIMIT),
+            failure_limit=getattr(args, "failure_limit", _storage_shared_1.DEFAULT_FAILURE_LIMIT),
             on_tick=_on_tick,
         )
     finally:

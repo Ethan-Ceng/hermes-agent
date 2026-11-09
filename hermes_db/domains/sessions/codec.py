@@ -23,7 +23,7 @@ from agent.message_metadata import mint_uid
 from agent.message_sanitization import coalesce_tool_call_id
 import hashlib
 from agent.message_metadata import lift_data_use
-from hermes_state_common import _json_or
+from hermes_db.domains.sessions.rules import _json_or
 from hermes_state_identity import _uid_list
 from agent.message_metadata import TOOL_CALL_UID
 from agent.context_compressor import split_user_originated_turn
@@ -351,7 +351,7 @@ class TranscriptCodec:
         mutable payload while the digest still fences a concurrent winner. ``_row_id`` is opt-in (gateway
         reactions); reasoning restored on assistant rows only; ``api_content`` VERBATIM (no sanitize/strip)
         so replay keeps the provider prompt cache byte-stable."""
-        from hermes_state import _strip_background_review_harness, _strip_stale_tool_call_markers
+        from agent.message_sanitization import _strip_background_review_harness, _strip_stale_tool_call_markers
         from agent.transcript_repair import transcript_row_snapshot
         stamp_snapshot = repair_alternation and (not include_row_ids)
         messages = []
@@ -404,10 +404,7 @@ class TranscriptCodec:
             messages.append(msg)
         messages = _strip_stale_tool_call_markers(_strip_background_review_harness(messages))
         if repair_alternation and messages:
-            from agent.agent_runtime_helpers import repair_message_sequence
-            repaired = repair_message_sequence(None, messages)
-            if repaired:
-                logger.info('Repaired %d message-alternation violation(s) while restoring session %s — durable transcript kept them, see repair_message_sequence', repaired, session_id)
+            _repair_replayed_conversation(messages, session_id)
         return messages
 
     @staticmethod
@@ -487,3 +484,31 @@ class TranscriptCodec:
             markers += (cfg.get('_reset_from'),)
         parent_id = session.get('parent_session_id')
         return parent_id in markers if parent_id else any(m is not None for m in markers)
+
+from hermes_cli.timefmt import coerce_epoch
+
+def _coerce_timestamp(value: Any, default: float) -> float:
+    """Explicit message timestamp (datetime or number) or *default* when invalid or outside the sane
+    epoch window — the write-side twin of the readers' ``coerce_epoch``: a bad row is never persisted."""
+    result = coerce_epoch(value, field="message timestamp")
+    if result is None:
+        return default
+    # SQLite reads both signed zero spellings back as 0.0. Hash the value
+    # in that stored form so -0.0 and 0.0 retain the historical SQL/Python
+    # identity equality.
+    return 0.0 if result == 0.0 else result
+
+def _tool_calls_count(tool_calls: Any) -> int:
+    return 0 if tool_calls is None else (len(tool_calls) if isinstance(tool_calls, list) else 1)
+
+def _tool_calls_len(raw: Any, scalar: int = 0) -> int:
+    """Count of a stored ``tool_calls`` column: list length, *scalar* for a truthy non-list, else 0."""
+    parsed = _parse_tool_calls(raw)
+    return len(parsed) if isinstance(parsed, list) else (scalar if parsed else 0)
+
+
+def _repair_replayed_conversation(messages, session_id):
+    from agent.agent_runtime_helpers import repair_message_sequence
+    repaired = repair_message_sequence(None, messages)
+    if repaired:
+        logger.info('Repaired %d message-alternation violation(s) while restoring session %s — durable transcript kept them, see repair_message_sequence', repaired, session_id)

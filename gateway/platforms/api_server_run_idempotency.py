@@ -1,4 +1,5 @@
 """Durable idempotency reservations for API server runs."""
+from hermes_db.domains.runtime.receipts import API_RUN_TERMINAL_STATUSES as TERMINAL_STATUSES, CLOSED_RUN_FINGERPRINT as _CLOSED_FINGERPRINT, encode_run_status as _encode_status, run_identity_record as _record
 
 import hmac
 import json
@@ -18,9 +19,7 @@ from hermes_cli.sqlite_util import add_column_if_missing
 # Keep the extracted store's log records on the API server logger.
 logger = logging.getLogger("gateway.platforms.api_server")
 
-TERMINAL_STATUSES = frozenset({"completed", "failed", "cancelled", "interrupted"})
 # A key closed by ``find_or_close``: no request body hashes to it, so it never replays as a run.
-_CLOSED_FINGERPRINT = "closed"
 
 _SELECT_BY_KEY = (
     "SELECT fingerprint, run_id, status_json, owner_pid, owner_started, updated_at "
@@ -39,14 +38,8 @@ _MIGRATIONS = {
     "acknowledged_at": "REAL"}
 
 
-def _encode_status(status: dict[str, Any]) -> str:
-    return json.dumps(status, sort_keys=True, separators=(",", ":"))
 
 
-def _record(run_id, status_json, owner_pid, owner_started, updated_at) -> dict[str, Any]:
-    return {
-        "run_id": run_id, "status": json.loads(status_json), "owner_pid": int(owner_pid or 0),
-        "owner_started": int(owner_started or 0), "updated_at": float(updated_at or 0)}
 
 
 def _outcome(row, fingerprint):

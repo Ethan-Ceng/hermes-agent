@@ -6,8 +6,8 @@
 - 全量归属：[398项基准映射](../designs/hermes-db-package-map.json)。
 - 文档分支：`docs/hermes-db-package-layout`；实施分支：`refactor/hermes-db-packages`。
 - 源码基准：`cbfc773dd7`，运行实现等价`0d69702244`。
-- 整体状态：`IMPLEMENTING`；当前阶段：第二阶段规则/组件/工作流收敛；当前任务：Task16（pending）；完成：15 / 18。
-- 本轮已建立独立实施检出并完成Task1–15；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
+- 整体状态：`IMPLEMENTING`；当前阶段：第二阶段规则/组件/工作流收敛；当前任务：Task17（pending）；完成：16 / 18。
+- 本轮已建立独立实施检出并完成Task1–16；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
 - 核心设计待决策：无；Task1隔离PM与PG基线已通过，Matrix实际SDK已由Task6新环境核对并实测。原统一后端Task24及七项非WSL缺证独立保留。
 - 更新时间：2026-11-10（Asia/Shanghai）。恢复位置：`D:/AI/hermes-db-packages`；从首个in_progress任务继续，不重跑整轮数据库选型。
 
@@ -75,6 +75,7 @@ PG选项只用于tests/hermes_db下已注册该选项的文件；其他目录Nat
 | 2026-11-10 | IMPLEMENTING | Task13 Runtime10 Mixin→五显式组件，13/18；419→415；Native504、PG43及15静态通过 |
 | 2026-11-10 | IMPLEMENTING | Task14 Kanban52→17工作流，14/18；415→378，净少于原398；Native536+Linux24、PG104及15静态通过 |
 | 2026-11-10 | IMPLEMENTING | Task15 Room/附件32→九组，15/18；378→351；Native529+Linux附件24、PG109及15静态通过 |
+| 2026-11-10 | IMPLEMENTING | Task16依赖/归属闭合，16/18；365模块、根11，Native618+Linux11、PG45、16项静态与插件边界通过；最终冻结验证待Task17 |
 
 ## 方案准备自检
 
@@ -1033,12 +1034,12 @@ bash scripts/run_tests.sh tests/hermes_db/postgresql/test_room_attachment_concur
 - Linux `bash scripts/run_tests.sh tests/gateway/test_hosted_room_attachments.py -j 1 --file-timeout 1200 -- --tb=short`，exit0、完整1文件24passed/0failed/0skip，20.7秒（task15-native-linux.log），验证Windows symlink缺证的真实宿主正向路径。
 - 上述PG22文件命令exit0、109passed/0failed/0skip，328.0秒（task15-pg.log）；当前源码exact/superseded grant、held期限、disband/purge后债务、任务/策略/晚到恢复、附件并发故障和merge消费者均通过。随机Schema归属由fixture检查，未操作正式数据或PG服务/扩展/角色。
 - `PM Python -X utf8 scripts/check --staged --base cbfc773dd7` exit0，15checks通过，health591文件0blocking/0advisory，137.1秒（task15-check.log）；无新豁免。最终元数据更新后对整个Task15差异执行空白检查exit0。
-- 恢复点：本Task本地提交，标题`refactor(storage): consolidate room and attachment persistence`；下一Task16。忽略目录task15-virtual.json、groups、probe、audit与原始日志保留；apply非幂等。
+- 恢复点：本地提交`9ebe26513d`，标题`refactor(storage): consolidate room and attachment persistence`；下一Task16。忽略目录task15-virtual.json、groups、probe、audit与原始日志保留；apply非幂等。
 - 未验证：Task16依赖闭环、Task17最终全DB/SDK/独立载荷及Task18独立审查；原统一Task24与七项非WSL缺证仍独立保留。
 
 ## Task 16：关闭依赖例外与全量归属核对
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -1085,11 +1086,162 @@ Invoke-PgCases -Files @('tests/hermes_db/postgresql/test_surface_flow.py', 'test
 
 ### 执行结果
 
-未执行。
+已完成本Task依赖/归属收口及局部验证；下列阶段检查点保留真实实施历史，最终完成记录见本Task末尾。完整冻结验收仍属Task17。
+
+- 已移除 PG metrics Store、Worker metrics、PG sender 和 PG room router 对完整 Native 类的继承；实际共用代码分别归入 metrics/policy、package_exports、sending 及 tui_gateway/hosted_room_router_lifecycle。SendOutcome 的定义仍在原公共模块，通过真实构造器传入；Native sender 保持公开返回注解。审计补回 Worker 原有 consented_day/create_and_export_package 的相同拒绝语义。
+- Session 原 resume/export 配置解析与原公共错误构造器从 integration/session_composition 注入共享 SessionContext；Projects 原 Project/ProjectFolder 定义不动，通过 ProjectResource 注入 DTO 构造器与原时钟读取点。
+- Runtime 的13个公共值/纯投影、24个本地/终态回执及 mutation 校验定义提取到实际共享 owner；Native SQL 方法不搬迁。RuntimeStoreError/SessionGoneEvent 与13个 Room 公共错误仍由原公共路径导出同一实际类型，保留原 __module__/pickle 身份。没有双份异常。
+- Room 68个实际限额/校验/投影定义与10个通用纯叶子定义归入 rooms/rules；安装身份读取由 RoomResource 的具体回调在 integration 组合。policy sync 直接调用带原 scope 的 PG read_events，不回绕 Native 门面。
+- 纯 transcript 历史修复移到 Agent 现有 message_sanitization；消息时间戳/工具调用计数归现有 Session codec，JSON 解码归 Session rules。直接 import、模块别名中的私有读取点和测试 patch 点随实际定义更新。
+- 新增8个 hermes_db 具体 owner 已登记；当前 Python 模块359，根11，较398源净减39。原398项归属无遗漏；两个旧空技术 namespace 仍待全部依赖闭环时删除。metrics/export.py 被既有 export* 忽略规则命中，已在写入发行映射前改名 package_exports.py，不依靠强制加入忽略产物。
+- 仍须完成：Kanban 私有门面耦合、Room 其余 policy/context/replica 等 helper、Session/Runtime 剩余共享规则与跨域能力核对；精确依赖检查、活跃文档/skills/AGENTS、插件 boundary 项审议、61锚点及最终归属审计、全部受影响验证。未执行静态门禁，不得标记完成。
+
 
 ### 验证证据
 
-未执行；实施时记录实际解释器/源码commit、展开命令、退出状态、计数、日志、未验证项和恢复commit。
+阶段性实际命令/结果（所有原始日志在忽略目录，不含待提交秘密；本 Task 后续修改后仍需最新复验）：
+
+Windows 绑定 HERMES_HOME=.build/package-layout/profile、HERMES_RUNTIME_DIR=.build/package-layout/runtime、HERMES_PYTHON=.build/package-layout/test-env/Scripts/python.exe、PYTHONPYCACHEPREFIX=.build/package-layout/runtime/pycache-tests、HERMES_TEST_FILE_RETRIES=0。
+
+1. `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_cli/test_relay_shared_metrics.py tests/hermes_cli/test_shared_metrics_sender.py tests/hermes_cli/test_shared_metrics_sender_e2e.py tests/tui_gateway/test_hosted_room_router.py tests/tui_gateway/test_hosted_room_router_authority.py -j 2 --file-timeout 1200 -- --tb=short`：exit0，5文件196通过/1 POSIX skip，48.9s；task16-metrics-router-native.log。
+2. 真实 Ubuntu-26.04 使用 linux-state.json 的 PM Python3.14.9/独立 home/runtime/cache；`env ... bash scripts/run_tests.sh <task16-metrics-router-pg-files.txt列出的16文件> -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`：exit1，41通过/1失败，192.3s；task16-metrics-router-pg.log。失败为 Worker root late 日期回放：Worker 仍读旧 Native 时钟；已改到与 PG 记录/打包相同的实际 policy 时钟，未隐藏失败。
+3. 同 Linux 环境 runner，8文件为 surface_flow、plugin_storage、merge_storage_contracts、merge_collaboration_consumers、projects_store、worker_metrics_root、metrics_faults、metrics_store，完整参数同上：exit0，51通过/0skip，159.4s；task16-core-pg.log。包含修复后的 Worker root 四种场景。该证据早于后续纯值/Room 抽取，不能冒充最终重构验证。
+4. Windows `scripts/run_tests.sh tests/hermes_db/contracts tests/hermes_cli/test_projects_db.py tests/tui_gateway/test_groups_methods.py tests/hermes_state/test_background_review_session_isolation.py tests/hermes_state/test_stale_tool_call_marker_session_repair.py -j 2 --file-timeout 1200 -- --tb=short`：exit1，94文件524通过/2失败/35 errors/4skip，773.0s；task16-core-native.log。执行中新增 Runtime values 首次漏导入 DATA_USE，影响 profile_moves、sessions、retention_selection、message_rewrites、retirement_housekeeping 五文件（后者一次collection error）；已补入并通过拒绝 SQLite 的导入及公共类型身份探针，五文件尚待重新执行，未计完成。
+5. Room 纯定义依赖闭包、Runtime receipts/mutation_rules 自由全局引用预写审计均通过；实际 Room/Runtime 模块在 sqlite3.connect 一律拒绝的进程中导入成功，原公共 Runtime/Room 错误 is 身份与 __module__ 核对通过。机械 AST/SQL/61锚点和最终全量依赖检查仍待完成。
+
+当前无外部环境阻塞；Task16 为 in_progress，不创建阶段性完成 commit，不进入 Task17。原统一后端 Task24 和七项非WSL平台缺证独立保留。
+
+
+
+
+### 后续实施检查点（Task16未完成）
+
+- Kanban 原 Task/Run/Comment/Attachment/Event 与原拒绝类型通过 KanbanValues 注入；DispatchResult/SwarmCreated 也保留原定义并注入，没有复制 DTO。原 pack/unpack/CommandRefusal 通过 KanbanCodec 注入，SQL 回执不导入上层转换模块；Gateway owner RPC 拒绝消费者已同步新参数。
+- 现有绕经 Native 分发表的调用改为14个明确 Board 方法，保留同一 Profile/board_files 作用域；Profile策略、进程、提交后观察者和文件四组具体应用能力共享捕获的 DatabaseScope，只有实际消费者，无完整 Native 服务、getattr代理或通用CRUD。
+- Kanban SQL 工作流已无 Native kanban_db/sibling、上层工厂、owner/观察/迁移协调器导入。独立 Profile 计数解析在 integration，计数 SQL 仍使用原同一 Connection/scope；文件路径、终态观察、owner引用、import最终化通过具体能力传入。
+- owner 与 generation file scope 合并为 integration/kanban_owner；Worker/RPC协调归 integration/kanban_worker 和 kanban_wire；Board 迁移协调归 integration/transfer/kanban。原 routing 空namespace删除。TaskEvidence/typed_owner_receipt 经实际核对是纯值，合并到域 rules，不保留无职责 integration 壳。
+- 原资源 resource_key、digest、_bytes 算法原样归 core/values，跨域目标摘要编码不变；原 transfer helper 直接消费实际定义。原 Native Profile 标识的7个纯定义归 CLI-owned profile_names，Native公开入口/函数pickle路径保持；Agent业务未搬到数据库层。
+- 当前398源归属集合与全部新 owner 精确吻合，Python358、root11，较398净减40；仍有两个旧空技术namespace待最后清理。Task16无本地完成commit，恢复提交仍9ebe26513d。
+
+新增实际验证与失败记录（均为阶段证据，后续代码修改后仍需最新复验）：
+
+- task16-shared-native.log：原列表 task16-shared-native-files.txt 的84文件，exit1，759通过/2失败/5collection errors/6skip，431.3s。Root cause为一处 Discussion 模块别名仍读旧common.identifier；当前实际读取点已迁移。六失败文件以规定 runner 重跑：task16-room-retry-native.log，exit0，59通过/0skip，45.7s。原DATA_USE影响五文件均在84文件批次通过。
+- task16-shared-pg.log：task16-shared-pg-files.txt 的25文件，exit1，112通过/3失败/1collection error，351.3s。三失败是测试仍patch旧Native配额读取点，collection是同一common别名遗漏。四文件第一次复验 task16-room-retry-pg.log：18通过/1collection error，48.2s；该错误是混合import补入quota owner时误带Gateway driver，已恢复独立driver导入；随后10文件批次的room_coordination通过。
+- task16-values-native.log：5文件，exit1，280通过/8失败/5skip，63.5s。8项均在扩展的完整test_profiles.py；Task15独立无.git源码载荷 profile-base-9ebe26513d 已核对模块真实导入来源，使用同PM Python和隔离home/cache复跑 task16-profile-base-windows.log：exit1，99通过/同一8失败/4skip，45.8s；自动比对失败ID集合精确相同。当前真实Linux完整Profile套件 task16-profile-linux.log：exit0，108通过/3skip，52.8s。Windows命名/校验本身通过；8项现有平台/链接权限问题单列，未改标记、未拿Linux结果覆盖非WSL缺证。
+- task16-values-pg.log：10文件，exit1，35通过/3失败，140.1s。两项Kanban任务ID冲突测试仍patch旧生成器，已迁到实际rules；一项Gateway owner RPC漏传新拒绝转换器参数，已补齐。未用放宽断言掩盖。
+- task16-kanban-pg.log：30文件，exit1，14通过/26collection errors，64.6s；task16-kanban-native.log：93文件，exit1，547通过/1失败/1collection error/4skip，442.4s。共同原因为共享DEFAULT_FAILURE_LIMIT导入位置晚于原函数默认参数求值；已提前到future import之后，全新进程冷导入且SQLite全拒绝探针通过。
+- 当前 task16_kanban_probe.py：全部具体PG owner、原DTO、无I/O构造、捕获scope及所有函数自由全局引用通过，SQL查询不反向导入上层服务。预写guard另找出两个无owner helper（提交后terminate、归档metadata），已显式传owner；路径检查用同一捕获home/board_id，不依赖删去的临时frame。
+- 正在运行：task16-kanban-recheck-pg.log（同30文件）、task16-native-import-recheck.log（single_backend + Kanban CLI）。必须获取真实退出码/汇总后记录，不计完成。
+
+下一恢复：保持Task16 in_progress，先收取上述正在运行结果；继续Session/Runtime剩余共享规则、Room其余policy/context/replica helper和构造边界；完成精确依赖lint、61锚点/接口/语义审计、活跃文档/skills/AGENTS、两旧namespace清理，再运行当前源码匹配的Task16静态与业务验证。不得跳到Task17、不得把已知失败批次冒充通过。原统一Task24及七项非WSL缺证仍独立保留。
+
+
+### 共享规则与 Room 组合检查点（Task16仍未完成）
+
+- 已取得前一检查点真实退出码：task16-kanban-recheck-pg.log exit1，30文件113通过/3失败，372.2s；task16-native-import-recheck.log exit0，2文件13通过/1skip，10.3s。3项PG失败均为消费者读取点：两处确定任务ID的旧patch、一处归档故障注入缺显式owner参数。已同步所有同类PG任务ID patch及domain_maintenance的归档注入签名，不弱化断言。
+- Session20项状态/预览/结束原因及prompt键共享定义归既有rules；rewind的8项算法/原公开DTO、错误归sessions/rewind，原公开类路径与对象身份保留。随后23项Session/Runtime纯字段、路由/退役/Worker回执标记及校验归既有values/receipts/mutation_rules/rules/search_rules；Native SQL未移动，没有为这些常量新增模块。
+- Room经逐定义闭包审查，将161项实际校验/限额/DTO及必要纯依赖归rooms/rules、driver_rules、replication_rules、authority_rules、work_rules与attachments/rules；五个新增owner分别对应任务/租约值、复制页、权威历史、工作证据、附件协议。27个原公开类保持原__module__和同一实际对象，原Native模块仍拥有真实SQL并导入其实际共用值。
+- PG附件不再继承完整Native SQLite Store；原8个内容/提交便捷方法归既有attachments/files的AttachmentContent，两后端真实共用。Native __new__完全构造PG对象，保持初始化顺序；共享内容的导入不加载PG metadata，SQL清理依赖在实际PG清理方法内导入。PG附件及Policy的资源获取/跨事务协调归integration/room_attachments与room_policy，SQL工作流仍归域。Context更新直接调用同scope的room_state和捕获的安装身份回调。
+- 新Room纯定义全部SQLite连接拒绝的冷导入及自由全局引用审计通过；230个与Task15 AST完全相同的提取定义恢复原源文本（包括WHY注释），其余仅实际import/别名重绑定仍须最终语义核对。未改31 revisions、表定义或历史SQL。
+- 机械改写发现一处新旧_storage_shared_1别名碰撞：gateway/hosted_room_work_records.py把_task_payload错误绑定到rooms/rules。全仓库AST审计仅此1处，已具名改成_driver_values；离线生成器补上import绑定保留集，避免重犯。不是业务规则修复，未新增万能运行时代理。实际setattr故障读取点另同步6个现有测试消费者。
+
+实际命令与结果：
+
+- Windows隔离环境与runner参数同Task16前述，文件清单task16-room-new-native-files.txt的39文件：task16-room-new-native.log，exit1，283通过/62失败/8errors/3skip，190.6s。共同实际异常为上述别名碰撞；未计通过，修复后正在task16-room-fixed-native.log复验42文件（另含work_evidence、discussion_manifests、TUI groups）。
+- Linux独立PM/随机Schema的同一既有命令（`env ... bash scripts/run_tests.sh <task16-room-new-pg-files.txt的24文件> -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=<既有私有配置>`）：task16-room-new-pg.log，exit1，120通过/1失败/0skip，308.1s。前次3项Kanban失败均已通过；仅Room evidence容量测试patch旧MAX_BYTES，已同步实际work_rules。首次枚举Windows路径未规范化导致runner exit2，未运行测试；已改为正斜线并取得以上真实业务结果。
+- 正在复验：task16-room-work-fixed-pg.log的test_room_work.py，标准runner/同隔离Schema参数。必须获取真实退出码和汇总后记录。
+- task16_room_probe.py冷进程：所有Room模块及Session/Runtime当前共享owner导入成功、自由全局名0缺失、sqlite3.connect一律拒绝。该检查不代替业务测试或独立发行。
+
+恢复点仍9ebe26513d；所有以上为未提交Task16工作。当前无外部环境阻塞。尚须关闭Session/Runtime应用所有权/跨域回调、逐符号审议其余Agent/SDK依赖、精确依赖lint与插件baseline迁移、活跃引用和最终归属/61锚点、当前源码静态和业务复验；两个空技术namespace尚未删除。未进入Task17，未宣称最终验收。原统一Task24及七项非WSL缺证独立保留。
+
+
+### Session 所有权/生命周期收口检查点（Task16仍未完成）
+
+- SessionContext现有捕获范围中注入HistoryOwnership四个实际比较/分类函数，以及SessionEffects四个真实提交后/跨Profile操作；原Native实现和Gateway的OS/login/catalog语义不搬进SQL域。canonical删除/历史claim/Worker reservation/Bot roster/导入父关系沿同Connection和scope显式传入所需比较器。Gateway authorize_core、history_binding_names及跨Profile adoption消费者已同步，不设ambient回退。
+- 原纯ImportValues及列策略归sessions/import_rules；实际当前转录导入SQL归sessions/postgres/operations/imports，原bulk retention SQL归operations/retention。跨Profile文件清理归integration/media_retirement，经原生命周期调用时序注入；profile purge及on_session_delete同样由组合边界提供具体回调。新增模块数0，SQL、锁、回执及日志算法不变。
+- Room authorize_room同时用于Room资源和Gateway持有的Session资源，不能假设store有Room专有字段。已改为调用者显式传入same_owner；Gateway在原持有Connection处传同一公共比较函数。删除无实际消费者的RoomResource.same_owner字段，没有给Session Store扩张公共方法。
+- 全仓库显式函数调用核对：23个已解析实际调用点，必要回调缺漏0；156个Session/Runtime/Room及组合owner在全新SQLite连接全拒绝进程中导入/自由全局名均0错误；两个Store组合共享同SessionContext，构造未调用数据库，effects持有同一原Profile对象。
+- 第一次现有静态预检`python scripts/check --base cbfc773dd7 --only health,ruff`（绑定Windows隔离home/runtime/cache，PM Python）exit1，714文件、8 blocking/0 advisory，120.0s。记录了漏Native常量import、重复/未使用绑定及codec方法CC21；已逐项修正。原转录修复日志阶段抽成同模块具名函数，原谓词、修复调用和日志文本/位置时序保持；该方法CC降到20，没有waiver压过门禁。
+
+本检查点实际验证：
+
+1. task16-room-fixed-native.log：42文件，exit1，385通过/9失败/3skip，218.1s。前述生产别名碰撞已消除；9项为setattr跨后端迁移过宽，Native SQL仍读其本模块绑定，已恢复4个Native测试文件的实际读取点；PG保持共享规则读取点。
+2. task16-room-work-fixed-pg.log：同标准Linux隔离PM/随机Schema命令，单文件test_room_work.py，exit0，6通过/0skip，25.6s。
+3. task16-context-native.log：标准runner运行task16-context-native-files.txt所列路径（contracts目录展开，共98文件），exit1，650通过/6失败/4skip，652.1s。4失败为Native import列策略漏import，2失败为Gateway直接调用新history query时漏传ownership。已修正；其余95文件通过，包含前次4个Native Room失败文件。不是最终冻结验证。
+4. task16-context-pg.log：标准Linux命令运行task16-context-pg-files.txt的12文件，exit1，151通过/5失败/0skip，367.9s。2项为测试重开Store误加ownership参数，3项为Room授权把Session Store当成Room资源；已恢复正确构造调用并显式传比较器。离线审计另外找出import_current父关系和history_binding_names消费者缺参数，均已补齐。
+5. 修正后Native标准runner重跑portability/session_controls/gateway_authority：task16-context-fixed-native.log，exit0，3文件20通过/0skip，21.8s。
+6. 修正后PG标准runner重跑surface_flow/merge_storage_contracts/merge_collaboration_consumers/room_coordination：task16-context-fixed-pg.log，exit0，4文件32通过/0skip，88.3s。
+7. 同一现有静态命令复验：task16-precheck-fixed.log，exit0，ruff+health共2 checks通过，714文件、0 blocking/0 advisory，107.4s。其余13项与新增边界lint仍待Task16最终执行；不把2项预检冒充15项完整门禁。
+
+当前364个hermes_db Python模块、根11；398源及新增owner集合精确吻合，两个旧空namespace仍待最终清理。恢复commit仍9ebe26513d，Task16没有完成commit。余项为Gateway/Worker实际私有依赖的纯规则/具体组合、精确依赖lint/插件baseline迁移、活跃文档与最终61锚点/接口/源码匹配验证。无外部环境阻塞，不进入Task17。原统一Task24及七项非WSL缺证继续独立保留。
+
+
+### Gateway纯值、检索与Worker指标检查点（Task16仍未完成）
+
+- 23项实际API run状态/身份编码、API generation、deferred pick、委托闭合载荷校验和automation投影归现有Runtime values/receipts；Source taxonomy与admission media纯投影归现有Gateway session_contract，Agent/Gateway业务没有整体搬入DB。字面字段、哈希分隔符和回执键未改，无新增模块。Room PG任务默认参数也改读实际driver_rules，消除仅默认参数残留的完整Native导入。
+- 针对Task1待审议的“纯模块”实际读函数：kanban_respawn_policy仍late-import Native配置/dispatch，不能整模块豁免。PG改调用捕获Profile的两个具名策略能力，原查询/调用顺序保持；Native代码原样使用原策略。Swarm plan原late-import的纯文本验证实际提取到既有kanban/rules，现有CLI-owned纯plan继续复用，无完整Native服务引用。
+- PG backend/search实际只依赖会话表、Session查询与投影，已逐字移动到sessions/postgres/support/search。生产与两个测试直接读取点同步，模块正文（包括SQL/算法/注释）字节相同；清除基础设施反向依赖业务域，模块数不增。
+- Worker指标prepare_policy和跨Profile membership协调归integration/worker_metrics，RuntimeContext注入原闭合handler工厂；配置预读、handler构造仍在receipt事务前，计数SQL继续复用原Connection/scope；Root先提交再Source CAS删除的算法/顺序未改。Gateway drain和测试fault patch同步实际owner。没有把通用接口或整个Native Store塞进Context。
+- 进程/PID/birth验证从PG操作移到integration/authority_access的verify_worker_delegation_owner；Gateway仍在原借Connection前的位置调用。原VerifiedDelegationOwner纯DTO归Runtime values，原__module__和SQL handlers实际isinstance所用对象保留。Session近期消息摘要分类由原Agent方法的具体回调注入，Agent业务仍由Agent拥有。此最后一小组正在业务/静态复验。
+
+已取得的实际结果：
+
+1. task16-gateway-values-native.log：标准Windows runner，task16-gateway-values-native-files.txt的11文件，exit1，157通过/1失败/1skip，134.0s。唯一失败为test_session_policy的Windows原始路径直接对JSON文本做子串比较（反斜杠编码），未改不相关断言。Task15独立无.git载荷profile-base-9ebe26513d已先断言真实导入来源，再同PM/独立home/runtime运行同一单例：task16-policy-base-windows.log，exit1，同一失败ID，0通过/1失败、22 deselected，runner33.6s。当前真实Linux完整test_session_policy.py：task16-policy-linux.log，exit0，23通过/0skip，134.5s。该已复现基准问题与此前Windows Profile八项及原七项非WSL缺证分开保留，未以Linux清除Windows缺证。
+2. task16-gateway-values-pg.log：标准Linux runner，task16-gateway-values-pg-files.txt的6文件，exit0，50通过/0skip，134.6s。
+3. task16-gateway-values-check.log：同现有`python scripts/check --base cbfc773dd7 --only health,ruff`，exit0，717文件0 blocking/0 advisory，116.5s，2 checks通过；仍不是全量静态门禁。
+4. task16-worker-metrics-native.log：标准Windows runner，mixed_root/workers/search三个文件，exit0，14通过/0skip，11.8s。但mixed_root文件属于integration，默认选择没有执行其测试，不把它算作混合后端验证。
+5. task16-worker-metrics-pg.log：同标准Linux命令，task16-worker-metrics-pg-files.txt的6文件，exit1，18通过/0失败/1collection error，136.1s。只有test_worker_metrics_root的父包from-import漏改（不含连续完整旧模块字符串）；已改真实owner，补做全仓库AST解析父包import审计，而非只搜索完整字符串。单文件复验task16-worker-root-fixed-pg.log：exit0，4通过/0skip，21.4s。
+6. 显式单独选择混合Profile合同：标准Linux runner对`tests/hermes_db/contracts/test_worker_metrics_mixed_root.py -m integration`并传同私有PG配置，task16-mixed-root-selected.log，exit0，1通过/0skip，9.0s。随机PG satellite + 临时SQLite root，既有audit验证SQLite连接只属于明确SQLite root。此独立混合模式合同不计入Task17 PG全进程零SQLite验收。
+7. task16-worker-metrics-check.log：同2项现有静态预检exit0，717文件0 blocking/0 advisory，90.3s。
+8. 全部原始/第一阶段/中间模块映射离线解析（区分仍有效的同名包）：478个已删除模块搬移，实际Python import/父包from-import/精确动态字面量残留0；task16-obsolete-module-imports.json。159个当前Session/Runtime/Room与实际integration owner冷进程SQLite全拒绝，导入/自由全局名0错误、同Context及无DB构造检查通过；task16-worker-identity-probe.log。此为结构审计，不冒充最终全业务验证。
+
+插件边界说明与实际检查：
+
+- 初次`scripts/boundary_lint.py --check`报告Kanban dashboard机械改写带入rules模块及_safe_attachment_name两条新目标，exit1。插件已有Native kanban_db导入仍有真实存储/DTO消费者，两个原helper绑定也仍由Native SQL实际使用；没有必要为这个现有Native消费者添加DB私有依赖。已精确恢复该文件原Native读取点（与Task15该文件无diff），不是重建旧内部模块shim。
+- 复验task16-plugin-boundary-fixed.log：exit0，module_to_core847、core_to_module26，无新穿越。未使用--update；Task16未改boundary_lint_baseline.json或plugin_api.json，也未新增公共API。第一阶段既有DB路径迁移保持原已提交审议。
+
+当前159模块冷探针后的一小组正在运行：task16-worker-identity-native.log（委托回执/bridge、remaining_read_maintenance）、task16-worker-identity-pg.log（workers/sessions）、task16-worker-identity-check.log（ruff/health）。必须取得真实退出码/结果后继续记录。当前仍364个DB Python模块、root11、398源归属闭合；尚未删除两个旧空namespace。
+
+恢复commit仍9ebe26513d；Task16在进行，无环境阻塞。尚须完成残余Routes/Media/Delivery/Worker codecs应用依赖及逐符号台账、实际依赖lint接入、活跃文档/skills/AGENTS、两空namespace与最终61锚点/接口/源码匹配验证和全量静态；不得提前完成Task16或进入Task17。原Task24及七项非WSL缺证独立保留。
+
+### 媒体/Cron/依赖门禁与最终归属检查点（Task16仍未完成）
+
+执行结果：
+
+- SessionRouting 的实际分支/重置值与 messaging_platform 分类、Worker自动化State编码由integration在原操作点解析；required callback 调用审计覆盖32处、缺失0。Runtime媒体操作获得两项具体能力：在原绑定scope中解码 admission media，以及原 API inline-image compaction。held_media_paths 实际应用协调移入integration/media_retirement；候选持久化、退役ledger、锁与Connection仍由域内SQL持有，没有换文件根、放松校验或提前执行回调。
+- Gateway delivery_rules 保存实际纯重试/限额/可见标记和死目标分类定义；Native与PG消费同一实现，SDK错误分类仍按原时机调用。VerificationEvidence、时钟及保留限额为实际共享值，DTO的原 __module__ 身份不变；Worker/PG选择移至已存在 verification/api，域内SQL不再导入完整Worker服务。自动退役source闭集共享，Native真实class读取点保留。
+- Cron execution/incident/delivery/notepad只消费四类实际能力；原进程ID、活跃投递set+lock、限额、时钟、liveness和post-commit observer保持原拥有者/时序，回调绑定resource拥有的Profile。Retain HTTP/client/thread/profile协调整文件移至integration/retain_transport，PG队列SQL不动。插件baseline仅将既有Retain类目标精确改名，计数仍1，不运行--update、不扩充plugin_api.json。
+- 新增 scripts/hermes_db_boundary_lint.py 与逐consumer+symbol审议表，接入scripts/check的db-boundaries；基础设施禁止选择域/组合、下层域禁止选择factory/integration或完整Native门面。325项实际符号登记共享值/纯规则、Agent语义、基础设施、入口或SQLite桥接理由，无模块前缀通配权限；历史迁移不获得运行时许可。独立小型package合同证明批准LIMIT不能批准同模块SECRET，显式批准也不能绕过依赖方向。
+- 两处旧operations/repositories namespace经AST确认只有历史docstring后删除；398源处置与新增owner精确等于365实际模块，根11、总量净减33、业务模块389→315。61固定锚点无偏移：31revision、versions初始化与28表定义原Git字节保持；tables初始化仍只有Task2 catalog导入调整。REQUIRED_REVISION保持0031_merge_data_repair；未执行数据迁移。
+- 活跃文档指向真实域/组合及lint入口；历史布局文档明确标为旧设计快照，保留旧路径证据。website/docs、skills、optional-skills与所有AGENTS对已删除模块的扫描仅命中已明确标记的历史快照，不将旧命令改写成新执行证据。
+
+实际验证（原始日志仅在忽略目录，以下没有最终Task17验收含义）：
+
+1. task16-routes-codecs-native.log：标准Windows runner，7文件（prepared_mutations、local_creation、gateway_peers、gateway_rekey、worker_compression、worker_metadata、session_controls），exit0，51通过/0skip，43.4s。task16-routes-codecs-pg.log：标准Linux PG runner，4文件（retirement_rewrites、routing、compression_leases、workers），exit0，114通过/0skip，228.9s。task16-routes-codecs-check.log：scripts/check --only ruff,health --base cbfc773dd7，exit0，730文件、0blocking/0advisory，118.2s。
+2. task16-media-delivery-native.log：标准Windows runner，13文件（retirement_housekeeping、retirement_rewrites、retention_selection、profile_moves、prepared_mutations、api_native_media、api_settled_row_retention、delivery_ledger、delivery_ledger_single_connection、delivery_ledger_process_home、retired_media_ownership、verification_evidence及retention），exit0，166通过/0skip，75.9s。
+3. task16-media-delivery-pg.log：标准Linux PG runner，6文件（retirement_rewrites、health_archive_refs、messages、deliveries、managed_verification、verification_store），exit1，119通过/1失败，325.5s。唯一失败为共享合同仍patch Native gateway.delivery_ledger._MAX_ROWS，PG读取点已为delivery_rules；已按实际后端选择patch owner，未改业务断言。task16-cron-delivery-pg.log：标准Linux PG runner，deliveries与Cron四文件复验，exit0，29通过/0skip，74.4s，覆盖修正后的完整deliveries文件及Cron实际协议。
+4. task16-media-delivery-check.log：scripts/check --only ruff,health --base cbfc773dd7，exit0，734文件、0blocking/0advisory，118.4s，早于最新Cron/依赖门禁改动。新lint合同最初3项失败暴露namespace package解析遗漏；实现补认无__init__的实际namespace后，task16-boundary-fixed-native.log标准runner，exit0，4通过/0skip，3.2s。最新方向/Native禁止规则及全仓边界仍需最终复验。
+5. PM Python task16_ownership_anchors.py：398原始处置=365实际，根11，业务模块389→315，61锚点0偏移；audit_session_public.py：原36Mixin的288公开/兼容方法签名0差异；audit_runtime_probe.py：原10Mixin的85签名相同，共享Context/关闭状态有效、构造0事务。无PG业务数据读取或SQL改写。
+
+最新验证补充：
+
+- task16-final-native.log：Windows标准runner，完整contracts、Projects、TUI groups、lint合同及Agent verification两文件，95文件618通过/0失败/4平台skip，432.1s（-j4）。新lint合同实际运行7项；另task16-boundary-final-native.log：独立同runner复验7通过/0skip，4.3s，覆盖裸Native模块、namespace包及core初始化入口不能越界。
+- task16-final-pg.log：Linux标准PG runner，Task16必需四流程加verification_store、managed_verification、worker_domain_receipts、worker_retain_transport，8文件45通过/0skip，214.8s；覆盖最新Retain真实线程与Worker RPC/PG分流。
+- task16-final-check.log：staged全门禁结果打印受Windows GBK编码影响，exit1，未计为静态通过。显式PYTHONIOENCODING=utf-8后的task16-final-check-utf8.log：16项中15项通过，health738文件0blocking/0advisory（141.7s）；唯一footguns为新lint读取JSON未用utf-8-sig，已改兼容BOM读取，未用noqa或豁免。最终全16项复验仍在执行。
+- 扩展离线callback审计包含媒体退役整条链及同模块调用，60处resolved calls、缺失0；旧模块AST审计479条已删除模块映射、直接/父包from-import/精确动态字符串残留0。正式checkout仍无修改；暂存区未包含.env、原始日志或.build。
+
+未验证/恢复点：Task16继续in_progress，恢复commit仍9ebe26513d；最新全部修改未提交。仍须最新受影响Retain/verification用例、完整必需Native与PG四流程、全16项staged静态、插件lint及最后动态引用/导入/身份审计。Task17/18未开始；原统一Task24与七项非WSL缺证独立保留。
+
+### Task16最终完成记录
+
+- 状态completed。398原始源及所有新增模块归属闭合，365实际Python模块、根精确11，总模块净减33，非namespace业务模块389→315；不再保留旧operations/repositories技术namespace或旧内部路径空壳。
+- PG的Native类继承、CLI/Gateway私有门面helper与应用协调已改为实际共享纯定义或integration注入的具体能力；Agent转录语义精确登记，仍归Agent。Session/Runtime共用原scope/Connection/pin/close；公开签名与DTO/错误身份保持。没有通用CRUD、反射代理、双写、数据迁移或新增配置环境变量。
+- 最后验证：Windows 95文件618通过/0失败/4平台skip（432.1s）；真实Linux补验Windows跳过的single_backend、domain_resources、matrix_close三文件，11通过/0skip（23.7s），task16-platform-native-linux.log。四个Windows skip为Linux full SQLite+Matrix业务、POSIX fork、两个Linux Matrix close协议；Linux证据不宣称Windows获得其平台能力。
+- Linux PG必需四流程与最新受影响用例8文件45通过/0skip（214.8s）；Cron/投递另5文件29通过。完整命令/环境与先前失败整改记录见上述检查点，未重用旧686/36/32结果。
+- `PM Python scripts/check --staged --base cbfc773dd7`，PYTHONIOENCODING=utf-8，task16-final-check-fixed.log：exit0，16项全通过，health738文件0blocking/0advisory，140.4s；无新增豁免。`PM Python scripts/boundary_lint.py --check`，task16-final-plugin-boundary.log：exit0，module_to_core847/core_to_module26，既有Retain一条目标仅等量改名、无新跨界。公共plugin_api.json未变化。`git diff --cached --check 9ebe26513d`通过。
+- 结构/接口探针：61锚点0偏移、Schema要求0031不变；Session288/Runtime85方法签名相同，构造0事务、共享关闭状态有效；60处所需回调0缺失；479条已删除模块直接/父包import与动态字面量残留0。活跃指南更新，历史布局明确保留旧快照。
+- 恢复：本Task创建本地提交（父9ebe26513d；精确提交hash由下一Task启动记录补入），工作区为D:/AI/hermes-db-packages，普通分支refactor/hermes-db-packages。正式D:/AI/hermes-agent保持clean，未重启/部署/改Profile、秘密或业务数据。原始日志及.env没有暂存。
+- 未验证项归Task17/18：最终源码冻结后的全域Native/PG、无PG依赖独立安装、真实Matrix PG与旧Schema/双PID/丢ACK恢复、独立审查及整改复验。本Task不是整系统验收；原统一Task24和七项非WSL缺证继续独立开放。
 
 ## Task 17：独立发行、旧Schema与最终业务验证
 
@@ -1214,7 +1366,7 @@ git diff --check
 
 ### 执行结果
 
-- 单元/Native/PG/实际SDK/并发/故障/关闭：Task1–15局部验证已执行并逐项记录；阶段二后最终完整验收待Task17。
+- 单元/Native/PG/实际SDK/并发/故障/关闭：Task1–16局部验证已执行并逐项记录；阶段二后最终完整验收待Task17。
 - Schema：设计要求零变化；旧数据前向/重复升级和0031重开仍须Task17实测。
 - 静态/类型/共享契约/发行：已完成Task的15项静态检查均有证据；最终共享契约/独立发行等仍待Task17。
 - 手工检查：独立checkout内已核对模块、路由、root11和固定锚点；未触碰正式Profile/源码/进程；不替代最终运行验证。
@@ -1232,7 +1384,7 @@ git diff --check
 
 ### 未通过项目与最终状态
 
-实施推进中，当前15/18；局部验证见已完成Task，最终重构验收仍未执行；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
+实施推进中，当前16/18；局部验证见已完成Task，最终重构验收仍未执行；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
 实施后仅可根据真实终态填写本次重构`READY_TO_MERGE / BLOCKED / FAILED`，并与原系统统一后端整体验收状态分别报告。
 
 ### Task5锚点计数说明更正

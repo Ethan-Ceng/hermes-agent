@@ -134,7 +134,7 @@ def hydrate(conn, scope, ids, *, compact=False):
 
 
 def _previews(conn, scope, session_ids):
-    from hermes_state_common import _shape_preview
+    from hermes_db.domains.sessions.rules import _shape_preview
 
     ranked = select(messages.c.session_id, messages.c.preview_text, func.row_number().over(
         partition_by=messages.c.session_id, order_by=(messages.c.timestamp, messages.c.id)).label("position"))

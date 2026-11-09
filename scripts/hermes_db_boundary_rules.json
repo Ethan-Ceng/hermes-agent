@@ -1,0 +1,2929 @@
+{
+  "version": 1,
+  "policy": "Explicit consumer plus symbol grants only. No automatic baseline update. Direction rules apply even to reviewed edges. Historical migration helpers keep their frozen SQL/algorithm; they are outside runtime domain permissions.",
+  "reviews": [
+    {
+      "target": "agent.agent_runtime_helpers.repair_message_sequence",
+      "category": "agent-policy",
+      "reason": "Pure sequence repair passes over provided messages; the existing call passes agent=None and uses no agent state, provider, filesystem or connection.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "agent.context_compressor.LEGACY_SUMMARY_PREFIX",
+      "category": "agent-policy",
+      "reason": "Exact Agent-owned summary/checkpoint marker or transcript human-turn projection; no ContextCompressor service instance, model call or storage method is borrowed. Summary/live-turn classification remains Agent policy.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/support/message_preview.py"
+      ]
+    },
+    {
+      "target": "agent.context_compressor.MODEL_ONLY_DISPLAY_METADATA_KEY",
+      "category": "agent-policy",
+      "reason": "Exact Agent-owned summary/checkpoint marker or transcript human-turn projection; no ContextCompressor service instance, model call or storage method is borrowed. Summary/live-turn classification remains Agent policy.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py",
+        "hermes_db/domains/sessions/postgres/catalog.py",
+        "hermes_db/domains/sessions/postgres/messages.py"
+      ]
+    },
+    {
+      "target": "agent.context_compressor.SUMMARY_PREFIX",
+      "category": "agent-policy",
+      "reason": "Exact Agent-owned summary/checkpoint marker or transcript human-turn projection; no ContextCompressor service instance, model call or storage method is borrowed. Summary/live-turn classification remains Agent policy.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/support/message_preview.py"
+      ]
+    },
+    {
+      "target": "agent.context_compressor._DB_PERSISTED_MARKER",
+      "category": "agent-policy",
+      "reason": "Exact Agent-owned summary/checkpoint marker or transcript human-turn projection; no ContextCompressor service instance, model call or storage method is borrowed. Summary/live-turn classification remains Agent policy.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py",
+        "hermes_db/domains/sessions/coverage.py",
+        "hermes_db/domains/sessions/postgres/operations/transcript_repair.py",
+        "hermes_db/domains/sessions/postgres/support/compression_coverage.py",
+        "hermes_db/domains/sessions/rewind.py"
+      ]
+    },
+    {
+      "target": "agent.context_compressor._MERGED_PRIOR_CONTEXT_HEADER",
+      "category": "agent-policy",
+      "reason": "Exact Agent-owned summary/checkpoint marker or transcript human-turn projection; no ContextCompressor service instance, model call or storage method is borrowed. Summary/live-turn classification remains Agent policy.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/support/message_preview.py"
+      ]
+    },
+    {
+      "target": "agent.context_compressor._MERGED_SUMMARY_DELIMITER",
+      "category": "agent-policy",
+      "reason": "Exact Agent-owned summary/checkpoint marker or transcript human-turn projection; no ContextCompressor service instance, model call or storage method is borrowed. Summary/live-turn classification remains Agent policy.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/support/message_preview.py"
+      ]
+    },
+    {
+      "target": "agent.context_compressor._SUMMARY_END_MARKER",
+      "category": "agent-policy",
+      "reason": "Exact Agent-owned summary/checkpoint marker or transcript human-turn projection; no ContextCompressor service instance, model call or storage method is borrowed. Summary/live-turn classification remains Agent policy.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/support/message_preview.py"
+      ]
+    },
+    {
+      "target": "agent.context_compressor._is_checkpoint_item",
+      "category": "agent-policy",
+      "reason": "Exact Agent-owned summary/checkpoint marker or transcript human-turn projection; no ContextCompressor service instance, model call or storage method is borrowed. Summary/live-turn classification remains Agent policy.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/messages.py"
+      ]
+    },
+    {
+      "target": "agent.context_compressor._is_image_part",
+      "category": "agent-policy",
+      "reason": "Exact Agent-owned summary/checkpoint marker or transcript human-turn projection; no ContextCompressor service instance, model call or storage method is borrowed. Summary/live-turn classification remains Agent policy.",
+      "consumers": [
+        "hermes_db/domains/sessions/coverage.py"
+      ]
+    },
+    {
+      "target": "agent.context_compressor._newest_checkpoint_carrier",
+      "category": "agent-policy",
+      "reason": "Exact Agent-owned summary/checkpoint marker or transcript human-turn projection; no ContextCompressor service instance, model call or storage method is borrowed. Summary/live-turn classification remains Agent policy.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/messages.py"
+      ]
+    },
+    {
+      "target": "agent.context_compressor.history_before_user_originated_turn",
+      "category": "agent-policy",
+      "reason": "Exact Agent-owned summary/checkpoint marker or transcript human-turn projection; no ContextCompressor service instance, model call or storage method is borrowed. Summary/live-turn classification remains Agent policy.",
+      "consumers": [
+        "hermes_db/domains/sessions/rewind.py"
+      ]
+    },
+    {
+      "target": "agent.context_compressor.retryable_user_text",
+      "category": "agent-policy",
+      "reason": "Exact Agent-owned summary/checkpoint marker or transcript human-turn projection; no ContextCompressor service instance, model call or storage method is borrowed. Summary/live-turn classification remains Agent policy.",
+      "consumers": [
+        "hermes_db/domains/sessions/rewind.py"
+      ]
+    },
+    {
+      "target": "agent.context_compressor.split_user_originated_turn",
+      "category": "agent-policy",
+      "reason": "Exact Agent-owned summary/checkpoint marker or transcript human-turn projection; no ContextCompressor service instance, model call or storage method is borrowed. Summary/live-turn classification remains Agent policy.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py",
+        "hermes_db/domains/sessions/postgres/history.py",
+        "hermes_db/domains/sessions/postgres/operations/mutation_transcript.py",
+        "hermes_db/domains/sessions/rewind.py"
+      ]
+    },
+    {
+      "target": "agent.context_compressor.user_originated_turn_view",
+      "category": "agent-policy",
+      "reason": "Exact Agent-owned summary/checkpoint marker or transcript human-turn projection; no ContextCompressor service instance, model call or storage method is borrowed. Summary/live-turn classification remains Agent policy.",
+      "consumers": [
+        "hermes_db/domains/sessions/rewind.py"
+      ]
+    },
+    {
+      "target": "agent.conversation_compression_archive.ABSORBED_ROW_IDS",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/runtime/values.py",
+        "hermes_db/domains/sessions/coverage.py",
+        "hermes_db/domains/sessions/postgres/operations/rewrites.py"
+      ]
+    },
+    {
+      "target": "agent.conversation_compression_archive.MERGED_DURABLE_ROWS",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/coverage.py",
+        "hermes_db/domains/sessions/postgres/support/compression_coverage.py"
+      ]
+    },
+    {
+      "target": "agent.conversation_compression_archive.OWN_ROW",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/coverage.py",
+        "hermes_db/domains/sessions/postgres/support/compression_coverage.py"
+      ]
+    },
+    {
+      "target": "agent.conversation_compression_archive.RETIRED_DURABLE_ROWS",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/coverage.py",
+        "hermes_db/domains/sessions/postgres/support/compression_coverage.py"
+      ]
+    },
+    {
+      "target": "agent.conversation_compression_archive.RETIRED_ROW",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/coverage.py"
+      ]
+    },
+    {
+      "target": "agent.conversation_compression_archive.UNNAMED_DURABLE_ROWS",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/coverage.py"
+      ]
+    },
+    {
+      "target": "agent.memory_context.sanitize_context",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "agent.memory_provider.spawn_context_thread",
+      "category": "infrastructure",
+      "reason": "Existing context-propagating thread spawn, used by the shared metrics transport; preserves owning profile across thread hops.",
+      "consumers": [
+        "hermes_db/domains/kanban/postgres/dispatch.py",
+        "hermes_db/domains/sessions/postgres/support/usage_writer.py"
+      ]
+    },
+    {
+      "target": "agent.message_content.flatten_message_text",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/rewind.py"
+      ]
+    },
+    {
+      "target": "agent.message_metadata.CANONICAL_ROW",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/runtime/values.py",
+        "hermes_db/domains/sessions/postgres/operations/messages.py",
+        "hermes_db/domains/sessions/postgres/operations/transcript_repair.py"
+      ]
+    },
+    {
+      "target": "agent.message_metadata.DATA_USE",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/runtime/values.py",
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "agent.message_metadata.DB_ROW_SNAPSHOT",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/runtime/values.py",
+        "hermes_db/domains/sessions/codec.py",
+        "hermes_db/domains/sessions/coverage.py",
+        "hermes_db/domains/sessions/postgres/history.py",
+        "hermes_db/domains/sessions/postgres/operations/messages.py",
+        "hermes_db/domains/sessions/postgres/operations/rewrites.py",
+        "hermes_db/domains/sessions/postgres/operations/transcript_repair.py",
+        "hermes_db/domains/sessions/postgres/support/compression_coverage.py"
+      ]
+    },
+    {
+      "target": "agent.message_metadata.MESSAGE_UID",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/runtime/values.py",
+        "hermes_db/domains/sessions/coverage.py",
+        "hermes_db/domains/sessions/postgres/operations/messages.py",
+        "hermes_db/domains/sessions/rewind.py"
+      ]
+    },
+    {
+      "target": "agent.message_metadata.PERSISTENCE_ONLY_MESSAGE_FIELDS",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/runtime/values.py"
+      ]
+    },
+    {
+      "target": "agent.message_metadata.RESTORED_FROM_STORE",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/transcript_repair.py"
+      ]
+    },
+    {
+      "target": "agent.message_metadata.TOOL_CALL_UID",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/runtime/values.py",
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "agent.message_metadata.TOOL_CALL_UIDS",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/runtime/values.py",
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "agent.message_metadata.index_tool_call_uids",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "agent.message_metadata.lift_data_use",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "agent.message_metadata.message_uid_or_none",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py",
+        "hermes_db/domains/sessions/coverage.py",
+        "hermes_db/domains/sessions/postgres/operations/transcript_repair.py",
+        "hermes_db/domains/sessions/postgres/support/compression_coverage.py",
+        "hermes_db/domains/sessions/rewind.py"
+      ]
+    },
+    {
+      "target": "agent.message_metadata.mint_uid",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "agent.message_metadata.resolve_tool_call_uid",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "agent.message_metadata.stamp_message_uid",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/messages.py"
+      ]
+    },
+    {
+      "target": "agent.message_metadata.typed_prompt_content",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/mutation_transcript.py"
+      ]
+    },
+    {
+      "target": "agent.message_sanitization._sanitize_surrogates",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py",
+        "hermes_db/domains/sessions/rules.py"
+      ]
+    },
+    {
+      "target": "agent.message_sanitization._strip_background_review_harness",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "agent.message_sanitization._strip_stale_tool_call_markers",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "agent.message_sanitization.coalesce_tool_call_id",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "agent.redact.redact_sensitive_text",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/kanban/rules.py"
+      ]
+    },
+    {
+      "target": "agent.retry_utils.parse_retry_after_seconds",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/metrics/sending.py"
+      ]
+    },
+    {
+      "target": "agent.runtime_domain_store.WorkerDomainStore",
+      "category": "entry-bridge",
+      "reason": "Original owner/backend or Worker protocol dispatch at an API entry; no SQL workflow depends on a full application store.",
+      "consumers": [
+        "hermes_db/domains/verification/api.py"
+      ]
+    },
+    {
+      "target": "agent.runtime_domain_store.worker_resource",
+      "category": "entry-bridge",
+      "reason": "Original owner/backend or Worker protocol dispatch at an API entry; no SQL workflow depends on a full application store.",
+      "consumers": [
+        "hermes_db/domains/plugin_storage/retain/api.py",
+        "hermes_db/domains/verification/api.py"
+      ]
+    },
+    {
+      "target": "agent.session_activity.ActivityProvenance",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "agent.session_activity.bound_activity_description",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py",
+        "hermes_db/domains/sessions/postgres/catalog.py"
+      ]
+    },
+    {
+      "target": "agent.session_activity.normalize_activity_provenance",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py",
+        "hermes_db/domains/sessions/postgres/catalog.py"
+      ]
+    },
+    {
+      "target": "agent.session_client_env.retry_matches",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/runtime/receipts.py"
+      ]
+    },
+    {
+      "target": "agent.session_persistence._PERSIST_AFTER_ADMISSION_INTERRUPT",
+      "category": "agent-policy",
+      "reason": "Exact interrupt/scaffolding flags and text-only durable-content projection; no persistence mixin, flush, filesystem or SQLite lifecycle.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/transcript_repair.py"
+      ]
+    },
+    {
+      "target": "agent.session_persistence._durable_content",
+      "category": "agent-policy",
+      "reason": "Exact interrupt/scaffolding flags and text-only durable-content projection; no persistence mixin, flush, filesystem or SQLite lifecycle.",
+      "consumers": [
+        "hermes_db/domains/sessions/rewind.py"
+      ]
+    },
+    {
+      "target": "agent.session_persistence._is_ephemeral_scaffolding",
+      "category": "agent-policy",
+      "reason": "Exact interrupt/scaffolding flags and text-only durable-content projection; no persistence mixin, flush, filesystem or SQLite lifecycle.",
+      "consumers": [
+        "hermes_db/domains/sessions/rewind.py"
+      ]
+    },
+    {
+      "target": "agent.skill_commands.AUTO_LOAD_SCAFFOLD_SQL_LIKE",
+      "category": "agent-policy",
+      "reason": "Exact skill scaffold wire markers and pure describe_skill_invocation parser; no skill loader, cache, config reload or prompt mutation.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/support/message_preview.py"
+      ]
+    },
+    {
+      "target": "agent.skill_commands.SKILL_EXCERPT_JOINT",
+      "category": "agent-policy",
+      "reason": "Exact skill scaffold wire markers and pure describe_skill_invocation parser; no skill loader, cache, config reload or prompt mutation.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/support/message_preview.py",
+        "hermes_db/domains/sessions/rules.py"
+      ]
+    },
+    {
+      "target": "agent.skill_commands.SKILL_SCAFFOLD_SQL_LIKE",
+      "category": "agent-policy",
+      "reason": "Exact skill scaffold wire markers and pure describe_skill_invocation parser; no skill loader, cache, config reload or prompt mutation.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/support/message_preview.py"
+      ]
+    },
+    {
+      "target": "agent.skill_commands.describe_skill_invocation",
+      "category": "agent-policy",
+      "reason": "Exact skill scaffold wire markers and pure describe_skill_invocation parser; no skill loader, cache, config reload or prompt mutation.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/history.py",
+        "hermes_db/domains/sessions/rules.py"
+      ]
+    },
+    {
+      "target": "agent.transcript_repair.REPLAY_SIDECARS",
+      "category": "agent-policy",
+      "reason": "Exact persisted-column/sidecar values and pure row comparison/snapshot helpers; no Native SessionMessagesMixin method or SQLite I/O is imported.",
+      "consumers": [
+        "hermes_db/domains/sessions/coverage.py"
+      ]
+    },
+    {
+      "target": "agent.transcript_repair._LIVE_MISSING_METADATA",
+      "category": "agent-policy",
+      "reason": "Exact persisted-column/sidecar values and pure row comparison/snapshot helpers; no Native SessionMessagesMixin method or SQLite I/O is imported.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/transcript_repair.py"
+      ]
+    },
+    {
+      "target": "agent.transcript_repair._OWNED_COLUMNS",
+      "category": "agent-policy",
+      "reason": "Exact persisted-column/sidecar values and pure row comparison/snapshot helpers; no Native SessionMessagesMixin method or SQLite I/O is imported.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/transcript_repair.py"
+      ]
+    },
+    {
+      "target": "agent.transcript_repair._REPAIR_COLUMNS",
+      "category": "agent-policy",
+      "reason": "Exact persisted-column/sidecar values and pure row comparison/snapshot helpers; no Native SessionMessagesMixin method or SQLite I/O is imported.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/transcript_repair.py"
+      ]
+    },
+    {
+      "target": "agent.transcript_repair._same_as_stored",
+      "category": "agent-policy",
+      "reason": "Exact persisted-column/sidecar values and pure row comparison/snapshot helpers; no Native SessionMessagesMixin method or SQLite I/O is imported.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/transcript_repair.py"
+      ]
+    },
+    {
+      "target": "agent.transcript_repair.is_content_blank",
+      "category": "agent-policy",
+      "reason": "Exact persisted-column/sidecar values and pure row comparison/snapshot helpers; no Native SessionMessagesMixin method or SQLite I/O is imported.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/transcript_repair.py"
+      ]
+    },
+    {
+      "target": "agent.transcript_repair.transcript_row_snapshot",
+      "category": "agent-policy",
+      "reason": "Exact persisted-column/sidecar values and pure row comparison/snapshot helpers; no Native SessionMessagesMixin method or SQLite I/O is imported.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py",
+        "hermes_db/domains/sessions/coverage.py",
+        "hermes_db/domains/sessions/postgres/operations/messages.py",
+        "hermes_db/domains/sessions/postgres/operations/rewrites.py",
+        "hermes_db/domains/sessions/postgres/operations/transcript_repair.py",
+        "hermes_db/domains/sessions/postgres/support/compression_coverage.py"
+      ]
+    },
+    {
+      "target": "agent.turn_context.reanchor_current_turn_user_idx",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/runtime/receipts.py"
+      ]
+    },
+    {
+      "target": "agent.turn_failure_copy.CONTENT_REFUSED_DISPLAY_KIND",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/history.py"
+      ]
+    },
+    {
+      "target": "agent.turn_failure_copy.CONTENT_REFUSED_METADATA_KEY",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/history.py"
+      ]
+    },
+    {
+      "target": "agent.turn_failure_copy.FAILED_TURN_DISPLAY_KIND",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/terminal_boundary.py"
+      ]
+    },
+    {
+      "target": "agent.turn_failure_copy.PARTIAL_FAILED_TURN_NOTICE",
+      "category": "shared-pure",
+      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/terminal_boundary.py"
+      ]
+    },
+    {
+      "target": "cron.occurrences.scheduled_instant",
+      "category": "shared-pure",
+      "reason": "Independent canonical scheduled-instant codec; no scheduler, job discovery, ledger or runtime process state.",
+      "consumers": [
+        "hermes_db/domains/cron/postgres/executions.py"
+      ]
+    },
+    {
+      "target": "gateway.delivery_rules.MAX_ATTEMPTS",
+      "category": "shared-pure",
+      "reason": "Actual pure flood/reconnect/dead-target retry, retention and replay projection definitions; Native and PG ledgers consume the same definitions, with no opener or send.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/deliveries.py"
+      ]
+    },
+    {
+      "target": "gateway.delivery_rules.STALE_AFTER_SECONDS",
+      "category": "shared-pure",
+      "reason": "Actual pure flood/reconnect/dead-target retry, retention and replay projection definitions; Native and PG ledgers consume the same definitions, with no opener or send.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/deliveries.py"
+      ]
+    },
+    {
+      "target": "gateway.delivery_rules._MAX_ROWS",
+      "category": "shared-pure",
+      "reason": "Actual pure flood/reconnect/dead-target retry, retention and replay projection definitions; Native and PG ledgers consume the same definitions, with no opener or send.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/deliveries.py"
+      ]
+    },
+    {
+      "target": "gateway.delivery_rules._RETENTION_SECONDS",
+      "category": "shared-pure",
+      "reason": "Actual pure flood/reconnect/dead-target retry, retention and replay projection definitions; Native and PG ledgers consume the same definitions, with no opener or send.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/deliveries.py"
+      ]
+    },
+    {
+      "target": "gateway.delivery_rules._claimed_row",
+      "category": "shared-pure",
+      "reason": "Actual pure flood/reconnect/dead-target retry, retention and replay projection definitions; Native and PG ledgers consume the same definitions, with no opener or send.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/deliveries.py"
+      ]
+    },
+    {
+      "target": "gateway.delivery_rules.flood_not_before",
+      "category": "shared-pure",
+      "reason": "Actual pure flood/reconnect/dead-target retry, retention and replay projection definitions; Native and PG ledgers consume the same definitions, with no opener or send.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/deliveries.py"
+      ]
+    },
+    {
+      "target": "gateway.delivery_rules.is_flood_error",
+      "category": "shared-pure",
+      "reason": "Actual pure flood/reconnect/dead-target retry, retention and replay projection definitions; Native and PG ledgers consume the same definitions, with no opener or send.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/deliveries.py"
+      ]
+    },
+    {
+      "target": "gateway.delivery_rules.is_reconnect_only",
+      "category": "shared-pure",
+      "reason": "Actual pure flood/reconnect/dead-target retry, retention and replay projection definitions; Native and PG ledgers consume the same definitions, with no opener or send.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/deliveries.py"
+      ]
+    },
+    {
+      "target": "gateway.delivery_rules.retry_not_before",
+      "category": "shared-pure",
+      "reason": "Actual pure flood/reconnect/dead-target retry, retention and replay projection definitions; Native and PG ledgers consume the same definitions, with no opener or send.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/deliveries.py"
+      ]
+    },
+    {
+      "target": "gateway.hosted_room_pages.replay_page",
+      "category": "shared-pure",
+      "reason": "Independent bounded wire validation/projection, timestamp stripping or deterministic response identity; no Gateway service, router, backend factory or file operation.",
+      "consumers": [
+        "hermes_db/domains/rooms/postgres/lifecycle.py"
+      ]
+    },
+    {
+      "target": "gateway.hosted_room_task_input.validate_task_input",
+      "category": "shared-pure",
+      "reason": "Independent bounded wire validation/projection, timestamp stripping or deterministic response identity; no Gateway service, router, backend factory or file operation.",
+      "consumers": [
+        "hermes_db/domains/rooms/driver_rules.py",
+        "hermes_db/domains/rooms/postgres/policy.py"
+      ]
+    },
+    {
+      "target": "gateway.message_timestamps.strip_leading_message_timestamps",
+      "category": "shared-pure",
+      "reason": "Independent bounded wire validation/projection, timestamp stripping or deterministic response identity; no Gateway service, router, backend factory or file operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/support/compression_coverage.py"
+      ]
+    },
+    {
+      "target": "gateway.platforms.api_server_response_identity.durable_response_id",
+      "category": "shared-pure",
+      "reason": "Independent bounded wire validation/projection, timestamp stripping or deterministic response identity; no Gateway service, router, backend factory or file operation.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/api.py"
+      ]
+    },
+    {
+      "target": "gateway.session_contract._session_key_namespace",
+      "category": "shared-pure",
+      "reason": "Independent bounded wire validation/projection, timestamp stripping or deterministic response identity; no Gateway service, router, backend factory or file operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/gateway_rekey.py"
+      ]
+    },
+    {
+      "target": "gateway.session_contract.admission_media_references",
+      "category": "shared-pure",
+      "reason": "Independent bounded wire validation/projection, timestamp stripping or deterministic response identity; no Gateway service, router, backend factory or file operation.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/media.py"
+      ]
+    },
+    {
+      "target": "gateway.session_contract.created_surface",
+      "category": "shared-pure",
+      "reason": "Independent bounded wire validation/projection, timestamp stripping or deterministic response identity; no Gateway service, router, backend factory or file operation.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/local_sessions.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py",
+        "hermes_db/domains/sessions/postgres/operations/compression_publish.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.db_setup._owning_profile",
+      "category": "entry-bridge",
+      "reason": "Original profile secret/config binding at API reacquisition or Native adapter entry; no lower SQL workflow reads CLI configuration.",
+      "consumers": [
+        "hermes_db/backends/sqlite/plugin_storage.py",
+        "hermes_db/domains/metrics/api.py",
+        "hermes_db/domains/plugin_storage/discord/api.py",
+        "hermes_db/domains/plugin_storage/matrix/api.py",
+        "hermes_db/domains/plugin_storage/records/api.py",
+        "hermes_db/domains/plugin_storage/retain/api.py",
+        "hermes_db/domains/rooms/api.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.db_setup.resolve_db_configuration",
+      "category": "entry-bridge",
+      "reason": "Original owner/backend or Worker protocol dispatch at an API entry; no SQL workflow depends on a full application store.",
+      "consumers": [
+        "hermes_db/domains/cron/api.py",
+        "hermes_db/domains/plugin_storage/matrix/api.py",
+        "hermes_db/domains/verification/api.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.db_setup.storage_backend",
+      "category": "entry-bridge",
+      "reason": "Original owner/backend or Worker protocol dispatch at an API entry; no SQL workflow depends on a full application store.",
+      "consumers": [
+        "hermes_db/backends/sqlite/plugin_storage.py",
+        "hermes_db/domains/kanban/api.py",
+        "hermes_db/domains/rooms/api.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.kanban_block_policy.block_transition",
+      "category": "shared-pure",
+      "reason": "Independent workflow/default-status, block/failure policy, original error identity or pure Swarm plan; runtime respawn/process/filesystem operations are injected from integration.",
+      "consumers": [
+        "hermes_db/domains/kanban/postgres/claims.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.kanban_db._explicit_board_slug",
+      "category": "entry-bridge",
+      "reason": "Existing Native Board selection at the backend entry; PG SQL workflow uses injected Board capabilities.",
+      "consumers": [
+        "hermes_db/domains/kanban/api.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.kanban_db.get_current_board",
+      "category": "entry-bridge",
+      "reason": "Existing Native Board selection at the backend entry; PG SQL workflow uses injected Board capabilities.",
+      "consumers": [
+        "hermes_db/domains/kanban/api.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.kanban_errors.TaskAlreadyClaimedError",
+      "category": "shared-pure",
+      "reason": "Independent workflow/default-status, block/failure policy, original error identity or pure Swarm plan; runtime respawn/process/filesystem operations are injected from integration.",
+      "consumers": [
+        "hermes_db/domains/kanban/postgres/catalog.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.kanban_failure_policy.failure_budget",
+      "category": "shared-pure",
+      "reason": "Independent workflow/default-status, block/failure policy, original error identity or pure Swarm plan; runtime respawn/process/filesystem operations are injected from integration.",
+      "consumers": [
+        "hermes_db/domains/kanban/postgres/runs.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.kanban_swarm_plan.plan_swarm",
+      "category": "shared-pure",
+      "reason": "Independent workflow/default-status, block/failure policy, original error identity or pure Swarm plan; runtime respawn/process/filesystem operations are injected from integration.",
+      "consumers": [
+        "hermes_db/domains/kanban/postgres/swarm.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.kanban_workflow.DEFAULT_STATUSES",
+      "category": "shared-pure",
+      "reason": "Independent workflow/default-status, block/failure policy, original error identity or pure Swarm plan; runtime respawn/process/filesystem operations are injected from integration.",
+      "consumers": [
+        "hermes_db/domains/kanban/postgres/catalog.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_contract.CLIENT_ACTIVE_METRIC",
+      "category": "shared-pure",
+      "reason": "Exact independent metrics schema/dimension/consent counter and install-age threshold definitions; no Native metrics store or sender.",
+      "consumers": [
+        "hermes_db/domains/metrics/policy.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_contract.COUNTER_METRICS",
+      "category": "shared-pure",
+      "reason": "Exact independent metrics schema/dimension/consent counter and install-age threshold definitions; no Native metrics store or sender.",
+      "consumers": [
+        "hermes_db/domains/metrics/policy.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_contract.FEATURE_ADOPTION_METRIC",
+      "category": "shared-pure",
+      "reason": "Exact independent metrics schema/dimension/consent counter and install-age threshold definitions; no Native metrics store or sender.",
+      "consumers": [
+        "hermes_db/domains/metrics/policy.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_contract.INSTALL_SNAPSHOT_METRIC",
+      "category": "shared-pure",
+      "reason": "Exact independent metrics schema/dimension/consent counter and install-age threshold definitions; no Native metrics store or sender.",
+      "consumers": [
+        "hermes_db/domains/metrics/policy.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_contract.MILESTONE_METRIC",
+      "category": "shared-pure",
+      "reason": "Exact independent metrics schema/dimension/consent counter and install-age threshold definitions; no Native metrics store or sender.",
+      "consumers": [
+        "hermes_db/domains/metrics/policy.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_contract.MODEL_ROUTE_METRIC",
+      "category": "shared-pure",
+      "reason": "Exact independent metrics schema/dimension/consent counter and install-age threshold definitions; no Native metrics store or sender.",
+      "consumers": [
+        "hermes_db/domains/metrics/policy.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_contract.SUM_METRICS",
+      "category": "shared-pure",
+      "reason": "Exact independent metrics schema/dimension/consent counter and install-age threshold definitions; no Native metrics store or sender.",
+      "consumers": [
+        "hermes_db/domains/metrics/policy.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_contract._bucket",
+      "category": "shared-pure",
+      "reason": "Exact independent metrics schema/dimension/consent counter and install-age threshold definitions; no Native metrics store or sender.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_metrics.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_contract.client_resource_is_valid",
+      "category": "shared-pure",
+      "reason": "Exact independent metrics schema/dimension/consent counter and install-age threshold definitions; no Native metrics store or sender.",
+      "consumers": [
+        "hermes_db/domains/metrics/policy.py",
+        "hermes_db/domains/metrics/postgres/outbox.py",
+        "hermes_db/domains/metrics/postgres/records.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_contract.counter_dimensions_are_valid",
+      "category": "shared-pure",
+      "reason": "Exact independent metrics schema/dimension/consent counter and install-age threshold definitions; no Native metrics store or sender.",
+      "consumers": [
+        "hermes_db/domains/metrics/policy.py",
+        "hermes_db/domains/metrics/postgres/records.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_drift.conform_counter_dimensions",
+      "category": "shared-pure",
+      "reason": "Exact independent metrics schema/dimension/consent counter and install-age threshold definitions; no Native metrics store or sender.",
+      "consumers": [
+        "hermes_db/domains/metrics/policy.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_drift.counter_dimensions_shape_is_known",
+      "category": "shared-pure",
+      "reason": "Exact independent metrics schema/dimension/consent counter and install-age threshold definitions; no Native metrics store or sender.",
+      "consumers": [
+        "hermes_db/domains/metrics/policy.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_fields.install_age_bucket",
+      "category": "shared-pure",
+      "reason": "Exact independent metrics schema/dimension/consent counter and install-age threshold definitions; no Native metrics store or sender.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_metrics.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_signals._DAYS_SINCE_INSTALL_THRESHOLDS",
+      "category": "shared-pure",
+      "reason": "Exact independent metrics schema/dimension/consent counter and install-age threshold definitions; no Native metrics store or sender.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_metrics.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.profile_names.normalize_profile_name",
+      "category": "shared-pure",
+      "reason": "Actual shared profile-name normalization or bounded epoch conversion; no configuration discovery or data I/O.",
+      "consumers": [
+        "hermes_db/domains/kanban/rules.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.sqlite_util.open_db",
+      "category": "sqlite-bridge",
+      "reason": "Native adapter selected by the SQLite backend only; original SessionDB registry lifetime and bound method semantics.",
+      "consumers": [
+        "hermes_db/backends/sqlite/plugin_storage.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.sqlite_util.write_txn",
+      "category": "sqlite-bridge",
+      "reason": "Native adapter selected by the SQLite backend only; original SessionDB registry lifetime and bound method semantics.",
+      "consumers": [
+        "hermes_db/backends/sqlite/plugin_storage.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.timefmt.EPOCH_MAX",
+      "category": "shared-pure",
+      "reason": "Actual shared profile-name normalization or bounded epoch conversion; no configuration discovery or data I/O.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/session_queries.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.timefmt.EPOCH_MIN",
+      "category": "shared-pure",
+      "reason": "Actual shared profile-name normalization or bounded epoch conversion; no configuration discovery or data I/O.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/session_queries.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.timefmt.coerce_epoch",
+      "category": "shared-pure",
+      "reason": "Actual shared profile-name normalization or bounded epoch conversion; no configuration discovery or data I/O.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py",
+        "hermes_db/domains/sessions/import_rules.py",
+        "hermes_db/domains/sessions/postgres/operations/compression_publish.py",
+        "hermes_db/domains/sessions/postgres/operations/imports.py",
+        "hermes_db/domains/sessions/postgres/support/compression_coverage.py"
+      ]
+    },
+    {
+      "target": "hermes_constants.VALID_REASONING_EFFORTS",
+      "category": "infrastructure",
+      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
+      "consumers": [
+        "hermes_db/domains/kanban/rules.py"
+      ]
+    },
+    {
+      "target": "hermes_constants.get_hermes_home",
+      "category": "infrastructure",
+      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
+      "consumers": [
+        "hermes_db/domains/plugin_storage/matrix/postgres/crypto.py"
+      ]
+    },
+    {
+      "target": "hermes_constants.mkdir_under_hermes_home",
+      "category": "infrastructure",
+      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
+      "consumers": [
+        "hermes_db/backends/sqlite/plugin_storage.py"
+      ]
+    },
+    {
+      "target": "hermes_constants.parse_reasoning_effort",
+      "category": "infrastructure",
+      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
+      "consumers": [
+        "hermes_db/domains/runtime/mutation_rules.py"
+      ]
+    },
+    {
+      "target": "hermes_constants.profile_name_for_home",
+      "category": "infrastructure",
+      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.access._owner_only",
+      "category": "entry-bridge",
+      "reason": "Existing selected-backend/Worker entry dispatch only; no lower SQL workflow may acquire a resource or select application composition.",
+      "consumers": [
+        "hermes_db/domains/plugin_storage/matrix/api.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.metrics.bound.bound_store",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_metrics.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.metrics.policy",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_metrics.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.metrics.policy.MetricsPolicy",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/metrics.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.metrics.policy._utc_now",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_metrics.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.metrics.postgres.records",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_metrics.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.metrics.postgres.records.lock_store",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_metrics.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.plugin_storage.retain.postgres.operations.queue",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_retain_queue.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.plugin_storage.retain.postgres.operations.queue.enqueue",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_retain_queue.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.plugin_storage.retain.postgres.operations.queue.prepare",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_retain_queue.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.rooms.rules.MAX_STATUS_GRANT_TTL_SECONDS",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/idempotency.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.mutation_rules.COMPACTED_TARGET_DETAIL",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/mutation_transcript.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.mutation_rules._child_policy",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/mutation_branch.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.mutation_rules.validate_action",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/mutations.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.postgres.operations.current_history.CLAIM_PREFIX",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/lineage.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.postgres.operations.current_history.claim_value",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/lineage.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.postgres.operations.effects",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/rooms/postgres/lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.postgres.operations.effects.CoreEffect",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/rooms/postgres/lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.postgres.operations.effects.invoke",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/rooms/postgres/lifecycle.py",
+        "hermes_db/domains/sessions/postgres/lifecycle.py",
+        "hermes_db/domains/sessions/postgres/operations/mutations.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.postgres.queries.runtime",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/rooms/postgres/ownership.py",
+        "hermes_db/domains/sessions/postgres/catalog.py",
+        "hermes_db/domains/sessions/postgres/operations/gateway_rekey.py",
+        "hermes_db/domains/sessions/postgres/operations/mutation_branch.py",
+        "hermes_db/domains/sessions/postgres/operations/mutation_policy.py",
+        "hermes_db/domains/sessions/postgres/operations/mutation_transcript.py",
+        "hermes_db/domains/sessions/postgres/operations/mutations.py",
+        "hermes_db/domains/sessions/postgres/operations/retention.py",
+        "hermes_db/domains/sessions/postgres/queries/file_grants.py",
+        "hermes_db/domains/sessions/postgres/queries/gateway.py",
+        "hermes_db/domains/sessions/postgres/queries/mutation_binding.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_fences.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_housekeeping.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_ledger.py",
+        "hermes_db/domains/sessions/postgres/usage.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.postgres.queries.runtime.meta",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/rooms/postgres/ownership.py",
+        "hermes_db/domains/sessions/postgres/operations/gateway_rekey.py",
+        "hermes_db/domains/sessions/postgres/operations/mutation_policy.py",
+        "hermes_db/domains/sessions/postgres/operations/mutation_transcript.py",
+        "hermes_db/domains/sessions/postgres/operations/mutations.py",
+        "hermes_db/domains/sessions/postgres/operations/retention.py",
+        "hermes_db/domains/sessions/postgres/queries/file_grants.py",
+        "hermes_db/domains/sessions/postgres/queries/gateway.py",
+        "hermes_db/domains/sessions/postgres/queries/lineage.py",
+        "hermes_db/domains/sessions/postgres/queries/mutation_binding.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_fences.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_housekeeping.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_ledger.py",
+        "hermes_db/domains/sessions/postgres/usage.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.postgres.queries.runtime.require_epoch",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/rooms/postgres/ownership.py",
+        "hermes_db/domains/sessions/postgres/operations/mutation_policy.py",
+        "hermes_db/domains/sessions/postgres/operations/mutations.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.postgres.queries.runtime.set_meta",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/rooms/postgres/ownership.py",
+        "hermes_db/domains/sessions/postgres/catalog.py",
+        "hermes_db/domains/sessions/postgres/operations/gateway_rekey.py",
+        "hermes_db/domains/sessions/postgres/operations/mutation_branch.py",
+        "hermes_db/domains/sessions/postgres/operations/mutation_policy.py",
+        "hermes_db/domains/sessions/postgres/operations/mutations.py",
+        "hermes_db/domains/sessions/postgres/operations/retention.py",
+        "hermes_db/domains/sessions/postgres/queries/file_grants.py",
+        "hermes_db/domains/sessions/postgres/queries/gateway.py",
+        "hermes_db/domains/sessions/postgres/queries/lineage.py",
+        "hermes_db/domains/sessions/postgres/queries/mutation_binding.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_fences.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_housekeeping.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_ledger.py",
+        "hermes_db/domains/sessions/postgres/usage.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.postgres.queries.runtime.target_where",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/retirement_ledger.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.postgres.queries.worker_retirement",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/mutation_transcript.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.postgres.queries.worker_retirement.discard_orphans_on_reset",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/mutation_transcript.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.ADMISSION_PREFIX",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/retirement_housekeeping.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_ledger.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.API_BINDING_PREFIX",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/gateway_rekey.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_fences.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.API_DECLARED_PREFIX",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/retirement_fences.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.BINDING_PREFIX",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/mutation_binding.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.DEFERRED_PICK_PREFIX",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/mutation_policy.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.MEDIA_SPILLOVER_PREFIX",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/media.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.POLICY_PREFIX",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/catalog.py",
+        "hermes_db/domains/sessions/postgres/operations/gateway_local_handoff.py",
+        "hermes_db/domains/sessions/postgres/operations/gateway_rekey.py",
+        "hermes_db/domains/sessions/postgres/operations/mutation_branch.py",
+        "hermes_db/domains/sessions/postgres/operations/mutation_policy.py",
+        "hermes_db/domains/sessions/postgres/operations/mutation_transcript.py",
+        "hermes_db/domains/sessions/postgres/queries/bot_views.py",
+        "hermes_db/domains/sessions/postgres/queries/lineage.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_fences.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_housekeeping.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.RESULT_PREFIX",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/retirement_housekeeping.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_ledger.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.RETIRED_MEDIA_PREFIX",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/media.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.RETIRED_PREFIX",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/gateway.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_fences.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_housekeeping.py",
+        "hermes_db/domains/sessions/postgres/queries/sessions.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.RETRY_HORIZON_S",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/gateway.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_housekeeping.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.ROUTE_FENCE_PREFIX",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/gateway_rekey.py",
+        "hermes_db/domains/sessions/postgres/queries/gateway.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_housekeeping.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.VIEWER_CLOSE_PREFIX",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/retirement_fences.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.WORKER_PREFIX",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/retirement_housekeeping.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_ledger.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.encode_result",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/retirement_ledger.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.entry_session_id",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/gateway.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_fences.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.identity_key",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/retirement_housekeeping.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_ledger.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.load_result",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/retirement_ledger.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.route_fence_key",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/gateway.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.receipts.route_namespace",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/gateway.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.values.RuntimeStoreError",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/kanban/postgres/owners.py",
+        "hermes_db/domains/kanban/postgres/receipts.py",
+        "hermes_db/domains/rooms/postgres/ownership.py",
+        "hermes_db/domains/sessions/postgres/operations/housekeeping.py",
+        "hermes_db/domains/sessions/postgres/operations/imports.py",
+        "hermes_db/domains/sessions/postgres/operations/mutation_branch.py",
+        "hermes_db/domains/sessions/postgres/operations/mutation_policy.py",
+        "hermes_db/domains/sessions/postgres/operations/mutation_transcript.py",
+        "hermes_db/domains/sessions/postgres/operations/mutations.py",
+        "hermes_db/domains/sessions/postgres/operations/retention.py",
+        "hermes_db/domains/sessions/postgres/operations/retirement_guards.py",
+        "hermes_db/domains/sessions/postgres/operations/sessions.py",
+        "hermes_db/domains/sessions/postgres/operations/transcript_guards.py",
+        "hermes_db/domains/sessions/postgres/queries/lineage.py",
+        "hermes_db/domains/sessions/postgres/queries/mutation_binding.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.values._json",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/mutation_branch.py",
+        "hermes_db/domains/sessions/postgres/operations/mutation_policy.py",
+        "hermes_db/domains/sessions/postgres/operations/mutations.py",
+        "hermes_db/domains/sessions/postgres/queries/lineage.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.values._text",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/mutations.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_housekeeping.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.values.mutation_receipt_key",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/mutations.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_housekeeping.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.codec._scrub_surrogates",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.messages._active_filter",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.compression",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.compression.compact_on_connection",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.compression_publish",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.compression_publish.publish_on_connection",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.compression_state",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_state.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.compression_state.lineage",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/local.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.compression_state.record_cooldown",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_state.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.compression_state.reopen",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_state.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.compression_state.restore_cooldown",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_state.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.leases",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_state.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.leases.change",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_state.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.leases.compression_holder",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_state.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.messages",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.messages.append_on_connection",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/terminal_boundary.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_compression.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.mutation_policy.picks",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/policy.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.mutation_policy.refresh",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/policy.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.mutations.mutate",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/policy.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.mutations.replay_receipt",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/chat_pick.py",
+        "hermes_db/domains/runtime/postgres/operations/deferred_pick.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.mutations.save_receipt",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/chat_pick.py",
+        "hermes_db/domains/runtime/postgres/operations/deferred_pick.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.retirement_guards",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/current_history.py",
+        "hermes_db/domains/runtime/postgres/operations/local_sessions.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.retirement_guards.lock_targets",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/current_history.py",
+        "hermes_db/domains/runtime/postgres/operations/local_sessions.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.retirement_guards.require_quiet",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/local_sessions.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.retirement_guards.require_unleased",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/current_history.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.sessions",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/admissions.py",
+        "hermes_db/domains/runtime/postgres/operations/api_binding.py",
+        "hermes_db/domains/runtime/postgres/operations/local_sessions.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.sessions._stamp_surface",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.sessions.create_on_connection",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/admissions.py",
+        "hermes_db/domains/runtime/postgres/operations/api_binding.py",
+        "hermes_db/domains/runtime/postgres/operations/local_sessions.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_children.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.titles",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/admissions.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.titles.RANK",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.operations.titles.set_title_on_connection",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/admissions.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.bot_views",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/policy.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.bot_views.roster",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/policy.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.gateway",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/api_binding.py",
+        "hermes_db/domains/runtime/postgres/operations/current_history.py",
+        "hermes_db/domains/runtime/postgres/operations/local_sessions.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.gateway.save_route",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/api_binding.py",
+        "hermes_db/domains/runtime/postgres/operations/current_history.py",
+        "hermes_db/domains/runtime/postgres/operations/local_sessions.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.gateway.where",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/api_binding.py",
+        "hermes_db/domains/runtime/postgres/operations/current_history.py",
+        "hermes_db/domains/runtime/postgres/operations/local_sessions.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.leases",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_state.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_turn.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.leases.claim",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_turn.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.leases.release",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_state.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_turn.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.leases.renew",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_turn.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.lineage",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/terminal_boundary.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_reservation.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.lineage.physical_target",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/terminal_boundary.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_reservation.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.lineage.runtime_targets",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/runtime.py",
+        "hermes_db/domains/runtime/postgres/operations/workers.py",
+        "hermes_db/domains/runtime/postgres/queries/runtime.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.lineage.validate_local_receipt",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/local.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.lineage_reads",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.lineage_reads.declared_scope_identity",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.lineage_reads.get_compression_chain",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.lineage_reads.get_compression_lineage",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.lineage_reads.get_compression_tip",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.lineage_reads.get_conversation_root",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.lineage_reads.get_tool_rotation_root",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.lineage_reads.latest_conversation_boundary",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.lineage_reads.resolve_resume_session_id",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.media",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/media.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.media.retire_admission",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/media.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.messages",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/terminal_boundary.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_compression.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.messages.display_set",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.messages.one",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.messages.resume_lineage",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.messages.select_rows",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.messages.update_row",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/terminal_boundary.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.messages.where",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/terminal_boundary.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_compression.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.mutation_binding",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/queries/history_access.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.mutation_binding.authorize_history",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/queries/history_access.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.mutation_binding.history_binding",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/queries/history_access.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.prompts",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.prompts.prune_prompts",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.prompts.store_prompt",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.retirement",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/queries/history_access.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.retirement.canonical_targets",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/queries/history_access.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.retirement_housekeeping",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/api_binding.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.retirement_housekeeping.keep_passed",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/api_binding.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.session_queries",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/policy.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.session_queries.last_activity",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/policy.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.sessions",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/admissions.py",
+        "hermes_db/domains/runtime/postgres/delegations.py",
+        "hermes_db/domains/runtime/postgres/idempotency.py",
+        "hermes_db/domains/runtime/postgres/local.py",
+        "hermes_db/domains/runtime/postgres/media.py",
+        "hermes_db/domains/runtime/postgres/operations/api_binding.py",
+        "hermes_db/domains/runtime/postgres/operations/chat_pick.py",
+        "hermes_db/domains/runtime/postgres/operations/current_history.py",
+        "hermes_db/domains/runtime/postgres/operations/deferred_pick.py",
+        "hermes_db/domains/runtime/postgres/operations/deliveries.py",
+        "hermes_db/domains/runtime/postgres/operations/local_sessions.py",
+        "hermes_db/domains/runtime/postgres/operations/runtime.py",
+        "hermes_db/domains/runtime/postgres/operations/runtime_queue.py",
+        "hermes_db/domains/runtime/postgres/operations/terminal_boundary.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_children.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_compression.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_state.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_delegations.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_reservation.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_turn.py",
+        "hermes_db/domains/runtime/postgres/operations/workers.py",
+        "hermes_db/domains/runtime/postgres/policy.py",
+        "hermes_db/domains/runtime/postgres/queries/history_access.py",
+        "hermes_db/domains/runtime/postgres/queries/local_recovery.py",
+        "hermes_db/domains/runtime/postgres/queries/runtime.py",
+        "hermes_db/domains/runtime/postgres/queries/worker_retirement.py",
+        "hermes_db/domains/runtime/postgres/response_store.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.sessions.bump_generation",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/admissions.py",
+        "hermes_db/domains/runtime/postgres/operations/local_sessions.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.sessions.compression_tip",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/local.py",
+        "hermes_db/domains/runtime/postgres/operations/current_history.py",
+        "hermes_db/domains/runtime/postgres/operations/terminal_boundary.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.sessions.get_session",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/admissions.py",
+        "hermes_db/domains/runtime/postgres/operations/chat_pick.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_compression.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.sessions.get_sessions",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/queries/local_recovery.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.sessions.lock_root",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/queries/runtime.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.sessions.lock_session",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/admissions.py",
+        "hermes_db/domains/runtime/postgres/local.py",
+        "hermes_db/domains/runtime/postgres/operations/api_binding.py",
+        "hermes_db/domains/runtime/postgres/operations/chat_pick.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_reservation.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.sessions.lock_store",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/admissions.py",
+        "hermes_db/domains/runtime/postgres/delegations.py",
+        "hermes_db/domains/runtime/postgres/idempotency.py",
+        "hermes_db/domains/runtime/postgres/local.py",
+        "hermes_db/domains/runtime/postgres/media.py",
+        "hermes_db/domains/runtime/postgres/operations/api_binding.py",
+        "hermes_db/domains/runtime/postgres/operations/chat_pick.py",
+        "hermes_db/domains/runtime/postgres/operations/deferred_pick.py",
+        "hermes_db/domains/runtime/postgres/operations/deliveries.py",
+        "hermes_db/domains/runtime/postgres/operations/local_sessions.py",
+        "hermes_db/domains/runtime/postgres/operations/runtime.py",
+        "hermes_db/domains/runtime/postgres/operations/runtime_queue.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_reservation.py",
+        "hermes_db/domains/runtime/postgres/operations/workers.py",
+        "hermes_db/domains/runtime/postgres/policy.py",
+        "hermes_db/domains/runtime/postgres/queries/runtime.py",
+        "hermes_db/domains/runtime/postgres/response_store.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.sessions.raw_session",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/admissions.py",
+        "hermes_db/domains/runtime/postgres/local.py",
+        "hermes_db/domains/runtime/postgres/operations/api_binding.py",
+        "hermes_db/domains/runtime/postgres/operations/chat_pick.py",
+        "hermes_db/domains/runtime/postgres/operations/current_history.py",
+        "hermes_db/domains/runtime/postgres/operations/local_sessions.py",
+        "hermes_db/domains/runtime/postgres/operations/runtime_queue.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_children.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_compression.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_state.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_delegations.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_turn.py",
+        "hermes_db/domains/runtime/postgres/queries/history_access.py",
+        "hermes_db/domains/runtime/postgres/queries/local_recovery.py",
+        "hermes_db/domains/runtime/postgres/queries/runtime.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.sessions.retired_session",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/admissions.py",
+        "hermes_db/domains/runtime/postgres/operations/api_binding.py",
+        "hermes_db/domains/runtime/postgres/operations/local_sessions.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.sessions.update_session",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/admissions.py",
+        "hermes_db/domains/runtime/postgres/local.py",
+        "hermes_db/domains/runtime/postgres/operations/api_binding.py",
+        "hermes_db/domains/runtime/postgres/operations/chat_pick.py",
+        "hermes_db/domains/runtime/postgres/operations/current_history.py",
+        "hermes_db/domains/runtime/postgres/operations/local_sessions.py",
+        "hermes_db/domains/runtime/postgres/operations/runtime.py",
+        "hermes_db/domains/runtime/postgres/operations/runtime_queue.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_compression.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_state.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_reservation.py",
+        "hermes_db/domains/runtime/postgres/operations/workers.py",
+        "hermes_db/domains/runtime/postgres/queries/worker_retirement.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.sessions.where_session",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/policy.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.usage",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.usage.record_route",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.usage.update_totals",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.support.message_codec.codec",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/terminal_boundary.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.support.message_codec.content_to_bytes",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.support.message_codec.merge_display_metadata",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.rules._MODEL_USAGE_FIELDS",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.rules._NUMBERED_TITLE_RE",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.rules._TOKEN_COUNTERS",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_handlers.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.rules.classify_session_status",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.verification.postgres",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_domains.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.verification.postgres.mark_edited",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_domains.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.verification.postgres.record",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_domains.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.verification.postgres.status",
+      "category": "shared-connection",
+      "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_domains.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.verification.values.VerificationEvidence",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_domains.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.verification.values._MAX_EVENTS_PER_SESSION_ROOT",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_domains.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.verification.values._MAX_EVIDENCE_AGE_DAYS",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_domains.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.verification.values._MAX_TOTAL_UNREFERENCED_EVENTS",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_domains.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.verification.values._utc_now",
+      "category": "shared-pure",
+      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_domains.py"
+      ]
+    },
+    {
+      "target": "hermes_db.factory.acquire_domain",
+      "category": "entry-bridge",
+      "reason": "Existing selected-backend/Worker entry dispatch only; no lower SQL workflow may acquire a resource or select application composition.",
+      "consumers": [
+        "hermes_db/domains/cron/api.py",
+        "hermes_db/domains/verification/api.py"
+      ]
+    },
+    {
+      "target": "hermes_db.factory.acquire_profile_domain",
+      "category": "entry-bridge",
+      "reason": "Existing selected-backend/Worker entry dispatch only; no lower SQL workflow may acquire a resource or select application composition.",
+      "consumers": [
+        "hermes_db/domains/kanban/api.py",
+        "hermes_db/domains/metrics/api.py",
+        "hermes_db/domains/plugin_storage/discord/api.py",
+        "hermes_db/domains/plugin_storage/matrix/api.py",
+        "hermes_db/domains/plugin_storage/records/api.py",
+        "hermes_db/domains/plugin_storage/retain/api.py",
+        "hermes_db/domains/rooms/api.py"
+      ]
+    },
+    {
+      "target": "hermes_db.integration.kanban_worker.WorkerBoardResource",
+      "category": "entry-bridge",
+      "reason": "Existing selected-backend/Worker entry dispatch only; no lower SQL workflow may acquire a resource or select application composition.",
+      "consumers": [
+        "hermes_db/domains/kanban/api.py"
+      ]
+    },
+    {
+      "target": "hermes_dir_acl.make_user_dir",
+      "category": "infrastructure",
+      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
+      "consumers": [
+        "hermes_db/domains/rooms/attachments/files.py"
+      ]
+    },
+    {
+      "target": "hermes_state_compaction_display.later_tool_copy_ids",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "hermes_state_errors.CompressionSessionBusyError",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/compression_publish.py"
+      ]
+    },
+    {
+      "target": "hermes_state_errors.CompressionSessionClosedError",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/transcript_guards.py"
+      ]
+    },
+    {
+      "target": "hermes_state_errors.HeldRowRewrittenError",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/compression.py"
+      ]
+    },
+    {
+      "target": "hermes_state_errors.PruneRowStaleError",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/rewrites.py"
+      ]
+    },
+    {
+      "target": "hermes_state_errors.PruneRowUnresolvedError",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/rewrites.py"
+      ]
+    },
+    {
+      "target": "hermes_state_errors.SessionActiveWriteGuardError",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/retirement.py"
+      ]
+    },
+    {
+      "target": "hermes_state_errors.SessionCompressionInProgressError",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/compression.py",
+        "hermes_db/domains/sessions/postgres/operations/transcript_guards.py"
+      ]
+    },
+    {
+      "target": "hermes_state_errors.SessionTurnLeaseLostError",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/transcript_guards.py"
+      ]
+    },
+    {
+      "target": "hermes_state_identity._absorbed_uids_json",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "hermes_state_identity._fill_missing_tool_call_uids",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/transcript_repair.py"
+      ]
+    },
+    {
+      "target": "hermes_state_identity._restore_identity_columns",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "hermes_state_identity._restore_row_identity",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/transcript_repair.py"
+      ]
+    },
+    {
+      "target": "hermes_state_identity._stable_tool_key",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "hermes_state_identity._tool_call_uid_map",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "hermes_state_identity._tool_call_uid_or_none",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "hermes_state_identity._tool_call_uids_json",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py"
+      ]
+    },
+    {
+      "target": "hermes_state_identity._uid_list",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/codec.py",
+        "hermes_db/domains/sessions/postgres/messages.py"
+      ]
+    },
+    {
+      "target": "hermes_state_ids.new_session_id",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_children.py"
+      ]
+    },
+    {
+      "target": "hermes_state_keys.admission_fingerprint",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/admissions.py",
+        "hermes_db/domains/runtime/postgres/operations/runtime.py",
+        "hermes_db/domains/runtime/postgres/operations/runtime_queue.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_children.py",
+        "hermes_db/domains/runtime/postgres/operations/worker_reservation.py",
+        "hermes_db/domains/runtime/postgres/operations/workers.py",
+        "hermes_db/domains/runtime/postgres/queries/workers.py",
+        "hermes_db/domains/runtime/receipts.py",
+        "hermes_db/domains/runtime/values.py",
+        "hermes_db/domains/sessions/postgres/queries/retirement_ledger.py"
+      ]
+    },
+    {
+      "target": "hermes_state_keys.local_identity",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/local_sessions.py",
+        "hermes_db/domains/sessions/postgres/operations/mutation_branch.py",
+        "hermes_db/domains/sessions/postgres/queries/lineage.py"
+      ]
+    },
+    {
+      "target": "hermes_state_keys.profile_from_session_key",
+      "category": "shared-pure",
+      "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/mutation_branch.py"
+      ]
+    },
+    {
+      "target": "hermes_state_registry.acquire",
+      "category": "sqlite-bridge",
+      "reason": "Native adapter selected by the SQLite backend only; original SessionDB registry lifetime and bound method semantics.",
+      "consumers": [
+        "hermes_db/backends/sqlite/acquire.py"
+      ]
+    },
+    {
+      "target": "hermes_state_registry.release",
+      "category": "sqlite-bridge",
+      "reason": "Native adapter selected by the SQLite backend only; original SessionDB registry lifetime and bound method semantics.",
+      "consumers": [
+        "hermes_db/backends/sqlite/acquire.py"
+      ]
+    },
+    {
+      "target": "hermes_state_runtime",
+      "category": "sqlite-bridge",
+      "reason": "Native adapter selected by the SQLite backend only; original SessionDB registry lifetime and bound method semantics.",
+      "consumers": [
+        "hermes_db/backends/sqlite/acquire.py"
+      ]
+    },
+    {
+      "target": "plugins.plugin_storage_types.MAX_NAMESPACE_BYTES",
+      "category": "shared-pure",
+      "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
+      "consumers": [
+        "hermes_db/backends/sqlite/plugin_storage.py",
+        "hermes_db/domains/plugin_storage/records/postgres/store.py"
+      ]
+    },
+    {
+      "target": "plugins.plugin_storage_types.MAX_NAMESPACE_KEYS",
+      "category": "shared-pure",
+      "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
+      "consumers": [
+        "hermes_db/backends/sqlite/plugin_storage.py",
+        "hermes_db/domains/plugin_storage/records/postgres/store.py"
+      ]
+    },
+    {
+      "target": "plugins.plugin_storage_types.PluginStorageQuotaError",
+      "category": "shared-pure",
+      "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
+      "consumers": [
+        "hermes_db/backends/sqlite/plugin_storage.py",
+        "hermes_db/domains/plugin_storage/records/postgres/store.py"
+      ]
+    },
+    {
+      "target": "plugins.plugin_storage_types.check_revision",
+      "category": "shared-pure",
+      "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
+      "consumers": [
+        "hermes_db/backends/sqlite/plugin_storage.py",
+        "hermes_db/domains/plugin_storage/records/postgres/store.py"
+      ]
+    },
+    {
+      "target": "plugins.plugin_storage_types.decode_record",
+      "category": "shared-pure",
+      "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
+      "consumers": [
+        "hermes_db/backends/sqlite/plugin_storage.py",
+        "hermes_db/domains/plugin_storage/records/postgres/store.py"
+      ]
+    },
+    {
+      "target": "plugins.plugin_storage_types.encode_value",
+      "category": "shared-pure",
+      "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
+      "consumers": [
+        "hermes_db/backends/sqlite/plugin_storage.py",
+        "hermes_db/domains/plugin_storage/discord/postgres/operations/recovery.py",
+        "hermes_db/domains/plugin_storage/records/postgres/store.py"
+      ]
+    },
+    {
+      "target": "plugins.plugin_storage_types.validate_key",
+      "category": "shared-pure",
+      "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
+      "consumers": [
+        "hermes_db/backends/sqlite/plugin_storage.py",
+        "hermes_db/domains/plugin_storage/discord/postgres/operations/recovery.py",
+        "hermes_db/domains/plugin_storage/records/postgres/store.py"
+      ]
+    },
+    {
+      "target": "plugins.plugin_storage_types.validate_limit",
+      "category": "shared-pure",
+      "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
+      "consumers": [
+        "hermes_db/backends/sqlite/plugin_storage.py",
+        "hermes_db/domains/plugin_storage/records/postgres/store.py"
+      ]
+    },
+    {
+      "target": "plugins.plugin_storage_types.validate_revision",
+      "category": "shared-pure",
+      "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
+      "consumers": [
+        "hermes_db/backends/sqlite/plugin_storage.py",
+        "hermes_db/domains/plugin_storage/records/postgres/store.py"
+      ]
+    },
+    {
+      "target": "plugins.plugin_storage_types.validate_ttl",
+      "category": "shared-pure",
+      "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
+      "consumers": [
+        "hermes_db/backends/sqlite/plugin_storage.py",
+        "hermes_db/domains/plugin_storage/records/postgres/store.py"
+      ]
+    },
+    {
+      "target": "pm.filesystem.lock_path",
+      "category": "infrastructure",
+      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
+      "consumers": [
+        "hermes_db/domains/kanban/postgres/files.py",
+        "hermes_db/domains/rooms/attachments/files.py"
+      ]
+    },
+    {
+      "target": "pm.filesystem.unlock_fd",
+      "category": "infrastructure",
+      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
+      "consumers": [
+        "hermes_db/domains/kanban/postgres/files.py",
+        "hermes_db/domains/rooms/attachments/files.py"
+      ]
+    },
+    {
+      "target": "tools.async_delegation._MAX_DELIVERY_ATTEMPTS",
+      "category": "shared-pure",
+      "reason": "Existing exact closed delivery-attempt or result-text bound value; no tool execution or discovery surface.",
+      "consumers": [
+        "hermes_db/domains/runtime/postgres/operations/worker_delegations.py"
+      ]
+    },
+    {
+      "target": "tools.process_registry.RestartSafeScopeUnavailable",
+      "category": "shared-pure",
+      "reason": "Original restart-safe-scope error identity only; process signalling and registry policy remain injected application capabilities.",
+      "consumers": [
+        "hermes_db/domains/kanban/postgres/dispatch.py"
+      ]
+    },
+    {
+      "target": "tools.todo_tool.MAX_TODO_RESULT_CHARS",
+      "category": "shared-pure",
+      "reason": "Existing exact closed delivery-attempt or result-text bound value; no tool execution or discovery surface.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/messages.py"
+      ]
+    },
+    {
+      "target": "tools.tool_result_storage.spillover_names_in_text",
+      "category": "shared-pure",
+      "reason": "Existing spillover-name parser over text, not spillover filesystem creation or model tool execution.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/archive_refs.py",
+        "hermes_db/domains/sessions/postgres/queries/media.py",
+        "hermes_db/domains/sessions/postgres/support/archive_projection.py"
+      ]
+    },
+    {
+      "target": "utils.atomic_json_write",
+      "category": "infrastructure",
+      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
+      "consumers": [
+        "hermes_db/domains/kanban/postgres/files.py",
+        "hermes_db/domains/metrics/postgres/store.py"
+      ]
+    },
+    {
+      "target": "utils.atomic_write_bytes",
+      "category": "infrastructure",
+      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
+      "consumers": [
+        "hermes_db/domains/kanban/postgres/files.py",
+        "hermes_db/domains/rooms/attachments/files.py"
+      ]
+    },
+    {
+      "target": "utils.safe_json_loads",
+      "category": "infrastructure",
+      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/operations/imports.py"
+      ]
+    }
+  ]
+}

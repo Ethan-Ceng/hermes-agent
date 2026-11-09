@@ -12,6 +12,8 @@ this module mints that actor (``groups.send`` hard-codes ``desktop``), so a clie
 """
 
 from __future__ import annotations
+from hermes_db.domains.rooms.rules import CONTEXT_EVENT_KIND, MAX_NOTES_BYTES, MAX_PURPOSE_CHARS, ROUTING_MODES, _CONTEXT_ACTOR, _EMPTY_CONTEXT, validate_context
+from hermes_db.domains.rooms import rules as _storage_shared_1
 
 import hashlib
 import json
@@ -24,35 +26,12 @@ from gateway import hosted_rooms
 from gateway.hosted_rooms_common import DbPath
 from hermes_db.domains.rooms.api import room_operation
 
-MAX_PURPOSE_CHARS = 500
-MAX_NOTES_BYTES = 4 * 1024
-CONTEXT_EVENT_KIND = "room.context_set"
-_CONTEXT_ACTOR = {"kind": "system", "id": "room-control"}
 # Actor id prefixes for posts the scheduler makes. A result post can start a round when it @mentions a
 # member; a failure notice never does (its text is machine-written, not addressed to anyone).
 SCHEDULED_POST_PREFIX = "cron:"
 SCHEDULED_NOTICE_PREFIX = "cron-notice:"
-ROUTING_MODES = ("everyone", "lead", "auto")
-_EMPTY_CONTEXT = {"purpose": "", "notes": "", "routing": "everyone", "lead_member_id": ""}
 
 
-def validate_context(purpose: Any, notes: Any, routing: Any = "everyone", lead_member_id: Any = "") -> dict[str, str]:
-    """Normalize one room settings record; purpose and notes may be empty (clears them). ``lead`` routing
-    needs a lead; ``everyone`` routing never keeps one."""
-    if not all(isinstance(value, str) for value in (purpose, notes, routing, lead_member_id)):
-        raise hosted_rooms.HostedRoomError("purpose, notes, routing and lead_member_id must be strings")
-    purpose = " ".join(purpose.split())
-    notes = notes.strip()
-    if len(purpose) > MAX_PURPOSE_CHARS:
-        raise hosted_rooms.HostedRoomError(f"purpose must be at most {MAX_PURPOSE_CHARS} characters")
-    if len(notes.encode("utf-8")) > MAX_NOTES_BYTES:
-        raise hosted_rooms.HostedRoomError(f"notes must be at most {MAX_NOTES_BYTES} bytes")
-    if routing not in ROUTING_MODES:
-        raise hosted_rooms.HostedRoomError("routing must be 'everyone', 'lead' or 'auto'")
-    if routing == "lead" and not lead_member_id.strip():
-        raise hosted_rooms.HostedRoomError("lead routing needs a lead_member_id")
-    return {"purpose": purpose, "notes": notes, "routing": routing,
-            "lead_member_id": lead_member_id.strip() if routing == "lead" else ""}
 
 
 def _local_authority(db_path: DbPath, room_id: Any) -> dict[str, Any]:
@@ -77,7 +56,7 @@ def _latest_context(conn: Any, room_id: str, before_seq: int | None) -> dict[str
 @room_operation("room_context")
 def room_context(db_path: DbPath, *, room_id: Any, before_seq: int | None = None) -> dict[str, str]:
     """The latest purpose/notes, or the ones in force before ``before_seq`` when given."""
-    room_id = hosted_rooms._room_id(room_id)
+    room_id = _storage_shared_1._room_id(room_id)
     with closing(hosted_rooms._read_connection(db_path)) as conn:
         return _latest_context(conn, room_id, before_seq)
 
@@ -97,7 +76,7 @@ def set_room_context(
     saved: dict[str, str] = {}
 
     def settings(conn: Any) -> dict[str, str]:
-        first = hosted_rooms._load_event(conn, state["room_id"], hosted_rooms._event_id(event_id))
+        first = hosted_rooms._load_event(conn, state["room_id"], _storage_shared_1._event_id(event_id))
         original = json.loads(first["payload_json"]) if first is not None and first["kind"] == CONTEXT_EVENT_KIND else None
         current = {**_EMPTY_CONTEXT, **original} if original is not None else _latest_context(conn, state["room_id"], None)
         context = validate_context(
@@ -160,4 +139,4 @@ def post_scheduled_message(
             row = hosted_rooms._load_event(conn, state["room_id"], event_id)
         if row is None:
             raise
-        return hosted_rooms._event_from_row(row, idempotent=True)
+        return _storage_shared_1._event_from_row(row, idempotent=True)

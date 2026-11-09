@@ -1,4 +1,5 @@
 """Shared retry cooldown and duplicate-work policy, independent of SQL dialect."""
+from hermes_db.domains.kanban import rules as _storage_shared_1
 
 
 def primary_guard(error, latest, lane, now):
@@ -7,7 +8,7 @@ def primary_guard(error, latest, lane, now):
     outcome = latest["outcome"] if latest is not None else None
     ended = kb._to_epoch(latest["ended_at"]) if latest is not None else None
     recent = cooldown > 0 and ended is not None and now - ended < cooldown
-    if outcome == "spawn_failed" and recent and kb._json_dict(latest["metadata"]).get("infrastructure"):
+    if outcome == "spawn_failed" and recent and _storage_shared_1._json_dict(latest["metadata"]).get("infrastructure"):
         return True, "infrastructure_cooldown"
     if outcome == "rate_limited":
         return True, "rate_limit_cooldown" if recent else None

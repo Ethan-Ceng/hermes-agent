@@ -7,12 +7,13 @@ import shutil
 
 import pytest
 
-from hermes_cli.observability import shared_metrics as native, shared_metrics_engagement as engagement
+from hermes_db.domains.metrics import policy as native
+from hermes_cli.observability import shared_metrics_engagement as engagement
 from hermes_cli.observability.shared_metrics import SharedMetricsStore
 from hermes_db.domains.metrics.api import open_metrics
 from hermes_db.domains.metrics.bound import bound_store
 from hermes_db.errors import UnknownCommitError
-from hermes_db.domains.runtime.postgres.operations import worker_metrics_engagement as intents
+from hermes_db.integration import worker_metrics as intents
 from hermes_db.domains.metrics.postgres import records as repo
 from tests.hermes_db.postgresql.test_metrics_store import DAY, RESOURCE
 from tests.hermes_db.postgresql.test_worker_domain_receipts import assignment
@@ -91,7 +92,7 @@ def test_root_intents_commit_without_source_connection_and_never_count_a_later_d
 def test_root_keeps_its_own_pg_target_when_satellite_uses_another_owned_schema(pg_profiles, postgres_engine, postgres_test_config):
     from hermes_cli.config import atomic_config_write, read_user_config_raw
     from hermes_cli.db_setup import open_profile_db
-    from hermes_db.integration.transfer.move_values import resource_key
+    from hermes_db.core.values import resource_key
     from hermes_db.schema import upgrade_schema
     from tests.hermes_db.pg_support import isolated_namespace
 

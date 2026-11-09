@@ -3,6 +3,7 @@
 import pytest
 
 from gateway import hosted_rooms as rooms
+from hermes_db.domains.rooms import rules as room_rules
 from gateway.hosted_room_attachments import HostedRoomAttachmentStore, AttachmentNotFoundError, AttachmentIntegrityError
 from tests.gateway.test_hosted_room_attachments import PNG, _manifest
 
@@ -31,7 +32,7 @@ def test_failed_event_rolls_back_retention_and_abort_releases_only_unpublished_c
         location = rooms.default_db_path()
         store, saved, manifest = published(location)
         with monkeypatch.context() as patch:
-            patch.setattr(rooms, "MAX_EVENTS_PER_ROOM", 0)
+            patch.setattr(room_rules, "MAX_EVENTS_PER_ROOM", 0)
             with pytest.raises(rooms.HostedRoomError):
                 append(location, manifest)
         with open_room_store(location) as resource, resource.read() as conn:

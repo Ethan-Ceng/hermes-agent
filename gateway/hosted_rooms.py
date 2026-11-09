@@ -17,49 +17,17 @@ from pathlib import Path
 from typing import Any, Callable, Mapping
 from hermes_db.domains.rooms.api import RoomStoreRef, room_operation, assert_sqlite_location
 
-from gateway.hosted_rooms_common import (
-    DbPath, bounded_int, canonical_json, clock as _now, compact_json, connect, fenced_update as _fenced_update,
-    identifier, open_sqlite, table_columns, table_exists, transaction, utf8_len, bounded_grant_expiry)
+from gateway.hosted_rooms_common import DbPath, connect, fenced_update as _fenced_update, open_sqlite, table_columns, table_exists, transaction
+from hermes_db.domains.rooms.rules import bounded_int, canonical_json, clock as _now, compact_json, identifier, utf8_len, bounded_grant_expiry
+
+from hermes_db.domains.rooms.rules import AuthorityConflictError, AuthoritySupersededError, CONTROL_EVENT_BYTE_RESERVE, CONTROL_EVENT_COUNT_RESERVE, DISBANDED_ROOM_RETENTION_SECONDS, EventAttachmentConflictError, EventConflictError, EventCursorConflictError, HostedRoomError, MAX_ACTIVE_ROOMS, MAX_DISBANDED_ROOM_TOMBSTONES, MAX_EVENTS_PER_ROOM, MAX_EVENT_ID_CHARS, MAX_GATEWAY_EVENT_BYTES, MAX_LOG_LIMIT, MAX_LOG_PAGE_BYTES, MAX_OWED_REVOKES, MAX_OWED_REVOKES_PER_MEMBER, MAX_OWED_REVOKE_SECONDS, MAX_ROOM_EVENT_BYTES, MAX_ROOM_LIST_LIMIT, OwedRevokesFullError, RoomConflictError, RoomHeldGrantsPendingError, RoomHistoryExpiredError, RoomNotFoundError, RoomProbeUnavailableError, RoomStopPendingError, _CONTROL_EVENT_KINDS, _LINK_COLUMNS, _actor_id, _bounded_int, _bounded_limit, _claim_payload_json, _claim_values, _event_content, _event_from_row, _event_id, _non_negative, _payload_json, _require_authority, _require_positive_int, _reservation_claims, _reservation_superseded, _room_from_row, _room_grant_scope_key, _room_id, _system_actor_json, _validate_actor, _validate_event_kind, _validate_identifier, _validate_members, _validate_room_name, grant_digest
+from hermes_db.domains.rooms.rules import MAX_ACTOR_ID_CHARS, MAX_ACTOR_LABEL_CHARS, MAX_EVENT_JSON_BYTES, MAX_EVENT_KIND_CHARS, MAX_MEMBERS, MAX_MEMBERS_JSON_BYTES, MAX_ROOM_ID_CHARS, MAX_ROOM_NAME_CHARS
 
 PROTOCOL_VERSION = 2
-MAX_ROOM_ID_CHARS = 128
-MAX_EVENT_ID_CHARS = 128
-MAX_ROOM_NAME_CHARS = 200
-MAX_EVENT_KIND_CHARS = 64
-MAX_ACTOR_ID_CHARS = 128
-MAX_ACTOR_LABEL_CHARS = 200
-MAX_MEMBERS = 128
-MAX_MEMBERS_JSON_BYTES = 128 * 1024
-MAX_EVENT_JSON_BYTES = 256 * 1024
-MAX_LOG_LIMIT = 500
-MAX_LOG_PAGE_BYTES = 2 * 1024 * 1024
-MAX_ROOM_LIST_LIMIT = 500
-MAX_ACTIVE_ROOMS = 256
-MAX_DISBANDED_ROOM_TOMBSTONES = 512
-DISBANDED_ROOM_RETENTION_SECONDS = 90 * 24 * 60 * 60
-MAX_EVENTS_PER_ROOM = 50_000
-MAX_ROOM_EVENT_BYTES = 256 * 1024 * 1024
 # Leave substantial headroom below the pre-update state.db snapshot ceiling: event accounting excludes
 # SQLite indexes and repeated room ids, so the logical budget must stay well below the physical-file limit.
-MAX_GATEWAY_EVENT_BYTES = 16 * 1024 * 1024
-CONTROL_EVENT_COUNT_RESERVE = 64
-CONTROL_EVENT_BYTE_RESERVE = 1024 * 1024
 _JOURNAL_MODE_LOCK_RETRIES = 8
 
-_EVENT_KIND_RE = re.compile(r"^[a-z][a-z0-9_.-]*$")
-_CONTROL_EVENT_KINDS = frozenset({"authority.claimed", "authority.lost", "room.disbanded", "room.stop_requested"})
-_EVENT_KINDS_BY_ACTOR = {
-    "user": frozenset({"message.user"}), "member": frozenset({"message.member"}),
-    "gateway": frozenset({
-        "member.unavailable", "room.activity", "room.assignment", "room.continued", "room.routed", "room.stop_requested",
-        "turn.deferred", "turn.reassigned",
-        "turn.cancelled", "turn.failed", "turn.settled", "turn.started"}),
-    "system": frozenset({
-        "authority.claimed", "authority.lost", "room.context_set", "room.created", "room.disbanded",
-        "room.members_changed", "room.renamed"})}
-_OPTIONAL_ACTOR_FIELDS = (
-    ("display_name", MAX_ACTOR_LABEL_CHARS), ("profile", MAX_ACTOR_ID_CHARS), ("connection_id", MAX_ACTOR_ID_CHARS))
-_ACTOR_FIELDS = frozenset({"kind", "id", *(field for field, _ in _OPTIONAL_ACTOR_FIELDS)})
 
 # --- schema -----------------------------------------------------------------
 _REMOTE_RUN_IDENTITY_COLUMNS = (
@@ -187,90 +155,38 @@ _INSERT_RETIRED = ("INSERT OR IGNORE INTO hosted_room_retired_ids (room_id, reti
 _RETIRE_FROM_ROOMS = (
     "INSERT OR IGNORE INTO hosted_room_retired_ids (room_id, retired_at)"
     " SELECT room_id, disbanded_at FROM hosted_rooms WHERE {where}")
-_LINK_COLUMNS = (
-    "room_id", "member_id", "target_url", "target_profile", "grant", "catalog_json", "cancellation_scope_id",
-    "trace_id", "transport_security", "status", "updated_at")
 _REMOTE_RUN_WHERE = " AND ".join(f"{column}=?" for column in _REMOTE_RUN_IDENTITY_COLUMNS)
 _SELECT_REMOTE_RUN = f"SELECT * FROM hosted_room_remote_runs WHERE {_REMOTE_RUN_WHERE}"
 _LIVE_RESERVATION_WHERE = ("WHERE room_id=? AND target_profile=? AND expires_at>? AND revoked_at IS NULL")
 _SELECT_LIVE_RESERVATION = (f"SELECT 1 FROM hosted_room_peer_reservations {_LIVE_RESERVATION_WHERE} LIMIT 1")
 
 
-class HostedRoomError(ValueError): """Base class for invalid or conflicting hosted-room operations."""
 
-class RoomNotFoundError(HostedRoomError): """Raised when a room does not exist or has been disbanded."""
 
-class RoomHistoryExpiredError(RoomNotFoundError):
-    """Raised when a retired room remains reserved after history compaction."""
-    reason = "room_history_expired"
 
-class RoomConflictError(HostedRoomError): """Raised when an idempotency key is reused for different room state."""
 
-class RoomHeldGrantsPendingError(HostedRoomError):
-    """Retry Disband after revoking grants received since its last sweep."""
-    reason = "room_disbanding_retry"
 
-class RoomStopPendingError(HostedRoomError, RuntimeError):
-    """Expected Stop refusal; retain RuntimeError compatibility for direct service callers."""
-    reason = "room_stop_pending"
 
-class RoomProbeUnavailableError(HostedRoomError):
-    """Raised when a non-blocking ownership probe cannot read the room store."""
 
-class EventConflictError(HostedRoomError): """Raised when an event id is reused with different immutable content."""
 
-class EventCursorConflictError(HostedRoomError):
-    """Raised when new room events invalidate an uncommitted publication plan."""
 
-class EventAttachmentConflictError(EventCursorConflictError):
-    """A publication lost its file commitments; use the same fresh-plan retry."""
 
-class AuthorityConflictError(HostedRoomError):
-    """Raised when a stale room authority attempts to mutate hosted state."""
-    reason = "authority_conflict"
 
-class AuthoritySupersededError(AuthorityConflictError):
-    """Raised when a successful authority claim was later superseded."""
 
 
 # --- validation ---------------------------------------------------------------
-_canonical_json = partial(canonical_json, error=HostedRoomError, ensure_ascii=False)
-_validate_identifier = partial(identifier, error=HostedRoomError)
-_room_id = partial(_validate_identifier, label="room_id", max_chars=MAX_ROOM_ID_CHARS)
-_event_id = partial(_validate_identifier, label="event_id", max_chars=MAX_EVENT_ID_CHARS)
-_actor_json = partial(_canonical_json, label="actor", max_bytes=4 * 1024)
-_payload_json = partial(_canonical_json, label="payload", max_bytes=MAX_EVENT_JSON_BYTES)
-_bounded_int = partial(bounded_int, error=HostedRoomError)
-_validate_room_name = partial(
-    _validate_identifier, label="name", max_chars=MAX_ROOM_NAME_CHARS, pattern=None, invalid="invalid room name")
-_validate_event_kind = partial(
-    _validate_identifier, label="kind", max_chars=MAX_EVENT_KIND_CHARS, pattern=_EVENT_KIND_RE,
-    invalid="invalid event kind")
 
 
-def _actor_id(value: Any, label: str) -> str:
-    return _validate_identifier(value, label=label, max_chars=MAX_ACTOR_ID_CHARS)
 
 
-def _require_positive_int(value: Any, label: str) -> int:
-    return _bounded_int(value, message=f"{label} must be a positive integer", low=1)
 
 
-def _bounded_limit(value: Any, maximum: int) -> int:
-    return _bounded_int(value, message=f"limit must be between 1 and {maximum}", low=1, high=maximum)
 
 
-def _non_negative(value: Any, label: str) -> int:
-    return _bounded_int(value, message=f"{label} must be a non-negative integer")
 
 
-def _system_actor_json(actor_id: str) -> str:
-    return _actor_json({"kind": "system", "id": actor_id})
 
 
-def _claim_payload_json(previous_gateway_id: str, new_gateway_id: str, epoch: int) -> str:
-    return _payload_json(
-        {"previous_gateway_id": previous_gateway_id, "authority_gateway_id": new_gateway_id, "authority_epoch": epoch})
 
 
 def user_event_id(client_event_id: Any) -> str:
@@ -278,15 +194,6 @@ def user_event_id(client_event_id: Any) -> str:
     return f"user:{hashlib.sha256(_event_id(client_event_id).encode('utf-8')).hexdigest()}"
 
 
-def _validate_members(value: Any) -> tuple[list[dict[str, Any]], str]:
-    if not isinstance(value, list):
-        raise HostedRoomError("members must be a list")
-    if len(value) > MAX_MEMBERS:
-        raise HostedRoomError("too many room members")
-    if not all(isinstance(member, dict) for member in value):
-        raise HostedRoomError("each room member must be an object")
-    members = [dict(member) for member in value]
-    return members, _canonical_json(members, label="members", max_bytes=MAX_MEMBERS_JSON_BYTES)
 
 
 def _legacy_members_match(existing_json: str, proposed: list[dict[str, Any]]) -> bool:
@@ -307,29 +214,6 @@ def _legacy_members_match(existing_json: str, proposed: list[dict[str, Any]]) ->
     return True
 
 
-def _validate_actor(value: Any, *, kind: str) -> tuple[dict[str, str], str]:
-    if not isinstance(value, dict):
-        raise HostedRoomError("actor must be an object")
-    unknown = set(value) - _ACTOR_FIELDS
-    if unknown:
-        raise HostedRoomError(f"unknown actor fields: {', '.join(sorted(unknown))}")
-    actor_kind = value.get("kind")
-    if not isinstance(actor_kind, str) or actor_kind not in _EVENT_KINDS_BY_ACTOR:
-        raise HostedRoomError("invalid actor.kind")
-    if kind not in _EVENT_KINDS_BY_ACTOR[actor_kind]:
-        raise HostedRoomError(f"actor kind '{actor_kind}' cannot append '{kind}'")
-    actor = {"kind": actor_kind, "id": _actor_id(value.get("id"), "actor.id")}
-    for field, max_chars in _OPTIONAL_ACTOR_FIELDS:
-        field_value = value.get(field)
-        if field_value is None:
-            continue
-        if not isinstance(field_value, str):
-            raise HostedRoomError(f"actor.{field} must be a string")
-        if len(field_value := field_value.strip()) > max_chars:
-            raise HostedRoomError(f"actor.{field} is too long")
-        if field_value:
-            actor[field] = field_value
-    return actor, _actor_json(actor)
 
 
 # --- schema / connections -------------------------------------------------------
@@ -522,9 +406,6 @@ def _room_row(conn: sqlite3.Connection, sql: str, params: tuple[Any, ...], room_
     raise RoomNotFoundError("hosted room not found")
 
 
-def _require_authority(room: sqlite3.Row, gateway_id: str, epoch: int, message: str) -> None:
-    if str(room["authority_gateway_id"]) != gateway_id or int(room["authority_epoch"]) != epoch:
-        raise AuthorityConflictError(message)
 
 
 def _reload(conn: sqlite3.Connection, sql: str, params: tuple, missing: str) -> sqlite3.Row:
@@ -535,33 +416,14 @@ def _reload(conn: sqlite3.Connection, sql: str, params: tuple, missing: str) -> 
     return row
 
 
-def _room_from_row(row: sqlite3.Row, *, idempotent: bool = False) -> dict[str, Any]:
-    keys = row.keys()  # sqlite3.Row: ``x in row`` scans values, so ``.keys()`` is load-bearing.
-    return {
-        "room_id": row["room_id"], "name": row["name"], "members": json.loads(row["members_json"]),
-        "authority_gateway_id": row["authority_gateway_id"], "authority_epoch": int(row["authority_epoch"]),
-        "revision": int(row["revision"]), "created_at": float(row["created_at"]),
-        "updated_at": float(row["updated_at"]), "idempotent": idempotent,
-        **({"disbanded_at": float(row["disbanded_at"])} if "disbanded_at" in keys and row["disbanded_at"] is not None
-           else {}),
-        **({"latest_seq": int(row["next_seq"]) - 1} if "next_seq" in keys else {})}
 
 
-def _event_from_row(row: sqlite3.Row, *, idempotent: bool = False) -> dict[str, Any]:
-    epoch = row["authority_epoch"]
-    return {
-        "room_id": row["room_id"], "seq": int(row["seq"]), "event_id": row["event_id"], "kind": row["kind"],
-        "actor": json.loads(row["actor_json"]), "authority_epoch": int(epoch) if epoch is not None else None,
-        "payload": json.loads(row["payload_json"]), "created_at": float(row["created_at"]), "idempotent": idempotent}
 
 
 def _load_event(conn: sqlite3.Connection, room_id: str, event_id: str) -> sqlite3.Row | None:
     return conn.execute(_SELECT_EVENT, (room_id, event_id)).fetchone()
 
 
-def _event_content(row: sqlite3.Row) -> tuple[Any, Any, Any, Any]:
-    """The immutable (kind, actor_json, authority_epoch, payload_json) an event id is bound to."""
-    return row["kind"], row["actor_json"], row["authority_epoch"], row["payload_json"]
 
 
 def _gateway_event_bytes(conn: sqlite3.Connection) -> int:
@@ -730,9 +592,6 @@ def delete_room_link_records(db_path: DbPath, *, room_id: str) -> int:
         return conn.execute("DELETE FROM hosted_room_links WHERE room_id=?", (room_id,)).rowcount
 
 
-def grant_digest(grant: str) -> str:
-    """The non-secret key an owed revoke is stored and logged under."""
-    return hashlib.sha256(grant.encode("utf-8")).hexdigest()
 
 
 _OWE_REVOKE = """INSERT INTO hosted_room_owed_revokes(
@@ -747,13 +606,8 @@ _OWE_REVOKE = """INSERT INTO hosted_room_owed_revokes(
 # the member's gateway can check a grant's signature, so an owed row's unsigned expiry never counts
 # as covering another grant, nor is a row evicted for one. A revoke that never lands is retried, with
 # capped backoff, until its grant expires: the grant passes at its member's gateway until then.
-MAX_OWED_REVOKE_SECONDS = 30 * 24 * 60 * 60
-MAX_OWED_REVOKES_PER_MEMBER = 4
-MAX_OWED_REVOKES = 512
 
 
-class OwedRevokesFullError(HostedRoomError):
-    """No room is left to record an owed revoke, while the grant it names may still pass."""
 
 
 def _owe_revoke_locked(
@@ -890,18 +744,8 @@ def settle_room_grant_revoke(
                              WHERE room_id=? AND member_id=? AND grant_digest=?""", (float(retry_at), *key))
 
 
-def _claim_values(claims: Mapping[str, Any], keys: tuple[str, ...]) -> dict[str, str]:
-    return {key: str(claims.get(key) or "") for key in keys}
 
 
-def _room_grant_scope_key(claims: Mapping[str, Any]) -> str:
-    """Return a stable non-secret key for one room/home/target/profile scope."""
-    fields = _claim_values(claims, (
-        "room_id", "home_install_id", "authority_gateway_id", "authority_epoch", "member_id", "target_install_id",
-        "target_profile"))
-    if not all(fields.values()):
-        raise HostedRoomError("room grant scope is incomplete")
-    return hashlib.sha256(compact_json(fields).encode("utf-8")).hexdigest()
 
 
 @room_operation("room_grants")
@@ -932,21 +776,8 @@ def revoke_room_grant_scope(
                 int(claims.get("authority_epoch") or 0)))
 
 
-def _reservation_claims(claims: Mapping[str, Any]) -> tuple[str, str, str, str, int]:
-    """Validate (room_id, member_id, target_profile, authority_gateway_id, authority_epoch)."""
-    values = (
-        _room_id(claims.get("room_id")),
-        *(_actor_id(claims.get(key), key) for key in ("member_id", "target_profile", "authority_gateway_id")),
-        int(claims.get("authority_epoch") or 0))
-    if values[4] < 1:
-        raise HostedRoomError("authority_epoch must be positive")
-    return values
 
 
-def _reservation_superseded(row: sqlite3.Row, gateway_id: str, epoch: int) -> bool:
-    """A newer epoch, or the same epoch under another gateway, outranks this claim."""
-    row_epoch = int(row["authority_epoch"])
-    return row_epoch > epoch or (row_epoch == epoch and str(row["authority_gateway_id"]) != gateway_id)
 
 
 @room_operation("room_grants")

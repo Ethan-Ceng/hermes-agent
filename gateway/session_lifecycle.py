@@ -136,7 +136,7 @@ class SessionLifecycleMixin:
         import json
         import sqlite3
 
-        from hermes_state_local import API_BINDING_PREFIX
+        from hermes_db.domains.runtime.receipts import API_BINDING_PREFIX
         try:
             saved = db.get_meta(API_BINDING_PREFIX + str(origin.chat_id))
             return saved is not None and json.loads(saved)["entry"]["session_key"] == entry.session_key

@@ -176,7 +176,7 @@ async def test_a_receipt_committed_before_this_change_still_takes_its_exact_retr
     """Receipts written before ``route_derived`` (and, for a same-name alias, before ``model_requested``
     was stamped for it), retried after the owner restarts on this code: the unchanged retry still
     returns the original session."""
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     home, authority, connection = owner
     params = _params(home, model=alias)
     ref = _create(authority, connection, params)

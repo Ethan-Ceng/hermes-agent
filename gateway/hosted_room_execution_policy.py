@@ -7,7 +7,7 @@ from contextvars import ContextVar, Token
 from dataclasses import asdict, dataclass
 from typing import Any, Mapping
 
-from gateway.hosted_rooms_common import bounded_int, compact_json, identifier
+from hermes_db.domains.rooms.rules import bounded_int, compact_json, identifier
 
 POLICY_VERSION = 1
 MAX_POLICY_TOOLSETS = 128

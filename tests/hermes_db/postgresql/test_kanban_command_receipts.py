@@ -1,4 +1,5 @@
 """Real COMMIT loss replays the exact result without a second Board effect."""
+from hermes_db.domains.kanban import rules as kanban_rules
 
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -63,7 +64,7 @@ def test_receipt_write_failure_rolls_back_business_effect(pg_profiles, monkeypat
 
 
 def test_command_identity_is_scoped_to_board_and_store(pg_profiles, monkeypatch):
-    monkeypatch.setattr(kb, "_new_task_id", lambda: "t_same")
+    monkeypatch.setattr(kanban_rules, "_new_task_id", lambda: "t_same")
     command_id = uuid.uuid4().hex
     for profile, board in (("one", "alpha"), ("one", "beta"), ("two", "alpha")):
         with pg_profiles(profile):

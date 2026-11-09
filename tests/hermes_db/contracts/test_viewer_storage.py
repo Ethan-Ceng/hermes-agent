@@ -7,7 +7,7 @@ import json
 def test_viewer_close_compare_delete_and_live_facts_are_backend_scoped(store, runtime):
     from gateway.session_live_listing import _store_facts
     from gateway.session_viewer_close import CLOSE_PREFIX, _busy, _idle_s, _persist_close, forget_persisted_close
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     store.create_session("s", "cli")
     store.create_session("target", "cli")
     store.set_session_title("s", "会话")

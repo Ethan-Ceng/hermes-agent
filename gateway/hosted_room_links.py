@@ -18,7 +18,8 @@ from typing import Any, Mapping
 from gateway import hosted_rooms
 from gateway.hosted_room_peer import (
     GatewayRoomCatalog, HostedRoomPeerError, TransportSecurity, room_grant_hard_expiry, validate_room_link_url)
-from gateway.hosted_rooms_common import DbPath, compact_json, exact_fields, identifier
+from gateway.hosted_rooms_common import DbPath
+from hermes_db.domains.rooms.rules import compact_json, exact_fields, identifier
 
 
 MAX_LINKS = 512

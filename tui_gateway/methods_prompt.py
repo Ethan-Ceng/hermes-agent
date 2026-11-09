@@ -296,9 +296,8 @@ def _legacy_group_fence_error(rid, session, params):
     if not room_id:
         return None
     try:
-        from gateway.hosted_rooms import (
-            HostedRoomError, RoomProbeUnavailableError, default_db_path, probe_hosted_room,
-            probe_peer_room_reservation)
+        from hermes_db.domains.rooms.rules import HostedRoomError, RoomProbeUnavailableError
+        from gateway.hosted_rooms import default_db_path, probe_hosted_room, probe_peer_room_reservation
         hosted = probe_hosted_room(default_db_path(), room_id=room_id)
         peer = False
         if not hosted:

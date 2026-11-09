@@ -1,7 +1,7 @@
 {
   "baseline": "cbfc773dd79241752697e647067c63338fc01680",
   "baseline_runtime": "0d69702244d623a31be149a9bac6a2658e0322ae",
-  "stage": "Stage2 Task15 verified: Room/attachment 32 modules consolidated into nine owners; 351 total Python modules; Task16 pending",
+  "stage": "Stage2 Task16 completed: ownership and dependency closure verified; final frozen-code distribution/business/SDK acceptance and independent review remain Tasks17-18",
   "hash_basis": "SHA256 of Git blob bytes at baseline; independent of checkout line endings",
   "counts": {
     "keep": 76,
@@ -211,7 +211,9 @@
       "lines": 26,
       "sha256": "8cf7b063319833ec1ccc751e306723e1e213ed6b79e2a92d768e9bb4d86004cd",
       "role": "routing",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/kanban/rules.py",
+      "consolidated_by_task": 16
     },
     {
       "source": "hermes_db/domains/kanban_files.py",
@@ -221,7 +223,9 @@
       "lines": 92,
       "sha256": "ef39ce7988896c8cd4f87c6d9a5bb6a4ac74a9ea37a894eec98fc4096b195dba",
       "role": "routing",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/integration/kanban_owner.py",
+      "consolidated_by_task": 16
     },
     {
       "source": "hermes_db/domains/kanban_owner.py",
@@ -231,7 +235,9 @@
       "lines": 53,
       "sha256": "8d8f70d4a0c9506a769f31cb9dd8c7f6134bc34da5b4e44fd0d4333c98349475",
       "role": "routing",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/integration/kanban_owner.py",
+      "consolidated_by_task": 16
     },
     {
       "source": "hermes_db/domains/kanban_wire.py",
@@ -241,7 +247,9 @@
       "lines": 58,
       "sha256": "1456f2e9dd95b2755305c3114633a37f7835279928ab54daee4fffad3ed2ebac",
       "role": "routing",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/integration/kanban_wire.py",
+      "consolidated_by_task": 16
     },
     {
       "source": "hermes_db/domains/kanban_worker.py",
@@ -251,7 +259,9 @@
       "lines": 87,
       "sha256": "8c9b2fd51f802fcc56ebd17b9148cd7b2ff1b3bd85493a3043eb388fb9747cec",
       "role": "routing",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/integration/kanban_worker.py",
+      "consolidated_by_task": 16
     },
     {
       "source": "hermes_db/domains/matrix_crypto.py",
@@ -551,7 +561,9 @@
       "lines": 16,
       "sha256": "c5fa926ef5dd6030c5891cab7a03bedc40a09e312c4dc978ff471aa89f2d49c6",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/integration/metrics_snapshot.py",
+      "consolidated_by_task": 16
     },
     {
       "source": "hermes_db/metrics_store.py",
@@ -915,7 +927,11 @@
       "task": 16,
       "lines": 1,
       "sha256": "288bee58a19f9f0275bcc5aaa4381ffd580400614cce8e60081449de920fd39d",
-      "role": "empty-layer-namespace"
+      "role": "empty-layer-namespace",
+      "final_status": "removed",
+      "final_target": null,
+      "consolidated_by_task": 16,
+      "final_reason": "Empty former global technical namespace; business domains own all actual consumers"
     },
     {
       "source": "hermes_db/operations/adoption.py",
@@ -1167,8 +1183,8 @@
       "sha256": "670f9cbf7b2130f75ea354ea3e35d27d783625e77c6bd4d16ba27e1419be2520",
       "role": "domain",
       "stage1_status": "verified",
-      "final_target": "hermes_db/domains/kanban/postgres/transfer.py",
-      "consolidated_by_task": 14,
+      "final_target": "hermes_db/integration/transfer/kanban.py",
+      "consolidated_by_task": 16,
       "final_status": "verified"
     },
     {
@@ -1479,8 +1495,8 @@
       "sha256": "a95ad3fc8308713e8cd61cca488e8fb99e4344ecaadcda552abeb29c21ba77e5",
       "role": "domain",
       "stage1_status": "verified",
-      "final_target": "hermes_db/domains/kanban/postgres/transfer.py",
-      "consolidated_by_task": 14,
+      "final_target": "hermes_db/integration/transfer/kanban.py",
+      "consolidated_by_task": 16,
       "final_status": "verified"
     },
     {
@@ -1492,8 +1508,8 @@
       "sha256": "befba613f446238eca6bbcb79ba83dbf473f6bbf2f3ad05b761583c75e4193b9",
       "role": "domain",
       "stage1_status": "verified",
-      "final_target": "hermes_db/domains/kanban/postgres/transfer.py",
-      "consolidated_by_task": 14,
+      "final_target": "hermes_db/integration/transfer/kanban.py",
+      "consolidated_by_task": 16,
       "final_status": "verified"
     },
     {
@@ -1700,8 +1716,8 @@
       "sha256": "ce0fcf4f4048214784ae1b8b41a07802376665fefe1bad2fb17d61ec1a633ab3",
       "role": "domain",
       "stage1_status": "verified",
-      "final_target": "hermes_db/domains/kanban/postgres/transfer.py",
-      "consolidated_by_task": 14,
+      "final_target": "hermes_db/integration/transfer/kanban.py",
+      "consolidated_by_task": 16,
       "final_status": "verified"
     },
     {
@@ -1797,7 +1813,9 @@
       "lines": 123,
       "sha256": "d75c79ee3a45e670a40f8fa167fb7460cc55febba170d977d9564a6426630d8c",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/operations/retention.py",
+      "consolidated_by_task": 16
     },
     {
       "source": "hermes_db/operations/matrix_accounts.py",
@@ -1937,7 +1955,9 @@
       "lines": 115,
       "sha256": "9c8040f986fe3ab93fa5b0a14bd6889a8c7a8f1e762dd376ab4b331c499aafda",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/operations/imports.py",
+      "consolidated_by_task": 16
     },
     {
       "source": "hermes_db/operations/profile_move.py",
@@ -2552,7 +2572,9 @@
       "lines": 90,
       "sha256": "7fa3307a1a710fd04031815ddb770c7cb5f7fe3ed09a8a43fa3e19a930f2b34c",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/integration/worker_metrics.py",
+      "consolidated_by_task": 16
     },
     {
       "source": "hermes_db/operations/worker_reservation.py",
@@ -2614,7 +2636,9 @@
       "lines": 25,
       "sha256": "f7fffb33a0059373f75a3b1cc1a6d8faee3dcadff2b57faf7ff380dd13de3b52",
       "role": "infrastructure",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/import_rules.py",
+      "consolidated_by_task": 16
     },
     {
       "source": "hermes_db/postgresql/__init__.py",
@@ -2644,7 +2668,9 @@
       "lines": 102,
       "sha256": "8a96bf7c1bd0ce0938717f935a8cb390de31c71a4cf676669c8cb2ad2ccebd9a",
       "role": "backend",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/support/search.py",
+      "consolidated_by_task": 16
     },
     {
       "source": "hermes_db/postgresql/transactions.py",
@@ -2693,7 +2719,11 @@
       "task": 16,
       "lines": 1,
       "sha256": "91975112848548572509f7a6f84addf4bae9d6ac9918b2ee7a16d9f9900c5427",
-      "role": "empty-layer-namespace"
+      "role": "empty-layer-namespace",
+      "final_status": "removed",
+      "final_target": null,
+      "consolidated_by_task": 16,
+      "final_reason": "Empty former global technical namespace; business domains own all actual consumers"
     },
     {
       "source": "hermes_db/repositories/analytics.py",
@@ -3248,7 +3278,9 @@
       "lines": 105,
       "sha256": "777559e3b6cce80a661988e914e2bb5aecad8d1bc2b7a8935e1a860ca784ad27",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/integration/retain_transport.py",
+      "consolidated_by_task": 16
     },
     {
       "source": "hermes_db/room_attachment_files.py",
@@ -3278,7 +3310,9 @@
       "lines": 158,
       "sha256": "f14aa686f938ffb54a1d7c09ce4ba3607b43c9e199424859f4f87f3486107443",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/integration/room_attachments.py",
+      "consolidated_by_task": 16
     },
     {
       "source": "hermes_db/room_policy.py",
@@ -3288,7 +3322,9 @@
       "lines": 50,
       "sha256": "005401aa83c40a2ac6a11d8b32be8a5730bb1649a12446917c5169ba3291aa82",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/integration/room_policy.py",
+      "consolidated_by_task": 16
     },
     {
       "source": "hermes_db/room_router.py",
@@ -3711,8 +3747,8 @@
       "sha256": "108090cf92ea0b5128add7c2ef109a30f70c3b31c63b01c75f256426a356ac50",
       "role": "domain",
       "stage1_status": "verified",
-      "final_target": "hermes_db/domains/sessions/postgres/support/retired_media.py",
-      "consolidated_by_task": 12,
+      "final_target": "hermes_db/integration/media_retirement.py",
+      "consolidated_by_task": 16,
       "final_status": "verified"
     },
     {
@@ -4727,7 +4763,10 @@
     {
       "path": "hermes_db/domains/kanban/routing/__init__.py",
       "task": 10,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 16,
+      "reason": "Captured owner/file scope and Worker/RPC coordination belong at integration"
     },
     {
       "path": "hermes_db/domains/kanban/postgres/operations/__init__.py",
@@ -4794,6 +4833,119 @@
       "path": "hermes_db/integration/runtime_composition.py",
       "task": 13,
       "role": "explicit-runtime-composition"
+    },
+    {
+      "path": "hermes_db/domains/metrics/policy.py",
+      "task": 16,
+      "role": "shared-backend-independent-metric-policy",
+      "final_status": "in_progress"
+    },
+    {
+      "path": "hermes_db/domains/metrics/package_exports.py",
+      "task": 16,
+      "role": "shared-local-package-export-lifecycle",
+      "final_status": "in_progress"
+    },
+    {
+      "path": "hermes_db/domains/metrics/sending.py",
+      "task": 16,
+      "role": "shared-metric-http-and-claim-lifecycle",
+      "final_status": "in_progress"
+    },
+    {
+      "path": "hermes_db/domains/runtime/values.py",
+      "task": 16,
+      "role": "shared-runtime-refusals-and-receipt-projections",
+      "final_status": "in_progress"
+    },
+    {
+      "path": "hermes_db/domains/runtime/receipts.py",
+      "task": 16,
+      "role": "shared-local-and-terminal-receipt-codec",
+      "final_status": "in_progress"
+    },
+    {
+      "path": "hermes_db/domains/runtime/mutation_rules.py",
+      "task": 16,
+      "role": "shared-closed-mutation-validation",
+      "final_status": "in_progress"
+    },
+    {
+      "path": "hermes_db/domains/rooms/rules.py",
+      "task": 16,
+      "role": "shared-room-values-validation-and-projections",
+      "final_status": "in_progress"
+    },
+    {
+      "path": "hermes_db/integration/domain_composition.py",
+      "task": 16,
+      "role": "explicit-domain-dto-and-owner-capability-composition",
+      "final_status": "in_progress"
+    },
+    {
+      "path": "hermes_db/domains/kanban/rules.py",
+      "task": 16,
+      "role": "shared-stateless-kanban-field-rules",
+      "final_status": "in_progress"
+    },
+    {
+      "path": "hermes_db/integration/kanban_application.py",
+      "task": 16,
+      "role": "scoped-concrete-kanban-application-capabilities",
+      "final_status": "in_progress"
+    },
+    {
+      "path": "hermes_db/domains/sessions/rewind.py",
+      "task": 16,
+      "role": "shared-callback-rewind-algorithm-and-original-public-values",
+      "final_status": "in_progress"
+    },
+    {
+      "path": "hermes_db/domains/rooms/driver_rules.py",
+      "task": 16,
+      "role": "shared-room-wire-values-and-pure-validation",
+      "final_status": "in_progress"
+    },
+    {
+      "path": "hermes_db/domains/rooms/replication_rules.py",
+      "task": 16,
+      "role": "shared-room-wire-values-and-pure-validation",
+      "final_status": "in_progress"
+    },
+    {
+      "path": "hermes_db/domains/rooms/attachments/rules.py",
+      "task": 16,
+      "role": "shared-room-wire-values-and-pure-validation",
+      "final_status": "in_progress"
+    },
+    {
+      "path": "hermes_db/domains/rooms/work_rules.py",
+      "task": 16,
+      "role": "shared-room-wire-values-and-pure-validation",
+      "final_status": "in_progress"
+    },
+    {
+      "path": "hermes_db/domains/rooms/authority_rules.py",
+      "task": 16,
+      "role": "shared-room-wire-values-and-pure-validation",
+      "final_status": "in_progress"
+    },
+    {
+      "path": "hermes_db/domains/verification/values.py",
+      "owner": "verification",
+      "task": 16,
+      "purpose": "Actual shared evidence DTO, clock and retention values; original public identity preserved",
+      "role": "shared verification DTO, clock and retention values"
+    },
+    {
+      "path": "hermes_db/integration/cron_application.py",
+      "task": 16,
+      "role": "concrete Cron runtime facts, observers and active-send synchronization"
+    },
+    {
+      "path": "hermes_db/domains/cron/rules.py",
+      "task": 16,
+      "role": "actual shared terminal attempt protocol"
     }
   ],
   "implementation_amendments": [
@@ -5503,5 +5655,747 @@
         "hermes_db.domains.rooms.attachments.postgres.queries.attachments.blob": "hermes_db.domains.rooms.attachments.postgres.metadata._blob_row"
       }
     }
-  ]
+  ],
+  "integration_boundary_moves": [
+    {
+      "task": 16,
+      "source": "hermes_db/domains/kanban/routing/wire.py",
+      "target": "hermes_db/integration/kanban_wire.py",
+      "reason": "Original CLI DTO identity and closed owner RPC codec belong at integration"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/domains/metrics/postgres/snapshot.py",
+      "target": "hermes_db/integration/metrics_snapshot.py",
+      "reason": "Cross-domain session-age acquisition and Worker RPC are application composition, not metric SQL"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/domains/kanban/routing/owner.py",
+      "target": "hermes_db/integration/kanban_owner.py",
+      "reason": "Captured Profile/owner RPC and file/transfer lifecycle composition"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/domains/kanban/routing/files.py",
+      "target": "hermes_db/integration/kanban_owner.py",
+      "reason": "Captured Profile/owner RPC and file/transfer lifecycle composition"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/domains/kanban/routing/worker.py",
+      "target": "hermes_db/integration/kanban_worker.py",
+      "reason": "Captured Profile/owner RPC and file/transfer lifecycle composition"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/domains/kanban/routing/evidence.py",
+      "target": "hermes_db/integration/kanban_evidence.py",
+      "reason": "Captured Profile/owner RPC and file/transfer lifecycle composition"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/domains/kanban/postgres/transfer.py",
+      "target": "hermes_db/integration/transfer/kanban.py",
+      "reason": "Captured Profile/owner RPC and file/transfer lifecycle composition"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/integration/kanban_evidence.py",
+      "target": "hermes_db/domains/kanban/rules.py",
+      "reason": "TaskEvidence and typed owner-receipt validation are pure domain values, not an application service"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/domains/rooms/attachments/postgres/store.py",
+      "target": "hermes_db/integration/room_attachments.py",
+      "reason": "Captured room resource acquisition and off-connection content/policy orchestration; PG SQL remains domain-owned"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/domains/rooms/postgres/policy_store.py",
+      "target": "hermes_db/integration/room_policy.py",
+      "reason": "Captured room resource acquisition and off-connection content/policy orchestration; PG SQL remains domain-owned"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/integration/transfer/portability_values.py",
+      "target": "hermes_db/domains/sessions/import_rules.py",
+      "reason": "Actual session pure values/SQL stay domain-owned; cross-Profile file retirement stays in integration"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/integration/postgres/operations/portability.py",
+      "target": "hermes_db/domains/sessions/postgres/operations/imports.py",
+      "reason": "Actual session pure values/SQL stay domain-owned; cross-Profile file retirement stays in integration"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/integration/postgres/operations/maintenance.py",
+      "target": "hermes_db/domains/sessions/postgres/operations/retention.py",
+      "reason": "Actual session pure values/SQL stay domain-owned; cross-Profile file retirement stays in integration"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/domains/sessions/postgres/support/retired_media.py",
+      "target": "hermes_db/integration/media_retirement.py",
+      "reason": "Actual session pure values/SQL stay domain-owned; cross-Profile file retirement stays in integration"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/domains/runtime/postgres/operations/worker_metrics_engagement.py",
+      "target": "hermes_db/integration/worker_metrics.py",
+      "reason": "Existing cross-Profile metrics membership replay and Profile consent/config coordination; handlers are concretely assembled before the receipt transaction"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/domains/plugin_storage/retain/postgres/queue.py",
+      "target": "hermes_db/integration/retain_transport.py",
+      "reason": "Actual HTTP/client-thread, profile secret binding, SDK wake/stop coordination; durable PG queue SQL remains domain-owned"
+    }
+  ],
+  "shared_symbol_moves": [
+    {
+      "task": 16,
+      "source": "hermes_db/integration/transfer/move_values.py",
+      "target": "hermes_db/core/values.py",
+      "symbols": [
+        "_bytes",
+        "digest",
+        "resource_key"
+      ],
+      "reason": "Opaque driver-free resource identity and canonical fingerprint encoding"
+    },
+    {
+      "task": 16,
+      "source": "hermes_state_rewind.py",
+      "target": "hermes_db/domains/sessions/rewind.py",
+      "symbols": [
+        "RewindOutcome",
+        "RewindPlan",
+        "RewindTargetUnavailableError",
+        "_HISTORY_CHANGED",
+        "_comparison_content",
+        "_user_indices",
+        "plan_user_turn_rewind",
+        "rewind_user_turn"
+      ],
+      "reason": "PG and Native share rewind algorithms without importing a complete Native storage Mixin"
+    },
+    {
+      "task": 16,
+      "source": "hermes_state_mutation_retirement.py",
+      "target": "hermes_db/domains/runtime/receipts.py",
+      "symbols": {
+        "RETIRED_PREFIX": "RETIRED_PREFIX",
+        "ROUTE_FENCE_PREFIX": "ROUTE_FENCE_PREFIX",
+        "VIEWER_CLOSE_PREFIX": "VIEWER_CLOSE_PREFIX",
+        "RETRY_HORIZON_S": "RETRY_HORIZON_S",
+        "entry_session_id": "entry_session_id",
+        "route_namespace": "route_namespace",
+        "route_fence_key": "route_fence_key"
+      },
+      "reason": "Actual pure receipt, worker policy or session projection values; Native SQL stays in its existing owner"
+    },
+    {
+      "task": 16,
+      "source": "hermes_state_runtime_workers.py",
+      "target": "hermes_db/domains/runtime/receipts.py",
+      "symbols": {
+        "CHILD_SEPARATOR": "CHILD_SEPARATOR",
+        "RETIRED_RECEIPT": "RETIRED_RECEIPT",
+        "retired_receipt": "retired_receipt"
+      },
+      "reason": "Actual pure receipt, worker policy or session projection values; Native SQL stays in its existing owner"
+    },
+    {
+      "task": 16,
+      "source": "hermes_state_mutation_prepared.py",
+      "target": "hermes_db/domains/runtime/receipts.py",
+      "symbols": {
+        "DEFERRED_PICK_PREFIX": "DEFERRED_PICK_PREFIX"
+      },
+      "reason": "Actual pure receipt, worker policy or session projection values; Native SQL stays in its existing owner"
+    },
+    {
+      "task": 16,
+      "source": "hermes_state_mutation_branch.py",
+      "target": "hermes_db/domains/runtime/mutation_rules.py",
+      "symbols": {
+        "_child_policy": "_child_policy"
+      },
+      "reason": "Actual pure receipt, worker policy or session projection values; Native SQL stays in its existing owner"
+    },
+    {
+      "task": 16,
+      "source": "hermes_state_worker_context.py",
+      "target": "hermes_db/domains/runtime/values.py",
+      "symbols": {
+        "SIDECAR_KEYS": "SIDECAR_KEYS"
+      },
+      "reason": "Actual pure receipt, worker policy or session projection values; Native SQL stays in its existing owner"
+    },
+    {
+      "task": 16,
+      "source": "hermes_state_worker_lifecycle.py",
+      "target": "hermes_db/domains/runtime/values.py",
+      "symbols": {
+        "_IDENTITY_FIELDS": "_IDENTITY_FIELDS",
+        "_CREATE_FIELDS": "_CREATE_FIELDS",
+        "_CONSTRUCTOR_CONFIG": "_CONSTRUCTOR_CONFIG",
+        "_row_id": "_row_id"
+      },
+      "reason": "Actual pure receipt, worker policy or session projection values; Native SQL stays in its existing owner"
+    },
+    {
+      "task": 16,
+      "source": "hermes_state_usage.py",
+      "target": "hermes_db/domains/sessions/rules.py",
+      "symbols": {
+        "_MODEL_USAGE_FIELDS": "_MODEL_USAGE_FIELDS",
+        "_TOKEN_COUNTERS": "_TOKEN_COUNTERS"
+      },
+      "reason": "Actual pure receipt, worker policy or session projection values; Native SQL stays in its existing owner"
+    },
+    {
+      "task": 16,
+      "source": "hermes_state_titles.py",
+      "target": "hermes_db/domains/sessions/rules.py",
+      "symbols": {
+        "_NUMBERED_TITLE_RE": "_NUMBERED_TITLE_RE"
+      },
+      "reason": "Actual pure receipt, worker policy or session projection values; Native SQL stays in its existing owner"
+    },
+    {
+      "task": 16,
+      "source": "hermes_state_search.py",
+      "target": "hermes_db/domains/sessions/search_rules.py",
+      "symbols": {
+        "_flatten_text": "_flatten_text"
+      },
+      "reason": "Actual pure receipt, worker policy or session projection values; Native SQL stays in its existing owner"
+    },
+    {
+      "task": 16,
+      "source": "hermes_state_media.py",
+      "target": "hermes_db/domains/runtime/receipts.py",
+      "symbols": {
+        "PREFIX": "RETIRED_MEDIA_PREFIX",
+        "SPILLOVER_PREFIX": "MEDIA_SPILLOVER_PREFIX"
+      },
+      "reason": "Actual pure receipt, worker policy or session projection values; Native SQL stays in its existing owner"
+    },
+    {
+      "task": 16,
+      "source": "gateway/hosted_room_context.py",
+      "target": "hermes_db/domains/rooms/rules.py",
+      "symbols": [
+        "CONTEXT_EVENT_KIND",
+        "MAX_NOTES_BYTES",
+        "MAX_PURPOSE_CHARS",
+        "ROUTING_MODES",
+        "_CONTEXT_ACTOR",
+        "_EMPTY_CONTEXT",
+        "validate_context"
+      ],
+      "reason": "Actual validation and DTO identity shared by Native and PG; no SQL or lifecycle moved"
+    },
+    {
+      "task": 16,
+      "source": "gateway/hosted_room_policy_checkpoint.py",
+      "target": "hermes_db/domains/rooms/rules.py",
+      "symbols": [
+        "MAX_ACTIVE_POLICY_EVENTS",
+        "MAX_ACTIVE_RETRY_RECEIPTS",
+        "MAX_THREAD_TRANSCRIPT_EVENTS",
+        "PolicySnapshot",
+        "_REOPENED_KINDS",
+        "_TERMINAL_KINDS",
+        "_TRANSCRIPT_SCHEMA_VERSION",
+        "_text"
+      ],
+      "reason": "Actual validation and DTO identity shared by Native and PG; no SQL or lifecycle moved"
+    },
+    {
+      "task": 16,
+      "source": "gateway/hosted_room_driver.py",
+      "target": "hermes_db/domains/rooms/driver_rules.py",
+      "symbols": [
+        "Clock",
+        "DriverLease",
+        "DriverStateError",
+        "DriverValidationError",
+        "InvalidTaskTransitionError",
+        "LeaseHeldError",
+        "MAX_IDENTIFIER_CHARS",
+        "MAX_PROMPT_BYTES",
+        "MAX_RESULT_JSON_BYTES",
+        "MAX_RETAINED_TERMINAL_TASKS",
+        "MAX_TASK_PRUNE_BATCH",
+        "RoomUnavailableError",
+        "StaleLeaseError",
+        "StaleTaskError",
+        "TASK_STATUSES",
+        "TERMINAL_STATUSES",
+        "TERMINAL_TASK_RETENTION_SECONDS",
+        "TaskAttempt",
+        "TaskConflictError",
+        "TaskIdentity",
+        "TaskStatus",
+        "_TASK_COLUMN_ORDER",
+        "_TASK_PAYLOAD_OPTIONAL_FIELDS",
+        "_TASK_PAYLOAD_REQUIRED_FIELDS",
+        "_TASK_VIEW_CASTS",
+        "_bounded_int",
+        "_cancel_generation",
+        "_cancel_replay",
+        "_canonical_json",
+        "_check_same_room",
+        "_expected_generations",
+        "_finite",
+        "_generations_match",
+        "_identifier",
+        "_lease_from_row",
+        "_lease_row_matches",
+        "_lease_window",
+        "_optional",
+        "_require_cancel_generation",
+        "_run_fence",
+        "_settlement",
+        "_task_from_row",
+        "_task_identity_from_row",
+        "_task_payload",
+        "_terminal_settlement_id",
+        "_timestamp",
+        "validate_bound_task_manifest"
+      ],
+      "reason": "Actual validation and DTO identity shared by Native and PG; no SQL or lifecycle moved"
+    },
+    {
+      "task": 16,
+      "source": "gateway/hosted_room_replicas.py",
+      "target": "hermes_db/domains/rooms/replication_rules.py",
+      "symbols": [
+        "MAX_REPLICA_EVENT_BYTES",
+        "MAX_REPLICA_ROOMS",
+        "ReplicaEpochRegressionError",
+        "ReplicaError",
+        "ReplicaGapError",
+        "_SYSTEM_ACTOR",
+        "_control_event",
+        "_event_bytes",
+        "_positive_int",
+        "_validate_page"
+      ],
+      "reason": "Actual validation and DTO identity shared by Native and PG; no SQL or lifecycle moved"
+    },
+    {
+      "task": 16,
+      "source": "gateway/hosted_room_attachments.py",
+      "target": "hermes_db/domains/rooms/attachments/rules.py",
+      "symbols": [
+        "AttachmentConflictError",
+        "AttachmentData",
+        "AttachmentError",
+        "AttachmentIntegrityError",
+        "AttachmentNotFoundError",
+        "AttachmentQuotaError",
+        "DISBANDED_GRACE_SECONDS",
+        "MAX_ATTACHMENTS_PER_MESSAGE",
+        "MAX_ATTACHMENT_BYTES",
+        "MAX_ATTACHMENT_MIME_CHARS",
+        "MAX_ATTACHMENT_NAME_CHARS",
+        "MAX_GATEWAY_ATTACHMENT_COUNT",
+        "MAX_GATEWAY_BLOB_BYTES",
+        "MAX_IDENTIFIER_CHARS",
+        "MAX_MESSAGE_ATTACHMENT_BYTES",
+        "MAX_ROOM_ATTACHMENT_BYTES",
+        "MAX_ROOM_ATTACHMENT_COUNT",
+        "MAX_ROOM_UNCOMMITTED_BYTES",
+        "MAX_ROOM_UNCOMMITTED_COUNT",
+        "MAX_TASK_ATTACHMENTS",
+        "MAX_TASK_ATTACHMENT_BYTES",
+        "UNCOMMITTED_TTL_SECONDS",
+        "_ATTACHMENT_FIELDS",
+        "_ATTACHMENT_ID_RE",
+        "_ATTACHMENT_KINDS",
+        "_BLOB_ID_RE",
+        "_IDENTIFIER_RE",
+        "_MIME_RE",
+        "_attachment_id",
+        "_identifier",
+        "_kind",
+        "_mime",
+        "_name",
+        "_safe_manifest_entry",
+        "_sniff_known_mime",
+        "_validate_mime_and_kind",
+        "fold_catalog_text",
+        "validate_manifest",
+        "validate_task_manifest"
+      ],
+      "reason": "Actual validation and DTO identity shared by Native and PG; no SQL or lifecycle moved"
+    },
+    {
+      "task": 16,
+      "source": "gateway/hosted_room_work_records.py",
+      "target": "hermes_db/domains/rooms/work_rules.py",
+      "symbols": [
+        "BLOCKED_DELIVERY_STATUSES",
+        "InvalidStoredWorkRecord",
+        "LIMITATIONS",
+        "MAX_BYTES",
+        "MAX_RECEIPTS",
+        "MAX_STORE_BYTES",
+        "MAX_STORE_ROWS",
+        "MAX_TASKS",
+        "PENDING_TABLE",
+        "WorkRecordCapacityError",
+        "WorkRecordError",
+        "WorkRecordPrefixError",
+        "_FIELDS",
+        "_PHASES",
+        "_RECEIPT_FIELDS",
+        "_TASK_FIELDS",
+        "_fields",
+        "_id",
+        "_integer",
+        "_sha",
+        "_validate_availability",
+        "_validate_receipts",
+        "_validate_roster",
+        "_validate_stop",
+        "_validate_tasks",
+        "acknowledgement",
+        "digest",
+        "encode",
+        "roster_digest",
+        "validate"
+      ],
+      "reason": "Actual validation and DTO identity shared by Native and PG; no SQL or lifecycle moved"
+    },
+    {
+      "task": 16,
+      "source": "gateway/hosted_room_authority_history.py",
+      "target": "hermes_db/domains/rooms/authority_rules.py",
+      "symbols": [
+        "AuthorityHistoryError",
+        "AuthoritySpan",
+        "MAX_AUTHORITY_SPANS",
+        "TRANSFER_KINDS",
+        "_gateway",
+        "at_sequence",
+        "history_from_rows",
+        "validate_history"
+      ],
+      "reason": "Actual validation and DTO identity shared by Native and PG; no SQL or lifecycle moved"
+    },
+    {
+      "task": 16,
+      "source": "gateway/hosted_room_work_storage.py",
+      "target": "hermes_db/domains/rooms/work_rules.py",
+      "symbols": [
+        "INVALID_TABLE",
+        "retained_fields",
+        "scope",
+        "validate_stored"
+      ],
+      "reason": "Actual validation and DTO identity shared by Native and PG; no SQL or lifecycle moved"
+    },
+    {
+      "task": 16,
+      "source": "gateway/hosted_room_work_lineage.py",
+      "target": "hermes_db/domains/rooms/work_rules.py",
+      "symbols": [
+        "validate_provenance"
+      ],
+      "reason": "Actual validation and DTO identity shared by Native and PG; no SQL or lifecycle moved"
+    },
+    {
+      "task": 16,
+      "source": "gateway/session_hosted_member_homes.py",
+      "target": "hermes_db/domains/rooms/driver_rules.py",
+      "symbols": [
+        "_HOMES",
+        "_LIVE_ATTEMPT",
+        "_STOPPING",
+        "_attempt_prefix",
+        "_key"
+      ],
+      "reason": "Actual validation and DTO identity shared by Native and PG; no SQL or lifecycle moved"
+    },
+    {
+      "task": 16,
+      "source": "gateway/hosted_room_attachments.py",
+      "target": "hermes_db/domains/rooms/attachments/files.py",
+      "symbols": [
+        "_blob_path",
+        "_metadata",
+        "_open_blob",
+        "_prepare_private_root",
+        "_read_blob",
+        "_read_blob_range",
+        "_write_blob",
+        "commit_message"
+      ],
+      "reason": "Actual private byte lifecycle and commitment wrapper; remove complete Native SQLite store inheritance"
+    },
+    {
+      "task": 16,
+      "source": "hermes_state_mutation_binding.py",
+      "target": "hermes_db/domains/runtime/receipts.py",
+      "symbols": [
+        "BINDING_PREFIX"
+      ],
+      "reason": "Exact persisted control marker; comparisons/catalog ownership are concrete injected callbacks"
+    },
+    {
+      "task": 16,
+      "source": "hermes_state_portability.py",
+      "target": "hermes_db/domains/sessions/import_rules.py",
+      "symbols": [
+        "_IMPORT_FLAG_COLS",
+        "_IMPORT_PASSTHROUGH_COLS"
+      ],
+      "reason": "Shared current import column policy; Native SQL remains in place"
+    },
+    {
+      "task": 16,
+      "source": "gateway/platforms/api_server_run_idempotency.py",
+      "target": "hermes_db/domains/runtime/receipts.py",
+      "symbols": {
+        "TERMINAL_STATUSES": "API_RUN_TERMINAL_STATUSES",
+        "_CLOSED_FINGERPRINT": "CLOSED_RUN_FINGERPRINT",
+        "_encode_status": "encode_run_status",
+        "_record": "run_identity_record"
+      },
+      "reason": "Actual pure identity/closed wire policy shared by Native and PG; application-owned source/media protocol stays in Gateway contract"
+    },
+    {
+      "task": 16,
+      "source": "gateway/session_api.py",
+      "target": "hermes_db/domains/runtime/values.py",
+      "symbols": {
+        "api_generation_id": "api_generation_id"
+      },
+      "reason": "Actual pure identity/closed wire policy shared by Native and PG; application-owned source/media protocol stays in Gateway contract"
+    },
+    {
+      "task": 16,
+      "source": "gateway/session_deferred_pick.py",
+      "target": "hermes_db/domains/runtime/receipts.py",
+      "symbols": {
+        "deferred_value": "deferred_value"
+      },
+      "reason": "Actual pure identity/closed wire policy shared by Native and PG; application-owned source/media protocol stays in Gateway contract"
+    },
+    {
+      "task": 16,
+      "source": "gateway/session_worker_delegation.py",
+      "target": "hermes_db/domains/runtime/values.py",
+      "symbols": {
+        "_TASK_KEYS": "DELEGATION_TASK_KEYS",
+        "_ROUTE": "DELEGATION_ROUTE",
+        "_EVENT_KEYS": "DELEGATION_EVENT_KEYS",
+        "_shape": "delegation_shape",
+        "_text": "delegation_text",
+        "_number": "delegation_number"
+      },
+      "reason": "Actual pure identity/closed wire policy shared by Native and PG; application-owned source/media protocol stays in Gateway contract"
+    },
+    {
+      "task": 16,
+      "source": "gateway/session_automation.py",
+      "target": "hermes_db/domains/runtime/receipts.py",
+      "symbols": {
+        "_FOLDED_TEXT": "FOLDED_AUTOMATION_TEXT",
+        "_descriptor": "automation_descriptor"
+      },
+      "reason": "Actual pure identity/closed wire policy shared by Native and PG; application-owned source/media protocol stays in Gateway contract"
+    },
+    {
+      "task": 16,
+      "source": "gateway/session_policy.py",
+      "target": "gateway/session_contract.py",
+      "symbols": {
+        "created_surface": "created_surface",
+        "SURFACES": "SURFACES",
+        "STORED_AS_LOCAL": "STORED_AS_LOCAL",
+        "_KEEP_STORED_LABEL": "_KEEP_STORED_LABEL",
+        "_NOT_A_SURFACE": "_NOT_A_SURFACE",
+        "DAYBREAK_LABELS": "DAYBREAK_LABELS",
+        "SURFACE_GROUPS": "SURFACE_GROUPS"
+      },
+      "reason": "Actual pure identity/closed wire policy shared by Native and PG; application-owned source/media protocol stays in Gateway contract"
+    },
+    {
+      "task": 16,
+      "source": "gateway/session_ingress_media.py",
+      "target": "gateway/session_contract.py",
+      "symbols": {
+        "admission_media_references": "admission_media_references"
+      },
+      "reason": "Actual pure identity/closed wire policy shared by Native and PG; application-owned source/media protocol stays in Gateway contract"
+    },
+    {
+      "task": 16,
+      "source": "gateway/hosted_room_peer.py",
+      "target": "hermes_db/domains/rooms/rules.py",
+      "symbols": {
+        "MAX_STATUS_GRANT_TTL_SECONDS": "MAX_STATUS_GRANT_TTL_SECONDS"
+      },
+      "reason": "Actual pure identity/closed wire policy shared by Native and PG; application-owned source/media protocol stays in Gateway contract"
+    },
+    {
+      "task": 16,
+      "source": "hermes_cli/kanban_swarm.py",
+      "target": "hermes_db/domains/kanban/rules.py",
+      "symbols": {
+        "_require_text": "require_swarm_text"
+      },
+      "reason": "Real shared pure swarm text validation; plan_swarm no longer late-imports the Native service"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/domains/runtime/postgres/operations/worker_metrics.py",
+      "target": "hermes_db/integration/worker_metrics.py",
+      "symbols": [
+        "prepare_policy"
+      ],
+      "reason": "Profile config/consent resolution is application composition; operation names and before-transaction timing stay unchanged"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/domains/runtime/postgres/operations/worker_delegations.py",
+      "target": "hermes_db/domains/runtime/values.py",
+      "symbols": [
+        "VerifiedDelegationOwner"
+      ],
+      "reason": "Original immutable verified process-proof DTO; SQL handlers keep the same type identity"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/domains/runtime/postgres/operations/worker_delegations.py",
+      "target": "hermes_db/integration/authority_access.py",
+      "symbols": {
+        "verify_owner": "verify_worker_delegation_owner"
+      },
+      "reason": "Existing process liveness proof runs at the Gateway application boundary before acquiring a connection"
+    },
+    {
+      "task": 16,
+      "source": "gateway/session.py",
+      "target": "gateway/session_contract.py",
+      "symbols": [
+        "_session_key_namespace"
+      ],
+      "reason": "Exact pure routing namespace wire identity; original Native routing remains an actual consumer"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/integration/worker_metrics.py",
+      "target": "hermes_db/integration/runtime_composition.py",
+      "symbols": [
+        "create_worker_handlers"
+      ],
+      "reason": "Closed Worker handler assembly belongs to Runtime composition; metrics module owns only actual metrics/Profile coordination"
+    },
+    {
+      "task": 16,
+      "source": "hermes_db/domains/sessions/postgres/queries/media.py",
+      "target": "hermes_db/integration/media_retirement.py",
+      "symbols": [
+        "held_media_paths"
+      ],
+      "reason": "Actual app media decoder and profile-bound file coordination; same connection and snapshot, SQL candidates remain domain-owned"
+    },
+    {
+      "task": 16,
+      "source": "gateway/delivery_ledger.py",
+      "target": "gateway/delivery_rules.py",
+      "symbols": [
+        "MAX_ATTEMPTS",
+        "STALE_AFTER_SECONDS",
+        "_RETENTION_SECONDS",
+        "_MAX_ROWS",
+        "RECOVERED_MARKER",
+        "RECONNECTED_MARKER",
+        "FLOOD_MARKER",
+        "_RUNTIME_RETRYABLE_ERRORS",
+        "_RETRY_BACKOFF_SECONDS",
+        "FLOOD_ERROR_PREFIX",
+        "FLOOD_RETRY_DEFAULT_SECONDS",
+        "FLOOD_RETRY_CAP_SECONDS",
+        "FLOOD_RETRY_SLACK_SECONDS",
+        "_RAW_FLOOD_RE",
+        "_raw_flood_wait",
+        "is_reconnect_only",
+        "is_flood_error",
+        "flood_wait_seconds",
+        "flood_retry_delay",
+        "_failed_stamp",
+        "flood_not_before",
+        "retry_not_before",
+        "_claimed_row"
+      ],
+      "reason": "Actual shared pure retention, recovery markers, flood deadlines and attempt policy; no database opener"
+    },
+    {
+      "task": 16,
+      "source": "gateway/dead_targets.py",
+      "target": "gateway/delivery_rules.py",
+      "symbols": [
+        "classify_dead_error",
+        "_DEAD_ERROR_KINDS"
+      ],
+      "reason": "Actual pure classifier and send-error protocol; registry I/O remains Gateway-owned"
+    },
+    {
+      "task": 16,
+      "source": "agent/verification_evidence.py",
+      "target": "hermes_db/domains/verification/values.py",
+      "symbols": [
+        "VerificationEvidence",
+        "_MAX_EVENTS_PER_SESSION_ROOT",
+        "_MAX_EVIDENCE_AGE_DAYS",
+        "_MAX_TOTAL_UNREFERENCED_EVENTS",
+        "_utc_now"
+      ],
+      "reason": "Actual evidence DTO and pure clock/retention values; public DTO module identity preserved"
+    },
+    {
+      "task": 16,
+      "source": "hermes_state.py",
+      "target": "hermes_db/domains/sessions/rules.py",
+      "symbols": {
+        "SessionDB._AUTO_PRUNE_STALE_OPEN_SOURCES": "AUTO_PRUNE_STALE_OPEN_SOURCES"
+      },
+      "reason": "Same state-owned automatic retirement producers, real Native class attribute remains consumed"
+    },
+    {
+      "task": 16,
+      "source": "cron/executions.py",
+      "target": "hermes_db/domains/cron/rules.py",
+      "symbols": {
+        "_TERMINAL_STATES": "TERMINAL_EXECUTION_STATES"
+      },
+      "reason": "Same Native/PG terminal state protocol; runtime capabilities composed separately"
+    }
+  ],
+  "domain_ownership_moves": [
+    {
+      "task": 16,
+      "source": "hermes_db/backends/postgresql/search.py",
+      "target": "hermes_db/domains/sessions/postgres/support/search.py",
+      "reason": "This SQL predicate module uses conversation tables and Session queries exclusively; backend infrastructure must not import a concrete domain"
+    }
+  ],
+  "final_counts": {
+    "original_modules": 398,
+    "actual_modules": 365,
+    "root_modules": 11,
+    "net_reduction": 33,
+    "original_business_modules": 389,
+    "actual_business_modules": 315
+  }
 }

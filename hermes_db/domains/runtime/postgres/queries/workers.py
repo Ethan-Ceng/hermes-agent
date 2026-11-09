@@ -6,7 +6,7 @@ from sqlalchemy import cast, exists, func, or_, select
 
 from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.tables.runtime import session_admissions, worker_executions, worker_receipts
-from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.values import RuntimeStoreError
 
 
 def where(scope, execution_id):

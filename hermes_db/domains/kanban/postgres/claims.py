@@ -1,4 +1,5 @@
 """Kanban claims workflow; original connection, fence and off-connection effect boundaries are preserved."""
+from hermes_db.domains.kanban import rules as _storage_shared_1
 import time
 from sqlalchemy import update
 from hermes_db.domains.kanban.postgres import repository as repo, runs as run_repo
@@ -21,9 +22,9 @@ def _close_dangling(conn, store, row, now, note='invariant recovery on re-claim'
             run_repo.update_run(conn, store, run_id, status='reclaimed', outcome='reclaimed', summary=run['summary'] if run['summary'] is not None else note, ended_at=now, claim_lock=None, claim_expires=None, worker_pid=None)
 
 def _claim(store, task_id, source, ttl_seconds, claimer, *, dispatch_permit=None):
-    from hermes_cli import kanban_db as kb
+
     now = int(time.time())
-    lock, expires = (claimer or kb._claimer_id(), now + kb._resolve_claim_ttl_seconds(ttl_seconds))
+    lock, expires = (claimer or store.processes.claimer_id(), now + store.policy.resolve_claim_ttl_seconds(ttl_seconds))
     with store.write() as conn:
         row = repo.get(conn, store, task_id)
         if row is None:
@@ -44,7 +45,7 @@ def _claim(store, task_id, source, ttl_seconds, claimer, *, dispatch_permit=None
         repo.task_update(conn, store, task_id, current_run_id=run_id)
         extra = {'source_status': 'review'} if source == 'review' else {}
         repo.event(conn, store, task_id, 'claimed', {'lock': lock, 'expires': expires, 'run_id': run_id, **extra}, run_id)
-        claimed = kb.Task.from_row(repo.get(conn, store, task_id))
+        claimed = store.result_values.task(repo.get(conn, store, task_id))
         from hermes_db.domains.kanban.postgres.effects import enqueue, hook_step
         effect_id = enqueue(conn, store, [hook_step(store, repo.get(conn, store, task_id), 'kanban_task_claimed', run_id)]) if source == 'ready' else None
         store.command_result(conn, claimed)
@@ -74,9 +75,9 @@ def heartbeat_worker(store, task_id, *, note=None, expected_run_id=None):
     return True
 
 def heartbeat_claim(store, task_id, *, ttl_seconds=None, claimer=None):
-    from hermes_cli import kanban_db as kb
-    lock = claimer or kb._claimer_id()
-    expires = int(time.time()) + kb._resolve_claim_ttl_seconds(ttl_seconds)
+
+    lock = claimer or store.processes.claimer_id()
+    expires = int(time.time()) + store.policy.resolve_claim_ttl_seconds(ttl_seconds)
     with store.write() as conn:
         row = repo.get(conn, store, task_id)
         if row is None or row['status'] != 'running' or row['claim_lock'] != lock:
@@ -88,12 +89,12 @@ def heartbeat_claim(store, task_id, *, ttl_seconds=None, claimer=None):
     return True
 
 def reclaim_task(store, task_id, *, reason=None, signal_fn=None):
-    from hermes_cli import kanban_db as kb
+
     with store.read() as conn:
         snapshot = repo.get(conn, store, task_id)
     if snapshot is None or (snapshot['status'] != 'running' and snapshot['claim_lock'] is None):
         return False
-    termination = kb._terminate_reclaimed_worker(snapshot['worker_pid'], snapshot['claim_lock'], signal_fn=signal_fn, started_at=snapshot['worker_started_at'])
+    termination = store.processes.terminate_reclaimed_worker(snapshot['worker_pid'], snapshot['claim_lock'], signal_fn=signal_fn, started_at=snapshot['worker_started_at'])
     with store.write() as conn:
         row = repo.get(conn, store, task_id)
         fields = ('status', 'current_run_id', 'claim_lock', 'worker_pid', 'worker_started_at')
@@ -115,10 +116,10 @@ def _classify_blocked(conn, store, row, kind, reason, expected_run_id):
     return True
 
 def block_task(store, task_id, *, reason=None, kind=None, expected_run_id=None):
-    from hermes_cli import kanban_db as kb
+
     from hermes_cli.kanban_block_policy import block_transition
-    if kind is not None and kind not in kb.VALID_BLOCK_KINDS:
-        raise ValueError(f'block kind must be one of {sorted(kb.VALID_BLOCK_KINDS)} or None')
+    if kind is not None and kind not in _storage_shared_1.VALID_BLOCK_KINDS:
+        raise ValueError(f'block kind must be one of {sorted(_storage_shared_1.VALID_BLOCK_KINDS)} or None')
     with store.write() as conn:
         row = repo.get(conn, store, task_id)
         if row is None:
@@ -131,7 +132,7 @@ def block_task(store, task_id, *, reason=None, kind=None, expected_run_id=None):
         requested = kind
         if kind == 'dependency' and (not _unsatisfied(conn, store, task_id)):
             kind = 'needs_input'
-        status, event, values, payload = block_transition(kind, reason, source, prev_kind=row['block_kind'], prev_recurrences=int(row['block_recurrences'] or 0), recurrence_limit=kb.BLOCK_RECURRENCE_LIMIT)
+        status, event, values, payload = block_transition(kind, reason, source, prev_kind=row['block_kind'], prev_recurrences=int(row['block_recurrences'] or 0), recurrence_limit=_storage_shared_1.BLOCK_RECURRENCE_LIMIT)
         if requested != kind:
             payload.update(requested_kind=requested, rekind_reason='no_open_parent')
         repo.task_update(conn, store, task_id, status=status, claim_lock=None, claim_expires=None, worker_pid=None, **values)

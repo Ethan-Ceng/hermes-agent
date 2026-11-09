@@ -3,10 +3,12 @@
 import json
 import time
 
-from hermes_db.integration.transfer.move_values import digest, recipient_snapshot_digest, snapshot_digest
-from hermes_db.integration.postgres.operations import file_grants, portability
+from hermes_db.core.values import digest
+from hermes_db.integration.transfer.move_values import recipient_snapshot_digest, snapshot_digest
+from hermes_db.integration.postgres.operations import file_grants
+from hermes_db.domains.sessions.postgres.operations import imports as portability
 from hermes_db.domains.sessions.postgres.operations import retirement_guards as guards
-from hermes_db.integration.transfer.portability_values import values
+from hermes_db.domains.sessions.import_rules import values
 from hermes_db.domains.sessions.postgres.queries import messages, sessions
 from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.integration.postgres.queries import profile_move
@@ -38,7 +40,7 @@ def _existing_matches(conn, target, source, sid, snapshot):
         and receipt.get("recipient_digest") == recipient_snapshot_digest(local, len(snapshot["messages"])))
 
 
-def adopt(conn, target, source, sid, *, retire_donor):
+def adopt(conn, target, source, sid, *, retire_donor, ownership):
     file_grants.lock_scopes(conn, [target, source], receivers=[source])
     if sessions.raw_session(conn, source, sid) is None:
         return {"ok": False, "adopted": False, "donor_retired": False,
@@ -62,7 +64,7 @@ def adopt(conn, target, source, sid, *, retire_donor):
     normalized, errors = values._validate_import_payload(rows)
     if errors:
         return {"ok": False, "adopted": False, "donor_retired": False, "errors": errors}
-    result = portability.import_current(conn, target, normalized)
+    result = portability.import_current(conn, target, normalized, ownership=ownership)
     if not result["ok"]:
         return {**result, "adopted": False, "donor_retired": False}
     for key in ids:

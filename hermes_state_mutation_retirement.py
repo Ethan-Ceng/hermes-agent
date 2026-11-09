@@ -1,19 +1,18 @@
 """Durable deletion fences outside prunable transcript rows."""
+from hermes_db.domains.runtime.receipts import RETIRED_PREFIX, RETRY_HORIZON_S, ROUTE_FENCE_PREFIX, VIEWER_CLOSE_PREFIX, entry_session_id, route_fence_key, route_namespace
 import json
 import time
-from hermes_state_runtime import RuntimeStoreError, admission_fingerprint, mutation_receipt_key, _json, _text
+from hermes_state_runtime import RuntimeStoreError, admission_fingerprint, mutation_receipt_key
+from hermes_db.domains.runtime.values import _json, _text
 
 # This store's own retired session (its profile is the store's). Written as ``own`` since the
 # shared routing index also carries other profiles' fences; a marker without ``own`` predates
 # that and still fences every route in the index.
-RETIRED_PREFIX = 'gateway.retired_session.v1.'
 # A multiplexed secondary's retired session, in the routing index every served profile shares
 # (the launch home's state.db): ``<prefix><namespace>:<id>``, keyed by the ``agent:<namespace>:``
 # slot of that profile's routing keys. Only routing saves read it, so the launch profile's own
 # creates, binds and generation walks never see another profile's retirement.
-ROUTE_FENCE_PREFIX = 'gateway.retired_route.v1.'
 # A last viewer's close stored until the owner's idle point (gateway/session_viewer_close).
-VIEWER_CLOSE_PREFIX = 'gateway.viewer_close.v1:'
 
 
 def retired_in(conn, session_id):
@@ -86,7 +85,7 @@ def _compact_result(conn, admission_id):
     """A retired result keeps the exact-retry outcome (final response, flags, usage/accounting)
     but not the transcript copies a turn result carries (cumulative ``messages``, reasoning, the
     settled ``_turn_user_row``)."""
-    from hermes_state_terminal import RESULT_PREFIX, encode_result, load_result
+    from hermes_db.domains.runtime.receipts import RESULT_PREFIX, encode_result, load_result
     saved = conn.execute('SELECT value FROM state_meta WHERE key=?', (RESULT_PREFIX + admission_id,)).fetchone()
     if saved is None:
         return
@@ -98,7 +97,7 @@ def _compact_result(conn, admission_id):
 
 
 def retire_terminal_receipts(conn, session_ids):
-    from hermes_state_terminal import ADMISSION_PREFIX, WORKER_PREFIX, identity_key
+    from hermes_db.domains.runtime.receipts import ADMISSION_PREFIX, WORKER_PREFIX, identity_key
     for sid in session_ids:
         admissions = conn.execute('SELECT * FROM session_admissions WHERE target_session_id=?', (sid,)).fetchall()
         workers = conn.execute('SELECT * FROM worker_executions WHERE session_id=?', (sid,)).fetchall()
@@ -208,7 +207,7 @@ def _local_conversations(conn):
     (policy, FIFO, generation), each receipt lineage segment and the current target), and the ids
     of every derived (Bot Chat, A2A) conversation. One prefix scan, not a lookup per swept id.
     Malformed receipts name nothing."""
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     members, derived = {}, set()
     for (raw,) in conn.execute('SELECT value FROM state_meta WHERE key GLOB ?', (POLICY_PREFIX + '*',)):
         try:
@@ -272,15 +271,6 @@ def delete_in_transaction(db, conn, session_id, payload):
     return set(), {'deleted_ids': targets}
 
 
-def entry_session_id(raw):
-    """The ``session_id`` a stored routing/receipt JSON object names, else None. Unrelated rows
-    are not validated here: a malformed one (an array, invalid JSON) names no target, so it can
-    neither be retired nor abort the delete of a different session; the routing loader skips it too."""
-    try:
-        value = json.loads(raw)
-    except (TypeError, ValueError):
-        return None
-    return value.get('session_id') if isinstance(value, dict) else None
 
 
 def _mark_retired(conn, key, *, expires, **fields):
@@ -317,15 +307,8 @@ def retire_routes(conn, session_ids, *, expiring=()):
                          (row['scope'], row['session_key']))
 
 
-def route_namespace(session_key):
-    """The ``<ns>`` slot of an ``agent:<ns>:...`` routing key (``main`` for the launch profile, else
-    the profile's ``_session_key_namespace`` slot); ``main`` for a key outside that shape."""
-    parts = str(session_key or '').split(':')
-    return parts[1] if len(parts) > 2 and parts[0] == 'agent' and parts[1] else 'main'
 
 
-def route_fence_key(namespace, session_id):
-    return f'{ROUTE_FENCE_PREFIX}{namespace}:{session_id}'
 
 
 # True when a routing save must skip an entry, checked only against the profile the route belongs
@@ -399,7 +382,6 @@ def fence_shared_routes(conn, namespace, session_ids, *, expiring=()):
                          (row['scope'], row['session_key']))
 
 
-RETRY_HORIZON_S = 7 * 86400  # exact-retry horizon: a retry within it gets the byte-exact settled reply
 _EXPIRED = "json_valid(value) AND json_extract(value, '$.retired_at') < ?"
 
 
@@ -416,7 +398,7 @@ def prune_retired_tombstones(conn, older_than=RETRY_HORIZON_S):
     reclaimed: it holds only ``retired_at``, and without it a deleted id could be recreated,
     re-admitted or reissued as a Bot Chat generation.
     Tombstones written before ``retired_at`` existed are stamped now and age from this pass."""
-    from hermes_state_terminal import ADMISSION_PREFIX, RESULT_PREFIX, WORKER_PREFIX, identity_key
+    from hermes_db.domains.runtime.receipts import ADMISSION_PREFIX, RESULT_PREFIX, WORKER_PREFIX, identity_key
     prefixes = (ADMISSION_PREFIX, WORKER_PREFIX)
     now = time.time()
     for prefix in prefixes:

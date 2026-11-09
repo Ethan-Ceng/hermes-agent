@@ -8,10 +8,9 @@ from sqlalchemy.dialects.postgresql import insert
 
 from hermes_db.domains.sessions.postgres.support.message_codec import content_from_bytes
 from hermes_db.domains.sessions.postgres.queries import retirement_fences
-from hermes_db.scope import bind_profile_home
 from hermes_db.tables.conversations import messages
-from hermes_db.tables.runtime import session_admissions, state_meta
-from hermes_state_media import PREFIX, SPILLOVER_PREFIX
+from hermes_db.tables.runtime import state_meta
+from hermes_db.domains.runtime.receipts import RETIRED_MEDIA_PREFIX as PREFIX, MEDIA_SPILLOVER_PREFIX as SPILLOVER_PREFIX
 
 
 def _candidate(conn, scope, key, value):
@@ -19,11 +18,7 @@ def _candidate(conn, scope, key, value):
         .on_conflict_do_nothing(index_elements=list(state_meta.primary_key.columns)))
 
 
-def retire_admission(conn, scope, payload, request_id):
-    from gateway.session_ingress_media import admission_media_references, hosted_document_references
-    with bind_profile_home(scope):
-        references = [*admission_media_references(payload), *hosted_document_references(request_id, payload),
-            *payload.get("api_turn_v1", {}).get("media", [])]
+def retire_admission(conn, scope, references):
     for reference in references:
         _candidate(conn, scope, PREFIX + hashlib.sha256(reference["path"].encode()).hexdigest(), reference)
 
@@ -56,20 +51,6 @@ def candidates(conn, scope, prefix):
     return [(key, json.loads(raw)) for key, raw in retirement_fences._prefixed(conn, scope, prefix)]
 
 
-def held_media_paths(conn, scope):
-    from gateway.session_ingress_media import admission_media_references, hosted_document_references
-    held = set()
-    rows = conn.execute(select(session_admissions.c.status, session_admissions.c.request_id, session_admissions.c.payload_json)
-        .where(session_admissions.c.store_id == scope.require_store_id()).execution_options(yield_per=512))
-    with bind_profile_home(scope):
-        for status, request_id, raw in rows:
-            payload = json.loads(raw)
-            refs = list(payload.get("api_turn_v1", {}).get("media", []))
-            if status != "terminal":
-                refs.extend(admission_media_references(payload))
-                refs.extend(hosted_document_references(request_id, payload))
-            held.update(reference["path"] for reference in refs)
-    return held
 
 
 def forget(conn, scope, keys):

@@ -16,7 +16,7 @@ _PARENT_ROUTING = ("user_id", "session_key", "chat_id", "chat_type", "thread_id"
 
 
 def create_on_connection(conn, scope, session_id, source, *, own_profile=None, **values):
-    from hermes_state_runtime import RuntimeStoreError
+    from hermes_db.domains.runtime.values import RuntimeStoreError
 
     unsupported = set(values) - set(_CREATION_FIELDS) - {"model_config", "system_prompt"}
     if unsupported:
@@ -181,7 +181,7 @@ def reopen(transactions, scope, session_id):
 
 def retire_queued_on_connection(conn, scope, session_id):
     from hermes_db.tables.conversations import messages
-    from hermes_state_common import QUEUED_PROMPT_METADATA_KEY
+    from hermes_db.domains.sessions.rules import QUEUED_PROMPT_METADATA_KEY
 
     rows = conn.execute(select(messages.c.id, messages.c.display_metadata).where(
         messages.c.store_id == scope.require_store_id(), messages.c.session_id == session_id,

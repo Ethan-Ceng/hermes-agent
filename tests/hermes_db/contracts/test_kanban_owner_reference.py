@@ -21,7 +21,7 @@ def test_kanban_native_owner_reads_configured_scope_and_never_inferrs_remote_pid
     runtime.admit_input(epoch=epoch, principal_id="producer", session_id="owner-session", request_id="attempt", payload={})
     receipt = dict(storage_backend="postgresql", profile_home=str(home), store_id=db.scope.store_id,
         principal_id="producer", session_id="owner-session", request_id="attempt", pid=12345, birth=1.0)
-    from hermes_db.integration.transfer.move_values import resource_key
+    from hermes_db.core.values import resource_key
     receipt["target"] = resource_key(db._transactions)
     assert recovery._admission_row(receipt) == ("queued", None)
     assert recovery._admission_row(receipt | {"store_id": "another-store"}) is None

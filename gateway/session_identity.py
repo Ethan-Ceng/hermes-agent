@@ -68,8 +68,8 @@ class RoutingIdentity:
     @property
     def namespace(self) -> str:
         """``agent:<ns>`` prefix for this identity's session keys — byte-identical to
-        :func:`gateway.session._session_key_namespace` for every historical key."""
-        from gateway.session import _session_key_namespace
+        :func:`gateway.session_contract._session_key_namespace` for every historical key."""
+        from gateway.session_contract import _session_key_namespace
         return _session_key_namespace(self.session_key_profile)
 
     @property

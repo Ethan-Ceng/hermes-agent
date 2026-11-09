@@ -4,7 +4,7 @@ from sqlalchemy import and_, or_, select, tuple_
 
 from hermes_db.domains.sessions.postgres.support.message_codec import codec, content_from_bytes
 from hermes_db.tables.conversations import messages
-from hermes_state_search import _flatten_text
+from hermes_db.domains.sessions.search_rules import _flatten_text
 
 
 def _neighbor(target, *, before):

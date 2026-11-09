@@ -10,8 +10,8 @@ from hermes_db.domains.sessions.postgres.operations import retirement_guards as 
 from hermes_db.domains.sessions.postgres.queries import gateway, sessions
 from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.tables.gateway import gateway_routing
-from hermes_state_local import POLICY_PREFIX, _row_cwd, same_create_retry
-from hermes_state_runtime import RuntimeStoreError, _json
+from hermes_db.domains.runtime.receipts import POLICY_PREFIX, _row_cwd, same_create_retry
+from hermes_db.domains.runtime.values import RuntimeStoreError, _json
 
 
 def _retry(raw, receipt, request):
@@ -27,7 +27,7 @@ def _retry(raw, receipt, request):
 
 
 def commit(conn, scope, *, epoch, receipt, request, own_profile, publish=None):
-    from gateway.session_policy import created_surface
+    from gateway.session_contract import created_surface
     from hermes_state_keys import local_identity
     runtime.require_epoch(conn, scope, epoch)
     sessions.lock_store(conn, scope, exclusive=True)

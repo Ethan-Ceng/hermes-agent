@@ -26,7 +26,7 @@ from pathlib import Path
 
 from gateway.session_history_mount import is_history_mount
 from hermes_db.integration.local_access import local_receipt
-from hermes_state_mutation_retirement import VIEWER_CLOSE_PREFIX
+from hermes_db.domains.runtime.receipts import VIEWER_CLOSE_PREFIX
 from hermes_state_runtime import RuntimeStoreError
 
 logger = logging.getLogger(__name__)

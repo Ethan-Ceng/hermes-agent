@@ -4,8 +4,8 @@ from hermes_db.errors import UnknownCommitError
 from hermes_db.domains.runtime.postgres.operations import local_sessions
 from hermes_db.domains.runtime.postgres.queries import runtime, history_access
 from hermes_db.domains.sessions.postgres.queries import sessions
-from hermes_state_local import POLICY_PREFIX, _policy_target
-from hermes_state_runtime import RuntimeStoreError, _json
+from hermes_db.domains.runtime.receipts import POLICY_PREFIX, _policy_target
+from hermes_db.domains.runtime.values import RuntimeStoreError, _json
 
 class RuntimeLocal:
 
@@ -15,7 +15,7 @@ class RuntimeLocal:
     def promote_current_history(self, *, epoch, actor, receipt, native_transport):
         from hermes_db.domains.runtime.postgres.operations.current_history import promote
         with self._context.write() as conn:
-            return promote(conn, self._context.scope, epoch=epoch, actor=actor, receipt=receipt, own_profile=self._context.session.own_profile, native_transport=native_transport)
+            return promote(conn, self._context.scope, epoch=epoch, actor=actor, receipt=receipt, own_profile=self._context.session.own_profile, native_transport=native_transport, ownership=self._context.session.ownership)
 
     def persist_hosted_binding(self, *, epoch, key, value):
         with self._context.write() as conn:
@@ -108,9 +108,9 @@ class RuntimeLocal:
 
     def authorize_history(self, actor, session_id, *, native_transport):
         with self._context.read() as conn:
-            return history_access.authorize_claim(conn, self._context.scope, actor, session_id, own_profile=self._context.session.own_profile, native_transport=native_transport)
+            return history_access.authorize_claim(conn, self._context.scope, actor, session_id, own_profile=self._context.session.own_profile, native_transport=native_transport, ownership=self._context.session.ownership)
 
     def require_history_leaf(self, session_id):
         from hermes_db.domains.sessions.postgres.operations.compression_state import lineage
         with self._context.read() as conn:
-            history_access.require_leaf(conn, self._context.scope, session_id, lineage(conn, self._context.scope, session_id))
+            history_access.require_leaf(conn, self._context.scope, session_id, lineage(conn, self._context.scope, session_id), ownership=self._context.session.ownership)

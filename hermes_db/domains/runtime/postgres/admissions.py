@@ -5,7 +5,8 @@ from hermes_db.domains.runtime.postgres.queries import runtime as repo, runtime,
 from hermes_db.tables.runtime import session_admissions, runtime_epoch, session_admissions as admissions, worker_executions
 import json
 from hermes_db.domains.runtime.postgres.operations.runtime import _retired_replay
-from hermes_state_runtime import _json, _text, admission_fingerprint, RuntimeStoreError
+from hermes_db.domains.runtime.values import _json, _text, RuntimeStoreError
+from hermes_state_keys import admission_fingerprint
 import time
 from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.conversations import sessions as table

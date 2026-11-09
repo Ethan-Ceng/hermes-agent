@@ -15,7 +15,7 @@ class MetricsRef:
 
 def capture_metrics(profile_home=None):
     from hermes_db.factory import acquire_profile_domain
-    from hermes_db.integration.transfer.move_values import resource_key
+    from hermes_db.core.values import resource_key
     with acquire_profile_domain("metrics", profile_home=profile_home) as resource:
         return MetricsRef(resource.scope.profile_home, resource.scope.require_store_id(), resource_key(resource._transactions))
 
@@ -29,7 +29,7 @@ def open_metrics(reference, *, write=False):
         return
     from hermes_cli.db_setup import _owning_profile
     from hermes_db.factory import acquire_profile_domain
-    from hermes_db.integration.transfer.move_values import resource_key
+    from hermes_db.core.values import resource_key
     from hermes_db.domains.metrics.postgres.records import lock_store
     with _owning_profile(reference.profile_home), acquire_profile_domain("metrics", profile_home=reference.profile_home) as resource:
         if resource.settings.backend != "postgresql" or resource.scope.store_id != reference.store_id:

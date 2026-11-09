@@ -1,6 +1,5 @@
 """Closed delegation mutations sharing the verified worker's receipt stream."""
 
-from dataclasses import dataclass
 from functools import partial
 import json
 import time
@@ -11,34 +10,12 @@ from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
 from hermes_db.domains.runtime.postgres.queries import delegations as repo
 from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.gateway import async_delegations as table
-from hermes_state_runtime import RuntimeStoreError
-from gateway.session_worker_delegation import _EVENT_KEYS, _ROUTE, _TASK_KEYS, _number, _shape, _text
+from hermes_db.domains.runtime.values import VerifiedDelegationOwner, RuntimeStoreError
+from hermes_db.domains.runtime.values import DELEGATION_EVENT_KEYS as _EVENT_KEYS, DELEGATION_ROUTE as _ROUTE, DELEGATION_TASK_KEYS as _TASK_KEYS, delegation_number as _number, delegation_shape as _shape, delegation_text as _text
 
 
-@dataclass(frozen=True)
-class VerifiedDelegationOwner:
-    execution_id: str
-    pid: int
-    birth: float
-    started_at: int | None
 
 
-def verify_owner(execution_id, worker_pid, worker_birth):
-    """Capture process proof before acquiring any database connection or lock."""
-    import psutil
-    from hermes_cli import process_identity
-    from gateway.status import get_process_start_time
-    _text(execution_id)
-    if type(worker_pid) is not int or worker_pid <= 0:
-        raise RuntimeStoreError("invalid_params")
-    _number(worker_birth)
-    try:
-        if process_identity.worker_birth(psutil.Process(worker_pid)) != worker_birth:
-            raise RuntimeStoreError("permission_denied")
-        started_at = get_process_start_time(worker_pid)
-    except psutil.Error:
-        raise RuntimeStoreError("worker_not_live") from None
-    return VerifiedDelegationOwner(execution_id, worker_pid, worker_birth, started_at)
 
 
 def dispatch(conn, scope, session_id, payload, *, owner):

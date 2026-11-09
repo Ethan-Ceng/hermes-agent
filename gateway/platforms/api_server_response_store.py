@@ -180,7 +180,7 @@ class ResponseStore:
         if not pending or not state_db.is_file():
             return
         from hermes_state_holders import read_only_db_uri
-        from hermes_state_terminal import ADMISSION_PREFIX
+        from hermes_db.domains.runtime.receipts import ADMISSION_PREFIX
         terminal = []
         ids = list(pending)
         try:

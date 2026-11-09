@@ -2,6 +2,7 @@
 per-model usage rows, and billing-route columns. Writer thread state lives on the instance."""
 
 from __future__ import annotations
+from hermes_db.domains.sessions.rules import _MODEL_USAGE_FIELDS, _TOKEN_COUNTERS
 
 import asyncio
 import atexit
@@ -15,7 +16,6 @@ from typing import Any, Dict, List, Optional, Tuple
 # caplog tests pin the "hermes_state" logger name.
 logger = logging.getLogger("hermes_state")
 
-_TOKEN_COUNTERS = ("input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens", "reasoning_tokens")
 
 
 def _token_update_sql(delta: bool) -> str:
@@ -74,10 +74,6 @@ _MODEL_USAGE_UPSERT_SQL = """INSERT INTO session_model_usage (
 
 # Kwargs forwarded verbatim from update_token_counts / record_auxiliary_usage into
 # _record_model_usage (the per-route attribution row).
-_MODEL_USAGE_FIELDS = frozenset((
-    "model", "billing_provider", "billing_base_url", "billing_mode", "input_tokens", "output_tokens",
-    "cache_read_tokens", "cache_write_tokens", "reasoning_tokens", "estimated_cost_usd",
-    "actual_cost_usd", "cost_status", "cost_source", "api_call_count"))
 
 
 class SessionUsageMixin:

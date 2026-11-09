@@ -8,7 +8,7 @@ from sqlalchemy import func, or_, select
 from hermes_db.domains.sessions.postgres.queries import sessions as repo
 from hermes_db.domains.sessions.postgres.queries.session_queries import last_activity
 from hermes_db.tables.conversations import messages, sessions
-from hermes_state_common import _RECOVERABLE_END_REASONS, _RESET_END_REASONS
+from hermes_db.domains.sessions.rules import _RECOVERABLE_END_REASONS, _RESET_END_REASONS
 
 PEER_FIELDS = ("user_id", "chat_id", "chat_type", "thread_id")
 

@@ -104,6 +104,9 @@ def test_core_runtime_claim_replaces_own_old_token_and_obeys_flood_adoption(core
 
 def test_delivery_budget_staleness_and_terminal_first_retention(store, ledger, monkeypatch):
     from gateway import delivery_ledger as policy
+    from hermes_db.health import is_postgresql_store
+    if is_postgresql_store(store):
+        from gateway import delivery_rules as policy
     monkeypatch.setattr(time, "time", lambda: 1000000.0)
     args = dict(session_key="route", platform="telegram", chat_id="chat", thread_id=None, content="reply")
     monkeypatch.setattr(policy, "_MAX_ROWS", 2)

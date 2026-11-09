@@ -1,8 +1,10 @@
 """PG policy composition; each operation borrows only a bounded connection."""
+from hermes_db.domains.rooms import rules as _storage_shared_1
 
 from collections.abc import Mapping
-from gateway import hosted_rooms
-from gateway import hosted_room_policy_checkpoint as native
+from hermes_db.domains.rooms import rules as hosted_rooms
+from hermes_db.domains.rooms.postgres.lifecycle import read_events
+from hermes_db.domains.rooms import rules as native
 from hermes_db.domains.rooms.api import RoomStoreRef, capture_room_store, normalize_location, open_room_store
 from hermes_db.domains.rooms.postgres import policy as operations, policy as reads
 
@@ -13,17 +15,18 @@ class PostgresRoomPolicy:
             raise ValueError("max_active_events must be a positive integer")
         location = normalize_location(db_path)
         self.db_path = location if isinstance(location, RoomStoreRef) else capture_room_store()
-        capacity = min(2**63 - 2, max(native.MAX_ACTIVE_POLICY_EVENTS, max_active_events))
+        capacity = min(2**63 - 2, max(_storage_shared_1.MAX_ACTIVE_POLICY_EVENTS, max_active_events))
         with open_room_store(self.db_path) as store:
             self.max_active_events = operations.initialize(store, capacity)
-        self.max_transcript_policy_events = min(2**63 - 2, native.MAX_THREAD_TRANSCRIPT_EVENTS * (
-            self.max_active_events + native.MAX_ACTIVE_RETRY_RECEIPTS + 2))
+        self.max_transcript_policy_events = min(2**63 - 2, _storage_shared_1.MAX_THREAD_TRANSCRIPT_EVENTS * (
+            self.max_active_events + _storage_shared_1.MAX_ACTIVE_RETRY_RECEIPTS + 2))
 
     def sync(self, *, room_id, latest_seq):
         with open_room_store(self.db_path) as store:
             cursor = operations.ensure_cursor(store, room_id)
         while cursor < latest_seq:
-            page = hosted_rooms.read_events(self.db_path, room_id=room_id, since_seq=cursor, limit=hosted_rooms.MAX_LOG_LIMIT)
+            with open_room_store(self.db_path) as store:
+                page = read_events(store, room_id=room_id, since_seq=cursor, limit=hosted_rooms.MAX_LOG_LIMIT)
             rows = [event for event in page.get("events", []) if isinstance(event, Mapping)]
             next_cursor = int(page.get("cursor") or cursor)
             if not rows or next_cursor <= cursor:

@@ -641,7 +641,7 @@ class QQAdapter(OwnAccessPolicyMixin, BasePlatformAdapter):
         """Parse ``agent:<namespace>:<platform>:<chat_type>:<chat_id>[:<user_id>]``.
 
         The namespace slot carries the multiplex profile ("main" for the
-        default profile — see ``gateway.session._session_key_namespace``);
+        default profile — see ``gateway.session_contract._session_key_namespace``);
         it takes no part in any authorization decision, so any non-empty
         value is accepted and every later slot keeps its position.
         """

@@ -1,11 +1,13 @@
 """An independent local route, transcript and frozen policy in one receipt commit."""
+from hermes_db.domains.runtime.mutation_rules import _child_policy
 import json
 import uuid
 
-from hermes_state_local import POLICY_PREFIX
+from hermes_db.domains.runtime.receipts import POLICY_PREFIX
 from hermes_state_local_lineage import validate_local_lineage
 from hermes_state_mutation_guards import require_idle
-from hermes_state_runtime import RuntimeStoreError, _json
+from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.values import _json
 from hermes_state_titles import lineage_title_on_conn
 
 
@@ -31,22 +33,6 @@ def _branch_boundary(conn, target, through):
     return through
 
 
-def _child_policy(policy, child, prepared):
-    """The parent's frozen policy, except editor MCP servers: the gateway prepared the child's own
-    selection under the child's own scope (gateway/session_local_mcp.py ``prepare_branch_editor``).
-    Copying the parent's would share its scope, borrowed credentials and live connections.
-    A branch starts at Default (``ask``), as main's ACP ``fork_session`` did."""
-    if 'edit_approval_policy' in policy:
-        policy = {**policy, 'edit_approval_policy': 'ask'}
-    if prepared is None:
-        if policy.get('editor_mcp_json'):
-            raise RuntimeStoreError('runtime_coordination_required')
-        return policy
-    # Prepared against the parent's selection and the child id this commit derives; anything else moved.
-    if child != prepared['child'] or policy.get('editor_mcp_json') != prepared['parent_editor_mcp_json']:
-        raise RuntimeStoreError('revision_conflict')
-    return {**policy, 'editor_mcp_json': prepared['editor_mcp_json'], 'toolsets': prepared['toolsets'],
-            'config_secret_ref': prepared['config_secret_ref']}
 
 
 def branch_in_transaction(db, conn, session_id, payload, prepared=None):

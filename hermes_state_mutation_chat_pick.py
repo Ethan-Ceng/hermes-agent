@@ -8,9 +8,8 @@ one fenced transaction.
 """
 import json
 
-from hermes_state_runtime import (
-    RuntimeStoreError, _epoch, _json, _text, mutation_receipt_key, replay_mutation_receipt,
-)
+from hermes_state_runtime import RuntimeStoreError, _epoch, mutation_receipt_key, replay_mutation_receipt
+from hermes_db.domains.runtime.values import _json, _text
 
 
 def chat_pick_key(principal_id, session_id, params):

@@ -1,4 +1,5 @@
 """Reviewer/implementer provenance survives handoffs and owner-store reopening."""
+from hermes_db.domains.kanban import rules as _storage_shared_1
 
 from pathlib import Path
 
@@ -26,7 +27,7 @@ def test_review_changes_and_rereview_restore_original_provenance(pg_profiles):
         assert kb.get_task(store, tid).assignee == "reviewer"
         assert kb.complete_task(store, tid)
         assert kb.get_task(store, tid).status == "done"
-        assert kb.latest_summary(store, tid) == kb._REVIEW_APPROVED_NOTE
+        assert kb.latest_summary(store, tid) == _storage_shared_1._REVIEW_APPROVED_NOTE
 
 
 @pytest.mark.parametrize("failure_phase", ["body", "commit"])

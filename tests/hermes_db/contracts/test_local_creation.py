@@ -59,7 +59,7 @@ def test_native_profile_rename_keeps_local_creation_identity_and_frozen_prefix(c
     from hermes_db.integration.local_access import commit_local_session, local_receipt, validate_local_lineage
     from hermes_db.integration.runtime_access import runtime_for_store
     from hermes_state_keys import local_identity
-    from gateway.session import _session_key_namespace
+    from gateway.session_contract import _session_key_namespace
     from types import SimpleNamespace
     store, other = core_pair
     receipt = _receipt(store)

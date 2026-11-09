@@ -3,7 +3,7 @@
 from sqlalchemy import and_, or_, select
 
 from hermes_db.tables.api import run_idempotency as table
-from gateway.platforms.api_server_run_idempotency import TERMINAL_STATUSES, _encode_status, _record
+from hermes_db.domains.runtime.receipts import API_RUN_TERMINAL_STATUSES as TERMINAL_STATUSES, encode_run_status as _encode_status, run_identity_record as _record
 
 
 def where(scope, api_scope):

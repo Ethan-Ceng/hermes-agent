@@ -32,10 +32,10 @@ def _authorize_import(authority, actor, ref, params):
         raise RuntimeStoreError('profile_mismatch')
     if 'session:create' not in actor.capabilities:
         raise RuntimeStoreError('permission_denied')
-    from hermes_state_mutations import validate_action
+    from hermes_db.domains.runtime.mutation_rules import validate_action
     validate_action('import', params['payload'])
     if is_postgresql_store(authority.db):
-        from hermes_db.integration.transfer.portability_values import values
+        from hermes_db.domains.sessions.import_rules import values
         normalized, errors = values._validate_import_payload(params['payload']['sessions'])
     else:
         normalized, errors = authority.db._validate_import_payload(params['payload']['sessions'])
@@ -186,7 +186,7 @@ async def _mutate_session(authority, actor, ref, params, *, commit_lock=None, ow
         from hermes_db.domains.sessions.postgres.queries.mutation_binding import authorize_history, import_history_control
         if operation == 'import':
             import_history_control(conn, scope, actor, imported_ids)
-        elif not authorize_history(conn, scope, actor, ref.session_id, claim=True):
+        elif not authorize_history(conn, scope, actor, ref.session_id, claim=True, ownership=authority.db._context.ownership):
             raise RuntimeStoreError('permission_denied')
 
     return await write_mutation(authority, ref, params, editor_servers, principal_id=actor.subject,
@@ -414,7 +414,7 @@ def retire_live_sessions(authority, session_ids, *, require_fence=False):
         from hermes_db.health import storage_identity
         if session_ids and routing is not None and storage_identity(routing) != storage_identity(authority.db):
             try:
-                from gateway.session import _session_key_namespace
+                from gateway.session_contract import _session_key_namespace
                 from hermes_state_mutation_retirement import expiring_retirements
                 registry = getattr(authority.runner, 'session_authorities', None)
                 profile = registry.profile_name(authority) if registry is not None else None

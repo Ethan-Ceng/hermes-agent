@@ -12,10 +12,7 @@ removes any such stray harness message (and the assistant reply that followed
 it) so a polluted session resumes clean.
 """
 
-from hermes_state import (
-    _is_background_review_harness_message,
-    _strip_background_review_harness,
-)
+from agent.message_sanitization import _is_background_review_harness_message, _strip_background_review_harness
 
 
 class TestIsBackgroundReviewHarnessMessage:

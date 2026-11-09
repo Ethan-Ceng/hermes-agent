@@ -11,7 +11,7 @@ from hermes_db.domains.sessions.postgres.queries import session_queries
 from hermes_db.tables.conversations import sessions as table
 from hermes_db.tables.gateway import gateway_heartbeats
 from hermes_db.core.values import encode_text
-from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.values import RuntimeStoreError
 
 
 def archive(conn, scope, older_than_days, source, filters, *, automatic=False):
@@ -30,14 +30,14 @@ def archive(conn, scope, older_than_days, source, filters, *, automatic=False):
     return len(rows), events
 
 
-def prune(conn, scope, older_than_days, source, filters, *, exclude_active_write_guards=False):
+def prune(conn, scope, older_than_days, source, filters, *, exclude_active_write_guards=False, media_references):
     sessions.lock_store(conn, scope, exclusive=True)
     rows = retention.candidates(conn, scope, older_than_days, source, whole_lineages=True, **filters)
     ids = [row["id"] for row in rows]
     if exclude_active_write_guards:
         guarded = retirement_guards.guarded_ids(conn, scope, ids)
         ids = [sid for sid in ids if sid not in guarded]
-    ids = housekeeping.prunable(conn, scope, ids)
+    ids = housekeeping.prunable(conn, scope, ids, media_references=media_references)
     if ids:
         retirement.delete_rows(conn, scope, ids)
     retirement_housekeeping.prune(conn, scope)
@@ -111,14 +111,14 @@ def sweep_orphans(conn, scope, *, max_idle_seconds, sources=("tui", "desktop", "
     return quiet
 
 
-def auto_prune(conn, scope, retention_days, min_interval_hours):
-    from hermes_state import SessionDB
+def auto_prune(conn, scope, retention_days, min_interval_hours, *, media_references):
+    from hermes_db.domains.sessions.rules import AUTO_PRUNE_STALE_OPEN_SOURCES
     sessions.lock_store(conn, scope, exclusive=True)
     now = time.time()
     if not _due(runtime.meta(conn, scope, "last_auto_prune"), now, min_interval_hours):
         return {"skipped": True, "pruned": 0, "closed": 0, "vacuumed": False}, []
-    removed = prune(conn, scope, retention_days, None, {}, exclude_active_write_guards=True)
+    removed = prune(conn, scope, retention_days, None, {}, exclude_active_write_guards=True, media_references=media_references)
     closed = sweep_orphans(conn, scope, max_idle_seconds=float(retention_days) * 86400,
-        sources=SessionDB._AUTO_PRUNE_STALE_OPEN_SOURCES, exclude_pinned=True, respect_gateway_heartbeats=False)
+        sources=AUTO_PRUNE_STALE_OPEN_SOURCES, exclude_pinned=True, respect_gateway_heartbeats=False)
     runtime.set_meta(conn, scope, "last_auto_prune", str(now))
     return {"skipped": False, "pruned": len(removed), "closed": len(closed), "vacuumed": False}, removed

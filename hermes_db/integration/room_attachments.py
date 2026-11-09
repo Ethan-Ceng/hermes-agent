@@ -1,4 +1,5 @@
 """PG attachment composition with connection-free file preparation and cleanup."""
+from hermes_db.domains.rooms.attachments import rules as _storage_shared_1
 
 import hashlib
 import json
@@ -9,20 +10,20 @@ import threading
 import time
 from contextlib import contextmanager
 
-from gateway import hosted_room_attachments as native
+from hermes_db.domains.rooms.attachments import rules as native
 from hermes_db.domains.rooms.api import RoomStoreRef, capture_room_store, normalize_location, open_room_store
 from hermes_db.domains.rooms.attachments.api import AttachmentResource
 from hermes_db.errors import StorageConfigurationError
 from hermes_db.domains.rooms.attachments.postgres import metadata as uploads, metadata as commits, metadata as cleanup
 from hermes_db.domains.rooms.attachments.postgres import metadata as repo
-from hermes_db.domains.rooms.attachments.files import files_gate, replay_cleanup, sweep_locked
+from hermes_db.domains.rooms.attachments.files import AttachmentContent, files_gate, replay_cleanup, sweep_locked
 from hermes_db.domains.rooms.attachments.postgres.reads import AttachmentReaders
 
 _READY = set()
 _STARTUP_LOCK = threading.Lock()
 
 
-class PostgresAttachmentStore(AttachmentReaders, native.HostedRoomAttachmentStore):
+class PostgresAttachmentStore(AttachmentReaders, AttachmentContent):
     def __init__(self, db_path, *, root=None, clock=time.time, room_quota_bytes=native.MAX_ROOM_ATTACHMENT_BYTES,
                  gateway_quota_bytes=native.MAX_GATEWAY_BLOB_BYTES, room_quota_count=native.MAX_ROOM_ATTACHMENT_COUNT,
                  gateway_quota_count=native.MAX_GATEWAY_ATTACHMENT_COUNT):
@@ -53,14 +54,14 @@ class PostgresAttachmentStore(AttachmentReaders, native.HostedRoomAttachmentStor
             yield AttachmentResource(resource, self.namespace)
 
     def put(self, *, room_id, upload_id, kind, name, mime, data):
-        fields = dict(room_id=native._identifier(room_id, label="room_id"), upload_id=native._identifier(upload_id, label="upload_id"),
-            kind=native._kind(kind), name=native._name(name), mime=native._mime(mime))
+        fields = dict(room_id=_storage_shared_1._identifier(room_id, label="room_id"), upload_id=_storage_shared_1._identifier(upload_id, label="upload_id"),
+            kind=_storage_shared_1._kind(kind), name=_storage_shared_1._name(name), mime=_storage_shared_1._mime(mime))
         if not isinstance(data, bytes) or not data:
-            raise native.AttachmentError("attachment bytes must not be empty")
-        if len(data) > native.MAX_ATTACHMENT_BYTES:
-            raise native.AttachmentError("attachment exceeds the per-file size limit")
-        native._validate_mime_and_kind(data, kind=fields["kind"], mime=fields["mime"])
-        fields.update(sha256=hashlib.sha256(data).hexdigest(), size=len(data), catalog_name=native.fold_catalog_text(fields["name"]))
+            raise _storage_shared_1.AttachmentError("attachment bytes must not be empty")
+        if len(data) > _storage_shared_1.MAX_ATTACHMENT_BYTES:
+            raise _storage_shared_1.AttachmentError("attachment exceeds the per-file size limit")
+        _storage_shared_1._validate_mime_and_kind(data, kind=fields["kind"], mime=fields["mime"])
+        fields.update(sha256=hashlib.sha256(data).hexdigest(), size=len(data), catalog_name=_storage_shared_1.fold_catalog_text(fields["name"]))
         now = float(self.clock())
         self.prune(now=now)
         with files_gate(self.root):
@@ -86,7 +87,7 @@ class PostgresAttachmentStore(AttachmentReaders, native.HostedRoomAttachmentStor
             return self._metadata(row, idempotent=replayed)
 
     def find_upload(self, *, room_id, upload_id):
-        room_id, upload_id = native._identifier(room_id, label="room_id"), native._identifier(upload_id, label="upload_id")
+        room_id, upload_id = _storage_shared_1._identifier(room_id, label="room_id"), _storage_shared_1._identifier(upload_id, label="upload_id")
         now = float(self.clock())
         with self._store() as store:
             row = uploads.find_upload(store, room_id=room_id, upload_id=upload_id, now=now)
@@ -97,13 +98,13 @@ class PostgresAttachmentStore(AttachmentReaders, native.HostedRoomAttachmentStor
 
     def commit_message_with_receipt(self, *, room_id, event_id, manifest, recipient_member_ids, viewer_access=False,
                                     retention_seconds=None, hold_until_event=False):
-        room_id, event_id = native._identifier(room_id, label="room_id"), native._identifier(event_id, label="event_id")
-        normalized = native.validate_manifest(manifest)
-        recipients = tuple(native._identifier(member, label="recipient_member_id") for member in recipient_member_ids)
+        room_id, event_id = _storage_shared_1._identifier(room_id, label="room_id"), _storage_shared_1._identifier(event_id, label="event_id")
+        normalized = _storage_shared_1.validate_manifest(manifest)
+        recipients = tuple(_storage_shared_1._identifier(member, label="recipient_member_id") for member in recipient_member_ids)
         if not recipients:
-            raise native.AttachmentError("attachment commitment requires recipient ids")
+            raise _storage_shared_1.AttachmentError("attachment commitment requires recipient ids")
         if len(set(recipients)) != len(recipients):
-            raise native.AttachmentError("recipient ids must be unique")
+            raise _storage_shared_1.AttachmentError("recipient ids must be unique")
         scope = dict(room_id=room_id, event_id=event_id, recipients_json=json.dumps(sorted(recipients), separators=(",", ":")),
             viewer_access=viewer_access, now=float(self.clock()))
         with files_gate(self.root):
@@ -112,20 +113,20 @@ class PostgresAttachmentStore(AttachmentReaders, native.HostedRoomAttachmentStor
             for row in rows:
                 self._read_blob(blob_id=row["blob_id"], size=row["size"], sha256=row["sha256"])
             scope["now"] = float(self.clock())
-            expires = scope["now"] + native.UNCOMMITTED_TTL_SECONDS if hold_until_event else (
+            expires = scope["now"] + _storage_shared_1.UNCOMMITTED_TTL_SECONDS if hold_until_event else (
                 None if retention_seconds is None else scope["now"] + float(retention_seconds))
             with self._store() as store:
                 return commits.commit(store, manifest=normalized, expires_at=expires, **scope)
 
     def abort_message_commit(self, *, room_id, event_id, attachment_ids):
-        room_id, event_id = native._identifier(room_id, label="room_id"), native._identifier(event_id, label="event_id")
-        selected = [native._attachment_id(value) for value in attachment_ids]
+        room_id, event_id = _storage_shared_1._identifier(room_id, label="room_id"), _storage_shared_1._identifier(event_id, label="event_id")
+        selected = [_storage_shared_1._attachment_id(value) for value in attachment_ids]
         now = float(self.clock())
         with self._store() as store:
             return commits.abort(store, room_id=room_id, event_id=event_id, attachment_ids=selected, now=now)
 
     def retain_event(self, *, room_id, event_id):
-        room_id, event_id = native._identifier(room_id, label="room_id"), native._identifier(event_id, label="event_id")
+        room_id, event_id = _storage_shared_1._identifier(room_id, label="room_id"), _storage_shared_1._identifier(event_id, label="event_id")
         now = float(self.clock())
         with self._store() as store:
             return commits.retain_event(store, room_id=room_id, event_id=event_id, now=now)
@@ -136,7 +137,7 @@ class PostgresAttachmentStore(AttachmentReaders, native.HostedRoomAttachmentStor
             return cleanup.reconcile(store, now)
 
     def mark_room_disbanded(self, room_id):
-        room_id, now = native._identifier(room_id, label="room_id"), float(self.clock())
+        room_id, now = _storage_shared_1._identifier(room_id, label="room_id"), float(self.clock())
         with self._store() as store:
             return cleanup.mark_disbanded(store, room_id, now)
 

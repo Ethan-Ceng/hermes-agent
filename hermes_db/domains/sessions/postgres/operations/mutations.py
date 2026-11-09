@@ -10,8 +10,8 @@ from hermes_db.domains.sessions.postgres.queries import retirement as target_rep
 from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.tables.conversations import sessions as table
 from hermes_db.core.values import decode_text
-from hermes_state_mutations import validate_action
-from hermes_state_runtime import RuntimeStoreError, _json, _text, mutation_receipt_key
+from hermes_db.domains.runtime.mutation_rules import validate_action
+from hermes_db.domains.runtime.values import RuntimeStoreError, _json, _text, mutation_receipt_key
 
 
 def replay_receipt(conn, scope, key, digest):
@@ -28,8 +28,8 @@ def save_receipt(conn, scope, key, digest, result):
     runtime.set_meta(conn, scope, key, _json({"digest": digest, "result": result}))
 
 
-def mutate(conn, scope, *, epoch, principal_id, session_id, request_id, expected_revision, operation, payload,
-           expected_generation=None, _live_guard=None, _authorize_write=None, _prepare_only=False, _prepared=None):
+def mutate(conn, scope, *, ownership, routes, epoch, principal_id, session_id, request_id, expected_revision, operation, payload,
+           expected_generation=None, _live_guard=None, _authorize_write=None, _prepare_only=False, _prepared=None, media_references):
     for value in (principal_id, session_id, request_id):
         _text(value)
     if type(expected_revision) is not int or expected_revision < 0:
@@ -54,7 +54,7 @@ def mutate(conn, scope, *, epoch, principal_id, session_id, request_id, expected
         raise RuntimeStoreError("revision_conflict")
     if expected_generation is not None and (row is None or row["runtime_generation"] != expected_generation):
         raise RuntimeStoreError("stale_generation")
-    targets = target_repo.canonical_targets(conn, scope, session_id) if operation == "delete" else [session_id]
+    targets = target_repo.canonical_targets(conn, scope, session_id, ownership=ownership) if operation == "delete" else [session_id]
     retirement_guards.lock_targets(conn, scope, targets)
     invoke(_live_guard, conn, scope, targets)
     invoke(_authorize_write, conn, scope)
@@ -63,7 +63,7 @@ def mutate(conn, scope, *, epoch, principal_id, session_id, request_id, expected
         if operation == "branch":
             _require_idle(conn, scope, sorted({session_id, snapshot["target"]}))
         return {"snapshot": snapshot}, None
-    affected, projection = _apply(conn, scope, session_id, operation, payload, targets, deepcopy(_prepared))
+    affected, projection = _apply(conn, scope, session_id, operation, payload, targets, deepcopy(_prepared), ownership=ownership, routes=routes, media_references=media_references)
     event = (projection["deleted_ids"], "delete") if operation == "delete" else None
     if payload.get("archived") is True and row and not row["archived"]:
         event = (list(affected) or [session_id], "archive")
@@ -76,31 +76,32 @@ def mutate(conn, scope, *, epoch, principal_id, session_id, request_id, expected
     return result, event
 
 
-def _apply(conn, scope, session_id, operation, payload, targets, prepared):
+def _apply(conn, scope, session_id, operation, payload, targets, prepared, *, ownership, routes, media_references):
     if operation == "import":
-        from hermes_db.integration.postgres.operations.portability import import_current
-        from hermes_db.integration.transfer.portability_values import values
+        from hermes_db.domains.sessions.postgres.operations.imports import import_current
+        from hermes_db.domains.sessions.import_rules import values
         if len(payload["sessions"]) > values._IMPORT_MAX_SESSIONS:
             raise RuntimeStoreError("invalid_params")
         normalized, errors = values._validate_import_payload(payload["sessions"])
         if errors or not normalized or session_id != normalized[0]["session"]["id"]:
             raise RuntimeStoreError("invalid_params")
-        result = import_current(conn, scope, normalized, canonical=True)
+        result = import_current(conn, scope, normalized, canonical=True, ownership=ownership)
         return set(result["imported_ids"]), result
     if operation == "compress":
         from hermes_db.domains.sessions.postgres.operations.mutation_transcript import compress
         return compress(conn, scope, session_id, payload, prepared)
     if operation == "branch":
         from hermes_db.domains.sessions.postgres.operations.mutation_branch import branch
-        return branch(conn, scope, session_id, payload, prepared)
+        return branch(conn, scope, session_id, payload, prepared, routes=routes)
     if operation in {"reset", "rewind"}:
         from hermes_db.domains.sessions.postgres.operations import mutation_transcript
-        return {"reset": mutation_transcript.reset, "rewind": mutation_transcript.rewind}[operation](conn, scope, session_id, payload)
+        return {"reset": lambda: mutation_transcript.reset(conn, scope, session_id, payload, routes=routes),
+                "rewind": lambda: mutation_transcript.rewind(conn, scope, session_id, payload)}[operation]()
     if operation in mutation_policy.HANDLERS:
         return mutation_policy.HANDLERS[operation](conn, scope, session_id, payload, prepared)
     if operation == "delete":
         _require_idle(conn, scope, targets)
-        retirement.retire_sessions(conn, scope, targets)
+        retirement.retire_sessions(conn, scope, targets, media_references=media_references)
         for sid in targets:
             row = sessions.raw_session(conn, scope, sid)
             if row:

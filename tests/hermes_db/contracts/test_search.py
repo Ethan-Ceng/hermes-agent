@@ -64,7 +64,7 @@ def test_core_prune_updates_search_projection_and_never_exports_derived_fields(c
 def test_search_sql_binds_untrusted_terms_and_keeps_store_filter(tmp_path):
     pytest.importorskip("sqlalchemy", reason="optional postgresql extra")
     from sqlalchemy.dialects import postgresql
-    from hermes_db.backends.postgresql.search import statement
+    from hermes_db.domains.sessions.postgres.support.search import statement
     from hermes_db.scope import DatabaseScope
     from hermes_db.domains.sessions.postgres.support.search_query import parse_query
     for route in ("fts", "substring"):

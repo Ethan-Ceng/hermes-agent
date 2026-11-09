@@ -1,9 +1,10 @@
 """Worker exclusion follows the logical conversation and its physical transcript lineage."""
+from hermes_db.domains.runtime.receipts import CHILD_SEPARATOR, RETIRED_RECEIPT, retired_receipt
 import json
 
 
 def runtime_lineage(conn, session_id):
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     from hermes_state_local_lineage import local_physical_target
     from hermes_state_sessions import _expand_compression_lineage_ids
     from hermes_state_compression import _CHAIN_CAP
@@ -44,10 +45,8 @@ def discard_orphan_workers_on_reset(conn, session_ids):
             compact_terminal_receipts(conn, execution_id)
 
 
-RETIRED_RECEIPT = {'retired': True}
 # A delegated child's execution id is its parent's plus this and a random suffix, so every
 # descendant of an execution is one prefix probe away (gateway/session_worker_child.py).
-CHILD_SEPARATOR = '/child:'
 
 
 def retire_child_executions(conn, execution_id):
@@ -106,7 +105,3 @@ def _compact(conn, execution_id):
                  "AND (json_type(result_json, '$.messages') IS NOT NULL "
                  "OR json_type(result_json, '$.session') IS NOT NULL)",
                  (json.dumps(RETIRED_RECEIPT), execution_id))
-
-
-def retired_receipt(result_json):
-    return json.loads(result_json) == RETIRED_RECEIPT

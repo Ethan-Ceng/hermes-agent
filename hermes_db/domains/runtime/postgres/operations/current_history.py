@@ -8,8 +8,8 @@ from hermes_db.domains.sessions.postgres.operations import retirement_guards as 
 from hermes_db.domains.sessions.postgres.queries import gateway, sessions
 from hermes_db.domains.runtime.postgres.queries import history_access, runtime
 from hermes_db.tables.gateway import gateway_routing
-from hermes_state_local import POLICY_PREFIX
-from hermes_state_runtime import RuntimeStoreError, _json
+from hermes_db.domains.runtime.receipts import POLICY_PREFIX
+from hermes_db.domains.runtime.values import RuntimeStoreError, _json
 
 CLAIM_PREFIX = "gateway.native_history.v1:"
 
@@ -18,7 +18,7 @@ def claim_value(receipt):
     return _json({key: receipt[key] for key in ("profile_id", "principal_id", "session_id", "history_session_id")})
 
 
-def promote(conn, scope, *, epoch, actor, receipt, own_profile, native_transport):
+def promote(conn, scope, *, epoch, actor, receipt, own_profile, native_transport, ownership):
     runtime.require_epoch(conn, scope, epoch)
     sid = receipt["session_id"]
     guards.lock_targets(conn, scope, [sid])
@@ -30,7 +30,7 @@ def promote(conn, scope, *, epoch, actor, receipt, own_profile, native_transport
         return saved
     if sid != receipt["history_session_id"] or receipt["principal_id"] != actor.subject:
         raise RuntimeStoreError("invalid_params")
-    if not history_access.authorize_claim(conn, scope, actor, sid, own_profile=own_profile, native_transport=native_transport):
+    if not history_access.authorize_claim(conn, scope, actor, sid, own_profile=own_profile, native_transport=native_transport, ownership=ownership):
         raise RuntimeStoreError("permission_denied")
     row = sessions.raw_session(conn, scope, sid)
     if row["source"] not in ("cli", "tui", "gui", "desktop", "oneshot", "tool", "acp"):

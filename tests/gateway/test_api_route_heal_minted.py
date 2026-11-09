@@ -7,7 +7,7 @@ import pytest
 from gateway.config import Platform
 from gateway.session import SessionEntry, SessionSource
 from gateway.session_api import bind_api_session
-from hermes_state_local import API_BINDING_PREFIX
+from hermes_db.domains.runtime.receipts import API_BINDING_PREFIX
 from hermes_state_runtime import RuntimeStoreError
 
 

@@ -2,8 +2,9 @@
 from copy import deepcopy
 from sqlalchemy import select, func
 from hermes_db.domains.sessions.postgres.support.message_codec import codec, content_from_bytes
-from hermes_db.integration.postgres.operations import portability, profile_move, profile_repair
-from hermes_db.integration.transfer.portability_values import values
+from hermes_db.domains.sessions.postgres.operations import imports as portability
+from hermes_db.integration.postgres.operations import profile_move, profile_repair
+from hermes_db.domains.sessions.import_rules import values
 from hermes_db.domains.sessions.postgres.queries import messages as portability_messages, session_queries, sessions as portability_sessions, sessions as portability_queries_sessions, gateway
 from hermes_db.tables.conversations import sessions as table, messages as portability_queries_messages, messages as profile_repair_messages, sessions as profile_repair_sessions
 from hermes_state_portability import _export_timings
@@ -12,8 +13,8 @@ from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.tables.runtime import session_admissions
 from hermes_db.core.values import decode_text
 from hermes_state_keys import CRON_PRINCIPAL_ID, cron_run_from_request
-from hermes_state_local import POLICY_PREFIX
-from hermes_db.integration.transfer.move_values import resource_key
+from hermes_db.domains.runtime.receipts import POLICY_PREFIX
+from hermes_db.core.values import resource_key
 from hermes_db.integration.postgres.queries import profile_repair as repo
 from hermes_db.tables.gateway import telegram_dm_topic_bindings as bindings
 from hermes_state_profile_repair import session_key_profile
@@ -97,7 +98,7 @@ class SessionTransfer:
         if errors:
             return {'ok': False, 'imported': 0, 'skipped': 0, 'detached': 0, 'errors': errors}
         with self._context.write() as conn:
-            return portability.import_current(conn, self._context.scope, normalized)
+            return portability.import_current(conn, self._context.scope, normalized, ownership=self._context.ownership)
 
     def distinct_session_cwds(self, include_archived=False):
         conditions = [table.c.store_id == self._context.scope.require_store_id(), table.c.cwd.is_not(None), func.trim(table.c.cwd) != '']
@@ -145,8 +146,8 @@ class SessionTransfer:
             return find_foreign(conn, self._context.scope, origin)
 
     def import_foreign_history(self, origin, messages, *, title, cwd, profile):
-        from hermes_db.integration.postgres.operations import portability
-        from hermes_db.integration.transfer.portability_values import values
+        from hermes_db.domains.sessions.postgres.operations import imports as portability
+        from hermes_db.domains.sessions.import_rules import values
         from hermes_state_ids import new_session_id
         sid = new_session_id(hex_len=12)
         normalized, errors = values._validate_import_payload([{'id': sid, 'source': origin['tool'], 'title': title, 'cwd': cwd, 'messages': messages}])
@@ -175,7 +176,7 @@ class SessionTransfer:
         donor_db.flush_token_counts()
         self._flush_token_counts()
         with self._context.profile.activate(), self._context.write() as conn:
-            return adopt(conn, self._context.scope, donor_db.scope, session_id, retire_donor=retire_donor)
+            return adopt(conn, self._context.scope, donor_db.scope, session_id, retire_donor=retire_donor, ownership=self._context.ownership)
 
     def export_session_for_move(self, session_id):
         self._flush_token_counts()

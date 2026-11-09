@@ -531,7 +531,7 @@ class GatewayProfileReconcileMixin:
                 self._served_profile_homes.pop(name, None)
             if isinstance(self._served_profile_signatures, dict):
                 self._served_profile_signatures.pop(name, None)
-            from gateway.session import _session_key_namespace
+            from gateway.session_contract import _session_key_namespace
             prefix = _session_key_namespace(name) + ":"
             cache = getattr(self, "_agent_cache", None)
             for key in [k for k in list(cache or {}) if str(k).startswith(prefix)]:

@@ -1,8 +1,8 @@
 """Room grants workflow; original connection, fence and off-connection effect boundaries are preserved."""
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
-from gateway import hosted_rooms as native
-from gateway.hosted_rooms_common import clock, bounded_grant_expiry
+from hermes_db.domains.rooms import rules as native
+from hermes_db.domains.rooms.rules import clock, bounded_grant_expiry
 from hermes_db.domains.rooms.postgres import repository as repo
 from hermes_db.tables.rooms import reservations, revoked_grants, links, remote_runs, REMOTE_IDENTITY, owed_revokes, owed_revokes as debts
 

@@ -7,7 +7,7 @@ from hermes_db.domains.sessions.postgres.queries import bot_views, session_queri
 import json
 from hermes_db.tables.conversations import sessions as table
 from hermes_db.core.values import decode_text
-from hermes_state_mutation_retirement import VIEWER_CLOSE_PREFIX
+from hermes_db.domains.runtime.receipts import VIEWER_CLOSE_PREFIX
 
 def _policy_target(raw):
     if raw is None:
@@ -33,10 +33,9 @@ class RuntimePolicy:
     def mutate_session(self, **kwargs):
         from hermes_db.domains.sessions.postgres.operations.mutations import mutate
         with self._context.write() as conn:
-            result, event = mutate(conn, self._context.scope, **kwargs)
+            result, event = mutate(conn, self._context.scope, ownership=self._context.session.ownership, routes=self._context.session.routes, **kwargs, media_references=self._context.session.media.admission_references)
         if event is not None:
-            from hermes_db.integration.events import emit_deleted
-            emit_deleted(self._context.session.profile, event[0], reason=event[1], primary=kwargs['session_id'])
+            self._context.session.effects.deleted(event[0], reason=event[1], primary=kwargs['session_id'])
             if event[1] == 'delete':
                 self._context.collect_retired_media()
         return result
@@ -78,7 +77,7 @@ class RuntimePolicy:
 
     def bot_sessions(self, subject, operator):
         with self._context.read() as conn:
-            return bot_views.roster(conn, self._context.scope, subject, operator)
+            return bot_views.roster(conn, self._context.scope, subject, operator, same_owner=self._context.session.ownership.same_owner)
 
     def viewer_busy(self, session_id, target):
         with self._context.read() as conn:
@@ -103,7 +102,7 @@ class RuntimePolicy:
             return conn.scalar(select(session_queries.last_activity(conn)).where(sessions.where_session(self._context.scope, session_id)))
 
     def live_store_facts(self, session_ids):
-        from hermes_state_local import POLICY_PREFIX
+        from hermes_db.domains.runtime.receipts import POLICY_PREFIX
         fields = ('id', 'source', 'title', 'started_at', 'ended_at', 'message_count', 'model', 'hidden', 'archived', 'runtime_revision', 'runtime_generation')
         with self._context.read() as conn:
             rows = [dict(row) for row in conn.execute(select(*[table.c[name] for name in fields]).where(table.c.store_id == self._context.scope.require_store_id(), table.c.id.in_(session_ids))).mappings()]

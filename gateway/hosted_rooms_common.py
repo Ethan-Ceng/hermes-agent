@@ -18,88 +18,25 @@ from typing import Any, Callable, Iterator, Mapping
 from hermes_db.domains.rooms.api import RoomStoreRef
 
 
-IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
 DbPath = Path | str | RoomStoreRef
 
 
-def bounded_grant_expiry(value: float, *, now: float, horizon: float) -> float:
-    """An unreadable unsigned horizon cannot prove expiry or retain a grant forever."""
-    expiry = float(value)
-    return min(expiry, now + horizon) if math.isfinite(expiry) else now + horizon
 
 
-def identifier(
-    value: Any, *, label: str, error: type[Exception], max_chars: int = 128,
-    pattern: re.Pattern[str] | None = IDENTIFIER_RE, invalid: str | None = None) -> str:
-    """Strip and validate a bounded string; ``pattern=None`` skips the shape check."""
-    if not isinstance(value, str):
-        raise error(f"{label} must be a string")
-    value = value.strip()
-    if not value or len(value) > max_chars or (pattern is not None and not pattern.fullmatch(value)):
-        raise error(invalid or f"invalid {label}")
-    return value
 
 
-def bounded_int(value: Any, *, error: type[Exception], message: str, low: int = 0, high: int | None = None) -> int:
-    """Reject bools, non-ints and values outside ``[low, high]`` (``message`` is the exact text)."""
-    if isinstance(value, bool) or not isinstance(value, int) or value < low or (high is not None and value > high):
-        raise error(message)
-    return value
 
 
-def exact_fields(
-    value: Any, *, label: str, required: frozenset[str] | set[str], optional: frozenset[str] | set[str] = frozenset(),
-    error: type[Exception], not_object: str | None = None, missing_fmt: str = "{label} is missing fields: {fields}",
-    unknown_fmt: str = "{label} has unknown fields: {fields}") -> Mapping[str, Any]:
-    """Require exactly ``required`` (+ any ``optional``) keys; formats name the offenders sorted."""
-    if not isinstance(value, Mapping):
-        raise error(not_object or f"{label} must be an object")
-    keys = frozenset(value)
-    missing = required - keys
-    unknown = keys - required - optional
-    if missing:
-        raise error(missing_fmt.format(label=label, fields=", ".join(sorted(missing))))
-    if unknown:
-        raise error(unknown_fmt.format(label=label, fields=", ".join(sorted(unknown))))
-    return value
 
 
-def text(value: Any, *, error: type[Exception], label: str, max_bytes: int, strip: bool = True) -> str:
-    """Non-blank string bounded by ``max_bytes`` of UTF-8; ``strip=False`` keeps and measures the raw text."""
-    if not isinstance(value, str):
-        raise error(f"{label} must be a string")
-    if not value.strip():
-        raise error(f"{label} must not be empty")
-    if strip:
-        value = value.strip()
-    if len(value.encode("utf-8")) > max_bytes:
-        raise error(f"{label} is too large")
-    return value
 
 
-def compact_json(value: Any, *, ensure_ascii: bool = True) -> str:
-    """Sorted-key, separator-free JSON (the digest/storage canonical form)."""
-    return json.dumps(value, ensure_ascii=ensure_ascii, sort_keys=True, separators=(",", ":"))
 
 
-def canonical_json(value: Any, *, error: type[Exception], label: str, max_bytes: int, ensure_ascii: bool) -> str:
-    """``compact_json`` bounded by ``max_bytes`` of UTF-8; unserializable input raises ``error``."""
-    try:
-        encoded = compact_json(value, ensure_ascii=ensure_ascii)
-    except (TypeError, ValueError, RecursionError) as exc:
-        raise error(f"{label} must be JSON-serializable") from exc
-    if len(encoded.encode("utf-8")) > max_bytes:
-        raise error(f"{label} is too large")
-    return encoded
 
 
-def utf8_len(*parts: str) -> int:
-    return len("".join(parts).encode("utf-8"))
 
 
-def clock(now: float | None) -> float:
-    """``now`` as a float, or the current wall clock when ``None``."""
-    return time.time() if now is None else float(now)
 
 
 def open_sqlite(path: DbPath, *, timeout: float = 10) -> sqlite3.Connection:

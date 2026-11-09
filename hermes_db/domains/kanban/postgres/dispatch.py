@@ -1,4 +1,5 @@
 """Kanban dispatch workflow; original connection, fence and off-connection effect boundaries are preserved."""
+from hermes_db.domains.kanban import rules as _storage_shared_1
 from hermes_db.errors import StorageConfigurationError, StorageError, StorageBusyError
 import logging
 from functools import partial
@@ -17,23 +18,23 @@ from hermes_db.tables.kanban import tasks, comments, events, runs
 from hermes_db.core.values import encode_text, decode_text
 
 def dispatch_once(store, *, spawn_fn=None, ttl_seconds=None, dry_run=False, max_spawn=None, max_in_progress=None, failure_limit=2, stale_timeout_seconds=0, board=None, default_assignee=None, max_in_progress_per_profile=None, reconcile_orphans=True):
-    from hermes_cli import kanban_db as kb, kanban_db_dispatch as dispatch
+
     if board is not None and board != store.slug:
         raise StorageConfigurationError('Dispatcher Board must match its owning resource')
     with hold_dispatch_lease(store) as lease:
         if lease is None:
-            result = dispatch.DispatchResult(skipped_locked=True)
+            result = store.result_values.dispatch_result(skipped_locked=True)
         else:
             permit = DispatchPermit(lease, max_spawn, max_in_progress)
-            result = dispatch._dispatch_once_locked(store, spawn_fn=spawn_fn, ttl_seconds=ttl_seconds, dry_run=dry_run, max_spawn=max_spawn, max_in_progress=max_in_progress, failure_limit=failure_limit, stale_timeout_seconds=stale_timeout_seconds, board=store.slug, default_assignee=default_assignee, max_in_progress_per_profile=max_in_progress_per_profile, reconcile_orphans=reconcile_orphans, dispatch_permit=permit)
+            result = store.processes.dispatch_once_locked(store, spawn_fn=spawn_fn, ttl_seconds=ttl_seconds, dry_run=dry_run, max_spawn=max_spawn, max_in_progress=max_in_progress, failure_limit=failure_limit, stale_timeout_seconds=stale_timeout_seconds, board=store.slug, default_assignee=default_assignee, max_in_progress_per_profile=max_in_progress_per_profile, reconcile_orphans=reconcile_orphans, dispatch_permit=permit)
             lease.check()
-    kb._fire_dispatch_tick_hook(result, board=store.slug, dry_run=dry_run)
+    store.observers.fire_dispatch_tick_hook(result, board=store.slug, dry_run=dry_run)
     return result
 logger = logging.getLogger('hermes_cli.kanban_db')
 
 def _guard(store, task_id, assignee, result, lane, dry_run, cap, running):
-    from hermes_cli import kanban_db_dispatch as dispatch
-    exists = dispatch._profile_exists_fn()
+
+    exists = store.processes.profile_exists_fn()
     if exists is not None and (not exists(assignee)):
         result.skipped_nonspawnable.append(task_id)
         if not dry_run:
@@ -42,7 +43,7 @@ def _guard(store, task_id, assignee, result, lane, dry_run, cap, running):
     if cap is not None and running.get(assignee, 0) >= cap:
         result.skipped_per_profile_capped.append((task_id, assignee, running.get(assignee, 0)))
         return False
-    reason = dispatch.check_respawn_guard(store, task_id, lane=lane)
+    reason = store.check_respawn_guard(task_id, lane=lane)
     if reason is not None:
         result.respawn_guarded.append((task_id, reason))
         if not dry_run:
@@ -51,26 +52,25 @@ def _guard(store, task_id, assignee, result, lane, dry_run, cap, running):
     return True
 
 def _workspace(store, claimed):
-    from hermes_cli import kanban_db_workspace as workspace
     if claimed.workspace_kind == 'worktree':
-        path, branch = workspace._resolve_worktree_workspace(claimed, board=store.slug)
-        workspace.set_branch_name(store, claimed.id, branch or (claimed.branch_name or '').strip() or f'wt/{claimed.id}')
+        path, branch = store.files.resolve_worktree_workspace(claimed, board=store.slug)
+        store.set_branch_name(claimed.id, branch or (claimed.branch_name or '').strip() or f'wt/{claimed.id}')
     else:
-        path = workspace.resolve_workspace(claimed, board=store.slug)
-    workspace.set_workspace_path(store, claimed.id, str(path))
-    workspace._maybe_emit_scratch_tip(store, claimed.id, claimed.workspace_kind)
+        path = store.files.resolve_workspace(claimed, board=store.slug)
+    store.set_workspace_path(claimed.id, str(path))
+    store.files.maybe_emit_scratch_tip(store, claimed.id, claimed.workspace_kind)
     return str(path)
 
 def _spawn_failure(store, task, error, result, failure_limit, *, workspace=False):
-    from hermes_cli import kanban_db as kb
+
     from tools.process_registry import RestartSafeScopeUnavailable
     infrastructure = isinstance(error, RestartSafeScopeUnavailable)
     message = f'workspace: {error}' if workspace else str(error)
-    if kb._record_task_failure(store, task.id, message, outcome='spawn_failed', failure_limit=failure_limit, release_claim=True, end_run=True, infrastructure=infrastructure, expected_run_id=task.current_run_id):
+    if store._record_task_failure(task.id, message, outcome='spawn_failed', failure_limit=failure_limit, release_claim=True, end_run=True, infrastructure=infrastructure, expected_run_id=task.current_run_id):
         result.auto_blocked.append(task.id)
 
 def _dispatch_lane_task(store, row, assignee, result, *, lane, dry_run, ttl_seconds, board, failure_limit, spawn_fn, per_profile_cap, per_profile_running, dispatch_permit=None):
-    from hermes_cli import kanban_db as kb, kanban_db_dispatch as dispatch
+
     if dispatch_permit is None:
         raise StorageConfigurationError('Automatic Kanban claims require a dispatch lease')
     task_id = row['id']
@@ -97,9 +97,8 @@ def _dispatch_lane_task(store, row, assignee, result, *, lane, dry_run, ttl_seco
         if not permit.before_spawn(store, task, ttl_seconds):
             return False
         try:
-            from hermes_db.domains.kanban.routing.owner import board_reference
-            spawn = spawn_fn or partial(dispatch._default_spawn, board_owner=board_reference(store))
-            pid = dispatch._call_spawn_fn(spawn, task, workspace, store.slug)
+            spawn = spawn_fn or partial(store.processes.default_spawn, board_owner=store.codec.board_reference(store))
+            pid = store.processes.call_spawn_fn(spawn, task, workspace, store.slug)
         except StorageError:
             raise
         except Exception as error:
@@ -107,8 +106,8 @@ def _dispatch_lane_task(store, row, assignee, result, *, lane, dry_run, ttl_seco
             _spawn_failure(store, task, error, result, failure_limit)
             return False
         if pid:
-            dispatch._set_worker_pid(store, task.id, int(pid), run_id=task.current_run_id, claim_lock=task.claim_lock)
-        kb._fire_worker_spawned_hook(store, task, workspace, pid, board=store.slug)
+            store._set_worker_pid(task.id, int(pid), run_id=task.current_run_id, claim_lock=task.claim_lock)
+        store.observers.fire_worker_spawned_hook(store, task, workspace, pid, board=store.slug)
         result.spawned.append((task.id, task.assignee or '', workspace))
     if per_profile_cap is not None and assignee:
         per_profile_running[assignee] = per_profile_running.get(assignee, 0) + 1
@@ -219,13 +218,13 @@ class DispatchPermit:
         return True
 
     def before_spawn(self, store, claimed, ttl_seconds):
-        from hermes_cli import kanban_db as kb
+
         with store.write() as conn:
             self.lease.validate(conn, lock=True)
             task = repo.get(conn, store, claimed.id)
             if task is None or task['status'] != 'running' or task['current_run_id'] != claimed.current_run_id or (task['claim_lock'] != claimed.claim_lock):
                 return False
-            expires = int(time.time()) + kb._resolve_claim_ttl_seconds(ttl_seconds)
+            expires = int(time.time()) + store.policy.resolve_claim_ttl_seconds(ttl_seconds)
             repo.task_update(conn, store, claimed.id, claim_expires=expires)
             run_repo.update_run(conn, store, claimed.current_run_id, claim_expires=expires)
         return True
@@ -247,9 +246,9 @@ def _lane_rows(store, status):
         return [repo.decode_record(row) for row in conn.execute(select(tasks.c.id, tasks.c.assignee).where(repo.scope(tasks, store), tasks.c.status == status.encode(), tasks.c.claim_lock.is_(None)).order_by(tasks.c.priority.desc(), tasks.c.created_at.asc().nulls_first(), tasks.c.id)).mappings()]
 
 def _has_spawnable(store, status):
-    from hermes_cli.kanban_db_dispatch import _profile_exists_fn
+
     rows = _lane_rows(store, status)
-    exists = _profile_exists_fn()
+    exists = store.processes.profile_exists_fn()
     return any(row['assignee'] is not None and (exists is None or exists(row['assignee'])) for row in rows)
 
 def _apply_default_assignee(store, task_id, assignee, *, dry_run):
@@ -276,31 +275,31 @@ def diagnostic(store, task_id, kind, payload, *, once=False):
         repo.event(conn, store, task_id, kind, payload)
 
 def _guard_history(conn, store, task_id, now):
-    from hermes_cli import kanban_db_dispatch as dispatch
-    success_cutoff = now - dispatch._RESPAWN_GUARD_SUCCESS_WINDOW
-    pr_cutoff = now - dispatch._RESPAWN_GUARD_PR_WINDOW
+
+    success_cutoff = now - _storage_shared_1._RESPAWN_GUARD_SUCCESS_WINDOW
+    pr_cutoff = now - _storage_shared_1._RESPAWN_GUARD_PR_WINDOW
     successes = [(row.ended_at, {}) for row in conn.execute(select(runs.c.ended_at).where(repo.key(store, task_id, runs), runs.c.outcome == b'completed', runs.c.ended_at >= success_cutoff))]
     event_rows = [(row['created_at'], repo.decode_record(row)) for row in conn.execute(select(events).where(repo.key(store, task_id, events), events.c.created_at >= min(success_cutoff, pr_cutoff))).mappings()]
     comment_rows = [(row['created_at'], repo.decode_record(row)) for row in conn.execute(select(comments).where(repo.key(store, task_id, comments), comments.c.created_at >= pr_cutoff)).mappings()]
     return (successes, event_rows, comment_rows)
 
 def check_respawn_guard(store, task_id, *, lane='ready'):
-    from hermes_cli.kanban_respawn_policy import primary_guard, history_guard
     now = int(time.time())
     with store.read() as conn:
         task = repo.get(conn, store, task_id)
         if task is None:
             return None
         latest = conn.execute(select(runs).where(repo.key(store, task_id, runs), runs.c.ended_at.is_not(None)).order_by(runs.c.ended_at.desc(), runs.c.id.desc()).limit(1)).mappings().one_or_none()
-        handled, reason = primary_guard(task['last_failure_error'], repo.decode_record(latest) if latest else None, lane, now)
+        handled, reason = store.policy.respawn_primary_guard(task['last_failure_error'], repo.decode_record(latest) if latest else None, lane, now)
         if handled:
             return reason
         history = _guard_history(conn, store, task_id, now)
-    return history_guard(*history)
+    return store.policy.respawn_history_guard(*history)
 
 def _set_worker_pid(store, task_id, pid, *, run_id=None, claim_lock=None):
-    from hermes_cli.kanban_db_dispatch import _process_fingerprint, UNVERIFIED_WORKER_FINGERPRINT
-    fingerprint = _process_fingerprint(int(pid)) or UNVERIFIED_WORKER_FINGERPRINT
+
+    from hermes_db.domains.kanban.rules import UNVERIFIED_WORKER_FINGERPRINT
+    fingerprint = store.processes.process_fingerprint(int(pid)) or UNVERIFIED_WORKER_FINGERPRINT
     with store.write() as conn:
         task = repo.get(conn, store, task_id)
         if task is None:
@@ -316,14 +315,15 @@ def _set_worker_pid(store, task_id, pid, *, run_id=None, claim_lock=None):
         repo.event(conn, store, task_id, 'spawned', {'pid': int(pid), 'started_at': fingerprint}, run_id)
 
 def adopt_worker_pid(store, task_id, run_id, pid):
-    from hermes_cli import kanban_db as kb
-    from hermes_cli.kanban_db_dispatch import _process_fingerprint, UNVERIFIED_WORKER_FINGERPRINT
-    fingerprint = _process_fingerprint(int(pid)) or UNVERIFIED_WORKER_FINGERPRINT
+
+
+    from hermes_db.domains.kanban.rules import UNVERIFIED_WORKER_FINGERPRINT
+    fingerprint = store.processes.process_fingerprint(int(pid)) or UNVERIFIED_WORKER_FINGERPRINT
     with store.write() as conn:
         task = repo.get(conn, store, task_id)
         if task is None or task['status'] != 'running' or task['current_run_id'] != int(run_id):
             return False
-        if task['worker_pid'] is None and (task['claim_lock'] or '').startswith(kb._host_prefix()):
+        if task['worker_pid'] is None and (task['claim_lock'] or '').startswith(store.processes.host_prefix()):
             repo.task_update(conn, store, task_id, worker_pid=int(pid), worker_started_at=fingerprint)
             run_repo.update_run(conn, store, run_id, worker_pid=int(pid), worker_started_at=fingerprint)
             repo.event(conn, store, task_id, 'worker_registered', {'pid': int(pid), 'started_at': fingerprint}, int(run_id))

@@ -5,6 +5,7 @@ tail/watch/gc/repair).
 """
 
 from __future__ import annotations
+from hermes_db.domains.kanban import rules as _storage_shared_1
 
 import argparse
 import contextlib
@@ -164,7 +165,7 @@ def kanban_command(args: argparse.Namespace) -> int:
     board_scope = contextlib.nullcontext()
     if board_override:
         try:
-            normed = kb._normalize_board_slug(board_override)
+            normed = _storage_shared_1._normalize_board_slug(board_override)
         except ValueError as exc:
             return _err(f"kanban: {exc}", 2)
         if not normed:

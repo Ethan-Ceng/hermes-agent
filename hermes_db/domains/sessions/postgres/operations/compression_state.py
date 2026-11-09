@@ -66,7 +66,7 @@ def children(conn, scope, parent_id, *, live_only=False):
 
 
 def reopen(conn, scope, session_id, *, orphan=False):
-    from hermes_state_common import _BOUNDARY_END_REASONS, is_automatic_end_reason
+    from hermes_db.domains.sessions.rules import _BOUNDARY_END_REASONS, is_automatic_end_reason
 
     sessions.lock_store(conn, scope, exclusive=True)
     row = sessions.lock_session(conn, scope, session_id)

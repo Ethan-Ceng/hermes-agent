@@ -29,7 +29,7 @@ def capture_worktree_store(profile_home=None):
     if storage_backend(home) == "sqlite":
         return home / "state.db"
     from hermes_db.backends.postgresql.engine import get_engine
-    from hermes_db.integration.transfer.move_values import resource_key
+    from hermes_db.core.values import resource_key
     from hermes_db.backends.postgresql.transactions import Transactions
     settings, scope = resolve_db_configuration(home)
     pg = settings.postgresql

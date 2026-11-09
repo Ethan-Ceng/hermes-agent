@@ -7,13 +7,12 @@ from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.domains.sessions.postgres.queries.gateway import marker
 from hermes_db.tables.conversations import sessions as table
 from hermes_db.tables.runtime import state_meta
-from hermes_state_local import POLICY_PREFIX
+from hermes_db.domains.runtime.receipts import POLICY_PREFIX
 
 LANE_FIELDS = ("session_key", "source", "user_id", "chat_id", "chat_type", "thread_id", "display_name", "origin_json", "transport_profile")
 
 
-def hand_off_moved(conn, scope, target_ids):
-    from gateway.session_route_recovery import _messaging_platform
+def hand_off_moved(conn, scope, target_ids, *, messaging_platform):
 
     rows = conn.execute(select(state_meta.c.key, state_meta.c.value).where(state_meta.c.store_id == scope.require_store_id(),
         state_meta.c.key.startswith(POLICY_PREFIX, autoescape=True))).all()
@@ -24,7 +23,7 @@ def hand_off_moved(conn, scope, target_ids):
         if target not in target_ids:
             continue
         row = sessions.raw_session(conn, scope, target)
-        if row is None or row["session_key"] is None or row["session_key"] == receipt.get("route") or _messaging_platform(row["source"]) is None:
+        if row is None or row["session_key"] is None or row["session_key"] == receipt.get("route") or messaging_platform(row["source"]) is None:
             continue
         owner = key[len(POLICY_PREFIX):]
         lineage = receipt.get("lineage", [owner])

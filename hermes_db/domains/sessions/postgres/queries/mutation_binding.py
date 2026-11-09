@@ -4,16 +4,15 @@ import json
 
 from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.domains.sessions.postgres.queries import sessions
-from hermes_state_mutation_binding import BINDING_PREFIX, _history_row, _owner_user
-from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.receipts import BINDING_PREFIX
+from hermes_db.domains.runtime.values import RuntimeStoreError
 
 
 def history_binding(conn, scope, session_id):
     return runtime.meta(conn, scope, BINDING_PREFIX + session_id)
 
 
-def binding_names(saved, scope, subject):
-    from gateway.owner_identity import same_owner
+def binding_names(saved, scope, subject, *, ownership):
     try:
         value = json.loads(saved)
     except (TypeError, ValueError):
@@ -21,15 +20,14 @@ def binding_names(saved, scope, subject):
     if not isinstance(value, list) or len(value) != 2:
         return False
     namespace, owner = value
-    return namespace == "store:" + scope.require_store_id() and same_owner(owner, subject)
+    return namespace == "store:" + scope.require_store_id() and ownership.same_owner(owner, subject)
 
 
 def _binding(scope, actor):
     return json.dumps(["store:" + scope.require_store_id(), actor.subject], ensure_ascii=True, separators=(",", ":"))
 
 
-def bindings_agree(first, second, scope):
-    from gateway.owner_identity import owners_agree
+def bindings_agree(first, second, scope, *, ownership):
     if first is None or second is None:
         return first is None and second is None
     try:
@@ -40,7 +38,7 @@ def bindings_agree(first, second, scope):
     if not all(isinstance(value, list) and len(value) == 2 and value[0] == expected
                and isinstance(value[1], str) and value[1] for value in values):
         return False
-    return owners_agree(values[0][1], values[1][1])
+    return ownership.owners_agree(values[0][1], values[1][1])
 
 
 def import_history_control(conn, scope, actor, session_ids):
@@ -50,19 +48,18 @@ def import_history_control(conn, scope, actor, session_ids):
             runtime.set_meta(conn, scope, BINDING_PREFIX + sid, binding)
 
 
-def authorize_history(conn, scope, actor, session_id, *, claim=False):
-    from gateway.owner_identity import same_owner
+def authorize_history(conn, scope, actor, session_id, *, ownership, claim=False):
     row = sessions.raw_session(conn, scope, session_id)
     if row is None or row["session_key"] or row["chat_id"] or row["origin_json"]:
         return False
     saved = history_binding(conn, scope, session_id)
     if saved is not None:
-        if not binding_names(saved, scope, actor.subject):
+        if not binding_names(saved, scope, actor.subject, ownership=ownership):
             raise RuntimeStoreError("permission_denied")
         return True
-    if not _history_row(row):
+    if not ownership.history_row(row):
         return False
-    if _owner_user(row) and not same_owner(row["user_id"], actor.subject):
+    if ownership.owner_user(row) and not ownership.same_owner(row["user_id"], actor.subject):
         raise RuntimeStoreError("permission_denied")
     if "session:create" not in actor.capabilities:
         raise RuntimeStoreError("permission_denied")
@@ -71,8 +68,7 @@ def authorize_history(conn, scope, actor, session_id, *, claim=False):
     return True
 
 
-def same_history_owner(conn, scope, anchor_id, session_id):
-    from gateway.owner_identity import owners_agree
+def same_history_owner(conn, scope, anchor_id, session_id, *, ownership):
 
     anchor, row = (sessions.raw_session(conn, scope, sid) for sid in (anchor_id, session_id))
     if anchor is None or row is None:
@@ -81,8 +77,8 @@ def same_history_owner(conn, scope, anchor_id, session_id):
         return tuple(row[name] for name in ("user_id", "session_key", "chat_id")) == tuple(
             anchor[name] for name in ("user_id", "session_key", "chat_id"))
     binding = runtime.meta(conn, scope, BINDING_PREFIX + session_id)
-    if not bindings_agree(binding, runtime.meta(conn, scope, BINDING_PREFIX + anchor_id), scope):
+    if not bindings_agree(binding, runtime.meta(conn, scope, BINDING_PREFIX + anchor_id), scope, ownership=ownership):
         return False
     peer = row["source"] == anchor["source"] and not any(anchor[name] for name in ("session_key", "chat_id", "origin_json"))
-    return binding is not None or ((_history_row(row) or peer)
-        and (_owner_user(row) in (None, "") or owners_agree(_owner_user(row), anchor["user_id"])))
+    return binding is not None or ((ownership.history_row(row) or peer)
+        and (ownership.owner_user(row) in (None, "") or ownership.owners_agree(ownership.owner_user(row), anchor["user_id"])))

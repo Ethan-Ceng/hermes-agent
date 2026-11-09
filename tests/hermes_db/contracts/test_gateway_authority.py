@@ -109,7 +109,7 @@ async def test_native_owner_creates_and_recovers_local_policy_without_sqlite(cor
     from gateway.session_local import create_local_session
     from gateway.session_mutations import mutate_session
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     from hermes_state_mutation_binding import BINDING_PREFIX
     from hermes_state_runtime import RuntimeStoreError
     from gateway.session_history_mount import mount_history, require_history_leaf

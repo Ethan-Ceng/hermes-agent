@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 from functools import partial
 
-from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.values import RuntimeStoreError
 
 
 class ReceiptDomainResource:
@@ -50,12 +50,12 @@ def verification(conn, scope, session_id, payload, *, operation):
         return {'value': operations.status(resource, session_id, payload['root'])}
     if not isinstance(payload['changed'], list) or any(not isinstance(value, str) for value in payload['changed']):
         raise RuntimeStoreError('invalid_params')
-    from agent.verification_evidence import _utc_now
+    from hermes_db.domains.verification.values import _utc_now
     return {'value': operations.mark_edited(resource, session_id, payload['root'], payload['changed'], _utc_now())}
 
 
 def record_verification(resource, session_id, payload):
-    from agent.verification_evidence import (
+    from hermes_db.domains.verification.values import (
         VerificationEvidence, _utc_now, _MAX_EVIDENCE_AGE_DAYS,
         _MAX_EVENTS_PER_SESSION_ROOT, _MAX_TOTAL_UNREFERENCED_EVENTS,
     )
@@ -72,12 +72,12 @@ def record_verification(resource, session_id, payload):
                   per_root_limit=_MAX_EVENTS_PER_SESSION_ROOT, total_limit=_MAX_TOTAL_UNREFERENCED_EVENTS)
 
 
-def write_handlers(metrics_policy=None):
+def write_handlers(metrics_policy=None, *, record_engagement):
     from hermes_db.domains.runtime.postgres.operations.worker_retain_queue import write_handlers as queue_handlers
     from hermes_db.domains.runtime.postgres.operations.worker_metrics import handlers as metric_handlers
     values = {'domain.verification.' + name: partial(verification, operation=name) for name in ('record', 'mark_edited')}
     values.update(queue_handlers())
-    values.update(metric_handlers(metrics_policy))
+    values.update(metric_handlers(metrics_policy, record_engagement=record_engagement))
     return values
 
 

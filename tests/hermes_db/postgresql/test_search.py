@@ -94,7 +94,7 @@ def test_failed_message_operation_rolls_back_derived_chunks(pg_store, monkeypatc
 
 def test_search_plan_and_index_size_evidence(pg_store, tmp_path, record_property):
     from sqlalchemy import func, select, text
-    from hermes_db.backends.postgresql.search import statement
+    from hermes_db.domains.sessions.postgres.support.search import statement
     from hermes_db.domains.sessions.postgres.support.search_query import parse_query
     from hermes_db.tables.conversations import messages
 

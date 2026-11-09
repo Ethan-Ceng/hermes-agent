@@ -1,4 +1,5 @@
 """Closed worker lifecycle handlers, called only inside the receipt transaction."""
+from hermes_db.domains.runtime.values import _CONSTRUCTOR_CONFIG, _CREATE_FIELDS, _IDENTITY_FIELDS, _row_id
 import json
 import time
 
@@ -6,12 +7,6 @@ from hermes_state_common import _MERGE_DISPLAY_META
 from hermes_state_runtime import RuntimeStoreError
 
 
-_IDENTITY_FIELDS = frozenset({
-    'user_id', 'session_key', 'chat_id', 'chat_type', 'thread_id',
-    'parent_session_id', 'cwd', 'profile_name', 'git_repo_root', 'origin_json', 'display_name',
-})
-_CREATE_FIELDS = _IDENTITY_FIELDS | {'source', 'model', 'model_config', 'system_prompt'}
-_CONSTRUCTOR_CONFIG = frozenset({'max_iterations', 'max_tokens', 'reasoning_config', 'yolo_mode'})
 
 
 def worker_create(db, conn, session_id, payload):
@@ -83,7 +78,7 @@ def worker_title_source(db, conn, session_id, payload):
 
 
 def worker_next_title(db, conn, session_id, payload):
-    from hermes_state_titles import _NUMBERED_TITLE_RE
+    from hermes_db.domains.sessions.rules import _NUMBERED_TITLE_RE
     from hermes_state_common import escape_like
     if set(payload) != {'base_title'} or not isinstance(payload['base_title'], str):
         raise RuntimeStoreError('invalid_params')
@@ -157,11 +152,6 @@ def worker_api_content(db, conn, session_id, payload):
     return {'value': value}
 
 
-def _row_id(payload):
-    row_id = payload.get('row_id')
-    if type(row_id) is not int or row_id <= 0:
-        raise RuntimeStoreError('invalid_params')
-    return row_id
 
 
 def worker_message_api_content(db, conn, session_id, payload):
@@ -218,7 +208,7 @@ def insert_session_row_in_transaction(
     validated before entry; this helper never opens or commits a DB.
     """
     from hermes_state_sessions import _UPSERT_KEEP_EXISTING_SQL
-    from hermes_state_mutation_retirement import RETIRED_PREFIX
+    from hermes_db.domains.runtime.receipts import RETIRED_PREFIX
     # A delayed constructor/accounting backfill must not recreate a deleted session
     # beside its durable tombstone (the exact delete retry would then report a stale
     # success while a fresh delete collides with the existing marker).

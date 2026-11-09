@@ -13,7 +13,7 @@ from hermes_db.domains.sessions.postgres.queries.lineage import advance_local_ta
 from hermes_db.tables.conversations import messages as table
 from hermes_db.core.values import model_config
 from hermes_db.domains.sessions.codec import _parse_tool_calls, _scrub_surrogates
-from hermes_state_messages import _tool_calls_len
+from hermes_db.domains.sessions.codec import _tool_calls_len
 
 
 def publish(transactions, scope, *, messages, own_profile=None, **options):
@@ -28,7 +28,7 @@ def publish_on_connection(conn, scope, *, parent_session_id, child_session_id, s
         model=None, model_config=None, system_prompt=None, cwd=None, profile_name=None, own_profile=None,
         compression_lock_holder=None, require_compression_lease=True, require_lease_refresh=False,
         lease_ttl_seconds=300.0, watermark=None, watermark_ceiling=None):
-    from hermes_state_common import is_automatic_end_reason
+    from hermes_db.domains.sessions.rules import is_automatic_end_reason
     from hermes_state_errors import CompressionSessionBusyError
 
     sessions.lock_store(conn, scope, exclusive=True)
@@ -71,7 +71,7 @@ def publish_on_connection(conn, scope, *, parent_session_id, child_session_id, s
 
 def create_child(conn, scope, parent, *, child_session_id, source, model=None, config=None,
                  system_prompt=None, cwd=None, profile_name=None, own_profile=None):
-    from gateway.session_policy import created_surface
+    from gateway.session_contract import created_surface
 
     continuation = not any(key in (config or {}) for key in ("_branched_from", "_reset_from"))
     carried = {key: value for key, value in model_config(parent["model_config"]).items()

@@ -5,6 +5,7 @@ and upload limits. Its flat age-based cleanup skips this retained subdirectory:
 native bytes are released by ``release_admission_media`` once their row is
 terminal and no live native input or retained API image context still holds them.
 """
+from gateway.session_contract import admission_media_references
 
 from hermes_db.health import profile_home_for_store
 from collections import Counter
@@ -379,10 +380,6 @@ def hosted_document_references(request_id, payload):
     return references
 
 
-def admission_media_references(payload):
-    """Native references eligible as deletion candidates after terminal settlement."""
-    return list(payload.get('attachments_v1', {}).get('media', ())) + list(
-        payload.get('native_text_v1', {}).get('media', ()))
 
 
 def _held_media_paths(conn):

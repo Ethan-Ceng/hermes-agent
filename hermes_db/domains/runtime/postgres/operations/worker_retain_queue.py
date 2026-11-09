@@ -5,7 +5,7 @@ from functools import partial
 
 from hermes_db.domains.plugin_storage.retain.postgres.operations import queue as operations
 from hermes_db.domains.runtime.postgres.operations.worker_domains import fields, text
-from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.values import RuntimeStoreError
 
 READS = frozenset({'retain_queue.inspect', 'retain_queue.counts', 'retain_queue.ready', 'retain_queue.owns_claim'})
 WRITES = frozenset({'enqueue', 'claim', 'renew', 'acknowledge', 'fail'})

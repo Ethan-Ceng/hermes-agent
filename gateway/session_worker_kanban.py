@@ -2,8 +2,8 @@
 
 import asyncio
 
-from hermes_db.domains.kanban.routing.owner import open_board_owner
-from hermes_db.domains.kanban.routing.wire import pack
+from hermes_db.integration.kanban_owner import open_board_owner
+from hermes_db.integration.kanban_wire import pack
 from hermes_db.errors import StorageError
 from hermes_db.domains.kanban.postgres.receipts import CommandReceipt, CommandReplay, refusal
 from hermes_state_keys import admission_fingerprint
@@ -40,7 +40,7 @@ def _execute(connection, ref, params, command):
     if params["operation"] == "board.resolve":
         return pack(context)
     from hermes_db.health import profile_home_for_store
-    from hermes_db.integration.transfer.move_values import resource_key
+    from hermes_db.core.values import resource_key
     database = connection.authority.db
     context = dict(context, principal=connection.actor.subject, session_store={
         "home": str(profile_home_for_store(database)), "store_id": database.scope.require_store_id(),
@@ -66,7 +66,7 @@ def _execute(connection, ref, params, command):
             except (StorageError, RuntimeStoreError):
                 raise
             except (ValueError, ArtifactPreservationError) as error:
-                result = refusal(error)
+                result = refusal(error, store)
             if not receipt.committed:
                 with store.write() as conn:
                     store.command_result(conn, result)

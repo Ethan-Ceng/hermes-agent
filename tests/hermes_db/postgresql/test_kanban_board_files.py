@@ -1,4 +1,5 @@
 """PG Board file roots retain the same immutable generation identity as their rows."""
+from hermes_db.domains.kanban import rules as kanban_rules
 
 from pathlib import Path
 import pytest
@@ -9,7 +10,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 
 
 def test_recreated_slug_never_reuses_retired_board_content_root(pg_profiles, monkeypatch):
-    monkeypatch.setattr(kb, "_new_task_id", lambda: "same-task")
+    monkeypatch.setattr(kanban_rules, "_new_task_id", lambda: "same-task")
     with pg_profiles("one"):
         kb.create_board("named")
         with kbc.connect_closing(board="named") as first:
@@ -52,7 +53,7 @@ def test_archive_intent_recovers_interruption_before_allowing_slug_reuse(pg_prof
                     fault.setattr(transactions_type, "write", lost_ack)
                     expected = UnknownCommitError
                 else:
-                    def failed_files(row):
+                    def failed_files(store, row):
                         raise OSError("test archive interrupted")
                     fault.setattr(files, "_archive_files", failed_files)
                     expected = OSError

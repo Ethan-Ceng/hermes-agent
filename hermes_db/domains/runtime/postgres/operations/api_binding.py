@@ -13,8 +13,8 @@ from hermes_db.tables.conversations import sessions as table
 from hermes_db.tables.gateway import gateway_routing
 from hermes_db.tables.runtime import session_admissions
 from hermes_db.core.values import encode_text
-from hermes_state_local import API_BINDING_PREFIX, API_DECLARED_PREFIX
-from hermes_state_runtime import RuntimeStoreError, _json
+from hermes_db.domains.runtime.receipts import API_BINDING_PREFIX, API_DECLARED_PREFIX
+from hermes_db.domains.runtime.values import RuntimeStoreError, _json
 
 
 def bind(conn, scope, *, epoch, receipt, storage_source, title, own_profile, guard=None, walked_from=None):
@@ -25,7 +25,7 @@ def bind(conn, scope, *, epoch, receipt, storage_source, title, own_profile, gua
     if sessions.retired_session(conn, scope, sid):
         raise RuntimeStoreError("not_found")
     if walked_from:
-        from gateway.session_api import api_generation_id
+        from hermes_db.domains.runtime.values import api_generation_id
         if not retirement_housekeeping.keep_passed(conn, scope, lambda n: api_generation_id(walked_from, n), sid):
             raise RuntimeStoreError("chain_moved")
     declared = receipt.get("declared_key")

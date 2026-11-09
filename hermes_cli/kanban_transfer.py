@@ -21,6 +21,7 @@ default board's split on-disk layout.
 """
 
 from __future__ import annotations
+from hermes_db.domains.kanban import rules as _storage_shared_1
 
 import contextlib
 import json
@@ -123,9 +124,9 @@ def export_board(
     machine-local, rebuilt on demand."""
     from hermes_cli.db_setup import storage_backend
     if storage_backend() == "postgresql":
-        from hermes_db.domains.kanban.postgres.transfer import export_board as export_postgresql
+        from hermes_db.integration.transfer.kanban import export_board as export_postgresql
         return export_postgresql(board, output_path, include_attachments=include_attachments, include_logs=include_logs)
-    slug = kb._normalize_board_slug(board) or kb.get_current_board()
+    slug = _storage_shared_1._normalize_board_slug(board) or kb.get_current_board()
     if not kb.board_exists(slug):
         raise ValueError(f"board {slug!r} does not exist")
 
@@ -302,7 +303,7 @@ def import_board(
     either way it auto-suffixes if taken). Returns a summary dict."""
     from hermes_cli.db_setup import storage_backend
     if storage_backend() == "postgresql":
-        from hermes_db.domains.kanban.postgres.transfer import import_board as import_postgresql
+        from hermes_db.integration.transfer.kanban import import_board as import_postgresql
         return import_postgresql(archive_path, slug, activate=activate)
     archive = Path(archive_path).expanduser()
     if not archive.exists():
@@ -323,7 +324,7 @@ def import_board(
         if not staged_db.is_file():
             raise ValueError("archive is missing kanban.db")
 
-        requested = kb._normalize_board_slug(slug or manifest.get("board") or archive_root)
+        requested = _storage_shared_1._normalize_board_slug(slug or manifest.get("board") or archive_root)
         if not requested:
             raise ValueError(
                 "cannot determine a board name from the archive — pass one "

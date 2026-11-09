@@ -1,8 +1,11 @@
 """Collect retired local files after deletion commits, under the owning profile."""
 import json
+from sqlalchemy import select
+from hermes_db.scope import bind_profile_home
+from hermes_db.tables.runtime import session_admissions
 from pathlib import Path
 from hermes_db.domains.sessions.postgres.queries import media, sessions
-from hermes_state_media import PREFIX, SPILLOVER_PREFIX
+from hermes_db.domains.runtime.receipts import RETIRED_MEDIA_PREFIX as PREFIX, MEDIA_SPILLOVER_PREFIX as SPILLOVER_PREFIX
 
 def collect(context):
     _release_foreign(context)
@@ -97,7 +100,7 @@ def _collect_spills(scope, candidates, referenced):
 def _collect_media(conn, scope, candidates, mentions):
     from gateway.session_ingress_media import _file_identity, _held_file_identities, _lease_lock, _leases, native_inputs_root
     root = native_inputs_root()
-    held = media.held_media_paths(conn, scope)
+    held = held_media_paths(conn, scope)
     identities = _held_file_identities(held, root)
     if identities is None:
         return []
@@ -119,3 +122,19 @@ def _collect_media(conn, scope, candidates, mentions):
         except (OSError, ValueError):
             continue
     return done
+
+def held_media_paths(conn, scope):
+    from gateway.session_contract import admission_media_references
+    from gateway.session_ingress_media import hosted_document_references
+    held = set()
+    rows = conn.execute(select(session_admissions.c.status, session_admissions.c.request_id, session_admissions.c.payload_json)
+        .where(session_admissions.c.store_id == scope.require_store_id()).execution_options(yield_per=512))
+    with bind_profile_home(scope):
+        for status, request_id, raw in rows:
+            payload = json.loads(raw)
+            refs = list(payload.get("api_turn_v1", {}).get("media", []))
+            if status != "terminal":
+                refs.extend(admission_media_references(payload))
+                refs.extend(hosted_document_references(request_id, payload))
+            held.update(reference["path"] for reference in refs)
+    return held

@@ -3,7 +3,7 @@
 from sqlalchemy import and_, select
 
 from hermes_db.tables.gateway import async_delegations
-from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.values import RuntimeStoreError
 
 
 def where(scope, delegation_id):
@@ -16,7 +16,7 @@ def get(conn, scope, delegation_id):
 
 
 def owned(conn, scope, session_id, execution_id, delegation_id):
-    from gateway.session_worker_delegation import _text
+    from hermes_db.domains.runtime.values import delegation_text as _text
     _text(delegation_id)
     row = get(conn, scope, delegation_id)
     if row is None:

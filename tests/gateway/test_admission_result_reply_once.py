@@ -1,4 +1,5 @@
 """LC-9: a settled turn result stores the reply once, and every reader still gets it exactly."""
+import hermes_db.domains.runtime.receipts as _storage_patch_1
 import json
 
 import pytest
@@ -6,8 +7,9 @@ import pytest
 from gateway.session_api_turn import _settled_api_result
 from gateway.session_bot import _admission_outcome
 from gateway.session_results import _redacted, admission_result, finish_result, retain_result
-from hermes_state_runtime import _json, admit_session_input, claim_session_input, mutate_runtime_session
-from hermes_state_terminal import RESULT_PREFIX, compact_result, encode_result, load_result
+from hermes_db.domains.runtime.values import _json
+from hermes_state_runtime import admit_session_input, claim_session_input, mutate_runtime_session
+from hermes_db.domains.runtime.receipts import RESULT_PREFIX, compact_result, encode_result, load_result
 
 REPLY = 'x' * 2000
 
@@ -127,7 +129,7 @@ def test_every_raw_result_row_read_goes_through_the_decoder(owner, monkeypatch):
     def spy(text):
         seen.append(text)
         return load_result(text)
-    monkeypatch.setattr(hermes_state_terminal, 'load_result', spy)
+    monkeypatch.setattr(_storage_patch_1, 'load_result', spy)
     monkeypatch.setattr(gateway.session_results, 'load_result', spy)
     owner.db.create_session('gone', source='api_server')
     row, _expected = _turn(owner, 'gone', 1, [])

@@ -9,6 +9,7 @@ parity across every registered verb.
 """
 
 from __future__ import annotations
+from hermes_db.domains.kanban import rules as _storage_shared_1
 
 import os
 import time
@@ -1278,7 +1279,7 @@ def test_protocol_violation_budget_not_consumed_by_other_failures(kanban_home):
         gave_up = [e for e in kb.list_events(conn, tid) if e.kind == "gave_up"]
         assert len(gave_up) == 1
         assert (gave_up[0].payload or {}).get("protocol_violations") == \
-            _kbd._PROTOCOL_VIOLATION_FAILURE_LIMIT
+            _storage_shared_1._PROTOCOL_VIOLATION_FAILURE_LIMIT
     finally:
         conn.close()
 

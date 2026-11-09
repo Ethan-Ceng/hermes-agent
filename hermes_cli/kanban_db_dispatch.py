@@ -6,6 +6,9 @@ late-bound via ``_kb`` (import-cycle breaking) so monkeypatching
 """
 
 from __future__ import annotations
+from hermes_db.domains.kanban.rules import TERMINAL_WORKER_REAP_GRACE_SECONDS, UNVERIFIED_WORKER_FINGERPRINT, WORKER_OUTPUT_SEP, _PROTOCOL_VIOLATION_FAILURE_LIMIT, _PROTOCOL_VIOLATION_SCAN_LIMIT, _RESPAWN_GUARD_PR_WINDOW, _RESPAWN_GUARD_SUCCESS_WINDOW, _STALE_HEARTBEAT_GAP_SECONDS, _error_fingerprint
+from hermes_db.domains.kanban.rules import DEFAULT_FAILURE_LIMIT
+from hermes_db.domains.kanban import rules as _storage_shared_1
 
 import contextlib
 import json
@@ -34,7 +37,6 @@ if TYPE_CHECKING:
 
 # After this many consecutive non-success attempts on a task/profile the
 # dispatcher parks the task in ``blocked`` with a reason — prevents retry storms.
-DEFAULT_FAILURE_LIMIT = 2
 
 # Keep a little wall-clock budget for the worker to observe a terminal timeout
 # and make a terminal board call (kanban_block/kanban_complete/kanban_request_review)
@@ -45,7 +47,6 @@ KANBAN_TERMINAL_TIMEOUT_GRACE_SECONDS = 30
 # kanban_request_review returns (final assistant turn, session persistence), so
 # a run's retained worker is only reaped once ended_at is at least this old
 # (two default dispatch ticks).
-TERMINAL_WORKER_REAP_GRACE_SECONDS = 120
 
 # ---------------------------------------------------------------------------
 # Respawn guard constants
@@ -68,7 +69,6 @@ _RESPAWN_BLOCKER_RE = re.compile(
 )
 
 # Within this window a completed run counts as "recent proof"; don't re-spawn.
-_RESPAWN_GUARD_SUCCESS_WINDOW = 3600  # 1 hour
 
 # Cooldown after a rate-limited (quota-wall) requeue before re-spawning. Without
 # it the task would re-spawn on the very next tick and bounce off the same quota
@@ -77,7 +77,6 @@ _RESPAWN_GUARD_SUCCESS_WINDOW = 3600  # 1 hour
 DEFAULT_RATE_LIMIT_COOLDOWN_SECONDS = 300  # 5 minutes
 
 # Within this window a GitHub PR URL in a comment blocks re-spawn.
-_RESPAWN_GUARD_PR_WINDOW = 86400  # 24 hours
 
 _RESPAWN_GUARD_PR_URL_RE = re.compile(
     r"https?://github\.com/[^/\s]+/[^/\s]+/pull/\d+",
@@ -358,7 +357,6 @@ def _pid_alive(pid: Optional[int]) -> bool:
 # ``worker_started_at`` value for a spawn whose fingerprint could not be captured. Distinct from the
 # NULL legacy row (pre-fingerprint spawn): such a worker is held (its claim is never released beside
 # the live PID) but NEVER signalled — missing process identity is refusal, not permission (#99558).
-UNVERIFIED_WORKER_FINGERPRINT = "unverified"
 
 
 def _process_fingerprint(pid: int) -> Optional[str]:
@@ -747,7 +745,6 @@ def enforce_max_runtime(conn: sqlite3.Connection, *, signal_fn=None) -> list[str
 
 # A running task with no heartbeat for this long is inactive regardless of
 # ``dispatch_stale_timeout_seconds`` (spec: ">4h started + no commits in 1h").
-_STALE_HEARTBEAT_GAP_SECONDS = 3600
 
 
 @domain_operation("runtime_sweeps")
@@ -830,8 +827,8 @@ def detect_stale_running(
 
             payload = {
                 "elapsed_seconds": int(elapsed),
-                "last_heartbeat_at": _kb._opt_int(last_hb),
-                "heartbeat_age_seconds": _kb._opt_int(hb_age),
+                "last_heartbeat_at": _storage_shared_1._opt_int(last_hb),
+                "heartbeat_age_seconds": _storage_shared_1._opt_int(hb_age),
                 "timeout_seconds": stale_timeout_seconds,
                 "pid": int(pid) if pid else None,
                 "retry_status": retry_status,
@@ -926,11 +923,6 @@ def reconcile_orphaned_running(conn: sqlite3.Connection) -> list[str]:
     return reconciled
 
 
-def _error_fingerprint(error_text: str) -> str:
-    """Normalize an error message (strip PIDs, timestamps) so same-root-cause errors group."""
-    fp = re.sub(r'\bpid \d+\b', 'pid N', error_text[:80])
-    fp = re.sub(r'\b\d{10,}\b', '<TS>', fp)
-    return fp.lower().strip()
 
 
 # ~96% of "clean exit without a terminal tool call" tasks complete on a later
@@ -938,10 +930,8 @@ def _error_fingerprint(error_text: str) -> str:
 # The budget is a violation-only STREAK (``_protocol_violation_streak``),
 # independent of ``consecutive_failures``: other failure kinds neither consume
 # nor extend it. Per-task ``max_retries`` overrides it.
-_PROTOCOL_VIOLATION_FAILURE_LIMIT = 3
 
 # Closed runs to walk when counting the streak; it trips at a handful anyway.
-_PROTOCOL_VIOLATION_SCAN_LIMIT = 50
 
 
 def _protocol_violation_streak(conn: sqlite3.Connection, task_id: str) -> int:
@@ -967,14 +957,13 @@ def _protocol_violation_streak(conn: sqlite3.Connection, task_id: str) -> int:
             continue
         head = (row["error"] or "").partition(WORKER_OUTPUT_SEP)[0]  # never the worker's own words
         if outcome == "crashed" and (
-                _kb._json_dict(row["metadata"]).get("protocol_violation") or "protocol violation" in head):
+                _storage_shared_1._json_dict(row["metadata"]).get("protocol_violation") or "protocol violation" in head):
             streak += 1
             continue
         break
     return streak
 
 
-WORKER_OUTPUT_SEP = " Worker's last output: "  # dead-worker error text: our words, then the worker's
 _PROTOCOL_VIOLATION_ERROR = (
     # Worker subprocess returned 0 but its task is still ``running`` in the DB — it exited without calling
     # ``kanban_complete`` / ``kanban_block`` / ``kanban_request_review``. Overwhelmingly the work itself succeeded and only the
@@ -1508,7 +1497,7 @@ def _is_handoff_event(kind: str, payload: Optional[str]) -> bool:
     before it was recorded) are not trusted as handoffs — fail closed."""
     if kind != "assigned":
         return True
-    data = _kb._json_or(payload, {})
+    data = _storage_shared_1._json_or(payload, {})
     if not isinstance(data, dict) or data.get("source") == "kanban.default_assignee":
         return False
     to = data.get("assignee")
@@ -2691,7 +2680,7 @@ def _default_spawn(task: Task, workspace: str, *, board: Optional[str] = None, b
     env["HERMES_KANBAN_WORKSPACES_ROOT"] = str(_kb.workspaces_root(board=board))
     # Board slug — defense-in-depth pin if a path is resolved without the
     # DB / workspaces env vars.
-    env["HERMES_KANBAN_BOARD"] = _kb._normalize_board_slug(board) or _kb.get_current_board()
+    env["HERMES_KANBAN_BOARD"] = _storage_shared_1._normalize_board_slug(board) or _kb.get_current_board()
     # kanban_comment reads HERMES_PROFILE for its default author; `-p` alone
     # doesn't set the env var.
     env["HERMES_PROFILE"] = profile_arg

@@ -8,6 +8,8 @@ unblocks it.
 """
 
 from __future__ import annotations
+from hermes_db.domains.kanban import rules as _storage_shared_1_
+from hermes_db.domains.kanban import rules as _storage_shared_1
 
 import time
 from pathlib import Path
@@ -74,9 +76,9 @@ def test_fresh_process_sweep_books_the_logged_exit_code(kanban_home, rc, event, 
         assert task.consecutive_failures == (1 if failure_counted else 0)
         # The decoded rc lands in the run row so quota (75) vs crash stays tellable after
         # the fact even though the worker_output tail is trimmed (#113611).
-        assert kb._json_dict(run["metadata"]).get("exit_code") == rc
+        assert _storage_shared_1._json_dict(run["metadata"]).get("exit_code") == rc
         if rc == 0:
-            assert kb._json_dict(run["metadata"]).get("protocol_violation") is True
+            assert _storage_shared_1._json_dict(run["metadata"]).get("protocol_violation") is True
             assert kbd._protocol_violation_streak(conn, tid) == 1
             assert KANBAN_WORKER_EXIT_TRAILER not in (run["error"] or "")
         else:
@@ -89,7 +91,7 @@ def test_violation_budget_trip_holds_until_operator_unblock(kanban_home):
     ``failure_limit``); ``unblock_task`` lifts the hold."""
     with kbc.connect() as conn:
         tid = kb.create_task(conn, title="loop", assignee="a")
-        for i in range(kbd._PROTOCOL_VIOLATION_FAILURE_LIMIT):
+        for i in range(_storage_shared_1_._PROTOCOL_VIOLATION_FAILURE_LIMIT):
             _dead_worker_with_log(conn, tid, 71000 + i, 0)
             kbd.detect_crashed_workers(conn)
             kb.recompute_ready(conn, failure_limit=10)

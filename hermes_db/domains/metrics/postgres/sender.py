@@ -1,12 +1,12 @@
 """Core claims with the unchanged sender transport, response and backoff contract."""
 
-from hermes_cli.observability.shared_metrics_sender import SharedMetricsSender, logger
+from hermes_db.domains.metrics.sending import MetricsTransport, logger
 from hermes_db.domains.metrics.api import open_metrics
 from hermes_db.domains.metrics.postgres import outbox as metric_sender
 from hermes_db.errors import StorageConfigurationError, StorageError
 
 
-class PostgresMetricsSender(SharedMetricsSender):
+class PostgresMetricsSender(MetricsTransport):
     def _write(self):
         raise StorageConfigurationError("PG sender exposes named claim operations, not SQLite transactions")
 

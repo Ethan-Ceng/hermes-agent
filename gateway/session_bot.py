@@ -161,7 +161,7 @@ def _pin_committed(authority, record, request_id):
     admissions moved to retired receipts keyed by the route principal the pin never recorded)."""
     if _admission_at(authority, record['session_id'], request_id) is not None:
         return True
-    from hermes_state_mutation_retirement import RETIRED_PREFIX
+    from hermes_db.domains.runtime.receipts import RETIRED_PREFIX
     return authority.db.get_meta(RETIRED_PREFIX + record['session_id']) is not None
 
 
@@ -223,7 +223,7 @@ def displaceable_bot_chat(authority, row, subject=None):
     minted, a messaging row, or a lineage whose compression tip (the row a delivery adopts) is
     unbound local history ``_kept_local_history`` does not keep for the delivering *subject*.
     Else None: a bound local chat and kept history are never moved."""
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     from hermes_state_local_migration import LEGACY_PREFIX
 
     if str(row.get('chat_id') or '').startswith('local-'):
@@ -778,7 +778,7 @@ async def recover_bot_deliveries(authority):
         target = authority.db.get_session(authority.db.get_compression_tip(row['id']))
         if target is None:
             return
-        from hermes_state_local import POLICY_PREFIX
+        from hermes_db.domains.runtime.receipts import POLICY_PREFIX
         bound = authority.db.get_meta(POLICY_PREFIX + (target.get('chat_id') or target['id']))
         if not bound:
             return  # Unowned history requires a native ticket, never the first remote sender.

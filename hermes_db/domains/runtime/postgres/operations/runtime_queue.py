@@ -9,7 +9,7 @@ from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.conversations import sessions as session_table
 from hermes_db.tables.runtime import session_admissions
 from hermes_state_keys import admission_fingerprint
-from hermes_state_runtime import RuntimeStoreError, _json, _text
+from hermes_db.domains.runtime.values import RuntimeStoreError, _json, _text
 
 
 def _lock_targets(conn, scope, epoch, targets, required_target):
@@ -91,7 +91,7 @@ def check_replaced_input(conn, scope, admission_id, binding):
 
 
 def replace_automation(conn, scope, admission_id, session_id, replaced, *, fold=False, skip=()):
-    from gateway.session_automation import _FOLDED_TEXT, _descriptor
+    from hermes_db.domains.runtime.receipts import FOLDED_AUTOMATION_TEXT as _FOLDED_TEXT, automation_descriptor as _descriptor
     row = repo.admission(conn, scope, admission_id)
     if row is None or row["target_session_id"] != session_id or row["status"] != "queued":
         raise RuntimeStoreError("stale_generation")

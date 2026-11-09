@@ -6,10 +6,11 @@ drain at the next claim boundary, when nothing is executing. The running turn ke
 A level rides in the same slot beside the model pick and commits first, as ``apply_pending_reasoning``
 runs before a model pick: a level picked with a later model pick wins, a later level replaces it.
 """
+from hermes_db.domains.runtime.receipts import deferred_value
 import json
 import logging
 
-from hermes_state_mutation_prepared import DEFERRED_PICK_PREFIX as _PREFIX
+from hermes_db.domains.runtime.receipts import DEFERRED_PICK_PREFIX as _PREFIX
 from hermes_state_runtime import RuntimeStoreError
 
 logger = logging.getLogger(__name__)
@@ -22,8 +23,9 @@ def defer_pick(authority, actor, ref, params):
     Blocking SQLite: callers run it off the event loop. Acceptance writes the request's durable
     mutation receipt in the same transaction, so an exact retry returns this result instead of
     overwriting a newer pick, and the stored pick carries a stable application id."""
-    from hermes_state_mutations import validate_action
-    from hermes_state_runtime import _epoch, _json, mutation_receipt_key, replay_mutation_receipt
+    from hermes_db.domains.runtime.mutation_rules import validate_action
+    from hermes_state_runtime import _epoch, mutation_receipt_key, replay_mutation_receipt
+    from hermes_db.domains.runtime.values import _json
     operation = params.get('operation', 'model')
     validate_action(operation, params['payload'])
     shown = None
@@ -63,12 +65,6 @@ def defer_pick(authority, actor, ref, params):
     return authority.db._execute_write(write)
 
 
-def deferred_value(current, operation, pick, shown):
-    if operation == 'reasoning':
-        current.get('payload', {}).pop('reasoning', None)
-        return {**current, 'reasoning': pick}, {'effort': pick['payload']['effort']}
-    older = 'reasoning' in current and 'reasoning' not in pick['payload']
-    return {**pick, **({'reasoning': current['reasoning']} if older else {})}, {'model': shown or pick['payload']['model']}
 
 
 def _compare_pick(authority, key, raw, value):
@@ -130,7 +126,7 @@ async def _commit_level(authority, ref, key, raw, pick):
     """Commit the level deferred in *pick* (stored as *raw*) and drop it from the slot. Returns the
     remaining slot value, or None when nothing is left or a worker still holds the transcript."""
     import asyncio
-    from hermes_state_runtime import _json
+    from hermes_db.domains.runtime.values import _json
     result = await _commit(authority, ref, pick.pop('reasoning'), 'reasoning')
     if result is None:
         return None
@@ -170,7 +166,7 @@ async def apply_deferred_pick(authority, ref, live):
         # A guarded target (cost / data policy / large context): nothing was written. The pick stays
         # pending, marked as asked, and the owner's confirmation exchange goes to every viewer; the
         # confirmed resend (``payload.confirm``) commits it through session.mutate.
-        from hermes_state_runtime import _json
+        from hermes_db.domains.runtime.values import _json
         await asyncio.to_thread(_compare_pick, authority, key, raw, _json({**pick, 'awaiting_confirm': result['confirm']}))
         current = await asyncio.to_thread(authority.db.get_session, ref.session_id) or {}
         provider = json.loads(current.get('model_config') or '{}').get('provider')

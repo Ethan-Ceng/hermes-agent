@@ -10,9 +10,9 @@ from hermes_db.domains.sessions.postgres.queries import retirement_fences as fen
 from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.domains.sessions.postgres.queries.gateway import marker
 from hermes_db.tables.conversations import sessions
-from hermes_state_local import POLICY_PREFIX
-from hermes_state_mutation_retirement import RETIRED_PREFIX, RETRY_HORIZON_S, ROUTE_FENCE_PREFIX
-from hermes_state_terminal import ADMISSION_PREFIX, RESULT_PREFIX, WORKER_PREFIX, identity_key
+from hermes_db.domains.runtime.receipts import POLICY_PREFIX
+from hermes_db.domains.runtime.receipts import RETIRED_PREFIX, RETRY_HORIZON_S, ROUTE_FENCE_PREFIX
+from hermes_db.domains.runtime.receipts import ADMISSION_PREFIX, RESULT_PREFIX, WORKER_PREFIX, identity_key
 
 
 def conversations(conn, scope):
@@ -67,7 +67,7 @@ def keep_passed(conn, scope, derive, session_id):
 
 
 def has_receipt(conn, scope, principal_id, session_id, request_id):
-    from hermes_state_runtime import _text, mutation_receipt_key
+    from hermes_db.domains.runtime.values import _text, mutation_receipt_key
     for value in (principal_id, session_id, request_id):
         _text(value)
     key, _ = mutation_receipt_key(principal_id, session_id, request_id, operation="model", payload={}, expected_revision=0)

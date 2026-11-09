@@ -1,4 +1,5 @@
 """Profile-owned room controls over the canonical hosted service."""
+from hermes_db.domains.rooms import rules as _storage_shared_1
 
 from hermes_db.health import profile_home_for_store
 import asyncio
@@ -86,7 +87,7 @@ async def dispatch_group_control(connection, method, params):
 
     def invoke():
         from gateway.run import _profile_runtime_scope
-        from gateway.hosted_rooms import HostedRoomError
+        from hermes_db.domains.rooms.rules import HostedRoomError
         from gateway import session_group_peers as peers
         with _profile_runtime_scope(home):
             if method == 'profiles.list':
@@ -122,7 +123,7 @@ def _group(authority, actor, method, params, *, host_scope=False):
     from gateway.hosted_room_context import room_context, set_room_context
     from gateway.session_hosted_storage import coordination_path
     if method == 'groups.disband':
-        params = {**params, 'room_id': rooms._room_id(params.get('room_id'))}
+        params = {**params, 'room_id': _storage_shared_1._room_id(params.get('room_id'))}
     db_path = coordination_path(authority.db)
     gateway_id = rooms.local_authority_gateway_id()
     service = getattr(authority, 'hosted_room_service', None)
@@ -275,7 +276,7 @@ def _disband(attached, service, db_path, gateway_id, params):
     from gateway import hosted_rooms as rooms
     from gateway.hosted_room_driver import list_tasks
     from tui_gateway.hosted_room_service import disband_fence, route_publication_lock
-    room_id = rooms._room_id(params.get('room_id'))
+    room_id = _storage_shared_1._room_id(params.get('room_id'))
     with disband_fence(attached, room_id):
         state = rooms.room_state(db_path, room_id=room_id, include_disbanded=True)
         if (state.get('disbanded_at') is None and attached is None

@@ -7,7 +7,7 @@ from sqlalchemy.dialects.postgresql import insert as upsert
 
 from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.runtime import runtime_epoch, session_admissions, state_meta, worker_executions
-from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.values import RuntimeStoreError
 
 
 def admission_where(scope, admission_id):
@@ -56,7 +56,7 @@ def admission(conn, scope, admission_id):
     row = conn.execute(select(session_admissions).where(admission_where(scope, admission_id))).mappings().one_or_none()
     if row:
         return dict(row)
-    from hermes_state_terminal import ADMISSION_PREFIX
+    from hermes_db.domains.runtime.receipts import ADMISSION_PREFIX
     saved = meta(conn, scope, ADMISSION_PREFIX + admission_id)
     return json.loads(saved) if saved else None
 

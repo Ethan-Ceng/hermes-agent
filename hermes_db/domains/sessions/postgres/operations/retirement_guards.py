@@ -8,7 +8,7 @@ from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.conversations import sessions as table
 from hermes_db.tables.gateway import compression_locks, session_turn_leases
 from hermes_db.tables.runtime import session_admissions, worker_executions
-from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.values import RuntimeStoreError
 
 
 def require_quiet(conn, scope, session_ids, *, allow_queued=False):

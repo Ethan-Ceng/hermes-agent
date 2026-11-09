@@ -236,8 +236,8 @@ class GatewaySessionStore:
         from agent.context_compressor import history_before_user_originated_turn, retryable_user_text
         from agent.message_content import flatten_message_text
         from agent.session_persistence import _is_ephemeral_scaffolding
-        from hermes_state_rewind import (
-            _HISTORY_CHANGED, RewindOutcome, RewindTargetUnavailableError, _comparison_content, _user_indices)
+        from hermes_db.domains.sessions.rewind import _HISTORY_CHANGED, _comparison_content, _user_indices
+        from hermes_state_rewind import RewindOutcome, RewindTargetUnavailableError
         snapshot = self.call("session.resume", session_id=session_id)
         durable = [m for m in snapshot.get("messages") or [] if not m.get("archived")]  # the live rows
         durable_user = _user_indices(durable)

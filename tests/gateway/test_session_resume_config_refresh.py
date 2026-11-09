@@ -432,7 +432,7 @@ async def test_a_branch_stored_before_receipts_carried_picks_keeps_its_lineages_
     """A branch stored before its receipt recorded ``picks`` takes them from its lineage: the parent's pick
     receipts committed before the branch, and the parent's own inherited picks, walking up. A pick the parent
     committed after the branch is not the branch's."""
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     from hermes_state_mutation_prepared import policy_picks
     home = _home(monkeypatch)
     store, authority = await _owner_authority(home)

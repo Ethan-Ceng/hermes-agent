@@ -19,6 +19,7 @@ down:
 """
 
 from __future__ import annotations
+from hermes_db.domains.kanban import rules as _storage_shared_1
 
 import json
 import os
@@ -621,7 +622,7 @@ def test_dispatch_json_exposes_suppression_reasons(
     )
 
     assert kanban_ops._cmd_dispatch(
-        SimpleNamespace(dry_run=True, max=None, failure_limit=kbd.DEFAULT_FAILURE_LIMIT, json=True)
+        SimpleNamespace(dry_run=True, max=None, failure_limit=_storage_shared_1.DEFAULT_FAILURE_LIMIT, json=True)
     ) == 0
 
     payload = json.loads(capsys.readouterr().out)

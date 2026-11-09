@@ -5,14 +5,15 @@ from datetime import datetime, UTC
 
 from sqlalchemy import delete, select
 
-from hermes_cli.observability import shared_metrics as native, shared_metrics_contract as contract
+from hermes_db.domains.metrics import policy as native
+from hermes_cli.observability import shared_metrics_contract as contract
 from hermes_cli.observability import shared_metrics_engagement as engagement
 from hermes_db.domains.metrics.postgres import records as metrics
 from hermes_db.domains.runtime.postgres.operations.worker_domains import ReceiptDomainResource
 from hermes_db.domains.metrics.postgres import records as repo
 from hermes_db.tables.metrics import state
 from hermes_db.core.values import decode_text
-from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.values import RuntimeStoreError
 
 PREFIX = 'worker.root_profile.v1:'
 BATCH_SIZE = 128
@@ -88,3 +89,15 @@ def drain(store):
         from hermes_db.errors import StorageNotReadyError
         # A bounded pass is not a completed flush. The original worker journal must retain its ACK.
         raise StorageNotReadyError('Metrics membership observations remain; replay the pending flush receipt')
+
+def prepare_policy(home, operation):
+    if operation not in {'domain.metrics.consent', 'domain.metrics.engagement'}:
+        return None
+    from hermes_cli.db_setup import _owning_profile
+    from hermes_cli.observability import shared_metrics_engagement as engagement
+    from hermes_cli.observability.relay_shared_metrics import _resolved_send_config
+    if operation == 'domain.metrics.consent':
+        with _owning_profile(home):
+            return _resolved_send_config().send
+    root = engagement._root_home(home)
+    return root != home and engagement._collects(root)

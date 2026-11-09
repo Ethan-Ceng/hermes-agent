@@ -339,7 +339,7 @@ def stage_local_session(authority, actor, params, *, trusted_policy=None, truste
         from hermes_db.integration.local_access import local_receipt
         saved = local_receipt(authority.db, sid)
         original = restore_policy(saved['policy'])
-        from hermes_state_local import same_create_retry
+        from hermes_db.domains.runtime.receipts import same_create_retry
         if not same_create_retry(saved['policy'], policy.request_json, params):
             raise RuntimeStoreError('invalid_params', field='request_id',
                                     detail='a resumed request_id must carry the same frozen request')

@@ -18,13 +18,13 @@ such session, and its "nothing here" would settle a turn the old home still hold
 daemon may still confirm the Stop; once it is gone, the attempt settles. A running attempt still
 follows the mapping (a moved profile's next reads go to its new home).
 """
+from hermes_db.domains.rooms.driver_rules import _HOMES, _LIVE_ATTEMPT, _STOPPING, _attempt_prefix, _key
 import json
 from pathlib import Path
 
-from gateway.hosted_rooms import RoomStopPendingError
+from hermes_db.domains.rooms.rules import RoomStopPendingError
 from hermes_db.health import is_postgresql_store
 
-_HOMES = 'gateway.hosted.member_homes.v1:'
 
 
 class MemberHomeUnknownError(RoomStopPendingError):
@@ -39,8 +39,6 @@ class MemberHomeUnknownError(RoomStopPendingError):
             "then retry deletion.")
 
 
-def _key(room_id, member_id):
-    return _HOMES + json.dumps([room_id, member_id], separators=(',', ':'))
 
 
 def record_member_home(db, room_id, member_id, home):
@@ -61,12 +59,8 @@ def record_member_home(db, room_id, member_id, home):
     db._execute_write(write)
 
 
-_LIVE_ATTEMPT = frozenset({'running', 'stopping', 'deferred', 'indeterminate'})
-_STOPPING = frozenset({'stopping', 'deferred'})
 
 
-def _attempt_prefix(room_id, member_id):
-    return _HOMES + json.dumps([room_id, member_id], separators=(',', ':'))[:-1] + ','
 
 
 def _attempt_homes(conn, room_id, member_id, statuses=_LIVE_ATTEMPT):

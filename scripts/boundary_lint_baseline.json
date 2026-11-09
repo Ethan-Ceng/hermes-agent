@@ -212,7 +212,7 @@
     "plugins/memory/retaindb/__init__.py agent.file_safety.raise_if_read_blocked": 1,
     "plugins/memory/retaindb/__init__.py hermes_cli.db_setup.storage_backend": 2,
     "plugins/memory/retaindb/__init__.py hermes_db.errors.StorageConfigurationError": 1,
-    "plugins/memory/retaindb/__init__.py hermes_db.domains.plugin_storage.retain.postgres.queue.PostgresWriteQueue": 1,
+    "plugins/memory/retaindb/__init__.py hermes_db.integration.retain_transport.PostgresWriteQueue": 1,
     "plugins/memory/retaindb/initialization.py hermes_cli.db_setup._owning_profile": 1,
     "plugins/model-providers/actual/__init__.py agent.reasoning_effort.ACTUAL_RELAY_EFFORTS": 1,
     "plugins/model-providers/actual/__init__.py agent.reasoning_effort.thinking_toggle_extras": 1,

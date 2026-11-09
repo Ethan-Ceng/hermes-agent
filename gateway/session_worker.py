@@ -8,7 +8,8 @@ import hmac
 import os
 
 from gateway.session_admission import admission_fingerprint
-from hermes_state_runtime import RuntimeStoreError, _secret_digest
+from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.values import _secret_digest
 from hermes_db.integration.runtime_calls import adopt_worker_execution, mutate_worker_execution, register_worker_execution
 
 _SCOPE = {'profile_id', 'session_id', 'execution_id', 'generation', 'pid', 'birth', 'secret'}

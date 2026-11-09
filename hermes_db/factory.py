@@ -40,7 +40,8 @@ def acquire_domain(name, settings: DatabaseSettings, scope: DatabaseScope, *, sq
     check_domain_schema(pg, name)
     transactions = Transactions(get_engine(pg), pg.schema, lock_timeout=pg.write_lock_timeout_seconds,
                                 statement_timeout=pg.statement_timeout_seconds)
-    return DomainResource(name, settings, scope, transactions=transactions)
+    from hermes_db.integration.domain_composition import create_domain_resource
+    return create_domain_resource(name, settings, scope, transactions=transactions)
 
 
 def acquire_profile_domain(name, *, profile_home=None, sqlite_path=None):

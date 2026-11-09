@@ -4,11 +4,10 @@ import threading
 import time
 from collections import OrderedDict
 
-from hermes_state_runtime import RuntimeStoreError, _epoch, _json
+from hermes_state_runtime import RuntimeStoreError, _epoch
+from hermes_db.domains.runtime.receipts import API_BINDING_PREFIX, API_DECLARED_PREFIX, POLICY_PREFIX, _policy_target, _row_cwd, same_create_retry
+from hermes_db.domains.runtime.values import _json
 
-POLICY_PREFIX = 'gateway.local_policy.v1:'
-API_BINDING_PREFIX = 'gateway.api.binding.v1.'
-API_DECLARED_PREFIX = 'gateway.api.conversation.v1.'
 
 
 def commit_local_session(db, *, epoch, receipt):
@@ -42,7 +41,7 @@ def commit_local_session(db, *, epoch, receipt):
             if not same:
                 raise RuntimeStoreError('invalid_params')
             return saved
-        from hermes_state_mutation_retirement import RETIRED_PREFIX
+        from hermes_db.domains.runtime.receipts import RETIRED_PREFIX
         if conn.execute('SELECT 1 FROM state_meta WHERE key=?', (RETIRED_PREFIX + sid,)).fetchone():
             # Deleted: its receipt was retired with the transcript; a create/cron retry must not
             # resurrect the row (and re-fire its prompt) under the same deterministic id.
@@ -86,68 +85,14 @@ def commit_local_session(db, *, epoch, receipt):
         raise
 
 
-def client_request(request_json, derived=None):
-    """A frozen create request as the client sent it: an owner-resolved ``-m`` route (``model_requested``)
-    compares by the name the client typed, not by the model and the *derived* fields (a receipt from
-    before ``route_derived``: the endpoint) its ``${VAR}`` refs expanded to at the time. ``desktop_local``
-    (``gateway.session_policy.LOCAL_DESKTOP_CHAT``), which an earlier owner stamped into the request, was
-    never sent."""
-    request = json.loads(request_json)
-    request.pop('desktop_local', None)
-    if derived is None:
-        request.pop('route_derived', None)
-    if 'model_requested' in request:
-        request.pop('model', None)
-        for key in ('base_url',) if derived is None else derived:
-            request.pop(key, None)
-    return request
 
 
-def same_create_request(saved_json, retry_json):
-    """Whether a create retry carries the frozen request it resumes: one check for a retry that finds the
-    session committed and one staged before it was. The saved receipt's provenance names the owner's
-    fields; one from before a same-name alias got ``model_requested`` compares exactly, as it did."""
-    derived = json.loads(saved_json).get('route_derived')
-    if client_request(saved_json, derived) == client_request(retry_json, derived):
-        return True
-    retry = json.loads(retry_json)
-    if retry.get('model_requested') == retry.get('model'):
-        retry.pop('model_requested', None)
-        retry.pop('route_derived', None)
-    return json.loads(saved_json) == retry
 
 
-def same_create_retry(saved_policy, retry_json, client_request):
-    """The one exact-retry identity of a create: ``same_create_request`` on what the client sent, and its
-    ``client_env`` (``client_request``: the retry's own, never stored) judged by the rules frozen with
-    *saved_policy*. Used by a retry that finds the session committed, at commit, and by one overlapping
-    the attempt that holds the session's key slot."""
-    from agent.session_client_env import retry_matches
-    return same_create_request(saved_policy['request_json'], retry_json) and retry_matches(saved_policy, client_request)
 
 
-def _row_cwd(policy):
-    """The sessions-row ``cwd``: the create request's ``row_cwd`` (``""`` = none) when it sent one,
-    else the execution cwd. Row metadata only (workspace grouping, ``-c``, cwd restore); the
-    frozen policy's ``cwd`` / ``TERMINAL_CWD`` stay where the session's tools run."""
-    try:
-        request = json.loads(policy.get('request_json') or '{}')
-    except (TypeError, ValueError):
-        request = {}
-    value = request.get('row_cwd') if isinstance(request, dict) else None
-    return policy['cwd'] if not isinstance(value, str) else (value or None)
 
 
-def _policy_target(raw):
-    """Current physical target a creation receipt routes to; None for a malformed receipt, which
-    then stays (its own reads already refuse it as ``storage_unavailable``) and cannot abort
-    the delete of an unrelated session."""
-    try:
-        value = json.loads(raw)
-    except (TypeError, ValueError):
-        return None
-    entry = value.get('entry') if isinstance(value, dict) else None
-    return entry.get('session_id') if isinstance(entry, dict) else None
 
 
 def retire_local_receipts(conn, session_ids):

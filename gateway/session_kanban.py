@@ -63,7 +63,7 @@ async def run_task(connection, params):
     # concurrent retry of the same attempt meets that marker (same session) or a stale claim.
     from hermes_db.health import is_postgresql_store, profile_home_for_store
     if is_postgresql_store(authority.db):
-        from hermes_db.integration.transfer.move_values import resource_key
+        from hermes_db.core.values import resource_key
         owner_storage = {'storage_backend': 'postgresql', 'store_id': authority.db.scope.require_store_id(),
                          'target': resource_key(authority.db._transactions),
                          'profile_home': str(profile_home_for_store(authority.db)), 'principal_id': connection.actor.subject}

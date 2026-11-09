@@ -9,9 +9,7 @@ from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.gateway import gateway_routing as routes
 from hermes_db.tables.runtime import state_meta
-from hermes_state_mutation_retirement import (
-    RETIRED_PREFIX, RETRY_HORIZON_S, ROUTE_FENCE_PREFIX, entry_session_id, route_fence_key, route_namespace,
-)
+from hermes_db.domains.runtime.receipts import RETIRED_PREFIX, RETRY_HORIZON_S, ROUTE_FENCE_PREFIX, entry_session_id, route_fence_key, route_namespace
 
 
 def where(scope, namespace=None):

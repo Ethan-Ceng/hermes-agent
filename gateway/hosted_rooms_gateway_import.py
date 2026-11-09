@@ -64,7 +64,8 @@ def source_for(target_db: Path) -> Path | None:
 
 def _fence_source(source: Path, local_id: str, handoff_id: str) -> int:
     from gateway.hosted_room_replicas import demote_room
-    from gateway.hosted_rooms import list_rooms, MAX_ROOM_LIST_LIMIT
+    from gateway.hosted_rooms import list_rooms
+    from hermes_db.domains.rooms.rules import MAX_ROOM_LIST_LIMIT
     fenced, offset = 0, 0
     while True:
         page = list_rooms(source, limit=MAX_ROOM_LIST_LIMIT, offset=offset)
@@ -110,7 +111,8 @@ def handed_room_ids(source: Path) -> set[str]:
 
 
 def _claim(conn, room_id: str, local_id: str, handoff_id: str, owner: str, now: float) -> None:
-    from gateway.hosted_room_replicas import _append_control_event, _control_event
+    from gateway.hosted_room_replicas import _append_control_event
+    from hermes_db.domains.rooms.replication_rules import _control_event
     row = conn.execute("SELECT authority_epoch, next_seq FROM hosted_rooms WHERE room_id=?", (room_id,)).fetchone()
     epoch = int(row["authority_epoch"]) + 1
     _append_control_event(conn, room_id, int(row["next_seq"]), epoch, _control_event("claimed", epoch, {
@@ -128,8 +130,9 @@ def import_standalone_rooms(target_db: Path, *, runtime_epoch: int | None = None
     leaves both stores as they were and is retried on the next start.
     """
     import sqlite3
-    from gateway.hosted_rooms import HostedRoomError, _transaction, local_authority_gateway_id
-    from gateway.hosted_rooms_common import clock
+    from hermes_db.domains.rooms.rules import HostedRoomError
+    from gateway.hosted_rooms import _transaction, local_authority_gateway_id
+    from hermes_db.domains.rooms.rules import clock
     from gateway.hosted_rooms_legacy_import import _copy_rows
     from gateway.owner_identity import host_owner_subject
     from hermes_state_runtime import RuntimeStoreError, _epoch

@@ -14,6 +14,7 @@ Covers the pieces added when boards became a first-class concept:
 """
 
 from __future__ import annotations
+from hermes_db.domains.kanban import rules as _storage_shared_1
 
 import json
 import os
@@ -76,13 +77,13 @@ class TestSlugValidation:
         "very-long-but-still-ok-slug-with-hyphens-and-numbers-1234",
     ])
     def test_accepts_valid(self, good):
-        assert kb._normalize_board_slug(good) == good
+        assert _storage_shared_1._normalize_board_slug(good) == good
 
 
     def test_empty_returns_none(self):
-        assert kb._normalize_board_slug(None) is None
-        assert kb._normalize_board_slug("") is None
-        assert kb._normalize_board_slug("   ") is None
+        assert _storage_shared_1._normalize_board_slug(None) is None
+        assert _storage_shared_1._normalize_board_slug("") is None
+        assert _storage_shared_1._normalize_board_slug("   ") is None
 
 
 # ---------------------------------------------------------------------------

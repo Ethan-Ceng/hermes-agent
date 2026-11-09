@@ -1,4 +1,5 @@
 """Assigned session owners resolve the Board's captured Profile, never their own store_id."""
+from hermes_db.domains.kanban import rules as kanban_rules
 
 import json
 from types import SimpleNamespace
@@ -9,7 +10,7 @@ from gateway.session_contract import SessionActor
 from gateway.session_kanban import build_kanban_policy
 from gateway.session_kanban_policy import admit_postgresql_claim
 from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
-from hermes_db.domains.kanban.routing.owner import board_reference, open_board_owner
+from hermes_db.integration.kanban_owner import board_reference, open_board_owner
 from hermes_db.errors import StorageConfigurationError
 from hermes_db.domains.kanban.postgres import owners as kanban_owner
 from hermes_state_runtime import RuntimeStoreError
@@ -84,7 +85,7 @@ def test_captured_board_owner_cannot_retarget_an_identical_store_and_board_in_an
     from hermes_cli.config import atomic_config_write, read_user_config_raw
     from hermes_db.schema import upgrade_schema
     from tests.hermes_db.pg_support import isolated_namespace
-    monkeypatch.setattr(kb, "_new_task_id", lambda: "same-card")
+    monkeypatch.setattr(kanban_rules, "_new_task_id", lambda: "same-card")
     with isolated_namespace(postgres_engine, postgres_test_config) as second_schema:
         upgrade_schema(replace(postgres_test_config.settings, schema=second_schema))
         with pg_profiles("one") as home:

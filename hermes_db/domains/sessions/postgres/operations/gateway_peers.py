@@ -7,7 +7,7 @@ from hermes_db.domains.sessions.postgres.queries import messages, sessions
 from hermes_db.core.values import encode_text
 
 
-def record(conn, scope, session_id, *, source, own_profile=None, include_compression_ancestors=False, **peer):
+def record(conn, scope, session_id, *, source, messaging_platform, own_profile=None, include_compression_ancestors=False, **peer):
     sessions.lock_store(conn, scope, exclusive=True)
     if sessions.raw_session(conn, scope, session_id) is None:
         if include_compression_ancestors:
@@ -25,7 +25,7 @@ def record(conn, scope, session_id, *, source, own_profile=None, include_compres
         sessions.update_session(conn, scope, row["id"], values)
     if include_compression_ancestors:
         from hermes_db.domains.sessions.postgres.operations.gateway_local_handoff import hand_off_moved
-        hand_off_moved(conn, scope, set(ids))
+        hand_off_moved(conn, scope, set(ids), messaging_platform=messaging_platform)
 
 
 def adopt(conn, scope, orphan_id, donor_id, *, owner):

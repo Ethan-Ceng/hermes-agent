@@ -81,7 +81,7 @@ def test_claim_mark_follows_local_reset_target_and_ignores_other_store(core_pair
     from hermes_db.domains.runtime.postgres.queries import runtime as repo
     from hermes_db.integration.runtime_composition import create_runtime_store
     from hermes_state_keys import local_identity
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
 
     store, foreign = core_pair
     runtime = create_runtime_store(store)

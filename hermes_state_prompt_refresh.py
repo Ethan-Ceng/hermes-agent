@@ -9,11 +9,10 @@ never seen by another profile. No row means no request, and the restore path beh
 """
 
 from __future__ import annotations
+from hermes_db.domains.sessions.rules import PROFILE_KEY, SESSION_KEY_PREFIX
 
 from typing import Optional
 
-PROFILE_KEY = "prompt_refresh.epoch"
-SESSION_KEY_PREFIX = "prompt_refresh.epoch:"
 
 
 class SessionPromptRefreshMixin:

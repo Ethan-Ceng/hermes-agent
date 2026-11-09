@@ -4,7 +4,7 @@
 
 > 当前定位：本文件保留会话阶段的历史布局。统一后端已按新设计实施至全领域单后端强验收；发行验证和最终审查以[统一实施计划](../plans/unified-database-backends-plan.md)中的最新状态为准。全局配置及领域边界以[统一数据库后端设计](unified-database-backends.md)为准；下文旧pending/尚未实施描述仅为最初设计时点。
 
-当前实际布局与开发约束见[数据库后端开发指南](../../website/docs/developer-guide/database-backends.md)：`factory`/`domains`选择拥有者能力，`tables`/`repositories`/`operations`维护完整系统的Core表和短事务；`storage.backend`统一覆盖验证、Projects、Cron、Kanban、房间、附件元数据、指标及维护插件。`matrix_crypto`实现实际SDK协议，`maintenance`/文件意图负责中断对账，历史迁移按版本冻结。旧会话范围中的独立SQLite排除已撤销，不再作为实施依据。
+当前实际布局与开发约束见[数据库后端开发指南](../../website/docs/developer-guide/database-backends.md)及[业务域分包设计](hermes-db-package-layout.md)：`factory`选择已捕获的资源，`domains`维护业务规则和短事务，`integration`组合应用能力，`core`/`backends`提供基础设施，`tables`共享当前metadata。下文为2026-11-06历史设计快照；其中旧内部路径不是当前开发或执行入口，原始证据不作追溯改写。
 
 ## 原会话阶段设计快照
 

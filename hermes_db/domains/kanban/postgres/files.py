@@ -1,4 +1,5 @@
 """Kanban files workflow; original connection, fence and off-connection effect boundaries are preserved."""
+from hermes_db.domains.kanban import rules as _storage_shared_1
 import contextlib
 from pathlib import Path
 import time
@@ -18,7 +19,6 @@ from hermes_db.tables.kanban_commands import command_receipts
 import shutil
 from hermes_db.tables.kanban import tasks
 from hermes_db.tables.kanban_workspaces import references
-from hermes_db.domains.kanban.routing.files import BoardFiles, _path, content_root
 from hermes_db.tables.kanban_file_jobs import file_jobs as jobs, file_locks as locks
 
 def _blob_key(store, path):
@@ -76,15 +76,15 @@ def store_attachment_bytes(store, task_id, filename, data, *, content_type=None,
         return _store_attachment_bytes(store, task_id, filename, data, content_type, uploaded_by, board, max_bytes)
 
 def _store_attachment_bytes(store, task_id, filename, data, content_type, uploaded_by, board, max_bytes):
-    from hermes_cli import kanban_db as kb
-    if board is not None and kb._require_slug(board) != store.slug:
+
+    if board is not None and _storage_shared_1._require_slug(board) != store.slug:
         raise ValueError('attachment Board must match its acquired Board resource')
-    max_bytes = kb.KANBAN_ATTACHMENT_MAX_BYTES if max_bytes is None else max_bytes
+    max_bytes = _storage_shared_1.KANBAN_ATTACHMENT_MAX_BYTES if max_bytes is None else max_bytes
     if len(data) > max_bytes:
-        raise kb.AttachmentTooLarge(f'attachment exceeds {max_bytes // (1024 * 1024)} MB limit')
-    safe_name = kb._safe_attachment_name(filename)
+        raise store.result_values.attachment_too_large(f'attachment exceeds {max_bytes // (1024 * 1024)} MB limit')
+    safe_name = _storage_shared_1._safe_attachment_name(filename)
     from hermes_db.domains.kanban.postgres.files import prepare_directory
-    directory = prepare_directory(store, kb.task_attachments_dir(task_id, board=store.slug))
+    directory = prepare_directory(store, store.files.task_attachments_dir(task_id, board=store.slug))
     path = directory / safe_name
     try:
         path.write_bytes(data)
@@ -102,18 +102,18 @@ def _id(store, attachment_id):
     return and_(repo.scope(attachments, store), attachments.c.id == int(attachment_id))
 
 def get_attachment(store, attachment_id):
-    from hermes_cli.kanban_db import Attachment
+
     with store.read() as conn:
         row = conn.execute(select(attachments).where(_id(store, attachment_id))).mappings().one_or_none()
-        return Attachment.from_row(repo.decode_record(row)) if row is not None else None
+        return store.result_values.attachment(repo.decode_record(row)) if row is not None else None
 
 def list_attachments(store, task_id):
-    from hermes_cli.kanban_db import Attachment
+
     with store.read() as conn:
-        return [Attachment.from_row(repo.decode_record(row)) for row in conn.execute(select(attachments).where(repo.key(store, task_id, attachments)).order_by(attachments.c.created_at, attachments.c.id)).mappings()]
+        return [store.result_values.attachment(repo.decode_record(row)) for row in conn.execute(select(attachments).where(repo.key(store, task_id, attachments)).order_by(attachments.c.created_at, attachments.c.id)).mappings()]
 
 def _retire_attachment(store, attachment_id):
-    from hermes_cli.kanban_db import Attachment
+
     from hermes_db.domains.kanban.postgres.workspaces import canonical_path
     captured = get_attachment(store, attachment_id)
     file_key = canonical_path(captured.stored_path) if captured is not None else None
@@ -121,7 +121,7 @@ def _retire_attachment(store, attachment_id):
         row = conn.execute(select(attachments).where(_id(store, attachment_id))).mappings().one_or_none()
         if row is None:
             return (None, None)
-        attachment = Attachment.from_row(repo.decode_record(row))
+        attachment = store.result_values.attachment(repo.decode_record(row))
         if captured != attachment or row['path_key'] != encode_text(file_key):
             raise StorageBusyError('Attachment path changed or is unresolved; preserve its file for reconciliation')
         lock_blob(conn, store, file_key)
@@ -145,7 +145,7 @@ def delete_attachment(store, attachment_id):
     return attachment
 
 def _owner(resource):
-    from hermes_db.integration.transfer.move_values import resource_key
+    from hermes_db.core.values import resource_key
     return dict(home=str(resource.scope.profile_home), store_id=resource.scope.require_store_id(), target=resource_key(resource._transactions))
 
 def prepare_directory(resource, parent):
@@ -164,8 +164,8 @@ def discard_empty_generation(resource, directory):
         directory.rmdir()
 
 def discard_copies(resource, staged):
-    from hermes_cli import kanban_db as kb
-    kb._discard_staged_copies(staged, staged[0].parent)
+
+    resource.files.discard_staged_copies(staged, staged[0].parent)
     discard_empty_generation(resource, staged[0].parent)
 
 def finish(resource, path, token, *, blob_path=None):
@@ -204,13 +204,12 @@ def reconcile(resource):
         _orphans(resource, live)
 
 def _orphans(resource, live):
-    from hermes_db.domains.kanban.routing.files import BoardFiles, _path
     from hermes_db.tables.kanban import kanban_boards
     with resource.read() as conn:
         boards = list(conn.execute(select(kanban_boards.c.board_id, kanban_boards.c.slug).where(kanban_boards.c.store_id == resource.scope.require_store_id())))
     owner = _owner(resource)
     for board_id, slug in boards:
-        root = _path(BoardFiles(resource.scope.profile_home, board_id, slug), 'HERMES_KANBAN_ATTACHMENTS_ROOT', 'attachments')
+        root = resource.files.board_path(board_id, slug, 'HERMES_KANBAN_ATTACHMENTS_ROOT', 'attachments')
         for marker in root.glob('*/*/.owner.json'):
             _sweep_generation(marker, root, owner, live)
 
@@ -250,7 +249,7 @@ def _gate(root):
         os.close(descriptor)
 
 def _completed(resource, manifest, root):
-    from hermes_db.integration.transfer.move_values import resource_key
+    from hermes_db.core.values import resource_key
     marker = root / 'command.json'
     owner = manifest['owner']
     if owner['store_id'] != resource.scope.require_store_id() or manifest.get('board_target') != resource_key(resource._transactions) or Path(owner['profile_home']).resolve() != resource.scope.profile_home:
@@ -261,8 +260,7 @@ def _completed(resource, manifest, root):
             found = conn.scalar(select(command_receipts.c.command_id).where(command_receipts.c.store_id == owner['store_id'], command_receipts.c.board_id == owner['board_id'], command_receipts.c.command_id == command['command_id'], command_receipts.c.request_digest == command['request_digest']))
         if found is not None:
             return True
-    from hermes_db.integration.observations import terminal_execution
-    return terminal_execution(manifest['session_store'], manifest['execution_id'], manifest['generation'])
+    return resource.files.terminal_execution(manifest['session_store'], manifest['execution_id'], manifest['generation'])
 
 def reclaim(resource):
     base = resource.scope.profile_home / 'kanban' / 'uploads'
@@ -375,15 +373,15 @@ def require_settled_slug(conn, store, slug):
         raise StorageBusyError('Board file operation is pending; retry its retirement or reconcile before reusing the slug')
 
 def prepare(store, row):
-    frame = BoardFiles(store.scope.profile_home, row['board_id'], row['slug'])
-    data = content_root(frame)
-    if data.resolve() != frame.home.resolve() / 'kanban' / 'data' / frame.board_id:
+    home, board_id = store.scope.profile_home, row['board_id']
+    data = store.files.content_root(row['board_id'], row['slug'])
+    if data.resolve() != home.resolve() / 'kanban' / 'data' / board_id:
         raise StorageConfigurationError('Board data generation is redirected; preserve it for manual reconciliation')
-    fields = dict(owner_home=str(frame.home), data_root=str(data.resolve()))
+    fields = dict(owner_home=str(home), data_root=str(data.resolve()))
     for name, env_var, leaf in (('attachments_root', 'HERMES_KANBAN_ATTACHMENTS_ROOT', 'attachments'), ('workspaces_root', 'HERMES_KANBAN_WORKSPACES_ROOT', 'workspaces'), ('logs_root', None, 'logs')):
-        root = _path(frame, env_var, leaf)
+        root = store.files.board_path(row['board_id'], row['slug'], env_var, leaf)
         override = os.environ.get(env_var, '').strip() if env_var else ''
-        expected = Path(override).expanduser().resolve() / frame.board_id if override else frame.home.resolve() / 'kanban' / 'data' / frame.board_id / leaf
+        expected = Path(override).expanduser().resolve() / board_id if override else home.resolve() / 'kanban' / 'data' / board_id / leaf
         if root.resolve() != expected:
             raise StorageConfigurationError('Board content root contains a redirected generation path; preserve it for manual reconciliation')
         fields[name] = str(expected)
@@ -402,9 +400,9 @@ def record(conn, store, row, fields, *, archive):
         return
     conn.execute(jobs.insert().values(store_id=store.scope.require_store_id(), board_id=row['board_id'], slug=row['slug'], action=action, created_at=int(time.time()), **{key: encode_text(value) for key, value in fields.items()}))
 
-def _archive_files(row):
+def _archive_files(store, row):
     from utils import atomic_json_write
-    from hermes_cli.kanban_db_boards import _read_metadata_file
+
     home = Path(row['owner_home'])
     boards_root = home / 'kanban' / 'boards'
     source = boards_root / row['slug']
@@ -419,7 +417,7 @@ def _archive_files(row):
         else:
             target.mkdir()
     metadata_path = target / 'board.json'
-    metadata = json.loads(metadata_path.read_text(encoding='utf-8-sig')) if metadata_path.exists() else _read_metadata_file(row['slug'])
+    metadata = json.loads(metadata_path.read_text(encoding='utf-8-sig')) if metadata_path.exists() else store.files.read_metadata_file(row['slug'])
     metadata.pop('db_path', None)
     metadata.update(slug=row['slug'], archived=True)
     source.mkdir(parents=True, exist_ok=True)
@@ -456,13 +454,12 @@ def run_job(store, board_id):
     with local_files_lock(store.scope.profile_home):
         row = _read_job(store, board_id)
         if row['action'] == 'import':
-            from hermes_db.domains.kanban.postgres.transfer import finish_import
-            return finish_import(store, row)
+            return store.files.finish_import(store, row)
         if row['action'] == 'delete':
             from hermes_db.domains.kanban.postgres.files import delete_files
             return delete_files(store, row)
         target = str(Path(row['owner_home']) / 'kanban' / 'boards' / '_archived' / f"{row['slug']}-{board_id}")
         if row['state'] != 'done':
-            target = _archive_files(row)
+            target = _archive_files(store, row)
             set_job_state(store, board_id, 'done')
         return {'new_path': target, 'files_pending': False}

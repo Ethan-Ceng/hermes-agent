@@ -1,6 +1,6 @@
 """Pure SearchRules shared by native and PostgreSQL session persistence; no connections or storage lifecycle."""
 from typing import Any, Collection
-from hermes_state_common import MAX_FTS5_QUERY_CHARS
+from hermes_db.domains.sessions.rules import MAX_FTS5_QUERY_CHARS
 from typing import Optional
 import re
 _FTS5_SPECIAL_CHARS = '+{}():"^@/#&|~[]<>,;!?$=\\\''
@@ -86,3 +86,10 @@ def search_sessions_by_id(list_sessions_rich, query: str, limit: int=20, include
         return 1 if any(value.startswith(needle) for value in normalized) else 2
     ranked = sorted(enumerate(candidates), key=lambda item: (score(item[1]), item[0]))
     return [row for _, row in ranked[:limit]]
+
+def _flatten_text(decoded: Any) -> str:
+    """Multimodal part list -> joined text (or the placeholder); str passes through; else ''."""
+    if isinstance(decoded, list):
+        parts = [p.get("text", "") for p in decoded if isinstance(p, dict) and p.get("type") == "text"]
+        return " ".join(t for t in parts if t).strip() or "[multimodal content]"
+    return decoded if isinstance(decoded, str) else ""

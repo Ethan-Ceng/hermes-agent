@@ -12,8 +12,8 @@ from hermes_db.domains.runtime.postgres.queries import runtime, workers
 from hermes_db.tables.conversations import messages as message_table
 from hermes_db.tables.runtime import worker_executions
 from hermes_db.core.values import model_config
-from hermes_state_runtime import HANDOFF_MESSAGE_FIELDS, RuntimeStoreError, _text, row_annotations
-from hermes_state_worker_context import SIDECAR_KEYS
+from hermes_db.domains.runtime.values import HANDOFF_MESSAGE_FIELDS, RuntimeStoreError, _text, row_annotations
+from hermes_db.domains.runtime.values import SIDECAR_KEYS
 
 
 def number(value):
@@ -103,7 +103,7 @@ def _publish_config(parent, payload):
     return config
 
 
-def publish(conn, scope, session_id, payload):
+def publish(conn, scope, session_id, payload, *, automation_states):
     _fields(payload, ("child_session_id", "source", "messages", "model", "model_config", "system_prompt", "cwd",
         "profile_name", "compression_lock_holder", "require_compression_lease", "require_lease_refresh",
         "lease_ttl_seconds", "watermark", "watermark_ceiling"))
@@ -125,7 +125,7 @@ def publish(conn, scope, session_id, payload):
         raise RuntimeStoreError("stale_generation")
     compression_publish.publish_on_connection(conn, scope, parent_session_id=session_id,
         **dict(payload, model_config=config))
-    _migrate_automation(conn, scope, session_id, child)
+    _migrate_automation(conn, scope, session_id, child, state_types=automation_states)
     sessions.update_session(conn, scope, child, {"runtime_generation": worker["generation"]})
     conn.execute(worker_executions.update().where(*workers.where(scope, worker["execution_id"])).values(session_id=child))
     linked = workers.linked_admission(conn, scope, session_id, worker["generation"], worker["owner_epoch"], ("started", "unknown"))
@@ -137,12 +137,8 @@ def publish(conn, scope, session_id, payload):
             "annotations": row_annotations(payload["messages"])}
 
 
-def _migrate_automation(conn, scope, parent, child):
-    from hermes_cli.goals import GoalState
-    from hermes_cli.heartbeat import HeartbeatState
-    from hermes_cli.loops import LoopState
-
-    for family, state_type in (("goal", GoalState), ("heartbeat", HeartbeatState), ("loop", LoopState)):
+def _migrate_automation(conn, scope, parent, child, *, state_types):
+    for family, state_type in state_types():
         old_key, new_key = f"{family}:{parent}", f"{family}:{child}"
         raw = runtime.meta(conn, scope, old_key)
         if raw is None:

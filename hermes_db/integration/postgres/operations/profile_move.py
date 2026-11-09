@@ -18,7 +18,7 @@ from hermes_db.integration.postgres.queries import profile_move as repo
 from hermes_db.scope import DatabaseScope
 from hermes_db.tables.conversations import messages, session_model_usage, sessions as table
 from hermes_db.core.values import decode_text, encode_text, model_config
-from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.values import RuntimeStoreError
 
 
 def _meta(conn, scope, key):
@@ -148,6 +148,7 @@ def _title(conn, scope, sid, raw):
 
 
 def retire_source(conn, scope, sid):
+    from hermes_db.integration.session_composition import SessionMedia
     if sessions.raw_session(conn, scope, sid) is None:
         return False
     ticket = _meta(conn, scope, prepared_key(sid))
@@ -166,6 +167,6 @@ def retire_source(conn, scope, sid):
         raise RuntimeStoreError("move_snapshot_changed")
     if not any(_present(conn, target, scope, sid, ticket["digest"], len(snapshot["messages"])) for target in targets):
         raise RuntimeStoreError("move_not_confirmed")
-    retirement.retire_sessions(conn, scope, [sid])
+    retirement.retire_sessions(conn, scope, [sid], media_references=SessionMedia().admission_references)
     retirement.delete_rows(conn, scope, [sid])
     return True

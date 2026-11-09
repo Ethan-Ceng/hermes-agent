@@ -6,7 +6,7 @@ from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.domains.sessions.postgres.queries.gateway import marker
 from hermes_db.tables.conversations import messages, sessions as table
-from hermes_state_local import POLICY_PREFIX
+from hermes_db.domains.runtime.receipts import POLICY_PREFIX
 
 
 def local_members(conn, scope, session_id):
@@ -97,7 +97,7 @@ def display_snapshot(conn, scope, session_id):
             for row in _display_page(conn, scope, session_id, None, 0, False)]
 
 
-def canonical_targets(conn, scope, session_id):
+def canonical_targets(conn, scope, session_id, *, ownership):
     from hermes_db.domains.sessions.postgres.queries.lineage import validate_local_receipt
     from hermes_db.domains.sessions.postgres.queries.mutation_binding import same_history_owner
 
@@ -112,7 +112,7 @@ def canonical_targets(conn, scope, session_id):
         found = {}
         for sid in frontier:
             for candidate in compression_neighbors(conn, scope, sid):
-                if candidate not in targets and candidate not in found and same_history_owner(conn, scope, anchors[sid], candidate):
+                if candidate not in targets and candidate not in found and same_history_owner(conn, scope, anchors[sid], candidate, ownership=ownership):
                     found[candidate] = anchors[sid]
         for candidate in delegate_children(conn, scope, frontier):
             if candidate not in targets:

@@ -1,4 +1,5 @@
 """Exact event-bound media survives deterministic planning and reconstruction."""
+from hermes_db.domains.rooms import driver_rules as _storage_shared_1
 from copy import deepcopy
 
 import pytest
@@ -44,7 +45,7 @@ def test_bound_manifest_reconstructs_frozen_input_and_rejects_forgery(tmp_path):
     task = plan(events, freeze_input_context=True)
     expected = [{**meta, "event_id": "event-1"}]
     assert task.payload["attachments"] == expected
-    normalized, _, digest = driver._task_payload(dict(task.payload))
+    normalized, _, digest = _storage_shared_1._task_payload(dict(task.payload))
     assert normalized == task.payload
     driver.admit_task(db, task.identity, payload=normalized, clock=lambda: 10)
     saved = driver.get_task(db, task.identity)
@@ -54,13 +55,13 @@ def test_bound_manifest_reconstructs_frozen_input_and_rejects_forgery(tmp_path):
     for change in ({"event_id": "event-2"}, {"name": "different.txt"}):
         forged = deepcopy(saved)
         forged["payload"]["attachments"][0].update(change)
-        assert driver._task_payload(forged["payload"])[2] != digest
+        assert _storage_shared_1._task_payload(forged["payload"])[2] != digest
         with pytest.raises(discussion.DiscussionReconstructionError):
             discussion.reconstruct_task_plan(ROOM, events, forged, local_profiles=PROFILES)
     for invalid in ([], [{**expected[0], "size": True}], [{**expected[0], "path": "/private"}],
                     [{k: v for k, v in expected[0].items() if k != "event_id"}]):
         with pytest.raises(driver.DriverValidationError):
-            driver._task_payload({**normalized, "attachments": invalid})
+            _storage_shared_1._task_payload({**normalized, "attachments": invalid})
 
 
 def test_member_recipients_and_bounded_batches_preserve_unconsumed_files():

@@ -7,8 +7,8 @@ from hermes_db.tables.metrics import marks, windows, packages, counters, RESOURC
 import json
 
 def reconcile(conn, store, enabled, now):
-    from hermes_cli.observability.shared_metrics import _isoformat
-    from hermes_cli.observability.shared_metrics_sender import MAX_OBS_ADVANCE_SECONDS, _parse_stamp
+    from hermes_db.domains.metrics.policy import _isoformat
+    from hermes_db.domains.metrics.sending import MAX_OBS_ADVANCE_SECONDS, _parse_stamp
     raw = stamp = _isoformat(now)
     previous = conn.scalar(select(marks.c.stamp).where(repo.key(marks, store, {'name': 'obs'})))
     if previous is not None:
@@ -30,7 +30,7 @@ def consented_day(conn, store, start):
     return conn.scalar(select(windows.c.window_id).where(repo.scope(windows, store), windows.c.closed_at.is_(None), windows.c.opened_at <= start).limit(1)) is not None
 
 def create_one(conn, store, now):
-    from hermes_cli.observability.shared_metrics import SharedMetricsStore, _compact_json, _isoformat, _PACKAGE_SCHEMA_VERSION
+    from hermes_db.domains.metrics.policy import MetricsPolicy, _compact_json, _isoformat, _PACKAGE_SCHEMA_VERSION
     from hermes_cli.observability.shared_metrics_contract import client_resource_is_valid
     while True:
         first = conn.execute(select(counters).where(repo.scope(counters, store), counters.c.value > counters.c.packaged_value).order_by(counters.c.period_start, *(counters.c[name] for name in RESOURCE)).limit(1)).mappings().one_or_none()
@@ -41,7 +41,7 @@ def create_one(conn, store, now):
         resource = {name: group[name] for name in RESOURCE}
         if not client_resource_is_valid(resource):
             raise ValueError('Unsupported shared-metrics client resource')
-        metrics = SharedMetricsStore._package_metrics(rows)
+        metrics = MetricsPolicy._package_metrics(rows)
         if not metrics:
             mark_packaged(conn, store, rows)
             continue
@@ -93,8 +93,8 @@ def freeze_identity(conn, store, row):
     return identity
 
 def claim(conn, store, now, seen):
-    from hermes_cli.observability.shared_metrics import _isoformat
-    from hermes_cli.observability.shared_metrics_sender import MAX_SEND_ATTEMPTS, _CLAIM_LEASE_SECONDS
+    from hermes_db.domains.metrics.policy import _isoformat
+    from hermes_db.domains.metrics.sending import MAX_SEND_ATTEMPTS, _CLAIM_LEASE_SECONDS
     stmt = select(packages).where(repo.scope(packages, store), packages.c.exported_at.is_not(None), pending(), or_(packages.c.next_attempt_at.is_(None), packages.c.next_attempt_at <= _isoformat(now)), gate(), packages.c.send_attempts < MAX_SEND_ATTEMPTS)
     if seen:
         stmt = stmt.where(packages.c.package_id.not_in(sorted(seen)))
@@ -119,8 +119,8 @@ def mark(conn, store, package_id, token, columns):
     return repo.change_package(conn, store, packages, package_id, columns, *conditions)
 
 def renew(conn, store, package_id, token, now):
-    from hermes_cli.observability.shared_metrics import _isoformat
-    from hermes_cli.observability.shared_metrics_sender import _CLAIM_LEASE_SECONDS
+    from hermes_db.domains.metrics.policy import _isoformat
+    from hermes_db.domains.metrics.sending import _CLAIM_LEASE_SECONDS
     if token is None:
         return False
     return repo.change_package(conn, store, packages, package_id, dict(next_attempt_at=_isoformat(now + timedelta(seconds=_CLAIM_LEASE_SECONDS))), pending(), packages.c.claim_token == token, packages.c.next_attempt_at > _isoformat(now)) == 1

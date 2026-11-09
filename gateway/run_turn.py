@@ -31,10 +31,8 @@ from gateway.response_filters import (
     reply_expected_metadata,
 )
 from gateway.warning_notifications import diagnostic_metadata, diagnostic_turn_muted, diagnostic_wake_muted
-from gateway.session import (
-    SessionSource, _session_key_namespace, build_channel_continuity_note,
-    build_session_context,
-)
+from gateway.session import SessionSource, build_channel_continuity_note, build_session_context
+from gateway.session_contract import _session_key_namespace
 from gateway.session_transcript import TranscriptReadError
 from gateway.turn_context import TurnContext
 from gateway.turn_lease import DEFAULT_LEASE_WAIT, TurnLeaseTimeoutError

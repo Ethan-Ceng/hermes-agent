@@ -57,7 +57,7 @@ async def _served_authority(tmp_path, monkeypatch, instance_id, db=None):
 def _age_receipt_origins(db, sid, mutate):
     """Rewrite every persisted origin copy of *sid*'s receipt through *mutate* (a dict -> dict
     function), the way an older build's on-disk spelling differs from the recomputed source."""
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     with db._read_ctx() as conn:
         row = conn.execute('SELECT value FROM state_meta WHERE key=?', (POLICY_PREFIX + sid,)).fetchone()
     receipt = json.loads(row[0])
@@ -82,7 +82,7 @@ def _age_receipt_origins(db, sid, mutate):
 
 def _store_receipt(db, sid, mutate):
     """Rewrite *sid*'s stored receipt text through *mutate* (a str -> str function)."""
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     with db._read_ctx() as conn:
         stored = conn.execute('SELECT value FROM state_meta WHERE key=?', (POLICY_PREFIX + sid,)).fetchone()[0]
     db._write_sql('UPDATE state_meta SET value=? WHERE key=?', (mutate(stored), POLICY_PREFIX + sid))

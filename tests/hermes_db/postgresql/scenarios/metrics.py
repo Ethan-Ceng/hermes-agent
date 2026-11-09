@@ -15,7 +15,7 @@ def reject(*args, **kwargs):
 
 sqlite3.connect = reject
 sys.addaudithook(lambda event, args: reject() if event == "sqlite3.connect" else None)
-from hermes_cli.observability import shared_metrics as native
+from hermes_db.domains.metrics import policy as native
 from hermes_cli.observability.shared_metrics import SharedMetricsStore
 from hermes_cli.observability.shared_metrics_contract import CLIENT_ACTIVE_METRIC
 

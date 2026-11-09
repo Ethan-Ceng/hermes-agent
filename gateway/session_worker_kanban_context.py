@@ -9,7 +9,7 @@ from hermes_state_runtime import RuntimeStoreError
 def _root_policy(authority, params):
     from gateway.session_policy import policy_for_source
     from hermes_db.integration.runtime_access import runtime_for_store
-    from hermes_state_runtime_workers import CHILD_SEPARATOR
+    from hermes_db.domains.runtime.receipts import CHILD_SEPARATOR
     execution = params["execution_id"]
     root = execution.split(CHILD_SEPARATOR, 1)[0]
     session_id = params["session_id"]
@@ -63,6 +63,6 @@ def frozen_context(connection, ref, params):
         if target.get("board_id", board_id) != board_id:
             raise RuntimeStoreError("stale_generation")
         from hermes_db.domains.kanban.api import BoardResource
-        from hermes_db.domains.kanban.routing.owner import board_reference
+        from hermes_db.integration.kanban_owner import board_reference
         with BoardResource(resource, board_id, slug) as board:
             return {"board": slug, "owner": board_reference(board)}

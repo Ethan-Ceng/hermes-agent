@@ -1,11 +1,11 @@
 """Producer-scoped passive evidence storage and durable older-writer guards."""
+from hermes_db.domains.rooms.work_rules import INVALID_TABLE, retained_fields, scope, validate_stored
 
 import json
 
 from gateway.hosted_rooms_common import table_exists
 
 
-INVALID_TABLE = "hosted_room_work_records_invalid"
 
 
 def initialize(conn):
@@ -156,13 +156,6 @@ def _guards(conn, work, tables):
         END""")
 
 
-def retained_fields(table):
-    from gateway import hosted_room_work_records as work
-    fields = ["room_id", "revision", "digest", "record_json"]
-    fields += ["source_table"] if table == INVALID_TABLE else ["producer_gateway_id", "producer_epoch"]
-    if table in (work.PENDING_TABLE, INVALID_TABLE):
-        fields += ["target_install_id", "route_generation", "status"]
-    return fields
 
 
 def row_size_sql(table, prefix=""):
@@ -176,17 +169,6 @@ def usage_sql(tables):
             " + ".join(f"(SELECT COUNT(*) FROM {t})" for t in tables))
 
 
-def validate_stored(row):
-    from gateway import hosted_room_work_records as work
-    try:
-        record = work.validate(json.loads(row["record_json"]))
-        if (row["disposition"] == "invalid"
-                or scope(record) != (row["room_id"], row["producer_gateway_id"], row["producer_epoch"])
-                or record["revision"] != row["revision"] or record["digest"] != row["digest"]):
-            raise work.WorkRecordError("stored work metadata conflicts with record scope")
-    except (ValueError, TypeError, KeyError, RecursionError) as exc:
-        raise work.InvalidStoredWorkRecord("stored work evidence is invalid") from exc
-    return record
 
 
 def validate_stored_locked(conn, table, row):
@@ -217,8 +199,6 @@ def validate_stored_locked(conn, table, row):
         raise
 
 
-def scope(record):
-    return record["room_id"], record["authority"]["gateway_id"], record["authority"]["epoch"]
 
 
 def save_locked(conn, table, record, *, target_install_id=None, route_generation=None):

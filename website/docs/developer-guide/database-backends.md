@@ -50,14 +50,30 @@ delegation ledger keeps its additional store fence on the same Connection.
 
 Kanban persistence lives in named workflows directly under
 `hermes_db/domains/kanban/postgres/`: catalog/DAG retraction, claims, review,
-completion, dispatch, runs, files, workspaces, notifications, transfer, owners and
-maintenance. Shared scoped statements and run evidence stay separate to preserve
+completion, dispatch, runs, files, workspaces, notifications, owners and
+maintenance. Profile/Board transfer and application callbacks are composed under
+`hermes_db/integration/`. Shared scoped statements and run evidence stay separate to preserve
 a one-way import graph; receipts, effects and swarm retain their own lifecycle.
 
 Rooms use lifecycle, ownership, grants, tasks, work, policy and replication
 workflows with shared scoped statements. Attachment metadata shares its SQL
 owner; file gates, authorization snapshots and content I/O retain separate
 composition so no database connection spans byte I/O.
+
+Cron process identity, active-send tracking, profile-bound clocks and post-commit
+observers are supplied by `hermes_db/integration/cron_application.py`; its SQL
+workflows keep their existing connection and lock ownership. RetainDB's HTTP
+client/thread coordination lives in `hermes_db/integration/retain_transport.py`,
+while durable queue transitions remain in its domain. Hosted media decoding,
+retirement collection and API image compaction are composed at the owning profile.
+
+`scripts/hermes_db_boundary_lint.py`, included in `scripts/check`, enforces the
+infrastructure/domain/composition direction. Its review registry grants specific
+symbols to named consumers: shared values and pure policy, Agent transcript
+semantics, API dispatch and Native SQLite bridges have separate reasons. A new
+helper needs review; approving one symbol does not approve the rest of its module.
+Native facades cannot be imported by lower PG workflows. Historical migrations
+remain frozen and do not receive runtime dependency permissions.
 
 SQLite retains its native implementations. Domain adapters select PG before a
 SQLite file-existence check or connection. There is no general SQLite SQL

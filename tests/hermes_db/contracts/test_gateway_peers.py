@@ -75,7 +75,7 @@ def test_core_messaging_takeover_settles_local_receipt_history_and_title(core_pa
     import json
     from hermes_db.domains.runtime.postgres.queries import runtime
     from hermes_state_keys import local_identity
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
 
     store, _ = core_pair
     root = local_identity("profile", "human", "request")

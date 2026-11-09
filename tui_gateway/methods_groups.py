@@ -189,7 +189,7 @@ def _room_error_class(replica_only: bool) -> type:
     if replica_only:
         from gateway.hosted_room_replicas import ReplicaError
         return ReplicaError
-    from gateway.hosted_rooms import HostedRoomError
+    from hermes_db.domains.rooms.rules import HostedRoomError
     return HostedRoomError
 
 
@@ -257,7 +257,8 @@ def _group_capabilities(rid, params, _catalog, _methods, _owner):
     from hermes_db.errors import StorageError
     if (forwarded := _owner(rid, "groups.capabilities", params)) is not None:
         return forwarded
-    from gateway.hosted_rooms import MAX_LOG_LIMIT, PROTOCOL_VERSION, local_authority_gateway_id
+    from hermes_db.domains.rooms.rules import MAX_LOG_LIMIT
+    from gateway.hosted_rooms import PROTOCOL_VERSION, local_authority_gateway_id
     service = get_hosted_room_service()
     from tui_gateway.methods_groups_scope import service_matches
     driver_ready = bool(service and service_matches(service) and service.runtime.status()["running"])
@@ -344,9 +345,8 @@ def _(rid, params: dict, service) -> dict:
     from gateway.hosted_room_peer import (
         GatewayRoomCatalog, PROTOCOL_VERSION as ROOM_LINK_PROTOCOL_VERSION,
         room_grant_matches_scope, validate_room_link_url)
-    from gateway.hosted_rooms import (
-        AuthorityConflictError, OwedRevokesFullError, RoomNotFoundError,
-        local_authority_gateway_id, room_state)
+    from hermes_db.domains.rooms.rules import AuthorityConflictError, OwedRevokesFullError, RoomNotFoundError
+    from gateway.hosted_rooms import local_authority_gateway_id, room_state
     from tui_gateway.hosted_room_peer_http import PeerRunsHTTPClient
     from tui_gateway.hosted_room_peer_transport import PeerMemberRoute, route_identity
     target_url, transport_security = validate_room_link_url(params.get("target_url"))
@@ -453,7 +453,8 @@ def _(rid, params: dict, service) -> dict:
 @_room_method("groups.list", code=5110, db=True)
 def _(rid, params: dict, db_path) -> dict:
     """List rooms hosted by this gateway."""
-    from gateway.hosted_rooms import MAX_ROOM_LIST_LIMIT, list_rooms
+    from hermes_db.domains.rooms.rules import MAX_ROOM_LIST_LIMIT
+    from gateway.hosted_rooms import list_rooms
     limit = params.get("limit", MAX_ROOM_LIST_LIMIT)
     offset = params.get("offset", 0)
     rooms = list_rooms(
@@ -532,9 +533,8 @@ def _(rid, params: dict, service) -> dict:
     service_message=_WORKER_UNAVAILABLE)
 def _(rid, params: dict, service) -> dict:
     """Permanently tombstone a hosted room id."""
-    from gateway.hosted_rooms import (
-        AuthorityConflictError, RoomHeldGrantsPendingError, RoomHistoryExpiredError, disband_room, local_authority_gateway_id,
-        _room_id, room_state)
+    from hermes_db.domains.rooms.rules import AuthorityConflictError, RoomHeldGrantsPendingError, RoomHistoryExpiredError, _room_id
+    from gateway.hosted_rooms import disband_room, local_authority_gateway_id, room_state
     room_id = _room_id(params.get("room_id"))
 
     def disband_with_state(state: dict | None = None) -> dict:

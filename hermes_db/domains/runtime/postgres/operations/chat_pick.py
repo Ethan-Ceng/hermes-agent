@@ -4,7 +4,7 @@ from hermes_db.domains.sessions.postgres.operations.mutations import replay_rece
 from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.conversations import sessions as table
-from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.values import RuntimeStoreError
 
 
 def _fenced(conn, scope, session_id, params):

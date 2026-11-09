@@ -2,7 +2,7 @@
 import json
 from types import MappingProxyType
 from sqlalchemy import func, select
-from hermes_db.domains.kanban.routing.evidence import TaskEvidence
+from hermes_db.domains.kanban.rules import TaskEvidence
 from hermes_db.domains.kanban.postgres import repository as repo, runs as run_repo
 from hermes_db.tables.kanban import events, tasks
 from hermes_db.core.values import decode_text

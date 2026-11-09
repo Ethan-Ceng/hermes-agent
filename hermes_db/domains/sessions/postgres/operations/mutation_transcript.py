@@ -8,8 +8,8 @@ from hermes_db.domains.sessions.postgres.operations import compression, compress
 from hermes_db.domains.sessions.postgres.queries import lineage, messages, retirement, sessions
 from hermes_db.domains.runtime.postgres.queries import worker_retirement
 from hermes_db.tables.conversations import sessions as table
-from hermes_state_mutations import COMPACTED_TARGET_DETAIL
-from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.mutation_rules import COMPACTED_TARGET_DETAIL
+from hermes_db.domains.runtime.values import RuntimeStoreError
 
 
 def compress(conn, scope, session_id, payload, prepared):
@@ -31,10 +31,9 @@ def compress(conn, scope, session_id, payload, prepared):
         "message_count": len(prepared["messages"]), "summary": prepared.get("summary")}
 
 
-def reset(conn, scope, session_id, payload):
-    from gateway.session import SessionEntry
-    from gateway.session_lifecycle import _now
-    from hermes_state_local import POLICY_PREFIX
+def reset(conn, scope, session_id, payload, *, routes):
+    SessionEntry, _now = routes.reset_values()
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     from hermes_db.domains.runtime.postgres.queries import runtime
     import json
 

@@ -47,7 +47,7 @@ def compact_on_connection(conn, scope, session_id, batch, *, model_config_patch=
     repo.archive(conn, scope, session_id, rewind_ids)
     inserted, tools = writes.insert_rows(conn, scope, session_id, batch)
     repo.clone_rows(conn, scope, session_id, clone_ids)
-    from hermes_state_messages import _tool_calls_len
+    from hermes_db.domains.sessions.codec import _tool_calls_len
     tools += sum(_tool_calls_len(coverage.by_id[rid]["tool_calls"]) for rid in clone_ids)
     count = inserted + len(clone_ids)
     values = {"message_count": count, "tool_call_count": tools}

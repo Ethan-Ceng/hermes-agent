@@ -44,7 +44,7 @@ def resolve_native_target(authority, actor, row):
     from gateway.session_contract import SessionRef
     from gateway.session_local_recovery import restore_local_session
     from hermes_db.integration.runtime_access import runtime_for_store
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     db, sid = authority.db, row['id']
     bound = db.get_meta(POLICY_PREFIX + (row.get('chat_id') or sid)) is not None
     if bound and row.get('chat_id') and runtime_for_store(db).local_owner(sid) != row['chat_id']:

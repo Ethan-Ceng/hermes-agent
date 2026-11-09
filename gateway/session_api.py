@@ -1,4 +1,5 @@
 """Server-only binding of API transcript identities to the existing TurnRunner."""
+from hermes_db.domains.runtime.values import api_generation_id
 import asyncio
 from functools import partial
 import hashlib
@@ -8,10 +9,11 @@ import logging
 from gateway.config import Platform
 from gateway.session import SessionEntry, SessionSource, _is_path_unsafe
 from gateway.session_contract import SessionRef
-from hermes_state_runtime import RuntimeStoreError, _epoch, _json
+from hermes_state_runtime import RuntimeStoreError, _epoch
+from hermes_db.domains.runtime.values import _json
 from hermes_db.health import is_postgresql_store, persisted_profile_id
 
-from hermes_state_local import API_BINDING_PREFIX as _BINDING_PREFIX, API_DECLARED_PREFIX as _DECLARED_PREFIX
+from hermes_db.domains.runtime.receipts import API_BINDING_PREFIX as _BINDING_PREFIX, API_DECLARED_PREFIX as _DECLARED_PREFIX
 
 
 def declared_api_session(db, key):
@@ -34,7 +36,7 @@ def implicit_api_session(db, session_id, request_id=None):
     exact retry stays on the generation holding its request id's terminal identity; explicit ids
     never come here."""
     from hermes_state_mutation_retirement import first_generation
-    from hermes_state_terminal import identity_key
+    from hermes_db.domains.runtime.receipts import identity_key
     if is_postgresql_store(db):
         from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
         from hermes_db.domains.runtime.postgres.queries import runtime
@@ -46,12 +48,6 @@ def implicit_api_session(db, session_id, request_id=None):
     return first_generation(db, partial(api_generation_id, session_id), pinned=pinned)[1]
 
 
-def api_generation_id(session_id, generation):
-    """Generation *generation* of an API session id ``implicit_api_session`` walks: the id itself,
-    then ``api-<digest(id, n)>``."""
-    if not generation:
-        return session_id
-    return 'api-' + hashlib.sha256(f'{session_id}\0{generation}'.encode()).hexdigest()[:16]
 
 
 def continued_api_session(runner, session_id, request_id=None):
@@ -216,7 +212,8 @@ def bind_api_steps(authority, session_id, *, hosted_dispatch=None, declared_key=
     def write(conn):
         _epoch(conn, authority.epoch)
         authority._require_admission_open()  # a drain that began while this waited on the writer wins
-        from hermes_state_mutation_retirement import RETIRED_PREFIX, keep_passed_fences
+        from hermes_db.domains.runtime.receipts import RETIRED_PREFIX
+        from hermes_state_mutation_retirement import keep_passed_fences
         if conn.execute('SELECT 1 FROM state_meta WHERE key=?', (RETIRED_PREFIX + session_id,)).fetchone():
             raise RuntimeStoreError('not_found')
         # The walk ran before this write: a sweep marker it passed may have been reclaimed since,

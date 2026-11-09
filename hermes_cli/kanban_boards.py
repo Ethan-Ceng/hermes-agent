@@ -4,6 +4,7 @@ Filesystem-only, so every action works before ``kanban init`` and must ignore th
 """
 
 from __future__ import annotations
+from hermes_db.domains.kanban import rules as _storage_shared_1
 
 import argparse
 from typing import Optional
@@ -41,7 +42,7 @@ def _board_task_counts(slug: str) -> dict[str, int]:
 def _board_slug_arg(args: argparse.Namespace, cmd: str, *, must_exist: bool) -> tuple[Optional[str], int]:
     """Normalize ``args.slug`` for a ``boards`` subcommand; ``(slug, 0)`` or ``(None, rc)``."""
     try:
-        normed = kb._normalize_board_slug(args.slug)
+        normed = _storage_shared_1._normalize_board_slug(args.slug)
     except ValueError as exc:
         return None, _err(f"kanban boards {cmd}: {exc}", 2)
     if must_exist:

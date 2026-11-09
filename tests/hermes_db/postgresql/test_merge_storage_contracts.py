@@ -75,11 +75,11 @@ def test_history_binding_owner_equivalence_keeps_store_namespace(pg_pair):
     current = json.dumps(["store:" + owner.scope.store_id, host_owner_subject()])
     login = json.dumps(["store:" + owner.scope.store_id, "basic:previous-login"])
     foreign = json.dumps(["store:" + peer.scope.store_id, host_owner_subject()])
-    assert bindings_agree(current, login, owner.scope)
-    assert not bindings_agree(current, foreign, owner.scope)
-    assert not bindings_agree(foreign, foreign, owner.scope)
-    assert bindings_agree(None, None, owner.scope)
-    assert not bindings_agree(None, current, owner.scope)
+    assert bindings_agree(current, login, owner.scope, ownership=owner._context.ownership)
+    assert not bindings_agree(current, foreign, owner.scope, ownership=owner._context.ownership)
+    assert not bindings_agree(foreign, foreign, owner.scope, ownership=owner._context.ownership)
+    assert bindings_agree(None, None, owner.scope, ownership=owner._context.ownership)
+    assert not bindings_agree(None, current, owner.scope, ownership=owner._context.ownership)
 
 
 def test_user_content_metadata_patch_preserves_reactions_and_removes_null_keys(pg_store):

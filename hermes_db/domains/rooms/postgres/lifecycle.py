@@ -1,7 +1,8 @@
 """Room lifecycle workflow; original connection, fence and off-connection effect boundaries are preserved."""
+from hermes_db.domains.rooms import rules as _storage_shared_1
 from sqlalchemy import func, select, delete
-from gateway import hosted_rooms as op_rooms_native, hosted_rooms as op_reads_native, hosted_room_context as op_context_native, hosted_rooms as op_context_rooms
-from gateway.hosted_rooms_common import clock
+from hermes_db.domains.rooms import rules as op_rooms_native, rules as op_reads_native, rules as op_context_rooms
+from hermes_db.domains.rooms.rules import clock
 from hermes_db.domains.runtime.postgres.operations import effects
 from hermes_db.domains.rooms.postgres import repository as repo
 from hermes_db.tables.rooms import rooms as op_rooms_rooms, events, retired, rooms as op_reads_rooms, rooms as op_retention_rooms, links, reservations, remote_runs
@@ -131,7 +132,7 @@ def read_events(store, *, room_id, since_seq=0, limit=100, include_disbanded=Fal
     return replay_page(rows, since_seq=since_seq, latest_seq=latest, authority={'gateway_id': room['authority_gateway_id'], 'epoch': room['authority_epoch']}, max_bytes=op_reads_native.MAX_LOG_PAGE_BYTES, error=op_reads_native.HostedRoomError)
 
 def prune_locked(conn, store, *, now=None, max_gateway_event_bytes=None):
-    from gateway import hosted_rooms as native
+    from hermes_db.domains.rooms import rules as native
     statement = select(op_retention_rooms.c.room_id, op_retention_rooms.c.disbanded_at, op_retention_rooms.c.event_bytes).where(repo.scope(op_retention_rooms, store), op_retention_rooms.c.disbanded_at.is_not(None)).order_by(op_retention_rooms.c.disbanded_at.desc(), op_retention_rooms.c.room_id)
     rows = list(conn.execute(statement).mappings())
     selected = {row['room_id'] for index, row in enumerate(rows) if index >= native.MAX_DISBANDED_ROOM_TOMBSTONES or (now is not None and row['disbanded_at'] <= now - native.DISBANDED_ROOM_RETENTION_SECONDS)}
@@ -153,14 +154,14 @@ def prune_locked(conn, store, *, now=None, max_gateway_event_bytes=None):
     return len(selected)
 
 def prune_disbanded_rooms(store, *, now=None):
-    from gateway.hosted_rooms_common import clock
+    from hermes_db.domains.rooms.rules import clock
     with store.write() as conn:
         repo.lock_store(conn, store)
         return prune_locked(conn, store, now=clock(now))
 
 def event_size(conn, store, room, event_id, kind, actor_json, payload_json, *, allow_control=False):
-    from gateway import hosted_rooms as native
-    from gateway.hosted_rooms_common import utf8_len
+    from hermes_db.domains.rooms import rules as native
+    from hermes_db.domains.rooms.rules import utf8_len
     size = utf8_len(event_id, kind, actor_json, payload_json)
     count_reserve = native.CONTROL_EVENT_COUNT_RESERVE if allow_control else 0
     byte_reserve = native.CONTROL_EVENT_BYTE_RESERVE if allow_control else 0
@@ -176,14 +177,14 @@ def event_size(conn, store, room, event_id, kind, actor_json, payload_json, *, a
     return size
 
 def _latest(conn, store, room_id, before_seq):
-    statement = select(events.c.payload_json).where(repo.scope(events, store, room_id), events.c.kind == encode_text(op_context_native.CONTEXT_EVENT_KIND))
+    statement = select(events.c.payload_json).where(repo.scope(events, store, room_id), events.c.kind == encode_text(_storage_shared_1.CONTEXT_EVENT_KIND))
     if before_seq is not None:
         statement = statement.where(events.c.seq < int(before_seq))
     raw = conn.scalar(statement.order_by(events.c.seq.desc()).limit(1))
     if raw is None:
-        return dict(op_context_native._EMPTY_CONTEXT)
+        return dict(_storage_shared_1._EMPTY_CONTEXT)
     payload = json.loads(decode_text(raw))
-    return {key: str(payload.get(key) or default) for key, default in op_context_native._EMPTY_CONTEXT.items()}
+    return {key: str(payload.get(key) or default) for key, default in _storage_shared_1._EMPTY_CONTEXT.items()}
 
 def room_context(store, *, room_id, before_seq=None):
     room_id = op_context_rooms._room_id(room_id)
@@ -191,20 +192,22 @@ def room_context(store, *, room_id, before_seq=None):
         return _latest(conn, store, room_id, before_seq)
 
 def set_room_context(store, *, room_id, event_id, purpose, notes, routing=None, lead_member_id=None, now=None):
-    state = op_context_native._local_authority(store, room_id)
+    state = room_state(store, room_id=room_id)
+    if state["authority_gateway_id"] != store.local_authority_gateway_id():
+        raise op_context_rooms.AuthorityConflictError("This Group Chat is managed by another gateway.")
     seated = {str(member.get('member_id')) for member in state.get('members') or ()}
     saved = {}
 
     def settings(conn, scope):
         first = repo.event(conn, store, state['room_id'], op_context_rooms._event_id(event_id))
-        original = json.loads(first['payload_json']) if first is not None and first['kind'] == op_context_native.CONTEXT_EVENT_KIND else None
-        current = {**op_context_native._EMPTY_CONTEXT, **original} if original is not None else _latest(conn, store, state['room_id'], None)
-        context = op_context_native.validate_context(purpose, notes, current['routing'] if routing is None else routing, current['lead_member_id'] if lead_member_id is None else lead_member_id)
+        original = json.loads(first['payload_json']) if first is not None and first['kind'] == _storage_shared_1.CONTEXT_EVENT_KIND else None
+        current = {**_storage_shared_1._EMPTY_CONTEXT, **original} if original is not None else _latest(conn, store, state['room_id'], None)
+        context = _storage_shared_1.validate_context(purpose, notes, current['routing'] if routing is None else routing, current['lead_member_id'] if lead_member_id is None else lead_member_id)
         if first is None and context['routing'] == 'lead' and (context['lead_member_id'] not in seated):
             raise op_context_rooms.HostedRoomError('the lead must be a member of this Group Chat')
         saved.update(context)
         if original is None:
             return context
-        return {key: value for key, value in context.items() if key in original or value != op_context_native._EMPTY_CONTEXT[key]}
-    event = append_event(store, room_id=room_id, event_id=event_id, kind=op_context_native.CONTEXT_EVENT_KIND, actor=dict(op_context_native._CONTEXT_ACTOR), payload=CoreEffect(settings), authority_gateway_id=state['authority_gateway_id'], authority_epoch=state['authority_epoch'], now=now)
+        return {key: value for key, value in context.items() if key in original or value != _storage_shared_1._EMPTY_CONTEXT[key]}
+    event = append_event(store, room_id=room_id, event_id=event_id, kind=_storage_shared_1.CONTEXT_EVENT_KIND, actor=dict(_storage_shared_1._CONTEXT_ACTOR), payload=CoreEffect(settings), authority_gateway_id=state['authority_gateway_id'], authority_epoch=state['authority_epoch'], now=now)
     return {'context': saved, 'event': event}

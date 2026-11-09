@@ -9,9 +9,9 @@ from hermes_db.domains.sessions.postgres.queries import compression, gateway, me
 from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.tables.conversations import messages, sessions as table
 from hermes_db.core.values import decode_text
-from hermes_state_local import POLICY_PREFIX
-from hermes_state_mutation_branch import _child_policy
-from hermes_state_runtime import RuntimeStoreError, _json
+from hermes_db.domains.runtime.receipts import POLICY_PREFIX
+from hermes_db.domains.runtime.mutation_rules import _child_policy
+from hermes_db.domains.runtime.values import RuntimeStoreError, _json
 
 
 def boundary(conn, scope, target, through):
@@ -31,7 +31,7 @@ def boundary(conn, scope, target, through):
 
 def _title(conn, scope, parent):
     import re
-    from hermes_state_titles import _NUMBERED_TITLE_RE
+    from hermes_db.domains.sessions.rules import _NUMBERED_TITLE_RE
 
     base = decode_text(parent["title"]) or "branch"
     match = _NUMBERED_TITLE_RE.match(base)
@@ -44,12 +44,10 @@ def _title(conn, scope, parent):
     return f"{base} #{max([1, *numbers]) + 1}"
 
 
-def branch(conn, scope, session_id, payload, prepared):
-    from gateway.config import Platform
-    from gateway.session import SessionEntry, SessionSource, build_session_key
-    from gateway.session_lifecycle import _now
+def branch(conn, scope, session_id, payload, prepared, *, routes):
+    Platform, SessionSource, SessionEntry, build_session_key, _now = routes.branch_values()
     from hermes_state_keys import local_identity, profile_from_session_key
-    from hermes_state_messages import _tool_calls_len
+    from hermes_db.domains.sessions.codec import _tool_calls_len
 
     snapshot = mutation_policy.local_snapshot(conn, scope, session_id)
     if prepared is not None and "snapshot" in prepared and prepared["snapshot"] != snapshot:

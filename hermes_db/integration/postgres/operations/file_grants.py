@@ -5,13 +5,14 @@ from pathlib import Path
 import re
 import uuid
 
+from hermes_db.integration.media_retirement import held_media_paths
 from hermes_db.errors import RetryableStorageError
 from hermes_db.core.file_scope import owner_id
 from hermes_db.domains.sessions.postgres.queries import file_grants as repo, media, sessions
 from hermes_db.scope import DatabaseScope
 from hermes_db.domains.sessions.postgres.support.search_projection import content_text
-from hermes_state_media import PREFIX
-from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.receipts import RETIRED_MEDIA_PREFIX as PREFIX
+from hermes_db.domains.runtime.values import RuntimeStoreError
 
 
 def received(conn, scope):
@@ -50,7 +51,7 @@ def _mentioned(reference, texts):
 def _known_media(conn, scope):
     references = {value["path"]: {"path": value["path"], "sha256": value["sha256"]}
         for _, value in media.candidates(conn, scope, PREFIX)}
-    for path in media.held_media_paths(conn, scope):
+    for path in held_media_paths(conn, scope):
         sha = Path(path).parent.name
         if re.fullmatch(r"[0-9a-f]{64}", sha):
             references[path] = {"path": path, "sha256": sha}
@@ -93,7 +94,7 @@ def transfer(conn, source, target, snapshot):
 
 def _remaining(conn, scope, grants):
     from hermes_db.domains.sessions.postgres.queries.archive_refs import message_names
-    from hermes_db.domains.sessions.postgres.support.retired_media import _history
+    from hermes_db.integration.media_retirement import _history
     names = message_names(conn, scope)
     if names is None:
         return None
@@ -103,7 +104,7 @@ def _remaining(conn, scope, grants):
         mentioned, _ = _history(conn, scope, references)
         if mentioned is None:
             return None
-        mentioned |= media.held_media_paths(conn, scope)
+        mentioned |= held_media_paths(conn, scope)
     return names, mentioned
 
 

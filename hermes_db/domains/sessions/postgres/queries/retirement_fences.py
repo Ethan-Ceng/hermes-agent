@@ -9,8 +9,8 @@ from hermes_db.domains.sessions.postgres.queries import gateway
 from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.tables.gateway import gateway_routing
 from hermes_db.tables.runtime import state_meta
-from hermes_state_local import API_BINDING_PREFIX, API_DECLARED_PREFIX, POLICY_PREFIX
-from hermes_state_mutation_retirement import RETIRED_PREFIX, VIEWER_CLOSE_PREFIX, entry_session_id
+from hermes_db.domains.runtime.receipts import API_BINDING_PREFIX, API_DECLARED_PREFIX, POLICY_PREFIX
+from hermes_db.domains.runtime.receipts import RETIRED_PREFIX, VIEWER_CLOSE_PREFIX, entry_session_id
 
 
 def retire_routes(conn, scope, session_ids, *, expiring=()):

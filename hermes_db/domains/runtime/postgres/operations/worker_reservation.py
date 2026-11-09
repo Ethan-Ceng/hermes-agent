@@ -4,16 +4,15 @@ import json
 
 from sqlalchemy import select
 
-from gateway.owner_identity import same_owner
 from hermes_db.domains.sessions.postgres.queries import lineage, sessions
 from hermes_db.domains.runtime.postgres.queries import runtime, worker_retirement, workers
 from hermes_db.tables.conversations import sessions as session_table
 from hermes_db.tables.runtime import worker_executions
 from hermes_state_keys import admission_fingerprint
-from hermes_state_runtime import RuntimeStoreError, _secret_digest
+from hermes_db.domains.runtime.values import RuntimeStoreError, _secret_digest
 
 
-def reserve(conn, scope, *, epoch, admission_id, principal_id, worker_subject, identity):
+def reserve(conn, scope, *, same_owner, epoch, admission_id, principal_id, worker_subject, identity):
     runtime.require_epoch(conn, scope, epoch)
     sessions.lock_store(conn, scope, exclusive=True)
     admission, owner = runtime.lock_admission(conn, scope, admission_id)

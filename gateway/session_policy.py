@@ -1,4 +1,5 @@
 """Frozen, explicit local-client launch policy for the existing TurnRunner."""
+from gateway.session_contract import DAYBREAK_LABELS, STORED_AS_LOCAL, SURFACES, SURFACE_GROUPS, created_surface
 
 from hermes_db.health import profile_home_for_store
 from contextlib import contextmanager
@@ -85,36 +86,19 @@ _TURN_PROFILE: ContextVar = ContextVar('follow_profile_read', default=None)  # (
 # Creation label -> agent surface. ``tool`` (third-party integrations, ``hermes chat --source tool``) and
 # ``oneshot`` (finite ``chat -q`` / ``-z`` runs) run as the CLI but keep their own stored label, so human
 # pickers hide them (INTERNAL_LISTING_SOURCES).
-SURFACES = {'cli': 'cli', 'tui': 'tui', 'gui': 'desktop', 'acp': 'acp', 'tool': 'cli', 'oneshot': 'cli'}
 # ``tool`` and ``oneshot`` stay stored under their own labels so pickers can hide them.
 # Creation labels of the owner's own chats: the only LOCAL routes that carry OpenAI Daybreak (agent.daybreak),
 # the approved account's own access (no third-party or downstream use). Not ``tool`` (third-party
 # integrations), ``acp`` (editor clients), or the ``bot_room`` / ``a2a`` policies hosted rooms and peers stage.
-DAYBREAK_LABELS = frozenset({'cli', 'tui', 'gui', 'oneshot'})
 # Every other creation label is rewritten to ``source='local'`` on peer refresh.
-_KEEP_STORED_LABEL = frozenset({'tool', 'oneshot'})
-STORED_AS_LOCAL = frozenset(SURFACES) - _KEEP_STORED_LABEL
 # Routing labels and the accounting placeholder: never a creating surface.
-_NOT_A_SURFACE = frozenset({None, '', 'local', 'unknown'})
 
 
-def created_surface(label):
-    """``created_source`` for a policy or live label.
-
-    ``local`` and ``unknown`` are not surfaces. A label stored as ``local`` maps
-    through ``SURFACES`` (``gui`` is ``desktop``). Any other label, including
-    ``tool`` and ``oneshot``, is kept as itself: created_source is provenance.
-    """
-    if label in _NOT_A_SURFACE:
-        return None
-    return SURFACES[label] if label in STORED_AS_LOCAL else label
 
 
 # Policy label and agent surface for one conversation, keyed by either name: ``--source gui``
 # and ``--source desktop`` are the same rows. ``tool`` and ``oneshot`` are not aliases of
 # ``cli`` here: they keep their own stored label.
-SURFACE_GROUPS = {name: group for group in (frozenset({label, SURFACES[label]}) for label in STORED_AS_LOCAL)
-                  for name in group}
 
 
 def _refuse(field, detail=None):
@@ -850,7 +834,7 @@ def bind_launch_key(authority, session_id, policy, api_key, *, config_secrets=No
     if owners is None:
         owners = authority._local_owner_key_requests = {}
     if owner_key and api_key is not None and old is not None and ref in owners:
-        from hermes_state_local import same_create_retry
+        from hermes_db.domains.runtime.receipts import same_create_retry
         api_key = old if same_create_retry(owners[ref], policy.request_json, client_request or {}) else api_key
     # Only a key that IS being bound can conflict: binding config secrets alone (a provider
     # change drops the launch key) must not be refused by the key the session already holds.

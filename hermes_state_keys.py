@@ -75,7 +75,7 @@ def local_identity(profile_id, principal_id, request_id):
 
 
 def profile_from_session_key_namespace(namespace: str) -> str:
-    """Inverse of ``gateway.session._session_key_namespace`` for the ``<ns>`` slot of a key:
+    """Inverse of ``gateway.session_contract._session_key_namespace`` for the ``<ns>`` slot of a key:
     ``"default"`` for ``main``, ``"main"`` for the marked ``main~``, else the slot is the profile id."""
     if namespace == "main":
         return "default"

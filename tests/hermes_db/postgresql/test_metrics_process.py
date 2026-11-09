@@ -5,7 +5,8 @@ import subprocess
 import sys
 from datetime import timedelta
 import pytest
-from hermes_cli.observability import shared_metrics as native
+from hermes_db.domains.metrics import policy as native
+from hermes_db.domains.metrics.postgres import store as metric_export
 from hermes_cli.observability.shared_metrics import SharedMetricsStore
 from hermes_cli.observability.shared_metrics_contract import CLIENT_ACTIVE_METRIC
 from tests.hermes_db.postgresql.test_metrics_store import DAY, RESOURCE
@@ -52,7 +53,7 @@ def test_export_after_file_failure_recovers_in_new_actual_process(pg_profiles, m
         store.record_counter(CLIENT_ACTIVE_METRIC, {}, RESOURCE)
         def refuse(*args, **kwargs):
             raise OSError("injected file refusal")
-        monkeypatch.setattr(native, "atomic_json_write", refuse)
+        monkeypatch.setattr(metric_export, "atomic_json_write", refuse)
         with pytest.raises(OSError, match="file refusal"):
             store.create_and_export_package()
         args, env = command(home, "export_recovery")

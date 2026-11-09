@@ -5,6 +5,7 @@ verifies a scoped grant and the full task coordinates before admitting any model
 """
 
 from __future__ import annotations
+from hermes_db.domains.rooms.rules import MAX_STATUS_GRANT_TTL_SECONDS
 
 import base64
 import hashlib
@@ -22,7 +23,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterable, Literal, Mapping
 
 from gateway.hosted_room_execution_policy import RoomExecutionPolicy, execution_policy_mapping
-from gateway.hosted_rooms_common import bounded_int, clock, compact_json, exact_fields, identifier, text
+from hermes_db.domains.rooms.rules import bounded_int, clock, compact_json, exact_fields, identifier, text
 
 
 # v2 adds authority/member lineage to scoped grants and is deliberately not wire-compatible with the
@@ -444,7 +445,6 @@ _GRANT_FIELDS = frozenset({
 _GRANT_REFRESH_FIELDS = _GRANT_FIELDS | {"status_expires_at"}
 _GRANT_PERMISSIONS = {"approve", "dispatch", "status", "stop"}
 MAX_DISPATCH_GRANT_TTL_SECONDS = 24 * 60 * 60
-MAX_STATUS_GRANT_TTL_SECONDS = 30 * 24 * 60 * 60
 
 
 def issue_room_grant(

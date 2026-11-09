@@ -3,7 +3,8 @@
 from datetime import timedelta
 import json
 import pytest
-from hermes_cli.observability import shared_metrics as native
+from hermes_db.domains.metrics import policy as native
+from hermes_db.domains.metrics.postgres import store as metric_export
 from hermes_cli.observability.shared_metrics import SharedMetricsStore
 from hermes_cli.observability.shared_metrics_contract import CLIENT_ACTIVE_METRIC
 from hermes_cli.observability.shared_metrics_sender import SharedMetricsSender
@@ -33,14 +34,14 @@ def test_export_failure_preserves_committed_package_and_exact_delta(pg_profiles,
         monkeypatch.setattr(native, "_utc_now", lambda: DAY)
         store = SharedMetricsStore()
         store.record_counter(CLIENT_ACTIVE_METRIC, {}, RESOURCE)
-        original = native.atomic_json_write
+        original = metric_export.atomic_json_write
         def refuse(*args, **kwargs):
             raise OSError("injected export refusal")
-        monkeypatch.setattr(native, "atomic_json_write", refuse)
+        monkeypatch.setattr(metric_export, "atomic_json_write", refuse)
         with pytest.raises(OSError, match="injected export"):
             store.create_and_export_package()
         assert store.counter_snapshot()[0]["packaged_value"] == 1
-        monkeypatch.setattr(native, "atomic_json_write", original)
+        monkeypatch.setattr(metric_export, "atomic_json_write", original)
         paths = SharedMetricsStore().create_and_export_package()
         assert len(paths) == 1
         assert json.loads(paths[0].read_text(encoding="utf-8"))["metrics"][0]["value"] == 1

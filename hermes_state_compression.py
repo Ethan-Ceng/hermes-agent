@@ -11,10 +11,8 @@ import sqlite3
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
-from hermes_state_common import (
-    _BOUNDARY_END_REASONS, _COMPRESSION_LOCK_ROW_SQL as _LOCK_ROW_SQL, _ENDED_ROW_SQL, _ended_by_compression,
-    _RESET_CHILD_SQL, _non_continuation_child_sql, _sql_json_extract, _sql_session_last_active,
-    is_automatic_end_reason)
+from hermes_db.domains.sessions.rules import _BOUNDARY_END_REASONS
+from hermes_state_common import _COMPRESSION_LOCK_ROW_SQL as _LOCK_ROW_SQL, _ENDED_ROW_SQL, _ended_by_compression, _RESET_CHILD_SQL, _non_continuation_child_sql, _sql_json_extract, _sql_session_last_active, is_automatic_end_reason
 
 # Log-record parity with the origin module (caplog tests pin "hermes_state").
 logger = logging.getLogger("hermes_state")

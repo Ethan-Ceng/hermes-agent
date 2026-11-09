@@ -3,6 +3,7 @@
 Reuse the private native route envelope and FIFO, retaining nonhuman turn semantics.
 A producer ACK means committed input, not successful inference or outbound delivery.
 """
+from hermes_db.domains.runtime.receipts import FOLDED_AUTOMATION_TEXT as _FOLDED_TEXT, automation_descriptor as _descriptor
 from copy import deepcopy
 from datetime import UTC, datetime
 import json
@@ -209,8 +210,6 @@ async def prepare_heartbeat(runner, event):
     return {**event, **join_heartbeat_outputs(earlier, event), '_replaces': waiting['admission_id']}
 
 
-def _descriptor(payload):
-    return payload.get('local_automation_v1') or (payload.get('native_text_v1') or {}).get('automation') or {}
 
 
 def _tick_metadata(metadata):
@@ -242,7 +241,6 @@ def _replace_queued(admission_id, session_id, replaced, *, store=None):
     return guard
 
 
-_FOLDED_TEXT = '[folded into a later completion batch]'
 
 
 def _fold_queued(admission_id, session_id, replaced, skip=(), *, store=None):

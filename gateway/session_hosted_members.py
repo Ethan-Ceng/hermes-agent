@@ -115,7 +115,7 @@ def _configured(authority, own):
 def _config_entry(name, value, served, seated):
     """``(home, reason, detail)`` for one entry: ``reason`` None seats ``home``; otherwise the entry
     is refused, and a ``home`` it still carries is an alias that existing rooms keep."""
-    from gateway.hosted_rooms_common import IDENTIFIER_RE
+    from hermes_db.domains.rooms.rules import IDENTIFIER_RE
     from hermes_constants import hermes_home_key
     if not isinstance(name, str) or not IDENTIFIER_RE.fullmatch(name) or not isinstance(value, str):
         return None, 'invalid_params', 'must map a profile name to a home'

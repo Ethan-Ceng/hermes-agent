@@ -1,5 +1,6 @@
 """Gateway session management: message sources, the persisted routing index (SessionStore),
 explicit resets and the dynamic "Current Session Context" system prompt section."""
+from gateway.session_contract import _session_key_namespace
 
 import asyncio
 import hashlib
@@ -662,16 +663,6 @@ def is_shared_multi_user_session(
     return not (thread_sessions_per_user if source.thread_id else group_sessions_per_user)
 
 
-def _session_key_namespace(profile: Optional[str]) -> str:
-    """``agent:<ns>`` prefix for a session key: default/None profile → ``agent:main``
-    (BYTE-IDENTICAL to every historical key); named profile → ``agent:<name>`` so two
-    profiles serving the same chat never collide. A profile literally named ``main`` would
-    otherwise produce the default's namespace and share every session (routing index, agent
-    cache, store) with it, so it is marked ``main~``: ``~`` is outside the profile-id alphabet,
-    so the marked form can never be another profile's id."""
-    if not profile or profile == "default":
-        return "agent:main"
-    return "agent:main~" if profile == "main" else f"agent:{profile}"
 
 
 def _canonical_participant(source: SessionSource) -> Optional[str]:

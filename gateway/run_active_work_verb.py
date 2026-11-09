@@ -32,7 +32,7 @@ def _delegation_units(now: float) -> list[dict[str, Any]]:
 def _profile_units(runner, profile: str, units: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """What an ``unserve-profile`` of *profile* stops (``stop_authority_work``): its chat turns (session
     keys in its namespace) plus its authority's managed turns and cron runs. Delegations survive it."""
-    from gateway.session import _session_key_namespace
+    from gateway.session_contract import _session_key_namespace
 
     prefix = _session_key_namespace(profile) + ":"
     mine = [u for u in units if u.get("kind") == "chat" and str(u.get("session") or "").startswith(prefix)]

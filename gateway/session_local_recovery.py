@@ -9,7 +9,7 @@ from gateway.config import Platform
 from gateway.session import SessionEntry, SessionSource
 from gateway.session_contract import SessionRef
 from hermes_state_keys import local_identity
-from hermes_state_local import POLICY_PREFIX
+from hermes_db.domains.runtime.receipts import POLICY_PREFIX
 from hermes_db.integration.local_access import local_receipt
 from hermes_state_runtime import RuntimeStoreError
 from hermes_db.integration.runtime_calls import list_session_admissions

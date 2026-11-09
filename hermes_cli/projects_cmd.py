@@ -1,6 +1,7 @@
 """``hermes project`` CLI — manage first-class, multi-folder Projects."""
 
 from __future__ import annotations
+from hermes_db.domains.kanban import rules as _storage_shared_1
 
 import argparse
 import functools
@@ -217,7 +218,7 @@ def _cmd_bind_board(args, conn, proj) -> str:
         try:
             from hermes_cli import kanban_db as kb
 
-            slug = kb._normalize_board_slug(args.board)
+            slug = _storage_shared_1._normalize_board_slug(args.board)
             if slug and (slug == kb.DEFAULT_BOARD or kb.board_exists(slug)):
                 kb.write_board_metadata(slug, default_workdir=proj.primary_path)
         except Exception:

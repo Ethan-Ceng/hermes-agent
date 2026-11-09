@@ -9,7 +9,7 @@ def storage_identity(db):
     from hermes_db.health import is_postgresql_store, profile_home_for_store
     pg = is_postgresql_store(db)
     if pg:
-        from hermes_db.integration.transfer.move_values import resource_key
+        from hermes_db.core.values import resource_key
     return {'version': 1, 'backend': 'postgresql' if pg else 'sqlite',
             'profile_home': str(profile_home_for_store(db)),
             'store_id': db.scope.require_store_id() if pg else None,

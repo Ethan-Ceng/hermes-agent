@@ -6,6 +6,7 @@ late-bound via ``_kb`` (import-cycle breaking) so monkeypatching
 """
 
 from __future__ import annotations
+from hermes_db.domains.kanban import rules as _storage_shared_1
 
 import contextlib
 import hashlib
@@ -705,7 +706,7 @@ def _refuse_dead_board_resurrection(path: Path, board: Optional[str]) -> None:
                 )
         return
     try:
-        slug = _kb._normalize_board_slug(board)
+        slug = _storage_shared_1._normalize_board_slug(board)
     except ValueError:
         return  # malformed slug: let the later open surface the error
     if not slug or slug == _kb.DEFAULT_BOARD:
@@ -724,7 +725,7 @@ def connect(db_path: Optional[Path] = None, *, board: Optional[str] = None) -> s
     ``_INITIALIZED_PATHS``. Path: explicit ``db_path``, else ``board``, else
     :func:`kanban_db_path` (``HERMES_KANBAN_DB`` -> ``HERMES_KANBAN_BOARD`` ->
     ``<root>/kanban/current`` -> ``default``)."""
-    from hermes_db.domains.kanban.routing.worker import connect_worker_board
+    from hermes_db.integration.kanban_worker import connect_worker_board
     worker = connect_worker_board(db_path, board=board)
     if worker is not None:
         return worker

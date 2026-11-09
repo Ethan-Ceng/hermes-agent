@@ -9,6 +9,7 @@ subprocess — a multi-profile host's default ``gh`` login cannot read another
 org's private repos (#122689).
 """
 from __future__ import annotations
+from hermes_db.domains.kanban.rules import _PR, validate_contract
 
 import json
 import re
@@ -16,16 +17,8 @@ import subprocess
 from pathlib import Path
 from urllib.parse import quote
 
-_REPO = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
-_PR = re.compile(r"https://github\.com/([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)/pull/([1-9][0-9]*)")
 
 
-def validate_contract(value: str | None) -> str:
-    if value is None or value == "local-only":
-        return "local-only"
-    if not isinstance(value, str) or not (_REPO.fullmatch(value) or _PR.fullmatch(value)):
-        raise ValueError("completion_contract must be local-only, OWNER/REPO, or an exact GitHub PR URL")
-    return value
 
 
 def _api(endpoint: str, *, query: str | None = None, paginate: bool = False,

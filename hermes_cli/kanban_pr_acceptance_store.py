@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 from hermes_cli.kanban_db_connect import write_txn
-from hermes_cli.kanban_pr_acceptance import _PR, collect_acceptance
+from hermes_db.domains.kanban.rules import _PR
+from hermes_cli.kanban_pr_acceptance import collect_acceptance
 
 
 def _snapshot(conn, task_id):

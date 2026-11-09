@@ -1,10 +1,11 @@
 """Kanban effects workflow; original connection, fence and off-connection effect boundaries are preserved."""
+import logging
+_kanban_logger = logging.getLogger("hermes_cli.kanban_db")
 import json
 from types import SimpleNamespace
 from uuid import uuid4
 from sqlalchemy import delete, func, or_, select, update
 from hermes_db.domains.kanban.api import BoardResource
-from hermes_db.domains.kanban.routing.files import board_files
 from hermes_db.core.resource import DomainResource
 from hermes_db.domains.kanban.postgres import repository as repo
 from hermes_db.tables.kanban import kanban_boards
@@ -36,8 +37,8 @@ def _claim(resource, effect_id):
         return row
 
 def _invoke(store, step):
-    from hermes_cli import kanban_db as kb
-    handlers = {'ready': lambda: kb.recompute_ready(store), 'workspace': lambda: kb._cleanup_workspace(store, step['task_id']), 'phantom': lambda: kb._flag_phantom_prose_refs(store, step['task_id'], step['run_id'], step['summary'], step['result'], step['verified']), 'hook': lambda: kb._fire_task_hook(step['event'], SimpleNamespace(assignee=step['assignee']), step['task_id'], step['run_id'], board=step['board'], **step['fields'])}
+
+    handlers = {'ready': lambda: store.recompute_ready(), 'workspace': lambda: store._cleanup_workspace(step['task_id']), 'phantom': lambda: store._flag_phantom_prose_refs(step['task_id'], step['run_id'], step['summary'], step['result'], step['verified']), 'hook': lambda: store.observers.fire_task_hook(step['event'], SimpleNamespace(assignee=step['assignee']), step['task_id'], step['run_id'], board=step['board'], **step['fields'])}
     handlers[step['kind']]()
 
 def _run(resource, row):
@@ -45,7 +46,7 @@ def _run(resource, row):
     with resource.read() as conn:
         slug, archived = conn.execute(select(kanban_boards.c.slug, kanban_boards.c.archived).where(kanban_boards.c.store_id == resource.scope.require_store_id(), kanban_boards.c.board_id == row['board_id'])).one()
     steps = json.loads(bytes(row['payload']))
-    with BoardResource(resource, row['board_id'], slug) as board, board_files(board):
+    with BoardResource(resource, row['board_id'], slug) as board, board._operation_scope():
         for phase in range(row['phase'], len(steps)):
             with DomainResource.write(resource) as conn:
                 changed = conn.execute(update(effects).where(_key(resource, row), effects.c.claim == row['claim']).values(expires_at=func.extract('epoch', func.clock_timestamp()) + 300)).rowcount
@@ -67,8 +68,8 @@ def drain(resource, effect_id=None, *, limit=100):
 
 def after_commit(store, effect_id):
     from hermes_db.errors import StorageError
-    from hermes_cli import kanban_db as kb
+
     try:
         drain(store, effect_id, limit=1)
     except (StorageError, OSError) as error:
-        kb._log.warning('Kanban post-commit work remains pending (%s)', type(error).__name__)
+        _kanban_logger.warning('Kanban post-commit work remains pending (%s)', type(error).__name__)

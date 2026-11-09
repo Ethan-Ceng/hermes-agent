@@ -15,7 +15,7 @@ import time
 from datetime import datetime, timezone, UTC
 from typing import Any, Dict, List, Optional, Union
 
-from hermes_state_common import _BOUNDARY_END_REASONS
+from hermes_db.domains.sessions.rules import _BOUNDARY_END_REASONS
 from hermes_time import safe_strftime
 
 # Hidden from browsing/searching — integrations (HERMES_SESSION_SOURCE=tool), delegate

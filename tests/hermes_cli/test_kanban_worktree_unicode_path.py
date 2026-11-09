@@ -13,6 +13,7 @@ form can never decide a path identity question again.
 """
 
 from __future__ import annotations
+from hermes_db.domains.kanban import rules as _storage_shared_1
 
 import subprocess
 import unicodedata
@@ -47,9 +48,9 @@ def test_path_key_ignores_unicode_form():
     decomposed = _nfd(composed)
 
     assert composed != decomposed  # the two forms really are different strings
-    assert kbw._path_key(composed) == kbw._path_key(decomposed)
-    assert kbw._path_key(None) == ""
-    assert kbw._path_key("/tmp/repo-Personlich") != kbw._path_key(composed)
+    assert _storage_shared_1._path_key(composed) == _storage_shared_1._path_key(decomposed)
+    assert _storage_shared_1._path_key(None) == ""
+    assert _storage_shared_1._path_key("/tmp/repo-Personlich") != _storage_shared_1._path_key(composed)
 
 
 @pytest.mark.platforms("macos")
@@ -95,4 +96,4 @@ def test_repo_root_treated_as_repo_root_in_other_unicode_form(tmp_path):
     if composed_root == str(repo):
         pytest.skip("filesystem does not round-trip the name in NFD here")
 
-    assert kbw._path_key(kbw._git_toplevel(Path(composed_root))) == kbw._path_key(repo)
+    assert _storage_shared_1._path_key(kbw._git_toplevel(Path(composed_root))) == _storage_shared_1._path_key(repo)

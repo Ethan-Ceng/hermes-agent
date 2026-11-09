@@ -96,7 +96,7 @@ def test_verified_delete_refuses_new_display_rows_or_new_delegate_targets(store)
 def test_core_retirement_failure_rolls_back_fences_routes_and_callbacks(core_pair, monkeypatch):
     from hermes_db.domains.sessions.postgres.operations import retirement
     from hermes_db.domains.runtime.postgres.queries import runtime
-    from hermes_state_mutation_retirement import RETIRED_PREFIX
+    from hermes_db.domains.runtime.receipts import RETIRED_PREFIX
 
     store, _ = core_pair
     store.create_session("s", "cli")

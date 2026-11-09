@@ -6,6 +6,8 @@ history every poll.
 """
 
 from __future__ import annotations
+from hermes_db.domains.rooms.rules import MAX_ACTIVE_POLICY_EVENTS, MAX_ACTIVE_RETRY_RECEIPTS, MAX_THREAD_TRANSCRIPT_EVENTS, PolicySnapshot, _REOPENED_KINDS, _TERMINAL_KINDS, _TRANSCRIPT_SCHEMA_VERSION, _text
+from hermes_db.domains.rooms import rules as _storage_shared_1
 
 import json
 import sqlite3
@@ -15,19 +17,14 @@ from typing import Any, Callable, Mapping
 
 from gateway import hosted_rooms
 from gateway.hosted_room_task_input import validate_task_input
-from gateway.hosted_rooms_common import DbPath, compact_json, fenced_update
+from gateway.hosted_rooms_common import DbPath, fenced_update
+from hermes_db.domains.rooms.rules import compact_json
 
 
-MAX_ACTIVE_POLICY_EVENTS = 64
 # ``turn.deferred`` receipts come from explicit user retries, not from the configured reply
 # budget, so they are bounded on their own: sizing the reply budget exactly must leave room.
-MAX_ACTIVE_RETRY_RECEIPTS = 64
-MAX_THREAD_TRANSCRIPT_EVENTS = 24
-_TRANSCRIPT_SCHEMA_VERSION = 5  # 5: rebuild threads an old settle closed under a newer message
 MAX_TRANSCRIPT_POLICY_EVENTS = MAX_THREAD_TRANSCRIPT_EVENTS * (MAX_ACTIVE_POLICY_EVENTS + 2)
-_TERMINAL_KINDS = frozenset({"turn.settled", "turn.failed", "turn.cancelled", "turn.deferred"})
 # What a Continue restores into a reopened discussion's active projection (the cap's activity is not one).
-_REOPENED_KINDS = (*sorted(_TERMINAL_KINDS), "message.member", "room.assignment", "room.routed", "room.continued")
 
 _SCHEMA_DDL = (
     """CREATE TABLE IF NOT EXISTS hosted_room_policy_capacity (
@@ -78,20 +75,11 @@ _TRANSCRIPT_EVENTS_SQL = f"""WITH transcript_events(seq) AS (
     ORDER BY events.seq LIMIT ?"""
 
 
-@dataclass(frozen=True)
-class PolicySnapshot:
-    """Bounded active policy input at one durable room-log cursor."""
-    through_seq: int
-    stopped_through_seq: int
-    events: tuple[dict[str, Any], ...]
-    watermarks: Mapping[tuple[str, str], int]
 
 
-_event_from_room_row = hosted_rooms._event_from_row
+_event_from_room_row = _storage_shared_1._event_from_row
 
 
-def _text(mapping: Mapping[str, Any], key: str) -> str:
-    return str(mapping.get(key) or "")
 
 
 def _require_room(conn: sqlite3.Connection, room_id: str) -> None:
@@ -118,7 +106,7 @@ class HostedRoomPolicyCheckpoint:
     def __new__(cls, db_path, *, max_active_events=MAX_ACTIVE_POLICY_EVENTS):
         from hermes_db.domains.rooms.api import is_postgresql_location
         if is_postgresql_location(db_path):
-            from hermes_db.domains.rooms.postgres.policy_store import PostgresRoomPolicy
+            from hermes_db.integration.room_policy import PostgresRoomPolicy
             return PostgresRoomPolicy(db_path, max_active_events=max_active_events)
         return super().__new__(cls)
 

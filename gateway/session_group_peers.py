@@ -105,8 +105,8 @@ def register(service, params):
     from gateway.hosted_room_peer import (
         GatewayRoomCatalog, HostedRoomPeerError, PROTOCOL_VERSION,
         room_grant_matches_scope, validate_room_link_url)
-    from gateway.hosted_rooms import (
-        HostedRoomError, OwedRevokesFullError, RoomNotFoundError, room_state)
+    from hermes_db.domains.rooms.rules import HostedRoomError, OwedRevokesFullError, RoomNotFoundError
+    from gateway.hosted_rooms import room_state
     from tui_gateway.hosted_room_peer_http import PeerRunsHTTPClient
     from tui_gateway.hosted_room_peer_transport import PeerMemberRoute, route_identity
     room_id, member_id, profile, grant = (params.get(k) for k in ('room_id', 'member_id', 'target_profile', 'grant'))

@@ -1,16 +1,16 @@
 """Compute-only public metrics facade; all durable effects belong to the adopted owner."""
 
-from agent.runtime_domain_store import worker_resource
-from hermes_cli.observability.shared_metrics import SharedMetricsStore
+from pathlib import Path
+from hermes_db.domains.metrics.policy import MetricsPolicy
 from hermes_db.errors import StorageConfigurationError
 
 
-class WorkerMetricsStore(SharedMetricsStore):
+class WorkerMetricsStore(MetricsPolicy):
     backend = 'postgresql'
     owner_managed = True
 
-    def __init__(self, database_path=None, outbox_directory=None, *, profile_home=None):
-        self.reference = worker_resource('metrics', profile_home=profile_home)
+    def __init__(self, reference):
+        self.reference = reference
         self.profile_home = self.reference.scope.profile_home
         self.database_path = None
         self.outbox_directory = None
@@ -73,3 +73,10 @@ class WorkerMetricsStore(SharedMetricsStore):
 
     def drain_deferred(self, **kwargs):
         self.reference.store.flush_token_counts()
+
+
+    def consented_day(self, start):
+        raise StorageConfigurationError('Worker metrics expose owner operations, not a connection')
+
+    def create_and_export_package(self) -> list[Path]:
+        raise StorageConfigurationError('Worker metrics expose owner operations, not a connection')

@@ -110,7 +110,7 @@ def test_core_local_route_and_receipt_advance_atomically_with_child(core_pair):
     from hermes_db.domains.sessions.postgres.queries.lineage import physical_target
     from hermes_db.tables.gateway import gateway_routing
     from hermes_state_keys import local_identity
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     from hermes_state_runtime import RuntimeStoreError
 
     store, _ = core_pair

@@ -14,6 +14,8 @@ notifier, slash command and dispatcher keep working without a new service.
 """
 
 from __future__ import annotations
+from hermes_db.domains.kanban.rules import require_swarm_text as _require_text
+from hermes_db.domains.kanban.rules import BLACKBOARD_PREFIX, merge_blackboard
 
 from dataclasses import asdict, dataclass, field
 import json
@@ -24,7 +26,6 @@ from typing import Any, Iterable, Optional
 from hermes_cli import kanban_db as kb
 from hermes_db.domains.kanban.api import domain_operation
 
-BLACKBOARD_PREFIX = "[swarm:blackboard] "
 
 
 @dataclass(frozen=True)
@@ -52,11 +53,6 @@ class SwarmCreated:
         return asdict(self)
 
 
-def _require_text(value: str, field_name: str) -> str:
-    text = (value or "").strip()
-    if not text:
-        raise ValueError(f"{field_name} is required")
-    return text
 
 
 def _swarm_context(root_id: str, goal: str) -> str:
@@ -220,25 +216,6 @@ def latest_blackboard(conn: sqlite3.Connection, root_id: str) -> dict[str, Any]:
     return merge_blackboard(kb.list_comments(conn, root_id))
 
 
-def merge_blackboard(comments) -> dict[str, Any]:
-    merged: dict[str, Any] = {}
-    authors: dict[str, str] = {}
-    for comment in comments:
-        body = comment.body or ""
-        if not body.startswith(BLACKBOARD_PREFIX):
-            continue
-        try:
-            payload = json.loads(body[len(BLACKBOARD_PREFIX):])
-        except json.JSONDecodeError:
-            continue
-        key = payload.get("key")
-        if not isinstance(key, str) or not key:
-            continue
-        merged[key] = payload.get("value")
-        authors[key] = comment.author
-    if authors:
-        merged["_authors"] = authors
-    return merged
 
 
 def parse_worker_arg(raw: str) -> SwarmWorkerSpec:

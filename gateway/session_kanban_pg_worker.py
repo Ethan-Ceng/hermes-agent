@@ -2,7 +2,7 @@
 
 import os
 
-from hermes_db.domains.kanban.routing.wire import unpack, CommandRefusal
+from hermes_db.integration.kanban_wire import unpack, CommandRefusal
 
 
 def _owner_call(operation, payload, *, command):
@@ -24,7 +24,7 @@ def record_result(code, last_output):
 
 
 def bind(context):
-    from hermes_db.domains.kanban.routing.worker import bind_worker_board
+    from hermes_db.integration.kanban_worker import bind_worker_board
     bind_worker_board(context)
     ttl = _owner_call("worker.bind", {}, command=True)
     _watch_submitter()
@@ -51,7 +51,7 @@ def _watch_submitter():
 
 
 def record_loss(context, reason, *, pid, bound):
-    from hermes_db.domains.kanban.routing.owner import open_board_owner
+    from hermes_db.integration.kanban_owner import open_board_owner
     from hermes_db.domains.kanban.postgres.owners import record_loss as write_loss
     with open_board_owner(context["owner"]) as store:
         write_loss(store, context, reason, pid=pid, bound=bound)

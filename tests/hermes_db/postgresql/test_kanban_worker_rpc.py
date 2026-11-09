@@ -10,8 +10,8 @@ import pytest
 from gateway.session_worker_kanban import worker_kanban
 from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
 from hermes_db.access import open_session_store
-from hermes_db.domains.kanban.routing.owner import board_reference
-from hermes_db.domains.kanban.routing.wire import CommandRefusal, pack, unpack
+from hermes_db.integration.kanban_owner import board_reference
+from hermes_db.integration.kanban_wire import CommandRefusal, pack, unpack
 from hermes_db.integration.runtime_access import runtime_for_store
 from hermes_state_runtime import RuntimeStoreError
 

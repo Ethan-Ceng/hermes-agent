@@ -230,10 +230,9 @@ class SessionMessages:
             return _resume_count(conn, self._context.scope, session_id, tip_only)
 
     def assert_resume_safe(self, session_id, max_messages=None, *, tip_only=False):
-        from hermes_state import SessionResumeTooLargeError, resolved_max_resume_messages
         if max_messages is None:
             with self._context.profile.activate():
-                max_messages = resolved_max_resume_messages()
+                max_messages = self._context.transcript_limits.resume_limit()
         if max_messages < 0:
             raise ValueError('max_messages must be non-negative')
         if max_messages == 0:
@@ -241,7 +240,7 @@ class SessionMessages:
         with self._context.read() as conn:
             count = _resume_count(conn, self._context.scope, session_id, tip_only, max_messages + 1)
         if count > max_messages:
-            raise SessionResumeTooLargeError(count, max_messages, scope='in its tip segment' if tip_only else 'across its lineage')
+            raise self._context.transcript_limits.resume_error(count, max_messages, scope='in its tip segment' if tip_only else 'across its lineage')
         return count
 
     def get_ancestor_display_prefix(self, session_id):

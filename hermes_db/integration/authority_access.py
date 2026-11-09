@@ -6,7 +6,7 @@ from hermes_db.integration.runtime_access import runtime_for_store
 
 def validate_import(db, payload):
     if is_postgresql_store(db):
-        from hermes_db.integration.transfer.portability_values import values
+        from hermes_db.domains.sessions.import_rules import values
         return values._validate_import_payload(payload)
     return db._validate_import_payload(payload)
 
@@ -65,7 +65,7 @@ def commit_chat_pick(db, **kwargs):
 
 
 def has_mutation_receipt(db, principal_id, session_id, request_id):
-    from hermes_state_runtime import _text, mutation_receipt_key
+    from hermes_db.domains.runtime.values import _text, mutation_receipt_key
     for value in (principal_id, session_id, request_id):
         _text(value)
     key, _ = mutation_receipt_key(principal_id, session_id, request_id,
@@ -103,7 +103,7 @@ def is_compression_child(db, child):
 def history_binding_names(db, saved, actor):
     if is_postgresql_store(db):
         from hermes_db.domains.sessions.postgres.queries.mutation_binding import binding_names
-        return binding_names(saved, db.scope, actor.subject)
+        return binding_names(saved, db.scope, actor.subject, ownership=db._context.ownership)
     from hermes_state_mutation_binding import binding_names
     return binding_names(saved, actor.subject)
 
@@ -117,3 +117,24 @@ def authorize_history(authority, actor, session_id):
     with authority.db._read_ctx() as conn:
         require_history_claim(authority, conn, actor, session_id)
         return sqlite_authorize(conn, actor, session_id)
+
+
+def verify_worker_delegation_owner(execution_id, worker_pid, worker_birth):
+    """Capture process proof before acquiring any database connection or lock."""
+    from hermes_db.domains.runtime.values import (
+        VerifiedDelegationOwner, RuntimeStoreError, delegation_text as _text, delegation_number as _number,
+    )
+    import psutil
+    from hermes_cli import process_identity
+    from gateway.status import get_process_start_time
+    _text(execution_id)
+    if type(worker_pid) is not int or worker_pid <= 0:
+        raise RuntimeStoreError("invalid_params")
+    _number(worker_birth)
+    try:
+        if process_identity.worker_birth(psutil.Process(worker_pid)) != worker_birth:
+            raise RuntimeStoreError("permission_denied")
+        started_at = get_process_start_time(worker_pid)
+    except psutil.Error:
+        raise RuntimeStoreError("worker_not_live") from None
+    return VerifiedDelegationOwner(execution_id, worker_pid, worker_birth, started_at)

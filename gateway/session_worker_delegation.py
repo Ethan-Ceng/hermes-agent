@@ -3,6 +3,7 @@
 The caller must supply the verified registration's execution/PID/birth, never
 operation payload identity. No handler opens a database or commits independently.
 """
+from hermes_db.domains.runtime.values import DELEGATION_EVENT_KEYS as _EVENT_KEYS, DELEGATION_ROUTE as _ROUTE, DELEGATION_TASK_KEYS as _TASK_KEYS, delegation_number as _number, delegation_shape as _shape, delegation_text as _text
 from functools import partial
 import json
 import math
@@ -10,29 +11,12 @@ import time
 
 from hermes_state_runtime import RuntimeStoreError
 
-_TASK_KEYS = {'goal', 'goals', 'context', 'toolsets', 'role', 'model', 'is_batch', 'task_indexes'}
-_ROUTE = {'session_key': 'origin_session', 'parent_session_id': 'parent_session_id',
-          'origin_ui_session_id': 'origin_ui_session_id', 'origin_session_id': 'origin_session_id'}
-_EVENT_KEYS = _TASK_KEYS | set(_ROUTE) | {
-    'type', 'delegation_id', 'status', 'completed_at', 'dispatched_at', 'summary', 'error',
-    'api_calls', 'duration_seconds', 'total_duration_seconds', 'results', 'live_transcripts',
-    'group', 'exit_reason', 'stalled_after_quiet_seconds', 'stall_threshold_seconds',
-    'stall_phase', 'stall_grace_seconds'}
 
 
-def _shape(payload, keys):
-    if not isinstance(payload, dict) or set(payload) != set(keys):
-        raise RuntimeStoreError('invalid_params')
 
 
-def _text(value):
-    if not isinstance(value, str) or not value or len(value) > 512:
-        raise RuntimeStoreError('invalid_params')
 
 
-def _number(value):
-    if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
-        raise RuntimeStoreError('invalid_params')
 
 
 def _owned(conn, session_id, execution_id, delegation_id):
@@ -197,7 +181,7 @@ def persist_worker_delegation(db, *, epoch, execution_id, session_id, generation
     from hermes_db.integration.runtime_calls import apply_worker_receipt
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(db):
-        from hermes_db.domains.runtime.postgres.operations.worker_delegations import verify_owner
+        from hermes_db.integration.authority_access import verify_worker_delegation_owner as verify_owner
         from hermes_db.integration.runtime_access import runtime_for_store
         owner = verify_owner(execution_id, worker_pid, worker_birth)
         return runtime_for_store(db).persist_delegation(owner=owner, epoch=epoch, execution_id=execution_id,

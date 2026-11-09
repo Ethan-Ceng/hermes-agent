@@ -77,7 +77,7 @@ async def apply_chat_pick(authority, ref, owner, live, params, *, principal_id):
     mount's revision, so a retry of an older pick refuses ``revision_conflict``."""
     from hermes_state_mutation_chat_pick import chat_pick_key
     from hermes_db.integration.authority_access import commit_chat_pick, prepare_chat_pick
-    from hermes_state_mutations import validate_action
+    from hermes_db.domains.runtime.mutation_rules import validate_action
     operation, payload = params['operation'], params['payload']
     validate_action(operation, payload)
     key, digest = chat_pick_key(principal_id, owner.session_id, params)

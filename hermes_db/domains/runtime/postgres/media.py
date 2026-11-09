@@ -3,15 +3,14 @@ import json
 from sqlalchemy import select
 from hermes_db.domains.sessions.postgres.queries import media, sessions
 from hermes_db.tables.runtime import session_admissions as table
-from hermes_state_runtime import _json
+from hermes_db.domains.runtime.values import _json
 
-def _compact(raw, request):
-    from gateway.session_api_media import _compacted
+def _compact(raw, request, *, compact_images):
     payload = json.loads(raw)
     data = payload.get('api_turn_v1')
     if not isinstance(data, dict):
         return None
-    text = _compacted(payload.get('text'), data.get('media'))
+    text = compact_images(payload.get('text'), data.get('media'))
     drop = isinstance(data.get('history'), list) and (not request.startswith('responses:'))
     if text is None and (not drop):
         return None
@@ -23,19 +22,18 @@ class RuntimeMedia:
         self._context = context
 
     def settled_native_media(self):
-        from gateway.session_ingress_media import admission_media_references
+        from gateway.session_contract import admission_media_references
         with self._context.read() as conn:
             rows = conn.scalars(select(table.c.payload_json).where(table.c.store_id == self._context.scope.require_store_id(), table.c.status == 'terminal').execution_options(yield_per=128))
             return [reference for raw in rows for reference in admission_media_references(json.loads(raw))]
 
     def release_media(self, references, *, retain_history=True):
-        from hermes_db.domains.sessions.postgres.support.retired_media import release
-        return release(self._context.session, references, retain_history=retain_history)
+        return self._context.session.effects.release_media(self._context.session, references, retain_history=retain_history)
 
     def retire_refused_media(self, references):
         with self._context.write() as conn:
             sessions.lock_store(conn, self._context.scope, exclusive=True)
-            media.retire_admission(conn, self._context.scope, {'attachments_v1': {'media': references}}, '')
+            media.retire_admission(conn, self._context.scope, references)
         self._context.collect_retired_media()
 
     def compact_api_payloads(self, admission_id=None):
@@ -49,7 +47,7 @@ class RuntimeMedia:
                 rows = conn.execute(query).all()
                 for seq, row_id, raw, request in rows:
                     cursor = seq
-                    payload = _compact(raw, request)
+                    payload = _compact(raw, request, compact_images=self._context.session.media.compact_images)
                     if payload is not None:
                         conn.execute(table.update().where(table.c.store_id == self._context.scope.require_store_id(), table.c.admission_id == row_id, table.c.status == 'terminal').values(payload_json=_json(payload)))
                         total += 1

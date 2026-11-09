@@ -1,8 +1,9 @@
 """Kanban swarm workflow; original connection, fence and off-connection effect boundaries are preserved."""
+from hermes_db.domains.kanban import rules as _storage_shared_1
 import json
 import time
 from sqlalchemy import select
-from hermes_cli import kanban_swarm as swarm
+
 from hermes_cli.kanban_swarm_plan import plan_swarm
 from hermes_db.domains.kanban.postgres import catalog as create
 from hermes_db.domains.kanban.postgres import repository as repo, runs as run_repo
@@ -10,9 +11,9 @@ from hermes_db.tables.kanban import tasks, comments
 from hermes_db.core.values import decode_text, encode_text
 
 def _blackboard(conn, store, root):
-    from hermes_cli.kanban_db import Comment
+
     rows = conn.execute(select(comments).where(repo.key(store, root, comments)).order_by(comments.c.created_at, comments.c.id)).mappings()
-    return swarm.merge_blackboard(Comment.from_row(repo.decode_record(row)) for row in rows)
+    return _storage_shared_1.merge_blackboard(store.result_values.comment(repo.decode_record(row)) for row in rows)
 
 def _insert(conn, store, prepared, *, parents=None, suffix=''):
     fields, (values, project, project_repo, path_keys) = prepared
@@ -36,18 +37,18 @@ def _existing(conn, store, root):
         return None
     workers = [str(value) for value in topology.get('worker_ids', ()) if value]
     verifier, synthesizer = (topology.get('verifier_id'), topology.get('synthesizer_id'))
-    return swarm.SwarmCreated(root, workers, str(verifier), str(synthesizer)) if workers and verifier and synthesizer else None
+    return store.result_values.swarm_created(root, workers, str(verifier), str(synthesizer)) if workers and verifier and synthesizer else None
 
 def _build(conn, store, plan, prepared):
     root = _root(conn, store, prepared['root'])
     created = _existing(conn, store, root)
     if created is None:
-        suffix = swarm._swarm_context(root, plan['goal'])
+        suffix = store.policy.swarm_context(root, plan['goal'])
         workers = [_insert(conn, store, item, parents=[root], suffix=suffix) for item in prepared['workers']]
         verifier = _insert(conn, store, prepared['verifier'], parents=workers, suffix=suffix)
         synthesizer = _insert(conn, store, prepared['synthesizer'], parents=[verifier], suffix=suffix)
-        created = swarm.SwarmCreated(root, workers, verifier, synthesizer)
-        body = swarm.BLACKBOARD_PREFIX + json.dumps({'key': 'topology', 'value': created.as_dict() | {'goal': plan['goal']}}, ensure_ascii=False, sort_keys=True)
+        created = store.result_values.swarm_created(root, workers, verifier, synthesizer)
+        body = _storage_shared_1.BLACKBOARD_PREFIX + json.dumps({'key': 'topology', 'value': created.as_dict() | {'goal': plan['goal']}}, ensure_ascii=False, sort_keys=True)
         repo.comment(conn, store, root, plan['created_by'], body, int(time.time()))
         repo.event(conn, store, root, 'commented', {'author': plan['created_by'], 'len': len(body)})
     task = repo.require_task(conn, store, root)
@@ -60,7 +61,7 @@ def _build(conn, store, plan, prepared):
     return (created, activated)
 
 def create_swarm(store, **fields):
-    from hermes_cli import kanban_db as kb
+
     plan = plan_swarm(**fields)
 
     def prepare(value):
@@ -70,7 +71,7 @@ def create_swarm(store, **fields):
     with store.write() as conn:
         created, activated = _build(conn, store, plan, prepared)
     if activated:
-        kb.recompute_ready(store)
-        root, run = (kb.get_task(store, created.root_id), kb.latest_run(store, created.root_id))
-        kb._fire_kanban_lifecycle_hook('kanban_task_completed', created.root_id, board=store.slug, assignee=root.assignee, run_id=run.id, summary=run.summary)
+        store.recompute_ready()
+        root, run = (store.get_task(created.root_id), store.latest_run(created.root_id))
+        store.observers.fire_kanban_lifecycle_hook('kanban_task_completed', created.root_id, board=store.slug, assignee=root.assignee, run_id=run.id, summary=run.summary)
     return created

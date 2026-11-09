@@ -4,7 +4,7 @@ def plan_swarm(*, goal, workers, verifier_assignee, synthesizer_assignee, root_t
                verifier_title="Verify swarm outputs", synthesizer_title="Synthesize swarm outputs",
                tenant=None, created_by="swarm-orchestrator", workspace_kind=None, workspace_path=None,
                priority=0, idempotency_key=None):
-    from hermes_cli.kanban_swarm import _require_text
+    from hermes_db.domains.kanban.rules import require_swarm_text as _require_text
     goal = _require_text(goal, "goal")
     verifier_assignee = _require_text(verifier_assignee, "verifier_assignee")
     synthesizer_assignee = _require_text(synthesizer_assignee, "synthesizer_assignee")

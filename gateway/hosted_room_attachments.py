@@ -8,8 +8,10 @@ room's frozen recipient roster.
 """
 
 from __future__ import annotations
+from hermes_db.domains.rooms.attachments.files import AttachmentContent
+from hermes_db.domains.rooms.attachments.rules import AttachmentConflictError, AttachmentData, AttachmentError, AttachmentIntegrityError, AttachmentNotFoundError, AttachmentQuotaError, DISBANDED_GRACE_SECONDS, MAX_ATTACHMENTS_PER_MESSAGE, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENT_MIME_CHARS, MAX_ATTACHMENT_NAME_CHARS, MAX_GATEWAY_ATTACHMENT_COUNT, MAX_GATEWAY_BLOB_BYTES, MAX_IDENTIFIER_CHARS, MAX_MESSAGE_ATTACHMENT_BYTES, MAX_ROOM_ATTACHMENT_BYTES, MAX_ROOM_ATTACHMENT_COUNT, MAX_ROOM_UNCOMMITTED_BYTES, MAX_ROOM_UNCOMMITTED_COUNT, MAX_TASK_ATTACHMENTS, MAX_TASK_ATTACHMENT_BYTES, UNCOMMITTED_TTL_SECONDS, _BLOB_ID_RE, _attachment_id, _identifier, _kind, _mime, _name, _validate_mime_and_kind, fold_catalog_text, validate_manifest, validate_task_manifest
 
-from gateway.hosted_rooms import EventAttachmentConflictError
+from hermes_db.domains.rooms.rules import EventAttachmentConflictError
 from hermes_dir_acl import make_user_dir
 
 import base64
@@ -31,63 +33,23 @@ from pathlib import Path
 from typing import Any, Callable, Iterator, Mapping, Sequence
 
 
-MAX_ATTACHMENTS_PER_MESSAGE = 8
-MAX_ATTACHMENT_BYTES = 15_000_000
-MAX_MESSAGE_ATTACHMENT_BYTES = 25_000_000
-MAX_ROOM_ATTACHMENT_BYTES = 512 * 1024 * 1024
-MAX_GATEWAY_BLOB_BYTES = 2 * 1024 * 1024 * 1024
-MAX_ROOM_ATTACHMENT_COUNT = 50_000
-MAX_GATEWAY_ATTACHMENT_COUNT = 200_000
-MAX_ROOM_UNCOMMITTED_BYTES = 100 * 1024 * 1024
-MAX_ROOM_UNCOMMITTED_COUNT = 64
-MAX_TASK_ATTACHMENTS = 16
-MAX_TASK_ATTACHMENT_BYTES = 50_000_000
-UNCOMMITTED_TTL_SECONDS = 60 * 60
-DISBANDED_GRACE_SECONDS = 15 * 60
 CLASSIC_ATTACHMENT_TTL_SECONDS = 7 * 24 * 60 * 60
 
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
-MAX_ATTACHMENT_NAME_CHARS = 255
-MAX_ATTACHMENT_MIME_CHARS = 127
-MAX_IDENTIFIER_CHARS = 128
-
-_ATTACHMENT_FIELDS = frozenset({"attachment_id", "kind", "name", "size", "mime"})
-_ATTACHMENT_KINDS = frozenset({"image", "pdf", "file"})
-_ATTACHMENT_ID_RE = re.compile(r"^att_[0-9a-f]{32}$")
-_BLOB_ID_RE = re.compile(r"^blob_[0-9a-f]{32}$")
-_IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
-_MIME_RE = re.compile(
-    r"^[A-Za-z0-9][A-Za-z0-9!#$&^_.+-]*/[A-Za-z0-9][A-Za-z0-9!#$&^_.+-]*$"
-)
 
 
-class AttachmentError(ValueError):
-    """Base class for hosted-room attachment contract failures."""
 
 
-class AttachmentNotFoundError(AttachmentError):
-    """The attachment id is unknown, expired, or unavailable to this caller."""
 
 
-class AttachmentConflictError(AttachmentError):
-    """An idempotency or ownership key was reused with different content."""
 
 
-class AttachmentQuotaError(AttachmentError):
-    """A bounded room or gateway quota would be exceeded."""
 
 
-class AttachmentIntegrityError(AttachmentError):
-    """Canonical blob bytes no longer match their durable metadata."""
 
 
-@dataclass(frozen=True)
-class AttachmentData:
-    """Verified canonical bytes plus safe attachment metadata."""
 
-    attachment: dict[str, Any]
-    data: bytes
 
 
 def default_attachment_root(db_path: Path | str) -> Path:
@@ -98,103 +60,18 @@ def default_attachment_root(db_path: Path | str) -> Path:
     return Path(db_path).parent / "hosted-room-attachments"
 
 
-def _identifier(value: Any, *, label: str) -> str:
-    if not isinstance(value, str):
-        raise AttachmentError(f"{label} must be a string")
-    normalized = value.strip()
-    if (
-        not normalized
-        or len(normalized) > MAX_IDENTIFIER_CHARS
-        or _IDENTIFIER_RE.fullmatch(normalized) is None
-    ):
-        raise AttachmentError(f"invalid {label}")
-    return normalized
 
 
-def _attachment_id(value: Any) -> str:
-    if not isinstance(value, str) or _ATTACHMENT_ID_RE.fullmatch(value) is None:
-        raise AttachmentError("invalid attachment_id")
-    return value
 
 
-def _name(value: Any) -> str:
-    if not isinstance(value, str):
-        raise AttachmentError("attachment name must be a string")
-    normalized = value.strip()
-    try:
-        normalized.encode("utf-8")
-    except UnicodeError:
-        raise AttachmentError("attachment name must contain valid Unicode") from None
-    if (
-        not normalized
-        or len(normalized) > MAX_ATTACHMENT_NAME_CHARS
-        or normalized in {".", ".."}
-        or any(token in normalized for token in ("/", "\\", "\x00", "\n", "\r"))
-    ):
-        raise AttachmentError("attachment name must be a bounded basename")
-    return normalized
 
 
-def _mime(value: Any) -> str:
-    if not isinstance(value, str):
-        raise AttachmentError("attachment mime must be a string")
-    normalized = value.strip().lower()
-    if (
-        not normalized
-        or len(normalized) > MAX_ATTACHMENT_MIME_CHARS
-        or _MIME_RE.fullmatch(normalized) is None
-    ):
-        raise AttachmentError("attachment mime is invalid")
-    return normalized
 
 
-def _kind(value: Any) -> str:
-    if not isinstance(value, str) or value not in _ATTACHMENT_KINDS:
-        raise AttachmentError("attachment kind must be image, pdf, or file")
-    return value
 
 
-def _sniff_known_mime(data: bytes) -> str:
-    if data.startswith(b"\x89PNG\r\n\x1a\n"):
-        return "image/png"
-    if data.startswith(b"\xff\xd8\xff"):
-        return "image/jpeg"
-    if data.startswith((b"GIF87a", b"GIF89a")):
-        return "image/gif"
-    if data.startswith(b"BM"):
-        return "image/bmp"
-    if len(data) >= 12 and data.startswith(b"RIFF") and data[8:12] == b"WEBP":
-        return "image/webp"
-    if data.startswith(b"%PDF-"):
-        return "application/pdf"
-    if data.startswith(b"PK\x03\x04"):
-        return "application/zip"
-    if data.startswith(b"\x1f\x8b"):
-        return "application/gzip"
-    if b"\x00" not in data:
-        try:
-            data.decode("utf-8")
-        except UnicodeDecodeError:
-            pass
-        else:
-            return "text/plain"
-    return "application/octet-stream"
 
 
-def _validate_mime_and_kind(data: bytes, *, kind: str, mime: str) -> None:
-    sniffed = _sniff_known_mime(data)
-    if kind == "image":
-        if not mime.startswith("image/") or sniffed != mime:
-            raise AttachmentError("image bytes do not match the declared MIME type")
-        return
-    if kind == "pdf":
-        if mime != "application/pdf" or sniffed != "application/pdf":
-            raise AttachmentError("PDF bytes do not match application/pdf")
-        return
-    if mime.startswith("image/") or mime == "application/pdf":
-        raise AttachmentError("image and PDF MIME types require their matching kind")
-    if mime.startswith("text/") and sniffed != "text/plain":
-        raise AttachmentError("text bytes do not match the declared MIME type")
     # Generic files are opaque bytes. ZIP and gzip are container formats used
     # by many non-archive MIME types (DOCX, XLSX, PPTX, EPUB, JAR, APK, etc.).
     # Only image and PDF payloads are security-sensitive enough to require an
@@ -228,68 +105,10 @@ def encode_content_base64(data: bytes) -> str:
     return base64.b64encode(data).decode("ascii")
 
 
-def _safe_manifest_entry(value: Any) -> dict[str, Any]:
-    if not isinstance(value, Mapping):
-        raise AttachmentError("each attachment manifest entry must be an object")
-    fields = frozenset(value)
-    if fields != _ATTACHMENT_FIELDS:
-        unknown = fields - _ATTACHMENT_FIELDS
-        missing = _ATTACHMENT_FIELDS - fields
-        if unknown:
-            raise AttachmentError(
-                f"attachment manifest has unknown fields: {', '.join(sorted(unknown))}"
-            )
-        raise AttachmentError(
-            f"attachment manifest is missing fields: {', '.join(sorted(missing))}"
-        )
-    size = value["size"]
-    if isinstance(size, bool) or not isinstance(size, int) or not 0 < size <= MAX_ATTACHMENT_BYTES:
-        raise AttachmentError("attachment size is outside the per-file limit")
-    kind = _kind(value["kind"])
-    mime = _mime(value["mime"])
-    if kind == "image" and not mime.startswith("image/"):
-        raise AttachmentError("image attachments require an image MIME type")
-    if kind == "pdf" and mime != "application/pdf":
-        raise AttachmentError("PDF attachments require application/pdf")
-    return {
-        "attachment_id": _attachment_id(value["attachment_id"]),
-        "kind": kind,
-        "name": _name(value["name"]),
-        "size": size,
-        "mime": mime,
-    }
 
 
-def validate_manifest(value: Any) -> list[dict[str, Any]]:
-    if not isinstance(value, list):
-        raise AttachmentError("attachments must be a list")
-    if len(value) > MAX_ATTACHMENTS_PER_MESSAGE:
-        raise AttachmentError(
-            f"attachments must contain at most {MAX_ATTACHMENTS_PER_MESSAGE} entries"
-        )
-    normalized = [_safe_manifest_entry(entry) for entry in value]
-    if len({entry["attachment_id"] for entry in normalized}) != len(normalized):
-        raise AttachmentError("attachment ids must be unique within one message")
-    if sum(entry["size"] for entry in normalized) > MAX_MESSAGE_ATTACHMENT_BYTES:
-        raise AttachmentError("attachments exceed the per-message total size limit")
-    return normalized
 
 
-def validate_task_manifest(value: Any) -> list[dict[str, Any]]:
-    """Validate a bounded aggregate of several already-valid message manifests."""
-
-    if not isinstance(value, list):
-        raise AttachmentError("task attachments must be a list")
-    if len(value) > MAX_TASK_ATTACHMENTS:
-        raise AttachmentError(
-            f"task attachments must contain at most {MAX_TASK_ATTACHMENTS} entries"
-        )
-    normalized = [_safe_manifest_entry(entry) for entry in value]
-    if len({entry["attachment_id"] for entry in normalized}) != len(normalized):
-        raise AttachmentError("task attachment ids must be unique")
-    if sum(entry["size"] for entry in normalized) > MAX_TASK_ATTACHMENT_BYTES:
-        raise AttachmentError("task attachments exceed the aggregate byte limit")
-    return normalized
 
 
 # (state.db, blob root) pairs whose schema, event reconciliation and prune already ran in this
@@ -299,14 +118,14 @@ _STARTED: set[tuple[str, str, int, int] | None] = set()
 _STARTED_LOCK = threading.Lock()
 
 
-class HostedRoomAttachmentStore:
+class HostedRoomAttachmentStore(AttachmentContent):
     """Selected-backend metadata and private, content-deduplicated blob bytes."""
 
     def __new__(cls, db_path, **kwargs):
         from hermes_db.domains.rooms.api import is_postgresql_location
         if cls is HostedRoomAttachmentStore and is_postgresql_location(db_path):
-            from hermes_db.domains.rooms.attachments.postgres.store import PostgresAttachmentStore
-            return object.__new__(PostgresAttachmentStore)
+            from hermes_db.integration.room_attachments import PostgresAttachmentStore
+            return PostgresAttachmentStore(db_path, **kwargs)
         return super().__new__(cls)
 
     def __init__(
@@ -352,14 +171,6 @@ class HostedRoomAttachmentStore:
             return None
         return str(self.db_path.resolve()), str(self.root.resolve()), info.st_dev, info.st_ino
 
-    def _prepare_private_root(self) -> None:
-        make_user_dir(self.root, parents=True, exist_ok=True, mode=0o700)
-        make_user_dir(self.blob_root, parents=True, exist_ok=True, mode=0o700)
-        for path in (self.root, self.blob_root):
-            try:
-                os.chmod(path, 0o700)
-            except OSError:
-                pass
 
     def _initialize(self, conn: sqlite3.Connection) -> None:
         conn.execute(
@@ -453,74 +264,11 @@ class HostedRoomAttachmentStore:
         finally:
             conn.close()
 
-    def _blob_path(self, blob_id: str) -> Path:
-        if _BLOB_ID_RE.fullmatch(blob_id) is None:
-            raise AttachmentIntegrityError("stored blob id is invalid")
-        return self.blob_root / blob_id
 
-    def _write_blob(self, target: Path, data: bytes) -> None:
-        from utils import atomic_write_bytes
-        # ``.tmp-`` staging names are what the orphan sweep reclaims after a crash.
-        atomic_write_bytes(target, data, tmp_prefix=".tmp-", mode=0o600, fsync_dir=True)
 
-    def _open_blob(self, *, blob_id: str, size: int) -> int:
-        """Open the regular blob file and fence its size against the durable row."""
-        path = self._blob_path(blob_id)
-        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
-        try:
-            descriptor = os.open(path, flags)
-        except OSError as exc:
-            raise AttachmentIntegrityError("canonical attachment blob is unavailable") from exc
-        try:
-            info = os.fstat(descriptor)
-            if not stat.S_ISREG(info.st_mode) or info.st_size != size:
-                raise AttachmentIntegrityError("canonical attachment blob size changed")
-        except BaseException:
-            os.close(descriptor)
-            raise
-        return descriptor
 
-    def _read_blob(self, *, blob_id: str, size: int, sha256: str) -> bytes:
-        descriptor = self._open_blob(blob_id=blob_id, size=size)
-        try:
-            with os.fdopen(descriptor, "rb", closefd=False) as handle:
-                data = handle.read(MAX_ATTACHMENT_BYTES + 1)
-        finally:
-            os.close(descriptor)
-        if len(data) != size or hashlib.sha256(data).hexdigest() != sha256:
-            raise AttachmentIntegrityError("canonical attachment blob failed SHA-256 validation")
-        return data
 
-    def _read_blob_range(self, *, blob_id: str, size: int, offset: int, length: int) -> bytes:
-        """One slice of the blob; the row's SHA-256 is the caller's whole-file digest and the
-        receiver verifies the reassembled bytes against it, so no slice is hashed here."""
-        descriptor = self._open_blob(blob_id=blob_id, size=size)
-        try:
-            with os.fdopen(descriptor, "rb", closefd=False) as handle:
-                handle.seek(offset)
-                data = handle.read(length)
-        finally:
-            os.close(descriptor)
-        if len(data) != min(length, size - offset):
-            raise AttachmentIntegrityError("canonical attachment blob size changed")
-        return data
 
-    @staticmethod
-    def _metadata(row: sqlite3.Row, *, idempotent: bool = False) -> dict[str, Any]:
-        result = {
-            "attachment_id": str(row["attachment_id"]),
-            "kind": str(row["kind"]),
-            "name": str(row["name"]),
-            "size": int(row["size"]),
-            "mime": str(row["mime"]),
-            "sha256": str(row["sha256"]),
-            "state": str(row["state"]),
-            "created_at": float(row["created_at"]),
-            "idempotent": idempotent,
-        }
-        if row["event_id"] is not None:
-            result["event_id"] = str(row["event_id"])
-        return result
 
     def put(
         self,
@@ -680,27 +428,6 @@ class HostedRoomAttachmentStore:
             )
             return self._metadata(row, idempotent=True)
 
-    def commit_message(
-        self,
-        *,
-        room_id: Any,
-        event_id: Any,
-        manifest: Any,
-        recipient_member_ids: Sequence[str],
-        viewer_access: bool = False,
-        retention_seconds: float | None = None,
-        hold_until_event: bool = False,
-    ) -> list[dict[str, Any]]:
-        normalized, _transitioned = self.commit_message_with_receipt(
-            room_id=room_id,
-            event_id=event_id,
-            manifest=manifest,
-            recipient_member_ids=recipient_member_ids,
-            viewer_access=viewer_access,
-            retention_seconds=retention_seconds,
-            hold_until_event=hold_until_event,
-        )
-        return normalized
 
     def commit_message_with_receipt(
         self,
@@ -1363,13 +1090,4 @@ def retain_message_attachments(
         """UPDATE hosted_room_attachments SET expires_at=NULL, updated_at=?
            WHERE attachment_id=?""",
         ((now, entry["attachment_id"]) for entry in normalized),
-    )
-
-
-def fold_catalog_text(value: str) -> str:
-    if value.isascii():
-        return value.lower()
-    return "".join(
-        char for char in unicodedata.normalize("NFKD", value).casefold()
-        if not unicodedata.combining(char)
     )

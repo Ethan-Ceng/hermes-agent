@@ -10,12 +10,11 @@ from hermes_db.core.values import decode_text, encode_text
 _FIELDS = ("id", "source", "title", "started_at", "last_activity_at", "message_count", "user_id", "archived")
 
 
-def roster(conn, scope, subject, operator):
-    from gateway.owner_identity import same_owner
-    from hermes_state_sessions import INTERNAL_LISTING_SOURCES
+def roster(conn, scope, subject, operator, *, same_owner):
+    from hermes_db.domains.sessions.rules import INTERNAL_LISTING_SOURCES
     owned = sessions.c.store_id == scope.require_store_id()
     from hermes_db.tables.runtime import state_meta
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     local = exists(select(state_meta.c.key).where(state_meta.c.store_id == scope.require_store_id(),
         state_meta.c.key == POLICY_PREFIX + sessions.c.chat_id))
     columns = [sessions.c[name] for name in _FIELDS]

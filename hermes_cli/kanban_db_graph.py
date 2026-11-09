@@ -1,5 +1,6 @@
 """Task graph initialization and atomic decomposition persistence."""
 from __future__ import annotations
+from hermes_db.domains.kanban.rules import _validate_children_graph
 
 import sqlite3
 import time
@@ -52,40 +53,6 @@ def initial_task_state(
     return "ready", tenant
 
 
-def _validate_children_graph(children: list) -> None:
-    """DB-free shape check + Kahn's cycle check on the sibling graph (a cycle
-    would deadlock every involved child in ``todo`` forever)."""
-    for idx, child in enumerate(children):
-        if not isinstance(child, dict):
-            raise ValueError(f"child[{idx}] is not a dict")
-        title = child.get("title")
-        if not isinstance(title, str) or not title.strip():
-            raise ValueError(f"child[{idx}].title is required")
-        parents_idx = child.get("parents") or []
-        if not isinstance(parents_idx, list):
-            raise ValueError(f"child[{idx}].parents must be a list")
-        for p in parents_idx:
-            if not isinstance(p, int) or p < 0 or p >= len(children):
-                raise ValueError(f"child[{idx}].parents[{p}] is not a valid index into children")
-            if p == idx:
-                raise ValueError(f"child[{idx}] cannot list itself as a parent")
-
-    in_deg = [0] * len(children)
-    adj: list[list[int]] = [[] for _ in children]
-    for i, c in enumerate(children):
-        for p in (c.get("parents") or []):
-            adj[p].append(i)
-            in_deg[i] += 1
-    queue = [i for i in range(len(children)) if in_deg[i] == 0]
-    seen = 0
-    while queue:
-        seen += 1
-        for nb in adj[queue.pop()]:
-            in_deg[nb] -= 1
-            if in_deg[nb] == 0:
-                queue.append(nb)
-    if seen != len(children):
-        raise ValueError("cyclic dependency detected in decomposed children list")
 
 
 @domain_operation("graph")
@@ -101,10 +68,8 @@ def decompose_triage_task(
     Returns child ids in input order, or None when the root is missing / not
     in triage, or has already decomposed. Atomic: malformed entries abort fan-out.
     """
-    from hermes_cli.kanban_db import (
-        _canonical_assignee, _link, _append_event, _insert_comment,
-        write_txn, recompute_ready,
-    )
+    from hermes_db.domains.kanban.rules import _canonical_assignee
+    from hermes_cli.kanban_db import _link, _append_event, _insert_comment, write_txn, recompute_ready
 
     if not children:
         return None
@@ -182,9 +147,8 @@ def _insert_decomposed_child(
     with no lock; leaving it unset makes dispatch materialize a fresh
     ``<repo>/.worktrees/<child-id>`` per child from the board anchor.
     """
-    from hermes_cli.kanban_db import (
-        _new_task_id, _canonical_assignee, _append_event,
-    )
+    from hermes_db.domains.kanban.rules import _new_task_id, _canonical_assignee
+    from hermes_cli.kanban_db import _append_event
 
     root_ws_kind = root_row["workspace_kind"] or "scratch"
     child_ws_kind = child.get("workspace_kind") or root_ws_kind

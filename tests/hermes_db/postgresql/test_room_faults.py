@@ -8,6 +8,7 @@ import sys
 import pytest
 
 from gateway import hosted_rooms as rooms
+from hermes_db.domains.rooms import rules as room_rules
 from tests.hermes_db.postgresql.test_rooms_store import create, append
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
@@ -46,7 +47,7 @@ def test_quota_reserves_control_events_and_failed_create_rolls_back_admission(pg
         def admit(conn, scope):
             conn.execute(system_prompts.insert().values(store_id=scope.require_store_id(), hash="admit-proof", prompt=b"admitted"))
         with monkeypatch.context() as patch:
-            patch.setattr(rooms, "MAX_ACTIVE_ROOMS", 0)
+            patch.setattr(room_rules, "MAX_ACTIVE_ROOMS", 0)
             with pytest.raises(rooms.HostedRoomError, match="too many active"):
                 rooms.create_room(location, room_id="rejected", name="rejected", members=[], authority_gateway_id="gateway-a",
                                   admit=CoreEffect(admit))
@@ -55,7 +56,7 @@ def test_quota_reserves_control_events_and_failed_create_rolls_back_admission(pg
                 system_prompts.c.hash == "admit-proof")) is None
         assert not rooms.probe_hosted_room(location, room_id="rejected")
         create(location)
-        monkeypatch.setattr(rooms, "MAX_EVENTS_PER_ROOM", 1)
+        monkeypatch.setattr(room_rules, "MAX_EVENTS_PER_ROOM", 1)
         append(location, "first")
         with pytest.raises(rooms.HostedRoomError, match="history limit"):
             append(location, "too-many")
@@ -77,6 +78,7 @@ def reject(*args, **kwargs):
 sqlite3.connect = reject
 sys.addaudithook(lambda event, args: reject() if event == 'sqlite3.connect' else None)
 from gateway import hosted_rooms as rooms
+from hermes_db.domains.rooms import rules as room_rules
 location = rooms.default_db_path()
 page = rooms.read_events(location, room_id="room")
 assert page["latest_seq"] == 1 and page["events"][0]["payload"]["zero"] == 0
@@ -100,9 +102,9 @@ def test_demotion_fences_stale_authority_even_when_history_capacity_is_exhausted
         location = rooms.default_db_path()
         local = rooms.local_authority_gateway_id()
         rooms.create_room(location, room_id="room", name="full", members=[], authority_gateway_id=local)
-        monkeypatch.setattr(rooms, "MAX_EVENTS_PER_ROOM", 0)
-        monkeypatch.setattr(rooms, "CONTROL_EVENT_COUNT_RESERVE", 0)
-        monkeypatch.setattr(rooms, "MAX_GATEWAY_EVENT_BYTES", 0)
+        monkeypatch.setattr(room_rules, "MAX_EVENTS_PER_ROOM", 0)
+        monkeypatch.setattr(room_rules, "CONTROL_EVENT_COUNT_RESERVE", 0)
+        monkeypatch.setattr(room_rules, "MAX_GATEWAY_EVENT_BYTES", 0)
         result = replicas.demote_room(location, room_id="room", observed_gateway_id="new-owner", observed_epoch=2)
         assert result["authority_epoch"] == 2
         assert rooms.room_state(location, room_id="room")["authority_gateway_id"] == "new-owner"

@@ -12,7 +12,7 @@ from hermes_db.domains.sessions.postgres.support.message_codec import codec
 from hermes_db.domains.sessions.postgres.operations import transcript_guards, transcript_repair
 from hermes_db.domains.sessions.postgres.queries import messages as repo, sessions as session_repo
 from hermes_db.tables.conversations import messages, sessions
-from hermes_state_messages import _coerce_timestamp, _tool_calls_count, _tool_calls_len
+from hermes_db.domains.sessions.codec import _coerce_timestamp, _tool_calls_count, _tool_calls_len
 from hermes_db.domains.sessions.codec import _parse_tool_calls
 
 

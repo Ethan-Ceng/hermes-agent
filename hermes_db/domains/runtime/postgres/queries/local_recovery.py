@@ -7,7 +7,7 @@ from sqlalchemy import select
 from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.runtime import session_admissions, state_meta
-from hermes_state_local import POLICY_PREFIX
+from hermes_db.domains.runtime.receipts import POLICY_PREFIX
 
 
 def local_owner(conn, scope, session_id):
@@ -24,7 +24,7 @@ def local_owner(conn, scope, session_id):
 
 
 def receipt_ids(conn, scope):
-    from gateway.session_viewer_close import CLOSE_PREFIX
+    from hermes_db.domains.runtime.receipts import VIEWER_CLOSE_PREFIX as CLOSE_PREFIX
     store_id = scope.require_store_id()
     rows = conn.execute(select(state_meta.c.key, state_meta.c.value).where(
         state_meta.c.store_id == store_id, state_meta.c.key.startswith(POLICY_PREFIX, autoescape=True)))

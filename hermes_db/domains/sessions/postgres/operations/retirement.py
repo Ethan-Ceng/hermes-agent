@@ -7,11 +7,11 @@ from hermes_db.domains.sessions.postgres.queries import prompts, retirement as r
 from hermes_db.tables.conversations import messages, sessions as table
 
 
-def retire_sessions(conn, scope, session_ids, *, expiring=()):
+def retire_sessions(conn, scope, session_ids, *, expiring=(), media_references):
     from hermes_db.domains.sessions.postgres.queries import media
     guards.require_quiet(conn, scope, session_ids)
     media.retire_spillover(conn, scope, list(session_ids))
-    ledger.retire(conn, scope, session_ids)
+    ledger.retire(conn, scope, session_ids, media_references=media_references)
     fences.retire_mutations(conn, scope, session_ids)
     fences.retire_routes(conn, scope, session_ids, expiring=expiring)
     fences.retire_local(conn, scope, session_ids)
@@ -42,7 +42,7 @@ def _rebase_orphans(conn, scope, orphan_ids):
 
 
 def delete_one(conn, scope, session_id, *, expected_delete_ids=None, expected_display_messages=None,
-               exclude_active_write_guards=False):
+               exclude_active_write_guards=False, media_references):
     from hermes_state_errors import SessionActiveWriteGuardError
 
     sessions.lock_store(conn, scope, exclusive=True)
@@ -57,12 +57,12 @@ def delete_one(conn, scope, session_id, *, expected_delete_ids=None, expected_di
     if expected_display_messages is not None and any(repo.display_snapshot(conn, scope, sid) != expected
             for sid, expected in expected_display_messages.items()):
         return False, []
-    retire_sessions(conn, scope, targets)
+    retire_sessions(conn, scope, targets, media_references=media_references)
     delete_rows(conn, scope, targets)
     return True, targets
 
 
-def delete_many(conn, scope, session_ids, *, exclude_active_write_guards=False, include_compression_chain=False):
+def delete_many(conn, scope, session_ids, *, exclude_active_write_guards=False, include_compression_chain=False, media_references):
     requested = sorted({sid for sid in session_ids or () if isinstance(sid, str) and sid})
     if not requested:
         return 0, [], []
@@ -76,6 +76,6 @@ def delete_many(conn, scope, session_ids, *, exclude_active_write_guards=False, 
     kept = {sid: closure for sid, closure in closures.items() if sid not in skipped}
     targets = sorted({sid for closure in kept.values() for sid in closure})
     if targets:
-        retire_sessions(conn, scope, targets)
+        retire_sessions(conn, scope, targets, media_references=media_references)
         delete_rows(conn, scope, targets)
     return len(kept), targets, skipped

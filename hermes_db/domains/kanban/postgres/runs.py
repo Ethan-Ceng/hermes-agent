@@ -8,13 +8,13 @@ import json
 import time
 
 def get_run(store, run_id):
-    from hermes_cli.kanban_db import Run
+
     with store.read() as conn:
         row = get(conn, store, run_id)
-        return Run.from_row(row) if row is not None else None
+        return store.result_values.run(row) if row is not None else None
 
 def list_runs(store, task_id, *, include_active=True, state_type=None, state_name=None):
-    from hermes_cli.kanban_db import Run
+
     if (state_type is None) ^ (state_name is None):
         raise ValueError('state_type and state_name must both be set or both omitted')
     if state_type is not None and state_type not in {'status', 'outcome'}:
@@ -25,13 +25,13 @@ def list_runs(store, task_id, *, include_active=True, state_type=None, state_nam
     if state_type is not None:
         query = query.where(runs.c[state_type] == encode_text(state_name))
     with store.read() as conn:
-        return [Run.from_row(repo.decode_record(row)) for row in conn.execute(query.order_by(runs.c.started_at, runs.c.id)).mappings()]
+        return [store.result_values.run(repo.decode_record(row)) for row in conn.execute(query.order_by(runs.c.started_at, runs.c.id)).mappings()]
 
 def latest_run(store, task_id):
-    from hermes_cli.kanban_db import Run
+
     with store.read() as conn:
         row = conn.execute(select(runs).where(repo.key(store, task_id, runs)).order_by(runs.c.started_at.desc(), runs.c.id.desc()).limit(1)).mappings().one_or_none()
-        return Run.from_row(repo.decode_record(row)) if row is not None else None
+        return store.result_values.run(repo.decode_record(row)) if row is not None else None
 
 def latest_summaries(store, task_ids):
     ids = list(task_ids)
@@ -55,7 +55,7 @@ def _retry_status_for_run(store, task_id, run_id=None):
         return retry_status(conn, store, task_id, current if run_id is None else run_id)
 
 def goal_run_status(store, task_id, expected_run_id=None):
-    from hermes_cli.kanban_db import _RUN_OUTCOME_TERMINAL_STATUS
+    from hermes_db.domains.kanban.rules import _RUN_OUTCOME_TERMINAL_STATUS
     with store.read() as conn:
         task = repo.get(conn, store, task_id)
         if task is None:
@@ -122,7 +122,7 @@ def record_failure(conn, store, task, error, *, outcome, failure_limit, force_tr
     return _trip_failure(conn, store, task, error, outcome, budget, retry, release_claim, end_run, force_trip, event_payload_extra)
 
 def _record_task_failure(store, task_id, error, *, outcome, failure_limit=None, force_trip=False, release_claim=False, end_run=False, event_payload_extra=None, infrastructure=False, expected_run_id=None):
-    from hermes_cli.kanban_db import DEFAULT_FAILURE_LIMIT
+    from hermes_db.domains.kanban.rules import DEFAULT_FAILURE_LIMIT
     failure_limit = DEFAULT_FAILURE_LIMIT if failure_limit is None else failure_limit
     with store.write() as conn:
         task = repo.get(conn, store, task_id)
@@ -172,7 +172,7 @@ def retry_status(conn, store, task_id, run_id):
         return 'ready'
     payload = conn.scalar(select(events.c.payload).where(repo.key(store, task_id, events), events.c.run_id == int(run_id), events.c.kind == b'claimed').order_by(events.c.id.desc()).limit(1))
     from hermes_db.core.values import decode_text
-    from hermes_cli.kanban_db import _json_dict
+    from hermes_db.domains.kanban.rules import _json_dict
     data = _json_dict(decode_text(payload))
     return 'review' if data.get('source_status') == 'review' else 'ready'
 

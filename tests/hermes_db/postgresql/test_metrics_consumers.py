@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 import json
 import pytest
-from hermes_cli.observability import shared_metrics as native
+from hermes_db.domains.metrics import policy as native
 from hermes_cli.observability.shared_metrics import SharedMetricsStore
 from hermes_cli.observability.shared_metrics_contract import CLIENT_ACTIVE_METRIC
 from hermes_db.domains.metrics.api import open_metrics

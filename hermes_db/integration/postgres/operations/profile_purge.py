@@ -11,7 +11,7 @@ from hermes_db.tables.gateway import telegram_dm_topic_bindings as bindings, tel
 
 
 def purge(conn, scope, profile):
-    from gateway.session import _session_key_namespace
+    from gateway.session_contract import _session_key_namespace
     name = (profile or "").strip()
     if not name:
         return {}

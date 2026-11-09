@@ -6,74 +6,30 @@ The passive wire contract applies stricter bounds in hosted_room_passive_lineage
 """
 
 from __future__ import annotations
+from hermes_db.domains.rooms.authority_rules import AuthorityHistoryError, AuthoritySpan, MAX_AUTHORITY_SPANS, TRANSFER_KINDS, at_sequence, history_from_rows, validate_history
 
 import json
 from dataclasses import dataclass
 from typing import Any
 
-from gateway.hosted_rooms_common import identifier
+from hermes_db.domains.rooms.rules import identifier
 
-MAX_AUTHORITY_SPANS = 1024
 #: Committed authority transfers, each the first event of its span. ``authority.claimed`` is the new
 #: owner's record; ``authority.lost`` is the record the outgoing owner commits when it is fenced to
 #: a proven newer epoch (``hosted_room_replicas.demote_room``; the standalone -> gateway handoff in
 #: ``hosted_rooms_gateway_import``). Both carry the same previous/next/epoch payload and are
 #: checked alike, so a store whose log holds its own fence followed by a later claim (a handed-off
 #: room, a returning gateway that reclaims) reads as one unbroken chain.
-TRANSFER_KINDS = ("authority.claimed", "authority.lost")
 
 
-class AuthorityHistoryError(ValueError):
-    """The recorded authority sequence cannot explain the current room."""
 
 
-@dataclass(frozen=True)
-class AuthoritySpan:
-    gateway_id: str
-    epoch: int
-    from_seq: int
-
-    def as_mapping(self) -> dict[str, Any]:
-        return {"gateway_id": self.gateway_id, "epoch": self.epoch, "from_seq": self.from_seq}
 
 
-def _gateway(value: Any) -> str:
-    result = identifier(value, label="authority gateway", error=AuthorityHistoryError, max_chars=128)
-    if result != value:
-        raise AuthorityHistoryError("authority gateway must be canonical")
-    return result
 
 
-def validate_history(value: Any, *, gateway_id: str, epoch: int) -> tuple[AuthoritySpan, ...]:
-    """Validate contextual epochs; possession of this data grants no control rights."""
-    if value is None:
-        return (AuthoritySpan(gateway_id, epoch, 0),)
-    if not isinstance(value, list) or not 1 <= len(value) <= MAX_AUTHORITY_SPANS:
-        raise AuthorityHistoryError("authority history exceeds its bound or is absent")
-    spans = []
-    for item in value:
-        if not isinstance(item, dict) or set(item) != {"gateway_id", "epoch", "from_seq"}:
-            raise AuthorityHistoryError("authority history fields are invalid")
-        source = _gateway(item["gateway_id"])
-        generation, start = item["epoch"], item["from_seq"]
-        if type(generation) is not int or not 1 <= generation < 2**63 or type(start) is not int or not 0 <= start < 2**63:
-            raise AuthorityHistoryError("authority history coordinates are invalid")
-        if not spans:
-            if generation != 1 or start != 0:
-                raise AuthorityHistoryError("authority history has no verified starting point")
-        elif generation != spans[-1].epoch + 1 or start <= spans[-1].from_seq:
-            raise AuthorityHistoryError("authority history has a gap or unordered boundary")
-        spans.append(AuthoritySpan(source, generation, start))
-    if (spans[-1].gateway_id, spans[-1].epoch) != (gateway_id, epoch):
-        raise AuthorityHistoryError("authority history does not reach the current owner")
-    return tuple(spans)
 
 
-def at_sequence(history: tuple[AuthoritySpan, ...], seq: int) -> AuthoritySpan:
-    for span in reversed(history):
-        if seq >= span.from_seq:
-            return span
-    raise AuthorityHistoryError("event precedes the known authority history")
 
 
 def origin_gateway_id(room: dict[str, Any]) -> str:
@@ -95,32 +51,3 @@ def read_history_locked(conn, room_id: str, *, gateway_id: str, epoch: int) -> l
         (room_id, MAX_AUTHORITY_SPANS),
     ).fetchall()
     return history_from_rows(rows, gateway_id=gateway_id, epoch=epoch)
-
-
-def history_from_rows(rows, *, gateway_id: str, epoch: int) -> list[dict[str, Any]] | None:
-    """Validate the committed transfer values from either selected backend."""
-    if len(rows) >= MAX_AUTHORITY_SPANS:
-        raise AuthorityHistoryError("authority history exceeds its bound")
-    if not rows:
-        if epoch == 1:
-            return None
-        raise AuthorityHistoryError("current authority has no committed lineage")
-    first = json.loads(rows[0]["payload_json"])
-    if isinstance(first, dict) and first.get("previous_gateway_id") == "legacy":
-        return None
-    if not isinstance(first, dict) or "previous_gateway_id" not in first:
-        raise AuthorityHistoryError("authority history has no previous owner")
-    history = [AuthoritySpan(_gateway(first["previous_gateway_id"]), 1, 0)]
-    for row in rows:
-        actor, payload = json.loads(row["actor_json"]), json.loads(row["payload_json"])
-        if actor != {"kind": "system", "id": "authority-control"} or not isinstance(payload, dict):
-            raise AuthorityHistoryError("authority claim provenance is invalid")
-        expected = history[-1].epoch + 1
-        if (payload.get("previous_gateway_id") != history[-1].gateway_id
-                or type(payload.get("authority_epoch")) is not int or payload["authority_epoch"] != expected
-                or row["authority_epoch"] != expected):
-            raise AuthorityHistoryError("authority claim does not extend its predecessor")
-        history.append(AuthoritySpan(_gateway(payload.get("authority_gateway_id")), expected, int(row["seq"])))
-    result = [span.as_mapping() for span in history]
-    validate_history(result, gateway_id=gateway_id, epoch=epoch)
-    return result

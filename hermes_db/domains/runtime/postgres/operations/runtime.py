@@ -12,7 +12,7 @@ from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.conversations import messages, sessions as session_table
 from hermes_db.tables.runtime import runtime_epoch, session_admissions, worker_executions
 from hermes_state_keys import admission_fingerprint
-from hermes_state_runtime import ADMISSION_QUEUE_MAX, ADMITTED_REQUEST_CONFLICT, RuntimeStoreError, _json, _text
+from hermes_db.domains.runtime.values import ADMISSION_QUEUE_MAX, ADMITTED_REQUEST_CONFLICT, RuntimeStoreError, _json, _text
 
 ANY_HEAD = object()
 
@@ -59,8 +59,8 @@ def admit(conn, scope, *, epoch, principal_id, session_id, request_id, payload, 
 
 
 def _retired_replay(conn, scope, principal_id, session_id, request_id, digest):
-    from hermes_state_mutation_retirement import RETIRED_PREFIX
-    from hermes_state_terminal import identity_key
+    from hermes_db.domains.runtime.receipts import RETIRED_PREFIX
+    from hermes_db.domains.runtime.receipts import identity_key
     if repo.meta(conn, scope, RETIRED_PREFIX + session_id) is None:
         return None
     saved = repo.meta(conn, scope, identity_key(principal_id, session_id, request_id))
@@ -134,7 +134,7 @@ def settle(conn, scope, *, epoch, admission_id, generation, outcome, result=None
     _retire_workers(conn, scope, row, epoch)
     invoke(_terminal_write, conn, scope, row)
     if result is not None:
-        from hermes_state_terminal import RESULT_PREFIX, compact_result, encode_result
+        from hermes_db.domains.runtime.receipts import RESULT_PREFIX, compact_result, encode_result
         encoded = _json(encode_result(compact_result(result, user_message=json.loads(row["payload_json"]).get("text"))))
         repo.set_meta(conn, scope, RESULT_PREFIX + admission_id, encoded)
     repo.update(conn, scope, admission_id, status="terminal", outcome=outcome)
@@ -224,7 +224,7 @@ def recover(conn, scope, *, epoch):
 
 
 def resolve_unknown(conn, scope, *, epoch, admission_id, generation, _terminal_write=None, _captured=None):
-    from hermes_state_terminal import RESULT_PREFIX, compact_result, encode_result
+    from hermes_db.domains.runtime.receipts import RESULT_PREFIX, compact_result, encode_result
 
     repo.require_epoch(conn, scope, epoch)
     sessions.lock_store(conn, scope, exclusive=True)

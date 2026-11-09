@@ -3,7 +3,7 @@ replayed-user dedupe. Mixin bound via the MRO, built on SessionDB's _read_ctx/_e
 
 from __future__ import annotations
 
-from hermes_db.domains.sessions.codec import TranscriptCodec, logger, _MESSAGE_WRITE_COLUMNS, _MESSAGE_SCHEMA_KEYS, _INVALID, _parse_tool_calls, _scrub_surrogates
+from hermes_db.domains.sessions.codec import _coerce_timestamp, _tool_calls_count, _tool_calls_len, TranscriptCodec, logger, _MESSAGE_WRITE_COLUMNS, _MESSAGE_SCHEMA_KEYS, _INVALID, _parse_tool_calls, _scrub_surrogates
 
 import hashlib
 import json
@@ -21,9 +21,9 @@ from agent.message_metadata import (
     index_tool_call_uids, message_uid_or_none, resolve_tool_call_uid, mint_uid, stamp_message_uid)
 from agent.message_sanitization import _sanitize_surrogates, coalesce_tool_call_id
 from hermes_cli.timefmt import coerce_epoch
-from hermes_state_common import (
-    _COMPRESSION_LOCK_ROW_SQL, _ENDED_ROW_SQL, _RESET_END_REASONS, _RESET_END_REASONS_SQL, _ended_by_compression,
-    _MERGE_DISPLAY_META, _json_or, _legacy_reset_child_sql, _placeholders, _sql_json_extract)
+from hermes_state_common import _COMPRESSION_LOCK_ROW_SQL, _ENDED_ROW_SQL, _RESET_END_REASONS_SQL, _ended_by_compression, _MERGE_DISPLAY_META, _legacy_reset_child_sql, _placeholders, _sql_json_extract
+from hermes_db.domains.sessions.rules import _RESET_END_REASONS
+from hermes_db.domains.sessions.rules import _json_or
 from hermes_state_compaction_display import later_tool_copy_ids, not_a_later_tool_copy_sql
 from hermes_state_detached_results import SessionDetachedResultsMixin
 from hermes_state_todo import SessionTodoResultMixin
@@ -74,26 +74,10 @@ _SHADOWED_CHECKPOINT_ROWS_SQL = ("SELECT id, codex_reasoning_items FROM messages
 _SET_CODEX_REASONING_SQL = "UPDATE messages SET codex_reasoning_items = ? WHERE id = ?"
 
 
-def _coerce_timestamp(value: Any, default: float) -> float:
-    """Explicit message timestamp (datetime or number) or *default* when invalid or outside the sane
-    epoch window — the write-side twin of the readers' ``coerce_epoch``: a bad row is never persisted."""
-    result = coerce_epoch(value, field="message timestamp")
-    if result is None:
-        return default
-    # SQLite reads both signed zero spellings back as 0.0. Hash the value
-    # in that stored form so -0.0 and 0.0 retain the historical SQL/Python
-    # identity equality.
-    return 0.0 if result == 0.0 else result
 
 
-def _tool_calls_count(tool_calls: Any) -> int:
-    return 0 if tool_calls is None else (len(tool_calls) if isinstance(tool_calls, list) else 1)
 
 
-def _tool_calls_len(raw: Any, scalar: int = 0) -> int:
-    """Count of a stored ``tool_calls`` column: list length, *scalar* for a truthy non-list, else 0."""
-    parsed = _parse_tool_calls(raw)
-    return len(parsed) if isinstance(parsed, list) else (scalar if parsed else 0)
 
 
 def _stale_holder(row, now: float) -> bool:
@@ -1426,7 +1410,7 @@ class SessionMessagesMixin(SessionDetachedResultsMixin, SessionTodoResultMixin, 
         """Permanently clear bare tool-call marker content ("[memory]") left by pre-fix sessions
         (``_rows_to_conversation`` repairs it in memory; this stops the re-scan). Only ``content`` is touched.
         ``backup``: ``VACUUM INTO`` snapshot first (none when nothing changes)."""
-        from hermes_state import _STALE_TOOL_CALL_MARKER_RE
+        from agent.message_sanitization import _STALE_TOOL_CALL_MARKER_RE
         def _find_affected(conn) -> list[int]:
             cursor = conn.execute("SELECT id, content FROM messages "
                 "WHERE role = 'assistant' AND tool_calls IS NOT NULL AND tool_calls != ''")

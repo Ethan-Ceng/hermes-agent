@@ -5,7 +5,8 @@ from datetime import datetime, timedelta, UTC
 
 import pytest
 
-from hermes_cli.observability import shared_metrics as native
+from hermes_db.domains.metrics import policy as native
+from hermes_db.domains.metrics.postgres import store as metric_export
 from hermes_cli.observability.shared_metrics import SharedMetricsStore
 from hermes_cli.observability.shared_metrics_contract import CLIENT_ACTIVE_METRIC
 from hermes_cli.observability.shared_metrics_sender import SharedMetricsSender
@@ -77,12 +78,12 @@ def test_retention_keeps_unexported_data_and_exports_without_borrowed_connection
         store = SharedMetricsStore()
         with open_metrics(store.reference) as (_conn, resource):
             pool = resource._transactions.engine.pool
-        original = native.atomic_json_write
+        original = metric_export.atomic_json_write
         def write(*args, **kwargs):
             borrowed = pool.checkedout()
             assert borrowed == 0
             return original(*args, **kwargs)
-        monkeypatch.setattr(native, "atomic_json_write", write)
+        monkeypatch.setattr(metric_export, "atomic_json_write", write)
         monkeypatch.setattr(native, "_utc_now", lambda: DAY - timedelta(days=31))
         store.record_counter(CLIENT_ACTIVE_METRIC, {}, RESOURCE)
         old_file = store.create_and_export_package()[0]

@@ -16,7 +16,7 @@ from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
-from agent.memory_provider import spawn_context_thread
+from tui_gateway.hosted_room_router_lifecycle import RouterCallLifecycle, CLAIM_TTL_SECONDS
 from gateway import hosted_room_router as router
 from gateway import hosted_rooms
 
@@ -87,10 +87,9 @@ _CLAIMS_DDL = """CREATE TABLE IF NOT EXISTS hosted_room_router_claims (
     PRIMARY KEY(room_id, discussion_event_id))"""
 # A claim outlives any router call (``auxiliary.group_router.timeout``, 20 s by default); one left by a
 # crashed worker expires and the next preparation asks again.
-CLAIM_TTL_SECONDS = 120.0
 
 
-class RouterCalls:
+class RouterCalls(RouterCallLifecycle):
     """At most one in-flight router call per (room, message) across every worker sharing the room
     store: the paid call starts only after this instance wins a claim row in that store, and
     ``record`` runs once it answers."""
@@ -99,7 +98,7 @@ class RouterCalls:
         from hermes_db.domains.rooms.api import is_postgresql_location
         if cls is RouterCalls and is_postgresql_location(db_path):
             from hermes_db.integration.room_router import PostgresRouterCalls
-            return object.__new__(PostgresRouterCalls)
+            return PostgresRouterCalls(db_path, clock=clock)
         return super().__new__(cls)
 
     def __init__(self, db_path: Path, *, clock: Callable[[], float] = time.time) -> None:
@@ -133,40 +132,3 @@ class RouterCalls:
         with self._transaction() as conn:
             conn.execute("DELETE FROM hosted_room_router_claims WHERE room_id=? AND discussion_event_id=? AND owner=?",
                          (*key, self._owner))
-
-    def start(self, key: tuple[str, str], call: Callable[[], tuple[str, ...] | None],
-              record: Callable[[tuple[str, ...] | None], None]) -> bool:
-        with self._lock:
-            if key in self._inflight:
-                return False
-            self._inflight.add(key)
-        try:
-            claimed = self._claim(key)
-        except BaseException:
-            with self._lock:
-                self._inflight.discard(key)
-            raise
-        if not claimed:
-            with self._lock:
-                self._inflight.discard(key)
-            return False
-
-        def run() -> None:
-            try:
-                record(call())
-            except Exception:  # health: allow BLE001 -- a lost answer is re-asked on the next preparation
-                logger.warning("hosted room %s: recording the router answer failed", key[0], exc_info=True)
-            finally:
-                try:
-                    self._release(key)
-                except Exception:  # health: allow BLE001 -- an unreleased claim only expires (CLAIM_TTL_SECONDS)
-                    logger.warning("hosted room %s: releasing the router claim failed", key[0], exc_info=True)
-                with self._lock:
-                    self._inflight.discard(key)
-        # The owner's profile scope is bound explicitly inside ask_router (_profile_runtime_scope).
-        spawn_context_thread(run, name=f"hosted-room-router-{key[0][:16]}").start()
-        return True
-
-    def inflight(self, key: tuple[str, str]) -> bool:
-        with self._lock:
-            return key in self._inflight

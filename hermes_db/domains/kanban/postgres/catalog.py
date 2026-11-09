@@ -1,4 +1,6 @@
 """Kanban catalog workflow; original connection, fence and off-connection effect boundaries are preserved."""
+from hermes_cli import kanban_workflow as _storage_shared_1_
+from hermes_db.domains.kanban import rules as _storage_shared_1
 from uuid import uuid4
 from sqlalchemy import and_, delete, select, update, func
 from sqlalchemy.dialects.postgresql import insert
@@ -19,9 +21,8 @@ def _registry_lock(conn, store):
 def _lookup(conn, store, slug):
     return conn.execute(select(boards).join(names, and_(boards.c.store_id == names.c.store_id, boards.c.board_id == names.c.board_id)).where(_scope(boards, store), names.c.slug == slug)).mappings().one_or_none()
 
-def _metadata(row, slug):
-    from hermes_cli.kanban_db_boards import _read_metadata_file
-    meta = _read_metadata_file(slug)
+def _metadata(row, slug, files):
+    meta = files.read_metadata_file(slug)
     meta['db_path'] = None
     if row is not None:
         meta['archived'] = bool(row['archived'])
@@ -58,23 +59,22 @@ def resolve_board(store, slug):
     return row['board_id']
 
 def read_board_metadata(store, board=None):
-    from hermes_cli import kanban_db as kb
-    slug = kb._slug_or_default(board)
+
+    slug = _storage_shared_1._slug_or_default(board)
     with store.read() as conn:
         row = _lookup(conn, store, slug)
-    return _metadata(row, slug)
+    return _metadata(row, slug, store.files)
 
 def board_exists(store, board=None):
-    from hermes_cli import kanban_db as kb
-    slug = kb._slug_or_default(board)
+
+    slug = _storage_shared_1._slug_or_default(board)
     with store.read() as conn:
-        return slug == kb.DEFAULT_BOARD or _lookup(conn, store, slug) is not None
+        return slug == _storage_shared_1.DEFAULT_BOARD or _lookup(conn, store, slug) is not None
 
 def write_board_metadata(store, board, *, name=None, description=None, icon=None, color=None, archived=None, default_workdir=None, project_id=None):
-    from hermes_cli import kanban_db as kb
-    from hermes_cli.kanban_db_boards import _write_metadata_file
-    kb._assert_not_delegated_child_mutation()
-    slug = kb._slug_or_default(board)
+
+    store.mutation_guard()
+    slug = _storage_shared_1._slug_or_default(board)
     values = dict(name=name, description=description, icon=icon, color=color, archived=archived, default_workdir=default_workdir, project_id=project_id)
     with store.write() as conn:
         from hermes_db.domains.kanban.postgres.files import lock_files, local_files_lock, require_settled_slug
@@ -89,14 +89,13 @@ def write_board_metadata(store, board, *, name=None, description=None, icon=None
         state = bool(row['archived']) if row is not None and archived is None else bool(archived)
         _save(conn, store, slug, row, state)
     with local_files_lock(store.scope.profile_home):
-        _write_metadata_file(slug, **values)
+        store.files.write_metadata_file(slug, **values)
         return read_board_metadata(store, slug)
 
 def create_board(store, slug, *, name=None, description=None, icon=None, color=None, default_workdir=None, project_id=None):
-    from hermes_cli import kanban_db as kb
-    from hermes_cli.kanban_db_boards import _write_metadata_file
-    kb._assert_not_delegated_child_mutation()
-    slug = kb._require_slug(slug)
+
+    store.mutation_guard()
+    slug = _storage_shared_1._require_slug(slug)
     with store.write() as conn:
         from hermes_db.domains.kanban.postgres.files import lock_files, local_files_lock, require_settled_slug
         lock_files(conn, store)
@@ -111,7 +110,7 @@ def create_board(store, slug, *, name=None, description=None, icon=None, color=N
             current = _lookup(conn, store, slug)
         if current is None or current['archived'] or current['board_id'] != board_id:
             raise ValueError('Board generation was retired before its file configuration could be written')
-        _write_metadata_file(slug, name=name, description=description, icon=icon, color=color, default_workdir=default_workdir, project_id=project_id, archived=False)
+        store.files.write_metadata_file(slug, name=name, description=description, icon=icon, color=color, default_workdir=default_workdir, project_id=project_id, archived=False)
         return read_board_metadata(store, slug)
 
 def list_boards(store, *, include_archived=True):
@@ -124,13 +123,13 @@ def list_boards(store, *, include_archived=True):
             row = _lookup(conn, store, slug)
             if include_archived or not row['archived']:
                 rows.append((slug, row))
-    return [_metadata(row, slug) for slug, row in rows]
+    return [_metadata(row, slug, store.files) for slug, row in rows]
 
 def remove_board(store, slug, *, archive=True):
-    from hermes_cli import kanban_db as kb
+
     from hermes_db.domains.kanban.postgres import files
-    kb._assert_not_delegated_child_mutation()
-    slug = kb._require_slug(slug)
+    store.mutation_guard()
+    slug = _storage_shared_1._require_slug(slug)
     if slug == 'default':
         raise ValueError("the 'default' board cannot be removed")
     with store.read() as conn:
@@ -152,47 +151,47 @@ def remove_board(store, slug, *, archive=True):
         conn.execute(select(boards).where(condition).with_for_update()).one()
         files.record(conn, store, row, prepared, archive=archive)
         conn.execute(update(boards).where(condition).values(archived=1) if archive else delete(boards).where(condition))
-    if kb.get_current_board() == slug:
-        kb.clear_current_board()
+    if store.policy.get_current_board() == slug:
+        store.policy.clear_current_board()
     result = files.run_job(store, row['board_id'])
     return {'slug': slug, 'action': 'archived' if archive else 'deleted', **result}
 
 def _workspace(store, fields):
-    from hermes_cli import kanban_db as kb
+
     kind = fields.get('workspace_kind')
     project_id = fields.get('project_id')
-    meta = kb.read_board_metadata(store.slug)
+    meta = store.files.read_board_metadata(store.slug)
     if project_id is None and kind != 'scratch':
         project_id = (meta.get('project_id') or '').strip() or None
     if kind is None:
         kind = 'scratch'
-    if kind not in kb.VALID_WORKSPACE_KINDS:
-        raise ValueError(f'workspace_kind must be one of {sorted(kb.VALID_WORKSPACE_KINDS)}, got {kind!r}')
+    if kind not in _storage_shared_1.VALID_WORKSPACE_KINDS:
+        raise ValueError(f'workspace_kind must be one of {sorted(_storage_shared_1.VALID_WORKSPACE_KINDS)}, got {kind!r}')
     branch = str(fields['branch_name']).strip() or None if fields.get('branch_name') is not None else None
     if branch and kind != 'worktree':
         raise ValueError('branch_name is only valid for worktree workspaces')
-    project_id, project, project_repo, kind = kb._resolve_project_link(store, project_id, fields.get('project_source_task_id'), kind, fields.get('workspace_path'))
+    project_id, project, project_repo, kind = store.policy.resolve_project_link(store, project_id, fields.get('project_source_task_id'), kind, fields.get('workspace_path'))
     path = fields.get('workspace_path')
     if path is None and project_repo is None and (kind in {'dir', 'worktree'}):
         path = meta.get('default_workdir') or None
     return (dict(project_id=project_id, workspace_kind=kind, workspace_path=path, branch_name=branch), project, project_repo)
 
 def prepare(store, fields):
-    from hermes_cli import kanban_db as kb
-    from hermes_cli.kanban_pr_acceptance import validate_contract
+
+    from hermes_db.domains.kanban.rules import validate_contract
     title = fields['title']
     if not title or not title.strip():
         raise ValueError('title is required')
-    if fields.get('board') is not None and kb._require_slug(fields['board']) != store.slug:
+    if fields.get('board') is not None and _storage_shared_1._require_slug(fields['board']) != store.slug:
         raise ValueError('task Board must match its acquired Board resource')
     initial = fields.get('initial_status', 'running')
-    if initial not in kb.VALID_INITIAL_STATUSES:
-        raise ValueError(f'initial_status must be one of {sorted(kb.VALID_INITIAL_STATUSES)}')
-    model, provider = kb._validate_model_override(fields.get('model_override'), fields.get('provider_override'))
-    skills = kb._normalize_task_skills(fields.get('skills'))
+    if initial not in _storage_shared_1.VALID_INITIAL_STATUSES:
+        raise ValueError(f'initial_status must be one of {sorted(_storage_shared_1.VALID_INITIAL_STATUSES)}')
+    model, provider = _storage_shared_1._validate_model_override(fields.get('model_override'), fields.get('provider_override'))
+    skills = store.policy.normalize_task_skills(fields.get('skills'))
     values = {name: fields.get(name) for name in ('body', 'created_by', 'tenant', 'session_id', 'idempotency_key')}
-    values.update(title=title.strip(), assignee=kb._canonical_assignee(fields.get('assignee')), priority=fields.get('priority', 0), model_override=model, provider_override=provider, reasoning_effort=kb.normalize_reasoning_effort(fields.get('reasoning_effort')), skills=json.dumps(skills) if skills is not None else None, goal_mode=int(bool(fields.get('goal_mode'))), completion_contract=validate_contract(fields.get('completion_contract')))
-    values.update({name: kb._opt_int(fields.get(name)) for name in ('max_runtime_seconds', 'max_retries', 'goal_max_turns')})
+    values.update(title=title.strip(), assignee=_storage_shared_1._canonical_assignee(fields.get('assignee')), priority=fields.get('priority', 0), model_override=model, provider_override=provider, reasoning_effort=_storage_shared_1.normalize_reasoning_effort(fields.get('reasoning_effort')), skills=json.dumps(skills) if skills is not None else None, goal_mode=int(bool(fields.get('goal_mode'))), completion_contract=validate_contract(fields.get('completion_contract')))
+    values.update({name: _storage_shared_1._opt_int(fields.get(name)) for name in ('max_runtime_seconds', 'max_retries', 'goal_max_turns')})
     workspace, project, project_repo = _workspace(store, fields)
     values.update(workspace)
     path_keys = (workspaces.canonical_path(workspace['workspace_path']), workspaces.canonical_path(Path(project_repo) / '.worktrees') if project_repo is not None else None)
@@ -212,16 +211,16 @@ def _initial_state(conn, store, parents, fields, values):
     return ('todo' if any(row['status'] != 'done' for row in rows.values()) else 'ready', rows)
 
 def _insert(conn, store, values, project, project_repo, path_keys):
-    from hermes_cli import kanban_db as kb
+
     for _attempt in range(2):
-        task_id = kb._new_task_id()
+        task_id = _storage_shared_1._new_task_id()
         candidate = dict(values, id=task_id)
         path_key = path_keys[0]
         if project is not None and values['workspace_kind'] == 'worktree':
             if project_repo is not None:
                 candidate['workspace_path'] = str(Path(project_repo) / '.worktrees' / task_id)
                 path_key = str(Path(path_keys[1]) / task_id)
-            candidate['branch_name'] = candidate['branch_name'] or kb._project_branch_name(project, task_id, values['title'])
+            candidate['branch_name'] = candidate['branch_name'] or store.policy.project_branch_name(project, task_id, values['title'])
         inserted = conn.scalar(insert(tasks).values(**repo.owner(store), **repo.encode_task(candidate)).on_conflict_do_nothing(index_elements=[tasks.c.store_id, tasks.c.board_id, tasks.c.id]).returning(tasks.c.id))
         if inserted is not None:
             workspaces.register(conn, store, task_id, path_key)
@@ -264,13 +263,13 @@ def create_task(store, **fields):
         return store.command_result(conn, insert_prepared(conn, store, fields, values, project, project_repo, path_keys))
 
 def get_task(store, task_id):
-    from hermes_cli.kanban_db import Task
+
     with store.read() as conn:
         row = repo.get(conn, store, task_id)
-        return Task.from_row(row) if row is not None else None
+        return store.result_values.task(row) if row is not None else None
 
 def _sort(order_by):
-    from hermes_cli.kanban_db import VALID_SORT_ORDERS
+    from hermes_db.domains.kanban.rules import VALID_SORT_ORDERS
     orders = {'created': (tasks.c.created_at.asc(), tasks.c.id.asc()), 'created-desc': (tasks.c.created_at.desc(), tasks.c.id.desc()), 'priority': (tasks.c.priority.desc(), tasks.c.created_at.asc()), 'priority-desc': (tasks.c.priority.asc(), tasks.c.created_at.asc()), 'status': (tasks.c.status.asc(), tasks.c.created_at.asc()), 'assignee': (tasks.c.assignee.asc().nulls_first(), tasks.c.created_at.asc()), 'title': (tasks.c.title.asc(), tasks.c.id.asc()), 'updated': (tasks.c.started_at.desc().nulls_last(), tasks.c.created_at.desc()), 'completed-desc': (tasks.c.completed_at.desc().nulls_last(), tasks.c.id.desc())}
     name = order_by.strip().lower() if order_by is not None else 'priority'
     if name not in orders:
@@ -278,7 +277,8 @@ def _sort(order_by):
     return orders[name]
 
 def list_tasks(store, *, assignee=None, status=None, tenant=None, session_id=None, include_archived=False, limit=None, order_by=None, workflow_template_id=None, current_step_key=None):
-    from hermes_cli.kanban_db import Task, VALID_STATUSES, _canonical_assignee
+    from hermes_cli.kanban_workflow import DEFAULT_STATUSES as VALID_STATUSES
+    from hermes_db.domains.kanban.rules import _canonical_assignee
     if status is not None and status not in VALID_STATUSES:
         raise ValueError(f'status must be one of {sorted(VALID_STATUSES)}')
     query = select(tasks).where(repo.scope(tasks, store))
@@ -290,17 +290,17 @@ def list_tasks(store, *, assignee=None, status=None, tenant=None, session_id=Non
     if limit and int(limit) >= 0:
         query = query.limit(int(limit))
     with store.read() as conn:
-        return [Task.from_row(repo.decode_task(row)) for row in conn.execute(query.order_by(*_sort(order_by))).mappings()]
+        return [store.result_values.task(repo.decode_task(row)) for row in conn.execute(query.order_by(*_sort(order_by))).mappings()]
 
 def notify_task_updated(store, task_id, changed_fields, *, board=None):
-    from hermes_cli import kanban_db as kb
-    if kb._kanban_observer_consumed('on_kanban_task_updated'):
+
+    if store.observers.kanban_observer_consumed('on_kanban_task_updated'):
         task = get_task(store, task_id)
-        kb._fire_kanban_lifecycle_hook('on_kanban_task_updated', task_id, board=board or store.slug, assignee=task.assignee if task else None, run_id=task.current_run_id if task else None, changed_fields=list(changed_fields))
+        store.observers.fire_kanban_lifecycle_hook('on_kanban_task_updated', task_id, board=board or store.slug, assignee=task.assignee if task else None, run_id=task.current_run_id if task else None, changed_fields=list(changed_fields))
 
 def assign_task(store, task_id, profile):
-    from hermes_cli import kanban_db as kb
-    profile = kb._canonical_assignee(profile)
+
+    profile = _storage_shared_1._canonical_assignee(profile)
     with store.write() as conn:
         row = repo.get(conn, store, task_id)
         if row is None:
@@ -313,11 +313,11 @@ def assign_task(store, task_id, profile):
             values.update(consecutive_failures=0, last_failure_error=None)
         repo.task_update(conn, store, task_id, **values)
         repo.event(conn, store, task_id, 'assigned', {'assignee': profile, 'from': row['assignee']})
-    kb.notify_task_updated(store, task_id, ('assignee',))
+    store.notify_task_updated(task_id, ('assignee',))
     return True
 
 def _override(store, task_id, values, kind, payload, archived_msg):
-    from hermes_cli import kanban_db as kb
+
     with store.write() as conn:
         row = repo.get(conn, store, task_id)
         if row is None:
@@ -326,21 +326,21 @@ def _override(store, task_id, values, kind, payload, archived_msg):
             raise RuntimeError(f'{archived_msg} on archived task {task_id}')
         repo.task_update(conn, store, task_id, **values)
         repo.event(conn, store, task_id, kind, payload)
-    kb.notify_task_updated(store, task_id, tuple(values))
+    store.notify_task_updated(task_id, tuple(values))
     return True
 
 def set_model_override(store, task_id, model, provider=None):
-    from hermes_cli.kanban_db import _validate_model_override
+    from hermes_db.domains.kanban.rules import _validate_model_override
     model, provider = _validate_model_override(model, provider)
     return _override(store, task_id, {'model_override': model, 'provider_override': provider}, 'model_override_set', {'model': model, 'provider': provider}, 'cannot set model override')
 
 def set_reasoning_effort(store, task_id, effort):
-    from hermes_cli.kanban_db import normalize_reasoning_effort
+    from hermes_db.domains.kanban.rules import normalize_reasoning_effort
     effort = normalize_reasoning_effort(effort)
     return _override(store, task_id, {'reasoning_effort': effort}, 'reasoning_effort_set', {'reasoning_effort': effort}, 'cannot set reasoning effort')
 
 def edit_task(store, task_id, *, title=None, body=None, priority=None, result=None, summary=None, metadata=None, board=None):
-    from hermes_cli import kanban_db as kb
+
     if result is not None:
         from hermes_db.domains.kanban.postgres.completion import edit_result
         return edit_result(store, task_id, title=title, body=body, priority=priority, result=result, summary=summary, metadata=metadata, board=board)
@@ -356,7 +356,7 @@ def edit_task(store, task_id, *, title=None, body=None, priority=None, result=No
         changed = [name for name in values if name != 'priority']
         if changed:
             repo.event(conn, store, task_id, 'edited', {'fields': changed})
-    kb.notify_task_updated(store, task_id, list(values), board=board)
+    store.notify_task_updated(task_id, list(values), board=board)
     return True
 
 def add_comment(store, task_id, author, body):
@@ -371,19 +371,19 @@ def add_comment(store, task_id, author, body):
         return store.command_result(conn, comment_id)
 
 def list_comments(store, task_id):
-    from hermes_cli.kanban_db import Comment
+
     with store.read() as conn:
-        return [Comment.from_row(repo.decode_record(row)) for row in conn.execute(select(comments).where(repo.key(store, task_id, comments)).order_by(comments.c.created_at, comments.c.id)).mappings()]
+        return [store.result_values.comment(repo.decode_record(row)) for row in conn.execute(select(comments).where(repo.key(store, task_id, comments)).order_by(comments.c.created_at, comments.c.id)).mappings()]
 
 def list_comments_after(store, task_id, *, after_id=0):
-    from hermes_cli.kanban_db import Comment
+
     with store.read() as conn:
-        return [Comment.from_row(repo.decode_record(row)) for row in conn.execute(select(comments).where(repo.key(store, task_id, comments), comments.c.id > int(after_id)).order_by(comments.c.id)).mappings()]
+        return [store.result_values.comment(repo.decode_record(row)) for row in conn.execute(select(comments).where(repo.key(store, task_id, comments), comments.c.id > int(after_id)).order_by(comments.c.id)).mappings()]
 
 def list_events(store, task_id):
-    from hermes_cli.kanban_db import Event
+
     with store.read() as conn:
-        return [Event.from_row(repo.decode_record(row)) for row in conn.execute(select(events).where(repo.key(store, task_id, events)).order_by(events.c.created_at, events.c.id)).mappings()]
+        return [store.result_values.event(repo.decode_record(row)) for row in conn.execute(select(events).where(repo.key(store, task_id, events)).order_by(events.c.created_at, events.c.id)).mappings()]
 
 def _delete(store, task_id, *, archived_only):
     from hermes_db.domains.kanban.postgres.catalog import recompute_ready
@@ -419,13 +419,13 @@ def board_stats(store):
     return dict(by_status=by_status, by_assignee=by_assignee, oldest_ready_age_seconds=now - oldest if oldest is not None else None, now=now)
 
 def known_assignees(store):
-    from hermes_cli.kanban_db import list_profiles_on_disk
-    on_disk = set(list_profiles_on_disk())
+
+    on_disk = set(store.policy.list_profiles_on_disk())
     counts = board_stats(store)['by_assignee']
     return [{'name': name, 'on_disk': name in on_disk, 'counts': counts.get(name, {})} for name in sorted(on_disk | set(counts))]
 
 def gc_events(store, *, older_than_seconds=30 * 24 * 3600):
-    from hermes_cli.kanban_db import _retention_seconds
+    from hermes_db.domains.kanban.rules import _retention_seconds
     cutoff = int(time.time()) - _retention_seconds(older_than_seconds)
     with store.write() as conn:
         terminal = select(tasks.c.id).where(repo.scope(tasks, store), tasks.c.status.in_([b'done', b'archived']))
@@ -449,7 +449,7 @@ def tasks_by_ids(store, task_ids):
         return {decode_text(row['id']): repo.decode_task(row) for row in conn.execute(select(tasks).where(repo.scope(tasks, store), tasks.c.id.in_(ids))).mappings()}
 
 def board_rollups(store):
-    from hermes_cli.kanban_db_queries import summarize_board
+    from hermes_db.domains.kanban.rules import summarize_board
     with store.read() as conn:
         link_rows = [repo.decode_record(row) for row in conn.execute(select(links.c.parent_id, links.c.child_id).where(repo.scope(links, store))).mappings()]
         comment_rows = [repo.decode_record(row) for row in conn.execute(select(comments.c.task_id, func.count().label('n')).where(repo.scope(comments, store)).group_by(comments.c.task_id)).mappings()]
@@ -497,17 +497,17 @@ def _transition(conn, store, task_id, new_status):
     return (effective, result)
 
 def _set_status_direct(store, task_id, new_status):
-    from hermes_cli import kanban_db as kb
-    if new_status not in kb.VALID_STATUSES:
+
+    if new_status not in _storage_shared_1_.DEFAULT_STATUSES:
         raise ValueError('unknown task status')
     with store.write() as conn:
         changed = _transition(conn, store, task_id, new_status)
     if changed is None:
         return False
     effective, result = changed
-    terminate(result)
+    terminate(store, result)
     if effective in {'done', 'ready', 'review'}:
-        kb.recompute_ready(store)
+        store.recompute_ready()
     return True
 
 def diagnostic_snapshot(store, task_id=None, *, task_ids=None):
@@ -540,7 +540,7 @@ def _append_event(store, task_id, kind, payload=None, *, run_id=None):
         repo.event(conn, store, task_id, kind, payload, run_id)
 
 def archive_task(store, task_id, *, signal_fn=None):
-    from hermes_cli import kanban_db as kb
+
     with store.write() as conn:
         row = repo.get(conn, store, task_id)
         if row is None or row['status'] == 'archived':
@@ -550,11 +550,11 @@ def archive_task(store, task_id, *, signal_fn=None):
         repo.event(conn, store, task_id, 'archived', None, run_id)
         store.command_result(conn, True)
     if row['status'] == 'running':
-        termination = kb._terminate_reclaimed_worker(row['worker_pid'], row['claim_lock'], signal_fn=signal_fn, started_at=row['worker_started_at'])
+        termination = store.processes.terminate_reclaimed_worker(row['worker_pid'], row['claim_lock'], signal_fn=signal_fn, started_at=row['worker_started_at'])
         with store.write() as conn:
             repo.event(conn, store, task_id, 'archive_worker_termination', termination, run_id)
-    kb.recompute_ready(store)
-    kb._cleanup_workspace(store, task_id)
+    store.recompute_ready()
+    store._cleanup_workspace(task_id)
     return True
 
 def parent_ids(store, task_id):
@@ -645,14 +645,14 @@ def _promote(conn, store, row, failure_limit):
     return True
 
 def recompute_ready(store, failure_limit=None):
-    from hermes_cli.kanban_db import DEFAULT_FAILURE_LIMIT
+    from hermes_db.domains.kanban.rules import DEFAULT_FAILURE_LIMIT
     limit = DEFAULT_FAILURE_LIMIT if failure_limit is None else failure_limit
     with store.write() as conn:
         rows = conn.execute(select(tasks).where(repo.scope(tasks, store), tasks.c.status.in_([b'todo', b'blocked']))).mappings().all()
         return store.command_result(conn, sum(_promote(conn, store, repo.decode_task(row), limit) for row in rows))
 
 def specify_triage_task(store, task_id, *, title=None, body=None, assignee=None, author=None):
-    from hermes_cli.kanban_db import _canonical_assignee
+    from hermes_db.domains.kanban.rules import _canonical_assignee
     if title is not None and (not title.strip()):
         raise ValueError('title cannot be blank')
     assignee = _canonical_assignee(assignee)
@@ -672,7 +672,7 @@ def specify_triage_task(store, task_id, *, title=None, body=None, assignee=None,
     return True
 
 def _decomposed_child(conn, store, root, child, author, now, path_key):
-    from hermes_cli import kanban_db as kb
+
     from hermes_db.domains.kanban.postgres import workspaces
     root_kind = root['workspace_kind'] or 'scratch'
     kind = child.get('workspace_kind') or root_kind
@@ -681,8 +681,8 @@ def _decomposed_child(conn, store, root, child, author, now, path_key):
         path = root['workspace_path'] if kind == root_kind and kind != 'worktree' else None
         path_key = workspaces.key_for_task(conn, store, root['id']) if path else None
     body = child.get('body')
-    task_id = kb._new_task_id()
-    values = dict(id=task_id, title=child['title'].strip(), body=body if isinstance(body, str) else None, assignee=kb._canonical_assignee(child.get('assignee')), status='todo', workspace_kind=kind, workspace_path=path, tenant=root['tenant'], created_at=now, created_by=author or 'decomposer', session_id=root['session_id'])
+    task_id = _storage_shared_1._new_task_id()
+    values = dict(id=task_id, title=child['title'].strip(), body=body if isinstance(body, str) else None, assignee=_storage_shared_1._canonical_assignee(child.get('assignee')), status='todo', workspace_kind=kind, workspace_path=path, tenant=root['tenant'], created_at=now, created_by=author or 'decomposer', session_id=root['session_id'])
     conn.execute(tasks.insert().values(**repo.owner(store), **repo.encode_task(values)))
     workspaces.register(conn, store, task_id, path_key)
     repo.event(conn, store, task_id, 'created', {'by': author or 'decomposer', 'from_decompose_of': root['id']})
@@ -691,8 +691,8 @@ def _decomposed_child(conn, store, root, child, author, now, path_key):
     return task_id
 
 def decompose_triage_task(store, task_id, *, root_assignee, children, author=None, auto_promote=True):
-    from hermes_cli.kanban_db import _canonical_assignee
-    from hermes_cli.kanban_db_graph import _validate_children_graph
+    from hermes_db.domains.kanban.rules import _canonical_assignee
+    from hermes_db.domains.kanban.rules import _validate_children_graph
     if not children:
         return None
     root_assignee = _canonical_assignee(root_assignee)
@@ -754,13 +754,13 @@ def invalidate(conn, store, task_id, *, author):
         invalidated.append(entry)
     return {'invalidated': invalidated, 'terminations': terminations}
 
-def terminate(result):
-    from hermes_cli import kanban_db as kb
+def terminate(store, result):
+
     for pid, lock, birth in result['terminations']:
-        kb._terminate_reclaimed_worker(pid, lock, started_at=birth)
+        store.processes.terminate_reclaimed_worker(pid, lock, started_at=birth)
 
 def invalidate_descendants_for_parent_reopen(store, task_id, *, author):
     with store.write() as conn:
         result = invalidate(conn, store, task_id, author=author)
-    terminate(result)
+    terminate(store, result)
     return result

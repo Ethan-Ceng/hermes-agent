@@ -16,3 +16,12 @@ def domain_operation(sqlite_operation):
             return getattr(projects, sqlite_operation.__name__)(store, *args, **kwargs)
         return sqlite_operation(store, *args, **kwargs)
     return operation
+
+
+class ProjectResource(DomainResource):
+    """A Projects transaction owner with the existing application's value constructors."""
+    def __init__(self, settings, scope, *, transactions, project_value, folder_value, now):
+        super().__init__("projects", settings, scope, transactions=transactions)
+        self.project_value = project_value
+        self.folder_value = folder_value
+        self.now = now

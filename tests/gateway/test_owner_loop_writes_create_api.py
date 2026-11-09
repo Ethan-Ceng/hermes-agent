@@ -60,7 +60,7 @@ async def _handle(event):
 
 @pytest.mark.asyncio
 async def test_session_create_commit_never_runs_on_the_owner_loop_thread(tmp_path, monkeypatch):
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     store, authority, owner = _owner(tmp_path, monkeypatch, _handle)
     threads = _record(monkeypatch, POLICY_PREFIX)
     try:

@@ -19,13 +19,40 @@ class ReadSnapshot:
     def __call__(self):
         return not self.connection.closed and self.connection.in_transaction()
 
+@dataclass(frozen=True)
+class TranscriptLimits:
+    resume_limit: object
+    export_limit: object
+    resume_error: object
+    export_error: object
+
+@dataclass(frozen=True)
+class HistoryOwnership:
+    history_row: object
+    owner_user: object
+    same_owner: object
+    owners_agree: object
+
+@dataclass(frozen=True)
+class SessionEffects:
+    deleted: object
+    purge_profile: object
+    collect_media: object
+    release_media: object
+
 class SessionContext:
-    def __init__(self, transactions, scope, *, own_profile, profile):
+    def __init__(self, transactions, scope, *, own_profile, profile, transcript_limits, ownership, effects, is_context_summary, routes, media):
         scope.require_store_id()
         self.transactions = transactions
         self.scope = scope
         self.own_profile = own_profile
         self.profile = profile
+        self.transcript_limits = transcript_limits
+        self.ownership = ownership
+        self.effects = effects
+        self.is_context_summary = is_context_summary
+        self.routes = routes
+        self.media = media
         self.closed = False
 
     def assert_open(self):

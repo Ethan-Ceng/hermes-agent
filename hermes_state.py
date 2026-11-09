@@ -4,6 +4,7 @@ config, FTS5 search. WAL mode (concurrent readers + one writer); compression
 splits sessions via parent_session_id chains; sessions are source-tagged
 ('cli', 'telegram', ...). Batch-runner / RL trajectories live elsewhere.
 """
+from hermes_db.domains.sessions.rules import AUTO_PRUNE_STALE_OPEN_SOURCES
 
 import asyncio
 import atexit
@@ -304,70 +305,17 @@ def _secure_state_db_files(db_path: Path, *, create_main: bool = False) -> None:
 
 
 # Openings of the background-review harness prompts (agent/background_review.py).
-_REVIEW_HARNESS_PREFIXES = (
-    "Review the conversation above and update the skill library",
-    "Review the conversation above and consider saving to memory",
-)
 
 
-def _is_background_review_harness_message(msg: dict[str, Any]) -> bool:
-    """Persisted harness prompt (older builds wrote the forked curator's turns
-    into real sessions; replaying them hijacks the session)."""
-    if not isinstance(msg, dict) or msg.get("role") not in {"user", "system"}:
-        return False
-    content = msg.get("content")
-    return isinstance(content, str) and content.lstrip().startswith(_REVIEW_HARNESS_PREFIXES)
 
 
-def _strip_background_review_harness(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Drop harness messages and the curator-mode assistant reply that immediately followed each."""
-    if not messages:
-        return messages
-    out: list[dict[str, Any]] = []
-    skip_next_assistant = False
-    previous_was_harness = False
-    for msg in messages:
-        if _is_background_review_harness_message(msg):
-            # A consecutive harness prompt occupies the preceding prompt's
-            # immediate reply slot, so it must not arm another assistant skip.
-            skip_next_assistant = not previous_was_harness
-            previous_was_harness = True
-            continue
-        if skip_next_assistant:
-            skip_next_assistant = False
-            if isinstance(msg, dict) and msg.get("role") == "assistant":
-                previous_was_harness = False
-                continue  # the curator-mode reply to the harness prompt
-        previous_was_harness = False
-        out.append(msg)
-    return out
 
 
 # Matches a bare protocol/tool-name marker such as "[memory]" or "[skill_manage]".
-_STALE_TOOL_CALL_MARKER_RE = re.compile(r"^\[[A-Za-z_][A-Za-z0-9_.-]*\]$")
 
 
-def _is_stale_tool_call_marker_message(msg: dict[str, Any]) -> bool:
-    """Assistant tool-call turn whose content is a bare ``[marker]`` (an older
-    conversation_loop persisted a local template's marker as the final response)."""
-    if not isinstance(msg, dict) or msg.get("role") != "assistant" or not msg.get("tool_calls"):
-        return False
-    content = msg.get("content")
-    return isinstance(content, str) and bool(_STALE_TOOL_CALL_MARKER_RE.fullmatch(content.strip()))
 
 
-def _strip_stale_tool_call_markers(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Blank stale ``[marker]`` assistant content (replaying it teaches the model
-    to keep emitting it); tool_call/result pairing stays intact."""
-    repaired = 0
-    for msg in filter(_is_stale_tool_call_marker_message, messages):
-        msg["content"] = ""
-        repaired += 1
-    if repaired:
-        logger.info(
-            "Cleared %d stale tool-call marker message(s) while restoring session (#78148)", repaired,
-        )
-    return messages
 
 
 _SESSION_DB_CONSEQUENCE = "Sessions will not be saved until this is fixed."
@@ -474,9 +422,7 @@ class SessionDB(
     # sources have their own lifecycle owners; unknown sources fail closed.
     # See #60609.  `recovered` = placeholders `hermes sessions recover` synthesizes for
     # orphaned messages (no live owner, never stamped ended_at); without it they are immortal.
-    _AUTO_PRUNE_STALE_OPEN_SOURCES: tuple[str, ...] = (
-        "cli", "cron", "kanban", "acp", "api_server", "subagent", "tool", "recovered",
-    )
+    _AUTO_PRUNE_STALE_OPEN_SOURCES: tuple[str, ...] = AUTO_PRUNE_STALE_OPEN_SOURCES
 
     # ── Write-contention tuning ──
     # SQLite's deterministic busy handler convoys under many hermes processes: keep its

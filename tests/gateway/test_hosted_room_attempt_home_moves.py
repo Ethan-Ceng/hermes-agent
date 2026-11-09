@@ -14,7 +14,8 @@ from gateway.runtime_ownership import ProfileOwnership
 from gateway.session import SessionStore
 from gateway.session_authority import initialize_session_authority
 from gateway.session_group_controls import _disband
-from gateway.session_hosted_member_homes import _HOMES, record_member_home
+from hermes_db.domains.rooms.driver_rules import _HOMES
+from gateway.session_hosted_member_homes import record_member_home
 from gateway.session_hosted_service import CanonicalHostedRoomService
 from hermes_state import SessionDB
 from hermes_state_runtime import (

@@ -1,17 +1,17 @@
 """Room ownership workflow; original connection, fence and off-connection effect boundaries are preserved."""
+from hermes_db.domains.rooms import driver_rules as _storage_shared_1
 from sqlalchemy import select, delete
-from gateway import hosted_rooms as op_authority_native, hosted_room_driver as op_leases_native, hosted_rooms as op_coordination_native, hosted_room_driver as driver, session_hosted_member_homes as op_member_homes_native
-from gateway.hosted_rooms_common import clock
+from hermes_db.domains.rooms import rules as op_authority_native, rules as op_coordination_native
+from hermes_db.domains.rooms.rules import clock
 from hermes_db.domains.rooms.postgres.lifecycle import append_on_connection
 from hermes_db.domains.rooms.postgres.lifecycle import prune_locked
 from hermes_db.domains.rooms.postgres import repository as op_authority_repo, repository as room_repo, repository as op_leases_repo, repository as room_runs
 from hermes_db.tables.rooms import rooms, retired
 import dataclasses
 from hermes_db.tables.room_runs import leases, tasks
-from gateway.owner_identity import same_owner
 from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.tables.runtime import state_meta
-from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.values import RuntimeStoreError
 import json
 from pathlib import Path
 from sqlalchemy.dialects.postgresql import insert
@@ -80,11 +80,11 @@ def probe_native_room_owner(store, *, room_id):
         return owner(conn, store.scope, str(room_id)) is not None
 
 def acquire_lease(store, *, room_id, gateway_id, authority_epoch, process_generation, ttl_seconds, clock):
-    room_id = op_leases_native._identifier(room_id, label='room_id')
-    gateway = op_leases_native._identifier(gateway_id, label='gateway_id')
-    epoch = op_leases_native._bounded_int(authority_epoch, message='authority_epoch must be a positive integer', low=1)
-    process = op_leases_native._identifier(process_generation, label='process_generation')
-    now, expiry = op_leases_native._lease_window(ttl_seconds, clock)
+    room_id = _storage_shared_1._identifier(room_id, label='room_id')
+    gateway = _storage_shared_1._identifier(gateway_id, label='gateway_id')
+    epoch = _storage_shared_1._bounded_int(authority_epoch, message='authority_epoch must be a positive integer', low=1)
+    process = _storage_shared_1._identifier(process_generation, label='process_generation')
+    now, expiry = _storage_shared_1._lease_window(ttl_seconds, clock)
     with store.write() as conn:
         room_repo.lock_store(conn, store)
         op_leases_repo.require_authority(conn, store, room_id, gateway, epoch)
@@ -92,21 +92,21 @@ def acquire_lease(store, *, room_id, gateway_id, authority_epoch, process_genera
         if row is None:
             row = dict(room_id=room_id, gateway_id=gateway, authority_epoch=epoch, process_generation=process, lease_generation=1, expires_at=expiry, acquired_at=now, updated_at=now, released_at=None)
             room_repo.insert_row(conn, store, leases, row)
-            return op_leases_native._lease_from_row(row)
+            return _storage_shared_1._lease_from_row(row)
         same = row['gateway_id'] == gateway and row['authority_epoch'] == epoch
         live = row['released_at'] is None and row['expires_at'] > now
         if same and row['process_generation'] == process and live:
             expiry = max(row['expires_at'], expiry)
             op_leases_repo.update_lease(conn, store, room_id, expires_at=expiry, updated_at=now)
-            return op_leases_native._lease_from_row(dict(row, expires_at=expiry))
+            return _storage_shared_1._lease_from_row(dict(row, expires_at=expiry))
         if same and live:
-            raise op_leases_native.LeaseHeldError('room driver lease is held by another generation')
+            raise _storage_shared_1.LeaseHeldError('room driver lease is held by another generation')
         fields = dict(gateway_id=gateway, authority_epoch=epoch, process_generation=process, lease_generation=row['lease_generation'] + 1, expires_at=expiry, acquired_at=now, updated_at=now, released_at=None)
         op_leases_repo.update_lease(conn, store, room_id, **fields)
-        return op_leases_native._lease_from_row(dict(row, **fields), reclaimed=True)
+        return _storage_shared_1._lease_from_row(dict(row, **fields), reclaimed=True)
 
 def renew_lease(store, lease, *, ttl_seconds, clock):
-    now, expiry = op_leases_native._lease_window(ttl_seconds, clock)
+    now, expiry = _storage_shared_1._lease_window(ttl_seconds, clock)
     with store.write() as conn:
         room_repo.lock_store(conn, store)
         current = op_leases_repo.active_lease(conn, store, lease, now=now)
@@ -115,21 +115,21 @@ def renew_lease(store, lease, *, ttl_seconds, clock):
     return dataclasses.replace(lease, expires_at=expiry, reclaimed=False)
 
 def release_lease(store, lease, *, clock):
-    now = op_leases_native._timestamp(clock)
+    now = _storage_shared_1._timestamp(clock)
     with store.write() as conn:
         room_repo.lock_store(conn, store)
         op_leases_repo.require_authority(conn, store, lease.room_id, lease.gateway_id, lease.authority_epoch)
         row = op_leases_repo.lease_row(conn, store, lease.room_id)
-        if not op_leases_native._lease_row_matches(row, lease):
-            raise op_leases_native.StaleLeaseError('driver lease is stale')
+        if not _storage_shared_1._lease_row_matches(row, lease):
+            raise _storage_shared_1.StaleLeaseError('driver lease is stale')
         if row['released_at'] is not None:
-            return {'lease': op_leases_native._lease_from_row(row), 'idempotent': True}
+            return {'lease': _storage_shared_1._lease_from_row(row), 'idempotent': True}
         if row['expires_at'] <= now:
-            raise op_leases_native.StaleLeaseError('driver lease expired before release')
+            raise _storage_shared_1.StaleLeaseError('driver lease expired before release')
         if conn.scalar(select(tasks.c.task_id).where(room_repo.scope(tasks, store, lease.room_id), tasks.c.status == 'running').limit(1)) is not None:
-            raise op_leases_native.InvalidTaskTransitionError('cannot release a room lease while tasks are running')
+            raise _storage_shared_1.InvalidTaskTransitionError('cannot release a room lease while tasks are running')
         op_leases_repo.update_lease(conn, store, lease.room_id, expires_at=now, updated_at=now, released_at=now)
-    return {'lease': op_leases_native._lease_from_row(dict(row, expires_at=now, updated_at=now, released_at=now)), 'idempotent': False}
+    return {'lease': _storage_shared_1._lease_from_row(dict(row, expires_at=now, updated_at=now, released_at=now)), 'idempotent': False}
 OWNER_PREFIX = 'gateway.hosted.owner.v1:'
 
 def owner(conn, scope, room_id):
@@ -138,7 +138,7 @@ def owner(conn, scope, room_id):
 def owners(conn, scope):
     return tuple(value[len(OWNER_PREFIX):] for value in conn.execute(select(state_meta.c.key).where(state_meta.c.store_id == scope.require_store_id(), state_meta.c.key.startswith(OWNER_PREFIX, autoescape=True))).scalars())
 
-def authorize_room(conn, store, epoch, subject, room_id, *, create=False):
+def authorize_room(conn, store, epoch, subject, room_id, *, same_owner, create=False):
     runtime.require_epoch(conn, store.scope, epoch)
     room_repo.lock_store(conn, store)
     saved = owner(conn, store.scope, room_id)
@@ -170,11 +170,11 @@ def member_authorized(conn, store, epoch, *, owner_subject, binding, member_id, 
         return False
     try:
         row = room_runs.task(conn, store, identity, required=False)
-    except driver.TaskConflictError:
+    except _storage_shared_1.TaskConflictError:
         return False
     if row is None:
         return False
-    task = driver._task_from_row(row)
+    task = _storage_shared_1._task_from_row(row)
     return task['identity'] == identity and task['execution_generation'] == generation and (task['payload']['target_profile'] == profile) and (task['payload'].get('target_member_id', profile) == member_id) and (task['status'] in ({'running'} if operation in {'submit', 'execute'} else {'running', 'stopping'}))
 
 def _key(db, key):
@@ -182,11 +182,11 @@ def _key(db, key):
 
 def recorded_homes(db, room_id, member_id):
     with db._read() as conn:
-        value = conn.scalar(select(state_meta.c.value).where(_key(db, op_member_homes_native._key(room_id, member_id))))
+        value = conn.scalar(select(state_meta.c.value).where(_key(db, _storage_shared_1._key(room_id, member_id))))
     return [Path(home) for home in json.loads(value)] if value is not None else []
 
 def record_member_home(db, room_id, member_id, home):
-    home, key = (str(home), op_member_homes_native._key(room_id, member_id))
+    home, key = (str(home), _storage_shared_1._key(room_id, member_id))
     if Path(home) in recorded_homes(db, room_id, member_id):
         return
     with db._write() as conn:
@@ -198,37 +198,37 @@ def record_member_home(db, room_id, member_id, home):
             conn.execute(stmt.on_conflict_do_update(index_elements=list(state_meta.primary_key.columns), set_={'value': stmt.excluded.value}))
 
 def _attempts(conn, db, room_id, member_id, statuses):
-    rows = conn.execute(select(state_meta.c.key, state_meta.c.value).where(state_meta.c.store_id == db.scope.require_store_id(), state_meta.c.key.startswith(op_member_homes_native._attempt_prefix(room_id, member_id), autoescape=True))).all()
-    ids = {json.loads(key[len(op_member_homes_native._HOMES):])[2] for key, _ in rows}
+    rows = conn.execute(select(state_meta.c.key, state_meta.c.value).where(state_meta.c.store_id == db.scope.require_store_id(), state_meta.c.key.startswith(_storage_shared_1._attempt_prefix(room_id, member_id), autoescape=True))).all()
+    ids = {json.loads(key[len(_storage_shared_1._HOMES):])[2] for key, _ in rows}
     current = {row['task_id']: row for row in conn.execute(select(tasks.c.task_id, tasks.c.status, tasks.c.execution_generation).where(room_repo.scope(tasks, db, room_id), tasks.c.task_id.in_(ids))).mappings()}
     found = {}
     for key, home in rows:
-        task_id, generation = json.loads(key[len(op_member_homes_native._HOMES):])[2:]
+        task_id, generation = json.loads(key[len(_storage_shared_1._HOMES):])[2:]
         row = current.get(task_id)
         found[key] = (home, bool(row and row['status'] in statuses and (row['execution_generation'] == generation)))
     return found
 
 def record_attempt_home(db, room_id, member_id, task_id, generation, home):
-    key = op_member_homes_native._HOMES + json.dumps([room_id, member_id, task_id, int(generation)], separators=(',', ':'))
+    key = _storage_shared_1._HOMES + json.dumps([room_id, member_id, task_id, int(generation)], separators=(',', ':'))
     with db._write() as conn:
         room_repo.lock_store(conn, db)
-        for old, (_, live) in _attempts(conn, db, room_id, member_id, op_member_homes_native._LIVE_ATTEMPT).items():
+        for old, (_, live) in _attempts(conn, db, room_id, member_id, _storage_shared_1._LIVE_ATTEMPT).items():
             if not live and old != key:
                 conn.execute(delete(state_meta).where(_key(db, old)))
         conn.execute(insert(state_meta).values(store_id=db.scope.require_store_id(), key=key, value=str(home)).on_conflict_do_nothing())
 
 def stopping_attempt_home(db, room_id, member_id, task):
-    if task.get('status') not in op_member_homes_native._STOPPING:
+    if task.get('status') not in _storage_shared_1._STOPPING:
         return None
-    key = op_member_homes_native._HOMES + json.dumps([room_id, member_id, task['identity'].task_id, int(task['execution_generation'])], separators=(',', ':'))
+    key = _storage_shared_1._HOMES + json.dumps([room_id, member_id, task['identity'].task_id, int(task['execution_generation'])], separators=(',', ':'))
     with db._read() as conn:
         value = conn.scalar(select(state_meta.c.value).where(_key(db, key)))
     return Path(value) if value is not None else None
 
 def stopping_attempt_homes(db, room_id, member_id):
     with db._read() as conn:
-        return {home for home, live in _attempts(conn, db, room_id, member_id, op_member_homes_native._STOPPING).values() if live}
+        return {home for home, live in _attempts(conn, db, room_id, member_id, _storage_shared_1._STOPPING).values() if live}
 
 def forget_locked(conn, store, room_id):
-    prefix = op_member_homes_native._HOMES + json.dumps([room_id], separators=(',', ':'))[:-1] + ','
+    prefix = _storage_shared_1._HOMES + json.dumps([room_id], separators=(',', ':'))[:-1] + ','
     conn.execute(delete(state_meta).where(state_meta.c.store_id == store.scope.require_store_id(), state_meta.c.key.startswith(prefix, autoescape=True)))

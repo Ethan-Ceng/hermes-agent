@@ -25,7 +25,8 @@ def _quiesce_pg(store):
         close_runtime(runtime)
     else:
         from hermes_db.domains.runtime.postgres.metrics import WorkerMetricsStore
-        WorkerMetricsStore().create_and_export_package_if_due()
+        from agent.runtime_domain_store import worker_resource
+        WorkerMetricsStore(worker_resource('metrics')).create_and_export_package_if_due()
     store.flush_token_counts()
 
 

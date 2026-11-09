@@ -1,12 +1,12 @@
 """Optimistic preparation snapshots revalidated inside the receipt transaction."""
+from hermes_db.domains.runtime.receipts import DEFERRED_PICK_PREFIX
 import json
-from hermes_state_local import POLICY_PREFIX
+from hermes_db.domains.runtime.receipts import POLICY_PREFIX
 from hermes_state_local_lineage import validate_local_lineage
 from hermes_state_mutation_guards import require_target_advanceable
 from hermes_state_runtime import RuntimeStoreError
 
 # A model pick made while a turn ran, committed at the next turn boundary (gateway/session_deferred_pick.py).
-DEFERRED_PICK_PREFIX = 'gateway.deferred_pick.v1.'
 
 
 def local_snapshot(db, conn, session_id):
@@ -31,7 +31,7 @@ def validate_prepared(db, conn, session_id, prepared):
 
 def _commit_policy(db, conn, session_id, prepared):
     """Write the prepared policy over the snapshot it was derived from and bump the generation."""
-    from hermes_state_runtime import _json
+    from hermes_db.domains.runtime.values import _json
     snapshot = validate_prepared(db, conn, session_id, prepared)
     saved = snapshot['receipt']
     saved['policy'] = prepared['policy']
@@ -42,7 +42,7 @@ def _commit_policy(db, conn, session_id, prepared):
 
 
 def model_in_transaction(db, conn, session_id, payload, prepared):
-    from hermes_state_runtime import _json
+    from hermes_db.domains.runtime.values import _json
     snapshot, generation = _commit_policy(db, conn, session_id, prepared)
     model = prepared['policy']['model']
     config = json.loads(prepared['policy']['config_json'])['model']
@@ -67,7 +67,7 @@ def model_in_transaction(db, conn, session_id, payload, prepared):
 
 
 def reasoning_in_transaction(db, conn, session_id, payload, prepared):
-    from hermes_state_runtime import _json
+    from hermes_db.domains.runtime.values import _json
     snapshot, generation = _commit_policy(db, conn, session_id, prepared)
     # This level is newer than any still waiting for a turn boundary, beside or inside a deferred model pick.
     key = DEFERRED_PICK_PREFIX + session_id

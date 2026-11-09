@@ -1,4 +1,5 @@
 """Named dashboard and event-tail reads on the selected Board backend."""
+from hermes_db.domains.kanban.rules import summarize_board
 
 from hermes_db.domains.kanban.api import domain_operation
 
@@ -29,16 +30,6 @@ def tasks_by_ids(conn, task_ids):
     return {row["id"]: dict(row) for row in conn.execute(f"SELECT * FROM tasks WHERE id IN ({placeholders})", ids)}
 
 
-def summarize_board(links, comments, child_statuses, tenants):
-    link_counts, progress = {}, {}
-    for row in links:
-        link_counts.setdefault(row["parent_id"], {"parents": 0, "children": 0})["children"] += 1
-        link_counts.setdefault(row["child_id"], {"parents": 0, "children": 0})["parents"] += 1
-    for row in child_statuses:
-        value = progress.setdefault(row["pid"], {"done": 0, "total": 0})
-        value["total"] += 1
-        value["done"] += row["cstatus"] == "done"
-    return link_counts, {row["task_id"]: row["n"] for row in comments}, progress, tenants
 
 
 @domain_operation("queries")

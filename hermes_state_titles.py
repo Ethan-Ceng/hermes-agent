@@ -2,6 +2,8 @@
 lineage-aware lookups."""
 
 from __future__ import annotations
+from hermes_db.domains.sessions.rules import _NUMBERED_TITLE_RE
+from hermes_db.domains.sessions.rules import bot_chat_title_released
 
 from hermes_db.domains.sessions.rules import sanitize_title, _TITLE_CONTROL_RE, _TITLE_INVISIBLE_RE
 
@@ -10,27 +12,16 @@ import re
 from typing import Any, Dict, Optional
 
 from agent.message_sanitization import _sanitize_surrogates
-from hermes_state_common import (
-    _COMPRESSION_CHILD_SQL, _RECOVERABLE_END_REASONS, _RECOVERABLE_END_REASONS_SQL,
-    _non_continuation_child_sql, escape_like as _escape_like,
-)
+from hermes_state_common import _COMPRESSION_CHILD_SQL, _RECOVERABLE_END_REASONS_SQL, _non_continuation_child_sql, escape_like as _escape_like
+from hermes_db.domains.sessions.rules import _RECOVERABLE_END_REASONS
 
 
-def bot_chat_title_released(archived: Any, auto_archived: Any, tip_end_reason: Optional[str]) -> bool:
-    """The ONE predicate for "this archived row titled "Bot Chat" no longer holds the name"
-    (#139779): deliberately archived, i.e. not by the idle sweep (``auto_archived``, which
-    re-activation undoes) and without a recoverable reaper stamp on the lineage tip (#92687
-    resurrects those). Hidden or visible alike: a Bot Chat the delivery door minted is visible.
-    The title lookup skips exactly the rows the title-conflict check frees, so a lookup that says
-    "absent" never meets a name it cannot take."""
-    return bool(archived) and not auto_archived and (tip_end_reason or "") not in _RECOVERABLE_END_REASONS
 
 # caplog tests pin the "hermes_state" logger name.
 logger = logging.getLogger("hermes_state")
 
 # ASCII controls (keeping \t \n \r for the whitespace collapse), then zero-width,
 # bidi override, object-replacement and interlinear-annotation code points.
-_NUMBERED_TITLE_RE = re.compile(r'^(.*?) #(\d+)$')
 
 
 def next_title_in_lineage(conn, base_title: str) -> str:

@@ -69,9 +69,6 @@ def _prune(conn, scope, session_id, root, *, cutoff, per_root_limit, total_limit
 
 def record(resource, evidence, created_at, *, cutoff, per_root_limit, total_limit):
     """Clock and retention policy belong to the owner, never the compute producer."""
-    from agent.runtime_domain_store import WorkerDomainStore
-    if isinstance(resource, WorkerDomainStore):
-        return resource.command('verification.record', {'evidence': evidence})
     with resource.write() as conn:
         _lock_store(conn, resource.scope)
         event_id = _save_event(conn, resource.scope, evidence, created_at)
@@ -81,18 +78,12 @@ def record(resource, evidence, created_at, *, cutoff, per_root_limit, total_limi
     return {'id': event_id, **evidence, 'created_at': created_at}
 
 def mark_edited(resource, session_id, root, changed, edited_at):
-    from agent.runtime_domain_store import WorkerDomainStore
-    if isinstance(resource, WorkerDomainStore):
-        return resource.command('verification.mark_edited', dict(session_id=session_id, root=root, changed=changed))
     with resource.write() as conn:
         _lock_store(conn, resource.scope)
         _mark_edited(conn, resource.scope, session_id, root, changed, edited_at)
     return {'session_id': session_id, 'root': root, 'last_edit_at': edited_at, 'changed_paths': changed}
 
 def status(resource, session_id, root):
-    from agent.runtime_domain_store import WorkerDomainStore
-    if isinstance(resource, WorkerDomainStore):
-        return resource.query('verification.status', dict(session_id=session_id, root=root))
     with resource.read() as conn:
         state = _state(conn, resource.scope, session_id, root)
         result = {'evidence': None, 'root': root, 'session_id': session_id, 'changed_paths': []}

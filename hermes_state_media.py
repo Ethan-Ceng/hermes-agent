@@ -1,11 +1,10 @@
 """Durable media retirement candidates survive transcript deletion and failed cleanup."""
+from hermes_db.domains.runtime.receipts import RETIRED_MEDIA_PREFIX as PREFIX, MEDIA_SPILLOVER_PREFIX as SPILLOVER_PREFIX
 import hashlib
 import json
 
 from hermes_state_keys import prefix_range
 
-PREFIX = 'gateway.media.retired.v1.'
-SPILLOVER_PREFIX = 'gateway.spillover.retired.v1.'
 
 
 def retire_media(conn, payload, request_id=''):

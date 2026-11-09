@@ -5,7 +5,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from gateway import hosted_rooms as rooms, hosted_room_driver as driver
+from gateway import hosted_rooms as rooms
+from hermes_db.domains.rooms import rules as room_rules
+from gateway import hosted_room_driver as driver
 from gateway.session_hosted_storage import RoomCoordination, HostedMemberAuthorization, HostedAdmissionAuthorizer
 from gateway.session_hosted_service import probe_native_room_owner
 from hermes_db.access import open_session_store
@@ -31,7 +33,7 @@ def test_owner_and_room_commit_or_rollback_together_and_are_scoped(pg_profiles, 
     with pg_profiles("one") as home, closing(open_session_store(home / "state.db")) as db:
         coord = coordination(db)
         with monkeypatch.context() as patch:
-            patch.setattr(rooms, "MAX_ACTIVE_ROOMS", 0)
+            patch.setattr(room_rules, "MAX_ACTIVE_ROOMS", 0)
             with pytest.raises(rooms.HostedRoomError):
                 create(coord)
         assert coord.core_read(owner, "room") is None

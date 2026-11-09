@@ -67,7 +67,8 @@ async def test_a_handed_off_bot_chat_opens_on_its_lane_after_a_restart(tmp_path,
     from gateway.session_local import create_local_session
     from gateway.session_local_recovery import transcript_target
     from gateway.session_local_title import resolve_titled_session
-    from hermes_state_local import POLICY_PREFIX, local_receipt
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
+    from hermes_state_local import local_receipt
     from hermes_state_local_migration import LEGACY_PREFIX
 
     runner = _Runner(tmp_path)
@@ -552,7 +553,7 @@ async def test_a_moved_receipt_with_a_malformed_lineage_never_stops_the_boot(tmp
     from gateway.session_authority import initialize_session_authority
     from gateway.session_contract import SessionActor
     from gateway.session_local import create_local_session
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     runner = _Runner(tmp_path)
     warm = await initialize_session_authority(runner, profile_id='fixture', instance_id='warm')
     owner = SessionActor('owner', 'fixture', frozenset({'session:create', 'session:read', 'session:control'}), 'socket')
@@ -624,7 +625,7 @@ async def test_a_named_profiles_handed_off_bot_chat_opens_on_its_lane_after_a_re
     from gateway.session_local import create_local_session
     from gateway.session_local_recovery import transcript_target
     from gateway.session_local_title import resolve_titled_session
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     from hermes_state_local_migration import LEGACY_PREFIX
 
     root, bot = _serve(tmp_path, monkeypatch)

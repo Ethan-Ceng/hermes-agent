@@ -28,7 +28,7 @@ def repair_sessions(conn, scope, ids, *, sever=False, rekey=None):
                 detached.append(row["id"])
         elif rekey is not None:
             if row["session_key"].startswith("agent:main:"):
-                from gateway.session import _session_key_namespace
+                from gateway.session_contract import _session_key_namespace
                 count += sessions.update_session(conn, scope, row["id"], {
                     "profile_name": rekey, "session_key": _session_key_namespace(rekey) + ":" + row["session_key"][11:]})
         elif mine is not None and row["profile_name"] != mine:
@@ -38,7 +38,7 @@ def repair_sessions(conn, scope, ids, *, sever=False, rekey=None):
 
 
 def delete_routes(conn, scope, wanted):
-    from hermes_state_mutation_retirement import entry_session_id, route_namespace
+    from hermes_db.domains.runtime.receipts import entry_session_id, route_namespace
     sessions.lock_store(conn, scope, exclusive=True)
     requested, count = set(wanted), 0
     for row in gateway.routing_rows(conn, scope):

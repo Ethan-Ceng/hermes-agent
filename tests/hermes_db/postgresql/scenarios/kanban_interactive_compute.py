@@ -16,7 +16,7 @@ def main():
     from agent.delegation_context import delegated_child_context
     from hermes_cli.process_identity import worker_birth
     from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
-    from hermes_db.domains.kanban.routing.wire import pack
+    from hermes_db.integration.kanban_wire import pack
     from model_tools import handle_function_call
     import tools.kanban_tools  # register the actual application handlers
     command = json.loads(sys.stdin.readline())

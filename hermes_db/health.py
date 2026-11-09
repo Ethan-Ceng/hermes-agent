@@ -17,7 +17,7 @@ def is_postgresql_store(store):
 
 def storage_identity(store):
     if is_postgresql_store(store):
-        from hermes_db.integration.transfer.move_values import resource_key
+        from hermes_db.core.values import resource_key
         return ("postgresql", resource_key(store._transactions), store.scope.require_store_id())
     return Path(store.db_path).resolve()
 

@@ -11,7 +11,8 @@ import uuid
 from gateway.config import Platform
 from gateway.session_api import bind_api_steps, restore_api_session, run_steps, run_steps_off_loop
 from gateway.session_results import admission_result
-from hermes_state_runtime import RuntimeStoreError, _json
+from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.values import _json
 from hermes_db.integration.runtime_calls import admit_session_input
 from hermes_db.health import is_postgresql_store
 

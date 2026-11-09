@@ -1,6 +1,8 @@
 """Kanban task/graph contracts; all filesystem roots and PG namespaces are isolated."""
 
 import pytest
+
+from hermes_db.domains.kanban import rules as kanban_rules
 from hermes_cli import kanban_db_connect as kbc
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
@@ -49,7 +51,7 @@ def test_task_graph_comments_and_events_use_pg(kanban_profiles):
 
 def test_same_task_ids_are_isolated_and_board_recreate_has_new_generation(kanban_profiles, monkeypatch):
     from hermes_cli import kanban_db as kb
-    monkeypatch.setattr(kb, "_new_task_id", lambda: "t_same")
+    monkeypatch.setattr(kanban_rules, "_new_task_id", lambda: "t_same")
     with kanban_profiles("one"):
         for board in ("alpha", "beta"):
             kb.create_board(board)
@@ -110,7 +112,7 @@ def test_atomic_decomposition_origin_and_specification(kanban_profiles, monkeypa
                               session_id="origin", tenant="tenant")
         generated = iter(["t_fresh", root])
         with monkeypatch.context() as collision, pytest.raises(StorageConflictError):
-            collision.setattr(kb, "_new_task_id", lambda: next(generated))
+            collision.setattr(kanban_rules, "_new_task_id", lambda: next(generated))
             decompose_triage_task(store, root, root_assignee="orchestrator", children=[
                 {"title": "first"}, {"title": "collides after first insert"}])
         assert [task.id for task in kb.list_tasks(store)] == [root]

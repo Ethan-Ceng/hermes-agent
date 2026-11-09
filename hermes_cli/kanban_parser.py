@@ -7,6 +7,8 @@ records and arguments is the order argparse renders in ``--help``.
 """
 
 from __future__ import annotations
+from hermes_db.domains.kanban import rules as _storage_shared_1_
+from hermes_db.domains.kanban import rules as _storage_shared_1
 
 import argparse
 
@@ -363,15 +365,15 @@ _SPECS = [
     _cmd("dispatch", [
         _arg("--dry-run", action="store_true", help="Don't actually spawn processes; just print what would happen"),
         _arg("--max", type=int, help="Cap number of spawns this pass"),
-        _arg("--failure-limit", type=int, default=kbd.DEFAULT_FAILURE_LIMIT,
+        _arg("--failure-limit", type=int, default=_storage_shared_1.DEFAULT_FAILURE_LIMIT,
              help=f"Auto-block a task after this many consecutive non-success attempts "
-                  f"(spawn_failed, timed_out, or crashed; default: {kbd.DEFAULT_FAILURE_LIMIT})"),
+                  f"(spawn_failed, timed_out, or crashed; default: {_storage_shared_1.DEFAULT_FAILURE_LIMIT})"),
         _json_flag(),
     ], help="One dispatcher pass: reclaim stale, promote ready, spawn workers"),
     _cmd("daemon", [
         _arg("--interval", type=float, default=60.0, help="Seconds between dispatch ticks (default: 60)"),
         _arg("--max", type=int, help="Cap number of spawns per tick"),
-        _arg("--failure-limit", type=int, default=kbd.DEFAULT_FAILURE_LIMIT),
+        _arg("--failure-limit", type=int, default=_storage_shared_1.DEFAULT_FAILURE_LIMIT),
         _arg("--pidfile", help="Write the daemon's PID to this file on start"),
         _arg("--verbose", "-v", action="store_true", help="Log each tick's outcome to stdout"),
         # Escape hatch for hosts that truly cannot run the gateway; hidden from
@@ -402,7 +404,7 @@ _SPECS = [
         _arg("--notifier-profile",
              help="Profile gateway that owns/delivers this subscription (default: active profile)"),
         # choices: single source of truth shared with the DB/watcher enum.
-        _arg("--delivery-mode", choices=kbn._NOTIFY_DELIVERY_MODES,
+        _arg("--delivery-mode", choices=_storage_shared_1_._NOTIFY_DELIVERY_MODES,
              help="How the kanban-notifier reacts to terminal events for this "
                   "subscription: 'notify' (passive message only; default), "
                   "'notify+wake' (message AND wake the destination gateway agent so "

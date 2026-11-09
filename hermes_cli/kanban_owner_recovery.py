@@ -7,7 +7,7 @@ import time
 import psutil
 
 from hermes_db.domains.kanban.api import domain_operation
-from hermes_db.domains.kanban.routing.evidence import TaskEvidence, typed_owner_receipt
+from hermes_db.domains.kanban.rules import TaskEvidence, typed_owner_receipt
 
 
 @domain_operation("owner_recovery")
@@ -68,7 +68,7 @@ def _native_admission_row(receipt):
             if pg != (receipt['storage_backend'] == 'postgresql'):
                 return None
             if pg:
-                from hermes_db.integration.transfer.move_values import resource_key
+                from hermes_db.core.values import resource_key
                 if owner.scope.store_id != receipt['store_id'] or resource_key(owner._transactions) != receipt.get('target'):
                     return None
             row = runtime_for_store(owner).find_admission(principal_id=receipt['principal_id'],

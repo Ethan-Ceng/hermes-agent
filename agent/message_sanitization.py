@@ -1024,3 +1024,64 @@ def record_reasoning_field_rejection(agent: Any, error_body: Any, sent_messages:
 
 # Image / multimodal parts are deliberately NOT consolidated here: per-adapter handling is
 # format-specific SYNTAX. The one shared image POLICY is ``_strip_images_from_messages``.
+
+
+# Restore historical transcripts without replaying curator prompts or stale tool markers.
+_REVIEW_HARNESS_PREFIXES = (
+    "Review the conversation above and update the skill library",
+    "Review the conversation above and consider saving to memory",
+)
+
+def _is_background_review_harness_message(msg: dict[str, Any]) -> bool:
+    """Persisted harness prompt (older builds wrote the forked curator's turns
+    into real sessions; replaying them hijacks the session)."""
+    if not isinstance(msg, dict) or msg.get("role") not in {"user", "system"}:
+        return False
+    content = msg.get("content")
+    return isinstance(content, str) and content.lstrip().startswith(_REVIEW_HARNESS_PREFIXES)
+
+def _strip_background_review_harness(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Drop harness messages and the curator-mode assistant reply that immediately followed each."""
+    if not messages:
+        return messages
+    out: list[dict[str, Any]] = []
+    skip_next_assistant = False
+    previous_was_harness = False
+    for msg in messages:
+        if _is_background_review_harness_message(msg):
+            # A consecutive harness prompt occupies the preceding prompt's
+            # immediate reply slot, so it must not arm another assistant skip.
+            skip_next_assistant = not previous_was_harness
+            previous_was_harness = True
+            continue
+        if skip_next_assistant:
+            skip_next_assistant = False
+            if isinstance(msg, dict) and msg.get("role") == "assistant":
+                previous_was_harness = False
+                continue  # the curator-mode reply to the harness prompt
+        previous_was_harness = False
+        out.append(msg)
+    return out
+
+_STALE_TOOL_CALL_MARKER_RE = re.compile(r"^\[[A-Za-z_][A-Za-z0-9_.-]*\]$")
+
+def _is_stale_tool_call_marker_message(msg: dict[str, Any]) -> bool:
+    """Assistant tool-call turn whose content is a bare ``[marker]`` (an older
+    conversation_loop persisted a local template's marker as the final response)."""
+    if not isinstance(msg, dict) or msg.get("role") != "assistant" or not msg.get("tool_calls"):
+        return False
+    content = msg.get("content")
+    return isinstance(content, str) and bool(_STALE_TOOL_CALL_MARKER_RE.fullmatch(content.strip()))
+
+def _strip_stale_tool_call_markers(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Blank stale ``[marker]`` assistant content (replaying it teaches the model
+    to keep emitting it); tool_call/result pairing stays intact."""
+    repaired = 0
+    for msg in filter(_is_stale_tool_call_marker_message, messages):
+        msg["content"] = ""
+        repaired += 1
+    if repaired:
+        logging.getLogger("hermes_state").info(
+            "Cleared %d stale tool-call marker message(s) while restoring session (#78148)", repaired,
+        )
+    return messages

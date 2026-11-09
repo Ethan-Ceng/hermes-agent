@@ -1,4 +1,6 @@
 """Kanban completion workflow; original connection, fence and off-connection effect boundaries are preserved."""
+from hermes_db.domains.kanban import rules as _storage_shared_1_
+from hermes_db.domains.kanban import rules as _storage_shared_1
 from pathlib import Path
 import time
 from hermes_db.errors import UnknownCommitError
@@ -16,13 +18,13 @@ def _matches(task, captured):
     return task is not None and all(task[field] == captured[field] for field in SNAPSHOT_FIELDS)
 
 def _prepare_files(store, task_id, metadata):
-    from hermes_cli import kanban_db as kb
+
     if not isinstance(metadata, dict):
         return ([], [])
     from hermes_db.domains.kanban.postgres.files import prepare_directory
-    directory = prepare_directory(store, kb.task_attachments_dir(task_id))
+    directory = prepare_directory(store, store.files.task_attachments_dir(task_id))
     try:
-        kb._persist_scratch_completion_artifacts(store, task_id, metadata, attachment_dir=directory)
+        store.files.persist_scratch_completion_artifacts(store, task_id, metadata, attachment_dir=directory)
     except Exception:
         from hermes_db.domains.kanban.postgres.files import discard_empty_generation
         discard_empty_generation(store, directory)
@@ -33,23 +35,23 @@ def _prepare_files(store, task_id, metadata):
         rows = [dict(filename=path.name, stored_path=str(path), size=path.stat().st_size, file_key=canonical_path(path)) for path in staged]
     except Exception:
         if staged:
-            kb._discard_staged_copies(staged, staged[0].parent)
+            store.files.discard_staged_copies(staged, staged[0].parent)
         raise
     return (staged, rows)
 
 def _close_completed(conn, store, task, result, summary, metadata):
-    from hermes_cli import kanban_db as kb
+
     handoff = summary if summary is not None else result
     run_id = run_repo.close_run(conn, store, task, outcome='completed', status='done', summary=handoff, metadata=metadata)
     if run_id is None and (summary or metadata is not None or result or (task['status'] == 'review')):
         if task['status'] == 'review' and (not handoff) and (not metadata):
-            handoff = kb._REVIEW_APPROVED_NOTE
+            handoff = _storage_shared_1._REVIEW_APPROVED_NOTE
             metadata = {'source_status': 'review', 'approval': 'manual'}
         run_id = run_repo.synthesize(conn, store, task, outcome='completed', summary=handoff, metadata=metadata)
     return (run_id, handoff)
 
 def _write_completion(conn, store, captured, expected_run_id, result, summary, metadata, verified, prepared, rows, fire_lifecycle_hook):
-    from hermes_cli import kanban_db as kb
+
     task_id = captured['id']
     task = repo.get(conn, store, task_id)
     if not _matches(task, captured) or _unsatisfied(conn, store, task_id):
@@ -65,8 +67,8 @@ def _write_completion(conn, store, captured, expected_run_id, result, summary, m
     for row in rows:
         insert_attachment(conn, store, task_id, **row, uploaded_by='kanban_complete')
     run_id, handoff = _close_completed(conn, store, task, result, summary, metadata)
-    event_summary = handoff or (kb._REVIEW_APPROVED_NOTE if task['status'] == 'review' else None)
-    repo.event(conn, store, task_id, 'completed', kb._completed_event_payload(result, event_summary, verified, metadata), run_id)
+    event_summary = handoff or (_storage_shared_1._REVIEW_APPROVED_NOTE if task['status'] == 'review' else None)
+    repo.event(conn, store, task_id, 'completed', _storage_shared_1._completed_event_payload(result, event_summary, verified, metadata), run_id)
     steps = [dict(kind='phantom', task_id=task_id, run_id=run_id, summary=summary, result=result, verified=verified), dict(kind='ready'), dict(kind='workspace', task_id=task_id)]
     if fire_lifecycle_hook:
         steps.append(hook_step(store, task, 'kanban_task_completed', run_id, summary=handoff))
@@ -75,7 +77,7 @@ def _write_completion(conn, store, captured, expected_run_id, result, summary, m
     return (run_id, handoff, effect_id)
 
 def _prepare_completion(store, task_id, result, summary, metadata, created_cards, expected_run_id, force):
-    from hermes_cli import kanban_db as kb
+
     with store.write() as conn:
         task = repo.get(conn, store, task_id)
         if _unsatisfied(conn, store, task_id):
@@ -88,10 +90,10 @@ def _prepare_completion(store, task_id, result, summary, metadata, created_cards
             store.command_result(conn, False)
             return None
     cards = tuple(created_cards or ())
-    verified = kb._gate_created_cards(store, task_id, cards, summary or result)
-    kb._gate_empty_completion(store, task_id, result=result, summary=summary)
-    if expected_run_id is None and (not force) and kb._claim_is_live(task):
-        raise kb.LiveClaimError(task_id)
+    verified = store._gate_created_cards(task_id, cards, summary or result)
+    store._gate_empty_completion(task_id, result=result, summary=summary)
+    if expected_run_id is None and (not force) and store.processes.claim_is_live(task):
+        raise store.result_values.live_claim_error(task_id)
     prepared = prepare(store, task, expected_run_id, metadata)
     if prepared is False:
         return None
@@ -102,12 +104,12 @@ def _prepare_completion(store, task_id, result, summary, metadata, created_cards
                 record(conn, store, current, prepared)
             store.command_result(conn, False)
         return None
-    metadata = kb._merge_completion_prose_artifacts(store, task_id, metadata, summary=summary, result=result)
+    metadata = store.files.merge_completion_prose_artifacts(store, task_id, metadata, summary=summary, result=result)
     metadata = dict(metadata) if isinstance(metadata, dict) else metadata
     return (task, verified, metadata, prepared)
 
 def complete_task(store, task_id, *, result=None, summary=None, metadata=None, created_cards=None, expected_run_id=None, fire_lifecycle_hook=True, force=False):
-    from hermes_cli import kanban_db as kb
+
     preparation = _prepare_completion(store, task_id, result, summary, metadata, created_cards, expected_run_id, force)
     if preparation is None:
         return False
@@ -154,35 +156,35 @@ def _audit(conn, store, task_id, kind, payload, error):
     from hermes_db.domains.kanban.postgres.receipts import refusal
     if repo.get(conn, store, task_id) is not None:
         repo.event(conn, store, task_id, kind, payload)
-    store.command_result(conn, refusal(error))
+    store.command_result(conn, refusal(error, store))
 
 def _gate_created_cards(store, task_id, created_cards, preview_text):
-    from hermes_cli import kanban_db as kb
+
     if not created_cards:
         return []
     with store.write() as conn:
         verified, phantom = verify_on_connection(conn, store, task_id, created_cards)
         if phantom:
-            error = kb.HallucinatedCardsError(phantom, task_id)
-            _audit(conn, store, task_id, 'completion_blocked_hallucination', {'phantom_cards': phantom, 'verified_cards': verified, 'summary_preview': kb._first_line(preview_text, 200) or None}, error)
+            error = store.result_values.hallucinated_cards_error(phantom, task_id)
+            _audit(conn, store, task_id, 'completion_blocked_hallucination', {'phantom_cards': phantom, 'verified_cards': verified, 'summary_preview': _storage_shared_1._first_line(preview_text, 200) or None}, error)
     if phantom:
         raise error
     return verified
 
 def _gate_empty_completion(store, task_id, *, result, summary):
-    from hermes_cli import kanban_db as kb
+
     with store.write() as conn:
         row = repo.get(conn, store, task_id)
         if row is None or row['status'] == 'review':
             return
-        if any(kb._substantive_text(value) for value in (result, summary, row['result'])):
+        if any(_storage_shared_1._substantive_text(value) for value in (result, summary, row['result'])):
             return
-        error = kb.EmptyCompletionError(task_id)
-        _audit(conn, store, task_id, 'completion_blocked_empty_result', {'result_preview': kb._first_line(result, 200) or None, 'summary_preview': kb._first_line(summary, 200) or None}, error)
+        error = store.result_values.empty_completion_error(task_id)
+        _audit(conn, store, task_id, 'completion_blocked_empty_result', {'result_preview': _storage_shared_1._first_line(result, 200) or None, 'summary_preview': _storage_shared_1._first_line(summary, 200) or None}, error)
     raise error
 
 def _phantom_ids(conn, store, text):
-    from hermes_cli.kanban_db import _TASK_ID_PROSE_RE
+    from hermes_db.domains.kanban.rules import _TASK_ID_PROSE_RE
     ids = list(dict.fromkeys(_TASK_ID_PROSE_RE.findall(text or '')))
     found = {decode_text(tid) for tid in conn.scalars(select(tasks.c.id).where(repo.scope(tasks, store), tasks.c.id.in_([encode_text(value) for value in ids])))}
     return [tid for tid in ids if tid not in found]
@@ -211,14 +213,14 @@ def snapshot(task):
     return tuple(task[key] for key in ('current_run_id', 'status', 'completion_contract', 'assignee'))
 
 def prepare(store, task, expected_run_id, metadata):
-    from hermes_cli import kanban_pr_acceptance as acceptance
+
     contract = task['completion_contract']
     if not contract or contract == 'local-only':
         return None
     if expected_run_id is not None and task['current_run_id'] != expected_run_id:
         return False
     published_pr = metadata.get('published_pr') if isinstance(metadata, dict) else None
-    match = acceptance._PR.fullmatch(published_pr) if isinstance(published_pr, str) else None
+    match = _storage_shared_1_._PR.fullmatch(published_pr) if isinstance(published_pr, str) else None
     captured = snapshot(task)
     if match and contract == match[1]:
         with store.write() as conn:
@@ -228,7 +230,7 @@ def prepare(store, task, expected_run_id, metadata):
             repo.task_update(conn, store, task['id'], completion_contract=published_pr)
         task['completion_contract'] = contract = published_pr
         captured = snapshot(task)
-    receipt = acceptance.collect_acceptance(contract, published_pr, assignee=task['assignee'])
+    receipt = store.files.collect_acceptance(contract, published_pr, assignee=task['assignee'])
     return (captured, receipt)
 
 def record(conn, store, task, prepared):
@@ -244,7 +246,7 @@ def record(conn, store, task, prepared):
     return receipt['ok']
 
 def edit_result(store, task_id, *, title, body, priority, result, summary, metadata, board):
-    from hermes_cli import kanban_db as kb
+
     values = {name: value for name, value in (('title', title), ('body', body), ('priority', priority), ('result', result)) if value is not None}
     changed = list(values) + ['summary'] + (['metadata'] if metadata is not None else [])
     handoff = summary if summary is not None else result
@@ -264,6 +266,6 @@ def edit_result(store, task_id, *, title, body, priority, result, summary, metad
                 updates['metadata'] = json.dumps(metadata, ensure_ascii=False)
             run_repo.update_run(conn, store, run_id, **updates)
         fields = ['result', 'summary'] + (['metadata'] if metadata is not None else [])
-        repo.event(conn, store, task_id, 'edited', {'fields': fields, 'result_len': len(result) if result else 0, 'summary': kb._first_line(handoff, 400) or None}, run_id)
-    kb.notify_task_updated(store, task_id, changed, board=board)
+        repo.event(conn, store, task_id, 'edited', {'fields': fields, 'result_len': len(result) if result else 0, 'summary': _storage_shared_1._first_line(handoff, 400) or None}, run_id)
+    store.notify_task_updated(task_id, changed, board=board)
     return True

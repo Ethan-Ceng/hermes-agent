@@ -17,7 +17,7 @@ def capture_removal(home):
         if storage_backend(home) == "sqlite":
             return None
         from hermes_db.backends.postgresql.engine import get_engine
-        from hermes_db.integration.transfer.move_values import resource_key
+        from hermes_db.core.values import resource_key
         from hermes_db.backends.postgresql.transactions import Transactions
         settings, scope = resolve_db_configuration(home)
         pg = settings.postgresql
@@ -28,7 +28,7 @@ def purge_store(captured, *, selected=None):
     from hermes_cli.db_setup import _owning_profile
     from hermes_db.errors import StorageConfigurationError
     from hermes_db.factory import acquire_domain, acquire_profile_domain
-    from hermes_db.integration.transfer.move_values import resource_key
+    from hermes_db.core.values import resource_key
     from hermes_db.tables import load_metadata
     from hermes_db.tables.rooms import rooms
     from sqlalchemy import update

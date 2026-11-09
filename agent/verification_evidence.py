@@ -3,6 +3,7 @@ a code workspace. Deliberately passive — it never runs a suite, never blocks
 completion, and never upgrades targeted checks into "repo green"."""
 
 from __future__ import annotations
+from hermes_db.domains.verification.values import VerificationEvidence, _MAX_EVENTS_PER_SESSION_ROOT, _MAX_EVIDENCE_AGE_DAYS, _MAX_TOTAL_UNREFERENCED_EVENTS, _utc_now
 
 import json
 import re
@@ -20,9 +21,6 @@ from hermes_constants import get_hermes_home
 
 _DB_LOCK = threading.Lock()
 _MAX_OUTPUT_SUMMARY_CHARS = 2000
-_MAX_EVIDENCE_AGE_DAYS = 30
-_MAX_EVENTS_PER_SESSION_ROOT = 100
-_MAX_TOTAL_UNREFERENCED_EVENTS = 10_000
 _AD_HOC_SCRIPT_NAME_PREFIXES = ("hermes-verify-", "hermes-ad-hoc-")
 _VERIFY_SCHEMA_VERSION = 1
 # Latest verify-command run per (session, root) whose own exit status the shell hid, with the
@@ -100,24 +98,8 @@ class _ShellSegment:
     following_operator: str | None = None
 
 
-@dataclass(frozen=True)
-class VerificationEvidence:
-    """A classified command result worth recording."""
-
-    command: str
-    canonical_command: str
-    kind: str
-    scope: str
-    status: str
-    exit_code: int
-    cwd: str
-    root: str
-    session_id: str
-    output_summary: str = ""
 
 
-def _utc_now() -> str:
-    return datetime.now(UTC).isoformat()
 
 
 def _run_key(session_id, root):
@@ -675,7 +657,7 @@ def _insert_evidence(evidence: VerificationEvidence) -> dict[str, Any]:
 
     resource = postgres_resource()
     if resource is not None:
-        from hermes_db.domains.verification.postgres import record
+        from hermes_db.domains.verification.api import record
         with resource:
             return record(resource, e.__dict__, created_at,
                 cutoff=(datetime.now(UTC) - timedelta(days=_MAX_EVIDENCE_AGE_DAYS)).isoformat(),
@@ -735,7 +717,7 @@ def mark_workspace_edited(
     from hermes_db.domains.verification.api import postgres_resource
     resource = postgres_resource()
     if resource is not None:
-        from hermes_db.domains.verification.postgres import mark_edited
+        from hermes_db.domains.verification.api import mark_edited
         with resource:
             return mark_edited(resource, sid, root, changed_paths, edited_at)
 
@@ -799,7 +781,7 @@ def verification_status(*, session_id: str | None, cwd: str | Path | None) -> di
     from hermes_db.domains.verification.api import postgres_resource
     resource = postgres_resource()
     if resource is not None:
-        from hermes_db.domains.verification.postgres import status
+        from hermes_db.domains.verification.api import status
         with resource:
             return status(resource, sid, root)
     with _DB_LOCK, _transaction() as conn:

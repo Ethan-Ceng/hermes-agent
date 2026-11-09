@@ -47,7 +47,7 @@ def location_root(location):
 
 
 def room_reference(store):
-    from hermes_db.integration.transfer.move_values import resource_key
+    from hermes_db.core.values import resource_key
     return RoomStoreRef(store.scope.profile_home, store.scope.require_store_id(), resource_key(store._transactions))
 
 
@@ -100,3 +100,9 @@ def room_operation(topic):
                 return getattr(module, sqlite_operation.__name__)(store, *args, **kwargs)
         return operation
     return decorate
+
+
+class RoomResource(DomainResource):
+    def __init__(self, settings, scope, *, transactions, local_authority_gateway_id):
+        super().__init__("rooms", settings, scope, transactions=transactions)
+        self.local_authority_gateway_id = local_authority_gateway_id

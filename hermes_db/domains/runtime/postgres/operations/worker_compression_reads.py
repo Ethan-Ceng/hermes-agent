@@ -2,7 +2,7 @@
 from hermes_db.domains.sessions.postgres.support.message_codec import codec
 from hermes_db.domains.runtime.postgres.operations.worker_handlers import _fields
 from hermes_db.domains.sessions.postgres.queries import messages, sessions
-from hermes_state_runtime import RuntimeStoreError, _text
+from hermes_db.domains.runtime.values import RuntimeStoreError, _text
 
 class ReadView:
 

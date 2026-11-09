@@ -1,7 +1,7 @@
 """Public session authority contract; live execution state never crosses this boundary."""
 
 from dataclasses import dataclass, field
-from typing import Literal, Mapping, Protocol
+from typing import Literal, Mapping, Optional, Protocol
 
 JsonObject = Mapping[str, object]
 
@@ -98,3 +98,43 @@ class SessionAuthority(Protocol):
                       prompt_id: str, response: JsonObject) -> JsonObject: ...
     async def mutate(self, actor: SessionActor, ref: SessionRef, revision: int,
                      request_id: str, action: str, arguments: JsonObject) -> SessionHandle: ...
+
+SURFACES = {'cli': 'cli', 'tui': 'tui', 'gui': 'desktop', 'acp': 'acp', 'tool': 'cli', 'oneshot': 'cli'}
+
+DAYBREAK_LABELS = frozenset({'cli', 'tui', 'gui', 'oneshot'})
+
+_KEEP_STORED_LABEL = frozenset({'tool', 'oneshot'})
+
+STORED_AS_LOCAL = frozenset(SURFACES) - _KEEP_STORED_LABEL
+
+_NOT_A_SURFACE = frozenset({None, '', 'local', 'unknown'})
+
+def created_surface(label):
+    """``created_source`` for a policy or live label.
+
+    ``local`` and ``unknown`` are not surfaces. A label stored as ``local`` maps
+    through ``SURFACES`` (``gui`` is ``desktop``). Any other label, including
+    ``tool`` and ``oneshot``, is kept as itself: created_source is provenance.
+    """
+    if label in _NOT_A_SURFACE:
+        return None
+    return SURFACES[label] if label in STORED_AS_LOCAL else label
+
+SURFACE_GROUPS = {name: group for group in (frozenset({label, SURFACES[label]}) for label in STORED_AS_LOCAL)
+                  for name in group}
+
+def admission_media_references(payload):
+    """Native references eligible as deletion candidates after terminal settlement."""
+    return list(payload.get('attachments_v1', {}).get('media', ())) + list(
+        payload.get('native_text_v1', {}).get('media', ()))
+
+def _session_key_namespace(profile: Optional[str]) -> str:
+    """``agent:<ns>`` prefix for a session key: default/None profile → ``agent:main``
+    (BYTE-IDENTICAL to every historical key); named profile → ``agent:<name>`` so two
+    profiles serving the same chat never collide. A profile literally named ``main`` would
+    otherwise produce the default's namespace and share every session (routing index, agent
+    cache, store) with it, so it is marked ``main~``: ``~`` is outside the profile-id alphabet,
+    so the marked form can never be another profile's id."""
+    if not profile or profile == "default":
+        return "agent:main"
+    return "agent:main~" if profile == "main" else f"agent:{profile}"

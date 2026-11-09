@@ -65,20 +65,8 @@ def _row_get(row: Any, col: str, default: Any = None) -> Any:
     return row[col]
 
 
-def _json_or(value: Any, default: Any = None) -> Any:
-    """Decode a JSON text column; any decode failure or empty value yields ``default``."""
-    if not value:
-        return default
-    try:
-        return json.loads(value)
-    except Exception:
-        return default
 
 
-def _json_dict(value: Any) -> dict:
-    """Decode a JSON text column that must be an object; anything else yields ``{}``."""
-    parsed = _json_or(value, {})
-    return parsed if isinstance(parsed, dict) else {}
 
 
 def _env_int(name: str, default: int, *, minimum: int = 0) -> int:
@@ -111,35 +99,17 @@ def _git_out(cwd: Path, *args: str, timeout: int = 30) -> Optional[str]:
 
 # --- Constants ---
 
-VALID_INITIAL_STATUSES = {"running", "blocked"}
 
 # Typed block reasons (routing in ``_route_block``); ``None`` = legacy un-typed.
-VALID_BLOCK_KINDS = {"dependency", "needs_input", "capability", "transient"}
 
 # Same-reason block -> unblock -> re-block cycles before routing to ``triage``.
 # Counts unblock recurrences, NOT dispatcher failures (``DEFAULT_FAILURE_LIMIT``).
-BLOCK_RECURRENCE_LIMIT = 2
-VALID_WORKSPACE_KINDS = {"scratch", "worktree", "dir"}
 
 
-def normalize_reasoning_effort(effort: Optional[str]) -> Optional[str]:
-    """``VALID_REASONING_EFFORTS`` or ``"none"`` (thinking off), case-insensitive;
-    empty/None = inherit the profile's own effort (NULL). Anything else raises —
-    a typo'd level must not quietly hand the task back to the profile default."""
-    from hermes_constants import VALID_REASONING_EFFORTS
-
-    value = str(effort or "").strip().lower()
-    if not value:
-        return None
-    if value == "none" or value in VALID_REASONING_EFFORTS:
-        return value
-    allowed = ", ".join(("none", *VALID_REASONING_EFFORTS))
-    raise ValueError(f"reasoning_effort must be one of {allowed}, got {effort!r}")
 
 
 KNOWN_TOOLSET_NAMES = frozenset(name.casefold() for name in get_toolset_names())
 _IS_WINDOWS = sys.platform == "win32"
-KANBAN_ATTACHMENT_MAX_BYTES = 25 * 1024 * 1024  # one cap for dashboard, tools and CLI
 
 
 def _assert_not_delegated_child_mutation(path: str | Path | None = None) -> None:
@@ -293,11 +263,9 @@ DEFAULT_CLAIM_TTL_SECONDS = 15 * 60
 # gap 3). This catches the logic-loop case where the process is technically running but not making
 # observable progress. ``_touch_activity`` bridges chunk-level liveness into ``last_heartbeat_at`` via
 # #31752, so any genuinely active worker keeps its heartbeat fresh as a side effect of normal API traffic.
-DEFAULT_CLAIM_HEARTBEAT_MAX_STALE_SECONDS = 60 * 60
 
 # Grace when a host-local worker survived termination (e.g. parked in D state
 # under memory.high, SIGKILL pending): releasing now would spawn a duplicate.
-RECLAIM_DEFER_GRACE_SECONDS = 120
 
 
 def _resolve_claim_ttl_seconds(ttl_seconds: Optional[int] = None) -> int:
@@ -334,7 +302,6 @@ def _resolve_rate_limit_cooldown_seconds() -> int:
 
 # --- Paths ---
 
-DEFAULT_BOARD = "default"
 _CURRENT_BOARD_OVERRIDE: ContextVar[str | None] = ContextVar(
     "hermes_kanban_current_board_override", default=None,
 )
@@ -378,31 +345,12 @@ def scoped_current_board(slug: str):
 
 # Slug = directory name: strict enough to stop traversal / separators, loose
 # enough for kebab-case. Display names (spaces, emoji) live in board.json.
-_BOARD_SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9\-_]{0,63}$")
 
 
-def _normalize_board_slug(slug: Optional[str]) -> Optional[str]:
-    """Lowercase + strip a slug; validate; return ``None`` for empty."""
-    s = str(slug).strip().lower() if slug is not None else ""
-    if not s:
-        return None
-    if not _BOARD_SLUG_RE.match(s):
-        raise ValueError(
-            f"invalid board slug {slug!r}: must be 1-64 chars, lowercase "
-            f"alphanumerics / hyphens / underscores, not starting with '-' or '_'"
-        )
-    return s
 
 
-def _slug_or_default(board: Optional[str]) -> str:
-    return _normalize_board_slug(board) or DEFAULT_BOARD
 
 
-def _require_slug(slug: str) -> str:
-    normed = _normalize_board_slug(slug)
-    if not normed:
-        raise ValueError("board slug is required")
-    return normed
 
 
 def kanban_home() -> Path:
@@ -562,7 +510,7 @@ def _board_path(
     resolving through the pin. Without explicit intent the ``env_var`` override
     pins the file, else legacy ``<root>/<default_parts>`` for the ``default``
     board, else ``board_dir(slug)/leaf``."""
-    from hermes_db.domains.kanban.routing.files import generation_path
+    from hermes_db.integration.kanban_owner import generation_path
     selected_path = generation_path(env_var, board, leaf)
     if selected_path is not None:
         return selected_path
@@ -795,10 +743,6 @@ class Event:
 
 # --- ID generation ---
 
-def _new_task_id() -> str:
-    """``t_`` + 4 hex bytes (collision ~1e-3 at 100k tasks; 2 bytes would hit 50%
-    by 10k). Idempotency belongs to ``idempotency_key``, not id uniqueness."""
-    return "t_" + secrets.token_hex(4)
 
 
 def _claimer_id() -> str:
@@ -818,24 +762,8 @@ def _host_prefix() -> str:
 
 # --- Task creation / mutation ---
 
-def _validate_model_override(model: Optional[str], provider: Optional[str]) -> tuple[Optional[str], Optional[str]]:
-    """Strip both; a provider without a model is rejected (a bare ``--provider``
-    would re-resolve the profile's model against another backend — exactly
-    the mismatch the override exists to kill)."""
-    model = (model or "").strip() or None
-    provider = (provider or "").strip() or None
-    if provider and not model:
-        raise ValueError("provider_override requires a model_override")
-    return model, provider
 
 
-def _canonical_assignee(assignee: Optional[str]) -> Optional[str]:
-    """Lowercase-assignee normalization for Kanban rows (dashboard/CLI parity)."""
-    if assignee is None:
-        return None
-    from hermes_cli.profiles import normalize_profile_name
-
-    return normalize_profile_name(assignee)
 
 
 def _resolve_project_link(
@@ -1180,17 +1108,6 @@ def get_task(conn: sqlite3.Connection, task_id: str) -> Optional[Task]:
 
 # Canonical sort-order mappings for ``hermes kanban list --sort``.
 # Each value is a raw SQL fragment appended after ``ORDER BY``.
-VALID_SORT_ORDERS: dict[str, str] = {
-    "created": "created_at ASC, id ASC",
-    "created-desc": "created_at DESC, id DESC",
-    "priority": "priority DESC, created_at ASC",
-    "priority-desc": "priority ASC, created_at ASC",
-    "status": "status ASC, created_at ASC",
-    "assignee": "assignee ASC, created_at ASC",
-    "title": "title ASC, id ASC",
-    "updated": "started_at DESC NULLS LAST, created_at DESC",
-    "completed-desc": "completed_at DESC NULLS LAST, id DESC",
-}
 
 
 @domain_operation("tasks")
@@ -1507,16 +1424,6 @@ class AttachmentTooLarge(ValueError):
     still catch it while the tool/CLI can give a 413-style message."""
 
 
-def _safe_attachment_name(raw: str) -> str:
-    """Client filename -> safe basename: strip directories (both separators),
-    control chars and leading dots (no dotfiles, no traversal); ValueError when
-    nothing usable remains. Only ever joined under the per-task attachments dir."""
-    name = (raw or "").replace("\\", "/").split("/")[-1].strip()
-    name = "".join(ch for ch in name if ch.isprintable() and ch not in "\x00").strip()
-    name = name.lstrip(".").strip()
-    if not name:
-        raise ValueError("invalid attachment filename")
-    return name[:200]
 
 
 def _collision_free_path(dest_dir: Path, safe_name: str) -> Path:
@@ -1682,15 +1589,8 @@ def _end_run(
     return run_id
 
 
-def _first_line(text: Optional[str], limit: int) -> str:
-    """First non-blank-stripped line of ``text`` capped at ``limit`` chars; "" when empty."""
-    lines = (text or "").strip().splitlines()
-    return lines[0][:limit] if lines else ""
 
 
-def _opt_int(value: Any) -> Optional[int]:
-    """``int(value)`` or ``None`` when ``value`` is ``None`` (NULL column passthrough)."""
-    return int(value) if value is not None else None
 
 
 def _json_or_null(obj: Any) -> Optional[str]:
@@ -2048,13 +1948,6 @@ def _retry_status_for_run(
 
 
 # Run outcome -> lifecycle status a goal loop should report for a handed-off run.
-_RUN_OUTCOME_TERMINAL_STATUS = {
-    "completed": "done",
-    "review_requested": "review",
-    "changes_requested": "changes_requested",
-    "blocked": "blocked",
-    "dependency_wait": "blocked",
-}
 
 
 @domain_operation("runs")
@@ -2372,7 +2265,6 @@ def _verify_created_cards(
 
 
 # Matches ``kanban_create`` (12 hex) and ``_new_task_id`` (8 hex) ids; 8+ for forward compat.
-_TASK_ID_PROSE_RE = re.compile(r"\bt_[a-f0-9]{8,}\b")
 
 
 @domain_operation("completion_guards")
@@ -2551,7 +2443,6 @@ def complete_task(
     return True
 
 
-_REVIEW_APPROVED_NOTE = "Review approved without additional evidence."
 
 
 @domain_operation("completion_guards")
@@ -2578,8 +2469,6 @@ def _gate_created_cards(
     return verified_cards
 
 
-def _substantive_text(value: Optional[str]) -> bool:
-    return bool(value is not None and str(value).strip())
 
 
 @domain_operation("completion_guards")
@@ -2634,39 +2523,8 @@ def _stage_completion_artifacts(
     return staged
 
 
-def _cleaned_artifact_paths(metadata: Any) -> list[str]:
-    """Non-blank string paths declared in ``metadata["artifacts"]``."""
-    if not isinstance(metadata, dict):
-        return []
-    raw = metadata.get("artifacts")
-    if not isinstance(raw, (list, tuple)):
-        return []
-    return [str(p).strip() for p in raw if isinstance(p, str) and str(p).strip()]
 
 
-def _completed_event_payload(
-    result: Optional[str], event_summary: Optional[str], verified_cards: list[str], metadata: Any,
-) -> dict:
-    """``completed`` event payload: first summary line (400 chars) so gateway
-    notifiers / dashboard WS render without a second round-trip; verified
-    cards; and ``metadata["artifacts"]`` promoted so the notifier can upload
-    them as native attachments without fetching the run row."""
-    # Mirror CLI's _show_voice_status: include STT/TTS provider availability so the user can tell at a
-    # glance *why* voice mode isn't working ("STT provider: MISSING ..." is the common case). ``record_key``
-    # mirrors the configured ``voice.record_key`` so the TUI can both bind it (frontend
-    # ``isVoiceToggleKey``) and display it in /voice status — previously the TUI hardcoded Ctrl+B and
-    # ignored the config (#18994).
-    payload: dict = {
-        "result_len": len(result) if result else 0,
-        "summary": _first_line(event_summary, 400) or None,
-    }
-    if verified_cards:
-        payload["verified_cards"] = verified_cards
-    if isinstance(metadata, dict):
-        cleaned = _cleaned_artifact_paths(metadata)
-        if cleaned:
-            payload["artifacts"] = cleaned
-    return payload
 
 
 @domain_operation("completion_guards")
@@ -3045,19 +2903,6 @@ def _route_block(
     return status, event, ", ".join(f"{column} = ?" for column in values), tuple(values.values()), payload
 
 
-def redact_review_value(value: Any) -> Any:
-    """Redact secrets at the domain boundary for durable review handoffs."""
-    if isinstance(value, str):
-        from agent.redact import redact_sensitive_text
-
-        return redact_sensitive_text(value, force=True)
-    if isinstance(value, dict):
-        return {key: redact_review_value(item) for key, item in value.items()}
-    if isinstance(value, list):
-        return [redact_review_value(item) for item in value]
-    if isinstance(value, tuple):
-        return tuple(redact_review_value(item) for item in value)
-    return value
 
 
 @domain_operation("review")
@@ -3206,8 +3051,6 @@ def _prior_reviewer(conn: sqlite3.Connection, task_id: str):
     return reviewer if isinstance(reviewer, str) and reviewer.strip() else False
 
 
-def _nonblank_str(value: Any) -> Optional[str]:
-    return value if isinstance(value, str) and value.strip() else None
 
 
 @domain_operation("review")
@@ -3810,20 +3653,6 @@ def task_age(task: Task) -> dict:
 
 # --- Retention + garbage collection ---
 
-def _retention_seconds(older_than_seconds: int) -> int:
-    """Normalise a gc retention window, rejecting negatives.
-
-    Shared by both gc sweeps: a negative window puts the cutoff in the future,
-    so "older than cutoff" would match every row / file instead of none —
-    refuse before any sweep runs.
-    """
-    older_than_seconds = int(older_than_seconds)
-    if older_than_seconds < 0:
-        raise ValueError(
-            f"older_than_seconds must be >= 0, got {older_than_seconds!r}: "
-            "a negative retention selects everything."
-        )
-    return older_than_seconds
 
 
 @domain_operation("tasks")
@@ -3946,18 +3775,8 @@ from hermes_cli.kanban_db_workspace import (
     _managed_scratch_path_info,
     _scratch_workspace,
 )
-from hermes_cli.kanban_db_dispatch import (
-    DEFAULT_FAILURE_LIMIT,
-    DEFAULT_RATE_LIMIT_COOLDOWN_SECONDS,
-    DispatchResult,
-    _clear_failure_counter,
-    _defer_reclaim_for_live_worker,
-    _pid_alive,
-    _terminate_reclaimed_worker,
-    _worker_alive,
-    _worker_survived_termination,
-    _worker_terminal_timeout_env,
-)
+from hermes_db.domains.kanban.rules import DEFAULT_FAILURE_LIMIT
+from hermes_cli.kanban_db_dispatch import DEFAULT_RATE_LIMIT_COOLDOWN_SECONDS, DispatchResult, _clear_failure_counter, _defer_reclaim_for_live_worker, _pid_alive, _terminate_reclaimed_worker, _worker_alive, _worker_survived_termination, _worker_terminal_timeout_env
 
 from hermes_cli.kanban_db_runs import (
     list_runs, get_run, latest_run, latest_summary, latest_summaries, current_run_started_ats, recent_profile_completions,
@@ -3965,3 +3784,5 @@ from hermes_cli.kanban_db_runs import (
 
 from hermes_cli.kanban_db_failure import _record_task_failure
 from hermes_cli.kanban_db_notify import _inherit_notify_subs
+from hermes_db.domains.kanban.rules import BLOCK_RECURRENCE_LIMIT, DEFAULT_BOARD, DEFAULT_CLAIM_HEARTBEAT_MAX_STALE_SECONDS, KANBAN_ATTACHMENT_MAX_BYTES, RECLAIM_DEFER_GRACE_SECONDS, VALID_BLOCK_KINDS, VALID_INITIAL_STATUSES, VALID_SORT_ORDERS, VALID_WORKSPACE_KINDS, _REVIEW_APPROVED_NOTE, _RUN_OUTCOME_TERMINAL_STATUS, _TASK_ID_PROSE_RE, _canonical_assignee, _cleaned_artifact_paths, _completed_event_payload, _first_line, _json_dict, _json_or, _new_task_id, _nonblank_str, _normalize_board_slug, _opt_int, _require_slug, _retention_seconds, _safe_attachment_name, _slug_or_default, _substantive_text, _validate_model_override, normalize_reasoning_effort
+from hermes_db.domains.kanban.rules import redact_review_value

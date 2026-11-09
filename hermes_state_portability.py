@@ -5,7 +5,7 @@ Must never import hermes_state (cycle); shared constants live in hermes_state_co
 """
 
 
-from hermes_db.integration.transfer.portability_values import ImportValues, _IMPORT_SESSION_TEXT_FIELDS, _IMPORT_MESSAGE_TEXT_FIELDS, _IMPORT_MESSAGE_JSON_FIELDS, _IMPORT_INT_COLS, _IMPORT_FLOAT_COLS
+from hermes_db.domains.sessions.import_rules import _IMPORT_FLAG_COLS, _IMPORT_PASSTHROUGH_COLS, ImportValues, _IMPORT_SESSION_TEXT_FIELDS, _IMPORT_MESSAGE_TEXT_FIELDS, _IMPORT_MESSAGE_JSON_FIELDS, _IMPORT_INT_COLS, _IMPORT_FLOAT_COLS
 import logging
 import json
 import math
@@ -22,10 +22,11 @@ from hermes_state_keys import (
     CRON_PRINCIPAL_ID, CRON_REQUEST_PREFIX, cron_request_range, cron_run_from_request, legacy_cron_run_job,
     prefix_range,
 )
-from hermes_state_local import POLICY_PREFIX
-from hermes_state_common import SCHEMA_SQL, _shape_preview, _sql_preview_raw, _sql_session_last_active
+from hermes_db.domains.runtime.receipts import POLICY_PREFIX
+from hermes_state_common import SCHEMA_SQL, _sql_preview_raw, _sql_session_last_active
+from hermes_db.domains.sessions.rules import _shape_preview
 from hermes_db.domains.sessions.codec import _parse_tool_calls
-from hermes_state_messages import _tool_calls_count
+from hermes_db.domains.sessions.codec import _tool_calls_count
 import itertools
 
 # Pre-split logger identity so log filtering/capture is unchanged.
@@ -55,12 +56,7 @@ _IMPORT_SESSION_INSERT_SQL = """INSERT INTO sessions (
                            :api_call_count, :archived, :auto_archived, :pinned, :hidden
                        )"""
 # Columns copied verbatim from the payload; typed columns are converted below.
-_IMPORT_PASSTHROUGH_COLS = (
-    "user_id", "model", "model_config", "end_reason", "cwd", "git_branch", "git_repo_root", "billing_provider",
-    "billing_base_url", "billing_mode", "cost_status", "cost_source", "pricing_version", "title",
-)
 # Flags a restore must keep: pinned/hidden/auto_archived drive the prune, listings and resume-unarchive.
-_IMPORT_FLAG_COLS = ("archived", "auto_archived", "pinned", "hidden")
 
 
 def _rich_select(select_cols: str, where: str, tail: str = "", prompt_select: Optional[str] = "") -> str:

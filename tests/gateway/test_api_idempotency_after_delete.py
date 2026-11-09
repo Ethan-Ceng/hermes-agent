@@ -79,7 +79,7 @@ async def test_deleted_session_idempotency_key_does_not_run_again(api, owner):
 async def test_a_live_session_that_already_ran_the_key_still_replays_it(api, owner):
     """A session that ran the key while the deleted one's tombstone was unread (code from before
     this check) still replays its own completion; only a session that never ran it conflicts."""
-    from hermes_state_terminal import ADMISSION_PREFIX
+    from hermes_db.domains.runtime.receipts import ADMISSION_PREFIX
     calls = []
     api._api_key = _API_KEY
     _execute(owner, calls)

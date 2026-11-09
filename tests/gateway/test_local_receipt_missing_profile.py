@@ -26,7 +26,8 @@ async def test_secondary_receipt_restores_without_losing_its_owner(tmp_path, mon
     from gateway.session_contract import SessionActor
     from gateway.session_local import create_local_session
     from gateway.session_local_recovery import restore_local_session
-    from hermes_state_local import POLICY_PREFIX, local_receipt
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
+    from hermes_state_local import local_receipt
 
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'cli': []}})
     root, homes = _reserve_homes(tmp_path, monkeypatch, names=('alpha',))

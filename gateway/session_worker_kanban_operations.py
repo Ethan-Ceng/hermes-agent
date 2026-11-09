@@ -42,7 +42,7 @@ def _owner_operation(store, context, params, operation, payload):
 
 def invoke(store, context, params, operation, payload):
     from hermes_cli import kanban_db as kb, kanban_db_dispatch as dispatch
-    from hermes_db.domains.kanban.routing.wire import unpack
+    from hermes_db.integration.kanban_wire import unpack
     if operation.startswith("worker."):
         if "task_id" not in context:
             raise RuntimeStoreError("permission_denied")

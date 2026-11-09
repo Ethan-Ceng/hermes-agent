@@ -8,18 +8,18 @@ from sqlalchemy import select
 from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.tables.runtime import session_admissions, worker_executions, worker_receipts
 from hermes_state_keys import admission_fingerprint
-from hermes_state_terminal import ADMISSION_PREFIX, RESULT_PREFIX, WORKER_PREFIX, encode_result, identity_key, load_result
+from hermes_db.domains.runtime.receipts import ADMISSION_PREFIX, RESULT_PREFIX, WORKER_PREFIX, encode_result, identity_key, load_result
 
 TRANSCRIPT_FIELDS = frozenset({"messages", "last_reasoning", "tools", "_turn_user_row"})
 
 
-def retire(conn, scope, session_ids):
+def retire(conn, scope, session_ids, *, media_references):
     for sid in session_ids:
         admissions = conn.execute(select(session_admissions).where(runtime.target_where(scope, sid))).mappings().all()
         workers = conn.execute(select(worker_executions).where(worker_executions.c.store_id == scope.require_store_id(),
             worker_executions.c.session_id == sid)).mappings().all()
         for row in admissions:
-            _retire_admission(conn, scope, row)
+            _retire_admission(conn, scope, row, media_references=media_references)
         for row in workers:
             _retire_worker(conn, scope, row)
         conn.execute(worker_executions.delete().where(worker_executions.c.store_id == scope.require_store_id(),
@@ -27,9 +27,9 @@ def retire(conn, scope, session_ids):
         conn.execute(session_admissions.delete().where(runtime.target_where(scope, sid)))
 
 
-def _retire_admission(conn, scope, raw):
+def _retire_admission(conn, scope, raw, *, media_references):
     from hermes_db.domains.sessions.postgres.queries import media
-    media.retire_admission(conn, scope, json.loads(raw["payload_json"]), raw["request_id"])
+    media.retire_admission(conn, scope, media_references(scope, json.loads(raw["payload_json"]), raw["request_id"]))
     row = {key: value for key, value in raw.items() if key != "store_id"}
     row.update(payload_json="{}", lineage_json="[]", retired_at=time.time())
     key = RESULT_PREFIX + row["admission_id"]

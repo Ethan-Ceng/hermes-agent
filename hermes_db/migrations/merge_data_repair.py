@@ -82,7 +82,7 @@ def _chat(conn, scope, row):
         return False
     parent = repo.raw_session(conn, scope, row['parent_session_id']) if row['parent_session_id'] else None
     if parent:
-        from hermes_state_common import _RESET_END_REASONS
+        from hermes_db.domains.sessions.rules import _RESET_END_REASONS
         branch = cfg.get('_branched_from') is not None or (parent['end_reason'] == 'branched'
             and parent['ended_at'] is not None and row['started_at'] >= parent['ended_at'])
         reset = cfg.get('_reset_from') is not None or parent['end_reason'] in _RESET_END_REASONS
@@ -135,7 +135,7 @@ def _repair_refusal(conn, scope, row):
             message_repo.update_row(conn, scope, row['id'], shown, {'compacted': 1,
                 'display_kind': CONTENT_REFUSED_DISPLAY_KIND, 'display_metadata': codec._encode_display_metadata(metadata)})
     live = message_repo.select_rows(conn, scope, [row['id']], messages.c.active == 1)
-    from hermes_state_messages import _tool_calls_len
+    from hermes_db.domains.sessions.codec import _tool_calls_len
     repo.update_session(conn, scope, row['id'], {'message_count': len(live),
         'tool_call_count': sum(_tool_calls_len(entry['tool_calls'], scalar=1) for entry in live),
         'rewind_count': func.coalesce(sessions.c.rewind_count, 0) + 1})

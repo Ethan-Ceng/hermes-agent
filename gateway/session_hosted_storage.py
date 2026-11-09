@@ -57,10 +57,11 @@ class RoomCoordination:
 
     def core_authorize(self, subject, room_id, *, create=False, conn=None):
         from hermes_db.domains.rooms.postgres.ownership import authorize_room
+        from gateway.owner_identity import same_owner
         if conn is not None:
-            return authorize_room(conn, self.authority.db, self.authority.epoch, subject, room_id, create=create)
+            return authorize_room(conn, self.authority.db, self.authority.epoch, subject, room_id, same_owner=same_owner, create=create)
         with self.authority.db._transactions.write() as connection:
-            return authorize_room(connection, self.authority.db, self.authority.epoch, subject, room_id, create=create)
+            return authorize_room(connection, self.authority.db, self.authority.epoch, subject, room_id, same_owner=same_owner, create=create)
 
     def owner_effect(self, subject, room_id):
         from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect

@@ -1,7 +1,7 @@
 """Public session facade with explicit component delegation; resource identity belongs to its shared context."""
 from __future__ import annotations
 from typing import Any, Optional
-from hermes_state_rewind import RewindPlan, RewindOutcome
+from hermes_db.domains.sessions.rewind import RewindPlan, RewindOutcome
 from hermes_db.domains.sessions.postgres.catalog import SessionCatalog
 from hermes_db.domains.sessions.postgres.lifecycle import SessionLifecycle
 from hermes_db.domains.sessions.postgres.history import SessionHistory

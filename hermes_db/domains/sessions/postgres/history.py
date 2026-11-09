@@ -5,14 +5,14 @@ import time
 from hermes_db.tables.conversations import sessions as table, messages
 from copy import deepcopy
 from agent.message_metadata import DB_ROW_SNAPSHOT
-from hermes_state_rewind import plan_user_turn_rewind, rewind_user_turn, RewindPlan, RewindOutcome
+from hermes_db.domains.sessions.rewind import plan_user_turn_rewind, rewind_user_turn, RewindPlan, RewindOutcome
 from typing import Any, Optional
 from sqlalchemy import and_, func, or_, select
 from hermes_db.domains.sessions.postgres.support.message_codec import codec, content_to_bytes, decoded_row
 from hermes_db.domains.sessions.postgres.messages import display_ids
 from hermes_db.core.values import model_config
 from hermes_db.domains.sessions.postgres.messages import around
-from hermes_db.backends.postgresql.search import statement
+from hermes_db.domains.sessions.postgres.support.search import statement
 from hermes_db.domains.sessions.postgres.support.search_query import parse_query
 from hermes_db.domains.sessions.search_rules import SearchRules, search_sessions_by_id
 
@@ -203,7 +203,7 @@ class SessionHistory:
         from hermes_db.domains.sessions.postgres.support.message_codec import codec
         from hermes_db.domains.sessions.postgres.operations.messages import rewind
         from hermes_db.domains.sessions.postgres.queries import messages as repo
-        from hermes_state_rewind import RewindTargetUnavailableError
+        from hermes_db.domains.sessions.rewind import RewindTargetUnavailableError
         with self._context.read() as conn:
             row = repo.one(conn, self._context.scope, session_id, boundary_row_id) if isinstance(boundary_row_id, int) and boundary_row_id > 0 else None
             if row and row['role'] == 'user' and row['active']:
@@ -374,9 +374,8 @@ class SessionHistory:
         return {**result, 'bookend_start': start, 'bookend_end': end}
 
     def list_recent_user_messages(self, session_id, limit=20, include_inactive=False):
-        from agent.context_compressor import ContextCompressor
         from agent.skill_commands import describe_skill_invocation
-        from hermes_state_search import _flatten_text
+        from hermes_db.domains.sessions.search_rules import _flatten_text
         conditions = [messages.c.role == 'user', or_(messages.c.display_kind.is_(None), messages.c.display_kind.in_(('', 'steer')))]
         if not include_inactive:
             conditions.append(messages.c.active == 1)
@@ -387,7 +386,7 @@ class SessionHistory:
             if len(result) >= int(limit):
                 break
             decoded = codec._decode_content(row['content'])
-            if ContextCompressor._is_context_summary_content(decoded):
+            if self._context.is_context_summary(decoded):
                 continue
             preview = describe_skill_invocation(decoded) or decoded if isinstance(decoded, str) else _flatten_text(decoded)
             preview = ' '.join(preview.split())

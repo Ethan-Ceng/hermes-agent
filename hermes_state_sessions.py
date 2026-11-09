@@ -1,6 +1,7 @@
 """Session lifecycle mixin for SessionDB: row upsert/inheritance, lifecycle
 flags (end/reopen/archive/pin/hide/read), model_config patching, listing and
 counting, delete cascades, and the auto-archive sweep."""
+from hermes_db.domains.sessions.rules import INTERNAL_LISTING_SOURCES, SESSION_STATUS_COMPLETE, SESSION_STATUS_ERROR, SESSION_STATUS_INTERRUPTED, classify_session_status
 
 import glob
 import json
@@ -15,14 +16,8 @@ from agent.session_activity import (
     ActivityProvenance, bound_activity_description, normalize_activity_provenance,
 )
 from hermes_state_errors import SessionActiveWriteGuardError
-from hermes_state_common import (
-    _LISTABLE_CHILD_SQL, _RECOVERABLE_END_REASONS,
-    _RECOVERABLE_END_REASONS_SQL, _RESET_CHILD_SQL, _RESET_END_REASONS, _legacy_reset_child_sql, _non_continuation_child_sql,
-    _shape_preview, _sql_preview_raw, QUEUED_PROMPT_METADATA_KEY,
-    _sql_in_window, _sql_json_extract, _sql_session_last_active, _sql_session_last_active_by_id,
-    escape_like as _escape_like, _SQL_IN_CHUNK, _id_chunks, _placeholders as _session_ids_placeholders,
-    _source_match_clause, emit_session_deleted, launch_stub_filter_sql,
-)
+from hermes_state_common import _LISTABLE_CHILD_SQL, _RECOVERABLE_END_REASONS_SQL, _RESET_CHILD_SQL, _legacy_reset_child_sql, _non_continuation_child_sql, _sql_preview_raw, QUEUED_PROMPT_METADATA_KEY, _sql_in_window, _sql_json_extract, _sql_session_last_active, _sql_session_last_active_by_id, escape_like as _escape_like, _SQL_IN_CHUNK, _id_chunks, _placeholders as _session_ids_placeholders, _source_match_clause, emit_session_deleted, launch_stub_filter_sql
+from hermes_db.domains.sessions.rules import _RECOVERABLE_END_REASONS, _RESET_END_REASONS, _shape_preview
 from hermes_state_compression import _CHAIN_CAP, _UNSET_CREATED_SQL
 
 # caplog tests pin the "hermes_state" logger name.
@@ -240,26 +235,12 @@ def _delete_delegate_children(conn, parent_ids: list[str]) -> list[str]:
 # Sessions that are not human conversations (kanban workers, third-party tool integrations, finite one-shot
 # runs): every human picker — TUI/Desktop session lists, ``/sessions`` in the CLI, ``sessions list`` in the
 # console — excludes them. A deny-list, so new interactive platforms surface automatically.
-INTERNAL_LISTING_SOURCES = ("kanban", "tool", "oneshot")
 
-SESSION_STATUS_COMPLETE = "complete"
-SESSION_STATUS_INTERRUPTED = "interrupted"
-SESSION_STATUS_ERROR = "error"
 SESSION_STATUS_EMPTY = "empty"
 
 # finish_reason values meaning the turn ended in a provider/agent error.
-_ERROR_FINISH_REASONS = frozenset({"error", "agent_error", "content_filter"})
 
 
-def classify_session_status(role: Optional[str], has_tool_calls: bool, finish_reason: Optional[str]) -> str:
-    """Error finish → ``error``; assistant with pending tool_calls or a trailing user/tool row →
-    ``interrupted``; otherwise ``complete`` (benign default: pickers must not alarm on unknown shapes)."""
-    if (finish_reason or "").strip().lower() in _ERROR_FINISH_REASONS:
-        return SESSION_STATUS_ERROR
-    r = (role or "").strip().lower()
-    if r in {"user", "tool"} or (r == "assistant" and has_tool_calls):
-        return SESSION_STATUS_INTERRUPTED
-    return SESSION_STATUS_COMPLETE
 
 
 # Parent→child profile_name inheritance fence: keyless rows inherit freely; two

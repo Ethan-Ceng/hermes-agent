@@ -1,6 +1,7 @@
 """Behavior tests for the hosted-room driver state machine."""
 
 from __future__ import annotations
+from hermes_db.domains.rooms import driver_rules as _storage_shared_1
 
 import sqlite3
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
@@ -995,7 +996,7 @@ def test_pre_stopping_schema_is_migrated_without_losing_tasks(db):
             "ALTER TABLE hosted_room_driver_tasks RENAME TO hosted_room_driver_tasks_current"
         )
         conn.execute(old_sql)
-        columns = ", ".join(driver._TASK_COLUMN_ORDER)
+        columns = ", ".join(_storage_shared_1._TASK_COLUMN_ORDER)
         conn.execute(
             f"""INSERT INTO hosted_room_driver_tasks ({columns})
                  SELECT {columns} FROM hosted_room_driver_tasks_current"""
@@ -1048,7 +1049,7 @@ def test_pre_deferred_schema_is_migrated_without_losing_tasks(db):
             "ALTER TABLE hosted_room_driver_tasks RENAME TO hosted_room_driver_tasks_current"
         )
         conn.execute(old_sql)
-        columns = ", ".join(driver._TASK_COLUMN_ORDER)
+        columns = ", ".join(_storage_shared_1._TASK_COLUMN_ORDER)
         conn.execute(
             f"""INSERT INTO hosted_room_driver_tasks ({columns})
                  SELECT {columns} FROM hosted_room_driver_tasks_current"""

@@ -14,7 +14,7 @@ from hermes_db.domains.runtime.postgres.queries.worker_retirement import compact
 from hermes_db.tables.conversations import sessions as session_table
 from hermes_db.tables.runtime import session_admissions, worker_executions, worker_receipts
 from hermes_state_keys import admission_fingerprint
-from hermes_state_runtime import RuntimeStoreError, _json, _secret_digest, _text
+from hermes_db.domains.runtime.values import RuntimeStoreError, _json, _secret_digest, _text
 
 
 def register(conn, scope, *, epoch, execution_id, session_id, generation, kind, adoption_secret, require_idle=False):
@@ -85,7 +85,7 @@ def apply_receipt(conn, scope, *, epoch, execution_id, session_id, generation, s
     if old:
         if old["payload_digest"] != digest:
             raise RuntimeStoreError("admission_conflict")
-        from hermes_state_runtime_workers import retired_receipt
+        from hermes_db.domains.runtime.receipts import retired_receipt
         if retired_receipt(old["result_json"]):
             raise RuntimeStoreError("stale_generation")
         return json.loads(old["result_json"])

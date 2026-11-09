@@ -82,7 +82,7 @@ def test_maintenance_replays_retirement_then_does_not_move_recreated_slug(pg_pro
     with pg_profiles("one") as home:
         kb.create_board("retired", name="Original")
         with monkeypatch.context() as fault:
-            def interrupted(row):
+            def interrupted(store, row):
                 raise OSError("archive interrupted after SQL commit")
             fault.setattr(files, "_archive_files", interrupted)
             with pytest.raises(OSError):

@@ -37,7 +37,7 @@ def resolve_move(old_name, new_name):
 
 
 def _identity(resource):
-    from hermes_db.integration.transfer.move_values import resource_key
+    from hermes_db.core.values import resource_key
     return dict(store_id=resource.scope.require_store_id(), target=resource_key(resource._transactions))
 
 

@@ -15,7 +15,7 @@ def check(conn, scope, session_id, compression_lock_holder=None, *, turn_lease_h
 
     row = sessions.lock_session(conn, scope, session_id)
     if row is None:
-        from hermes_state_runtime import RuntimeStoreError
+        from hermes_db.domains.runtime.values import RuntimeStoreError
         raise RuntimeStoreError("not_found")
     now = time.time()
     if reject_active_compression_lock:

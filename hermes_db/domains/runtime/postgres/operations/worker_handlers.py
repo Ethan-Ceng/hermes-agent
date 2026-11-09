@@ -10,8 +10,8 @@ from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
 from hermes_db.domains.sessions.postgres.queries import messages, prompts, sessions, usage
 from hermes_db.tables.conversations import messages as message_table
 from hermes_db.core.values import encode_config, model_config
-from hermes_state_runtime import RuntimeStoreError, _MESSAGE_FIELDS, _text, row_annotations
-from hermes_state_worker_context import SIDECAR_KEYS
+from hermes_db.domains.runtime.values import RuntimeStoreError, _MESSAGE_FIELDS, _text, row_annotations
+from hermes_db.domains.runtime.values import SIDECAR_KEYS
 
 
 def _fields(payload, required, optional=()):
@@ -113,7 +113,7 @@ def finish(conn, scope, session_id, payload):
 
 
 def usage_main(conn, scope, session_id, payload, *, auxiliary=False):
-    from hermes_state_usage import _MODEL_USAGE_FIELDS, _TOKEN_COUNTERS
+    from hermes_db.domains.sessions.rules import _MODEL_USAGE_FIELDS, _TOKEN_COUNTERS
     source = payload.get("source") if not auxiliary else None
     payload = dict(payload)
     if not auxiliary:
@@ -139,7 +139,7 @@ def usage_main(conn, scope, session_id, payload, *, auxiliary=False):
         usage.record_route(conn, scope, session_id, {"api_call_count": 1, **payload}, task=payload["task"])
     else:
         usage.update_totals(conn, scope, session_id, payload)
-        from gateway.session_policy import created_surface
+        from gateway.session_contract import created_surface
         surfaced = created_surface(source) if isinstance(source, str) else None
         row = sessions.raw_session(conn, scope, session_id)
         if surfaced and row["created_source"] in (None, "", "unknown", "local"):
@@ -148,7 +148,7 @@ def usage_main(conn, scope, session_id, payload, *, auxiliary=False):
     return {"value": None}
 
 
-def handlers(metrics_policy=None):
+def handlers(metrics_policy=None, *, record_engagement, automation_states):
     from hermes_db.domains.runtime.postgres.operations import worker_lifecycle as life
     from hermes_db.domains.runtime.postgres.operations.worker_compression_state import handlers as compression_handlers
     from hermes_db.domains.runtime.postgres.operations.worker_turn import turn
@@ -163,6 +163,6 @@ def handlers(metrics_policy=None):
               "session.billing_route": life.billing_route, "session.api_content": life.api_content,
               "session.message_api_content": partial(life.api_content, addressed=True), "session.user_content": life.user_content}
     values.update({"turn." + action: partial(turn, action=action) for action in ("acquire", "renew", "release")})
-    values.update(compression_handlers())
-    values.update(write_handlers(metrics_policy))
+    values.update(compression_handlers(automation_states=automation_states))
+    values.update(write_handlers(metrics_policy, record_engagement=record_engagement))
     return {name: CoreEffect(function) for name, function in values.items()}

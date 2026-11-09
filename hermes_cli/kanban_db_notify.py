@@ -6,6 +6,7 @@ late-bound via ``_kb`` (import-cycle breaking) so monkeypatching
 """
 
 from __future__ import annotations
+from hermes_db.domains.kanban.rules import _NOTIFY_DELIVERY_MODES, _decode_notify_delivery_metadata, _encode_notify_delivery_metadata
 
 import json
 import sqlite3
@@ -24,9 +25,7 @@ if TYPE_CHECKING:
 
 # Notifier reaction to a terminal event: "notify" = passive adapter.send only
 # (default); "notify+wake" = send AND wake the destination agent; "wake" = wake only.
-_NOTIFY_DELIVERY_MODES = ("notify", "notify+wake", "wake")
 
-_SCALAR_TYPES = (str, int, float, bool)
 
 # Subscription primary key predicate; every per-row statement below binds
 # ``(task_id, platform, chat_id, thread_id or "")`` against it.
@@ -37,32 +36,8 @@ def _sub_key(task_id: str, platform: str, chat_id: str, thread_id: Optional[str]
     return (task_id, platform, chat_id, thread_id or "")
 
 
-def _encode_notify_delivery_metadata(metadata: Optional[Mapping[str, Any]]) -> Optional[str]:
-    """Serialize platform send metadata stored on notification subscriptions."""
-    if not isinstance(metadata, Mapping):
-        return None
-    clean = {
-        str(key): value
-        for key, value in metadata.items()
-        if value is not None and isinstance(value, _SCALAR_TYPES)
-    }
-    if not clean:
-        return None
-    return json.dumps(clean, sort_keys=True, separators=(",", ":"))
 
 
-def _decode_notify_delivery_metadata(raw: Any) -> dict[str, Any]:
-    if isinstance(raw, Mapping):
-        return dict(raw)
-    if not raw:
-        return {}
-    try:
-        data = json.loads(str(raw))
-    except Exception:
-        return {}
-    if not isinstance(data, dict):
-        return {}
-    return {str(key): value for key, value in data.items() if isinstance(value, _SCALAR_TYPES)}
 
 
 @domain_operation("notify")
@@ -225,7 +200,7 @@ def count_notify_subs(
         if db_path is not None:
             from hermes_db.errors import StorageConfigurationError
             raise StorageConfigurationError("SQLite subscription path overrides cannot select a PostgreSQL Board")
-        from hermes_db.domains.kanban.postgres.notify import count_notify_subs as count
+        from hermes_db.integration.kanban_application import count_notify_subs as count
         return count(board=board, notifier_profiles=notifier_profiles, include_unowned=include_unowned,
                      platform=platform, chat_id=chat_id, thread_id=thread_id)
     path = db_path if db_path is not None else _kb.kanban_db_path(board=board)

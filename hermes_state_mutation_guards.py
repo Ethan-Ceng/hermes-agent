@@ -82,7 +82,7 @@ def delete_targets(conn, session_id):
     from hermes_state_sessions import _collect_delegate_child_ids
     import json
     from hermes_state_compression import _CHAIN_CAP
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     from hermes_state_local_lineage import validate_local_lineage
     from hermes_state_local import local_lineage_owner
     targets = {session_id}

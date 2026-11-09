@@ -1,4 +1,5 @@
 """Actual task transitions, remote receipts and invalid passive evidence on PG."""
+import hermes_db.domains.rooms.work_rules as _storage_patch_1
 
 import json
 
@@ -81,7 +82,7 @@ def test_evidence_capacity_never_rolls_back_primary_task_transition(pg_profiles,
         location = rooms.default_db_path()
         identity = prepare(location)
         before = snapshot()
-        monkeypatch.setattr(work, "MAX_STORE_BYTES", 1)
+        monkeypatch.setattr(_storage_patch_1, "MAX_STORE_BYTES", 1)
         driver.cancel_task(location, identity, cancel_id="stop", expected_cancel_generation=0, clock=lambda: 10)
         assert driver.get_task(location, identity)["status"] == "cancelled"
         assert snapshot() == before

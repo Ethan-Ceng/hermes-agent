@@ -106,7 +106,7 @@ def deliver_to_room(job: dict, content: str, address: str, *, for_failure: bool 
 def _post(job, content, target, room_id, profile, for_failure):
     from cron.scheduler_delivery import _redact_cron_payload
     from gateway.hosted_room_context import post_scheduled_message
-    from gateway.hosted_rooms import AuthorityConflictError
+    from hermes_db.domains.rooms.rules import AuthorityConflictError
     try:
         store = _find_room_store(room_id, profile)
         if store is None:

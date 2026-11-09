@@ -7,6 +7,8 @@ Callers must reconcile terminal driver rows into publication plans before asking
 """
 
 from __future__ import annotations
+from hermes_db.domains.rooms import driver_rules as _storage_shared_1_
+from hermes_db.domains.rooms import rules as _storage_shared_1
 
 import hashlib
 import re
@@ -23,7 +25,7 @@ from gateway import hosted_rooms
 from gateway import hosted_rooms_common as common
 from gateway.hosted_room_context import scheduled_post_kind, validate_context
 from gateway.hosted_room_task_input import validate_task_input
-from gateway.hosted_rooms_common import compact_json
+from hermes_db.domains.rooms.rules import compact_json
 
 
 MAX_DISCUSSION_MEMBERS = 6
@@ -187,10 +189,10 @@ class _ValidatedEvent:
     payload: Payload
 
 
-_identifier = partial(common.identifier, error=DiscussionValidationError, max_chars=driver.MAX_IDENTIFIER_CHARS)
-_exact_fields = partial(common.exact_fields, error=DiscussionValidationError)
-_bounded_int = partial(common.bounded_int, error=DiscussionValidationError)
-_text = partial(common.text, error=DiscussionValidationError)
+_identifier = partial(_storage_shared_1.identifier, error=DiscussionValidationError, max_chars=driver.MAX_IDENTIFIER_CHARS)
+_exact_fields = partial(_storage_shared_1.exact_fields, error=DiscussionValidationError)
+_bounded_int = partial(_storage_shared_1.bounded_int, error=DiscussionValidationError)
+_text = partial(_storage_shared_1.text, error=DiscussionValidationError)
 
 
 def _positive_int(value: Any, *, label: str) -> int:
@@ -900,8 +902,8 @@ def reconstruct_task_plan(
     if not isinstance(identity, driver.TaskIdentity) or not isinstance(payload, Mapping):
         raise DiscussionReconstructionError("driver task has no valid identity or payload")
     fields = frozenset(payload)
-    if not driver._TASK_PAYLOAD_REQUIRED_FIELDS <= fields <= (
-        driver._TASK_PAYLOAD_REQUIRED_FIELDS | driver._TASK_PAYLOAD_OPTIONAL_FIELDS):
+    if not _storage_shared_1_._TASK_PAYLOAD_REQUIRED_FIELDS <= fields <= (
+        _storage_shared_1_._TASK_PAYLOAD_REQUIRED_FIELDS | _storage_shared_1_._TASK_PAYLOAD_OPTIONAL_FIELDS):
         raise DiscussionReconstructionError("driver task payload shape changed")
     if (match := _TURN_ID_RE.fullmatch(identity.turn_id)) is None:
         raise DiscussionReconstructionError("turn_id is not a Discussion coordinate")

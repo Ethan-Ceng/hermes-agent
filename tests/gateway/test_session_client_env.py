@@ -150,7 +150,7 @@ async def test_client_env_is_filtered_validated_and_never_echoed(tmp_path, monke
 
 def _strip_new_policy_fields(db_path, session_id):
     """Rewrite a receipt into the exact shape a gateway before this change committed."""
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     conn = sqlite3.connect(db_path)
     try:
         key = POLICY_PREFIX + session_id

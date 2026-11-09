@@ -5,14 +5,14 @@ import time
 
 from hermes_cli.timefmt import coerce_epoch
 from hermes_db.domains.sessions.postgres.operations import messages as writes, sessions as lifecycle
-from hermes_db.integration.transfer.portability_values import values
+from hermes_db.domains.sessions.import_rules import values
 from hermes_db.domains.sessions.postgres.queries import messages as transcript, sessions
 from hermes_db.tables.conversations import messages, sessions as table
 from hermes_db.core.values import encode_text, explicit_fork, model_config
-from hermes_state_portability import _IMPORT_FLAG_COLS, _IMPORT_PASSTHROUGH_COLS
-from hermes_db.integration.transfer.portability_values import _IMPORT_FLOAT_COLS, _IMPORT_INT_COLS, _IMPORT_MESSAGE_JSON_FIELDS
+from hermes_db.domains.sessions.import_rules import _IMPORT_FLAG_COLS, _IMPORT_PASSTHROUGH_COLS
+from hermes_db.domains.sessions.import_rules import _IMPORT_FLOAT_COLS, _IMPORT_INT_COLS, _IMPORT_MESSAGE_JSON_FIELDS
 from hermes_db.domains.sessions.codec import _parse_tool_calls
-from hermes_state_messages import _tool_calls_count
+from hermes_db.domains.sessions.codec import _tool_calls_count
 from utils import safe_json_loads
 
 
@@ -85,9 +85,9 @@ def _cycle(conn, scope, proposed, sid, parent):
     return False
 
 
-def import_current(conn, scope, normalized, *, canonical=False):
+def import_current(conn, scope, normalized, *, ownership, canonical=False):
     from hermes_db.domains.sessions.postgres.queries.mutation_binding import bindings_agree, history_binding
-    from hermes_state_runtime import RuntimeStoreError
+    from hermes_db.domains.runtime.values import RuntimeStoreError
 
     sessions.lock_store(conn, scope, exclusive=True)
     retired = [item["session"]["id"] for item in normalized if sessions.retired_session(conn, scope, item["session"]["id"])]
@@ -111,7 +111,7 @@ def import_current(conn, scope, normalized, *, canonical=False):
     if canonical:
         foreign = [(sid, parent) for sid, parent in parents if parent not in imported and (
             history_binding(conn, scope, parent) is None
-            or not bindings_agree(history_binding(conn, scope, parent), history_binding(conn, scope, sid), scope))]
+            or not bindings_agree(history_binding(conn, scope, parent), history_binding(conn, scope, sid), scope, ownership=ownership))]
     detached = attach_parents(conn, scope, [pair for pair in parents if pair not in foreign]) + len(foreign)
     return {"ok": True, "imported": len(imported), "skipped": len(skipped), "imported_ids": imported,
         "skipped_ids": skipped, "detached": detached, "errors": []}

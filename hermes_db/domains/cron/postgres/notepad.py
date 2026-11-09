@@ -23,15 +23,15 @@ def _write(resource, job_id):
 
 
 def set_note(resource, job_id, key, value):
-    from cron import notepad
+    notepad = resource.notes
     job_id, key, value = str(job_id), str(key), str(value)
-    notepad._validate(job_id, key, value)
-    now = notepad._hermes_now().isoformat()
+    notepad.validate(job_id, key, value)
+    now = notepad.now().isoformat()
     with _write(resource, job_id) as conn:
         size = conn.scalar(select(func.coalesce(func.sum(func.octet_length(notes.c.key) + func.octet_length(notes.c.value)), 0))
                            .where(_job(notes, resource, job_id), notes.c.key != encode_text(key)))
-        if size + len(key.encode("utf-8")) + len(value.encode("utf-8")) > notepad.MAX_JOB_TOTAL_BYTES:
-            raise ValueError(f"notepad full: job '{job_id}' would exceed {notepad.MAX_JOB_TOTAL_BYTES} bytes total; delete unused keys first")
+        if size + len(key.encode("utf-8")) + len(value.encode("utf-8")) > notepad.max_job_total_bytes:
+            raise ValueError(f"notepad full: job '{job_id}' would exceed {notepad.max_job_total_bytes} bytes total; delete unused keys first")
         query = insert(notes).values(store_id=resource.scope.require_store_id(), job_id=encode_text(job_id),
                                    key=encode_text(key), value=encode_text(value), updated_at=now)
         conn.execute(query.on_conflict_do_update(index_elements=list(notes.primary_key.columns),

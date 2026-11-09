@@ -3,6 +3,7 @@
 Plain mixin for ``hermes_state.SessionDB`` (no ``__init__``/state of its own).
 Must never import hermes_state (cycle); shared constants live in hermes_state_common.
 """
+from hermes_db.domains.sessions.search_rules import _flatten_text
 
 
 
@@ -218,12 +219,6 @@ def _strip_cjk_wildcards(raw_query: str) -> str:
     return " ".join(stripped) or raw_query
 
 
-def _flatten_text(decoded: Any) -> str:
-    """Multimodal part list -> joined text (or the placeholder); str passes through; else ''."""
-    if isinstance(decoded, list):
-        parts = [p.get("text", "") for p in decoded if isinstance(p, dict) and p.get("type") == "text"]
-        return " ".join(t for t in parts if t).strip() or "[multimodal content]"
-    return decoded if isinstance(decoded, str) else ""
 
 
 def _positive_int(name: str, value: Any) -> None:

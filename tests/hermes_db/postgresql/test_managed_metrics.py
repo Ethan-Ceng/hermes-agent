@@ -71,7 +71,7 @@ def test_worker_counters_and_engagement_recover_without_changing_owner_consent(p
             legacy.write_bytes(legacy_bytes)
             metrics = SharedMetricsStore(profile_home=home)
             if ignore_user_config:
-                from hermes_cli.observability import shared_metrics as native
+                from hermes_db.domains.metrics import policy as native
                 day = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=2)
                 metrics.reconcile_send_consent(True, now=day - timedelta(days=1))
                 with monkeypatch.context() as patch:

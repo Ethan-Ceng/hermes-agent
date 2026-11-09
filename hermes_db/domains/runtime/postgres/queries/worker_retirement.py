@@ -7,7 +7,7 @@ from sqlalchemy import and_, func, select
 
 from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.runtime import worker_executions, worker_receipts
-from hermes_state_runtime_workers import CHILD_SEPARATOR, RETIRED_RECEIPT
+from hermes_db.domains.runtime.receipts import CHILD_SEPARATOR, RETIRED_RECEIPT
 
 
 def compact(conn, scope, execution_id):

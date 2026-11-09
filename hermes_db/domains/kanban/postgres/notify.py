@@ -15,7 +15,7 @@ def _platform_key(value):
     return value.translate(str.maketrans('ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'))
 
 def _decode(row):
-    from hermes_cli.kanban_db_notify import _decode_notify_delivery_metadata
+    from hermes_db.domains.kanban.rules import _decode_notify_delivery_metadata
     item = repo.decode_record(row)
     item.pop('store_id', None)
     item.pop('board_id', None)
@@ -27,7 +27,7 @@ def _max_event(conn, store, task_id):
     return conn.scalar(select(func.coalesce(func.max(events.c.id), 0)).where(repo.key(store, task_id, events)))
 
 def _add(conn, store, fields):
-    from hermes_cli.kanban_db_notify import _NOTIFY_DELIVERY_MODES, _decode_notify_delivery_metadata, _encode_notify_delivery_metadata
+    from hermes_db.domains.kanban.rules import _NOTIFY_DELIVERY_MODES, _decode_notify_delivery_metadata, _encode_notify_delivery_metadata
     fields = dict(fields, thread_id=fields.get('thread_id') or '')
     condition = _key(store, **{key: fields[key] for key in ('task_id', 'platform', 'chat_id', 'thread_id')})
     existing = conn.execute(select(subs).where(condition)).mappings().one_or_none()
@@ -66,20 +66,6 @@ def list_notify_subs(store, task_id=None, *, notifier_profiles=None, include_uno
     with store.read() as conn:
         return [_decode(row) for row in conn.execute(select(subs).where(condition)).mappings()]
 
-def count_notify_subs(*, board=None, notifier_profiles=None, include_unowned=False, platform=None, chat_id=None, thread_id=None):
-    from hermes_cli import kanban_db as kb
-    from hermes_db.factory import acquire_profile_domain
-    from hermes_db.domains.kanban.postgres.catalog import _lookup
-    slug = kb._explicit_board_slug(board) or kb.get_current_board()
-    with acquire_profile_domain('kanban_tasks') as store, store.read() as conn:
-        row = _lookup(conn, store, slug)
-        if row is None or row['archived']:
-            return 0
-        condition = and_(subs.c.store_id == store.scope.require_store_id(), subs.c.board_id == row['board_id'], _owners(notifier_profiles, include_unowned))
-        for name, value in (('platform_key', _platform_key(platform) if platform is not None else None), ('chat_id', chat_id), ('thread_id', thread_id)):
-            if value is not None:
-                condition &= subs.c[name] == encode_text(value)
-        return conn.scalar(select(func.count()).select_from(subs).where(condition))
 
 def remove_notify_sub(store, **key):
     with store.write() as conn:
@@ -114,7 +100,7 @@ def purge_stale_done_notify_subs(store, *, max_age_days=30):
         return conn.execute(delete(subs).where(repo.scope(subs, store), subs.c.task_id.in_(old))).rowcount
 
 def _unseen(conn, store, key, kinds):
-    from hermes_cli.kanban_db import Event
+
     cursor = conn.scalar(select(subs.c.last_event_id).where(_key(store, **key)))
     if cursor is None:
         return (0, [])
@@ -122,7 +108,7 @@ def _unseen(conn, store, key, kinds):
     kind_list = list(kinds) if kinds else None
     if kind_list:
         query = query.where(events.c.kind.in_([encode_text(kind) for kind in kind_list]))
-    rows = [Event.from_row(repo.decode_record(row)) for row in conn.execute(query.order_by(events.c.id)).mappings()]
+    rows = [store.result_values.event(repo.decode_record(row)) for row in conn.execute(query.order_by(events.c.id)).mappings()]
     return (rows[-1].id if rows else cursor, rows)
 
 def unseen_events_for_sub(store, *, kinds=None, **key):
@@ -160,3 +146,10 @@ def inherit(conn, store, child_id, parents, *, created_at=None):
         values = {name: row[name] for name in TEXT_FIELDS}
         values.update(task_id=encode_text(child_id), chat_type=row['chat_type'] or b'dm', delivery_mode=row['delivery_mode'] or b'notify')
         conn.execute(insert(subs).values(**repo.owner(store), **values, platform_key=row['platform_key'], created_at=int(time.time()) if created_at is None else created_at, last_event_id=cursor).on_conflict_do_nothing())
+
+def count_subscriptions(conn, scope, board_id, *, notifier_profiles=None, include_unowned=False, platform=None, chat_id=None, thread_id=None):
+    condition = and_(subs.c.store_id == scope.require_store_id(), subs.c.board_id == board_id, _owners(notifier_profiles, include_unowned))
+    for name, value in (('platform_key', _platform_key(platform) if platform is not None else None), ('chat_id', chat_id), ('thread_id', thread_id)):
+        if value is not None:
+            condition &= subs.c[name] == encode_text(value)
+    return conn.scalar(select(func.count()).select_from(subs).where(condition))

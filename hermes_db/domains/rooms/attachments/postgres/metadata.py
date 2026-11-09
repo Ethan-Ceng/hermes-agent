@@ -1,10 +1,10 @@
 """Room attachment_metadata workflow; original connection, fence and off-connection effect boundaries are preserved."""
+from hermes_db.domains.rooms.attachments import rules as _storage_shared_1
 from sqlalchemy import func, select, update, delete
-from gateway import hosted_room_attachments as native
 from hermes_db.domains.rooms.postgres import repository as room_repo, repository as repo
 from hermes_db.tables.room_attachments import attachments, blobs, cleanup, roots
 import json
-from gateway.hosted_rooms import EventAttachmentConflictError
+from hermes_db.domains.rooms.rules import EventAttachmentConflictError
 from hermes_db.tables.rooms import rooms, retired, events
 from collections import Counter
 from sqlalchemy.dialects.postgresql import insert
@@ -12,20 +12,20 @@ import secrets
 
 def validate_retry(row, fields):
     if any(row[key] != fields[key] for key in ('kind', 'name', 'mime', 'size', 'sha256')):
-        raise native.AttachmentConflictError('upload_id was already used for different attachment content')
+        raise _storage_shared_1.AttachmentConflictError('upload_id was already used for different attachment content')
 
 def _quota(conn, store, fields, limits):
     count, size = totals(conn, store, room_id=fields['room_id'], live_only=True)
     if size + fields['size'] > limits['room_quota_bytes']:
-        raise native.AttachmentQuotaError('room attachment quota exceeded')
+        raise _storage_shared_1.AttachmentQuotaError('room attachment quota exceeded')
     if count >= limits['room_quota_count']:
-        raise native.AttachmentQuotaError('room attachment count quota exceeded')
+        raise _storage_shared_1.AttachmentQuotaError('room attachment count quota exceeded')
     total_count, _ = totals(conn, store)
     if total_count >= limits['gateway_quota_count']:
-        raise native.AttachmentQuotaError('gateway attachment count quota exceeded')
+        raise _storage_shared_1.AttachmentQuotaError('gateway attachment count quota exceeded')
     count, size = totals(conn, store, room_id=fields['room_id'], state='uploaded')
-    if size + fields['size'] > native.MAX_ROOM_UNCOMMITTED_BYTES or count + 1 > native.MAX_ROOM_UNCOMMITTED_COUNT:
-        raise native.AttachmentQuotaError('room uncommitted upload quota exceeded')
+    if size + fields['size'] > _storage_shared_1.MAX_ROOM_UNCOMMITTED_BYTES or count + 1 > _storage_shared_1.MAX_ROOM_UNCOMMITTED_COUNT:
+        raise _storage_shared_1.AttachmentQuotaError('room uncommitted upload quota exceeded')
 
 def put(store, *, fields, candidate_blob, now, limits):
     with store.write() as conn:
@@ -39,13 +39,13 @@ def put(store, *, fields, candidate_blob, now, limits):
         if blob is None:
             physical = conn.scalar(select(func.coalesce(func.sum(blobs.c.size), 0)).where(room_repo.scope(blobs, store)))
             if physical + fields['size'] > limits['gateway_quota_bytes']:
-                raise native.AttachmentQuotaError('gateway attachment quota exceeded')
+                raise _storage_shared_1.AttachmentQuotaError('gateway attachment quota exceeded')
             blob_id = candidate_blob
             room_repo.insert_row(conn, store, blobs, dict(blob_id=blob_id, sha256=fields['sha256'], size=fields['size'], ref_count=1, created_at=now))
         else:
             blob_id = blob['blob_id']
             conn.execute(update(blobs).where(room_repo.key(blobs, store, dict(blob_id=blob_id))).values(ref_count=blobs.c.ref_count + 1))
-        room_repo.insert_row(conn, store, attachments, dict(fields, blob_id=blob_id, event_id=None, recipient_member_ids_json='[]', viewer_access=0, state='uploaded', created_at=now, updated_at=now, expires_at=now + native.UNCOMMITTED_TTL_SECONDS))
+        room_repo.insert_row(conn, store, attachments, dict(fields, blob_id=blob_id, event_id=None, recipient_member_ids_json='[]', viewer_access=0, state='uploaded', created_at=now, updated_at=now, expires_at=now + _storage_shared_1.UNCOMMITTED_TTL_SECONDS))
         return (attachment(conn, store, fields['attachment_id']), False)
 
 def find_upload(store, *, room_id, upload_id, now):
@@ -57,15 +57,15 @@ def find_upload(store, *, room_id, upload_id, now):
 
 def validate_row(row, entry, *, room_id, event_id, recipients_json, viewer_access, now):
     if row is None or row['room_id'] != room_id:
-        raise native.AttachmentNotFoundError('attachment is not uploaded for this room')
-    if {key: row[key] for key in native._ATTACHMENT_FIELDS} != entry:
-        raise native.AttachmentConflictError('attachment manifest metadata does not match the uploaded bytes')
+        raise _storage_shared_1.AttachmentNotFoundError('attachment is not uploaded for this room')
+    if {key: row[key] for key in _storage_shared_1._ATTACHMENT_FIELDS} != entry:
+        raise _storage_shared_1.AttachmentConflictError('attachment manifest metadata does not match the uploaded bytes')
     if row['expires_at'] is not None and row['expires_at'] <= now:
-        raise native.AttachmentNotFoundError('attachment has expired')
+        raise _storage_shared_1.AttachmentNotFoundError('attachment has expired')
     if row['state'] == 'disbanded':
-        raise native.AttachmentNotFoundError('attachment belongs to a disbanded room')
+        raise _storage_shared_1.AttachmentNotFoundError('attachment belongs to a disbanded room')
     if row['state'] == 'committed' and ((row['event_id'] or '') != event_id or row['recipient_member_ids_json'] != recipients_json or bool(row['viewer_access']) != bool(viewer_access)):
-        raise native.AttachmentConflictError('attachment is already owned by a different room event')
+        raise _storage_shared_1.AttachmentConflictError('attachment is already owned by a different room event')
 
 def prepare(store, *, manifest, **scope):
     with store.read() as conn:
@@ -95,19 +95,19 @@ def abort(store, *, room_id, event_id, attachment_ids, now):
         selected = [value for value in attachment_ids if value not in published]
         if not selected:
             return 0
-        return conn.execute(update(attachments).where(room_repo.scope(attachments, store, room_id), attachments.c.event_id == event_id, attachments.c.state == 'committed', attachments.c.attachment_id.in_(selected)).values(event_id=None, recipient_member_ids_json=b'[]', viewer_access=0, state='uploaded', updated_at=now, expires_at=now + native.UNCOMMITTED_TTL_SECONDS)).rowcount
+        return conn.execute(update(attachments).where(room_repo.scope(attachments, store, room_id), attachments.c.event_id == event_id, attachments.c.state == 'committed', attachments.c.attachment_id.in_(selected)).values(event_id=None, recipient_member_ids_json=b'[]', viewer_access=0, state='uploaded', updated_at=now, expires_at=now + _storage_shared_1.UNCOMMITTED_TTL_SECONDS)).rowcount
 
 def retain_event(store, *, room_id, event_id, now):
     with store.write() as conn:
         room_repo.lock_store(conn, store)
         if room_repo.event(conn, store, room_id, event_id) is None:
-            raise native.AttachmentConflictError('attachment owner event is not durable in the room log')
+            raise _storage_shared_1.AttachmentConflictError('attachment owner event is not durable in the room log')
         return conn.execute(update(attachments).where(room_repo.scope(attachments, store, room_id), attachments.c.event_id == event_id, attachments.c.state == 'committed').values(expires_at=None, updated_at=now)).rowcount
 
 def retain_message_attachments(conn, store, *, room_id, event_id, manifest, now):
-    normalized = native.validate_manifest(manifest)
+    normalized = _storage_shared_1.validate_manifest(manifest)
     if normalized != manifest:
-        raise native.AttachmentError('published attachment metadata must be canonical')
+        raise _storage_shared_1.AttachmentError('published attachment metadata must be canonical')
     for entry in normalized:
         row = attachment(conn, store, entry['attachment_id'])
         if row is None or row['room_id'] != room_id or row['event_id'] != event_id or (row['state'] != 'committed') or (row['viewer_access'] != 1) or (row['expires_at'] is not None and row['expires_at'] <= now) or any((row[key] != value for key, value in entry.items())):
@@ -118,7 +118,7 @@ def retain_message_attachments(conn, store, *, room_id, event_id, manifest, now)
 def viewer_room(conn, store, *, room_id, authority_gateway_id, authority_epoch):
     row = conn.execute(select(rooms).where(room_repo.scope(rooms, store, room_id))).mappings().one_or_none()
     if row is None or row['disbanded_at'] is not None or row['authority_gateway_id'] != authority_gateway_id or (row['authority_epoch'] != authority_epoch):
-        raise native.AttachmentNotFoundError('Group Chat viewer authority changed')
+        raise _storage_shared_1.AttachmentNotFoundError('Group Chat viewer authority changed')
 
 def owner_event(conn, store, room_id, event_id):
     event = room_repo.event(conn, store, room_id, event_id)
@@ -127,27 +127,27 @@ def owner_event(conn, store, room_id, event_id):
 def committed_row(conn, store, *, room_id, attachment_id, recipient_member_id, normalized_event, viewer, now):
     row = attachment(conn, store, attachment_id, room_id=room_id)
     if row is None or row['state'] != 'committed':
-        raise native.AttachmentNotFoundError('attachment is not committed for this room')
+        raise _storage_shared_1.AttachmentNotFoundError('attachment is not committed for this room')
     if row['expires_at'] is not None and row['expires_at'] <= now:
-        raise native.AttachmentNotFoundError('attachment has expired')
+        raise _storage_shared_1.AttachmentNotFoundError('attachment has expired')
     if normalized_event is not None and (row['event_id'] or '') != normalized_event:
-        raise native.AttachmentNotFoundError('attachment is not owned by this room event')
+        raise _storage_shared_1.AttachmentNotFoundError('attachment is not owned by this room event')
     if row['viewer_access']:
         event = owner_event(conn, store, room_id, row['event_id'] or '')
         payload = json.loads(event['payload_json']) if event is not None else None
         manifest = {key: row[key] for key in ('attachment_id', 'kind', 'name', 'size', 'mime')}
         published = payload.get('attachments') if isinstance(payload, dict) else None
         if not isinstance(published, list) or manifest not in published:
-            raise native.AttachmentNotFoundError('attachment is not published in this room')
+            raise _storage_shared_1.AttachmentNotFoundError('attachment is not published in this room')
         unavailable = conn.scalar(select(retired.c.room_id).where(room_repo.scope(retired, store, room_id))) is not None
         if unavailable:
-            raise native.AttachmentNotFoundError('Group Chat is unavailable to viewers')
+            raise _storage_shared_1.AttachmentNotFoundError('Group Chat is unavailable to viewers')
     recipients = json.loads(row['recipient_member_ids_json'])
     if viewer:
         if row['viewer_access'] != 1:
-            raise native.AttachmentNotFoundError('attachment is unavailable to Group Chat viewers')
+            raise _storage_shared_1.AttachmentNotFoundError('attachment is unavailable to Group Chat viewers')
     elif recipient_member_id not in recipients:
-        raise native.AttachmentNotFoundError('attachment is unavailable to this recipient')
+        raise _storage_shared_1.AttachmentNotFoundError('attachment is unavailable to this recipient')
     return row
 
 def select_committed(store, *, authority=None, **selection):
@@ -175,7 +175,7 @@ def reconcile(store, now):
 def mark_disbanded(store, room_id, now):
     with store.write() as conn:
         room_repo.lock_store(conn, store)
-        return conn.execute(update(attachments).where(room_repo.scope(attachments, store, room_id), attachments.c.state != 'disbanded').values(state='disbanded', updated_at=now, expires_at=now + native.DISBANDED_GRACE_SECONDS)).rowcount
+        return conn.execute(update(attachments).where(room_repo.scope(attachments, store, room_id), attachments.c.state != 'disbanded').values(state='disbanded', updated_at=now, expires_at=now + _storage_shared_1.DISBANDED_GRACE_SECONDS)).rowcount
 
 def prune(store, *, now, namespace):
     with store.write() as conn:
@@ -184,7 +184,7 @@ def prune(store, *, now, namespace):
         tombstones = dict(room_rows.all())
         tombstones.update(dict(conn.execute(select(retired.c.room_id, retired.c.retired_at).where(room_repo.scope(retired, store))).all()))
         for room_id, timestamp in tombstones.items():
-            conn.execute(update(attachments).where(room_repo.scope(attachments, store, room_id), attachments.c.state == 'committed').values(state='disbanded', updated_at=now, expires_at=timestamp + native.DISBANDED_GRACE_SECONDS))
+            conn.execute(update(attachments).where(room_repo.scope(attachments, store, room_id), attachments.c.state == 'committed').values(state='disbanded', updated_at=now, expires_at=timestamp + _storage_shared_1.DISBANDED_GRACE_SECONDS))
         expired = room_repo.scope(attachments, store) & attachments.c.expires_at.is_not(None) & (attachments.c.expires_at <= now)
         rows = conn.execute(select(attachments.c.attachment_id, attachments.c.blob_id).where(expired)).mappings().all()
         released = Counter(row['blob_id'] for row in rows)

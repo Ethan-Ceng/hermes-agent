@@ -26,3 +26,15 @@ def domain_operation(topic, *, domain="cron_executions"):
                 return getattr(implementation, sqlite_operation.__name__)(resource, *args, **kwargs)
         return operation
     return decorate
+
+
+from hermes_db.core.resource import DomainResource
+
+
+class CronResource(DomainResource):
+    def __init__(self, name, settings, scope, *, transactions, executions, incidents, delivery, notes):
+        super().__init__(name, settings, scope, transactions=transactions)
+        self.executions = executions
+        self.incidents = incidents
+        self.delivery = delivery
+        self.notes = notes

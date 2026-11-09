@@ -8,7 +8,7 @@ from hermes_db.domains.runtime.postgres.operations.worker_compression_reads impo
 from hermes_db.domains.runtime.postgres.operations.worker_handlers import _fields
 from hermes_db.domains.sessions.postgres.queries import leases, sessions
 from hermes_db.tables.gateway import compression_locks, session_turn_leases
-from hermes_state_runtime import RuntimeStoreError, _text
+from hermes_db.domains.runtime.values import RuntimeStoreError, _text
 
 
 def lock(conn, scope, session_id, payload, *, action):
@@ -81,11 +81,11 @@ def cleanup(conn, scope, session_id, payload, *, turn=False):
     return {"released": True} if turn else {"value": None}
 
 
-def handlers():
+def handlers(*, automation_states):
     from hermes_db.domains.runtime.postgres.operations import worker_compression as writes, worker_compression_reads as reads
     values = {"turn.cleanup": partial(cleanup, turn=True), "compression.cleanup": cleanup,
         "compression.reopen": reopen, "compression.append": writes.append, "compression.archive": writes.archive,
-        "compression.publish": writes.publish, "compression.watermark": writes.watermark,
+        "compression.publish": partial(writes.publish, automation_states=automation_states), "compression.watermark": writes.watermark,
         "compression.context": reads.context, "compression.lineage": reads.lineage,
         "compression.boundary": reads.boundary, "compression.history": reads.history,
         "compression.cooldown.record": cooldown_record, "compression.cooldown.restore": cooldown_restore,

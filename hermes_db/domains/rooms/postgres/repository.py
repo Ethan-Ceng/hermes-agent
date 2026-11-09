@@ -1,9 +1,9 @@
 """Room repository workflow; original connection, fence and off-connection effect boundaries are preserved."""
+from hermes_db.domains.rooms import driver_rules as _storage_shared_1
 from sqlalchemy import LargeBinary, and_, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from hermes_db.tables.rooms import rooms, events, retired, room_locks
 from hermes_db.core.values import encode_text, decode_text
-from gateway import hosted_room_driver as native
 from hermes_db.tables.room_runs import leases, tasks
 
 def scope(table, store, room_id=None):
@@ -34,7 +34,7 @@ def lock_store(conn, store):
     conn.execute(select(room_locks.c.store_id).where(scope(room_locks, store)).with_for_update()).one()
 
 def room(conn, store, room_id, *, include_disbanded=False, lock=False):
-    from gateway.hosted_rooms import RoomHistoryExpiredError, RoomNotFoundError
+    from hermes_db.domains.rooms.rules import RoomHistoryExpiredError, RoomNotFoundError
     statement = select(rooms).where(scope(rooms, store, room_id))
     row = conn.execute(statement.with_for_update() if lock else statement).mappings().one_or_none()
     if row is not None and (include_disbanded or row['disbanded_at'] is None):
@@ -59,13 +59,13 @@ def retire(conn, store, room_id, timestamp):
 def active_room(conn, store, room_id):
     row = conn.execute(select(rooms).where(scope(rooms, store, room_id)).with_for_update()).mappings().one_or_none()
     if row is None or row['disbanded_at'] is not None:
-        raise native.RoomUnavailableError('hosted room does not exist' if row is None else 'hosted room is disbanded')
+        raise _storage_shared_1.RoomUnavailableError('hosted room does not exist' if row is None else 'hosted room is disbanded')
     return decode(row)
 
 def require_authority(conn, store, room_id, gateway, epoch):
     row = active_room(conn, store, room_id)
     if row['authority_gateway_id'] != gateway or row['authority_epoch'] != epoch:
-        raise native.StaleLeaseError('hosted room authority changed')
+        raise _storage_shared_1.StaleLeaseError('hosted room authority changed')
     return row
 
 def lease_row(conn, store, room_id):
@@ -75,8 +75,8 @@ def lease_row(conn, store, room_id):
 def active_lease(conn, store, lease, *, now):
     require_authority(conn, store, lease.room_id, lease.gateway_id, lease.authority_epoch)
     row = lease_row(conn, store, lease.room_id)
-    if not native._lease_row_matches(row, lease) or row['released_at'] is not None or row['expires_at'] <= now:
-        raise native.StaleLeaseError('driver lease is stale or expired')
+    if not _storage_shared_1._lease_row_matches(row, lease) or row['released_at'] is not None or row['expires_at'] <= now:
+        raise _storage_shared_1.StaleLeaseError('driver lease is stale or expired')
     return row
 
 def task_key(store, identity):
@@ -87,11 +87,11 @@ def task(conn, store, identity, *, required=True, lock=True):
     row = conn.execute(statement.with_for_update() if lock else statement).mappings().one_or_none()
     if row is None:
         if required:
-            raise native.TaskConflictError('task does not exist')
+            raise _storage_shared_1.TaskConflictError('task does not exist')
         return None
     row = decode(row)
-    if native._task_identity_from_row(row) != identity:
-        raise native.TaskConflictError('task_id is already bound to a different turn')
+    if _storage_shared_1._task_identity_from_row(row) != identity:
+        raise _storage_shared_1.TaskConflictError('task_id is already bound to a different turn')
     return row
 
 def task_rows(conn, store, room_id, status=None):

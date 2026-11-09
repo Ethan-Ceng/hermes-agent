@@ -95,7 +95,7 @@ def _first_session_started_at(home: Path | None = None) -> float | None:
     home = home or get_hermes_home()
     from hermes_cli.db_setup import storage_backend
     if storage_backend(home) == "postgresql":
-        from hermes_db.domains.metrics.postgres.snapshot import first_session_started_at
+        from hermes_db.integration.metrics_snapshot import first_session_started_at
         return first_session_started_at(home)
     if str(home) in _first_session_at:
         return _first_session_at[str(home)]

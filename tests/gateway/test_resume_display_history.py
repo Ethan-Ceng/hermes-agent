@@ -87,7 +87,7 @@ async def test_cli_undo_prefix_keeps_the_summary_after_a_rotated_compression(tmp
     """``GatewaySessionStore.rewind_user_turn`` and ``/compress`` take the live rows as the CLI's history:
     the prefix before the newest user turn holds the summary the store keeps active (review of #140971)."""
     from agent.context_compressor import history_before_user_originated_turn
-    from hermes_state_rewind import _user_indices
+    from hermes_db.domains.sessions.rewind import _user_indices
     authority, actor, ref, physical = await _local_session(tmp_path, monkeypatch)
     db = authority.db
     _append(db, physical, 'OLD_Q', 'OLD_A', 'TAIL_Q', 'TAIL_A')

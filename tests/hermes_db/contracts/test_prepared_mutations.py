@@ -14,7 +14,7 @@ def local_setup(store):
     from gateway.session import SessionEntry, SessionSource, build_session_key
     from hermes_state import SessionDB
     from hermes_state_keys import local_identity
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
 
     sid = local_identity("owned", "human", "local")
     source = SessionSource(Platform.LOCAL, sid, user_id="human", chat_type="dm", profile="owned")

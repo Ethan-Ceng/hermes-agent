@@ -12,55 +12,22 @@ from agent.message_metadata import (
     CANONICAL_ROW, DATA_USE, DB_ROW_SNAPSHOT, MESSAGE_UID, PERSISTENCE_ONLY_MESSAGE_FIELDS, TOOL_CALL_UID, TOOL_CALL_UIDS,
 )
 from hermes_state_keys import admission_fingerprint
+from hermes_db.domains.runtime.values import ADMISSION_QUEUE_MAX, ADMITTED_REQUEST_CONFLICT, HANDOFF_MESSAGE_FIELDS, RuntimeStoreError, SessionGoneEvent, _MESSAGE_FIELDS, _ROW_ANNOTATION_KEYS, _json, _one_line, _secret_digest, _text, mutation_receipt_key, row_annotations
 
 
-class SessionGoneEvent(NamedTuple):
-    """The ``on_session_delete`` event a committed runtime mutation owes its plugins."""
-    session_ids: tuple
-    reason: str
 
 
-class RuntimeStoreError(ValueError):
-    """A refusal by the state authority. ``reason`` is the bounded wire code (callers compare it as a
-    string); ``field`` and ``detail`` name the check that fired and why, so a client and the gateway
-    log can tell the reasons' many checks apart instead of reporting the bare code."""
-
-    def __init__(self, reason: str, *, field: str | None = None, detail: str | None = None):
-        self.reason = reason
-        self.field = _one_line(field, 80)
-        self.detail = _one_line(detail, 160)
-        super().__init__(reason)
 
 
 #: The one ``admission_conflict`` that proves the request was already admitted: this principal's
 #: request id on this target holds an admission with another payload. Every other conflict (route,
 #: binding, lineage) carries no such proof, so a client tells them apart by this field.
-ADMITTED_REQUEST_CONFLICT = {'field': 'request_id', 'detail': 'this request id was already admitted with another payload'}
 
 
-def _one_line(value, limit):
-    """A refusal's ``field``/``detail`` as the log line and the client frame carry it: either may hold
-    client text, so whitespace collapses to single spaces, other non-printables drop (no forged log
-    lines), and the length is bounded below the client's frame limit."""
-    if value is None:
-        return None
-    text = ''.join(ch for ch in ' '.join(str(value).split()) if ch.isprintable())
-    return text[:limit] or None
 
 
-def _text(value):
-    if not isinstance(value, str) or not value or len(value) > 1024:
-        raise RuntimeStoreError('invalid_params')
-    return value
 
 
-def _json(value):
-    if not isinstance(value, dict):
-        raise RuntimeStoreError('invalid_params')
-    try:
-        return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
-    except (TypeError, ValueError, UnicodeError) as exc:
-        raise RuntimeStoreError('invalid_params') from exc
 
 
 def _epoch(conn, epoch):
@@ -124,7 +91,6 @@ def begin_runtime_epoch(db, *, instance_id: str) -> int:
 
 
 # Main's busy-queue cap (GatewayRunner._BUSY_QUEUE_MAX_PENDING): queued inputs one session holds.
-ADMISSION_QUEUE_MAX = 32
 
 
 def admit_session_input(db, *, epoch: int, principal_id: str, session_id: str,
@@ -249,7 +215,7 @@ def settle_session_input(db, *, epoch: int, admission_id: str, generation: int, 
     not commit, may run again on SQLite retry, and raising rolls the settlement back."""
     if outcome not in ('completed', 'interrupted', 'rejected', 'failed'):
         raise RuntimeStoreError('invalid_params')
-    from hermes_state_terminal import compact_result, encode_result
+    from hermes_db.domains.runtime.receipts import compact_result, encode_result
     def write(conn):
         _epoch(conn, epoch)
         row = _admission(conn, admission_id)
@@ -262,7 +228,7 @@ def settle_session_input(db, *, epoch: int, admission_id: str, generation: int, 
         if _terminal_write is not None:
             _terminal_write(conn, row)
         if result is not None:
-            from hermes_state_terminal import RESULT_PREFIX
+            from hermes_db.domains.runtime.receipts import RESULT_PREFIX
             encoded = _json(encode_result(compact_result(result, user_message=json.loads(row['payload_json']).get('text'))))
             conn.execute('INSERT INTO state_meta(key,value) VALUES(?,?) '
                          'ON CONFLICT(key) DO UPDATE SET value=excluded.value',
@@ -464,15 +430,6 @@ def recover_session_inputs(db, *, epoch: int) -> int:
     return db._execute_write(write)
 
 
-def mutation_receipt_key(principal_id, session_id, request_id, *, operation, payload, expected_revision,
-                         expected_generation=None):
-    """``(state_meta key, digest)`` of a mutation request's durable exact-retry receipt."""
-    key = 'gateway.mutation.v1.' + admission_fingerprint(
-        canonical_target=session_id, payload={'principal': principal_id, 'request': request_id})
-    fingerprint = {'operation': operation, 'payload': payload, 'expected_revision': expected_revision}
-    if expected_generation is not None:
-        fingerprint['expected_generation'] = expected_generation
-    return key, admission_fingerprint(canonical_target=session_id, payload=fingerprint)
 
 
 def replay_mutation_receipt(conn, key, digest):
@@ -500,7 +457,8 @@ def mutate_runtime_session(db, *, epoch: int, principal_id: str, session_id: str
         _text(value)
     if type(expected_revision) is not int or expected_revision < 0:
         raise RuntimeStoreError('invalid_params')
-    from hermes_state_mutations import validate_action, apply_action
+    from hermes_db.domains.runtime.mutation_rules import validate_action
+    from hermes_state_mutations import apply_action
     validate_action(operation, payload)
     if expected_generation is not None and (type(expected_generation) is not int or expected_generation < 0):
         raise RuntimeStoreError('invalid_params')
@@ -664,7 +622,7 @@ def resolve_unknown_session_input(db, *, epoch: int, admission_id: str, generati
     ``_captured=(outcome, stored_result)`` is the exact result this owner captured for the turn
     before its settlement write failed; it commits with the resolution (only for an ``unknown``
     row stamped by this same owner epoch), so the finished answer is not thrown away."""
-    from hermes_state_terminal import RESULT_PREFIX
+    from hermes_db.domains.runtime.receipts import RESULT_PREFIX
     def write(conn):
         _epoch(conn, epoch)
         row = _admission(conn, admission_id)
@@ -679,7 +637,7 @@ def resolve_unknown_session_input(db, *, epoch: int, admission_id: str, generati
             outcome, stored = _captured
             if outcome not in ('completed', 'interrupted', 'failed'):
                 raise RuntimeStoreError('invalid_params')
-            from hermes_state_terminal import compact_result, encode_result
+            from hermes_db.domains.runtime.receipts import compact_result, encode_result
             conn.execute('INSERT INTO state_meta(key,value) VALUES(?,?) '
                          'ON CONFLICT(key) DO UPDATE SET value=excluded.value',
                          (RESULT_PREFIX + admission_id, _json(encode_result(compact_result(
@@ -725,10 +683,6 @@ def _linked_worker_admission(conn, session_id, generation, owner_epoch, statuses
     return rows[0] if rows else None
 
 
-def _secret_digest(secret):
-    import hashlib
-    _text(secret)
-    return hashlib.sha256(secret.encode('utf-8')).hexdigest()
 
 
 def register_worker_execution(db, *, epoch: int, execution_id: str, session_id: str,
@@ -798,28 +752,14 @@ def adopt_worker_execution(db, *, epoch: int, execution_id: str, session_id: str
     return db._execute_write(write)
 
 
-_MESSAGE_FIELDS = frozenset({
-    'role', 'content', 'tool_name', 'tool_calls', 'tool_call_id', 'token_count',
-    'finish_reason', 'reasoning', 'reasoning_content', 'reasoning_details',
-    'codex_reasoning_items', 'codex_message_items', 'platform_message_id', 'message_id',
-    'observed', 'effect_disposition', '_compressed_summary', 'timestamp', 'api_content',
-    'display_kind', 'display_metadata', '_row_id', '_canonical_content', DB_ROW_SNAPSHOT, CANONICAL_ROW, DATA_USE,
-    # Main's durable message identity (message_uid / merge witness / tool-call uids) and the alternation
-    # repair's row counts ride every persisted dict; the owner's insert and coverage read them.
-}) | PERSISTENCE_ONLY_MESSAGE_FIELDS | {ABSORBED_ROW_IDS}
 # Compaction handoffs (archive/publish) also carry the summary's user-turn flag. This is the closed
 # boundary the owner validates AND the projection the worker facade applies to live dicts first.
-HANDOFF_MESSAGE_FIELDS = _MESSAGE_FIELDS | {'_compressed_summary_has_user_turn'}
 # Row state the owner's insert and transcript repair stamp on each message (main mutates the caller's
 # dict in place; a worker gets it back as an annotation). None = absent, so a stale adoption is cleared.
 # The owner-minted identity rides too: a worker dict without it re-mints a new uid on every later
 # archive/rotation copy, so the logical message changes identity across generations.
-_ROW_ANNOTATION_KEYS = ('_row_id', 'timestamp', DB_ROW_SNAPSHOT, CANONICAL_ROW,
-                        MESSAGE_UID, TOOL_CALL_UIDS, TOOL_CALL_UID)
 
 
-def row_annotations(messages):
-    return [{key: msg.get(key) for key in _ROW_ANNOTATION_KEYS} for msg in messages]
 
 
 def _worker_append(db, conn, session_id, payload):
@@ -871,7 +811,7 @@ def _worker_turn(db, conn, session_id, payload, operation):
 
 
 def _worker_usage(db, conn, session_id, payload, *, auxiliary=False):
-    from hermes_state_usage import _MODEL_USAGE_FIELDS, _TOKEN_COUNTERS
+    from hermes_db.domains.sessions.rules import _MODEL_USAGE_FIELDS, _TOKEN_COUNTERS
     source = None
     if not auxiliary:
         # ``source`` is the worker platform (turn_usage._agent_session_source). A Desktop
@@ -977,7 +917,7 @@ def apply_worker_receipt(db, *, epoch, execution_id, session_id, generation, seq
         if old is not None:
             if old['payload_digest'] != digest:
                 raise RuntimeStoreError('admission_conflict')
-            from hermes_state_runtime_workers import retired_receipt
+            from hermes_db.domains.runtime.receipts import retired_receipt
             if retired_receipt(old['result_json']):
                 raise RuntimeStoreError('stale_generation')  # a terminal execution's read copy
             return json.loads(old['result_json'])

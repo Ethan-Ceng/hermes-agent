@@ -12,7 +12,7 @@ def _read(home, expected_identity=None):
         if resource.settings.backend != "postgresql":
             raise StorageConfigurationError("PG observations require the Profile PostgreSQL backend")
         if expected_identity is not None:
-            from hermes_db.integration.transfer.move_values import resource_key
+            from hermes_db.core.values import resource_key
             if (resource.scope.store_id, resource_key(resource._transactions)) != expected_identity:
                 raise StorageConfigurationError("Captured operational database identity changed")
         with resource.read() as conn:

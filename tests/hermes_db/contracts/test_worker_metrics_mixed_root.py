@@ -8,7 +8,7 @@ import pytest
 
 from hermes_cli.observability import shared_metrics_engagement as engagement
 from hermes_db.domains.metrics.bound import bound_store
-from hermes_db.domains.runtime.postgres.operations.worker_metrics_engagement import drain, pending
+from hermes_db.integration.worker_metrics import drain, pending
 from tests.hermes_db.postgresql.test_metrics_store import RESOURCE
 from tests.hermes_db.postgresql.test_worker_domain_receipts import assignment
 

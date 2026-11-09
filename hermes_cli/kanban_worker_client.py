@@ -180,7 +180,7 @@ def _submit():
         params = {'board': os.environ['HERMES_KANBAN_BOARD'], 'task_id': os.environ['HERMES_KANBAN_TASK'],
             'run_id': int(os.environ['HERMES_KANBAN_RUN_ID']), 'claim_lock': os.environ['HERMES_KANBAN_CLAIM_LOCK']}
         if sys.argv[1:2] == ['--board-owner']:
-            from hermes_db.domains.kanban.routing.owner import validate_reference
+            from hermes_db.integration.kanban_owner import validate_reference
             if len(sys.argv) != 3:
                 raise ValueError('invalid Board owner carrier')
             params['owner'] = validate_reference(json.loads(sys.argv[2]))

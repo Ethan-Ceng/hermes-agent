@@ -7,7 +7,7 @@ from types import SimpleNamespace
 def test_deferred_pick_replay_never_overwrites_a_newer_pick_and_cas_is_exact(store, runtime):
     from gateway.session_contract import SessionRef
     from gateway.session_deferred_pick import _compare_pick, defer_pick
-    from hermes_state_mutation_prepared import DEFERRED_PICK_PREFIX
+    from hermes_db.domains.runtime.receipts import DEFERRED_PICK_PREFIX
     store.create_session("s", "cli")
     epoch = runtime.begin_epoch(instance_id="owner")
     owner, actor = SimpleNamespace(db=store, epoch=epoch), SimpleNamespace(subject="human")

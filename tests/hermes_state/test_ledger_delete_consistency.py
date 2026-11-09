@@ -245,7 +245,7 @@ def test_discarding_an_unadmitted_row_leaves_no_fence_but_an_admitted_row_is_fen
     """Seed-copy compensation removes a row nobody was admitted against WITHOUT the retirement
     marker (the lazy first-prompt path must be able to recreate the id); once any receipt
     exists the same call takes the fenced delete so the id cannot be resurrected."""
-    from hermes_state_mutation_retirement import RETIRED_PREFIX
+    from hermes_db.domains.runtime.receipts import RETIRED_PREFIX
     with closing(SessionDB(db_path=tmp_path / 'state.db')) as db:
         db.create_session('fresh', source='desktop')
         assert db.discard_unadmitted_session('fresh') is True

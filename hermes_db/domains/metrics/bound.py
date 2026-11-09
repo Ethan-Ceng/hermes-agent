@@ -10,6 +10,10 @@ class BoundMetricsRef:
     scope: object
     source: object = field(repr=False, compare=False)
 
+    @property
+    def profile_home(self):
+        return self.scope.profile_home
+
 
 @contextmanager
 def open_bound(reference, *, write=False):
@@ -23,9 +27,4 @@ def open_bound(reference, *, write=False):
 
 def bound_store(scope, source):
     from hermes_db.domains.metrics.postgres.store import PostgresMetricsStore
-    store = object.__new__(PostgresMetricsStore)
-    store.reference = BoundMetricsRef(scope, source)
-    store.profile_home = scope.profile_home
-    store.database_path = None
-    store.outbox_directory = scope.profile_home / 'telemetry' / 'shared_metrics' / 'postgresql' / 'outbox'
-    return store
+    return PostgresMetricsStore(BoundMetricsRef(scope, source))

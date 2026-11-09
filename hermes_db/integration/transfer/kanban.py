@@ -1,4 +1,5 @@
 """Kanban transfer workflow; original connection, fence and off-connection effect boundaries are preserved."""
+from hermes_db.domains.kanban import rules as _storage_shared_1
 import hashlib
 import json
 from pathlib import Path, PurePosixPath
@@ -6,7 +7,7 @@ import shutil
 import tempfile
 import time
 from sqlalchemy import select, LargeBinary, update
-from hermes_db.domains.kanban.routing.files import BoardFiles, _path
+from hermes_db.integration.kanban_owner import BoardFiles, _path
 from hermes_db.domains.kanban.postgres import repository as repo
 from hermes_db.tables.kanban import tasks, links, comments, events, runs, kanban_boards
 from hermes_db.tables.kanban_artifacts import attachments
@@ -81,7 +82,7 @@ def export_board(board, output_path, *, include_attachments=True, include_logs=F
     from hermes_cli.archive_safe import copy_regular_files, make_targz
     from hermes_cli.kanban_transfer import ARCHIVE_FORMAT, _write_json
     from hermes_cli.version_info import get_version_info
-    slug = kb._normalize_board_slug(board) or kb.get_current_board()
+    slug = _storage_shared_1._normalize_board_slug(board) or kb.get_current_board()
     base = str(Path(output_path).expanduser()).removesuffix('.tar.gz').removesuffix('.tgz')
     Path(base).parent.mkdir(parents=True, exist_ok=True)
     with kbc.connect_closing(board=slug) as store:
@@ -163,7 +164,7 @@ def _prepare_rows(tables, fields):
 
 def _stage(extracted, resource, board_id):
     from hermes_cli.archive_safe import copy_regular_files
-    from hermes_db.integration.transfer.move_values import resource_key
+    from hermes_db.core.values import resource_key
     from utils import atomic_json_write
     home = resource.scope.profile_home
     root = home / 'kanban' / 'imports'
@@ -201,7 +202,7 @@ def _import(extracted, requested, *, activate):
     from hermes_cli import kanban_db as kb
     from hermes_db.factory import acquire_profile_domain
     manifest, tables, metadata = read_archive(extracted)
-    requested = kb._normalize_board_slug(requested or manifest.get('board') or extracted.name)
+    requested = _storage_shared_1._normalize_board_slug(requested or manifest.get('board') or extracted.name)
     if not requested:
         raise ValueError('Pass an explicit Board slug for this archive')
     with acquire_profile_domain('kanban_tasks') as resource:
@@ -239,7 +240,7 @@ def import_board(archive_path, slug=None, *, activate=False):
         staging = Path(temporary)
         safe_extract_targz(archive, staging)
         return _import(staging / root, slug, activate=activate)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('hermes_db.integration.transfer.kanban')
 
 def _publish(source, target, board_id, proofs):
     if not source.is_dir():
@@ -380,7 +381,8 @@ def _validate_proof(member, proof):
 
 def _graph(tables):
     from collections import deque
-    from hermes_cli.kanban_db import VALID_STATUSES, VALID_WORKSPACE_KINDS
+    from hermes_cli.kanban_workflow import DEFAULT_STATUSES as VALID_STATUSES
+    from hermes_db.domains.kanban.rules import VALID_WORKSPACE_KINDS
     tasks = {row['id']: row for row in tables['tasks']}
     incoming = dict.fromkeys(tasks, 0)
     children = {key: [] for key in tasks}

@@ -13,7 +13,7 @@ import json
 from hermes_db.domains.sessions.postgres.support.message_codec import content_from_bytes
 from hermes_db.tables.runtime import state_meta
 from hermes_db.domains.runtime.postgres.queries import runtime
-from hermes_state_prompt_refresh import PROFILE_KEY, SESSION_KEY_PREFIX
+from hermes_db.domains.sessions.rules import PROFILE_KEY, SESSION_KEY_PREFIX
 
 def _profile(value):
     return str(value or '').strip() or 'default'
@@ -135,8 +135,7 @@ class SessionCatalog:
                 retire_bot_chat(conn, self._context.scope, ids)
             newly_archived = archived and row and (not row['archived'])
         if newly_archived and notify:
-            from hermes_db.integration.events import emit_deleted
-            emit_deleted(self._context.profile, ids, reason='archive', primary=session_id)
+            self._context.effects.deleted(ids, reason='archive', primary=session_id)
         return bool(ids)
 
     def set_session_hidden(self, session_id, hidden):
@@ -212,7 +211,7 @@ class SessionCatalog:
             return operations.retire_queued_on_connection(conn, self._context.scope, session_id)
 
     def promote_to_session_reset(self, session_id, reason='session_reset'):
-        from hermes_state_common import _RECOVERABLE_END_REASONS
+        from hermes_db.domains.sessions.rules import _RECOVERABLE_END_REASONS
         if not session_id:
             return False
         with self._context.write() as conn:
@@ -224,7 +223,7 @@ class SessionCatalog:
             return True
 
     def unarchive_recoverable_session(self, session_id):
-        from hermes_state_common import _RECOVERABLE_END_REASONS
+        from hermes_db.domains.sessions.rules import _RECOVERABLE_END_REASONS
         if not session_id:
             return False
         with self._context.write() as conn:
@@ -367,7 +366,7 @@ class SessionCatalog:
             return rows
 
     def session_lifecycle_statuses(self, session_ids):
-        from hermes_state_sessions import classify_session_status
+        from hermes_db.domains.sessions.rules import classify_session_status
         ids = [value for value in session_ids or [] if value]
         result = {value: 'empty' for value in ids}
         if not ids:
@@ -427,7 +426,7 @@ class SessionCatalog:
             session_id = conn.scalar(select(titles_sessions.c.id).where(titles_sessions.c.store_id == self._context.scope.require_store_id(), titles_sessions.c.title == encode_text(title)))
             row = repo.get_session(conn, self._context.scope, session_id) if session_id else None
             if row and title == titles.BOT_TITLE and row['archived']:
-                from hermes_state_titles import bot_chat_title_released
+                from hermes_db.domains.sessions.rules import bot_chat_title_released
                 tip = repo.raw_session(conn, self._context.scope, repo.compression_tip(conn, self._context.scope, row['id'])) or row
                 if bot_chat_title_released(row['archived'], row['auto_archived'], tip['end_reason']):
                     return None
@@ -545,7 +544,7 @@ class SessionCatalog:
             return (roots, unlisted, replies)
 
     def session_current_segments(self, session_ids):
-        from hermes_state_local import POLICY_PREFIX
+        from hermes_db.domains.runtime.receipts import POLICY_PREFIX
         with self._context.read() as conn:
             rows = conn.execute(select(picker_reads_sessions.c.id, picker_reads_sessions.c.end_reason, state_meta.c.value).outerjoin(state_meta, (state_meta.c.store_id == picker_reads_sessions.c.store_id) & (state_meta.c.key == POLICY_PREFIX + picker_reads_sessions.c.id)).where(picker_reads_sessions.c.store_id == self._context.scope.require_store_id(), picker_reads_sessions.c.id.in_(list(session_ids)))).mappings()
             result = {}

@@ -120,14 +120,14 @@ def compression_tip(conn, scope, session_id):
 
 
 def retired_session(conn, scope, session_id):
-    from hermes_state_mutation_retirement import RETIRED_PREFIX
+    from hermes_db.domains.runtime.receipts import RETIRED_PREFIX
 
     return conn.scalar(select(state_meta.c.key).where(state_meta.c.store_id == scope.require_store_id(),
                                                      state_meta.c.key == RETIRED_PREFIX + session_id)) is not None
 
 
 def bump_generation(conn, scope, row, reason):
-    from hermes_state_common import _RESET_END_REASONS
+    from hermes_db.domains.sessions.rules import _RESET_END_REASONS
     from hermes_db.tables.gateway import conversation_generations as generations
 
     source, key = (str(row.get(name) or "").strip() for name in ("source", "session_key"))

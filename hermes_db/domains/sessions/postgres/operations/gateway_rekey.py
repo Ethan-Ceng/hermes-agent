@@ -11,11 +11,11 @@ from hermes_db.tables.conversations import sessions as session_table
 from hermes_db.tables.gateway import delivery_obligations, gateway_heartbeats, gateway_routing
 from hermes_db.tables.gateway import telegram_dm_topic_bindings as bindings, telegram_dm_topic_mode as modes
 from hermes_db.tables.runtime import state_meta
-from hermes_state_mutation_retirement import ROUTE_FENCE_PREFIX
+from hermes_db.domains.runtime.receipts import ROUTE_FENCE_PREFIX
 
 
 def rekey(conn, scope, old_name, new_name):
-    from gateway.session import _session_key_namespace
+    from gateway.session_contract import _session_key_namespace
     old, new = (old_name or "").strip(), (new_name or "").strip()
     if not old or not new or old == new:
         return {}
@@ -48,7 +48,7 @@ def _rename_entry(value, old, new, old_ns, new_ns):
 
 
 def _local_receipts(conn, scope, old, new, old_ns, new_ns):
-    from hermes_state_local import POLICY_PREFIX, API_BINDING_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX, API_BINDING_PREFIX
     rows = conn.execute(select(state_meta.c.key, state_meta.c.value).where(
         state_meta.c.store_id == scope.require_store_id(),
         state_meta.c.key.startswith(POLICY_PREFIX, autoescape=True)

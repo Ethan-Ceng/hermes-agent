@@ -208,7 +208,7 @@ class SessionAuthority:
             row = self.db.get_session(ref.session_id)
             if row is None:
                 raise RuntimeStoreError('not_found')
-            from hermes_state_local import POLICY_PREFIX
+            from hermes_db.domains.runtime.receipts import POLICY_PREFIX
             from hermes_db.health import is_postgresql_store
             local = self.db.get_meta(POLICY_PREFIX + ref.session_id)
             if not local and not is_postgresql_store(self.db):

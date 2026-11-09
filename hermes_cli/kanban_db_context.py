@@ -7,6 +7,7 @@ Split out of ``hermes_cli.kanban_db``; origin-resident helpers are reached late-
 """
 
 from __future__ import annotations
+from hermes_db.domains.kanban import rules as _storage_shared_1
 
 import json
 import os
@@ -201,7 +202,7 @@ def _ctx_role_history(lines: list[str], conn: sqlite3.Connection, task: Task, no
         return
     lines.append(f"## Recent work by @{task.assignee}")
     for row in role_rows:
-        first = _kb._first_line(row["summary"], 200) or "(no summary)"
+        first = _storage_shared_1._first_line(row["summary"], 200) or "(no summary)"
         lines.append(
             f"- {row['id']} — {row['title']} ({_ctx_stamp(_kb._to_epoch(row['ended_at']) or 0, now)}): {first}"
         )

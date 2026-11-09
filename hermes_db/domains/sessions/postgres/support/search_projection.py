@@ -4,7 +4,7 @@ import json
 import re
 
 from hermes_db.domains.sessions.postgres.support.message_codec import codec
-from hermes_state_common import FTS_TOOL_CONTENT_PREFIX_CHARS
+from hermes_db.domains.sessions.rules import FTS_TOOL_CONTENT_PREFIX_CHARS
 
 
 def content_text(row):

@@ -8,7 +8,7 @@ import json
 
 import pytest
 
-from hermes_state_local import API_BINDING_PREFIX
+from hermes_db.domains.runtime.receipts import API_BINDING_PREFIX
 from hermes_state_runtime import RuntimeStoreError
 from tests.gateway.test_session_authorities_multiplex import _reserve_homes, _runner
 

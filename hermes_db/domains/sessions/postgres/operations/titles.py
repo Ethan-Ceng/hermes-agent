@@ -11,7 +11,7 @@ BOT_TITLE = "Bot Chat"
 
 
 def retire_bot_chat(conn, scope, ids):
-    from hermes_state_common import _RECOVERABLE_END_REASONS
+    from hermes_db.domains.sessions.rules import _RECOVERABLE_END_REASONS
     held = list(conn.execute(select(sessions.c.id).where(sessions.c.store_id == scope.require_store_id(),
         sessions.c.id.in_(ids), sessions.c.title == encode_text(BOT_TITLE))).scalars())
     if not held:

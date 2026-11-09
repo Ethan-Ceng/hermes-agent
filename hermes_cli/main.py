@@ -376,7 +376,7 @@ def _looks_like_hermes_invocation() -> bool:
 
 
 def _exit_invalid_profile_name(value: str) -> None:
-    from hermes_cli.profiles import _invalid_profile_name_error
+    from hermes_cli.profile_names import _invalid_profile_name_error
 
     print(f"Error: {_invalid_profile_name_error(value)}", file=sys.stderr)
     print("Run `hermes profile list` to see your profiles.", file=sys.stderr)

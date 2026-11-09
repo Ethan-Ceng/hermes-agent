@@ -25,7 +25,7 @@ def adoptable_sessions(path) -> list[dict]:
     offered again, which makes a second run a no-op."""
     from hermes_state import SessionDB
     from gateway.owner_identity import host_owner_subject
-    from hermes_state_local import POLICY_PREFIX
+    from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     from hermes_state_local_migration import LEGACY_LOCAL_SOURCES, LEGACY_PREFIX, not_client_labels, validate_legacy_row
     from hermes_state_runtime import RuntimeStoreError
 

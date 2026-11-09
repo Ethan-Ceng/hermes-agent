@@ -9,8 +9,8 @@ from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.conversations import sessions as session_table
 from hermes_db.core.values import model_config
 from hermes_db.core.values import preferred_children
-from hermes_state_local import POLICY_PREFIX
-from hermes_state_runtime import RuntimeStoreError
+from hermes_db.domains.runtime.receipts import POLICY_PREFIX
+from hermes_db.domains.runtime.values import RuntimeStoreError
 
 
 def physical_target(conn, scope, session_id):
@@ -78,7 +78,7 @@ def runtime_targets(conn, scope, session_id):
 def advance_local_target(conn, scope, parent_session_id, child_session_id, *, entry=None):
     from hermes_db.domains.runtime.postgres.queries.runtime import meta, set_meta
     from hermes_db.tables.gateway import gateway_routing
-    from hermes_state_runtime import _json
+    from hermes_db.domains.runtime.values import _json
 
     parent = sessions.raw_session(conn, scope, parent_session_id)
     logical_id = parent["chat_id"] if parent else None

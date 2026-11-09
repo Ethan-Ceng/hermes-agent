@@ -31,21 +31,16 @@ from .shared_metrics_contract import (
     counter_dimensions_are_valid,
 )
 from .shared_metrics_drift import conform_counter_dimensions, counter_dimensions_shape_is_known
+from hermes_db.domains.metrics.policy import MetricsPolicy, _ACTIVE_INSTALL_INTERVAL, _ACTIVE_INSTALL_STATE_KEY, _DAILY_ONCE_STATE_PREFIX, _FEATURE_STATE_PREFIX, _INSTALL_SNAPSHOT_STATE_KEY, _LOCAL_HISTORY_RETENTION_DAYS, _MILESTONE_STATE_PREFIX, _PACKAGE_SCHEMA_VERSION, _compact_json, _isoformat, _utc_now
+from hermes_db.domains.metrics.package_exports import MetricsExport, _ensure_private
 
 
-_PACKAGE_SCHEMA_VERSION = "hermes.shared_metrics.v4"
+
 _STORE_SCHEMA_VERSION = "2"
 _BUSY_TIMEOUT_MS = 250
 _SCHEMA_BUSY_TIMEOUT_MS = 5_000
 # Writes a busy store could not take within _BUSY_TIMEOUT_MS, kept in memory for the next write.
 _DEFERRED_WRITES_MAX = 1_024
-_LOCAL_HISTORY_RETENTION_DAYS = 30
-_ACTIVE_INSTALL_STATE_KEY = "client_active_recorded_at"
-_INSTALL_SNAPSHOT_STATE_KEY = "install_snapshot_recorded_at"
-_MILESTONE_STATE_PREFIX = "milestone:"
-_FEATURE_STATE_PREFIX = "feature:"
-_DAILY_ONCE_STATE_PREFIX = "daily_once:"
-_ACTIVE_INSTALL_INTERVAL = timedelta(hours=24)
 # Column order of the client resource in every counter_aggregates statement.
 _RESOURCE_COLUMNS = ("hermes_version", "os_family", "architecture", "install_method")
 
@@ -176,41 +171,26 @@ def drain_deferring_stores(deadline: float) -> None:
         store.drain_deferred(busy_timeout_ms=remaining_ms)
 
 
-def _utc_now() -> datetime:
-    return datetime.now(UTC)
 
 
-def _isoformat(value: datetime) -> str:
-    return value.astimezone(UTC).isoformat().replace("+00:00", "Z")
 
 
-def _compact_json(value: Any) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"))
 
 
 def _row_resource(row: sqlite3.Row) -> dict[str, str]:
     return {column: row[column] for column in _RESOURCE_COLUMNS}
 
 
-def _ensure_private(path: Path, mode: int) -> None:
-    if mode == 0o700:
-        path.mkdir(parents=True, exist_ok=True, mode=mode)
-    else:
-        path.touch(mode=mode, exist_ok=True)
-    try:
-        path.chmod(mode)
-    except OSError:
-        pass
 
 
-class SharedMetricsStore:
+class SharedMetricsStore(MetricsPolicy, MetricsExport):
     """Persist allowlisted counters and export immutable delta packages."""
 
     backend = "sqlite"
 
     def __new__(cls, database_path=None, outbox_directory=None, *, profile_home=None):
         from .shared_metrics_storage import postgres_store
-        return postgres_store(cls, profile_home)
+        return postgres_store(cls, database_path, outbox_directory, profile_home)
 
     def __init__(
         self, database_path: Path | None = None, outbox_directory: Path | None = None, *, profile_home=None
@@ -235,21 +215,8 @@ class SharedMetricsStore:
         from .shared_metrics_storage import consented_day_sqlite
         return consented_day_sqlite(self, start)
 
-    def record_model_call(self, dimensions: dict[str, str], resource: dict[str, str]) -> None:
-        """Increment the terminal model-call counter for the current UTC day."""
-        self.record_counter(MODEL_ROUTE_METRIC, dimensions, resource)
 
-    def record_client_active(self, resource: dict[str, str]) -> bool:
-        """Record this install at most once in any rolling 24-hour window."""
-        return self._record_once_per_interval(
-            _ACTIVE_INSTALL_STATE_KEY, CLIENT_ACTIVE_METRIC, {}, resource
-        )
 
-    def record_install_snapshot(self, dimensions: dict[str, str], resource: dict[str, str]) -> bool:
-        """Record the configuration snapshot at most once in any rolling 24-hour window."""
-        return self._record_once_per_interval(
-            _INSTALL_SNAPSHOT_STATE_KEY, INSTALL_SNAPSHOT_METRIC, dimensions, resource
-        )
 
     def install_snapshot_due(self) -> bool:
         """Cheap read so the producer skips collecting a snapshot the latch would drop."""
@@ -346,22 +313,10 @@ class SharedMetricsStore:
             (state_key, _compact_json(new_state)),
         )
 
-    def recorded_milestones(self) -> frozenset[str]:
-        return self._latched(_MILESTONE_STATE_PREFIX)
 
-    def record_milestone(self, milestone: str, install_age_bucket: str, resource: dict[str, str]) -> bool:
-        """Record an install milestone at most once, ever (compare-and-set across processes)."""
-        dimensions = {"install_age_bucket": install_age_bucket, "milestone": milestone}
-        return self._record_once_ever(f"{_MILESTONE_STATE_PREFIX}{milestone}", MILESTONE_METRIC, dimensions, resource)
 
     # ---- v5 signals ----
-    def recorded_features(self) -> frozenset[str]:
-        return self._latched(_FEATURE_STATE_PREFIX)
 
-    def record_feature_adoption(self, feature: str, days_bucket: str, resource: dict[str, str]) -> bool:
-        """Record a feature's first use at most once per install, ever (same latch as milestones)."""
-        dimensions = {"days_since_install_bucket": days_bucket, "feature": feature}
-        return self._record_once_ever(f"{_FEATURE_STATE_PREFIX}{feature}", FEATURE_ADOPTION_METRIC, dimensions, resource)
 
     def record_counter_once_per_day(self, metric_name: str, dimensions: dict[str, str], resource: dict[str, str]) -> bool:
         """Count at most once per UTC day per dimension set, whatever the surface (``surface`` is
@@ -409,16 +364,6 @@ class SharedMetricsStore:
             )
         return True
 
-    @staticmethod
-    def _validate_counter(
-        metric_name: str, dimensions: dict[str, str], resource: dict[str, str]
-    ) -> None:
-        if metric_name not in COUNTER_METRICS:
-            raise ValueError(f"Unsupported shared metric: {metric_name}")
-        if not counter_dimensions_are_valid(metric_name, dimensions):
-            raise ValueError(f"Unsupported dimensions for shared metric: {metric_name}")
-        if not client_resource_is_valid(resource):
-            raise ValueError("Unsupported shared-metrics client resource")
 
     @staticmethod
     def _record_counter_in_transaction(
@@ -486,19 +431,7 @@ class SharedMetricsStore:
                 return
             logger.warning("Unable to write %d deferred shared-metrics updates", len(pending), exc_info=True)
 
-    def create_and_export_package_if_due(self) -> list[Path]:
-        """Create pending packages at most once per UTC day, then export them."""
-        self.drain_deferred(_BUSY_TIMEOUT_MS)
-        self._create_pending_packages_if_due()
-        return self._export_and_prune()
 
-    def _export_and_prune(self) -> list[Path]:
-        exported = self._export_pending_packages()
-        try:
-            self._prune_expired_history()
-        except Exception:
-            logger.warning("Unable to prune expired shared-metrics history", exc_info=True)
-        return exported
 
     def counter_snapshot(self) -> list[dict[str, Any]]:
         """Return cumulative counters for focused tests and local inspection."""
@@ -593,13 +526,6 @@ class SharedMetricsStore:
             raise RuntimeError("Unable to create the shared-metrics install identity")
         return str(row["value"])
 
-    @staticmethod
-    def _parse_state_timestamp(value: Any) -> datetime | None:
-        try:
-            parsed = datetime.fromisoformat(str(value))
-        except (TypeError, ValueError):
-            return None
-        return None if parsed.tzinfo is None else parsed.astimezone(UTC)
 
     def _create_pending_packages_if_due(self) -> None:
         now = _utc_now()
@@ -695,45 +621,7 @@ class SharedMetricsStore:
                 (period_value, row["metric_name"], *resource_values, row["dimensions_json"]),
             )
 
-    @classmethod
-    def _package_metrics(cls, rows: list[sqlite3.Row]) -> list[dict[str, Any]]:
-        """Package rows, merging rows a re-bucket folded onto the same dimensions into one metric."""
-        merged: dict[tuple[str, str], dict[str, Any]] = {}
-        for row in rows:
-            metric = cls._package_metric(row)
-            if metric is None:
-                continue
-            key = (metric["name"], _compact_json(metric["dimensions"]))
-            if key in merged:
-                merged[key]["value"] += metric["value"]
-            else:
-                merged[key] = metric
-        return list(merged.values())
 
-    @staticmethod
-    def _package_metric(row: sqlite3.Row) -> dict[str, Any] | None:
-        metric_name = str(row["metric_name"])
-        dimensions = json.loads(row["dimensions_json"])
-        # An unknown field set is tamper evidence and fails closed (must-not-be-exported). A known
-        # shape whose values fell out of the contract was recorded by an earlier build or catalog
-        # (#133017): re-bucket it inside the closed enum, or leave the row out when its field has no
-        # bucket, rather than abort the whole period's package. Either way no stale value leaves.
-        if not isinstance(dimensions, dict) or not counter_dimensions_shape_is_known(metric_name, dimensions):
-            raise ValueError(f"Unsupported dimensions for shared metric: {metric_name}")
-        if not counter_dimensions_are_valid(metric_name, dimensions):
-            conformed = conform_counter_dimensions(metric_name, dimensions)
-            if conformed is None:
-                logger.info("Shared-metric %s row holds a retired value with no bucket; not packaged", metric_name)
-                return None
-            logger.info(
-                "Shared-metric %s row drifted out of the contract since it was recorded; "
-                "packaged with bucketed dimensions %s", metric_name, _compact_json(conformed),
-            )
-            dimensions = conformed
-        return {
-            "name": metric_name, "type": "counter", "dimensions": dimensions,
-            "value": row["value"] - row["packaged_value"],
-        }
 
     def _export_pending_packages(self) -> list[Path]:
         with self._connection() as connection:
