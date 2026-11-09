@@ -6,8 +6,8 @@
 - 全量归属：[398项基准映射](../designs/hermes-db-package-map.json)。
 - 文档分支：`docs/hermes-db-package-layout`；实施分支：`refactor/hermes-db-packages`。
 - 源码基准：`cbfc773dd7`，运行实现等价`0d69702244`。
-- 整体状态：`IMPLEMENTING`；当前阶段：第二阶段规则/组件/工作流收敛；当前任务：Task17（pending）；完成：16 / 18。
-- 本轮已建立独立实施检出并完成Task1–16；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
+- 整体状态：`REVIEWING`；当前阶段：最终验证已通过，待独立审查；当前任务：Task18（pending）；完成：17 / 18。
+- 本轮已建立独立实施检出并完成Task1–17；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
 - 核心设计待决策：无；Task1隔离PM与PG基线已通过，Matrix实际SDK已由Task6新环境核对并实测。原统一后端Task24及七项非WSL缺证独立保留。
 - 更新时间：2026-11-10（Asia/Shanghai）。恢复位置：`D:/AI/hermes-db-packages`；从首个in_progress任务继续，不重跑整轮数据库选型。
 
@@ -76,6 +76,7 @@ PG选项只用于tests/hermes_db下已注册该选项的文件；其他目录Nat
 | 2026-11-10 | IMPLEMENTING | Task14 Kanban52→17工作流，14/18；415→378，净少于原398；Native536+Linux24、PG104及15静态通过 |
 | 2026-11-10 | IMPLEMENTING | Task15 Room/附件32→九组，15/18；378→351；Native529+Linux附件24、PG109及15静态通过 |
 | 2026-11-10 | IMPLEMENTING | Task16依赖/归属闭合，16/18；365模块、根11，Native618+Linux11、PG45、16项静态与插件边界通过；最终冻结验证待Task17 |
+| 2026-11-10 | REVIEWING | Task17冻结源码/独立发行/完整Native与PG/实际SDK/升级恢复完成，17/18；所有初次失败已具名复验闭环，待独立审查 |
 
 ## 方案准备自检
 
@@ -1245,7 +1246,7 @@ Windows 绑定 HERMES_HOME=.build/package-layout/profile、HERMES_RUNTIME_DIR=.b
 
 ## Task 17：独立发行、旧Schema与最终业务验证
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -1291,11 +1292,71 @@ Invoke-PgCases -Files @('tests/hermes_db/postgresql') -Log '.build/package-layou
 
 ### 执行结果
 
-未执行。
+实施中。Task16本地恢复提交为`bd82697cb49a8d2b45fcf24d9a77439feca3af75`（修正误入的测试生成fixture后提交；artifact保留在忽略目录，不属于载荷）。从该提交冻结生产与测试源码，不继承正式Profile或业务数据。独立source payload、PM环境与完整验证正在建立；未获得最终结果前不计完成。
 
 ### 验证证据
 
-未执行；实施时记录实际解释器/源码commit、展开命令、退出状态、计数、日志、未验证项和恢复commit。
+冻结与独立PM检查点（实施中，非最终验收）：
+
+- 源码提交`bd82697cb49a8d2b45fcf24d9a77439feca3af75`，冻结记录为`docs/designs/hermes-db-package-final-freeze.json`；Git archive SHA256 `200a2d8011b9712908bc029e5754f6373955c71041a46fd4d5d9d9b5ee991ba2`。9498个生产代码/清单条目、8237个测试条目的完整hash清单保存在忽略目录；提交中的聚合hash及624个DB/合同文件hash可由源commit恢复核对。完整归档tree同时绑定其他资源与配置，未包含.git、.env或测试生成fixture。
+- Windows独立载荷：`D:/AI/hermes-db-task17-16c4a1931a33/source`；Linux独立载荷：`/var/tmp/hermes-db-task17-16c4a1931a33/source`。两者均在Git工作区之外、没有.git，归档sha一致。Linux额外从同一归档建立test-driver，保持发行测试驱动与实际安装源目录分开。
+- 先绑定独立HERMES_HOME再import PM，HERMES_RUNTIME_DIR使用已有隔离PM管理器（不是正式runtime）；`pm.build_environment(source=..., out=..., python=..., extras=..., groups=('dev','test'), explicit=True, frozen=True)`建立全新环境，不用raw pip/uv、不改pyproject/uv.lock。Windows有sqlite（无extra）/postgresql；Linux有sqlite（无extra）/postgresql+matrix/sqlite+matrix。实际解释器均3.14.9，`-I`探针证实hermes_db从独立安装源加载。两个普通SQLite环境均实际没有SQLAlchemy/psycopg/Alembic/asyncpg/mautrix；SQLite+Matrix环境无前三项、asyncpg只提供上游SDK要求的异常类型，业务guard仍拒绝其PG连接。
+- PM证据：task17-win-pm.log、task17-linux-pm.log exit0，解释器路径及无秘密的依赖事实保存在各独立root/environments.json。manager复用不等于复用应用环境，所有out在创建前不存在。
+- 首轮发行测试在安装源自身作为test-driver时，business_process的source!=checkout前提拒绝；task17-pure-sqlite-linux.log，exit1，2通过/1失败（3.2s），未实际计入业务通过。改为同归档的独立test-driver后：task17-pure-sqlite-fixed-linux.log exit0，3通过/0skip（27.5s），真实无PG依赖载荷读写、新PID恢复通过。
+- task17-distribution-linux.log：独立test-driver中标准runner，`tests/hermes_db/test_distribution.py tests/hermes_db/postgresql/test_distribution_initialization.py -j2 --file-timeout1200 -- -m "integration or not integration" --tb=short --postgres-test-config=<既有私有路径> --hermes-distribution-source=<独立source> --hermes-postgresql-python=<新PG环境> --hermes-sqlite-python=<新SQLite+Matrix环境>`，exit0，6通过/0skip（25.0s）。覆盖安装资源、无PG storage extra的SQLite业务/实际SDK、0004真实旧行前向升级、重复升级、PG十域/实际Matrix与双Profile隔离/新PID恢复、全SQLite连接拒绝。该批不替代仍在进行的完整PG及0030升级专项。
+- task17-cli-native-linux.log与task17-cli-native-win.log：标准runner单独运行Projects CLI、Kanban CLI、TUI groups三文件，不传DB目录专属参数，分别exit0，49通过/0skip（20.8s / 51.2s）。首轮Linux完整Native混合命令对三个外目录文件传递DB专属option，属于调用范围错误，完整汇总后逐项登记并以该无option组复验闭环。
+- 全量批仍运行：Linux131个PG文件使用新PG+Matrix环境、真实随机Schema；Linux全部DB Native及Windows全部DB Native使用冻结匹配代码/新PM解释器。所有PG配置由既有私有文件加载，标准runner参数只传路径，不打印秘密或原始堆栈。
+- 全量批目前暴露依赖配置差异：Windows native_http_sessions缺aiohttp；Linux discord_backfill在未安装Discord时使用fallback、缺DMChannel。均先用脱敏源码帧/异常类型定位，未修改业务代码或弱化断言。正通过声明的messaging extra另建env-business（原运行环境不变），准备对实际HTTP/Discord消费者复验；随后按完整汇总处理所有未通过项。
+
+### 完整批次、失败闭环与最终载荷检查点
+
+- task17-full-pg-linux.log：独立无Git source、新PG+Matrix环境，标准runner完整postgresql目录131文件，exit1，718通过/2失败，1800.9s。两个失败逐项闭环：discord_backfill因缺声明messaging依赖导致fallback缺DMChannel，task17-discord-fixed-pg-linux.log在另建env-business（postgresql+messaging+matrix）用真实Discord2.7.1复验整文件2通过（9.9s）；发行十域测试因source==test-driver前提，已在同归档独立test-driver复验整发行组6通过。两处均无Python/测试修改、未弱化断言。完整131文件所选720项现均有当前冻结代码通过证据，原686基线未计入。
+- task17-full-native-linux.log：冻结source完整DB加CLI/TUI首批，237文件（含integration deselected文件），exit1，582通过/2用例失败、4文件非零，941.8s。两例均为发行source==driver前提，已由分离driver的发行组覆盖；其余三外目录文件因DB专属option不被注册，已单独无option三文件49通过。按不同用例计，Linux所选Native/CLI/TUI共633通过、无平台skip；不是将重复发行复验次数直接累加。
+- task17-full-native-win.log：标准runner完整DB，新PM PG环境，234文件（含integration deselected），exit1，577通过/2失败/5平台skip，1326.6s。两个HTTP用例均缺aiohttp，另建声明messaging的env-business（aiohttp3.14.5）：task17-http-fixed-win.log、task17-http-turn-fixed-win.log各1通过（18.6s / 12.2s）。CLI/TUI三文件另49通过。按不同用例计，Windows共628通过/5平台skip；五例均为Linux full SQLite+SDK、POSIX fork、两例Linux Matrix close和Linux安装SDK恢复，不伪装平台、不以Linux结果抹去Windows边界。
+- 0004前向/重复升级与0031双PID恢复：task17-distribution-final-linux.log在最终载荷中6通过/0skip（21.4s）。task17-distribution-final-win.log新Windows实际PG驱动及同一测试数据库随机Schema，4通过/2 Linux SDK平台skip（15.3s），覆盖Windows真实0004→0031与新PID会话/Admission重开。普通SQLite环境确无任何PG依赖；Linux纯core环境另3通过，SDK extra只在独立SQLite+Matrix环境使用。
+- 当前完整PG已实际执行Matrix十文件31项（adapter_storage4、close2、crypto_store2、devices3、recovery1、faults5、sdk_concurrency2、sdk_edges5、sdk_flows3、sessions4），全通过/0skip；与旧32结果分开。test_merge_data_upgrade四项通过，真实0030旧行前向/拒绝活跃lease回滚/重复升级与稳定页面；test_merge_process_recovery两项通过；test_merge_commit_recovery两项通过，其fault先调用真实dialect.do_commit再抛psycopg.OperationalError，不能算提交前模拟。single_backend完整业务子进程在全部SQLite连接审计拒绝下读写十域、隔离两个scope并由新PID恢复，SQLite attempts均0。
+- 原共享契约生成检查exit1（task17-gateway-contracts.log）来自Task16将SessionMutateParams描述的validate_action实际owner更新后，两份生成文档仍留旧引用。相同解释器的Task15基准生成无漂移，已确认这是本次遗漏。同步generated.ts的一条JSDoc及openrpc.json的一个description；逐hunk断言TS仅注释、移除该description后JSON完全相等，接口/TypeScript tokens/路由分发0变化，不宣称做过前端构建。task17-gateway-contracts-fixed.log检查exit0。
+- 最终文档覆盖层明确列入冻结记录：source tree `97542f2a099f7c0a4da4da0689ce1a64f240cec5`，archive v2 SHA256 `cf06ffb3bfed422b3805c2238a35e65d32169469cb6a0efff6e588e9218ac9d9`；Python与全部测试仍为bd82697cb4的相同内容，只有上述两份生成描述改变。Windows/Linux已安装源及独立driver同步覆盖层；当前完整业务测试无需因描述变更重跑全部PG，最终发行组已复验。
+- task17-final-hashes-win.log、task17-final-hashes-linux.log：两端各实际逐文件核对17735个生产/测试条目及覆盖层，0差异、没有.git；生产聚合hash `92ac6be517b6fab48946c055231f27cd3034e13ef0c8893846cd9d045271bf33`，测试聚合hash `fe11f8b76f3b5dcef97396b471331639c7df7b6f1eab9f3046a0cb353c729978`。冻结JSON说明运行时代码基准commit与描述覆盖层tree的关系，不把文档tree冒称已存在源码commit。
+
+恢复/未完成：Task17为in_progress，不能计入完成或创建本Task完成commit；最后已验证恢复点为Task16的bd82697cb4。源/测试目前没有实施改动，只有计划、冻结记录与生成描述同步未提交。完整批次、缺依赖消费者、SDK/0030/丢ACK/契约及hash检查已收口；最终staged静态/插件边界、Schema锚点复核和完成提交仍待执行。Task18未开始，原统一Task24及七项非WSL缺证独立保留。
+
+
+### Task17最终完成记录
+
+状态completed；完整运行时与测试源码仍为bd82697cb4，另有明确的两份生成描述覆盖层，最终tree/文件hash见冻结记录。本Task不增加迁移、不改Python行为或测试断言。
+
+- 独立无Git环境：Windows/Linux各有实际无PG依赖SQLite与PG环境，另有真实Linux SQLite SDK环境；所有依赖经项目PM及原uv.lock建立。missing messaging依赖已在新环境补齐，原运行环境未被修改。
+- 完整验证的初次非零与逐项复验均保留，所选不同用例最终为PG720、Linux Native/CLI/TUI633通过；Windows628通过/5已说明的平台skip。不是把重复复验次数或旧686/36/32基线累加。
+- Linux最终独立发行组6通过/0skip；Windows最终独立发行组4通过/2 Linux SDK平台skip。源码/驱动分开、实际安装源、无PG依赖载荷、真实SDK、随机Schema所属核对、0004/0030前向与重复升级、0031双PID隔离恢复、真实COMMIT后丢ACK、严格PG业务0 SQLite均有当前证据。
+- task17-sdk-protocol.log：真实mautrix0.21.1/python-olm3.2.16，已安装源的PG Store同时实现CryptoStore/SyncStore、非abstract；SDK协议及PG业务由当前31项Matrix用例和发行业务补充验证，不输出密钥。
+- task17-final-check.log：`PM Python scripts/check --staged --base cbfc773dd7`，exit0，16项全通过、health738文件0blocking/0advisory（161.4s）。task17-final-plugin-boundary.log：`PM Python scripts/boundary_lint.py --check` exit0，847/26无新增边界。`scripts/gen_gateway_contracts.py --check` exit0。61固定锚点0漂移、31revision/29表模块/0031要求不变，迁移helper仅5处必要import调整。
+- Windows/Linux实际逐文件hash均0差异，Python/测试无修改；两处生成变化仅JSDoc/description，JSON shape与TypeScript tokens不变，因此未以Python结果宣称执行过前端构建。
+- 本Task本地commit创建前父为bd82697cb4；精确新commit由Task18启动记录补入。正式checkout始终clean，未推送/发布/合并/重启、未动正式Profile/秘密/业务数据。原统一Task24与七项非WSL缺证独立保留，不以本次局部平台证据覆盖。
+
+### 可复核的实际命令展开
+
+Windows命令从D:/AI/hermes-db-packages执行；HERMES_HOME均为D:/AI/hermes-db-task17-16c4a1931a33下相应test-profile，HERMES_RUNTIME_DIR=D:/AI/hermes-db-packages/.build/package-layout/runtime，HERMES_TEST_FILE_RETRIES=0，缓存位于独立root/runtime-tests*，必要输出设置PYTHONIOENCODING=utf-8。
+
+```powershell
+$env:HERMES_PYTHON='D:/AI/hermes-db-task17-16c4a1931a33/env-postgresql/Scripts/python.exe'
+& D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db -j 2 --file-timeout 1200 -- --tb=short --hermes-distribution-source=D:/AI/hermes-db-task17-16c4a1931a33/source --hermes-postgresql-python=D:/AI/hermes-db-task17-16c4a1931a33/env-postgresql/Scripts/python.exe --hermes-sqlite-python=D:/AI/hermes-db-task17-16c4a1931a33/env-sqlite/Scripts/python.exe
+& D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_cli/test_projects_cli.py tests/hermes_cli/test_kanban_cli.py tests/tui_gateway/test_groups_methods.py -j 2 --file-timeout 1200 -- --tb=short
+$env:HERMES_PYTHON='D:/AI/hermes-db-task17-16c4a1931a33/env-business/Scripts/python.exe'
+& D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts/test_api_native_http_sessions.py -j 2 --file-timeout 1200 -- --tb=short
+& D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts/test_native_http_turn.py -j 2 --file-timeout 1200 -- --tb=short
+& D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/test_distribution.py tests/hermes_db/postgresql/test_distribution_initialization.py -j 2 --file-timeout 1200 -- -m 'integration or not integration' --tb=short --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml --hermes-distribution-source=D:/AI/hermes-db-task17-16c4a1931a33/source --hermes-postgresql-python=D:/AI/hermes-db-task17-16c4a1931a33/env-business/Scripts/python.exe --hermes-sqlite-python=D:/AI/hermes-db-task17-16c4a1931a33/env-sqlite/Scripts/python.exe
+```
+
+Linux实际通过wsl -d Ubuntu-26.04调用；完整PG/首轮Native cwd为/var/tmp/hermes-db-task17-16c4a1931a33/source，纠正后的发行cwd为同root/test-driver。HERMES_HOME为相应test-profile，HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime，HERMES_TEST_FILE_RETRIES=0，PYTHONPYCACHEPREFIX在该独立task17 root。下列为进入相应cwd后的展开命令。
+
+```bash
+HERMES_PYTHON=/var/tmp/hermes-db-task17-16c4a1931a33/env-postgresql/bin/python bash scripts/run_tests.sh tests/hermes_db/postgresql -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml --hermes-distribution-source=/var/tmp/hermes-db-task17-16c4a1931a33/source --hermes-postgresql-python=/var/tmp/hermes-db-task17-16c4a1931a33/env-postgresql/bin/python --hermes-sqlite-python=/var/tmp/hermes-db-task17-16c4a1931a33/env-sqlite/bin/python
+HERMES_PYTHON=/var/tmp/hermes-db-task17-16c4a1931a33/env-postgresql/bin/python bash scripts/run_tests.sh tests/hermes_db tests/hermes_cli/test_projects_cli.py tests/hermes_cli/test_kanban_cli.py tests/tui_gateway/test_groups_methods.py -j 2 --file-timeout 1200 -- --tb=short --hermes-distribution-source=/var/tmp/hermes-db-task17-16c4a1931a33/source --hermes-postgresql-python=/var/tmp/hermes-db-task17-16c4a1931a33/env-postgresql/bin/python --hermes-sqlite-python=/var/tmp/hermes-db-task17-16c4a1931a33/env-sqlite-matrix/bin/python
+HERMES_PYTHON=/var/tmp/hermes-db-task17-16c4a1931a33/env-postgresql/bin/python bash scripts/run_tests.sh tests/hermes_cli/test_projects_cli.py tests/hermes_cli/test_kanban_cli.py tests/tui_gateway/test_groups_methods.py -j 2 --file-timeout 1200 -- --tb=short
+HERMES_PYTHON=/var/tmp/hermes-db-task17-16c4a1931a33/env-business/bin/python bash scripts/run_tests.sh tests/hermes_db/postgresql/test_discord_backfill.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml
+HERMES_PYTHON=/var/tmp/hermes-db-task17-16c4a1931a33/env-business/bin/python bash scripts/run_tests.sh tests/hermes_db/test_distribution.py tests/hermes_db/postgresql/test_distribution_initialization.py -j 2 --file-timeout 1200 -- -m 'integration or not integration' --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml --hermes-distribution-source=/var/tmp/hermes-db-task17-16c4a1931a33/source --hermes-postgresql-python=/var/tmp/hermes-db-task17-16c4a1931a33/env-business/bin/python --hermes-sqlite-python=/var/tmp/hermes-db-task17-16c4a1931a33/env-sqlite-matrix/bin/python
+```
 
 ## Task 18：独立审查、整改复验与交付判定
 
@@ -1366,7 +1427,7 @@ git diff --check
 
 ### 执行结果
 
-- 单元/Native/PG/实际SDK/并发/故障/关闭：Task1–16局部验证已执行并逐项记录；阶段二后最终完整验收待Task17。
+- 单元/Native/PG/实际SDK/并发/故障/关闭：Task1–17已执行并逐项记录；最终独立审查待Task18。
 - Schema：设计要求零变化；旧数据前向/重复升级和0031重开仍须Task17实测。
 - 静态/类型/共享契约/发行：已完成Task的15项静态检查均有证据；最终共享契约/独立发行等仍待Task17。
 - 手工检查：独立checkout内已核对模块、路由、root11和固定锚点；未触碰正式Profile/源码/进程；不替代最终运行验证。
@@ -1384,7 +1445,7 @@ git diff --check
 
 ### 未通过项目与最终状态
 
-实施推进中，当前16/18；局部验证见已完成Task，最终重构验收仍未执行；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
+实施推进中，当前17/18；完整重构验证已完成，等待Task18独立审查与最终交付判定；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
 实施后仅可根据真实终态填写本次重构`READY_TO_MERGE / BLOCKED / FAILED`，并与原系统统一后端整体验收状态分别报告。
 
 ### Task5锚点计数说明更正

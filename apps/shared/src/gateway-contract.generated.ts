@@ -4779,7 +4779,7 @@ export interface PromptResolveUnknownParams {
   admission_id: string
   execution_generation: number
 }
-/** ``operation`` + ``payload`` are validated by ``hermes_state_mutations.validate_action``; ``expected_generation`` is required for delete/rewind/reset/branch/model/compress/reasoning/workspace. ``reasoning`` (``{effort}``) and ``workspace`` (``{cwd}``, refused ``session_busy`` mid-turn) rewrite the session's frozen policy: session-scope ``/reasoning`` and Desktop's Move to project. ``edit_policy`` (``{policy}``: ask / workspace_session / session) is an ACP session's edit approval (main's ACP modes). */
+/** ``operation`` + ``payload`` are validated by ``hermes_db.domains.runtime.mutation_rules.validate_action``; ``expected_generation`` is required for delete/rewind/reset/branch/model/compress/reasoning/workspace. ``reasoning`` (``{effort}``) and ``workspace`` (``{cwd}``, refused ``session_busy`` mid-turn) rewrite the session's frozen policy: session-scope ``/reasoning`` and Desktop's Move to project. ``edit_policy`` (``{policy}``: ask / workspace_session / session) is an ACP session's edit approval (main's ACP modes). */
 export interface SessionMutateParams {
   session_id: string
   request_id: string
