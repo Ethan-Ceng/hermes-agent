@@ -1,7 +1,7 @@
 {
   "baseline": "cbfc773dd79241752697e647067c63338fc01680",
   "baseline_runtime": "0d69702244d623a31be149a9bac6a2658e0322ae",
-  "stage": "Stage2 Task14 verified: Kanban 52 modules consolidated into 17 workflow owners; 378 total Python modules; Task15 pending",
+  "stage": "Stage2 Task15 verified: Room/attachment 32 modules consolidated into nine owners; 351 total Python modules; Task16 pending",
   "hash_basis": "SHA256 of Git blob bytes at baseline; independent of checkout line endings",
   "counts": {
     "keep": 76,
@@ -2029,7 +2029,10 @@
       "lines": 86,
       "sha256": "9fcce2a9e90a2f1cf24b9c59b916d131d959a9dea7d53380846e354d8f525cc5",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/attachments/postgres/metadata.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_attachment_commits.py",
@@ -2039,7 +2042,10 @@
       "lines": 85,
       "sha256": "85f2d8c88ec309692de2a96de1a043987815298b11adab3d21c079ca75242b9d",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/attachments/postgres/metadata.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_attachment_reads.py",
@@ -2049,7 +2055,10 @@
       "lines": 54,
       "sha256": "f87b4ee53360a6cfb27105c8b4b6aba92064dc767c2e7bcf95569f92c1a5e72f",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/attachments/postgres/metadata.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_attachment_uploads.py",
@@ -2059,7 +2068,10 @@
       "lines": 57,
       "sha256": "906e2154e34deddb7bdf86ba83211e6285ca4c48ad3a1c8721b7a803689db291",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/attachments/postgres/metadata.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_authority.py",
@@ -2069,7 +2081,10 @@
       "lines": 76,
       "sha256": "bac3f71094e93661694402c1afc450485158ef1082834495d635e7cb950ac466",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/ownership.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_context.py",
@@ -2079,7 +2094,10 @@
       "lines": 48,
       "sha256": "23f513e40cff4166f238705acae449b6f62e929be2cea14212c9df448feabf57",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/lifecycle.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_coordination.py",
@@ -2089,7 +2107,10 @@
       "lines": 66,
       "sha256": "ea03f2fe0994901980880dd7a7730fb7616bc15196cfafa6eba9b3aac534d11d",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/ownership.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_grants.py",
@@ -2099,7 +2120,10 @@
       "lines": 81,
       "sha256": "fa272ba5c602d8a6e5abe14f9c6f8bff60edb395cfaed3b4cd495a33e3233527",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/grants.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_leases.py",
@@ -2109,7 +2133,10 @@
       "lines": 64,
       "sha256": "423e86b5909fb02cfb2907bb733086e62559ee4c75c151c832c71cd98d5efd13",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/ownership.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_links.py",
@@ -2119,7 +2146,10 @@
       "lines": 93,
       "sha256": "fd1e8657e8c7bfd4f7b0bdeeaa7721a0f209701987aa74f9b1f9836de8f01fc1",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/grants.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_member_homes.py",
@@ -2129,7 +2159,10 @@
       "lines": 77,
       "sha256": "6d3d08f076c573b40402d71beef4c839fbc68c694cd20fa23a2814ee74a6f525",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/ownership.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_ownership.py",
@@ -2139,7 +2172,10 @@
       "lines": 8,
       "sha256": "bd0e0432ee27a2c03fa94e28a04facdda7daa25fafbd002d2d68d1c9641b536d",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/ownership.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_policy.py",
@@ -2149,7 +2185,10 @@
       "lines": 78,
       "sha256": "5c14c0164fd91e1d81913cc53c7348cdb8780582daa9c1c267d35da86ec48a55",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/policy.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_policy_projection.py",
@@ -2159,7 +2198,10 @@
       "lines": 97,
       "sha256": "f647aa97f55ba9a70d61652c66fced7f956629385eab699ee37715dcddcbe5fe",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/policy.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_policy_reads.py",
@@ -2169,7 +2211,10 @@
       "lines": 63,
       "sha256": "9ce3ffd6a6bd4b1da43faf5520dcc7c26aed0865b920273be7eb884cfdbdd54b",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/policy.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_reads.py",
@@ -2179,7 +2224,10 @@
       "lines": 53,
       "sha256": "6e78b70661001e2fed3fa53787eea7dd747c76035ae2fb2e43731b36fac6e5be",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/lifecycle.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_replicas.py",
@@ -2189,7 +2237,10 @@
       "lines": 125,
       "sha256": "2de822f890b8bf3646d450d071b74ea58522df191af2dd47333a726bc1b1a842",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/replication.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_retention.py",
@@ -2199,7 +2250,10 @@
       "lines": 55,
       "sha256": "8fcd596a686e63b6e26137b5da4715e80e8a76b4b558ed196de233d0669b8486",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/lifecycle.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_revoke_debts.py",
@@ -2209,7 +2263,10 @@
       "lines": 111,
       "sha256": "f1613e5b95c6308128122f61969d2e3425cb1f18b678d74df15c5fc829567692",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/grants.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_runs.py",
@@ -2219,7 +2276,10 @@
       "lines": 124,
       "sha256": "a3574fcdae2b260c33d3a045995dab6073e25dd3158760f6198da68818fc388c",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/tasks.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_task_recovery.py",
@@ -2229,7 +2289,10 @@
       "lines": 82,
       "sha256": "008d717e30df0fd6b25d72f6b904ebb6b31bed61ae6333ce5ccb1d9893e4e8a0",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/tasks.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_task_retention.py",
@@ -2239,7 +2302,10 @@
       "lines": 26,
       "sha256": "22111992df6ad29c66b79aaad486810348fb4dfdd218272c95e68b7cbaf50a7c",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/tasks.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_task_settlement.py",
@@ -2249,7 +2315,10 @@
       "lines": 95,
       "sha256": "dc714025a3f1912ba24c31f8bc26578522220f456b86b674a28dfdc205a2a8ec",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/tasks.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_work.py",
@@ -2259,7 +2328,10 @@
       "lines": 77,
       "sha256": "41a8521d18de4c5ecaa57430af3640a4de1d6f355b22b43361a6f0bd4f35a03e",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/work.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_work_delivery.py",
@@ -2269,7 +2341,10 @@
       "lines": 73,
       "sha256": "db298703f572c1d5b687f4f3b5422debcb865e3e0e96e40a1026ca48d3ce6008",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/work.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_work_snapshot.py",
@@ -2279,7 +2354,10 @@
       "lines": 95,
       "sha256": "c963877f5c9868b574e43ea99a810045dfce8b3b2b17a8f5b7ff2c826f3e5b08",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/work.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/rooms.py",
@@ -2289,7 +2367,10 @@
       "lines": 112,
       "sha256": "61a9896a5545c5a0d840490663bc088464539f1b4a9f709deb2cf9efe4ee4bfd",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/lifecycle.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/operations/runtime.py",
@@ -3000,7 +3081,10 @@
       "lines": 48,
       "sha256": "823fc3e21c984cfdcd1e799763a7069774bf6e3e9e08dbf7205f902d1b4b7e4d",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/attachments/postgres/metadata.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/repositories/room_policy.py",
@@ -3010,7 +3094,10 @@
       "lines": 65,
       "sha256": "8b4ff8c859ddbde2c1e1ef29ae6fb432772ee030ea8d5fb0a3616452460e48ab",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/policy.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/repositories/room_runs.py",
@@ -3020,7 +3107,10 @@
       "lines": 67,
       "sha256": "f12379a6219edd5251197181a80c5b9c0325d37e38cb592707156fa135ec6b8b",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/repository.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/repositories/room_work.py",
@@ -3030,7 +3120,10 @@
       "lines": 75,
       "sha256": "85b8fb04445d2dae88c49be7fc4e50b0b16c4b4724673849d3fa5df9730f9639",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/work.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/repositories/rooms.py",
@@ -3040,7 +3133,10 @@
       "lines": 71,
       "sha256": "765858846e5aa7f34d68e4c04c3fec8b105e9ab85ae3d5687161e9cafaddc16e",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/rooms/postgres/repository.py",
+      "consolidated_by_task": 15,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/repositories/runtime.py",
@@ -4584,7 +4680,10 @@
     {
       "path": "hermes_db/domains/rooms/attachments/postgres/operations/__init__.py",
       "task": 9,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 15,
+      "reason": "Workflow owners replace temporary operations/query namespaces"
     },
     {
       "path": "hermes_db/domains/rooms/attachments/postgres/__init__.py",
@@ -4594,7 +4693,10 @@
     {
       "path": "hermes_db/domains/rooms/postgres/operations/__init__.py",
       "task": 9,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 15,
+      "reason": "Workflow owners replace temporary operations/query namespaces"
     },
     {
       "path": "hermes_db/domains/rooms/postgres/__init__.py",
@@ -4604,12 +4706,18 @@
     {
       "path": "hermes_db/domains/rooms/attachments/postgres/queries/__init__.py",
       "task": 9,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 15,
+      "reason": "Workflow owners replace temporary operations/query namespaces"
     },
     {
       "path": "hermes_db/domains/rooms/postgres/queries/__init__.py",
       "task": 9,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 15,
+      "reason": "Workflow owners replace temporary operations/query namespaces"
     },
     {
       "path": "hermes_db/domains/kanban/__init__.py",
@@ -5107,6 +5215,119 @@
       "purpose": "Concrete receipts workflow / shared Connection queries",
       "inlined_module_references": 0,
       "status": "verified"
+    },
+    {
+      "task": 15,
+      "target": "hermes_db/domains/rooms/postgres/lifecycle.py",
+      "sources": [
+        "hermes_db/domains/rooms/postgres/operations/rooms.py",
+        "hermes_db/domains/rooms/postgres/operations/reads.py",
+        "hermes_db/domains/rooms/postgres/operations/retention.py",
+        "hermes_db/domains/rooms/postgres/operations/context.py"
+      ],
+      "purpose": "Concrete lifecycle workflow / shared Connection queries",
+      "inlined_module_references": 0,
+      "status": "verified"
+    },
+    {
+      "task": 15,
+      "target": "hermes_db/domains/rooms/postgres/ownership.py",
+      "sources": [
+        "hermes_db/domains/rooms/postgres/operations/authority.py",
+        "hermes_db/domains/rooms/postgres/operations/ownership.py",
+        "hermes_db/domains/rooms/postgres/operations/leases.py",
+        "hermes_db/domains/rooms/postgres/operations/coordination.py",
+        "hermes_db/domains/rooms/postgres/operations/member_homes.py"
+      ],
+      "purpose": "Concrete ownership workflow / shared Connection queries",
+      "inlined_module_references": 0,
+      "status": "verified"
+    },
+    {
+      "task": 15,
+      "target": "hermes_db/domains/rooms/postgres/grants.py",
+      "sources": [
+        "hermes_db/domains/rooms/postgres/operations/grants.py",
+        "hermes_db/domains/rooms/postgres/operations/links.py",
+        "hermes_db/domains/rooms/postgres/operations/revoke_debts.py"
+      ],
+      "purpose": "Concrete grants workflow / shared Connection queries",
+      "inlined_module_references": 0,
+      "status": "verified"
+    },
+    {
+      "task": 15,
+      "target": "hermes_db/domains/rooms/postgres/tasks.py",
+      "sources": [
+        "hermes_db/domains/rooms/postgres/operations/runs.py",
+        "hermes_db/domains/rooms/postgres/operations/task_recovery.py",
+        "hermes_db/domains/rooms/postgres/operations/task_retention.py",
+        "hermes_db/domains/rooms/postgres/operations/task_settlement.py"
+      ],
+      "purpose": "Concrete tasks workflow / shared Connection queries",
+      "inlined_module_references": 0,
+      "status": "verified"
+    },
+    {
+      "task": 15,
+      "target": "hermes_db/domains/rooms/postgres/work.py",
+      "sources": [
+        "hermes_db/domains/rooms/postgres/operations/work.py",
+        "hermes_db/domains/rooms/postgres/operations/work_delivery.py",
+        "hermes_db/domains/rooms/postgres/operations/work_snapshot.py",
+        "hermes_db/domains/rooms/postgres/queries/work.py"
+      ],
+      "purpose": "Concrete work workflow / shared Connection queries",
+      "inlined_module_references": 14,
+      "status": "verified"
+    },
+    {
+      "task": 15,
+      "target": "hermes_db/domains/rooms/postgres/policy.py",
+      "sources": [
+        "hermes_db/domains/rooms/postgres/operations/policy.py",
+        "hermes_db/domains/rooms/postgres/operations/policy_projection.py",
+        "hermes_db/domains/rooms/postgres/operations/policy_reads.py",
+        "hermes_db/domains/rooms/postgres/queries/policy.py"
+      ],
+      "purpose": "Concrete policy workflow / shared Connection queries",
+      "inlined_module_references": 22,
+      "status": "verified"
+    },
+    {
+      "task": 15,
+      "target": "hermes_db/domains/rooms/postgres/replication.py",
+      "sources": [
+        "hermes_db/domains/rooms/postgres/operations/replicas.py"
+      ],
+      "purpose": "Concrete replication workflow / shared Connection queries",
+      "inlined_module_references": 0,
+      "status": "verified"
+    },
+    {
+      "task": 15,
+      "target": "hermes_db/domains/rooms/postgres/repository.py",
+      "sources": [
+        "hermes_db/domains/rooms/postgres/queries/rooms.py",
+        "hermes_db/domains/rooms/postgres/queries/runs.py"
+      ],
+      "purpose": "Concrete repository workflow / shared Connection queries",
+      "inlined_module_references": 9,
+      "status": "verified"
+    },
+    {
+      "task": 15,
+      "target": "hermes_db/domains/rooms/attachments/postgres/metadata.py",
+      "sources": [
+        "hermes_db/domains/rooms/attachments/postgres/operations/uploads.py",
+        "hermes_db/domains/rooms/attachments/postgres/operations/commits.py",
+        "hermes_db/domains/rooms/attachments/postgres/operations/reads.py",
+        "hermes_db/domains/rooms/attachments/postgres/operations/cleanup.py",
+        "hermes_db/domains/rooms/attachments/postgres/queries/attachments.py"
+      ],
+      "purpose": "Concrete attachment_metadata workflow / shared Connection queries",
+      "inlined_module_references": 12,
+      "status": "verified"
     }
   ],
   "shared_pure_extractions": [
@@ -5271,6 +5492,16 @@
       "helpers": [],
       "task": 12,
       "status": "verified"
+    }
+  ],
+  "internal_symbol_amendments": [
+    {
+      "task": 15,
+      "reason": "Avoid proven local content/blob parameter shadowing during module inlining; no wire/DTO/SQL change",
+      "symbols": {
+        "hermes_db.domains.rooms.postgres.operations.work_snapshot.content": "hermes_db.domains.rooms.postgres.work._snapshot_content",
+        "hermes_db.domains.rooms.attachments.postgres.queries.attachments.blob": "hermes_db.domains.rooms.attachments.postgres.metadata._blob_row"
+      }
     }
   ]
 }

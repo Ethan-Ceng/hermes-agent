@@ -4,7 +4,7 @@ import os
 import secrets
 from contextlib import contextmanager
 from hermes_db.errors import StorageBusyError
-from hermes_db.domains.rooms.attachments.postgres.operations import cleanup
+from hermes_db.domains.rooms.attachments.postgres import metadata as cleanup
 from gateway import hosted_room_attachments as native
 
 

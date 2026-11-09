@@ -49,7 +49,7 @@ def test_sweep_waits_for_real_pending_sql_commit_before_deciding_file_liveness(p
     from sqlalchemy import text, select, func
     from hermes_db.domains.rooms.api import open_room_store
     from hermes_db.backends.postgresql.transactions import Transactions
-    from hermes_db.domains.rooms.postgres.queries import rooms as repo
+    from hermes_db.domains.rooms.postgres import repository as repo
     from hermes_db.tables.room_attachments import attachments, blobs
     from tests.waiting import wait_until
     with pg_profiles("one"):

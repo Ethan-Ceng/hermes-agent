@@ -13,8 +13,8 @@ from gateway import hosted_room_attachments as native
 from hermes_db.domains.rooms.api import RoomStoreRef, capture_room_store, normalize_location, open_room_store
 from hermes_db.domains.rooms.attachments.api import AttachmentResource
 from hermes_db.errors import StorageConfigurationError
-from hermes_db.domains.rooms.attachments.postgres.operations import uploads, commits, cleanup
-from hermes_db.domains.rooms.attachments.postgres.queries import attachments as repo
+from hermes_db.domains.rooms.attachments.postgres import metadata as uploads, metadata as commits, metadata as cleanup
+from hermes_db.domains.rooms.attachments.postgres import metadata as repo
 from hermes_db.domains.rooms.attachments.files import files_gate, replay_cleanup, sweep_locked
 from hermes_db.domains.rooms.attachments.postgres.reads import AttachmentReaders
 
@@ -66,7 +66,7 @@ class PostgresAttachmentStore(AttachmentReaders, native.HostedRoomAttachmentStor
         with files_gate(self.root):
             with self._store() as store, store.read() as conn:
                 existing = repo.attachment(conn, store, room_id=fields["room_id"], upload_id=fields["upload_id"])
-                old_blob = repo.blob(conn, store, sha256=fields["sha256"])
+                old_blob = repo._blob_row(conn, store, sha256=fields["sha256"])
             if existing is not None:
                 uploads.validate_retry(existing, fields)
                 self._read_blob(blob_id=existing["blob_id"], size=existing["size"], sha256=existing["sha256"])

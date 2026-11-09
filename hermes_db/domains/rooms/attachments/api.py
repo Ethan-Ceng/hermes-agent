@@ -3,7 +3,7 @@
 from contextlib import contextmanager
 from sqlalchemy import select
 from hermes_db.errors import StorageConfigurationError
-from hermes_db.domains.rooms.postgres.queries import rooms as repo
+from hermes_db.domains.rooms.postgres import repository as repo
 from hermes_db.tables.room_attachments import roots
 
 

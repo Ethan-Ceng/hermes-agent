@@ -144,7 +144,7 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
 
     def bindings(self):
         if self._coordination.native:
-            from hermes_db.domains.rooms.postgres.operations.coordination import owners
+            from hermes_db.domains.rooms.postgres.ownership import owners
             owned = set(self._coordination.core_read(owners))
             return tuple(b for b in super().bindings() if b.room_id in owned)
         with self._coordination.read() as conn:
@@ -186,7 +186,7 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
 
     def _owner(self, room_id):
         if self._coordination.native:
-            from hermes_db.domains.rooms.postgres.operations.coordination import owner
+            from hermes_db.domains.rooms.postgres.ownership import owner
             saved = self._coordination.core_read(owner, room_id)
             if saved is None:
                 raise RuntimeStoreError('permission_denied')

@@ -47,7 +47,7 @@ def record_member_home(db, room_id, member_id, home):
     """Remember each home a member's daemon was reached at, so the proof still covers it once the
     roster no longer names it (a ``hosted_rooms.profiles`` entry removed, then a restart)."""
     if is_postgresql_store(db):
-        from hermes_db.domains.rooms.postgres.operations.member_homes import record_member_home as record
+        from hermes_db.domains.rooms.postgres.ownership import record_member_home as record
         return record(db, room_id, member_id, home)
     key, home = _key(room_id, member_id), str(home)
     if Path(home) in _recorded_homes(db, room_id, member_id):
@@ -87,7 +87,7 @@ def record_attempt_home(db, room_id, member_id, task_id, generation, home):
     this member's attempts that are over, so the store holds only its live ones. A resubmit after
     proven non-admission is a new generation (``start_task``), so it never reuses this record."""
     if is_postgresql_store(db):
-        from hermes_db.domains.rooms.postgres.operations.member_homes import record_attempt_home as record
+        from hermes_db.domains.rooms.postgres.ownership import record_attempt_home as record
         return record(db, room_id, member_id, task_id, generation, home)
     key = _HOMES + json.dumps([room_id, member_id, task_id, int(generation)], separators=(',', ':'))
     def write(conn):
@@ -102,7 +102,7 @@ def stopping_attempt_home(db, room_id, member_id, task):
     """The home that admitted *task*'s current attempt once its Stop has begun, or None (not
     stopping, or admitted before attempt homes were recorded)."""
     if is_postgresql_store(db):
-        from hermes_db.domains.rooms.postgres.operations.member_homes import stopping_attempt_home as read
+        from hermes_db.domains.rooms.postgres.ownership import stopping_attempt_home as read
         return read(db, room_id, member_id, task)
     if task.get('status') not in _STOPPING:
         return None
@@ -117,7 +117,7 @@ def stopping_attempt_homes(db, room_id, member_id):
     """Homes holding an attempt of this member whose Stop is not yet confirmed: each may still
     answer for it."""
     if is_postgresql_store(db):
-        from hermes_db.domains.rooms.postgres.operations.member_homes import stopping_attempt_homes as read
+        from hermes_db.domains.rooms.postgres.ownership import stopping_attempt_homes as read
         return read(db, room_id, member_id)
     with db._read_ctx() as conn:
         return {home for home, live in _attempt_homes(conn, room_id, member_id, _STOPPING).values() if live}
@@ -132,7 +132,7 @@ def forget_room_member_homes_locked(conn, room_id):
 
 def _recorded_homes(db, room_id, member_id):
     if is_postgresql_store(db):
-        from hermes_db.domains.rooms.postgres.operations.member_homes import recorded_homes
+        from hermes_db.domains.rooms.postgres.ownership import recorded_homes
         return recorded_homes(db, room_id, member_id)
     with db._read_ctx() as conn:
         row = conn.execute('SELECT value FROM state_meta WHERE key=?', (_key(room_id, member_id),)).fetchone()

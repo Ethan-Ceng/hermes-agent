@@ -5,7 +5,7 @@ from sqlalchemy import delete
 from sqlalchemy.dialects.postgresql import insert
 from tui_gateway.hosted_room_router_call import RouterCalls, CLAIM_TTL_SECONDS
 from hermes_db.domains.rooms.api import RoomStoreRef, capture_room_store, normalize_location, open_room_store
-from hermes_db.domains.rooms.postgres.queries import rooms as repo
+from hermes_db.domains.rooms.postgres import repository as repo
 from hermes_db.tables.room_policy import router_claims
 
 

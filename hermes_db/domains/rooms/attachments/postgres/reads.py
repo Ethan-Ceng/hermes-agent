@@ -1,7 +1,7 @@
 """Content I/O between two authorization snapshots, without a held connection."""
 
 from gateway import hosted_room_attachments as native
-from hermes_db.domains.rooms.attachments.postgres.operations.reads import select_committed
+from hermes_db.domains.rooms.attachments.postgres.metadata import select_committed
 
 
 class AttachmentReaders:

@@ -10,23 +10,23 @@ from hermes_db.core.resource import DomainResource
 from hermes_db.errors import StorageConfigurationError
 
 
-_ROOM_MODULES = {'room_authority': 'hermes_db.domains.rooms.postgres.operations.authority',
- 'room_context': 'hermes_db.domains.rooms.postgres.operations.context',
- 'room_grants': 'hermes_db.domains.rooms.postgres.operations.grants',
- 'room_leases': 'hermes_db.domains.rooms.postgres.operations.leases',
- 'room_links': 'hermes_db.domains.rooms.postgres.operations.links',
- 'room_ownership': 'hermes_db.domains.rooms.postgres.operations.ownership',
- 'room_reads': 'hermes_db.domains.rooms.postgres.operations.reads',
- 'room_replicas': 'hermes_db.domains.rooms.postgres.operations.replicas',
- 'room_retention': 'hermes_db.domains.rooms.postgres.operations.retention',
- 'room_revoke_debts': 'hermes_db.domains.rooms.postgres.operations.revoke_debts',
- 'room_runs': 'hermes_db.domains.rooms.postgres.operations.runs',
- 'room_task_recovery': 'hermes_db.domains.rooms.postgres.operations.task_recovery',
- 'room_task_retention': 'hermes_db.domains.rooms.postgres.operations.task_retention',
- 'room_task_settlement': 'hermes_db.domains.rooms.postgres.operations.task_settlement',
- 'room_work': 'hermes_db.domains.rooms.postgres.operations.work',
- 'room_work_delivery': 'hermes_db.domains.rooms.postgres.operations.work_delivery',
- 'rooms': 'hermes_db.domains.rooms.postgres.operations.rooms'}
+_ROOM_MODULES = {'room_authority': 'hermes_db.domains.rooms.postgres.ownership',
+ 'room_context': 'hermes_db.domains.rooms.postgres.lifecycle',
+ 'room_grants': 'hermes_db.domains.rooms.postgres.grants',
+ 'room_leases': 'hermes_db.domains.rooms.postgres.ownership',
+ 'room_links': 'hermes_db.domains.rooms.postgres.grants',
+ 'room_ownership': 'hermes_db.domains.rooms.postgres.ownership',
+ 'room_reads': 'hermes_db.domains.rooms.postgres.lifecycle',
+ 'room_replicas': 'hermes_db.domains.rooms.postgres.replication',
+ 'room_retention': 'hermes_db.domains.rooms.postgres.lifecycle',
+ 'room_revoke_debts': 'hermes_db.domains.rooms.postgres.grants',
+ 'room_runs': 'hermes_db.domains.rooms.postgres.tasks',
+ 'room_task_recovery': 'hermes_db.domains.rooms.postgres.tasks',
+ 'room_task_retention': 'hermes_db.domains.rooms.postgres.tasks',
+ 'room_task_settlement': 'hermes_db.domains.rooms.postgres.tasks',
+ 'room_work': 'hermes_db.domains.rooms.postgres.work',
+ 'room_work_delivery': 'hermes_db.domains.rooms.postgres.work',
+ 'rooms': 'hermes_db.domains.rooms.postgres.lifecycle'}
 
 
 @dataclass(frozen=True)

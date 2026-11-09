@@ -54,6 +54,11 @@ completion, dispatch, runs, files, workspaces, notifications, transfer, owners a
 maintenance. Shared scoped statements and run evidence stay separate to preserve
 a one-way import graph; receipts, effects and swarm retain their own lifecycle.
 
+Rooms use lifecycle, ownership, grants, tasks, work, policy and replication
+workflows with shared scoped statements. Attachment metadata shares its SQL
+owner; file gates, authorization snapshots and content I/O retain separate
+composition so no database connection spans byte I/O.
+
 SQLite retains its native implementations. Domain adapters select PG before a
 SQLite file-existence check or connection. There is no general SQLite SQL
 translator or PG object pretending to be a SQLite connection. A migrated

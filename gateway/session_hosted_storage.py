@@ -56,7 +56,7 @@ class RoomCoordination:
             return operation(conn, self.authority.db.scope, *args)
 
     def core_authorize(self, subject, room_id, *, create=False, conn=None):
-        from hermes_db.domains.rooms.postgres.operations.coordination import authorize_room
+        from hermes_db.domains.rooms.postgres.ownership import authorize_room
         if conn is not None:
             return authorize_room(conn, self.authority.db, self.authority.epoch, subject, room_id, create=create)
         with self.authority.db._transactions.write() as connection:
@@ -79,7 +79,7 @@ class HostedMemberAuthorization:
         self.values = dict(owner_subject=owner, binding=binding, member_id=member, profile=profile)
 
     def apply(self, conn, scope, operation, identity, generation):
-        from hermes_db.domains.rooms.postgres.operations.coordination import member_authorized
+        from hermes_db.domains.rooms.postgres.ownership import member_authorized
         authority = self.coordination.authority
         if scope != authority.db.scope:
             return False

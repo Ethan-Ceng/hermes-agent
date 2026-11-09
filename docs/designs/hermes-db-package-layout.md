@@ -144,6 +144,8 @@ Task13实际归属：Runtime的admissions/local/policy/workers/media五组件由
 
 Task14实际归属：52个Kanban操作/查询收敛到17个工作流/共享能力，完整表见Task14账本与映射consolidations。基础repository与依赖run的evidence分开；父/后代撤回与Catalog/DAG同置，消除聚合引入的eager环。无lazy循环或旧路径shim；当前415→378，根11；Native536、Linux core24、PG104及15静态通过，最终跨域/发行验证待Task17。
 
+Task15实际归属：Room的23操作/4查询与附件5metadata模块归为九组，内容I/O保持独立。两个内部读取helper按真实局部遮蔽证据具名调整，184函数/类与常量等价、17-topic/67入口已核对。当前378→351，根11；Native529、Linux附件24、PG109及15静态通过，最终全域/发行验收仍待Task17，详见Task15。
+
 Session/Runtime最终使用少量明确组件和显式门面方法委托，去除36/10基类组合。组件共享一个带scope、事务、snapshot pin及关闭状态的上下文；不各自创建连接池，不互相保存整个Facade作为万能self，也不使用万能`__getattr__`/运行时反射自动导出全部方法。
 上下文的缓存/pin身份沿用原Store实例及完整资源身份，不能只按store_id合并不同目标。共享上下文不意味着所有read自动切换活动Profile；原活动绑定的生命周期点须逐项保持。导入/组件初始化不新增配置、秘密、模型或数据库I/O，既有按需行为仍在原操作位置执行。
 公共存储方法保留既有签名/返回与权限语义；内部构造方式可以随组合重构同步更新所有消费者。接口只服务真实消费者，不为每张表新建Protocol、DTO或基类。
