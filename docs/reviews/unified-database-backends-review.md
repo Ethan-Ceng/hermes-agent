@@ -30,7 +30,7 @@
 | 标准 runner、PM、最终验证及独立审查 | Python 测试统一 scripts/run_tests.sh、retries=0；最终代码相对 a875 全分支 14 检查通过，603 Python health 0/0；三分域独立复审已更新，整体不批准 |
 | 非 WSL 适用平台及波动历史 | **未满足：七项缺真实非 WSL POSIX 主机**。没有伪装 OS/is_wsl，没有删除用例或放宽原业务期限；历史失败/未知原因保留 |
 
-配置、Markdown、工作区和附件内容仍为文件；正式 Profile 仍保留 SQLite/a875。没有打印数据库秘密、提交真实 .env、操作既有业务表、安装/启动/运维 PG 服务、推送、发布、创建 PR 或合并。
+配置、Markdown、工作区和附件内容仍为文件。2026-11-09用户另行明确授权两个正式Profile切换本机PG并重启；当前网关26656已运行、两Profile独立store_id、16领域ready，原SQLite保留，完整操作和恢复记录见[计划的本机试运行段](../plans/unified-database-backends-plan.md#2026-11-09用户授权两个正式profile本机pg试运行)。切换前实查代码已为9b292893eb，旧SQLite/a875记录是历史检查点。此次运行就绪不替代完整业务/适用平台验收。没有打印数据库秘密、提交真实.env、操作既有业务表、安装/启动/运维PG服务、推送、发布、创建PR或合并。
 
 ## 当前验证结果
 

@@ -915,3 +915,17 @@ collaboration最终scope没有未处理的本域blocking/major，旧typed locati
 当前无法验证项为上述七项真实适用主机结果，以及账本已逐项保留的历史异常完整因果；后者不是没有代码/合同依据便自动成立的新产品major。无法保证一切尚未执行的负载组合，本次未用该普遍限制无限新增测试门禁。当前报告等文档尚待Root完成staged检查和本地恢复提交；代码的最终ref/业务来源/全分支静态已闭合，不需要因本轮纯文档收尾重复PG/发行/无影响Native文件。
 
 **总体审查：CHANGES_REQUIRED；当前交付验证：BLOCKED；Task24保持in_progress、23/24。** 本轮没有新增产品blocking/major或必需非平台回归范围缺口，但必需平台验收未满足，不能给出APPROVED、READY_TO_MERGE或全系统完成声明。原各失败批次仍按真实FAILED保留；无合并、推送或发布批准。
+
+## 用户授权的本机双Profile PG试运行：运维范围复核
+
+本次仅只读核对 `local-pg-rollout-state.json`、`local-pg-live-readiness.json`、prepare/configure/verify/inspect四个运维脚本及计划第1839行起的新试运行/恢复段；未执行脚本、重启、改配置或连接查询数据库，也未读取禁止raw读取的私有inventory。用户明确选择两个Profile都切换PG并确认旧SQLite不迁入，是本次新增运维授权；此前“正式Profile仍SQLite/a875”的表述保留为历史检查点，不再当作当前运行事实。
+
+脚本与记录相符：prepare先拒绝覆盖既有rollout记录、核对随机新Schema不存在，再显式升级并验证归属；只有本次独立持久Schema进入0028、110表/16领域ready。configure要求网关已停止、目标恰为已授权两Profile且原选择SQLite，先备份两者完整config/.env和记录停机后根部SQLite主文件hash，再经官方secret/config接口写入；两独立store_id不同且稳定，DSN不入YAML/日志。verify按两Profile分别解析配置/Schema状态，后续行计数限定已核对归属的新Schema和各store_id，没有把既有业务表当作试验目标。
+
+`checked_at=2026-11-09T01:49:40Z` 的实际运行快照记录PID26656、代码9b292893eb、served_profiles为两者、gateway running/session_store **ok**、两作用域full_system_ready。真实启动后各store已有runtime_epoch/state_meta及Cron/room/Kanban锁行，默认另有board；正式PM PostgreSQL依赖代次/注入路径已有核对。旧根部SQLite主文件hash全部保持停机后记录值、根部.db打开句柄观测为空。这只证明该时点的启动/持久状态和补充文件检查，不能替代全业务零SQLite audit、全目录文件备份或消息/模型业务验收；本Reviewer没有再次现场探测。源码Git另核对9b292893eb相对6c9e286无生产差异，不把它写成新的689项业务运行。
+
+检查脚本由错误的 `session_store.status=ready` 改为协议真实枚举ok，符合 `gateway/status.py:1083`，未改变产品。计划准确记录旧PID14412的官方排空停止、新PID及正式PM运行、备份位置和检查脚本修正；`local-pg-rollout-docs-checks.log` 已14 checks ok、no measured files changed，当前新增Reviewer文字由Root后续文档收尾。
+
+恢复限制合理：先官方stop排空，再分别通过官方配置接口切回SQLite、启动读取保留旧数据；参考私有备份恢复时不能覆盖试运行后的其他配置变更。PG新记录不会回迁到SQLite，独立Schema/两个store_id应保留以再次选择原PG数据集；依赖/配置恢复不等于PG数据回滚，也不自动降级代码。
+
+**本次已授权运维范围未发现blocking/major，运行就绪记录与证据相符。** 该结论不扩大为完整新业务验收，不解除七项非WSL适用主机证据缺口：Task24仍in_progress、23/24，整体继续 **BLOCKED / CHANGES_REQUIRED**，无全局完成或合并批准。

@@ -15,7 +15,7 @@
 - 当前任务：Task24（in_progress）；最终代码`6c9e28665b1766c295023018a03e390dd264c230`，生产实现/四套发行载荷仍为`120bf8c9d6`，代码来源等价及五测试hash已冻结。历史恢复提交详见恢复记录。
 - 已完成：23 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 阻塞：非WSL POSIX私有启动页七项仍缺适用主机，已准备冻结源码验收包和PM隔离脚本并询问现有入口/执行日志。PG完整689、双宿主DB、发行、Native分批及独立总体复核已结算；历史未定因风险保留，最后文档14检查已过，当前无其他不依赖该主机的必需项可推进，不绕过平台验收。
-- 当前实际安装：正式Profile仍SQLite，已重启加载 `a875342384`；本轮不切换数据库或重启服务。
+- 当前实际安装：2026-11-09用户明确授权默认和“股票大师”两个Profile都切换本机PG并重启。PM已安装postgresql extra，独立新Schema已显式升级，旧网关14412排空停止、新网关26656运行，两个Profile均PG就绪；旧SQLite保留，不导入。本机试运行记录见下文，不解除Task24的平台验收阻塞。
 - 更新时间：2026-11-09（Asia/Shanghai）。
 
 ## 目标、约束与范围变化
@@ -1834,7 +1834,27 @@ server实际closing准备已有局部证据：原15/5/cleanup15及全业务断�
 
 所有本轮测试进程均已终态：原full20a exit1；旧joint41931为682/3 exit1；新joint22923为688/0/0 exit0；最终全分支88541为14checks/603Python health0/0 exit0。源/hash/日志冻结在`task24-final-code-reference-6c9e286.json`；原6412逐行来源在`task24-native-provenance-reconciliation.json`。不因tests/docs变化重做PG/发行或重启这些终态批次。
 
-独立总体复核和最后文档14检查已完成，证据恢复按唯一标题docs(storage): preserve final blocked acceptance gate定位，源码仍冻结6c9e286。直接Git核对d998..3febe6fc31恰23个按Task1–23领域顺序的本地提交，Task24没有完成提交。当前唯一必需外部缺口是七项适用主机结果；入口缺失已连续多轮记录，截至当前没有其他不依赖主机的必需项可自主推进，现有工具也无远程执行入口。下一步取得真实非WSL Linux/macOS入口或完整实机日志，运行准备的原完整12项（含缺失7项）；新失败按原合同整改后复验，平台通过后再解除总体CHANGES_REQUIRED。不推送、发布、PR、合并、切换正式Profile或操作数据库服务。
+独立总体复核和最后文档14检查已完成，证据恢复按唯一标题docs(storage): preserve final blocked acceptance gate定位，源码仍冻结6c9e286。直接Git核对d998..3febe6fc31恰23个按Task1–23领域顺序的本地提交，Task24没有完成提交。当前唯一必需外部缺口是七项适用主机结果；入口缺失已连续多轮记录，截至该检查点没有其他不依赖主机的必需项可自主推进，现有工具也无远程执行入口。下一步取得真实非WSL Linux/macOS入口或完整实机日志，运行准备的原完整12项（含缺失7项）；新失败按原合同整改后复验，平台通过后再解除总体CHANGES_REQUIRED。用户随后新增授权的正式Profile本机PG试运行已执行，详见下一节；不推送、发布、PR、合并或操作数据库服务。
+
+### 2026-11-09：用户授权两个正式Profile本机PG试运行
+
+用户先请求配置本地PG并重启Hermes，再明确回复“两个Profile都切换到PG”。已说明并确认此次使用新数据集，旧SQLite会话/项目/看板等不自动导入；配置、Markdown记忆、工作区和附件内容继续为文件。这是新增的运行切换授权，取代此前“本轮不切换正式Profile”的操作限制，不改变功能设计或Task24完成条件。
+
+实际检查纠正了旧安装记录：切换前网关PID14412已经加载`9b292893eb`，并非仍运行a875；两Profile仍SQLite、active_agents=0。现有秘密来源指向本机loopback端口55432、数据库hermes_agent；只在进程内读取，不打印DSN/密码。只读连接确认PG17.11、非recovery、已有pg_trgm和建Schema权限；没有安装、启动、重启或管理PG服务/扩展/角色。
+
+实际操作与结果：
+
+1. `hermes pm install --extra postgresql`：exit0，保留现有extra，由PM发布正式依赖代次`ca8aa89c2a8149528de46dcd935326d9`。正式解释器实际导入SQLAlchemy2.1.6、psycopg3.3.7、Alembic1.20.1；未使用验收环境代替正式运行环境。
+2. 正式PM解释器经`runpy.run_path`执行`.build/postgresql/prepare_local_pg_rollout.py`：核对随机新名称不存在，显式`upgrade_schema`仅创建独立持久Schema`hermes_local_20261109_e6d5e1b8fb5b`；归属核对通过，110表、revision0028_kanban_effects、16领域及full_system_ready=true，exit0。该Schema与可清理的验收随机Schema分开，不修改已有业务表；此阶段Profile未改动。
+3. `hermes gateway stop`：exit0，旧网关排空停止。正式PM解释器执行`configure_local_pg_profiles.py`：先备份两Profile完整config.yaml及.env，核对旧文件hash；通过官方秘密保存及原子配置写入接口设置storage.backend=postgresql。默认store_id=`profile-2053304a95b242e491f57c8886fc575a`，股票大师store_id=`profile-d4558d7645cc4fe4942f2b11a120b303`，各自稳定且不同。配置/.env不进入Git，无DSN写入YAML。
+4. `hermes gateway start`：exit0，官方direct spawn启动PID26656；`hermes gateway status`：exit0，确认运行。`hermes db status`及`hermes --profile u80a1-u7968-u5927-u5e08 db status`各自返回全部16领域ready、full_system_ready=true及相应独立store_id。
+5. 正式PM解释器执行`verify_local_pg_rollout.py`：exit0。独立进程核对真实网关running/session_store.status=ok、心跳未陈旧、served_profiles包含两者、新PM site-packages实际注入、运行代码9b292893eb。只读查询本次新Schema发现两store分别持久化runtime_epoch、state_meta、Cron/room/Kanban锁等启动行，默认另有实际Kanban默认board。切换前停机后记录的根部SQLite主文件SHA256仍一致；进程根部.db打开句柄为空。句柄/文件检查只是补充，不能替代业务读写验收。
+
+本地运行证据为`.build/postgresql/local-pg-rollout-state.json`与`local-pg-live-readiness.json`；状态live_pg_ready。完整原配置及.env备份在`C:/Users/Ethan/AppData/Local/hermes/backups/local-pg-rollout-20261109-07fcdaa335/`按Profile分目录，秘密不提交。首次诊断误用未安装的PyYAML已改用项目hermes_yaml；初次运行检查脚本错误地期待session_store.status=ready，实际协议只允许ok/unavailable/retrying，核对协议后改为ok并通过。两者均为操作检查脚本问题，无产品代码修改，不计业务测试红绿。
+
+恢复方式：需要停止试运行时，先用`hermes gateway stop`排空；将两个Profile各自的storage.backend通过官方config接口改回sqlite，再启动网关，即读取独立保留的旧SQLite数据。必要时参照上述配置备份恢复原设置；不要覆盖试运行后其他配置变更。PG试运行期间的新记录仍留在PG，不向SQLite回迁；保留新Schema和两个store_id以便再次选择原PG数据集。不要把PM依赖切换或配置恢复当作PG数据回滚，也不要自动降级生产代码。
+
+验证边界：本次是用户授权的运行配置、显式迁移、真实启动持久行及重启就绪核对；没有向外部平台发送测试消息，也没有在正式Profile写入测试会话。完整PG业务689及Matrix实SDK证据仍按冻结生产等价范围引用，不因运行切换重命名为本次测试。七项非WSL POSIX验收仍未验证，Task24保持in_progress、23/24、总体BLOCKED/CHANGES_REQUIRED。本次仅文档进入本地commit；`PM Python -X utf8 scripts/check --staged --base 9b292893eb`实际14检查通过、no measured files changed、exit0，日志`local-pg-rollout-docs-checks.log`。独立foundation已逐项只读核对脚本/JSON/计划/Git，在其followup报告第919行起确认本次运维范围未发现blocking/major，明确不扩大业务验收结论；此后仅补检查结果及独立复核文字，diff-check通过。以本地标题`docs(storage): record local PostgreSQL trial restart`保存运行与恢复记录，不是Task24完成提交。
 
 ### 历史恢复记录
 
