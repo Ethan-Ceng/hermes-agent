@@ -71,8 +71,8 @@ def test_feature_latch_and_interval_clock_correction_survive_reopen(pg_profiles,
 
 
 def test_retention_keeps_unexported_data_and_exports_without_borrowed_connections(pg_profiles, monkeypatch):
-    from hermes_db.domains.metrics import open_metrics
-    from hermes_db.operations.metric_packages import pending_exports
+    from hermes_db.domains.metrics.api import open_metrics
+    from hermes_db.domains.metrics.postgres.operations.packages import pending_exports
     with pg_profiles("one"):
         store = SharedMetricsStore()
         with open_metrics(store.reference) as (_conn, resource):

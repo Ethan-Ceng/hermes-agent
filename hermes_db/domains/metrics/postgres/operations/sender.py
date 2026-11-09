@@ -4,9 +4,9 @@ import json
 import uuid
 from datetime import timedelta
 from sqlalchemy import or_, select
-from hermes_db.repositories import metrics as repo
+from hermes_db.domains.metrics.postgres.queries import metrics as repo
 from hermes_db.tables.metrics import packages
-from hermes_db.operations.metric_consent import gate
+from hermes_db.domains.metrics.postgres.operations.consent import gate
 
 
 def pending():

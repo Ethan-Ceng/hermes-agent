@@ -7,8 +7,8 @@ import pytest
 from hermes_cli.observability import shared_metrics as native
 from hermes_cli.observability.shared_metrics import SharedMetricsStore
 from hermes_cli.observability.shared_metrics_contract import CLIENT_ACTIVE_METRIC
-from hermes_db.domains.metrics import open_metrics
-from hermes_db.repositories import metrics as repo
+from hermes_db.domains.metrics.api import open_metrics
+from hermes_db.domains.metrics.postgres.queries import metrics as repo
 from tests.hermes_db.postgresql.test_metrics_store import DAY, RESOURCE
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]

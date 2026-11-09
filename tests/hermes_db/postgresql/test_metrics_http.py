@@ -6,7 +6,7 @@ from threading import Thread
 import pytest
 from hermes_cli.observability.shared_metrics import SharedMetricsStore
 from hermes_cli.observability.shared_metrics_sender import SharedMetricsSender
-from hermes_db.domains.metrics import open_metrics
+from hermes_db.domains.metrics.api import open_metrics
 from hermes_db.errors import UnknownCommitError
 from tests.hermes_cli.test_shared_metrics_sender_e2e import Ingest
 from tests.hermes_db.postgresql.test_metrics_faults import seeded

@@ -71,8 +71,8 @@ def test_forward_poison_then_revoke_closes_at_raw_revoke_time(pg_profiles, monke
 
 def test_fully_disabled_lifecycle_closes_each_profile_without_sqlite_file(pg_profiles, monkeypatch):
     from hermes_cli.observability import relay_shared_metrics as relay
-    from hermes_db.domains.metrics import open_metrics
-    from hermes_db.operations.metric_consent import consented_day
+    from hermes_db.domains.metrics.api import open_metrics
+    from hermes_db.domains.metrics.postgres.operations.consent import consented_day
     monkeypatch.setattr(relay, "_consent_reconcile_done", set())
     monkeypatch.setattr(relay, "_raw_config", lambda: {"telemetry": {"shared_metrics": {"enabled": False, "send": False}}})
     for name in ("one", "two"):

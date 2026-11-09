@@ -6,9 +6,9 @@ import json
 from sqlalchemy import func, select
 
 from hermes_cli.observability import shared_metrics as native
-from hermes_db.domains.metrics_bound import bound_store
+from hermes_db.domains.metrics.bound import bound_store
 from hermes_db.operations.worker_domains import ReceiptDomainResource, fields
-from hermes_db.repositories import metrics as repo
+from hermes_db.domains.metrics.postgres.queries import metrics as repo
 from hermes_db.tables.conversations import sessions
 from hermes_state_runtime import RuntimeStoreError
 

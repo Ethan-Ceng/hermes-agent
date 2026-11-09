@@ -3,6 +3,14 @@
 from functools import wraps
 
 
+_POSTGRES_MODULES = {
+    "executions": "hermes_db.domains.cron.postgres.operations.executions",
+    "incidents": "hermes_db.domains.cron.postgres.operations.incidents",
+    "delivery": "hermes_db.domains.cron.postgres.operations.delivery",
+    "notepad": "hermes_db.domains.cron.postgres.operations.notepad",
+}
+
+
 def domain_operation(topic, *, domain="cron_executions"):
     def decorate(sqlite_operation):
         @wraps(sqlite_operation)
@@ -14,7 +22,7 @@ def domain_operation(topic, *, domain="cron_executions"):
             from importlib import import_module
             from hermes_db.factory import acquire_domain
             with acquire_domain(domain, settings, scope) as resource:
-                implementation = import_module(f"hermes_db.operations.cron_{topic}")
+                implementation = import_module(_POSTGRES_MODULES[topic])
                 return getattr(implementation, sqlite_operation.__name__)(resource, *args, **kwargs)
         return operation
     return decorate

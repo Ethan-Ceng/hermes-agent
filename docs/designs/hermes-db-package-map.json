@@ -1,7 +1,7 @@
 {
   "baseline": "cbfc773dd79241752697e647067c63338fc01680",
   "baseline_runtime": "0d69702244d623a31be149a9bac6a2658e0322ae",
-  "stage": "Tasks2-3 verified; domain moves continue from Task4 in isolated checkout",
+  "stage": "Tasks2-4 verified; domain moves continue from Task5 in isolated checkout",
   "hash_basis": "SHA256 of Git blob bytes at baseline; independent of checkout line endings",
   "counts": {
     "keep": 76,
@@ -174,7 +174,8 @@
       "task": 4,
       "lines": 20,
       "sha256": "77a0c96ea423a9d7660655c086b08cc3cdf9323db78a3cfa4061ec4a1cda1080",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/discord_recovery.py",
@@ -255,7 +256,8 @@
       "task": 4,
       "lines": 42,
       "sha256": "d6057a7a8f254c608f21db8de54c121d801f29e672cd7a7816dd2418efba06f6",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/metrics_bound.py",
@@ -264,7 +266,8 @@
       "task": 4,
       "lines": 31,
       "sha256": "280bd4a9c58891709da53c4a6fa1c96586f010416e1ffecce531c82bd86a1124",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/plugins.py",
@@ -512,7 +515,8 @@
       "task": 4,
       "lines": 33,
       "sha256": "6c65ecd81d2e6a346157de7d2e45c16a0c492e4de8208db7b3ce37038033a666",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/metrics_snapshot.py",
@@ -521,7 +525,8 @@
       "task": 4,
       "lines": 16,
       "sha256": "c5fa926ef5dd6030c5891cab7a03bedc40a09e312c4dc978ff471aa89f2d49c6",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/metrics_store.py",
@@ -530,7 +535,8 @@
       "task": 4,
       "lines": 123,
       "sha256": "dd1ce70daa3a6c930c044da02644c3c074e357218cdc5625b42a6e75d6819685",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/migrations/__init__.py",
@@ -957,7 +963,8 @@
       "task": 4,
       "lines": 155,
       "sha256": "fc5981c894698e7dd2f3c2ecd004902ec486a7f5051063e4d217a7b9337125e2",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/cron_executions.py",
@@ -966,7 +973,8 @@
       "task": 4,
       "lines": 240,
       "sha256": "50574409a7aab00ae998edd0fcd1ac0c84dbfd000c631acd4a883463f90bfd86",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/cron_incidents.py",
@@ -975,7 +983,8 @@
       "task": 4,
       "lines": 84,
       "sha256": "a3c7e7713f7355ed66d92cf85aad8eded47356dcf9c16ff1ea5177f4a9dcb1a8",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/cron_notepad.py",
@@ -984,7 +993,8 @@
       "task": 4,
       "lines": 61,
       "sha256": "05a25d0149cdf8e443328f137dab09a2facb008f5354ee12f11cda6d0b8b00a9",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/current_history.py",
@@ -1580,7 +1590,8 @@
       "task": 4,
       "lines": 34,
       "sha256": "9b655e292e1ba6184f4ad49621b110a951b70633663381d0df4d358af2f7c3b6",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/metric_packages.py",
@@ -1589,7 +1600,8 @@
       "task": 4,
       "lines": 71,
       "sha256": "ab018ab450b66d0ef7b71c2bf9dc5581ec8199274c3e6cc02884e881327ede81",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/metric_sender.py",
@@ -1598,7 +1610,8 @@
       "task": 4,
       "lines": 67,
       "sha256": "41cbaaaf7259728246b7050bdb51997808b456ac3d49dfa147a3054a266c1173",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/metrics.py",
@@ -1607,7 +1620,8 @@
       "task": 4,
       "lines": 60,
       "sha256": "09fb03d4f5b5852c791839547d70d546334cae88531c7069a8ddf254b0b03e85",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/mutation_branch.py",
@@ -2341,7 +2355,8 @@
       "task": 4,
       "lines": 85,
       "sha256": "e286df0ff20f21b3f8a956c42b4ae7a908a8e87d55317b0b0a6ab5b14260b584",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/delegations.py",
@@ -2512,7 +2527,8 @@
       "task": 4,
       "lines": 62,
       "sha256": "53103925f5438ea259de0e736e8d1c1757703cb70f63a4112bc688633eadf8b8",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/mutation_binding.py",
@@ -3743,6 +3759,46 @@
     {
       "path": "hermes_db/domains/verification/postgres/queries/__init__.py",
       "task": 3,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/cron/__init__.py",
+      "task": 4,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/metrics/__init__.py",
+      "task": 4,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/metrics/postgres/__init__.py",
+      "task": 4,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/cron/postgres/operations/__init__.py",
+      "task": 4,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/cron/postgres/__init__.py",
+      "task": 4,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/metrics/postgres/operations/__init__.py",
+      "task": 4,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/cron/postgres/queries/__init__.py",
+      "task": 4,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/metrics/postgres/queries/__init__.py",
+      "task": 4,
       "role": "empty-package-namespace"
     }
   ]

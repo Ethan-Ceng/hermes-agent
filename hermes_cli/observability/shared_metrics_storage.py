@@ -11,7 +11,7 @@ def postgres_store(cls, profile_home):
         from hermes_db.worker_metrics_store import WorkerMetricsStore
         return object.__new__(WorkerMetricsStore)
     if cls is SharedMetricsStore and storage_backend(profile_home) == "postgresql":
-        from hermes_db.metrics_store import PostgresMetricsStore
+        from hermes_db.domains.metrics.postgres.store import PostgresMetricsStore
         return object.__new__(PostgresMetricsStore)
     return object.__new__(cls)
 

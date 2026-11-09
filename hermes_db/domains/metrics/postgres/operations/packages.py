@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime, timedelta, UTC
 from sqlalchemy import delete, select, update, exists, func
-from hermes_db.repositories import metrics as repo
+from hermes_db.domains.metrics.postgres.queries import metrics as repo
 from hermes_db.tables.metrics import counters, packages, RESOURCE, COUNTER_KEY
 
 

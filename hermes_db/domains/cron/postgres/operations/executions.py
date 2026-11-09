@@ -4,7 +4,7 @@ import os
 
 from sqlalchemy import and_, select, tuple_
 
-from hermes_db.repositories import cron as repo
+from hermes_db.domains.cron.postgres.queries import cron as repo
 from hermes_db.tables.cron import cron_executions as executions
 from hermes_db.core.values import encode_text
 

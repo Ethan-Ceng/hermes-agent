@@ -64,7 +64,7 @@ def terminal_execution(reference, execution_id, generation):
 def cron_writers(home):
     from sqlalchemy import select
     from hermes_db.tables.cron import cron_executions
-    from hermes_db.repositories.cron import decode
+    from hermes_db.domains.cron.postgres.queries.cron import decode
     with _read(home) as (conn, owned):
         return [decode(row) for row in conn.execute(select(cron_executions).where(cron_executions.c.store_id == owned,
             cron_executions.c.status.in_(("claimed", "running")))).mappings()]

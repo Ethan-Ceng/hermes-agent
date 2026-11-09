@@ -7,9 +7,9 @@ from sqlalchemy import delete, select
 
 from hermes_cli.observability import shared_metrics as native, shared_metrics_contract as contract
 from hermes_cli.observability import shared_metrics_engagement as engagement
-from hermes_db.operations import metrics
+from hermes_db.domains.metrics.postgres.operations import metrics
 from hermes_db.operations.worker_domains import ReceiptDomainResource
-from hermes_db.repositories import metrics as repo
+from hermes_db.domains.metrics.postgres.queries import metrics as repo
 from hermes_db.tables.metrics import state
 from hermes_db.core.values import decode_text
 from hermes_state_runtime import RuntimeStoreError
@@ -48,7 +48,7 @@ def record(conn, scope, store, payload, *, root_collects):
 
 
 def pending(store):
-    from hermes_db.domains.metrics import open_metrics
+    from hermes_db.domains.metrics.api import open_metrics
     with open_metrics(store.reference) as (conn, resource):
         rows = conn.execute(select(state.c.key, state.c.value).where(repo.scope(state, resource))).all()
     return [(key, value) for key, value in rows if decode_text(key).startswith(PREFIX)][:BATCH_SIZE]
@@ -63,7 +63,7 @@ def apply_root(store, observation):
             profile=observation['profile'], owner=True)
 
     if getattr(store, 'backend', 'sqlite') == 'postgresql':
-        from hermes_db.domains.metrics import open_metrics
+        from hermes_db.domains.metrics.api import open_metrics
         with open_metrics(store.reference, write=True) as (conn, resource):
             metrics.rollup(conn, resource, engagement.STATE_KEY, update)
     else:
@@ -74,7 +74,7 @@ def apply_root(store, observation):
 
 def drain(store):
     from hermes_cli.db_setup import _owning_profile
-    from hermes_db.domains.metrics import open_metrics
+    from hermes_db.domains.metrics.api import open_metrics
     root = engagement._root_home(store.profile_home)
     for key, value in pending(store):
         observation = json.loads(decode_text(value))

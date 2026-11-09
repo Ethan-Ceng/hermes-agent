@@ -7,7 +7,7 @@ import os
 from sqlalchemy import and_, delete, select, update
 from sqlalchemy.dialects.postgresql import insert
 
-from hermes_db.repositories.cron import instant_order
+from hermes_db.domains.cron.postgres.queries.cron import instant_order
 from hermes_db.tables.cron_delivery import cron_deliveries as rows, cron_delivery_tombstones as tombs, cron_delivery_locks as locks
 from hermes_db.core.values import decode_text, encode_text
 

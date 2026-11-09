@@ -2,7 +2,7 @@
 
 from sqlalchemy import func, select, update
 
-from hermes_db.repositories import cron as repo
+from hermes_db.domains.cron.postgres.queries import cron as repo
 from hermes_db.tables.cron import cron_incidents as incidents
 from hermes_db.core.values import encode_text
 

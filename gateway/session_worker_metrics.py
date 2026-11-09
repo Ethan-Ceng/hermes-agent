@@ -1,7 +1,7 @@
 """Post-receipt owner maintenance; no worker connection survives into file or HTTP work."""
 
 from hermes_cli.db_setup import _owning_profile
-from hermes_db.domains.metrics_bound import bound_store
+from hermes_db.domains.metrics.bound import bound_store
 
 
 def maintain(db):

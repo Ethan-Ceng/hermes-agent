@@ -3,7 +3,7 @@
 import uuid
 from datetime import timedelta
 from sqlalchemy import case, exists, select, update
-from hermes_db.repositories import metrics as repo
+from hermes_db.domains.metrics.postgres.queries import metrics as repo
 from hermes_db.tables.metrics import marks, windows, packages
 
 

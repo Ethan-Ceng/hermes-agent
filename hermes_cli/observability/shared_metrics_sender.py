@@ -208,7 +208,7 @@ class SharedMetricsSender:
 
     def __new__(cls, store, *args, **kwargs):
         if cls is SharedMetricsSender and store.backend == "postgresql":
-            from hermes_db.metrics_sender import PostgresMetricsSender
+            from hermes_db.domains.metrics.postgres.sender import PostgresMetricsSender
             return object.__new__(PostgresMetricsSender)
         return object.__new__(cls)
 

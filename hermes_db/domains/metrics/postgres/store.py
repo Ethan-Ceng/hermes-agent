@@ -4,10 +4,10 @@ import json
 from datetime import timedelta
 from pathlib import Path
 from hermes_cli.observability import shared_metrics as native
-from hermes_db.domains.metrics import capture_metrics, open_metrics
+from hermes_db.domains.metrics.api import capture_metrics, open_metrics
 from hermes_db.errors import StorageConfigurationError
-from hermes_db.operations import metrics as operations, metric_packages, metric_consent
-from hermes_db.repositories import metrics as repo
+from hermes_db.domains.metrics.postgres.operations import metrics as operations, packages as metric_packages, consent as metric_consent
+from hermes_db.domains.metrics.postgres.queries import metrics as repo
 from hermes_db.tables.metrics import packages
 
 

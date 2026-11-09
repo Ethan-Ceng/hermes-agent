@@ -6,8 +6,8 @@
 - 全量归属：[398项基准映射](../designs/hermes-db-package-map.json)。
 - 文档分支：`docs/hermes-db-package-layout`；实施分支：`refactor/hermes-db-packages`。
 - 源码基准：`cbfc773dd7`，运行实现等价`0d69702244`。
-- 整体状态：`IMPLEMENTING`；当前阶段：第一阶段机械落位；当前任务：Task4（待开始）；完成：3 / 18。
-- 本轮已建立独立实施检出并完成Task1–3；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
+- 整体状态：`IMPLEMENTING`；当前阶段：第一阶段机械落位；当前任务：Task5（待开始）；完成：4 / 18。
+- 本轮已建立独立实施检出并完成Task1–4；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
 - 核心设计待决策：无；Task1隔离PM与PG基线已通过，Matrix实际SDK由Task6核对。原统一后端Task24及七项非WSL缺证独立保留。
 - 更新时间：2026-11-09（Asia/Shanghai）。恢复位置：`D:/AI/hermes-db-packages`；从首个in_progress任务继续，不重跑整轮数据库选型。
 
@@ -63,6 +63,7 @@ PG选项只用于tests/hermes_db下已注册该选项的文件；其他目录Nat
 | 2026-11-09 | IMPLEMENTING | 独立checkout/PM及Task1接口依赖基线完成，1/18；Native504+PG26，4平台skip单列 |
 | 2026-11-09 | IMPLEMENTING | Task2基础设施/组合40模块移动并验证，2/18；Native504、PG41、driver-free2、15静态全绿，4平台skip单列 |
 | 2026-11-09 | IMPLEMENTING | Task3 Projects/verification六项移动并验证，3/18；Native/CLI513、PG7、15静态通过，4平台skip单列 |
+| 2026-11-09 | IMPLEMENTING | Task4 Cron/metrics十六项及闭合动态路由验证，4/18；Native504、PG26、15静态通过，4平台skip单列 |
 
 ## 方案准备自检
 
@@ -251,11 +252,11 @@ Invoke-PgCases -Files @('tests/hermes_db/postgresql/test_projects_store.py', 'te
 - 同runner `tests/hermes_db/postgresql/test_projects_store.py tests/hermes_db/postgresql/test_verification_store.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，exit0，2文件7passed/0failed/0skip，22.0秒（task3-pg.log）；使用所有权核对随机Schema验证真实持久化与store隔离。
 - `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，exit0，15checks通过，health349文件0blocking/0advisory（task3-check.log）；最终计划/映射状态更新后暂存空白检查exit0。
 - 未验证：完整DB/SDK/独立发行/最终升级与组件收敛仍属后续，原Task24缺证不变。
-- 恢复点：本地提交标题 `refactor(storage): package projects and verification domains`；下一Task4。
+- 恢复点：本地提交 `210831263e`，标题 `refactor(storage): package projects and verification domains`；下一Task4。
 
 ## Task 4：Cron与指标分包
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -296,11 +297,20 @@ Invoke-PgCases -Files @('tests/hermes_db/postgresql/test_cron_executions.py', 't
 
 ### 执行结果
 
-未执行。
+从Task3 `210831263e`继续，按映射机械移动Cron/metrics十六项，更新Cron四类消费者、metrics sender/snapshot/bound store、Worker指标路径及测试patch/import读取点。Cron原全局cron_{topic}拼接改为四项显式模块表（executions/incidents/delivery/notepad），仅在所选PG分支调用时导入；逻辑topic、原函数名、domain键及回执保持。无额外驱动启动依赖。
+
+未改TTL/配额、claim/unknown/终态、consent/去重或时钟语义；文件/HTTP/等待仍在原事务外，Profile捕获不变。审计对Cron新表精确核对四个目标并将此唯一预期路由差异规范化后，398模块AST机械等价。31个revision和29个表定义保持，未改Schema/历史SQL。再增8个必要空初始化文件，全部入图；累计24个新增命名空间、总Python422、根87，业务模块未增加；最终净减少仍由阶段二验收。公开plugin API/boundary baseline未变化。
 
 ### 验证证据
 
-未执行；实施时记录实际解释器/源码commit、展开命令、退出状态、计数、日志、未验证项和恢复commit。
+沿用Task1隔离PM解释器/home/runtime，retries=0，本地日志根 `.build/package-layout/`。
+
+- `PM Python .build/package-layout/audit_mechanical.py`，exit0（task4-audit.log）：精确Cron路由表规范化后398 AST机械等价、源/新增归属闭合，31 revisions/29表定义不变。没有以读取源码的pytest代替行为合同。
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts -j 4 --file-timeout 1200 -- --tb=short`，exit0，90文件504passed/0failed/4skipped，547.6秒（task4-native.log）；skip仍为1 POSIX+3 Linux SDK，单列未算通过。
+- 同runner `tests/hermes_db/postgresql/test_cron_executions.py tests/hermes_db/postgresql/test_cron_delivery_store.py tests/hermes_db/postgresql/test_cron_notepad.py tests/hermes_db/postgresql/test_cron_bot_delivery.py tests/hermes_db/postgresql/test_metrics_store.py tests/hermes_db/postgresql/test_metrics_http.py tests/hermes_db/postgresql/test_metrics_process.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，exit0，7文件26passed/0failed/0skip，103.1秒（task4-pg.log）；真实消费者、HTTP发送状态、独立进程恢复和store隔离使用有归属随机Schema。
+- `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，exit0，15checks通过，health380文件0blocking/0advisory（task4-check.log）；计划/映射最终状态更新后暂存空白检查exit0。
+- 未验证：实际Matrix SDK、独立发行、全量业务/旧Schema升级/最终组件收敛由后续任务验收，原Task24非WSL七项缺证保持。
+- 恢复点：本地提交标题 `refactor(storage): package cron and metrics domains`；下一Task5。
 
 ## Task 5：通用插件记录、Discord与Retain分包
 
@@ -1040,5 +1050,5 @@ git diff --check
 
 ### 未通过项目与最终状态
 
-实施推进中，当前3/18；局部验证见已完成Task，最终重构验收仍未执行；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
+实施推进中，当前4/18；局部验证见已完成Task，最终重构验收仍未执行；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
 实施后仅可根据真实终态填写本次重构`READY_TO_MERGE / BLOCKED / FAILED`，并与原系统统一后端整体验收状态分别报告。

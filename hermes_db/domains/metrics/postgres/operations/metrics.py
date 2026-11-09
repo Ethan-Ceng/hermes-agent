@@ -3,7 +3,7 @@
 import json
 from datetime import timedelta
 from sqlalchemy import select
-from hermes_db.repositories import metrics as repo
+from hermes_db.domains.metrics.postgres.queries import metrics as repo
 from hermes_db.tables.metrics import state, counters
 from hermes_db.core.values import decode_text
 
