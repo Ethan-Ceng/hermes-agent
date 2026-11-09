@@ -4,7 +4,7 @@ import json
 
 from sqlalchemy import and_, literal, func, select
 
-from hermes_db.repositories import runtime
+from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.domains.sessions.postgres.queries.gateway import marker
 from hermes_db.tables.conversations import sessions as session_table

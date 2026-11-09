@@ -234,8 +234,8 @@ def _admit_api_payload(authority, adapter, sid, request_id, payload, settings, d
 
 def _target_effect(authority, sid, request_id, settings, *, client_key):
     if is_postgresql_store(authority.db):
-        from hermes_db.operations.api_binding import admit_target
-        from hermes_db.operations.effects import CoreEffect
+        from hermes_db.domains.runtime.postgres.operations.api_binding import admit_target
+        from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
         return CoreEffect(lambda conn, scope: admit_target(conn, scope, session_id=sid,
             request_id=request_id, settings_key=_SETTINGS_PREFIX + sid, settings=settings, client_key=client_key))
     return partial(_admit_target, sid, request_id, settings, client_key=client_key)

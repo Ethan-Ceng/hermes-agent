@@ -227,8 +227,8 @@ async def replace_queued(connection, ref, params):
     replay = partial(check_replaced_input, admission_id=old_id, binding=binding)
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(authority.db):
-        from hermes_db.operations import runtime_queue
-        from hermes_db.operations.effects import CoreEffect
+        from hermes_db.domains.runtime.postgres.operations import runtime_queue
+        from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
         retire = CoreEffect(lambda conn, scope: runtime_queue.retire_replaced_input(conn, scope, old_id, binding,
             target_session_id=ref.session_id))
         replay = CoreEffect(lambda conn, scope: runtime_queue.check_replaced_input(conn, scope, old_id, binding))

@@ -28,7 +28,7 @@ def local_setup(store):
     if isinstance(store, SessionDB):
         store.set_meta(POLICY_PREFIX + sid, json.dumps(receipt))
     else:
-        from hermes_db.repositories import runtime
+        from hermes_db.domains.runtime.postgres.queries import runtime
         with store._write() as conn:
             runtime.set_meta(conn, store.scope, POLICY_PREFIX + sid, json.dumps(receipt))
     store.save_gateway_routing_entry(route, json.dumps(entry.to_dict()))

@@ -50,7 +50,7 @@ class RoomCoordination:
         raise TypeError("PG room coordination requires a named Core operation")
 
     def core_read(self, operation, *args):
-        from hermes_db.repositories.runtime import require_epoch
+        from hermes_db.domains.runtime.postgres.queries.runtime import require_epoch
         with self.authority.db._transactions.read() as conn:
             require_epoch(conn, self.authority.db.scope, self.authority.epoch)
             return operation(conn, self.authority.db.scope, *args)
@@ -63,7 +63,7 @@ class RoomCoordination:
             return authorize_room(connection, self.authority.db, self.authority.epoch, subject, room_id, create=create)
 
     def owner_effect(self, subject, room_id):
-        from hermes_db.operations.effects import CoreEffect
+        from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
         def apply(conn, scope):
             if scope != self.authority.db.scope:
                 raise RuntimeStoreError("profile_mismatch")
@@ -116,7 +116,7 @@ class HostedAdmissionFence:
             self.prepared = False
 
     def effect(self):
-        from hermes_db.operations.effects import CoreEffect
+        from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
         return CoreEffect(self.apply)
 
     def apply(self, conn, scope):

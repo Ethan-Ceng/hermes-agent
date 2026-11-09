@@ -51,7 +51,7 @@ async def call(connection, scope, operation, args=(), kwargs=None, *, target=Non
 async def test_interactive_resolution_first_write_receipt_and_child_reads(pg_profiles, monkeypatch):
     from hermes_db.factory import acquire_profile_domain
     from hermes_db.operations.kanban_boards import _lookup
-    from hermes_db.operations.worker_children import reservation_effect
+    from hermes_db.domains.runtime.postgres.operations.worker_children import reservation_effect
     with pg_profiles("one") as home, closing(open_session_store(home / "state.db")) as db:
         runtime, connection, scope = setup_owner(home, db, monkeypatch)
         context = await call(connection, scope, "board.resolve")

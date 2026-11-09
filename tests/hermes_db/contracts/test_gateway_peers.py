@@ -73,7 +73,7 @@ def test_orphan_time_window_ambiguity_never_guesses_a_peer(store, monkeypatch):
 
 def test_core_messaging_takeover_settles_local_receipt_history_and_title(core_pair):
     import json
-    from hermes_db.repositories import runtime
+    from hermes_db.domains.runtime.postgres.queries import runtime
     from hermes_state_keys import local_identity
     from hermes_state_local import POLICY_PREFIX
 

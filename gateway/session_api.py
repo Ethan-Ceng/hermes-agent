@@ -36,8 +36,8 @@ def implicit_api_session(db, session_id, request_id=None):
     from hermes_state_mutation_retirement import first_generation
     from hermes_state_terminal import identity_key
     if is_postgresql_store(db):
-        from hermes_db.operations.effects import CoreEffect
-        from hermes_db.repositories import runtime
+        from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
+        from hermes_db.domains.runtime.postgres.queries import runtime
         pinned = None if not request_id else CoreEffect(
             lambda conn, scope, sid: runtime.meta(conn, scope, identity_key('api', sid, request_id)) is not None)
         return db.first_generation(partial(api_generation_id, session_id), pinned=pinned)[1]
@@ -206,7 +206,7 @@ def bind_api_steps(authority, session_id, *, hosted_dispatch=None, declared_key=
             receipt['room_generation'] = room_generation
 
     if is_postgresql_store(authority.db):
-        from hermes_db.operations.effects import CoreEffect
+        from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
         from hermes_db.integration.runtime_access import runtime_for_store
         yield partial(runtime_for_store(authority.db).bind_api_session, epoch=authority.epoch,
             receipt=receipt, storage_source=storage_source, title=title, walked_from=walked_from,

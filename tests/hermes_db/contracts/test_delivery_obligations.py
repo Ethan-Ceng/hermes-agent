@@ -12,7 +12,7 @@ def ledger(store, monkeypatch):
         from gateway import delivery_ledger
         monkeypatch.setattr(delivery_ledger, "_db_path", lambda: store.db_path)
         return delivery_ledger
-    from hermes_db.delivery_ledger import PostgresDeliveryLedger
+    from hermes_db.domains.runtime.postgres.delivery_ledger import PostgresDeliveryLedger
     return PostgresDeliveryLedger(store, instance_id="owner", lease_ttl_seconds=30)
 
 
@@ -46,7 +46,7 @@ def test_delivery_dedupes_content_and_preserves_flood_runtime_retry_budget(store
 
 def test_core_expired_claim_is_replaced_and_late_owner_cannot_settle(core_pair, monkeypatch):
     from gateway import delivery_ledger as native
-    from hermes_db.delivery_ledger import PostgresDeliveryLedger
+    from hermes_db.domains.runtime.postgres.delivery_ledger import PostgresDeliveryLedger
 
     def no_pid_probe(*args):
         raise AssertionError("a PostgreSQL claimant is not a local PID")
@@ -81,7 +81,7 @@ def test_crash_left_reply_is_deduped_and_recovered_with_marker(store, ledger, mo
 
 
 def test_core_runtime_claim_replaces_own_old_token_and_obeys_flood_adoption(core_pair, monkeypatch):
-    from hermes_db.delivery_ledger import PostgresDeliveryLedger
+    from hermes_db.domains.runtime.postgres.delivery_ledger import PostgresDeliveryLedger
     monkeypatch.setattr(time, "time", lambda: 1000000.0)
     first = PostgresDeliveryLedger(core_pair[0], instance_id="first", lease_ttl_seconds=1)
     next_boot = PostgresDeliveryLedger(core_pair[0], instance_id="next", lease_ttl_seconds=30)

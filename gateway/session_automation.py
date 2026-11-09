@@ -229,8 +229,8 @@ def _replace_queued(admission_id, session_id, replaced, *, store=None):
     replacement when that tick was claimed or settled first (its output already ran)."""
     from hermes_db.health import is_postgresql_store
     if store is not None and is_postgresql_store(store):
-        from hermes_db.operations.effects import CoreEffect
-        from hermes_db.operations.runtime_queue import replace_automation
+        from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
+        from hermes_db.domains.runtime.postgres.operations.runtime_queue import replace_automation
         return CoreEffect(lambda conn, scope: replace_automation(conn, scope, admission_id, session_id, replaced))
     def guard(conn):
         changed = conn.execute("UPDATE session_admissions SET status='terminal',outcome='cancelled' "
@@ -252,8 +252,8 @@ def _fold_queued(admission_id, session_id, replaced, skip=(), *, store=None):
     identity: its text and earlier identities ride the batch, so no fold stores them twice."""
     from hermes_db.health import is_postgresql_store
     if store is not None and is_postgresql_store(store):
-        from hermes_db.operations.effects import CoreEffect
-        from hermes_db.operations.runtime_queue import replace_automation
+        from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
+        from hermes_db.domains.runtime.postgres.operations.runtime_queue import replace_automation
         return CoreEffect(lambda conn, scope: replace_automation(conn, scope, admission_id, session_id, replaced,
             fold=True, skip=skip))
     replace = _replace_queued(admission_id, session_id, replaced)

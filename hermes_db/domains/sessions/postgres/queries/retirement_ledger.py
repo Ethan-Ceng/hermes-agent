@@ -5,7 +5,7 @@ import time
 
 from sqlalchemy import select
 
-from hermes_db.repositories import runtime
+from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.tables.runtime import session_admissions, worker_executions, worker_receipts
 from hermes_state_keys import admission_fingerprint
 from hermes_state_terminal import ADMISSION_PREFIX, RESULT_PREFIX, WORKER_PREFIX, encode_result, identity_key, load_result

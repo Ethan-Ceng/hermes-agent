@@ -12,7 +12,7 @@ from hermes_cli.observability.shared_metrics import SharedMetricsStore
 from hermes_db.domains.metrics.api import open_metrics
 from hermes_db.domains.metrics.bound import bound_store
 from hermes_db.errors import UnknownCommitError
-from hermes_db.operations import worker_metrics_engagement as intents
+from hermes_db.domains.runtime.postgres.operations import worker_metrics_engagement as intents
 from hermes_db.domains.metrics.postgres.queries import metrics as repo
 from tests.hermes_db.postgresql.test_metrics_store import DAY, RESOURCE
 from tests.hermes_db.postgresql.test_worker_domain_receipts import assignment

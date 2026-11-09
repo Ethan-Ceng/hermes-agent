@@ -44,7 +44,7 @@ class RetryRewrite:
             if scope is None:
                 self.write(conn)
             else:
-                from hermes_db.operations.effects import invoke
+                from hermes_db.domains.runtime.postgres.operations.effects import invoke
                 invoke(self.write, conn, scope)
         except (RuntimeStoreError, StorageError, sqlite3.OperationalError):
             raise  # gate refusals and writer contention keep their own handling
@@ -82,7 +82,7 @@ def compose(rewrite: Optional[RetryRewrite], authorize):
         return authorize
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(rewrite.db):
-        from hermes_db.operations.effects import CoreEffect, invoke
+        from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect, invoke
 
         def native(conn, scope):
             invoke(authorize, conn, scope)

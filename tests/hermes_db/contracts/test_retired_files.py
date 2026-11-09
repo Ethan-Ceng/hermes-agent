@@ -22,7 +22,7 @@ def test_core_spillover_cleanup_keeps_shared_branch_pointer_until_last_owner(cor
 
 def test_core_retired_media_keeps_live_input_then_releases_under_own_profile(core_pair):
     import hashlib
-    from hermes_db.runtime_store import PostgresRuntimeStore
+    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
     from gateway.session_ingress_media import native_inputs_root
 
     store, other = core_pair

@@ -7,7 +7,7 @@ import time
 from sqlalchemy import select
 
 from hermes_db.domains.sessions.postgres.queries import retirement_fences as fences
-from hermes_db.repositories import runtime
+from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.domains.sessions.postgres.queries.gateway import marker
 from hermes_db.tables.conversations import sessions
 from hermes_state_local import POLICY_PREFIX

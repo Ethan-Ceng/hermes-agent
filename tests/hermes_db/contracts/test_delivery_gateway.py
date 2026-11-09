@@ -12,7 +12,7 @@ async def test_core_gateway_uses_process_scope_and_retains_claim_across_send(cor
     from gateway.platforms.base import SendResult
     from hermes_cli import db_setup
     from hermes_db import factory
-    from hermes_db.delivery_claim import DeliveryClaim
+    from hermes_db.domains.runtime.postgres.delivery_claim import DeliveryClaim
     from hermes_db.handle import DatabaseHandle
     from hermes_db.settings import DatabaseSettings, PostgresSettings
     from tests.gateway.test_delivery_ledger_process_home import _ServedAdapter, _runner
@@ -80,7 +80,7 @@ async def test_core_gateway_uses_process_scope_and_retains_claim_across_send(cor
 
 
 def test_core_delivery_unknown_commit_keeps_uncertain_send_marked(core_pair, monkeypatch):
-    from hermes_db.delivery_ledger import PostgresDeliveryLedger
+    from hermes_db.domains.runtime.postgres.delivery_ledger import PostgresDeliveryLedger
     from hermes_db.errors import UnknownCommitError
     owner = core_pair[0]
     monkeypatch.setattr(time, "time", lambda: 1000000.0)
@@ -105,8 +105,8 @@ def test_core_delivery_unknown_commit_keeps_uncertain_send_marked(core_pair, mon
 
 
 def test_core_delivery_rollback_never_leaves_a_partial_obligation(core_pair, monkeypatch):
-    from hermes_db.delivery_ledger import PostgresDeliveryLedger
-    from hermes_db.repositories import deliveries
+    from hermes_db.domains.runtime.postgres.delivery_ledger import PostgresDeliveryLedger
+    from hermes_db.domains.runtime.postgres.queries import deliveries
     ledger = PostgresDeliveryLedger(core_pair[0])
 
     def fail(*args):

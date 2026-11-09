@@ -85,7 +85,7 @@ def test_core_move_keeps_source_owned_spillover_after_donor_retirement(core_pair
 
 def test_core_pg_move_rejects_sqlite_snapshot_and_ledgered_source(core_pair, tmp_path):
     from hermes_db.errors import StorageConfigurationError
-    from hermes_db.runtime_store import PostgresRuntimeStore
+    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
     import pickle
     import subprocess
     import sys

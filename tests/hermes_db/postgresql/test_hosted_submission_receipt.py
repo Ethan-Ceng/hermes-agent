@@ -39,7 +39,7 @@ async def test_room_fence_and_admission_are_atomic_and_replay_lost_confirmation(
     from gateway.session_hosted_service import CanonicalHostedRoomService
     from gateway.session_hosted_storage import HostedAdmissionFence
     from hermes_db.errors import UnknownCommitError
-    from hermes_db.repositories.runtime import set_meta
+    from hermes_db.domains.runtime.postgres.queries.runtime import set_meta
     from hermes_db.integration.runtime_access import runtime_for_store
     from hermes_state_runtime import RuntimeStoreError
     from tui_gateway.hosted_room_driver import HostedRoomBinding

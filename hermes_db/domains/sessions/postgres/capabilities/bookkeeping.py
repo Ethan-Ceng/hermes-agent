@@ -3,7 +3,7 @@
 from sqlalchemy import or_, select
 
 from hermes_db.domains.sessions.postgres.queries import messages
-from hermes_db.repositories import runtime
+from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.tables.conversations import sessions
 from hermes_db.tables.runtime import state_meta
 

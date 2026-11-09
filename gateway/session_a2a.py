@@ -108,8 +108,8 @@ async def forward(connection, params):
     derive = lambda n: local_identity(persisted_profile_id(authority), actor.subject, request_id(n))
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(authority.db):
-        from hermes_db.operations.effects import CoreEffect
-        from hermes_db.repositories import runtime
+        from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
+        from hermes_db.domains.runtime.postgres.queries import runtime
         pinned = CoreEffect(lambda conn, scope, sid:
             runtime.meta(conn, scope, identity_key(actor.subject, sid, params['input_id'])) is not None)
         generation, sid = authority.db.first_generation(derive, pinned=pinned)

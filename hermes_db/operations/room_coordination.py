@@ -3,7 +3,8 @@
 from sqlalchemy import select
 from gateway.owner_identity import same_owner
 from gateway import hosted_rooms as native, hosted_room_driver as driver
-from hermes_db.repositories import runtime, rooms as room_repo, room_runs
+from hermes_db.domains.runtime.postgres.queries import runtime
+from hermes_db.repositories import rooms as room_repo, room_runs
 from hermes_db.tables.runtime import state_meta
 from hermes_db.tables.rooms import rooms, retired
 from hermes_state_runtime import RuntimeStoreError

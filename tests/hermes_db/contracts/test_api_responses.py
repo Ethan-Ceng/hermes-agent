@@ -13,7 +13,7 @@ def response_factory(store):
             from gateway.platforms.api_server_response_store import ResponseStore
             child = ResponseStore(db_path=str(store.db_path.parent / "response_store.db"), **options)
         else:
-            from hermes_db.response_store import PostgresResponseStore
+            from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
             child = PostgresResponseStore(store, **options)
         children.append(child)
         return child

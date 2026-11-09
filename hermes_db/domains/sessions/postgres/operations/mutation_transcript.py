@@ -6,7 +6,7 @@ import uuid
 from hermes_db.domains.sessions.postgres.support.message_codec import codec
 from hermes_db.domains.sessions.postgres.operations import compression, compression_publish, messages as writes, mutation_policy, retirement_guards
 from hermes_db.domains.sessions.postgres.queries import lineage, messages, retirement, sessions
-from hermes_db.repositories import worker_retirement
+from hermes_db.domains.runtime.postgres.queries import worker_retirement
 from hermes_db.tables.conversations import sessions as table
 from hermes_state_mutations import COMPACTED_TARGET_DETAIL
 from hermes_state_runtime import RuntimeStoreError
@@ -35,7 +35,7 @@ def reset(conn, scope, session_id, payload):
     from gateway.session import SessionEntry
     from gateway.session_lifecycle import _now
     from hermes_state_local import POLICY_PREFIX
-    from hermes_db.repositories import runtime
+    from hermes_db.domains.runtime.postgres.queries import runtime
     import json
 
     raw = runtime.meta(conn, scope, POLICY_PREFIX + session_id)

@@ -14,7 +14,7 @@ from hermes_state_runtime import RuntimeStoreError
 
 
 def physical_target(conn, scope, session_id):
-    from hermes_db.repositories.runtime import meta
+    from hermes_db.domains.runtime.postgres.queries.runtime import meta
     raw = meta(conn, scope, POLICY_PREFIX + session_id)
     if raw is None:
         return session_id
@@ -33,8 +33,8 @@ def validate_local_receipt(conn, scope, receipt, session_id):
     if receipt["session_id"] != session_id:
         raise RuntimeStoreError("storage_unavailable")
     if "history_session_id" in receipt:
-        from hermes_db.operations.current_history import CLAIM_PREFIX, claim_value
-        from hermes_db.repositories.runtime import meta
+        from hermes_db.domains.runtime.postgres.operations.current_history import CLAIM_PREFIX, claim_value
+        from hermes_db.domains.runtime.postgres.queries.runtime import meta
         if receipt["history_session_id"] != session_id or meta(conn, scope, CLAIM_PREFIX + session_id) != claim_value(receipt):
             raise RuntimeStoreError("storage_unavailable")
     elif session_id != local_identity(receipt["profile_id"], receipt["principal_id"], receipt["request_id"]):
@@ -60,7 +60,7 @@ def validate_local_receipt(conn, scope, receipt, session_id):
 
 
 def runtime_targets(conn, scope, session_id):
-    from hermes_db.repositories.runtime import meta
+    from hermes_db.domains.runtime.postgres.queries.runtime import meta
     targets = {session_id, physical_target(conn, scope, session_id)}
     current = sessions.raw_session(conn, scope, session_id)
     if current and current["chat_id"]:
@@ -76,7 +76,7 @@ def runtime_targets(conn, scope, session_id):
 
 
 def advance_local_target(conn, scope, parent_session_id, child_session_id, *, entry=None):
-    from hermes_db.repositories.runtime import meta, set_meta
+    from hermes_db.domains.runtime.postgres.queries.runtime import meta, set_meta
     from hermes_db.tables.gateway import gateway_routing
     from hermes_state_runtime import _json
 

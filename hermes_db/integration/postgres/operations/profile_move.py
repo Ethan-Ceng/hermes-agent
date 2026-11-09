@@ -13,7 +13,7 @@ from hermes_db.integration.transfer.move_values import imported_key, prepared_ke
 from hermes_db.integration.postgres.operations import file_grants
 from hermes_db.domains.sessions.postgres.operations import retirement, retirement_guards as guards, sessions as lifecycle
 from hermes_db.domains.sessions.postgres.queries import messages as transcript, prompts, sessions
-from hermes_db.repositories import runtime
+from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.integration.postgres.queries import profile_move as repo
 from hermes_db.scope import DatabaseScope
 from hermes_db.tables.conversations import messages, session_model_usage, sessions as table

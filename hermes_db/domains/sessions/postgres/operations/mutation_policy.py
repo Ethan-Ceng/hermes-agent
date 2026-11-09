@@ -6,7 +6,7 @@ from sqlalchemy import func, select
 
 from hermes_db.domains.sessions.postgres.operations import retirement_guards
 from hermes_db.domains.sessions.postgres.queries import lineage, retirement, sessions
-from hermes_db.repositories import runtime
+from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.tables.conversations import sessions as table
 from hermes_db.tables.runtime import state_meta
 from hermes_db.core.values import model_config

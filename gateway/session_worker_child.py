@@ -97,7 +97,7 @@ async def worker_child_request(connection, ref, params):
         reservation = reserve_child_execution
         from hermes_db.health import is_postgresql_store
         if is_postgresql_store(authority.db):
-            from hermes_db.operations.worker_children import reservation_effect
+            from hermes_db.domains.runtime.postgres.operations.worker_children import reservation_effect
             reservation = reservation_effect
         handler = partial(reservation, epoch=params['epoch'], execution_id=params['execution_id'],
                           identity={key: params[key] for key in ('profile_id', 'pid', 'birth')},

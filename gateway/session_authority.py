@@ -600,7 +600,7 @@ class SessionAuthority:
         native_write_started.set(True)  # shielded from here: a cancelled caller may still commit
         from hermes_db.health import is_postgresql_store
         if fence is not None and is_postgresql_store(self.db):
-            from hermes_db.operations.effects import CoreEffect
+            from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
             route_fence = fence
             fence = CoreEffect(lambda conn, scope: route_fence())
         return await tracked_write(self, partial(

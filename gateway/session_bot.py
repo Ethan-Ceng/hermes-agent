@@ -413,7 +413,7 @@ def _bot_chat_creation_id(authority, actor):
     derive = lambda n: local_identity(persisted_profile_id(authority), actor.subject, request_id(n))
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(authority.db):
-        from hermes_db.operations.effects import CoreEffect
+        from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
         from hermes_db.domains.sessions.postgres.queries import sessions
 
         def native_spent(conn, scope, sid):

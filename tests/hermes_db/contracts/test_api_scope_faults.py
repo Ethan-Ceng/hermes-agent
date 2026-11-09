@@ -6,7 +6,7 @@ import pytest
 
 
 def test_core_response_api_scopes_and_stores_never_share_identity_or_bodies(core_pair):
-    from hermes_db.response_store import PostgresResponseStore
+    from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
     first, second = core_pair
     stores = [PostgresResponseStore(first, api_scope="one"), PostgresResponseStore(first, api_scope="two"),
               PostgresResponseStore(second, api_scope="one")]
@@ -28,7 +28,7 @@ def test_core_response_api_scopes_and_stores_never_share_identity_or_bodies(core
 
 
 def test_core_run_status_updates_require_authenticated_scope_and_store(core_pair):
-    from hermes_db.run_idempotency_store import PostgresRunIdempotencyStore
+    from hermes_db.domains.runtime.postgres.idempotency import PostgresRunIdempotencyStore
     stores = [PostgresRunIdempotencyStore(store) for store in core_pair]
     try:
         for store in stores:
@@ -44,8 +44,8 @@ def test_core_run_status_updates_require_authenticated_scope_and_store(core_pair
 
 
 def test_core_response_failed_eviction_rolls_back_body_and_settlement(core_pair, monkeypatch):
-    from hermes_db.response_store import PostgresResponseStore
-    from hermes_db.operations import api
+    from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
+    from hermes_db.domains.runtime.postgres.operations import api
     store = PostgresResponseStore(core_pair[0])
     try:
         store.bind_request_key("idem:key", "digest")
@@ -65,7 +65,7 @@ def test_core_response_failed_eviction_rolls_back_body_and_settlement(core_pair,
 
 def test_core_run_lost_commit_ack_is_observed_by_original_key_without_reserving_again(core_pair, monkeypatch):
     from hermes_db.errors import UnknownCommitError
-    from hermes_db.run_idempotency_store import PostgresRunIdempotencyStore
+    from hermes_db.domains.runtime.postgres.idempotency import PostgresRunIdempotencyStore
     sessions, _ = core_pair
     store = PostgresRunIdempotencyStore(sessions)
     original = sessions._write
@@ -90,8 +90,8 @@ def test_core_run_lost_commit_ack_is_observed_by_original_key_without_reserving_
 
 def test_core_response_identity_settles_from_same_store_retired_admission_without_observer(core_pair):
     from gateway.platforms.api_server_response_identity import durable_response_id
-    from hermes_db.response_store import PostgresResponseStore
-    from hermes_db.runtime_store import PostgresRuntimeStore
+    from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
+    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
 
     sessions, _ = core_pair
     sessions.create_session("s", "api_server")
@@ -113,8 +113,8 @@ def test_core_response_identity_settles_from_same_store_retired_admission_withou
 
 
 def test_core_response_pointer_repair_uses_existing_transaction_and_never_reopens_canonical_store(core_pair, monkeypatch):
-    from hermes_db.response_store import PostgresResponseStore
-    from hermes_db.runtime_store import PostgresRuntimeStore
+    from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
+    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
     from hermes_state_runtime import RuntimeStoreError
 
     sessions, _ = core_pair
@@ -144,7 +144,7 @@ def test_core_response_pointer_repair_uses_existing_transaction_and_never_reopen
 async def test_core_api_off_loop_binds_owner_and_closed_child_keeps_parent_open(core_pair):
     from hermes_constants import get_hermes_home
     from hermes_db.errors import StorageClosedError
-    from hermes_db.response_store import PostgresResponseStore
+    from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
 
     first, second = core_pair
     response = PostgresResponseStore(first)
@@ -159,8 +159,8 @@ async def test_core_api_off_loop_binds_owner_and_closed_child_keeps_parent_open(
 
 def test_core_api_connection_failure_never_creates_memory_identity(core_pair, monkeypatch):
     from hermes_db.errors import StorageUnavailableError
-    from hermes_db.response_store import PostgresResponseStore
-    from hermes_db.run_idempotency_store import PostgresRunIdempotencyStore
+    from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
+    from hermes_db.domains.runtime.postgres.idempotency import PostgresRunIdempotencyStore
 
     sessions, _ = core_pair
     runs = PostgresRunIdempotencyStore(sessions)

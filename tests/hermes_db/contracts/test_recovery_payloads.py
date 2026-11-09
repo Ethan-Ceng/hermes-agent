@@ -4,7 +4,7 @@ import json
 
 
 def test_webhook_recovery_preserves_nul_and_automation_presence(core_pair):
-    from hermes_db.runtime_store import PostgresRuntimeStore
+    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
 
     store, other = core_pair
     runtime = PostgresRuntimeStore(store)
@@ -32,7 +32,7 @@ def test_webhook_recovery_preserves_nul_and_automation_presence(core_pair):
 
 
 def test_webhook_recovery_scans_past_a_full_unrelated_batch(core_pair):
-    from hermes_db.runtime_store import PostgresRuntimeStore
+    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
 
     store, _ = core_pair
     runtime = PostgresRuntimeStore(store)

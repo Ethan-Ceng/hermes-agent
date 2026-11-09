@@ -106,7 +106,7 @@ def test_old_activity_and_continue_cannot_take_new_discussion(pg_profiles):
 
 def test_closed_admission_persists_and_races_reserve_in_own_scope(pg_pair):
     from concurrent.futures import ThreadPoolExecutor
-    from hermes_db.run_idempotency_store import PostgresRunIdempotencyStore
+    from hermes_db.domains.runtime.postgres.idempotency import PostgresRunIdempotencyStore
     owner, peer = map(PostgresRunIdempotencyStore, pg_pair)
     assert owner.find_or_close('scope', 'closed') == ('closed', None)
     assert owner.find_or_close('scope', 'closed') == ('closed', None)

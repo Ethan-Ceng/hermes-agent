@@ -156,7 +156,7 @@ def close_discarded_turn(db, conn, row, notice=None, *, replace_after=None, disp
     ``display_metadata`` (``{error, error_surface}``) rides the boundary so a reopened chat redraws
     the turn's error card from history (``agent.conversation_loop._failed_turn_display_metadata``)."""
     if is_postgresql_store(db):
-        from hermes_db.operations.terminal_boundary import close_discarded
+        from hermes_db.domains.runtime.postgres.operations.terminal_boundary import close_discarded
         return close_discarded(conn, db.scope, row, notice, replace_after=replace_after, display_metadata=display_metadata)
     import time
     from agent.turn_failure_copy import FAILED_TURN_DISPLAY_KIND, PARTIAL_FAILED_TURN_NOTICE

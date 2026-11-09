@@ -30,7 +30,7 @@ def open_response_store(home, sqlite_factory, *, launch=False):
     settings, scope = resolve_db_configuration(home)
     if settings.backend == "sqlite":
         return sqlite_factory() if launch else sqlite_factory(db_path=str(scope.profile_home / "response_store.db"))
-    from hermes_db.response_store import PostgresResponseStore
+    from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
     resource = SessionResource(acquire_db(settings, scope))
     try:
         store = PostgresResponseStore(resource.session_store, initialize=False)
@@ -46,7 +46,7 @@ def open_run_store(home, sqlite_factory, *, launch=False):
     settings, scope = resolve_db_configuration(home)
     if settings.backend == "sqlite":
         return sqlite_factory() if launch else sqlite_factory(db_path=str(scope.profile_home / "runs_idempotency.db"))
-    from hermes_db.run_idempotency_store import PostgresRunIdempotencyStore
+    from hermes_db.domains.runtime.postgres.idempotency import PostgresRunIdempotencyStore
     resource = SessionResource(acquire_db(settings, scope))
     try:
         store = PostgresRunIdempotencyStore(resource.session_store)

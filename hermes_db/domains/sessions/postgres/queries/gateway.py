@@ -5,7 +5,7 @@ import json
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 
-from hermes_db.repositories import runtime
+from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.gateway import gateway_routing as routes
 from hermes_db.tables.runtime import state_meta

@@ -6,7 +6,7 @@ from hermes_state_runtime import RuntimeStoreError
 
 
 def _ledger(store):
-    from hermes_db.runtime_store import PostgresRuntimeStore
+    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
     return PostgresRuntimeStore(store).delegations
 
 

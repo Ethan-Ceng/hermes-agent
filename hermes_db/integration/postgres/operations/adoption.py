@@ -8,7 +8,7 @@ from hermes_db.integration.postgres.operations import file_grants, portability
 from hermes_db.domains.sessions.postgres.operations import retirement_guards as guards
 from hermes_db.integration.transfer.portability_values import values
 from hermes_db.domains.sessions.postgres.queries import messages, sessions
-from hermes_db.repositories import runtime
+from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.integration.postgres.queries import profile_move
 from hermes_db.integration.transfer.session_capabilities.portability import _export
 

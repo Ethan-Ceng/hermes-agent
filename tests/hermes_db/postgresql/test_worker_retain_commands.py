@@ -23,7 +23,7 @@ def enqueue_payload(content='队列\x00🙂'):
 
 
 def test_retain_enqueue_rolls_back_with_receipt_and_recovers_actual_commit_confirmation(pg_store, monkeypatch):
-    from hermes_db.operations import workers
+    from hermes_db.domains.runtime.postgres.operations import workers
     runtime, args = assignment(pg_store)
     payload = enqueue_payload()
     command = dict(**args, sequence=1, operation='domain.retain_queue.enqueue', payload=payload)

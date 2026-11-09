@@ -13,7 +13,7 @@ from hermes_cli.observability import relay_shared_metrics as shared
 from hermes_cli.observability.shared_metrics_contract import CLIENT_ACTIVE_MARK
 from hermes_cli.observability.worker_metrics_shutdown import quiesce
 from hermes_db.errors import UnknownCommitError
-from hermes_db.worker_metrics_store import WorkerMetricsStore
+from hermes_db.domains.runtime.postgres.capabilities.worker_metrics_store import WorkerMetricsStore
 from tests.hermes_db.postgresql.test_worker_domain_receipts import assignment
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]

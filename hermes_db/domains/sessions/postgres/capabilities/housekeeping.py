@@ -77,7 +77,7 @@ class SessionHousekeeping:
             return retirement_housekeeping.has_receipt(conn, self.scope, principal_id, session_id, request_id)
 
     def first_generation(self, derive, *, pinned=None, spent=None):
-        from hermes_db.operations.effects import invoke
+        from hermes_db.domains.runtime.postgres.operations.effects import invoke
         generation = 0
         with self._profile.activate(), self._read() as conn:
             while True:

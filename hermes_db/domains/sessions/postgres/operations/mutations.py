@@ -5,9 +5,9 @@ import time
 from copy import deepcopy
 
 from hermes_db.domains.sessions.postgres.operations import mutation_policy, retirement, retirement_guards, sessions as lifecycle, titles
-from hermes_db.operations.effects import invoke
+from hermes_db.domains.runtime.postgres.operations.effects import invoke
 from hermes_db.domains.sessions.postgres.queries import retirement as target_repo, sessions
-from hermes_db.repositories import runtime
+from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.tables.conversations import sessions as table
 from hermes_db.core.values import decode_text
 from hermes_state_mutations import validate_action

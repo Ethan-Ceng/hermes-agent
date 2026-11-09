@@ -6,7 +6,7 @@ import json
 from sqlalchemy import select
 
 from hermes_db.errors import StorageError
-from hermes_db.repositories import runtime
+from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.tables.runtime import state_meta
 
 OWNED = "hermes:files:owned-grant:"

@@ -6,7 +6,7 @@ import time
 from sqlalchemy import select
 
 from hermes_db.domains.sessions.postgres.queries import gateway
-from hermes_db.repositories import runtime
+from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.tables.gateway import gateway_routing
 from hermes_db.tables.runtime import state_meta
 from hermes_state_local import API_BINDING_PREFIX, API_DECLARED_PREFIX, POLICY_PREFIX

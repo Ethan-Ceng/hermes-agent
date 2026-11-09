@@ -75,8 +75,8 @@ def test_pg_response_acquisition_refusal_never_uses_a_file_store(core_pair, unav
 
 def test_native_admission_lookup_reuses_the_response_connection_and_rejects_another_scope(core_pair, monkeypatch):
     from gateway.platforms.api_server_response_admissions import _lookup_admission
-    from hermes_db.response_store import PostgresResponseStore
-    from hermes_db.runtime_store import PostgresRuntimeStore
+    from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
+    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
     from hermes_state_runtime import RuntimeStoreError
     db, other = core_pair
     db.create_session("s", "api_server")

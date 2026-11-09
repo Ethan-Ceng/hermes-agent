@@ -46,7 +46,7 @@ def _handle(key, entry):
 
 
 def _build(key, entry):
-    from hermes_db.runtime_store import PostgresRuntimeStore
+    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
     try:
         store = _construct_store(key.settings, key.scope)
         try:

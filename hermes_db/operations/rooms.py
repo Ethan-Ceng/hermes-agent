@@ -3,7 +3,7 @@
 from sqlalchemy import func, select
 from gateway import hosted_rooms as native
 from gateway.hosted_rooms_common import clock
-from hermes_db.operations import effects
+from hermes_db.domains.runtime.postgres.operations import effects
 from hermes_db.operations.room_retention import event_size
 from hermes_db.repositories import rooms as repo
 from hermes_db.tables.rooms import rooms, events, retired

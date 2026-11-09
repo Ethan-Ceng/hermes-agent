@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from hermes_db.domains.sessions.postgres.operations import housekeeping, retirement, retirement_guards, sessions as session_ops, titles
 from hermes_db.domains.sessions.postgres.queries import retention, retirement_housekeeping, sessions
-from hermes_db.repositories import runtime
+from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.domains.sessions.postgres.queries import session_queries
 from hermes_db.tables.conversations import sessions as table
 from hermes_db.tables.gateway import gateway_heartbeats

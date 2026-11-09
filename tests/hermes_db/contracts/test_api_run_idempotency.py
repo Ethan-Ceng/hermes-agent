@@ -15,7 +15,7 @@ def run_store_factory(store):
             from gateway.platforms.api_server_run_idempotency import RunIdempotencyStore
             child = RunIdempotencyStore(str(store.db_path.parent / "runs_idempotency.db"))
         else:
-            from hermes_db.run_idempotency_store import PostgresRunIdempotencyStore
+            from hermes_db.domains.runtime.postgres.idempotency import PostgresRunIdempotencyStore
             child = PostgresRunIdempotencyStore(store)
         children.append(child)
         return child

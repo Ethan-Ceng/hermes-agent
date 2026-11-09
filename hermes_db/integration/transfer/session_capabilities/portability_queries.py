@@ -5,7 +5,7 @@ import json
 from sqlalchemy import func, select
 
 from hermes_db.domains.sessions.postgres.support.message_codec import content_from_bytes
-from hermes_db.repositories import runtime
+from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.domains.sessions.postgres.queries import session_queries, sessions
 from hermes_db.tables.conversations import messages, sessions as table
 from hermes_db.tables.runtime import session_admissions

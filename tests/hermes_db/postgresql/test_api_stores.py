@@ -14,7 +14,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 
 @pytest.fixture
 def pg_response_factory(pg_store):
-    from hermes_db.response_store import PostgresResponseStore
+    from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
     children = []
 
     def create(**options):
@@ -29,7 +29,7 @@ def pg_response_factory(pg_store):
 
 @pytest.fixture
 def pg_run_factory(pg_store):
-    from hermes_db.run_idempotency_store import PostgresRunIdempotencyStore
+    from hermes_db.domains.runtime.postgres.idempotency import PostgresRunIdempotencyStore
     children = []
 
     def create():
@@ -91,7 +91,7 @@ def _race(*actions):
 
 
 def test_parallel_run_reservation_has_one_owner(pg_store):
-    from hermes_db.run_idempotency_store import PostgresRunIdempotencyStore
+    from hermes_db.domains.runtime.postgres.idempotency import PostgresRunIdempotencyStore
     first, second = PostgresRunIdempotencyStore(pg_store), PostgresRunIdempotencyStore(pg_store)
     try:
         result = _race(lambda: first.reserve("scope", "key", "digest", "first", {"status": "queued"}),
@@ -104,7 +104,7 @@ def test_parallel_run_reservation_has_one_owner(pg_store):
 
 
 def test_parallel_output_indexes_have_one_order(pg_store):
-    from hermes_db.response_store import PostgresResponseStore
+    from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
     store = PostgresResponseStore(pg_store)
     try:
         store.bind_request_key("idem:key", "digest")
@@ -115,7 +115,7 @@ def test_parallel_output_indexes_have_one_order(pg_store):
 
 
 def test_parallel_terminal_observers_keep_first_envelope(pg_store):
-    from hermes_db.response_store import PostgresResponseStore
+    from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
     store = PostgresResponseStore(pg_store)
     try:
         store.bind_request_key("idem:key", "digest")

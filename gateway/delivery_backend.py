@@ -19,7 +19,7 @@ def postgres_ledger():
     with _lock:
         if key not in _ledgers:
             from hermes_db.factory import acquire_db
-            from hermes_db.delivery_ledger import PostgresDeliveryLedger
+            from hermes_db.domains.runtime.postgres.delivery_ledger import PostgresDeliveryLedger
 
             handle = acquire_db(settings, scope)
             try:

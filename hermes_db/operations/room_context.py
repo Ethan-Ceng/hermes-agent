@@ -3,7 +3,7 @@
 import json
 from sqlalchemy import select
 from gateway import hosted_room_context as native, hosted_rooms as rooms
-from hermes_db.operations.effects import CoreEffect
+from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
 from hermes_db.operations.rooms import append_event
 from hermes_db.repositories import rooms as repo
 from hermes_db.tables.rooms import events

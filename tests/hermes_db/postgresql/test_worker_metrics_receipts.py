@@ -20,7 +20,7 @@ def counter():
 
 
 def test_metric_effect_receipt_rollback_actual_commit_loss_and_peer_scope(pg_pair, monkeypatch):
-    from hermes_db.operations import workers
+    from hermes_db.domains.runtime.postgres.operations import workers
 
     first, peer = pg_pair
     runtime, args = assignment(first)

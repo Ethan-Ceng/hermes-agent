@@ -21,7 +21,7 @@ def pending_target_ids(db, statuses):
 
 def import_history_effect(db, actor, session_ids):
     if is_postgresql_store(db):
-        from hermes_db.operations.effects import CoreEffect
+        from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
         from hermes_db.domains.sessions.postgres.queries.mutation_binding import import_history_control
         return CoreEffect(lambda conn, scope: import_history_control(conn, scope, actor, session_ids))
     from functools import partial

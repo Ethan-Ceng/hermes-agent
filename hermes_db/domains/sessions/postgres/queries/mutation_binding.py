@@ -2,7 +2,7 @@
 
 import json
 
-from hermes_db.repositories import runtime
+from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_state_mutation_binding import BINDING_PREFIX, _history_row, _owner_user
 from hermes_state_runtime import RuntimeStoreError

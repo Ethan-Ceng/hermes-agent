@@ -172,7 +172,7 @@ def test_refused_turn_keeps_display_and_reopens_without_model_input(pg_pair):
 
 
 def test_worker_tool_root_and_marked_delegate_reads(pg_store):
-    from hermes_db.operations.worker_compression_reads import lineage
+    from hermes_db.domains.runtime.postgres.operations.worker_compression_reads import lineage
     from hermes_state_delegate_children import delegate_descendant_ids
     from tools.delegate_tool_sessions import stored_child_session
     pg_store.create_session('parent', 'cli')

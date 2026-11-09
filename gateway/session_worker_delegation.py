@@ -197,7 +197,7 @@ def persist_worker_delegation(db, *, epoch, execution_id, session_id, generation
     from hermes_db.integration.runtime_calls import apply_worker_receipt
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(db):
-        from hermes_db.operations.worker_delegations import verify_owner
+        from hermes_db.domains.runtime.postgres.operations.worker_delegations import verify_owner
         from hermes_db.integration.runtime_access import runtime_for_store
         owner = verify_owner(execution_id, worker_pid, worker_birth)
         return runtime_for_store(db).persist_delegation(owner=owner, epoch=epoch, execution_id=execution_id,

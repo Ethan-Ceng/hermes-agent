@@ -6,7 +6,7 @@ from hermes_state_runtime import RuntimeStoreError
 
 
 def _registered(store):
-    from hermes_db.runtime_store import PostgresRuntimeStore
+    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
     store.create_session("s", "cli")
     runtime = PostgresRuntimeStore(store)
     epoch = runtime.begin_epoch(instance_id="owner")
@@ -16,7 +16,7 @@ def _registered(store):
 
 
 def test_receipt_failure_rolls_back_transcript_counters_and_sequence(core_pair, monkeypatch):
-    from hermes_db.operations import workers
+    from hermes_db.domains.runtime.postgres.operations import workers
     store = core_pair[0]
     runtime, assignment = _registered(store)
     args = dict(**assignment, sequence=1, operation="transcript.append",
@@ -36,7 +36,7 @@ def test_receipt_failure_rolls_back_transcript_counters_and_sequence(core_pair, 
 
 
 def test_child_reservation_capacity_and_parent_finish_close_children(core_pair):
-    from hermes_db.operations.worker_children import reservation_effect
+    from hermes_db.domains.runtime.postgres.operations.worker_children import reservation_effect
     store = core_pair[0]
     runtime, assignment = _registered(store)
     handlers = {"child.reserve": reservation_effect(epoch=assignment["epoch"], execution_id="worker",

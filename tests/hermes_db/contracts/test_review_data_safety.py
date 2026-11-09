@@ -58,7 +58,7 @@ def test_move_allows_recipient_append_without_losing_imported_prefix(core_pair):
 
 @pytest.mark.parametrize('in_place', [True, False])
 def test_prepared_compression_refuses_late_public_append(core_pair, in_place):
-    from hermes_db.runtime_store import PostgresRuntimeStore
+    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
     from tests.hermes_db.contracts.test_prepared_mutations import local_setup
     db = core_pair[0]
     runtime = PostgresRuntimeStore(db)

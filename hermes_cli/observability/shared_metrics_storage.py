@@ -8,7 +8,7 @@ def postgres_store(cls, profile_home):
     from .shared_metrics import SharedMetricsStore
     from agent.runtime_domain_store import worker_resource
     if cls is SharedMetricsStore and worker_resource('metrics', profile_home=profile_home) is not None:
-        from hermes_db.worker_metrics_store import WorkerMetricsStore
+        from hermes_db.domains.runtime.postgres.capabilities.worker_metrics_store import WorkerMetricsStore
         return object.__new__(WorkerMetricsStore)
     if cls is SharedMetricsStore and storage_backend(profile_home) == "postgresql":
         from hermes_db.domains.metrics.postgres.store import PostgresMetricsStore

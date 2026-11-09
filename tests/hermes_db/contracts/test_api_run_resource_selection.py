@@ -98,7 +98,7 @@ def test_native_api_auth_namespace_survives_local_home_and_profile_label_changes
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
     from hermes_db.scope import DatabaseScope
     from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
-    from hermes_db.response_store import PostgresResponseStore
+    from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
     first, other = core_pair
     alias = PostgresSessionStore(first._transactions, DatabaseScope(tmp_path / "renamed", first.scope.store_id))
     api = SimpleNamespace(_api_request_profile=ContextVar("profile-label", default="alpha"))
@@ -131,7 +131,7 @@ def test_native_run_poll_uses_epoch_recovery_and_never_local_pid_liveness(native
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
     from hermes_db import factory
     from hermes_db.integration.run_resources import ProfileRunStores
-    from hermes_db.runtime_store import PostgresRuntimeStore
+    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
     db = core_pair[0]
     registry, _ = native_registry
     monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope))

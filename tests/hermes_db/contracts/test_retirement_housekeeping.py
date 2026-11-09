@@ -77,7 +77,7 @@ def test_never_active_sweep_keeps_leased_candidates_and_counts_only_removed_rout
 
 
 def test_core_derived_generation_walk_keeps_passed_expiring_fences(core_pair, monkeypatch):
-    from hermes_db.operations.effects import CoreEffect
+    from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
 
     store, other = core_pair
     monkeypatch.setattr(time, "time", lambda: 1000000.0)
@@ -106,7 +106,7 @@ def test_core_empty_sweep_keeps_closed_ancestor_while_descendant_holds_root_leas
     assert store.get_compression_lineage("child") == ["root", "child"]
     assert not store.try_acquire_session_turn_lease("root", "other")
     store.release_session_turn_lease("child", "holder")
-    from hermes_db.runtime_store import PostgresRuntimeStore
+    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
     runtime = PostgresRuntimeStore(store)
     epoch = runtime.begin_epoch(instance_id="owner")
     runtime.register_worker(epoch=epoch, execution_id="worker", session_id="child", generation=0,

@@ -32,7 +32,7 @@ def test_pg_worktree_observations_keep_active_goal_and_reject_scope_change(pg_pr
     from hermes_cli.worktree_storage import capture_worktree_store
     from hermes_cli.worktree_ops import _retained_tree_is_live, _tree_still_served
     from hermes_db.factory import acquire_profile_domain
-    from hermes_db.repositories.runtime import set_meta
+    from hermes_db.domains.runtime.postgres.queries.runtime import set_meta
     import hermes_yaml as yaml
     from hermes_cli.config import atomic_config_write
     tree = tmp_path / "tree"

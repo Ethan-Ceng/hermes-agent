@@ -27,7 +27,7 @@ def pg_store(postgres_test_config, postgres_schema, tmp_path):
 
 @pytest.fixture
 def pg_runtime(pg_store):
-    from hermes_db.runtime_store import PostgresRuntimeStore
+    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
     return PostgresRuntimeStore(pg_store)
 
 

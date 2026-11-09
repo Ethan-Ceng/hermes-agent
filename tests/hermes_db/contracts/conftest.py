@@ -120,7 +120,7 @@ def runtime(store, tmp_path):
         from hermes_db.backends.sqlite.acquire import SQLiteRuntime
         from hermes_db.scope import DatabaseScope
         return SQLiteRuntime(store, DatabaseScope(tmp_path))
-    from hermes_db.runtime_store import PostgresRuntimeStore
+    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
     return PostgresRuntimeStore(store)
 
 
@@ -131,7 +131,7 @@ def api_owner(core_pair, monkeypatch):
     from gateway.session import SessionStore
     from gateway.session_authority import SessionAuthority
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
-    from hermes_db.runtime_store import PostgresRuntimeStore
+    from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
     db, other = core_pair
     home = db.scope.profile_home
     home.mkdir(parents=True)
