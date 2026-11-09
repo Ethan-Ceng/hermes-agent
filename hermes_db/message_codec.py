@@ -85,3 +85,16 @@ def decoded_row(row):
     for column in INTERNAL_COLUMNS:
         result.pop(column, None)
     return result
+
+
+def merge_display_metadata(current, patch):
+    """Apply the user-content rewrite's JSON merge-patch without replacing reactions."""
+    result = dict(current) if isinstance(current, dict) else {}
+    for key, value in patch.items():
+        if value is None:
+            result.pop(key, None)
+        elif isinstance(value, dict):
+            result[key] = merge_display_metadata(result.get(key), value)
+        else:
+            result[key] = value
+    return result

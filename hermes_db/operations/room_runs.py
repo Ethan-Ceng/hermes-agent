@@ -77,6 +77,19 @@ def start_task(store, identity, lease, *, expected_cancel_generation, clock):
         return native.TaskAttempt(identity, lease, generation, expected_cancel_generation)
 
 
+def mark_attempt_indeterminate(store, attempt, lease, *, clock):
+    native._check_same_room(lease, attempt.identity)
+    now = native._timestamp(clock)
+    with store.write() as conn:
+        room_repo.lock_store(conn, store)
+        repo.active_lease(conn, store, lease, now=now)
+        row = repo.task(conn, store, attempt.identity)
+        if not native._generations_match(row, "running", attempt.execution_generation, attempt.cancel_generation):
+            return
+        repo.update_task(conn, store, attempt.identity, status="indeterminate", indeterminate_at=now, updated_at=now)
+        capture_transition_locked(conn, store, lease.room_id)
+
+
 def recover_room(store, lease, *, clock):
     now = native._timestamp(clock)
     with store.write() as conn:

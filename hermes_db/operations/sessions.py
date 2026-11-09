@@ -43,7 +43,8 @@ def create_on_connection(conn, scope, session_id, source, *, own_profile=None, *
         if encoded["profile_name"] is None and _same_namespace(parent["session_key"], encoded["session_key"]):
             encoded["profile_name"] = parent["profile_name"]
     encoded["display_name"] = encode_text(encoded["display_name"]) if encoded["display_name"] is not None else None
-    continuation = bool(parent and parent["end_reason"] == "compression" and not explicit_fork(encoded))
+    continuation = bool(parent and parent["end_reason"] == "compression" and not explicit_fork(encoded)
+                        and (source != 'subagent' or parent['source'] == 'subagent'))
     config = model_config(encoded["model_config"])
     inherit_routing = parent and parent["end_reason"] == "compression" and source != "tool" and all(
         config.get(marker) != parent["id"] for marker in ("_branched_from", "_delegate_from"))
@@ -190,5 +191,7 @@ def retire_queued_on_connection(conn, scope, session_id):
         return 0
     changed = conn.execute(messages.update().where(messages.c.store_id == scope.require_store_id(), messages.c.id.in_(ids))
                            .values(active=0)).rowcount
-    repo.update_session(conn, scope, session_id, {"transcript_revision": sessions.c.transcript_revision + changed})
+    repo.update_session(conn, scope, session_id, {
+        "transcript_revision": sessions.c.transcript_revision + changed,
+        "transcript_edit_revision": sessions.c.transcript_edit_revision + changed})
     return changed

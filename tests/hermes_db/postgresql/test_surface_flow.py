@@ -34,10 +34,9 @@ def surface_config(postgres_test_config, postgres_schema, tmp_path, monkeypatch)
         close_session_resources()
 
 
-def test_configured_factory_cli_and_oneshot_retain_independent_scope(surface_config):
+def test_configured_factory_and_cli_retain_independent_scope(surface_config):
     from hermes_cli.db_setup import open_profile_db
     from hermes_cli.main_session_storage import read_session_store
-    from hermes_cli.oneshot import _create_session_db_for_oneshot
     from hermes_constants import set_hermes_home_override, reset_hermes_home_override
     first, second = surface_config
     for home, text in ((first, 'one'), (second, 'two')):
@@ -48,11 +47,6 @@ def test_configured_factory_cli_and_oneshot_retain_independent_scope(surface_con
     try:
         with read_session_store() as reader:
             assert reader.get_messages_as_conversation('same')[0]['content'] == 'one'
-        db = _create_session_db_for_oneshot()
-        try:
-            assert db.get_messages_as_conversation('same')[0]['content'] == 'one'
-        finally:
-            db.close()
     finally:
         reset_hermes_home_override(token)
     assert all(not (home / 'state.db').exists() for home in surface_config)

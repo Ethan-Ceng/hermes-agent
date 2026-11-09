@@ -13,12 +13,11 @@ from hermes_cli.db_setup import _owning_profile
 from hermes_db.domains.retain_queue import capture_queue
 from hermes_db.errors import StorageConfigurationError, StorageError, UnknownCommitError
 from hermes_db.operations import retain_queue as operations
-from plugins.memory.retaindb import _WriteQueue
 
 logger = logging.getLogger(__name__)
 
 
-class PostgresWriteQueue(_WriteQueue):
+class PostgresWriteQueue:
     def __init__(self, client, db_path, *, profile_home=None):
         destination = hashlib.sha256(json.dumps([client.base_url, client.project], ensure_ascii=True, separators=(",", ":")).encode()).hexdigest()
         self.reference = capture_queue(profile_home, destination)

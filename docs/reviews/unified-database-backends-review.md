@@ -4,9 +4,21 @@
 
 **验证状态：BLOCKED；独立审查总体：CHANGES_REQUIRED；Task 24 仍为 in_progress，完成 23/24。**
 
-当前已审查范围未发现未处理的产品 blocking/major。七项非 WSL 私有启动页缺少适用主机结果，是尚未闭合的验收 major，不能批准合并或宣称全系统完成。独立总体门禁复核已在冻结引用上完成，结论为 CHANGES_REQUIRED。本文件是实施 Agent 的汇总，不是独立批准。
+七项非 WSL 私有启动页缺少适用主机结果，是尚未闭合的验收 major，不能批准全系统交付或宣称Task24完成。下方旧独立总体门禁只适用于合并前冻结引用。用户随后发起的本地develop合并整改单列核对，不以旧批准/旧689项外推新源码。本文件是实施 Agent 的汇总，不是独立批准。
 
-## 冻结范围与来源
+## 当前本地develop合并整改（2026-11-09）
+
+- 用户既有合并：ours `264dc20077`、incoming `781dc1e05fc7e781b714790d6ea2ab459835b3bb`；原19文本冲突已解决，自动合并文件及三方备份保留，以本地提交标题`Merge develop into feat/postgresql-session-storage`保存本次收尾，不是Task24完成提交。
+- 当前运行源码冻结tree `bb811be4a8132bcdb52190ab730ae1ab329b8512`。Stored transcript/picker/Worker/归档/refusal、房间grant债务/home/实际HTTP/关闭键、Kanban新消费者等语义缺口已整改；新增0029–0031只作用于明确升级的PG候选，正式Schema仍0028，本轮不重启正式Profile。
+- 新合同六文件36pass/0fail（246秒），包含实际collector/HTTP/supervisor、双进程恢复、真实COMMIT后丢ACK及旧PG空展示身份两方向分页。空身份曾稳定0pass/2fail，已最小补齐后转绿，不以更改seed掩盖缺口。
+- v3四PM独立载荷：Windows4pass/2个Linux平台skip（45.7秒）、Linux Native4pass（87.4秒）、Linux PG2pass（43.4秒），实际0004升级/十领域/SDK新进程恢复和拒绝SQLite均保留；Probe只修正实际stdio重定向后的回执流，没有假分页或放宽业务断言。
+- 最后`checks-staged-v3-receipt.log`：15检查通过、health1045文件0blocking/0advisory、exit0、327.6秒。PG全目录131文件`pg-suite-v3.log`已自然终态686pass/0fail/34skip、exit0、2024.6秒。34skip恰为11个Linux Matrix/单后端文件32项及发行2项，另有Linux实际SDK/独立载荷通过，不称Windows当地执行；旧637pass/5fail/29errors/34skip探索失败保留。
+- 本轮限定独立报告：[基础/运维](unified-database-merge-foundation-review.md)、[协作/房间/Kanban](unified-database-merge-collaboration-review.md)、[插件/发行](unified-database-merge-plugins-review.md)。本轮blocking/major均已局部闭合，三域均有限接受本次本地合并整改；该结论不能解除整体七项主机缺口，或替代尚未重跑的当前全仓Native宽批及完整Desktop/TUI TypeScript构建。
+- 非WSL交付包已刷新为bb811be4源码及SHA256，23932条跟踪内容逐项核对；actual applicable-host run仍未执行，原6c9包只能作为历史。
+
+完整命令、原失败、回执诊断、秘密回显处置及恢复点见[实施计划](../plans/unified-database-backends-plan.md#当前合并整改恢复点)。
+
+## 合并前冻结范围与来源（历史）
 
 - 分支：`feat/postgresql-session-storage`；基础：`a8753423841362c6c8d76e2dca094c95d690ba27`；规划：`d9984f73af`。
 - 最终代码提交：`6c9e28665b1766c295023018a03e390dd264c230`。
@@ -14,7 +26,7 @@
 - `.build/postgresql/task24-final-code-reference-6c9e286.json` 已绑定五个变化测试的提交字节/实际 SHA256、14 份日志摘要及日志 SHA256、生产等价关系和 23/24 计划状态。该清单不替代业务测试。
 - 原始日志保留于忽略目录 `.build/postgresql/`；完整实际命令、失败过程和恢复位置见[实施计划](../plans/unified-database-backends-plan.md)及[调试记录](../debug/unified-database-final-regressions.md)。
 
-## 设计验收逐项映射
+## 合并前设计验收逐项映射（历史）
 
 依据[统一设计的验收与证据](../designs/unified-database-backends.md#验收与证据)，不使用旧会话阶段 835 项作为新领域完成证据。
 

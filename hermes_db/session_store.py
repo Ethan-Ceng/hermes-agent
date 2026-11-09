@@ -37,6 +37,10 @@ from hermes_db.session_profile_repair import SessionProfileRepair
 from hermes_db.session_analytics import SessionAnalytics
 from hermes_db.session_bookkeeping import SessionBookkeeping
 from hermes_db.session_recall_views import SessionRecallViews
+from hermes_db.session_read_snapshot import SessionReadSnapshots, pinned_connection
+from hermes_db.session_transcript_pages import SessionTranscriptPages
+from hermes_db.session_picker_reads import SessionPickerReads
+from hermes_db.session_lineage_reads import SessionLineageReads
 
 
 class PostgresSessionStore(SessionMetadata, SessionQueries, SessionTitles, SessionTopics, SessionUsage,
@@ -45,7 +49,8 @@ class PostgresSessionStore(SessionMetadata, SessionQueries, SessionTitles, Sessi
                            SessionCompressionState, SessionGateway, SessionHeartbeats, SessionHandoffs, SessionGatewayPeers,
                            SessionRetirement, SessionRewrites, SessionHousekeeping, SessionPortability, SessionPromptRefresh,
                            SessionPortabilityQueries, SessionSearch, SessionHealth, SessionMaintenance, SessionProfileMoves,
-                           SessionProfileRepair, SessionAnalytics, SessionBookkeeping, SessionRecallViews):
+                           SessionProfileRepair, SessionAnalytics, SessionBookkeeping, SessionRecallViews, SessionReadSnapshots,
+                           SessionTranscriptPages, SessionPickerReads, SessionLineageReads):
     def __init__(self, transactions, scope):
         from hermes_constants import profile_name_for_home
         from hermes_db.usage_writer import UsageWriter
@@ -66,6 +71,10 @@ class PostgresSessionStore(SessionMetadata, SessionQueries, SessionTitles, Sessi
     @contextmanager
     def _read(self):
         self._assert_open()
+        pinned = pinned_connection(self)
+        if pinned is not None:
+            yield pinned
+            return
         with self._transactions.read() as conn:
             yield conn
 

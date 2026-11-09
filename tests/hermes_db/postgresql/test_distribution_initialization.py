@@ -15,6 +15,7 @@ import os
 from pathlib import Path
 import sys
 
+receipt_stream = sys.stdout
 phase = 'imports'
 try:
     import sqlite3
@@ -50,9 +51,6 @@ try:
         from alembic import command
         from alembic.config import Config
         from hermes_db.schema import _prepare_schema
-        from contextlib import closing
-        from hermes_db.session_store import PostgresSessionStore
-        from hermes_db.postgresql.transactions import Transactions
         migrations = Path(hermes_db.__file__).parent / 'migrations'
         config = Config(str(migrations / 'alembic.ini'))
         config.set_main_option('script_location', str(migrations).replace('%', '%%'))
@@ -61,11 +59,21 @@ try:
             _prepare_schema(conn, settings)
             config.attributes['connection'] = conn
             command.upgrade(config, '0004_model_markers')
-        # Seed through the real session API and its content envelope, not malformed raw bytes.
-        previous_scope = DatabaseScope(home / 'previous-pg', 'previous-pg')
-        with closing(PostgresSessionStore(Transactions(get_engine(settings), settings.schema), previous_scope)) as previous:
-            previous.create_session('before', 'cli', system_prompt='previous' + nul + 'prompt')
-            previous.append_message('before', 'user', 'previous' + nul + 'history')
+        # Freeze the valid 0004 wire shape: the current facade requires columns added after 0004.
+        # Read it only through the current business API after the real forward upgrade below.
+        schema = get_engine(settings).dialect.identifier_preparer.quote(settings.schema)
+        with get_engine(settings).begin() as conn:
+            conn.execute(text(f'INSERT INTO {schema}.transcript_roots(store_id,root_id) VALUES (:store, :id)'),
+                         {'store': 'previous-pg', 'id': 'before'})
+            conn.execute(text(f'INSERT INTO {schema}.sessions(store_id,id,lineage_root_id,source,started_at,system_prompt,message_count) '
+                'VALUES (:store,:id,:id,:source,:started,:prompt,2)'), {'store': 'previous-pg', 'id': 'before',
+                    'source': 'cli', 'started': 1.0, 'prompt': ('previous' + nul + 'prompt').encode('utf-8')})
+            conn.execute(text(f'INSERT INTO {schema}.messages(store_id,session_id,role,timestamp,content) '
+                'VALUES (:store,:id,:role,:started,:content)'), {'store': 'previous-pg', 'id': 'before',
+                    'role': 'user', 'started': 1.0, 'content': b'T' + ('previous' + nul + 'history').encode('utf-8')})
+            conn.execute(text(f'INSERT INTO {schema}.messages(store_id,session_id,role,timestamp,content) '
+                'VALUES (:store,:id,:role,:started,:content)'), {'store': 'previous-pg', 'id': 'before',
+                    'role': 'assistant', 'started': 2.0, 'content': b'Tprevious reply'})
         phase = 'forward-upgrade'
         first = upgrade_schema(settings)
         assert first['ready'] and upgrade_schema(settings) == first
@@ -94,6 +102,16 @@ try:
         assert previous.sessions.get_session('before')['system_prompt'] == 'previous' + nul + 'prompt'
         phase = 'previous-history-read'
         assert previous.sessions.get_messages_as_conversation('before')[0]['content'] == 'previous' + nul + 'history'
+        phase = 'previous-transcript-read'
+        from gateway.session_stored_reads import read_transcript, _decode_cursor
+        binding = ('before', None, 'oldest')
+        page = read_transcript(previous.sessions, 'before', ['before'], binding, None, 2,
+            profile_home=previous.sessions.scope.profile_home, inline_images=False)
+        assert [row['text'] for row in page['rows']] == ['previous' + nul + 'history', 'previous reply']
+        caught_up = read_transcript(previous.sessions, 'before', ['before'], binding,
+            _decode_cursor(page['next_cursor'], binding), 2,
+            profile_home=previous.sessions.scope.profile_home, inline_images=False)
+        assert not caught_up['reset'] and caught_up['rows'] == []
     with acquire_db(database, scope) as handle:
         assert handle.sessions.get_messages_as_conversation('installed')[0]['content'] == 'body' + nul + 'exact'
         assert handle.sessions.get_session('installed')['system_prompt'] == 'prompt' + nul + 'exact'
@@ -106,14 +124,17 @@ try:
         else:
             assert handle.sessions.get_messages_as_conversation('installed')[0]['content'] == 'other scope'
     assert not (home / 'state.db').exists()
+    # Loading the actual gateway projector loads the stdio server, which redirects sys.stdout.
+    # The probe's completion channel belongs to its caller, so retain the original stream.
     print(json.dumps({'ok': True, 'revision': REQUIRED_REVISION, 'scope_isolated': True, 'reopened': True,
-        'pid': os.getpid(), 'epoch': epoch, 'admission_id': admission_id}))
+        'pid': os.getpid(), 'epoch': epoch, 'admission_id': admission_id}), file=receipt_stream)
 except Exception as error:
     import re
     detail = str(error)
     if re.search(r'(?i)dsn|password|postgres(?:ql)?(?:\+psycopg)?://', detail):
         detail = 'redacted storage detail'
-    print(json.dumps({'ok': False, 'phase': phase, 'error_type': type(error).__name__, 'detail': detail[:300]}))
+    print(json.dumps({'ok': False, 'phase': phase, 'error_type': type(error).__name__, 'detail': detail[:300]}),
+        file=receipt_stream)
     sys.exit(1)
 '''
 
@@ -137,10 +158,12 @@ def test_installed_bundle_initializes_and_reopens_real_postgresql(request, postg
     written = subprocess.run([*command, 'write'], cwd=tmp_path, env=env,
         capture_output=True, text=True, timeout=180, check=False)
     assert written.returncode == 0, written.stdout + written.stderr
+    assert written.stdout.strip(), 'Installed probe did not emit its completion receipt'
     first = json.loads(written.stdout.splitlines()[-1])
     reopened = subprocess.run([*command, 'restart', str(first['epoch']), first['admission_id']],
         cwd=tmp_path, env=env, capture_output=True, text=True, timeout=180, check=False)
     assert reopened.returncode == 0, reopened.stdout + reopened.stderr
+    assert reopened.stdout.strip(), 'Restarted probe did not emit its completion receipt'
     report = json.loads(reopened.stdout.splitlines()[-1])
     assert first['pid'] != report['pid']
     assert report['epoch'] == first['epoch'] + 1

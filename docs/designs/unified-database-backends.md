@@ -251,6 +251,18 @@ Profile重命名细化：PG本机Kanban内容根按Profile存放，单独rename�
 
 ## 风险与处置
 
+### develop合并后的插件边界与显式数据升级
+
+新boundary lint来自另一条上游分支，而维护中插件的PG接线已在本功能分支实现。独立复核逐项确认26个module→core键（精确名单、次数、目的见`docs/reviews/unified-database-merge-plugins-review.md`），仅将这些已有后端选择、owner绑定、命名存储及错误传播接线记入基线；不发布整个hermes_db私有包，不运行全量baseline覆盖。两处相反的core→plugin继承已实际移除：Retain队列完整构造独立PG实现，Discord由插件自己的命名协议门面组合PG backend。SQLite路径保持惰性，不加载SQLAlchemy。
+
+`hermes_cli/backup_preflight.py`的一个install-root例外保留：它作为受信入口以选定解释器的`-I`执行，需在能导入项目启动助手之前加入该精确检出根，不能从ambient PYTHONPATH接收模块。此为已有隔离备份检查行为与新上游ratchet的显式合并，不扩展任意sys.path入口。
+
+0030显式创建store隔离的exact-grant撤销债务表；债务不随room purge丢失。0031在显式升级中修复旧PG reserved-subagent标记/派生root及旧安全拒绝尾段，不在普通打开时做全表修复。升级持有目标Schema表写栅栏，按固定宽度session页读取；任何待修对象仍有活动turn/compression/Worker所有权则整次事务回滚并要求排空后重试，不提前登记升级完成。原真实compression continuation仍归属child root，非chat、已有回答/summary持有拒绝的记录保持原样；升级可重放。正式两个Profile当前仍revision0028，须候选验证后另作显式停机升级，不能由测试连接偷偷升级。
+
+### 上游合并后的游标与并发版本
+
+2026-11-09上游新增存储分页游标合同：纯追加不使已读取区间失效，既有消息编辑、显示元数据/反应、Codex项目改写、压缩/rewind仍使相应游标失效。PG原transcript_revision同时参与所有写入的prepared-policy并发栅栏，不能简单停止追加时递增。追加0028之后的显式Alembic升级，引入独立transcript_edit_revision供游标使用；原transcript_revision的全写入语义保持，追加仅推进原计数，编辑推进两者。旧PG数据以原计数初始化新的不透明编辑版本，后续追加不会再改它；共享schema中每个store/session分别累计。会话读取快照使用既有REPEATABLE READ短事务，重入绑定只在同线程、同store实例有效，不将数据库连接传播给异步线程或跨Profile。升级仅由显式管理命令执行，普通打开不DDL，不修改旧SQLite数据或0001–0028。
+
 | 风险 | 处置 |
 | --- | --- |
 | 原生连接在消费者之间穿透 | 每域先固定业务接口与调用清单，连生产消费者一并适配，不做 SQL 兼容壳 |

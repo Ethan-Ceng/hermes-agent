@@ -3,7 +3,7 @@
 import json
 
 from hermes_db.repositories import runtime, sessions
-from hermes_state_mutation_binding import BINDING_PREFIX, _bindings_agree, _history_row, _owner_user
+from hermes_state_mutation_binding import BINDING_PREFIX, _history_row, _owner_user
 from hermes_state_runtime import RuntimeStoreError
 
 
@@ -25,6 +25,21 @@ def binding_names(saved, scope, subject):
 
 def _binding(scope, actor):
     return json.dumps(["store:" + scope.require_store_id(), actor.subject], ensure_ascii=True, separators=(",", ":"))
+
+
+def bindings_agree(first, second, scope):
+    from gateway.owner_identity import owners_agree
+    if first is None or second is None:
+        return first is None and second is None
+    try:
+        values = [json.loads(saved) for saved in (first, second)]
+    except (TypeError, ValueError):
+        return False
+    expected = "store:" + scope.require_store_id()
+    if not all(isinstance(value, list) and len(value) == 2 and value[0] == expected
+               and isinstance(value[1], str) and value[1] for value in values):
+        return False
+    return owners_agree(values[0][1], values[1][1])
 
 
 def import_history_control(conn, scope, actor, session_ids):
@@ -65,7 +80,7 @@ def same_history_owner(conn, scope, anchor_id, session_id):
         return tuple(row[name] for name in ("user_id", "session_key", "chat_id")) == tuple(
             anchor[name] for name in ("user_id", "session_key", "chat_id"))
     binding = runtime.meta(conn, scope, BINDING_PREFIX + session_id)
-    if not _bindings_agree(binding, runtime.meta(conn, scope, BINDING_PREFIX + anchor_id)):
+    if not bindings_agree(binding, runtime.meta(conn, scope, BINDING_PREFIX + anchor_id), scope):
         return False
     peer = row["source"] == anchor["source"] and not any(anchor[name] for name in ("session_key", "chat_id", "origin_json"))
     return binding is not None or ((_history_row(row) or peer)

@@ -106,6 +106,26 @@ def remove_notify_sub(store, **key):
         return store.command_result(conn, conn.execute(delete(subs).where(_key(store, **key))).rowcount > 0)
 
 
+def retarget_notify_subs(store, *, platform, from_chat_ids, to_chat_id):
+    ids = sorted({value for value in from_chat_ids if value and value != to_chat_id})
+    if not ids:
+        return 0
+    moved = 0
+    with store.write() as conn:
+        repo.lock_board(conn, store)
+        rows = conn.execute(select(subs).where(repo.scope(subs, store),
+            subs.c.platform_key == encode_text(_platform_key(platform)),
+            subs.c.chat_id.in_([encode_text(value) for value in ids])).order_by(
+                subs.c.task_id, subs.c.platform, subs.c.chat_id, subs.c.thread_id).with_for_update()).mappings().all()
+        for row in rows:
+            values = {column.name: row[column.name] for column in subs.c}
+            values['chat_id'] = encode_text(to_chat_id)
+            moved += int(conn.execute(insert(subs).values(**values).on_conflict_do_nothing()).rowcount > 0)
+            old = {key: repo.decode_record(row)[key] for key in ('task_id', 'platform', 'chat_id', 'thread_id')}
+            conn.execute(delete(subs).where(_key(store, **old)))
+        return store.command_result(conn, moved)
+
+
 def purge_stale_done_notify_subs(store, *, max_age_days=30):
     try:
         days = int(max_age_days)

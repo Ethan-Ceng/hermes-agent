@@ -35,6 +35,15 @@ replica_events = scoped_table("hosted_room_replica_events", Column("room_id", Te
 links = scoped_table("hosted_room_links", *[Column(name, LargeBinary, nullable=False) for name in (
     "room_id", "member_id", "target_url", "target_profile", "grant", "catalog_json", "cancellation_scope_id",
     "trace_id", "transport_security", "status")], Column("updated_at", Float, nullable=False), key=("room_id", "member_id"))
+# A revoke remains owed after its room is purged; only store retirement cascades it.
+owed_revokes = scoped_table('hosted_room_owed_revokes', Column('room_id', LargeBinary, nullable=False),
+    Column('member_id', LargeBinary, nullable=False), Column('grant_digest', Text, nullable=False),
+    Column('target_url', LargeBinary, nullable=False), Column('grant', LargeBinary, nullable=False),
+    Column('expires_at', Float, nullable=False), Column('next_attempt_at', Float, nullable=False),
+    Column('created_at', Float, nullable=False), Column('attempts', BigInteger, nullable=False, server_default='0'),
+    Column('held', BigInteger, nullable=False, server_default='0'), key=('room_id', 'member_id', 'grant_digest'),
+    constraints=(CheckConstraint("expires_at > '-Infinity'::double precision AND expires_at < 'Infinity'::double precision",
+        name='owed_revoke_finite_expiry').ddl_if(dialect='postgresql'),))
 revoked_grants = scoped_table("hosted_room_revoked_grants", Column("scope_key", Text, nullable=False),
     Column("expires_at", Float, nullable=False), Column("revoked_before", Float, nullable=False), key=("scope_key",))
 reservations = scoped_table("hosted_room_peer_reservations", *[Column(name, LargeBinary, nullable=False) for name in (

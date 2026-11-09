@@ -10,7 +10,7 @@ from hermes_db.values import decode_text, preferred_children
 
 def filters(conn, scope, *, source=None, sources=None, session_key=None, exclude_sources=None, cwd_prefix=None,
             min_message_count=0, archived_only=False, include_archived=False, exclude_children=False,
-            include_subagents=False, local_created_sources=None, include_hidden=True):
+            include_subagents=False, local_created_sources=None, include_hidden=True, workspace_key=None):
     clauses = [sessions.c.store_id == scope.require_store_id()]
     labels = [source] if source else list(sources or [])
     if labels:
@@ -27,6 +27,8 @@ def filters(conn, scope, *, source=None, sources=None, session_key=None, exclude
         prefix = cwd_prefix.rstrip("/\\") or cwd_prefix
         clauses.append(or_(sessions.c.cwd == prefix, sessions.c.cwd.startswith(prefix + "/", autoescape=True),
                             sessions.c.cwd.startswith(prefix + "\\", autoescape=True)))
+    if workspace_key:
+        clauses.append(workspace_clause(workspace_key))
     if min_message_count > 0:
         clauses.append(sessions.c.message_count >= min_message_count)
     if archived_only:
@@ -40,6 +42,13 @@ def filters(conn, scope, *, source=None, sources=None, session_key=None, exclude
         if not include_subagents:
             clauses.append(sessions.c.has_delegate_marker == 0)
     return clauses
+
+
+def workspace_clause(key):
+    prefix = key.rstrip('/\\') or key
+    return or_(sessions.c.git_repo_root == prefix, and_(func.coalesce(sessions.c.git_repo_root, '') == '',
+        or_(sessions.c.cwd == prefix, sessions.c.cwd.startswith(prefix + '/', autoescape=True),
+            sessions.c.cwd.startswith(prefix + '\\', autoescape=True))))
 
 
 def last_activity(conn, table=sessions):

@@ -61,9 +61,16 @@ def disband_room(store, *, room_id, expected_gateway_id, expected_epoch, now=Non
         if replay is not None:
             return replay
         native._require_authority(room, gateway, epoch, "stale hosted room authority")
+        from hermes_db.tables.rooms import owed_revokes
+        pending = repo.scope(owed_revokes, store, room_id) & (owed_revokes.c.held == 1)
+        if conn.scalar(select(owed_revokes.c.room_id).where(pending, owed_revokes.c.expires_at > timestamp).limit(1)) is not None:
+            raise native.RoomHeldGrantsPendingError('Group chat grants still need revoking; retry Disband.')
+        conn.execute(owed_revokes.delete().where(pending, owed_revokes.c.expires_at <= timestamp))
         event = append_on_connection(conn, store, room, event_id="system:room-disbanded", kind="room.disbanded",
             actor_json=native._system_actor_json("room-control"), payload_json=native._payload_json({"room_id": room_id}),
             epoch=epoch, now=timestamp, allow_control=True, disbanded_at=timestamp, revision=room["revision"] + 1)
         repo.retire(conn, store, room_id, timestamp)
+        from hermes_db.operations.room_member_homes import forget_locked
+        forget_locked(conn, store, room_id)
         prune_locked(conn, store, now=timestamp, max_gateway_event_bytes=native.MAX_GATEWAY_EVENT_BYTES)
     return {"room_id": room_id, "disbanded_at": timestamp, "idempotent": False, "event": native._event_from_row(event)}

@@ -3,6 +3,7 @@
 from contextlib import contextmanager
 import hmac
 import time
+import uuid
 
 from sqlalchemy import select
 
@@ -64,6 +65,24 @@ class PostgresRunIdempotencyStore:
                 repo.extend(conn, self.scope, scope, retention, table.c.run_id == run_id)
             row = conn.execute(select(table).where(repo.where(self.scope, scope), table.c.run_id == run_id)).mappings().one_or_none()
             return {key: value for key, value in repo.record(row).items() if key != "run_id"} if row else None
+
+    def find_or_close(self, scope, key):
+        from gateway.hosted_room_peer import MAX_STATUS_GRANT_TTL_SECONDS
+        from gateway.platforms.api_server_run_idempotency import _CLOSED_FINGERPRINT
+        now = time.time()
+        retention = now + MAX_STATUS_GRANT_TTL_SECONDS
+        with self._transaction() as conn:
+            self._prune(conn, scope, now)
+            row = repo.find(conn, self.scope, scope, key)
+            if row is None:
+                repo.insert(conn, self.scope, scope, key, _CLOSED_FINGERPRINT, 'closed_' + uuid.uuid4().hex,
+                            {'status': 'cancelled'}, 0, 0, retention, now)
+            elif row['fingerprint'] == _CLOSED_FINGERPRINT:
+                repo.extend(conn, self.scope, scope, retention, table.c.idempotency_key == key,
+                            table.c.fingerprint == _CLOSED_FINGERPRINT)
+            if row is None or row['fingerprint'] == _CLOSED_FINGERPRINT:
+                return 'closed', None
+            return 'found', repo.record(row)
 
     def extend_retention(self, scope, run_id, until):
         checked = max(0.0, float(until or 0))

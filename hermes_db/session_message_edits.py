@@ -45,7 +45,11 @@ class SessionMessageEdits:
                 return 0
             values = {"content": codec._encode_content(content)}
             if display_metadata is not None:
-                values.update(api_content=None, display_metadata=codec._encode_display_metadata(display_metadata))
+                from hermes_db.message_codec import merge_display_metadata
+                current = codec._decode_display_metadata(row["display_metadata"])
+                patch = codec._decode_display_metadata(codec._encode_display_metadata(display_metadata)) or {}
+                merged = merge_display_metadata(current, patch)
+                values.update(api_content=None, display_metadata=codec._encode_display_metadata(merged))
             return repo.update_row(conn, self.scope, session_id, row_id, values)
 
     def deactivate_message(self, session_id, row_id):

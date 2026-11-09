@@ -84,7 +84,7 @@ def _cycle(conn, scope, proposed, sid, parent):
 
 
 def import_current(conn, scope, normalized, *, canonical=False):
-    from hermes_db.repositories.mutation_binding import history_binding
+    from hermes_db.repositories.mutation_binding import bindings_agree, history_binding
     from hermes_state_runtime import RuntimeStoreError
 
     sessions.lock_store(conn, scope, exclusive=True)
@@ -108,7 +108,8 @@ def import_current(conn, scope, normalized, *, canonical=False):
     foreign = []
     if canonical:
         foreign = [(sid, parent) for sid, parent in parents if parent not in imported and (
-            history_binding(conn, scope, parent) is None or history_binding(conn, scope, parent) != history_binding(conn, scope, sid))]
+            history_binding(conn, scope, parent) is None
+            or not bindings_agree(history_binding(conn, scope, parent), history_binding(conn, scope, sid), scope))]
     detached = attach_parents(conn, scope, [pair for pair in parents if pair not in foreign]) + len(foreign)
     return {"ok": True, "imported": len(imported), "skipped": len(skipped), "imported_ids": imported,
         "skipped_ids": skipped, "detached": detached, "errors": []}

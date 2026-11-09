@@ -116,8 +116,11 @@ def _apply(conn, scope, session_id, operation, payload, targets, prepared):
         else:
             column = "last_read_at" if key == "unread" else key
             stored = (0.0 if value else time.time()) if key == "unread" else int(value)
-            affected.update(lifecycle.lineage_flag(conn, scope, session_id, column, stored,
-                extra={"auto_archived": 0} if key == "archived" else None))
+            changed = lifecycle.lineage_flag(conn, scope, session_id, column, stored,
+                extra={"auto_archived": 0} if key == "archived" else None)
+            affected.update(changed)
+            if key == 'archived' and value:
+                titles.retire_bot_chat(conn, scope, changed)
             result[key] = value
     return affected, result
 

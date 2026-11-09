@@ -73,6 +73,7 @@ def conditions(conn, scope, older_than_days, source, filters, *, only_open=False
         clauses.append(table.c.ended_at.is_not(None))
     if values.get("lineage_tips_only"):
         clauses.append(func.coalesce(table.c.end_reason, "") != "compression")
+        clauses.append((table.c.title.is_(None)) | (table.c.title != b'Bot Chat'))
     if isinstance(values.get("archived"), bool):
         clauses.append(table.c.archived == int(values["archived"]))
     if not values.get("include_pinned"):

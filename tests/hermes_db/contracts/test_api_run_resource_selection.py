@@ -61,6 +61,36 @@ def test_run_pg_factory_refusal_never_uses_memory_or_sqlite(core_pair, unavailab
     assert not list(home.glob("*.db"))
 
 
+def test_close_admission_uses_routed_owner_and_survives_resource_reacquisition(native_registry, core_pair, monkeypatch):
+    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+    from hermes_db import factory
+    from hermes_db.run_resources import ProfileRunStores
+    registry, _ = native_registry
+    monkeypatch.setattr(factory, 'acquire_db', lambda settings, scope: registry.acquire(settings.postgresql, scope))
+    homes = [_configure(db) for db in core_pair]
+    token = set_hermes_home_override(homes[0])
+    resources = None
+    try:
+        resources = ProfileRunStores(_no_sqlite)
+        assert resources.find_or_close('first-scope', 'closed') == ('closed', None)
+        foreign = set_hermes_home_override(homes[1])
+        try:
+            with pytest.raises(StorageError, match='another profile'):
+                resources.find_or_close('first-scope', 'closed')
+            assert resources.reserve('second-scope', 'closed', 'body', 'run', {'status': 'running'})[0] == 'created'
+            assert resources.find_or_close('second-scope', 'closed')[0] == 'found'
+        finally:
+            reset_hermes_home_override(foreign)
+        resources.close()
+        resources = ProfileRunStores(_no_sqlite)
+        assert resources.find_or_close('first-scope', 'closed') == ('closed', None)
+        assert resources.reserve('first-scope', 'closed', 'late', 'late-run', {'status': 'running'})[0] == 'conflict'
+    finally:
+        if resources is not None:
+            resources.close()
+        reset_hermes_home_override(token)
+
+
 def test_native_api_auth_namespace_survives_local_home_and_profile_label_changes(core_pair, tmp_path):
     from types import SimpleNamespace
     from contextvars import ContextVar

@@ -55,7 +55,8 @@ def discussion_event(conn, store, event, payload):
 def room_activity(conn, store, event, payload):
     conn.execute(delete(active).where(room_repo.key(active, store, dict(room_id=event["room_id"],
         discussion_event_id=native._text(payload, "discussion_event_id")))))
-    conn.execute(delete(threads).where(room_repo.key(threads, store, dict(room_id=event["room_id"], thread_id=native._text(payload, "thread_id")))))
+    conn.execute(delete(threads).where(room_repo.key(threads, store, dict(room_id=event["room_id"],
+        thread_id=native._text(payload, "thread_id"), discussion_event_id=native._text(payload, 'discussion_event_id')))))
 
 
 def continued(conn, store, event, payload):
@@ -65,6 +66,11 @@ def continued(conn, store, event, payload):
         return
     source = repo.event_values(row)
     thread = native._text(source["payload"], "thread_id")
+    newer = conn.scalar(select(events.c.seq).where(room_repo.scope(events, store, room_id),
+        events.c.seq > int(source['seq']), events.c.seq <= int(event['seq']),
+        events.c.kind == encode_text('message.user'), events.c.policy_thread_key == encode_text(thread)).limit(1))
+    if newer is not None:
+        return
     _thread(conn, store, source, thread, discussion)
     repo.store_active(conn, store, source, thread, discussion)
     rows = conn.execute(select(events).where(room_repo.scope(events, store, room_id), events.c.seq > int(source["seq"]),

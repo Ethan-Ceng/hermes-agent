@@ -9,15 +9,104 @@
 
 ## 当前进度
 
-- 整体状态：`VERIFYING`。
-- 当前阶段：等待适用平台实机验收及验收major解除。
-- 目标推进状态：`blocked`；本机PG试运行后连续三轮核对仍缺同一适用主机/实机结果。没有正在执行的适用平台验收进程，也没有可独立推进的其他必需项；取得入口或完整实机证据后恢复Task24，不缩减验收范围。
-- 当前验证判定：`BLOCKED`；当前非平台必需范围及全分支检查通过，三分域未发现未处理的产品blocking/major。独立总体复核已完成、结论`CHANGES_REQUIRED`；非WSL七项缺证为仍未满足的验收major。
-- 当前任务：Task24（in_progress）；最终代码`6c9e28665b1766c295023018a03e390dd264c230`，生产实现/四套发行载荷仍为`120bf8c9d6`，代码来源等价及五测试hash已冻结。历史恢复提交详见恢复记录。
-- 已完成：23 / 24；会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
-- 阻塞：非WSL POSIX私有启动页七项仍缺适用主机，已准备冻结源码验收包和PM隔离脚本并询问现有入口/执行日志。PG完整689、双宿主DB、发行、Native分批及独立总体复核已结算；历史未定因风险保留，最后文档14检查已过，当前无其他不依赖该主机的必需项可推进，不绕过平台验收。
+- 整体状态：`BLOCKED`（Task24整体验收；本次上游本地合并整改已验证）。
+- 当前阶段：用户既有develop→feature本地合并的文档/提交收尾；整体Task24未完成。
+- 目标推进状态：本次合并影响已检查、语义缺口已整改并获三域独立限定接受；原非WSL主机缺口保留，不缩减整体范围。
+- 当前验证判定：当前PG131文件686pass/0fail/34skip、36项专项、v3四载荷及最后15静态检查已绿；跳过项另有Linux/独立载荷正向证据。限定本地合并整改可接受，整体仍BLOCKED/CHANGES_REQUIRED。
+- 当前任务：Task24（in_progress）；ours为`264dc20077`，incoming为`781dc1e05fc7e781b714790d6ea2ab459835b3bb`，merge-base为`ff09cead02e906a4b1da909268c2cc58ec6e144d`。起始有19个冲突文件、2325个自动暂存文件；先保留三方和工作区字节，再逐项恢复SQLAlchemy/PG路径并兼容上游新行为。
+- 已完成：实施23 / 24；本次合并影响检查/代码整改已完成。会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
+- 未完成：Task24全系统最终门禁；非WSL POSIX私有启动页七项仍缺适用主机。本次做合并相关Native/PG/发行/故障回归，未重跑当前合并源码的全仓Native宽批或完整Desktop/TUI TypeScript构建，不能继承旧完整批为当前全系统通过。
 - 当前实际安装：2026-11-09用户明确授权默认和“股票大师”两个Profile都切换本机PG并重启。PM已安装postgresql extra，独立新Schema已显式升级，旧网关14412排空停止、新网关26656运行，两个Profile均PG就绪；旧SQLite保留，不导入。本机试运行记录见下文，不解除Task24的平台验收阻塞。
 - 更新时间：2026-11-09（Asia/Shanghai）。
+
+### 当前合并整改恢复点
+
+#### 最新结算（替代下方早期恢复指令）
+
+PG恢复已确认可连接、数据库归属匹配且不处于recovery；没有管理服务或改正式Schema。
+新增真实HTTP register失败最终定位为PeerHTTP把PG RoomStoreRef强转Path，已改为typed location；
+真实owner/profile夹具恢复正常路由后，HTTP注册、Discard、Disband晚到grant及实际后台supervisor付债均绿。
+并补齐正常ProfileRunStores关闭键转发，保留store归属检查。
+
+- `pg-interrupted-files-restored.log`：原中断4文件75pass/0fail，exit0，371.9秒；surface_flow10、retirement_rewrites50、search10、transaction_failures5。旧637/5fail/29errors探索结果保持原样，不把整轮改写为绿。
+- `pg-linux-sdk-restored.log`：11文件32pass/0fail，exit0，160.4秒，包含实际Matrix SDK及single_backend完整业务拒绝全部SQLite连接。Windows SDK前提缺失已由PM full测试环境补齐；真实Discord backfill2绿在`pg-merge-lower-ports.log`中，不再仅依赖旧环境结果。
+- `pg-http-supervisor-final.log`：真实HTTP/后台consumer2pass，exit0，16.2秒。`pg-merge-process-recovery-corrected.log`：两个独立子进程PID、禁SQLite、正常关闭键router/债务重开及scope隔离2pass，15.9秒。`pg-merge-commit-ack-recovery.log`：真实COMMIT后注入丢ACK、关闭键及grant重放恢复2pass，9.2秒；均不是以未提交事务模拟持久化。
+- 冻结暂存树95242301fef57260b46accb5adf65387d816699a的独立PM source载荷：Windows2文件4pass/2平台skip（28.4秒）、Linux SQLite/实际SDK4pass（14.2秒）、Linux PG2pass（19.7秒），均exit0。分别见`distribution-source-windows-v2.log`、`linux-bundle-native-v2.log`、`linux-bundle-pg-v2.log`。载荷无.git、树外-I运行并跨进程重开；它们只证明当时输入，后续消息补齐修复另冻结v3复验。
+- `pg-merge-final-contracts.log`：同批6文件34pass/0fail，exit0，162秒。随后独立基础审查发现合法旧PG消息NULL identity/order合并同slot：新增真实升级/actual read_transcript两方向用例，`pg-legacy-display-red.log`稳定0pass/2fail、12.2秒，均丢前一条消息。修复在同锁事务按1000行keyset仅补缺失身份的visible body，清其不可信slot，再整理固定列。诊断记录见[旧PG展示身份](../debug/unified-database-merge-legacy-display.md)。
+- 最新修复后`pg-merge-final-contracts-v3.log`：6文件36pass/0fail，exit0，246秒（storage16、collaboration10、consumer2、process2、ACK2、upgrade4含两方向旧PG分页）。独立发行probe同时扩展为冻结0004两条消息真实升级、实际stored transcript完整页和稳定游标，等待v3载荷终态。
+- `checks-staged-final-candidate.log`：15检查中Ruff失败，health1045文件0blocking/0advisory；唯一PLW1510是测试subprocess缺显式check。补check=False后`checks-staged-v3.log`最新15检查全部通过、health1045文件0/0，exit0，338.6秒。gateway共享契约最新`--check` exit0。
+- v3运行源码冻结`bb811be4a8132bcdb52190ab730ae1ab329b8512`，四个PM载荷构建均exit0。Linux Native载荷4pass/0fail、87.4秒。Windows首轮漏选integration只有3pass/1skip，明确不算PG验收；显式选择后Windows3pass/1fail/2skip（81.4秒）、Linux PG1pass/1fail（51秒），都暴露探针回执stdout为空。无秘密阶段观察证实业务已全部到达完成点，实际原因是gateway投影导入stdio server按已有协议把sys.stdout指向stderr；既有incoming提交29f2610e4b和server注释证明这是stdio输出保护意图。修复只在测试探针进口前保留原回执流并显式发送成功/失败JSON，保留真实分页、双PID和持久化断言，诊断BaseException/阶段输出已移除。`distribution-source-windows-v3-receipt.log`复验4pass/0fail/2平台skip、exit0、45.7秒；Linux PG回执修正版及PG全目录131文件仍待终态。早期Linux失败原始log被wrapper同名覆写，其原1pass/1fail/51秒终态由工具回执和独立报告保留，不把新日志冒充旧原始失败堆栈。
+
+后续终态补充：Linux PG修正回执后`linux-bundle-pg-v3-receipt.log`为2pass/0fail、exit0、43.4秒；
+它与当前同名无receipt后缀路径是同一轮，不重复累计。最后测试修正已stage，
+`checks-staged-v3-receipt.log`重新运行15检查全过、health1045文件0/0、exit0、327.6秒。
+全仓库对bb811be4的生产差异为空；只剩测试/文档不同，因此无需为回执修正重新构建运行载荷。
+
+原非WSL交付包已刷新为`.build/postgresql/private-launch-host-bb811be4a813/`，
+归档23932个跟踪条目与冻结tree逐项一致、三个交付文件SHA256核对通过；不含本地.env/.git/.build，
+仍运行原完整12项、先验证实际非WSL Linux/macOS主机、仅用PM和标准runner。
+该准备不是实机验收，host_run仍not performed，七项缺证未解除。
+
+秘密核对时另一次脚本将SQLAlchemy URL误交psycopg解析，异常回显了连接参数，已再次告知用户；
+修正为纯URL解析、固定异常回显的布尔核对，完整私有DSN（含规范形式）不在暂存补丁，未跟踪本地.env。
+单独口令子串与普通代码词重合，不能把该全词扫描误判为泄密文件；未将任何实际连接信息写入代码/文档或提交。
+
+最终PG全目录`pg-suite-v3.log`已自然终态：131文件686pass/0fail/34skip，exit0、2024.6秒、j3/retries0。
+34skip逐文件核对为11个Matrix/单后端Linux文件32项与发行初始化2项，分别保留实际Linux SDK32及显式v3发行正向证据；不称它们在Windows执行。
+三份merge独立报告均已结算本分域有限接受/APPROVED，当前无遗留本轮blocking/major，不授权产品交付、部署或推送。
+全测试终态后，只对本轮日志中出现的7个随机名逐一核对数据库与exact ownership marker，清理1个空遗留测试Schema、0张表，未触碰未知或正式Schema。
+
+原始19冲突三方备份不动，unmerged=0。本次以本地合并提交标题`Merge develop into feat/postgresql-session-storage`保存，
+保留ours264dc20077和incoming781dc1e05fc7两个父节点；这是用户既有本地合并的收尾，不是Task24完成提交。
+运行源码仍等价bb811be4，审计清单`.build/postgresql/merge-781dc1-audit/final-reference.json`绑定最终索引树、当前测试hash与日志hash；
+提交ID以该标题的本地git log和清单后续commit字段恢复，不将旧6c9源码冻结冒充本次。
+本次本地整改与整体Task24分开判定；七项非WSL主机缺证及当前全仓宽批/完整TS未重跑限制仍保留。
+正式两个Profile继续运行旧代码/revision0028，候选0031没有应用到正式Schema；本轮不部署/重启。
+测试仅用隔离Profile、fixture核对归属的随机Schema；秘密和原始日志不入Git。
+
+#### 本地合并最终验证与限制
+
+测试均使用PM构建解释器、标准runner和私有配置路径；回显事故与处置已在上文单列，后续仅展示安全摘要：
+
+```text
+scripts/run_tests.sh tests/hermes_db/postgresql -j 3 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=<已有私有配置文件>
+scripts/run_tests.sh <六个test_merge合同文件> -j 1 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=<同一私有文件>
+scripts/run_tests.sh tests/hermes_db/test_distribution.py tests/hermes_db/postgresql/test_distribution_initialization.py -j 1 --file-timeout 1200 -- -m "integration or not integration" --tb=short <v3独立载荷路径参数及私有配置文件参数>
+scripts/check --staged --base 781dc1e05fc7e781b714790d6ea2ab459835b3bb
+scripts/gen_gateway_contracts.py --check
+```
+
+绝对路径及每个实际展开文件由本节对应日志/源脚本、bundle state及final-reference记录，不在Git保存秘密或原始日志。
+当前完整PG686/0、精确36/0、独立载荷Windows4/0/2skip、Linux Native4/0、PG2/0、最后完整静态15/0、共享契约exit0。
+三份独立报告及最终文档stage后，`scripts/check --staged --base 781dc1... --only footguns,shebangs,no-tmp,detached-spawns,install-root,config-writers,config-readers,os-marker-fakes,agents-md,case-collisions,lazy-deps,profile-archives,blob-size,ruff`
+实际14检查通过、exit0（`checks-staged-final-docs.log`）。生产/测试未再改变，健康检查沿用同输入的最后完整15项中1045文件0/0结果；没有为文档重复运行全PG。
+此前Native业务合同503/0/4skip、peer HTTP75/0及相关补验按实际范围使用，不声称当前全仓Native已跑。
+本地合并独立审查已接受；整体状态仍BLOCKED/CHANGES_REQUIRED、Task24 in_progress。
+正式PG仍0028，本轮没有排空或重启正式实例；启动合并后的新版前须另行排空、显式升级到0031并核对重启。
+
+#### 早期阶段记录（保留失败历史，恢复按上方最新结算）
+
+初始19个冲突已逐项解决并stage，Python语法检查及gateway共享契约重新生成完成；MERGE_HEAD仍为781dc1，尚未创建merge commit。三方原始内容与index/worktree补丁保存在忽略目录`.build/postgresql/merge-781dc1-audit/`。后续实现仍有未暂存文件，恢复时先核对实际Git状态，不重复执行初始冲突处理脚本。
+
+已由项目PM建立本次独立test-env（dev/test + postgresql/telegram/matrix声明的Windows依赖），PM日志exit0。所有新增测试只经`scripts/run_tests.sh`、私有配置和fixture归属随机Schema，正式Profile仍保持原运行数据/revision0028，没有应用合并候选升级或重启。
+
+本次已实际新增Core读快照、游标/原生keyset页/handoff/picker/委派读、Worker tool_root、refusal原子保留、canonical Bot Chat显式归档、metadata merge-patch及同store owner binding。新0029迁移把游标编辑版本与既有全写入并发版本分开。真实PG回归初始3红、binding/metadata另2红；foundation新增合同2红2绿；整改后`test_merge_storage_contracts.py`完整10pass/0fail、exit0、37.3秒，日志`pg-merge-foundation.log`。命令为runner该文件`-j 1 --file-timeout 1200 -- -m integration --postgres-test-config=<私有配置路径>`，HERMES_PYTHON为本次PM test-env。仅这10项是当前已结算绿，不等于完整业务验收。
+
+后续已补齐room exact-grant held/owed、member/attempt homes、policy discussion fence、receipt CAS、find_or_close及Kanban retarget；追加0031显式PG旧数据修复，并给新0030表加入有限expiry约束。Native hard-expiry与持久边界共享非finite期限处理，保留grant至有限最长horizon，不提前丢弃。正常API的ProfileRunStores转发也已补齐；其owner/跨Profile拒绝/资源重取离线Core合同5pass。独立审查在同目录三个merge review文件持续保留CHANGES_REQUIRED。
+
+阶段性验证（并非最终全绿）：
+
+- `scripts/run_tests.sh tests/hermes_db/contracts -j 4 --file-timeout 1200 -- --tb=short`：90文件503pass/0fail/4skip，exit0，266.6秒，`contracts-current.log`。SQLite上游13文件初轮70pass/1fail，唯一失败是Windows夹具以PID1假定活owner；用测试真实PID后该5项及边界ratchet7项共12pass。新增Native expiry/入口3文件14pass/0fail，17.9秒。
+- 当前代码PG局部`pg-merge-lower-ports.log`：storage16 + Discord5 + Retain2 +真实Discord backfill2，共25pass/0fail，exit0，130秒；`pg-merge-collaboration-final-candidate.log`：7pass/0fail，exit0，45秒，包含旧v4投影实际重建及receipt store反向隔离。
+- PG全目录探索：128文件637pass/5fail/29errors/34skip、exit1、1780.4秒，`pg-suite-exploratory.log`。初轮环境缺Discord/aiohttp造成4个失败，Discord文件在PM新环境已2绿；另search与末端29errors遇服务recovery mode。34skip主要为平台/独立载荷前提，不计PG通过。新环境由PM另建，没有原地改正在跑的环境。
+- 用户告知恢复后最初两次probe仍recovery/unavailable；随后确认available=true、数据库归属匹配、in_recovery=false，恢复逐文件实库复验。`pg-merge-restored-contracts.log`最新4文件29pass/1fail：storage16、collaboration10（含NaN/±Inf真实PG）、data-upgrade2全绿；新真实poller collector1绿，真实HTTP Discard在peer register仍invalid_params，正在定位。未将helper绿外推为HTTP完整成功。
+- Linux旧临时解释器已不存在；系统Python编译python-olm缺pyconfig.h的失败后，改由PM选自己的pin Python，无系统安装/apt操作，新Linux测试环境及两个含真实Matrix SDK的独立载荷构建均exit0。Linux实SDK初轮4pass/30errors因同一PG恢复故障中断，`pg-linux-sdk.log`；当前逐文件重跑为`pg-linux-sdk-restored.log`，未终态前不记通过。
+- 独立审议26个ours已有插件→core接线后仅记录精确基线增量，并实际移除两条core→具体插件继承；边界单测7绿。隔离备份入口一个install-root例外有明确-I bootstrap原因。`scripts/check --staged --base 781dc1...`初次15检查全过、1038 Python文件health 0/0，exit0（327.9秒）；后续expiry/wrapper及验收测试更改仍需复验。
+- 已导出暂存树`4533da2a336d8763dab4e38fc6caaf52442f281e`至忽略审计目录独立source；Windows SQLite/PG与Linux SQLite/PG四个PM source-bundle环境均已构建。Windows树外`-I`发行资源/SQLite真实业务新进程重开：3pass/0fail/1平台skip，exit0，15.5秒，`distribution-source-windows.log`。PG前向升级probe已修正为冻结0004合法列/参数化BYTEA种子，不拿当前要求新列的Store写旧Schema；仍须实库及Linux载荷复验。源码快照之后仅少数诊断/契约测试和报告变化，运行代码若再改须重新冻结。
+
+测试只使用归属随机Schema；没有升级/重启正式两个Profile或管理PG服务。一次原始失败堆栈含连接参数被读到工具输出，已明确告知用户；审计日志2份已脱敏，后续统一short traceback且工具只显示摘要，秘密不入Git。
+
+当前恢复：分支/ours/incoming不变，unmerged index为0，合并未提交。先解决真实HTTP register红，再结算实SDK、原中断文件、独立载荷和最新静态/独立审查；原非WSL七项缺证继续保留。不要重放最初冲突解析脚本、旧Schema清理脚本或正式切换脚本；不以消除文本冲突宣布全系统完成。
 
 ## 目标、约束与范围变化
 
@@ -60,6 +149,8 @@ $pgTestConfig = Join-Path $PWD '.build/postgresql/private/acceptance-postgresql.
 任务中的 `scripts/run_tests.sh ...` 在PowerShell以 `& $testRunner scripts/run_tests.sh ...` 执行。PG参数仅传给加载 `tests/hermes_db` conftest 的文件；其他目录分开运行，避免将usage error误当测试结果。
 
 ## 状态变更记录
+
+2026-11-09用户已拉取上游并发起本地develop合并，要求检查统一后端任务是否受影响并解决代码冲突。该指令授权处理这一次既有本地合并，不推送/发布/创建PR。初始2344项工作区/索引状态、19个冲突文件及其三方blob/当前字节已保存到`.build/postgresql/merge-781dc1-audit/`；保留自动合并的2325个暂存修改，不用整树ours/theirs覆盖。受影响区域包括上游新增会话存储方法/字段、房间状态转换与运行回执、Kanban订阅、Telegram停机结算、CLI和生成网关契约；需要同时检查无文本冲突的自动合并路径。旧689 PG、Native及四发行载荷日志保持原归属；当前源码不再与旧生产版本等价，不能据旧绿判断合并后通过。当前正式Profile/Schema及数据库秘密均保持已有状态，候选测试使用隔离Profile与核对归属的新随机Schema。
 
 | 日期 | 状态 | 记录 |
 | --- | --- | --- |

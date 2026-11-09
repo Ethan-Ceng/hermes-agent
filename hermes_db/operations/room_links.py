@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import insert
 from gateway import hosted_rooms as native
 from gateway.hosted_rooms_common import clock
 from hermes_db.repositories import rooms as repo
-from hermes_db.tables.rooms import links, remote_runs, REMOTE_IDENTITY
+from hermes_db.tables.rooms import links, remote_runs, REMOTE_IDENTITY, owed_revokes
 
 
 def list_room_link_records(store):
@@ -14,17 +14,25 @@ def list_room_link_records(store):
             .order_by(links.c.room_id, links.c.member_id)).mappings()]
 
 
-def upsert_room_link_record(store, *, record, max_links):
+def upsert_room_link_record(store, *, record, max_links, expiry=None):
     fields = {name: record[name] for name in native._LINK_COLUMNS}
     identity = {name: record[name] for name in ("room_id", "member_id")}
     with store.write() as conn:
         repo.lock_store(conn, store)
-        exists = conn.scalar(select(links.c.room_id).where(repo.key(links, store, identity))) is not None
-        if not exists and conn.scalar(select(func.count()).select_from(links).where(repo.scope(links, store))) >= max_links:
+        existing = conn.execute(select(links).where(repo.key(links, store, identity))).mappings().one_or_none()
+        if existing is None and conn.scalar(select(func.count()).select_from(links).where(repo.scope(links, store))) >= max_links:
             raise native.HostedRoomError("too many stored room links")
+        if existing is not None and expiry is not None:
+            old = repo.record(existing)
+            if old['grant'] != record['grant'] and expiry(old['grant']) > expiry(record['grant']):
+                from hermes_db.operations.room_revoke_debts import owe_locked
+                owe_locked(conn, store, **identity, target_url=old['target_url'], grant=old['grant'],
+                    expires_at=expiry(old['grant']), now=clock(None), held=True)
         statement = insert(links).values(store_id=store.scope.require_store_id(), **repo.values(links, fields))
         conn.execute(statement.on_conflict_do_update(index_elements=[links.c.store_id, links.c.room_id, links.c.member_id],
             set_={name: statement.excluded[name] for name in fields if name not in identity}))
+        conn.execute(delete(owed_revokes).where(repo.key(owed_revokes, store,
+            dict(identity, grant_digest=native.grant_digest(record['grant']))), owed_revokes.c.held == 1))
 
 
 def update_room_link_status(store, *, room_id, member_id, status, now=None):
@@ -71,3 +79,15 @@ def remote_run_receipt(store, *, record):
         row = conn.execute(select(remote_runs).where(repo.key(remote_runs, store,
             {name: record[name] for name in REMOTE_IDENTITY}))).mappings().one_or_none()
         return repo.record(row) if row is not None else None
+
+
+def drop_remote_run_receipt(store, *, record, run_id):
+    identity = {name: record[name] for name in REMOTE_IDENTITY}
+    identity['run_id'] = run_id
+    with store.write() as conn:
+        repo.lock_store(conn, store)
+        deleted = conn.execute(delete(remote_runs).where(repo.key(remote_runs, store, identity))).rowcount == 1
+        if deleted:
+            from hermes_db.operations.room_work import capture_transition_locked
+            capture_transition_locked(conn, store, record['room_id'])
+        return deleted

@@ -10,6 +10,7 @@ from hermes_db.session_compression_state import SessionCompressionState
 from hermes_db.session_message_lookup import SessionMessageLookup
 from hermes_db.session_message_reads import SessionMessageReads, _active_filter
 from hermes_db.session_metadata import SessionMetadata
+from hermes_db.session_lineage_reads import SessionLineageReads
 from hermes_state_runtime import RuntimeStoreError, _text
 
 
@@ -21,6 +22,8 @@ class ReadView:
     resolve_resume_session_id = SessionMessageLookup.resolve_resume_session_id
     latest_conversation_boundary = SessionMessageLookup.latest_conversation_boundary
     declared_scope_identity = SessionMetadata.declared_scope_identity
+    get_tool_rotation_root = SessionLineageReads.get_tool_rotation_root
+    _is_explicit_fork_child_row = staticmethod(SessionLineageReads._is_explicit_fork_child_row)
 
     def __init__(self, conn, scope):
         self.conn, self.scope = conn, scope
@@ -60,7 +63,8 @@ def lineage(conn, scope, session_id, payload):
     view.authorize(session_id, target)
     return {"readable_ids": view.readable_ids(session_id), "lineage": view.get_compression_lineage(target),
         "root": view.get_conversation_root(target), "tip": view.get_compression_tip(target),
-        "resume": view.resolve_resume_session_id(target), "identity": view.declared_scope_identity(target)}
+        "resume": view.resolve_resume_session_id(target), "identity": view.declared_scope_identity(target),
+        "tool_root": view.get_tool_rotation_root(target)}
 
 
 def boundary(conn, scope, session_id, payload):
@@ -81,7 +85,7 @@ def history(conn, scope, session_id, payload):
     ids = messages.resume_lineage(conn, scope, target) if payload["include_ancestors"] else [target]
     conditions = _active_filter(payload["include_inactive"], payload["include_compacted"])
     display = payload["include_compacted"] and not payload["include_inactive"]
-    rows = messages.select_rows(conn, scope, ids, *([] if display else conditions))
+    rows = messages.display_set(conn, scope, ids) if display else messages.select_rows(conn, scope, ids, *conditions)
     if payload["include_compacted"]:
         rows = codec._dedupe_display_generations(rows, drop_removed=display)
     return {"messages": codec._rows_to_conversation(rows, session_id=target,

@@ -2,7 +2,6 @@
 
 import datetime as dt
 import threading
-from plugins.platforms.discord.recovery import DiscordRecoveryStore
 from hermes_db.domains.discord_recovery import capture_discord, open_discord
 from hermes_db.errors import StorageConfigurationError
 from hermes_db.operations import discord_recovery as operations
@@ -11,7 +10,7 @@ from hermes_db.repositories.discord_recovery import lock_store
 READS = frozenset({"probe", "is_complete", "active_claim", "attempts_exhausted", "cursor"})
 
 
-class PostgresDiscordRecoveryStore(DiscordRecoveryStore):
+class PostgresDiscordRecoveryStore:
     def __init__(self, hermes_home=None):
         self.reference = capture_discord(hermes_home)
         self._hermes_home = self.reference.profile_home

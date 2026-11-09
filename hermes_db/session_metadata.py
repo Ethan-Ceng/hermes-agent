@@ -108,6 +108,9 @@ class SessionMetadata:
         with self._write() as conn:
             row = repo.lock_session(conn, self.scope, session_id)
             ids = operations.lineage_flag(conn, self.scope, session_id, "archived", int(archived), extra={"auto_archived": 0})
+            if archived:
+                from hermes_db.operations.titles import retire_bot_chat
+                retire_bot_chat(conn, self.scope, ids)
             newly_archived = archived and row and not row["archived"]
         if newly_archived and notify:
             from hermes_db.events import emit_deleted

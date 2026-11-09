@@ -1,6 +1,6 @@
 """Title authority, conflict transfer, and canonical Bot Chat protection."""
 
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 
 from hermes_db.repositories import sessions as repo
 from hermes_db.tables.conversations import messages, sessions
@@ -8,6 +8,18 @@ from hermes_db.values import decode_text, encode_text
 
 RANK = {"derived": 0, "llm": 1, "user": 2}
 BOT_TITLE = "Bot Chat"
+
+
+def retire_bot_chat(conn, scope, ids):
+    from hermes_state_common import _RECOVERABLE_END_REASONS
+    held = list(conn.execute(select(sessions.c.id).where(sessions.c.store_id == scope.require_store_id(),
+        sessions.c.id.in_(ids), sessions.c.title == encode_text(BOT_TITLE))).scalars())
+    if not held:
+        return
+    conn.execute(sessions.update().where(sessions.c.store_id == scope.require_store_id(), sessions.c.id.in_(ids)).values(
+        hidden=0, end_reason=case((sessions.c.end_reason.in_(_RECOVERABLE_END_REASONS), None), else_=sessions.c.end_reason)))
+    conn.execute(sessions.update().where(sessions.c.store_id == scope.require_store_id(), sessions.c.id.in_(held)).values(
+        title=None, title_search=None, title_source=None))
 
 
 def set_title(transactions, scope, session_id, title, source):

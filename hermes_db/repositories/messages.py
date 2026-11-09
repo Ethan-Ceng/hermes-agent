@@ -1,6 +1,6 @@
 """Scoped transcript rows and atomic projection maintenance on a held connection."""
 
-from sqlalchemy import and_, func, insert, or_, select
+from sqlalchemy import and_, case, func, insert, or_, select
 
 from hermes_db.message_codec import codec, decoded_row, stored_values
 from hermes_db.message_preview import preview_text, roster_preview
@@ -36,6 +36,21 @@ def one(conn, scope, session_id, row_id):
 
 def visible():
     return or_(messages.c.active == 1, messages.c.compacted == 1)
+
+
+def display_set(conn, scope, session_ids):
+    """Visible bodies plus only the removed identities needed to suppress superseded copies."""
+    from hermes_db.message_codec import content_from_bytes
+    rows = select_rows(conn, scope, session_ids, visible())
+    names = ('session_id', 'id', 'role', 'timestamp', 'tool_call_id', 'tool_calls', 'tool_name',
+             'display_kind', 'display_metadata', 'message_uid', 'absorbed_message_uids',
+             'display_identity', 'active', 'compacted')
+    removed = select(*(messages.c[name] for name in names),
+        case((messages.c.display_identity.is_(None), messages.c.content), else_=None).label('content')).where(
+            where(scope, session_ids), messages.c.active == 0, messages.c.compacted == 0)
+    for row in conn.execute(removed).mappings():
+        rows.append({**row, 'content': content_from_bytes(row['content'])})
+    return sorted(rows, key=lambda row: row['id'])
 
 
 def insert_row(conn, scope, row):
@@ -78,7 +93,8 @@ def update_row(conn, scope, session_id, row_id, values):
 
 
 def reconcile_orders(conn, scope, session_id):
-    """Reconcile only fixed-width identity/UID columns, never historical payloads."""
+    """Heal nullable legacy identities, then reconcile fixed-width identity/UID columns."""
+    _backfill_missing_identities(conn, scope, session_id)
     columns = (messages.c.id, messages.c.display_identity, messages.c.message_uid, messages.c._compressed_summary, messages.c.display_order)
     rows = conn.execute(select(*columns).where(where(scope, [session_id]), visible()).order_by(messages.c.id)).mappings()
     first, uids, changes = {}, {}, []
@@ -98,15 +114,33 @@ def reconcile_orders(conn, scope, session_id):
                      .values(display_identity=identity, display_order=order))
 
 
-def bump_revision(conn, scope, session_id):
-    session_repo.update_session(conn, scope, session_id, {"transcript_revision": sessions.c.transcript_revision + 1})
+def _backfill_missing_identities(conn, scope, session_id):
+    last_id = 0
+    while True:
+        rows = select_rows(conn, scope, [session_id], visible(), messages.c.display_identity.is_(None),
+                           messages.c.id > last_id, limit=1000)
+        if not rows:
+            return
+        for row in rows:
+            identity = codec._display_identity(codec._display_dedupe_key(row))
+            # A slot computed without an identity may already combine unrelated messages.
+            conn.execute(messages.update().where(where(scope, [session_id]), messages.c.id == row['id'])
+                         .values(display_identity=identity, display_order=None))
+        last_id = rows[-1]['id']
+
+
+def bump_revision(conn, scope, session_id, *, display_change=True):
+    values = {"transcript_revision": sessions.c.transcript_revision + 1}
+    if display_change:
+        values["transcript_edit_revision"] = sessions.c.transcript_edit_revision + 1
+    session_repo.update_session(conn, scope, session_id, values)
 
 
 def bump_counters(conn, scope, session_id, inserted, tool_calls):
     session_repo.update_session(conn, scope, session_id, {
         "message_count": sessions.c.message_count + inserted, "tool_call_count": sessions.c.tool_call_count + tool_calls})
     if inserted:
-        bump_revision(conn, scope, session_id)
+        bump_revision(conn, scope, session_id, display_change=False)
 
 
 def active_ids(conn, scope, session_id):

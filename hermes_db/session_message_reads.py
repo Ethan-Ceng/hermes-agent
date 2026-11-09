@@ -8,6 +8,23 @@ from hermes_db.tables.conversations import messages, sessions
 
 
 class SessionMessageReads:
+    def transcript_cursor_state(self, session_id, through_id, lineage_ids=None):
+        from sqlalchemy import or_
+        with self._read() as conn:
+            ids = list(lineage_ids) if lineage_ids else _transcript_lineage_ids(conn, self.scope, session_id)
+            live = conn.scalar(select(func.count()).select_from(messages).where(
+                repo.where(self.scope, ids), messages.c.active == 1,
+                or_(messages.c.session_id != session_id, messages.c.id <= int(through_id))))
+            inactive = conn.scalar(select(func.count()).select_from(messages).where(
+                repo.where(self.scope, ids), messages.c.active == 0))
+            edits = conn.scalar(select(func.coalesce(func.sum(sessions.c.transcript_edit_revision), 0)).where(
+                sessions.c.store_id == self.scope.require_store_id(), sessions.c.id.in_(ids)))
+            return int(live), int(inactive), int(edits)
+
+    def transcript_lineage_ids(self, session_id):
+        with self._read() as conn:
+            return _transcript_lineage_ids(conn, self.scope, session_id)
+
     def get_messages(self, session_id, include_inactive=False, include_compacted=False, limit=None, offset=0,
                      latest=False, after_id=None, include_ancestors=False):
         if after_id is not None and (latest or offset or include_compacted or include_ancestors):
@@ -19,7 +36,8 @@ class SessionMessageReads:
                 # Single-segment display reads use the indexed page below.
                 rows = _display_page(conn, self.scope, session_id, limit, offset, latest) if len(ids) == 1 and not include_inactive else None
                 if rows is None:
-                    rows = repo.select_rows(conn, self.scope, ids, *_active_filter(include_inactive, include_compacted))
+                    rows = repo.display_set(conn, self.scope, ids) if include_compacted and not include_inactive else repo.select_rows(
+                        conn, self.scope, ids, *_active_filter(include_inactive, include_compacted))
                     rows = codec._dedupe_display_generations(rows, drop_removed=include_compacted and not include_inactive)
                     rows = _page(rows, limit, offset, latest)
             else:
@@ -34,7 +52,8 @@ class SessionMessageReads:
         with self._read() as conn:
             ids = repo.resume_lineage(conn, self.scope, session_id) if include_ancestors else [session_id]
             conditions = [] if include_compacted and not include_inactive else _active_filter(include_inactive, include_compacted)
-            rows = repo.select_rows(conn, self.scope, ids, *conditions)
+            rows = repo.display_set(conn, self.scope, ids) if include_compacted and not include_inactive else repo.select_rows(
+                conn, self.scope, ids, *conditions)
         if include_compacted:
             rows = codec._dedupe_display_generations(rows, drop_removed=not include_inactive)
         return codec._rows_to_conversation(rows, session_id=session_id, include_ancestors=include_ancestors,
@@ -42,7 +61,7 @@ class SessionMessageReads:
 
     def get_resume_conversations(self, session_id):
         with self._read() as conn:
-            rows = repo.select_rows(conn, self.scope, repo.resume_lineage(conn, self.scope, session_id))
+            rows = repo.display_set(conn, self.scope, repo.resume_lineage(conn, self.scope, session_id))
         model = codec._rows_to_conversation(
             [row for row in rows if row["session_id"] == session_id and row["active"] and row["role"] != "session_meta"],
             session_id=session_id, include_ancestors=False, repair_alternation=True, include_row_ids=True, include_summary_markers=True)
@@ -101,7 +120,7 @@ class SessionMessageReads:
 
     def get_ancestor_display_prefix(self, session_id):
         with self._read() as conn:
-            rows = repo.select_rows(conn, self.scope, repo.resume_lineage(conn, self.scope, session_id))
+            rows = repo.display_set(conn, self.scope, repo.resume_lineage(conn, self.scope, session_id))
         rows = codec._dedupe_display_generations(rows, drop_removed=True)
         ancestor_ids = {row["id"] for row in rows if row["session_id"] != session_id}
         conversation = codec._rows_to_conversation(rows, session_id=session_id, include_ancestors=True,
@@ -145,7 +164,7 @@ def _resume_count(conn, scope, session_id, tip_only, limit=None):
     return conn.scalar(select(func.count()).select_from(statement.subquery()))
 
 
-def display_ids(conn, scope, session_id, limit=None, offset=0, latest=False):
+def display_ids(conn, scope, session_id, limit=None, offset=0, latest=False, after=None):
     from hermes_db.query_projections import display_value, query_token
     from agent.context_compressor import MODEL_ONLY_DISPLAY_METADATA_KEY
 
@@ -159,6 +178,8 @@ def display_ids(conn, scope, session_id, limit=None, offset=0, latest=False):
     eligible = [repo.where(scope, [session_id]), repo.visible(),
         func.coalesce(cast(display_value(messages.c.display_metadata, MODEL_ONLY_DISPLAY_METADATA_KEY), Text), "false").not_in(model_only),
         ~((messages.c.role == "tool") & messages.c.message_uid.is_not(None) & copied_tool)]
+    if after is not None:
+        eligible.append(messages.c.display_order < after if latest else messages.c.display_order > after)
     ranked = select(messages.c.id, messages.c.display_order,
         func.row_number().over(partition_by=messages.c.display_order, order_by=(messages.c.active.desc(), messages.c.id.desc()))
         .label("rank")).where(*eligible).subquery()
@@ -175,3 +196,11 @@ def _display_page(conn, scope, session_id, limit, offset, latest):
     from hermes_db.message_codec import decoded_row
     return [decoded_row(row) for row in conn.execute(select(messages).where(repo.where(scope, [session_id]),
         messages.c.id.in_(page)).order_by(messages.c.display_order)).mappings()]
+
+
+def _transcript_lineage_ids(conn, scope, session_id):
+    from hermes_db.values import model_config
+    row = session_repo.get_session(conn, scope, session_id)
+    if row is None or not model_config(row.get("model_config")).get("_delegate_from"):
+        return [session_id]
+    return repo.resume_lineage(conn, scope, session_id)

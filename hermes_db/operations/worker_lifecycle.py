@@ -159,5 +159,8 @@ def user_content(conn, scope, session_id, payload):
         return {"value": 0}
     values = {"content": codec._encode_content(payload["content"])}
     if "display_metadata" in payload:
-        values.update(api_content=None, display_metadata=codec._encode_display_metadata(payload["display_metadata"]))
+        from hermes_db.message_codec import merge_display_metadata
+        patch = codec._decode_display_metadata(codec._encode_display_metadata(payload['display_metadata'])) or {}
+        metadata = merge_display_metadata(codec._decode_display_metadata(row['display_metadata']), patch)
+        values.update(api_content=None, display_metadata=codec._encode_display_metadata(metadata))
     return {"value": messages.update_row(conn, scope, session_id, row_id, values)}

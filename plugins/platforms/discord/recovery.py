@@ -23,24 +23,28 @@ _RETENTION_DAYS = 30
 class DiscordRecoveryStore(RecoveryOperations):
     """Small profile-scoped SQLite ledger for completed Discord messages."""
 
-    def __new__(cls, hermes_home=None):
-        from hermes_cli.db_setup import storage_backend
-        if cls is DiscordRecoveryStore and storage_backend(hermes_home) == "postgresql":
-            from hermes_db.discord_recovery_store import PostgresDiscordRecoveryStore
-            return object.__new__(PostgresDiscordRecoveryStore)
-        return object.__new__(cls)
-
     def __init__(self, hermes_home: Path | None = None) -> None:
+        from hermes_cli.db_setup import storage_backend
+        self._backend = None
+        if storage_backend(hermes_home) == "postgresql":
+            from hermes_db.discord_recovery_store import PostgresDiscordRecoveryStore
+            self._backend = PostgresDiscordRecoveryStore(hermes_home)
+            self.reference = self._backend.reference
+            return
         self._lock = threading.Lock()
         self._initialized = False
         self._hermes_home = Path(hermes_home or get_hermes_home())
 
     def path(self) -> Path:
+        if self._backend is not None:
+            return self._backend.path()
         directory = self._hermes_home / "gateway"
         directory.mkdir(parents=True, exist_ok=True)
         return directory / _DB_FILENAME
 
     def call(self, fn: Callable[[sqlite3.Connection], Any], default: Any = None) -> Any:
+        if self._backend is not None:
+            return self._backend.call(fn, default)
         from hermes_cli.db_setup import storage_backend
         from hermes_db.errors import StorageConfigurationError
         if storage_backend(self._hermes_home) != "sqlite":
@@ -66,6 +70,8 @@ class DiscordRecoveryStore(RecoveryOperations):
             return default
 
     def _operation(self, name, *, default=None, **fields):
+        if self._backend is not None:
+            return self._backend._operation(name, default=default, **fields)
         from . import recovery_sqlite
         from hermes_cli.sqlite_util import write_txn
         def invoke(conn):

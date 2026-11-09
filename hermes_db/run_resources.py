@@ -92,6 +92,9 @@ class ProfileRunStores:
     def lookup(self, scope, *args, **kwargs):
         return self._for_scope(scope).lookup(scope, *args, **kwargs)
 
+    def find_or_close(self, scope, key):
+        return self._for_scope(scope).find_or_close(scope, key)
+
     def status_for_run(self, scope, *args, **kwargs):
         return self._for_scope(scope).status_for_run(scope, *args, **kwargs)
 

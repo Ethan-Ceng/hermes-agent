@@ -57,12 +57,18 @@ class SessionTitles:
         with self._read() as conn:
             session_id = conn.scalar(select(sessions.c.id).where(sessions.c.store_id == self.scope.require_store_id(),
                                                                 sessions.c.title == encode_text(title)))
-            return repo.get_session(conn, self.scope, session_id) if session_id else None
+            row = repo.get_session(conn, self.scope, session_id) if session_id else None
+            if row and title == titles.BOT_TITLE and row['archived']:
+                from hermes_state_titles import bot_chat_title_released
+                tip = repo.raw_session(conn, self.scope, repo.compression_tip(conn, self.scope, row['id'])) or row
+                if bot_chat_title_released(row['archived'], row['auto_archived'], tip['end_reason']):
+                    return None
+            return row
 
     def resolve_session_by_title(self, title):
         exact = self.get_session_by_title(title)
-        if exact and title == titles.BOT_TITLE:
-            return exact["id"]
+        if title == titles.BOT_TITLE:
+            return exact['id'] if exact else None
         with self._read() as conn:
             latest = conn.scalar(select(sessions.c.id).where(sessions.c.store_id == self.scope.require_store_id(),
                 sessions.c.title_search.startswith(title + " #", autoescape=True))

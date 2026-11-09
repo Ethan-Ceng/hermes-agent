@@ -78,7 +78,7 @@ def test_managed_worker_cannot_open_an_owner_store(tmp_path, monkeypatch):
     assert not (tmp_path / "state.db").exists()
 
 
-@pytest.mark.parametrize("surface", ["oneshot", "launch", "agent_recall", "tui", "acp"])
+@pytest.mark.parametrize("surface", ["launch", "agent_recall", "tui", "acp"])
 def test_pg_entry_failure_is_not_a_memory_only_session(tmp_path, monkeypatch, surface, unavailable_native):
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
     _profile(tmp_path, "unavailable")
@@ -100,9 +100,9 @@ def test_pg_entry_failure_is_not_a_memory_only_session(tmp_path, monkeypatch, su
         monkeypatch.setattr(server, "_launch_state_db_path", lambda: tmp_path / "state.db")
         server._get_db()
 
-    from hermes_cli.oneshot import _create_session_db_for_oneshot
     from acp_adapter.session import SessionManager
-    openers = {'oneshot': _create_session_db_for_oneshot, 'launch': launch, 'agent_recall': recall,
+    # -z now uses this same gateway owner; it no longer acquires a client-side SessionDB.
+    openers = {'launch': launch, 'agent_recall': recall,
         'tui': tui, 'acp': lambda: SessionManager()._get_db()}
     try:
         with pytest.raises(StorageError):

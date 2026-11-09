@@ -44,15 +44,35 @@ def requeue_indeterminate_task(store, identity, lease, *, expected_execution_gen
 
 
 def defer_indeterminate_task(store, identity, lease, *, expected_execution_generation, expected_cancel_generation, reason, clock):
-    native._expected_generations(lease, identity, expected_execution_generation, expected_cancel_generation)
+    return _defer_task(store, identity, lease, expected_execution_generation, expected_cancel_generation,
+                       reason, clock, status="indeterminate")
+
+
+def defer_unconfirmed_stop(store, identity, lease, *, expected_execution_generation, expected_cancel_generation, reason, clock):
+    return _defer_task(store, identity, lease, expected_execution_generation, expected_cancel_generation,
+                       reason, clock, status="stopping")
+
+
+def _defer_task(store, identity, lease, execution, cancellation, reason, clock, *, status):
+    native._expected_generations(lease, identity, execution, cancellation)
     reason = native._identifier(reason, label="defer_reason")
     encoded = native._canonical_json({"reason": reason, "retryable": True})
     now = native._timestamp(clock)
     def replay(row):
-        deferred = native._generations_match(row, "deferred", expected_execution_generation, expected_cancel_generation)
+        deferred = native._generations_match(row, "deferred", execution, cancellation)
         return native._task_from_row(row, idempotent=True) if deferred and row["result_json"] == encoded else None
+    return _generation_change(store, identity, lease, execution, cancellation, status=status,
+        now=now, replay=replay, message=f"{status} task generation changed",
+        fields=dict(status="deferred", result_json=encoded, terminal_at=now, updated_at=now))
+
+
+def reopen_deferred_task(store, identity, lease, *, expected_execution_generation, expected_cancel_generation, clock):
+    native._expected_generations(lease, identity, expected_execution_generation, expected_cancel_generation)
+    now = native._timestamp(clock)
     return _generation_change(store, identity, lease, expected_execution_generation, expected_cancel_generation,
-        now=now, replay=replay, fields=dict(status="deferred", result_json=encoded, terminal_at=now, updated_at=now))
+        status="deferred", now=now, message="deferred task generation changed",
+        fields=dict(status="indeterminate", result_json=None, terminal_at=None, started_at=now,
+                    indeterminate_at=now, updated_at=now))
 
 
 def requeue_deferred_task(store, identity, lease, *, expected_execution_generation, expected_cancel_generation, clock):

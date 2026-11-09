@@ -70,11 +70,17 @@ class SessionTopics:
     def is_telegram_session_linked_to_topic(self, *, session_id):
         return self.get_telegram_topic_binding_by_session(session_id=session_id) is not None
 
-    def bind_telegram_topic(self, *, chat_id, thread_id, user_id, session_key, session_id, managed_mode="auto", profile_name="default"):
+    def bind_telegram_topic(self, *, chat_id, thread_id, user_id, session_key, session_id, managed_mode="auto", profile_name="default",
+                            expected_session_id=None):
         profile_name, chat_id, thread_id = _profile(profile_name), str(chat_id), str(thread_id)
         now = time.time()
         with self._write() as conn:
             repo.lock_store(conn, self.scope, exclusive=True)
+            if expected_session_id is not None:
+                current = conn.scalar(select(bindings.c.session_id).where(*_where(bindings, self.scope,
+                    profile_name=profile_name, chat_id=chat_id, thread_id=thread_id)))
+                if current is None or current != str(expected_session_id):
+                    return False
             existing = conn.execute(select(bindings).where(*_where(bindings, self.scope, session_id=str(session_id)))).mappings().one_or_none()
             if existing and (existing["profile_name"], existing["chat_id"], existing["thread_id"]) != (profile_name, chat_id, thread_id):
                 raise ValueError("session is already linked to another Telegram topic")
@@ -84,6 +90,7 @@ class SessionTopics:
             statement = insert(bindings).values(**values)
             changed = {key: value for key, value in values.items() if key not in ("store_id", "profile_name", "chat_id", "thread_id", "linked_at")}
             conn.execute(statement.on_conflict_do_update(index_elements=list(bindings.primary_key.columns), set_=changed))
+            return True
 
     def delete_telegram_topic_binding(self, *, chat_id, thread_id, profile_name="default"):
         values = {"profile_name": _profile(profile_name), "chat_id": str(chat_id)}

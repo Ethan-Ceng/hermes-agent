@@ -54,9 +54,10 @@ class SessionQueries:
     def list_sessions_rich(self, source=None, sources=None, exclude_sources=None, cwd_prefix=None, limit=20, offset=0,
                            include_children=False, min_message_count=0, project_compression_tips=True, order_by_last_active=False,
                            include_archived=False, archived_only=False, id_query=None, search_query=None, compact_rows=False,
-                           include_pinned=False, session_key=None, include_hidden=False, include_subagents=False, local_created_sources=None):
+                           include_pinned=False, session_key=None, include_hidden=False, include_subagents=False, local_created_sources=None,
+                           workspace_key=None):
         arguments = dict(source=source, sources=sources, session_key=session_key, exclude_sources=exclude_sources,
-            cwd_prefix=cwd_prefix, min_message_count=min_message_count, include_archived=include_archived,
+            cwd_prefix=cwd_prefix, workspace_key=workspace_key, min_message_count=min_message_count, include_archived=include_archived,
             archived_only=archived_only, exclude_children=not include_children, include_subagents=include_subagents,
             local_created_sources=local_created_sources, include_hidden=include_hidden)
         with self._read() as conn:

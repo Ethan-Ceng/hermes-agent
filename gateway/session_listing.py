@@ -24,24 +24,53 @@ def _picker_row(row, tip, sid):
             'message_count': row.get('message_count', 0), 'model': tip.get('model'), 'running': False}
 
 
-def stored_picker_sessions(authority, actor, *, limit, include_hidden=False):
+def _native_reader(authority, actor):
+    """The native transport old local rows are offered to: the one that may resume (adopt) them."""
+    return (getattr(authority, '_native_legacy_transports', {}).get(actor.transport_id) == actor
+            and {'session:read', 'session:create'} <= actor.capabilities)
+
+
+def legacy_readable(authority, actor, sid):
+    """Whether this picker lists old local row *sid* (unadopted: no receipt, no route) to *actor*, so a
+    read of it may show it without adopting it (``gateway/session_stored_reads.py``)."""
+    db = authority.db
+    row = db.get_session(sid)
+    if actor.profile_id != authority.profile_id or row is None or not _native_reader(authority, actor):
+        return False
+    try:
+        from hermes_db.health import is_postgresql_store
+        if is_postgresql_store(db):
+            from hermes_db.authority_access import authorize_history as native_authorize
+            from gateway.session_native_history import LOCAL_SOURCES
+            return row['source'] in LOCAL_SOURCES and native_authorize(authority, actor, sid)
+        validate_legacy_row(db, row, subject=actor.subject)
+        with db._read_ctx() as conn:
+            return authorize_history(conn, actor, sid)
+    except RuntimeStoreError as exc:
+        if exc.reason not in {'not_found', 'permission_denied'}:
+            raise
+        return False
+
+
+def stored_picker_sessions(authority, actor, *, limit, include_hidden=False, workspace=None, picker=False):
     """Offer legacy local rows only to the same native transport that may resume them.
 
     Canonical sessions are already in the live feed. Old local rows have no policy
     receipt until explicit resume; listing them must not claim or restore anything.
+    *workspace*: only the folder's rows (``hermes -c``'s rule). *picker*: each row carries the picker
+    fields, from the columns the listing already read (``gateway/session_picker_fields.py``).
     """
     if actor.profile_id != authority.profile_id:
         raise RuntimeStoreError('profile_mismatch')
-    if (getattr(authority, '_native_legacy_transports', {}).get(actor.transport_id) != actor
-            or not {'session:read', 'session:create'} <= actor.capabilities):
+    if not _native_reader(authority, actor):
         return {'sessions': [], 'scope': 'stored'}
     db = authority.db
     from hermes_db.health import own_profile_for_store
     own_profile = own_profile_for_store(db) or 'default'
-    sessions, offset, seen = [], 0, set()
+    sessions, offset, seen, sources = [], 0, set(), []
     while len(sessions) < limit:
         rows = db.list_sessions_rich(exclude_sources=_excluded_sources(), limit=200, offset=offset,
-            order_by_last_active=True, compact_rows=True, include_hidden=include_hidden)
+            order_by_last_active=True, compact_rows=True, include_hidden=include_hidden, workspace_key=workspace)
         for row in rows:
             local = row['source'] in _LOCAL_SOURCES or client_history_row(row)
             if not local and _messaging_platform(row['source']) is None:
@@ -58,6 +87,7 @@ def stored_picker_sessions(authority, actor, *, limit, include_hidden=False):
                         and root not in seen):
                     seen.add(root)
                     sessions.append(_picker_row({**row, 'id': root}, tip, root))
+                    sources.append((root, sid, row))
                 if len(sessions) == limit:
                     break
                 continue
@@ -66,31 +96,22 @@ def stored_picker_sessions(authority, actor, *, limit, include_hidden=False):
                 if closed['id'] not in seen:
                     seen.add(closed['id'])
                     sessions.append(closed)
+                    sources.append((closed['id'], sid, row))
                 if len(sessions) == limit:
                     break
                 continue
-            try:
-                from hermes_db.health import is_postgresql_store
-                if is_postgresql_store(db):
-                    from hermes_db.authority_access import authorize_history as native_authorize
-                    from gateway.session_native_history import LOCAL_SOURCES
-                    if tip['source'] not in LOCAL_SOURCES or not native_authorize(authority, actor, sid):
-                        continue
-                else:
-                    validate_legacy_row(db, tip, subject=actor.subject)
-                    with db._read_ctx() as conn:
-                        if not authorize_history(conn, actor, sid):
-                            continue
-            except RuntimeStoreError as exc:
-                if exc.reason not in {'not_found', 'permission_denied'}:
-                    raise
+            if not legacy_readable(authority, actor, sid):
                 continue
             sessions.append(_picker_row(row, tip, sid))
+            sources.append((row.get('_lineage_root_id') or row['id'], sid, row))
             if len(sessions) == limit:
                 break
         if len(rows) < 200:
             break
         offset += len(rows)
+    if picker and sessions:
+        from gateway.session_picker_fields import fill_picker_fields
+        fill_picker_fields(db, [(row, *source) for row, source in zip(sessions, sources)])
     return {'sessions': sessions, 'scope': 'stored'}
 
 
@@ -119,18 +140,17 @@ def _closed_local_session(authority, actor, row, tip):
 
 def _stored_closed(authority, actor, owner):
     """Boot leaves an ended session unrestored and a listing never restores one (a worker thread): judge
-    its stored receipt as ``authorize`` and ``closed_and_unviewed`` would after a restore. No viewer."""
-    from hermes_db.local_access import local_receipt
+    its stored receipt as ``authorize`` and ``closed_and_unviewed`` would after a restore. No viewer.
+    The stored receipt uses the restore's persisted checks; the live route check stays the restore's."""
+    from gateway.session_local_recovery import restorable_receipt
     from hermes_db.runtime_calls import list_session_admissions
     if actor.profile_id != authority.profile_id or 'session:read' not in actor.capabilities:
         return False
     try:
-        receipt = local_receipt(authority.db, owner)
-        row = authority.db.get_session(receipt['entry']['session_id'])
-    except (RuntimeStoreError, KeyError, TypeError):
+        receipt, entry = restorable_receipt(authority, owner)
+        row = authority.db.get_session(entry.session_id)
+    except (KeyError, TypeError, ValueError, AttributeError):
         return False
-    from hermes_db.health import persisted_profile_id
-    return (receipt.get('profile_id') == persisted_profile_id(authority)
-            and (same_owner(receipt.get('principal_id'), actor.subject) or 'session:operator' in actor.capabilities)
+    return ((same_owner(receipt['principal_id'], actor.subject) or 'session:operator' in actor.capabilities)
             and row is not None and row['ended_at'] is not None
             and not list_session_admissions(authority.db, session_id=owner))

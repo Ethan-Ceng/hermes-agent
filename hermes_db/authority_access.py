@@ -105,7 +105,7 @@ def history_binding_names(db, saved, actor):
         from hermes_db.repositories.mutation_binding import binding_names
         return binding_names(saved, db.scope, actor.subject)
     from hermes_state_mutation_binding import binding_names
-    return binding_names(saved, actor.profile_id, actor.subject)
+    return binding_names(saved, actor.subject)
 
 
 def authorize_history(authority, actor, session_id):

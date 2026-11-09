@@ -9,6 +9,7 @@ logic lives once. Must stay a leaf: never import a hosted_room* module (import c
 from __future__ import annotations
 
 import json
+import math
 import re
 import sqlite3
 import time
@@ -19,6 +20,12 @@ from hermes_db.domains.rooms import RoomStoreRef
 
 IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
 DbPath = Path | str | RoomStoreRef
+
+
+def bounded_grant_expiry(value: float, *, now: float, horizon: float) -> float:
+    """An unreadable unsigned horizon cannot prove expiry or retain a grant forever."""
+    expiry = float(value)
+    return min(expiry, now + horizon) if math.isfinite(expiry) else now + horizon
 
 
 def identifier(

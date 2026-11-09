@@ -25,7 +25,7 @@ sessions = scoped_table(
     *zero_columns("has_delegate_marker", "has_branch_marker"),
     *[Column(name, Double) for name in ("ended_at", "last_activity_at", "last_read_at", "estimated_cost_usd",
                                       "actual_cost_usd", "compression_failure_cooldown_until", "compression_recovery_deadline")],
-    *zero_columns("runtime_revision", "runtime_generation", "git_metadata_generation", "transcript_revision",
+    *zero_columns("runtime_revision", "runtime_generation", "git_metadata_generation", "transcript_revision", "transcript_edit_revision",
                   "compression_fallback_streak", "compression_ineffective_count", "compression_overload_streak",
                   "rewind_count", "archived", "auto_archived", "pinned", "hidden"),
     *zero_columns("expiry_finalized", "message_count", "tool_call_count", "input_tokens", "output_tokens",
