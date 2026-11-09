@@ -8,7 +8,7 @@ import time
 import pytest
 
 from hermes_cli import kanban_db as kb, kanban_db_connect as kbc, kanban_db_dispatch as dispatch
-from hermes_db.repositories import kanban as repo, kanban_runs as run_repo
+from hermes_db.domains.kanban.postgres.queries import kanban as repo, runs as run_repo
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 
@@ -108,7 +108,7 @@ def test_runtime_kills_real_worker_without_retaining_connection(pg_profiles):
 
 
 def test_recovery_failure_rolls_back_run_close_and_retry_together(pg_profiles, monkeypatch):
-    from hermes_db.operations import kanban_failures
+    from hermes_db.domains.kanban.postgres.operations import failures as kanban_failures
     with pg_profiles("one"), kbc.connect_closing() as store:
         task_id, run_id = claimed(store)
         with store.write() as conn:

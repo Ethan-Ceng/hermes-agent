@@ -74,7 +74,7 @@ def test_pg_board_legacy_path_receipt_remains_ambiguous_without_opening_sqlite(p
         kb._append_event(store, task_id, "owner_admitted", {"db": str(home / "legacy.db"),
             "session_id": "legacy", "request_id": "legacy"}, run_id=task.current_run_id)
         assert recovery.owner_reclaim_paused(store, task_id)
-        from hermes_db.repositories.kanban_evidence import snapshot
+        from hermes_db.domains.kanban.postgres.queries.evidence import snapshot
         with store.read() as conn:
             evidence = snapshot(conn, store, task_id)
         assert recovery.owner_reclaim_paused(evidence, task_id)

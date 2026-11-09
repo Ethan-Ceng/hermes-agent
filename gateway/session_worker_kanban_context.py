@@ -39,7 +39,7 @@ def frozen_context(connection, ref, params):
     from hermes_cli.db_setup import _owning_profile
     from hermes_db.factory import acquire_profile_domain
     from hermes_db.health import profile_home_for_store
-    from hermes_db.operations.kanban_boards import _lookup
+    from hermes_db.domains.kanban.postgres.operations.boards import _lookup
     policy = _root_policy(connection.authority, params)
     if policy is not None and policy.source == "kanban" and policy.kanban_json:
         context = json.loads(policy.kanban_json)
@@ -62,7 +62,7 @@ def frozen_context(connection, ref, params):
         board_id = row["board_id"] if row is not None else "default"
         if target.get("board_id", board_id) != board_id:
             raise RuntimeStoreError("stale_generation")
-        from hermes_db.domains.kanban import BoardResource
-        from hermes_db.domains.kanban_owner import board_reference
+        from hermes_db.domains.kanban.api import BoardResource
+        from hermes_db.domains.kanban.routing.owner import board_reference
         with BoardResource(resource, board_id, slug) as board:
             return {"board": slug, "owner": board_reference(board)}

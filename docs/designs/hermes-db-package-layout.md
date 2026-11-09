@@ -97,6 +97,7 @@ hermes_db/
 - 表和迁移包64项保留现有位置；其余保持项为根入口与domains命名空间。
 - source清单按基准冻结；实施前发现新增/改动模块必须先更新归属及计划，不按通配符漏掉或移入杂项包。
 - 新父包只补必要的空`__init__`；它们不导入全部领域、SDK或Engine。
+- Task10实施修正：`kanban_import.py`目标使用`postgres/operations/imports.py`，避免Python关键字`import`；其源hash与业务归属保持，全部move目标已补验合法模块标识符。
 - stage1_target是机械落位，不能把临时capabilities目录当作阶段二最终组件设计；阶段二以下表收敛，并在任务完成时更新最终落位记录。
 
 ## 分层与依赖规则

@@ -205,7 +205,7 @@
     "plugins/kanban/dashboard/plugin_api.py hermes_cli.projects_db": 3,
     "plugins/kanban/dashboard/plugin_api.py hermes_cli.web_read_coalescing.coalesced_read": 1,
     "plugins/kanban/dashboard/plugin_api.py hermes_cli.web_server_chat": 1,
-    "plugins/kanban/dashboard/plugin_api.py hermes_db.domains.kanban.domain_operation": 1,
+    "plugins/kanban/dashboard/plugin_api.py hermes_db.domains.kanban.api.domain_operation": 1,
     "plugins/kanban/dashboard/plugin_api.py hermes_db.errors.StorageError": 1,
     "plugins/memory/byterover/__init__.py tools.environments.local.build_subprocess_env": 1,
     "plugins/memory/byterover/__init__.py tools.environments.local.strip_launch_profile_env": 1,

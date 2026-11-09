@@ -4,7 +4,7 @@ from __future__ import annotations
 import sqlite3
 import time
 from typing import Any, Optional
-from hermes_db.domains.kanban import domain_operation
+from hermes_db.domains.kanban.api import domain_operation
 
 def inherit_creator_origin(
     conn: sqlite3.Connection, task_id: str, creator_task_id: Optional[str], *,

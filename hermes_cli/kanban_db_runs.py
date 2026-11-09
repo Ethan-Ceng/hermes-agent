@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 from typing import Any, Iterable, Optional
-from hermes_db.domains.kanban import domain_operation
+from hermes_db.domains.kanban.api import domain_operation
 
 
 @domain_operation("runs")

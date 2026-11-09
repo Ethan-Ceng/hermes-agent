@@ -6,8 +6,8 @@ import sqlite3
 import time
 import psutil
 
-from hermes_db.domains.kanban import domain_operation
-from hermes_db.domains.kanban_evidence import TaskEvidence, typed_owner_receipt
+from hermes_db.domains.kanban.api import domain_operation
+from hermes_db.domains.kanban.routing.evidence import TaskEvidence, typed_owner_receipt
 
 
 @domain_operation("owner_recovery")

@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING
 import contextlib
 
 from hermes_cli.worktree_ops import release_lsp_clients
-from hermes_db.domains.kanban import domain_operation, owner_scoped_operation
+from hermes_db.domains.kanban.api import domain_operation, owner_scoped_operation
 from hermes_db.errors import StorageError
 
 if TYPE_CHECKING:
@@ -293,7 +293,7 @@ def _managed_scratch_path_info(p: Path) -> tuple[bool, Optional[str]]:
                 board,
             ))
 
-    from hermes_db.domains.kanban_files import managed_scratch_roots
+    from hermes_db.domains.kanban.routing.files import managed_scratch_roots
     for generation_root, generation_board in managed_scratch_roots():
         _add_root(generation_root.parent, generation_root.parent.resolve(strict=False), (generation_root.name,), generation_board)
     override = os.environ.get("HERMES_KANBAN_WORKSPACES_ROOT", "").strip()

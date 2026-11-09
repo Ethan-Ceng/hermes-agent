@@ -123,7 +123,7 @@ def export_board(
     machine-local, rebuilt on demand."""
     from hermes_cli.db_setup import storage_backend
     if storage_backend() == "postgresql":
-        from hermes_db.operations.kanban_transfer import export_board as export_postgresql
+        from hermes_db.domains.kanban.postgres.operations.transfer import export_board as export_postgresql
         return export_postgresql(board, output_path, include_attachments=include_attachments, include_logs=include_logs)
     slug = kb._normalize_board_slug(board) or kb.get_current_board()
     if not kb.board_exists(slug):
@@ -302,7 +302,7 @@ def import_board(
     either way it auto-suffixes if taken). Returns a summary dict."""
     from hermes_cli.db_setup import storage_backend
     if storage_backend() == "postgresql":
-        from hermes_db.operations.kanban_import import import_board as import_postgresql
+        from hermes_db.domains.kanban.postgres.operations.imports import import_board as import_postgresql
         return import_postgresql(archive_path, slug, activate=activate)
     archive = Path(archive_path).expanduser()
     if not archive.exists():

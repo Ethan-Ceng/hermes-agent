@@ -1,0 +1,127 @@
+"""Board-fenced claim CAS and heartbeats; each operation releases its connection."""
+
+import time
+from sqlalchemy import update
+
+from hermes_db.domains.kanban.postgres.queries import kanban as repo, runs as run_repo
+from hermes_db.domains.kanban.postgres.operations.graph import _unsatisfied
+from hermes_db.tables.kanban import tasks
+
+
+def _reject_parents(conn, store, row, source):
+    if row["status"] == source and (source == "ready" or row["claim_lock"] is None):
+        repo.task_update(conn, store, row["id"], status="todo")
+        if source == "review":
+            repo.event(conn, store, row["id"], "dependency_wait", {"reason": "parent_reopened", "source_status": "review"})
+    if source == "ready":
+        repo.event(conn, store, row["id"], "claim_rejected", {"reason": "parents_not_done"})
+
+
+def _close_dangling(conn, store, row, now, note="invariant recovery on re-claim"):
+    run_id = row["current_run_id"]
+    if run_id is not None:
+        run = run_repo.get(conn, store, run_id)
+        if run and run["ended_at"] is None:
+            run_repo.update_run(conn, store, run_id, status="reclaimed", outcome="reclaimed",
+                summary=run["summary"] if run["summary"] is not None else note,
+                ended_at=now, claim_lock=None, claim_expires=None, worker_pid=None)
+
+
+def _claim(store, task_id, source, ttl_seconds, claimer, *, dispatch_permit=None):
+    from hermes_cli import kanban_db as kb
+    now = int(time.time())
+    lock, expires = claimer or kb._claimer_id(), now + kb._resolve_claim_ttl_seconds(ttl_seconds)
+    with store.write() as conn:
+        row = repo.get(conn, store, task_id)
+        if row is None:
+            return store.command_result(conn, None)
+        if _unsatisfied(conn, store, task_id):
+            _reject_parents(conn, store, row, source)
+            return store.command_result(conn, None)
+        if row["status"] != source or row["claim_lock"] is not None:
+            return store.command_result(conn, None)
+        if dispatch_permit is not None and not dispatch_permit.admit(conn, store, row):
+            return store.command_result(conn, None)
+        if source == "ready":
+            _close_dangling(conn, store, row, now)
+        # Board lock serializes state decisions; the affected-row CAS is the transition verdict.
+        changed = conn.execute(update(tasks).where(repo.key(store, task_id), tasks.c.status == source.encode(),
+            tasks.c.claim_lock.is_(None)).values(status=b"running", claim_lock=lock.encode(), claim_expires=expires,
+            started_at=row["started_at"] if row["started_at"] is not None else now)).rowcount
+        if changed != 1:
+            return store.command_result(conn, None)
+        run_id = run_repo.open_run(conn, store, row, lock, expires, now)
+        repo.task_update(conn, store, task_id, current_run_id=run_id)
+        extra = {"source_status": "review"} if source == "review" else {}
+        repo.event(conn, store, task_id, "claimed", {"lock": lock, "expires": expires, "run_id": run_id, **extra}, run_id)
+        claimed = kb.Task.from_row(repo.get(conn, store, task_id))
+        from hermes_db.domains.kanban.postgres.operations.effects import enqueue, hook_step
+        effect_id = enqueue(conn, store, [hook_step(store, repo.get(conn, store, task_id), "kanban_task_claimed", run_id)]) if source == "ready" else None
+        store.command_result(conn, claimed)
+    if source == "ready":
+        from hermes_db.domains.kanban.postgres.operations.effects import after_commit
+        after_commit(store, effect_id)
+    return claimed
+
+
+def claim_task(store, task_id, *, ttl_seconds=None, claimer=None):
+    return _claim(store, task_id, "ready", ttl_seconds, claimer)
+
+
+def claim_review_task(store, task_id, *, ttl_seconds=None, claimer=None):
+    return _claim(store, task_id, "review", ttl_seconds, claimer)
+
+
+def heartbeat_worker(store, task_id, *, note=None, expected_run_id=None):
+    now = int(time.time())
+    with store.write() as conn:
+        row = repo.get(conn, store, task_id)
+        if row is None or row["status"] != "running" or (expected_run_id is not None and row["current_run_id"] != int(expected_run_id)):
+            return store.command_result(conn, False)
+        repo.task_update(conn, store, task_id, last_heartbeat_at=now)
+        run_id = row["current_run_id"]
+        if run_id is not None:
+            run_repo.update_run(conn, store, run_id, last_heartbeat_at=now)
+        repo.event(conn, store, task_id, "heartbeat", {"note": note} if note else None, run_id)
+        store.command_result(conn, True)
+    return True
+
+
+def heartbeat_claim(store, task_id, *, ttl_seconds=None, claimer=None):
+    from hermes_cli import kanban_db as kb
+    lock = claimer or kb._claimer_id()
+    expires = int(time.time()) + kb._resolve_claim_ttl_seconds(ttl_seconds)
+    with store.write() as conn:
+        row = repo.get(conn, store, task_id)
+        if row is None or row["status"] != "running" or row["claim_lock"] != lock:
+            return store.command_result(conn, False)
+        repo.task_update(conn, store, task_id, claim_expires=expires)
+        if row["current_run_id"] is not None:
+            run_repo.update_run(conn, store, row["current_run_id"], claim_expires=expires)
+        store.command_result(conn, True)
+    return True
+
+
+def reclaim_task(store, task_id, *, reason=None, signal_fn=None):
+    from hermes_cli import kanban_db as kb
+    with store.read() as conn:
+        snapshot = repo.get(conn, store, task_id)
+    if snapshot is None or (snapshot["status"] != "running" and snapshot["claim_lock"] is None):
+        return False
+    # Host process probes and termination must never retain a database connection.
+    termination = kb._terminate_reclaimed_worker(snapshot["worker_pid"], snapshot["claim_lock"],
+        signal_fn=signal_fn, started_at=snapshot["worker_started_at"])
+    with store.write() as conn:
+        row = repo.get(conn, store, task_id)
+        fields = ("status", "current_run_id", "claim_lock", "worker_pid", "worker_started_at")
+        if row is None or any(row[field] != snapshot[field] for field in fields) or row["status"] not in {"running", "ready", "blocked"}:
+            return False
+        retry = run_repo.retry_status(conn, store, task_id, row["current_run_id"])
+        repo.task_update(conn, store, task_id, status=retry, claim_lock=None, claim_expires=None,
+            worker_pid=None, worker_started_at=None, consecutive_failures=0, last_failure_error=None)
+        error = f"manual_reclaim: {reason}" if reason else f"manual_reclaim lock={snapshot['claim_lock']}"
+        run_id = run_repo.close_run(conn, store, row, outcome="reclaimed", status="reclaimed", error=error, metadata=termination)
+        repo.event(conn, store, task_id, "reclaimed", {"manual": True, "reason": reason,
+            "prev_lock": snapshot["claim_lock"], "retry_status": retry, **termination}, run_id)
+        store.command_result(conn, True)
+    return True

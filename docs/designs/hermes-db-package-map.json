@@ -1,7 +1,7 @@
 {
   "baseline": "cbfc773dd79241752697e647067c63338fc01680",
   "baseline_runtime": "0d69702244d623a31be149a9bac6a2658e0322ae",
-  "stage": "Tasks2-9 verified; root eleven actual entries reached; Kanban mechanical move continues from Task10",
+  "stage": "Stage1 mechanical checkpoint verified (Tasks1-10); 320 moves complete, root11; consolidation proceeds from Task11; two empty legacy namespaces remain for Task16",
   "hash_basis": "SHA256 of Git blob bytes at baseline; independent of checkout line endings",
   "counts": {
     "keep": 76,
@@ -200,7 +200,8 @@
       "task": 10,
       "lines": 101,
       "sha256": "bf225c72cbc1e324dbcf434f7d37aa318cb4f9ac8c2c814ff069ef21aaecf925",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/kanban_evidence.py",
@@ -209,7 +210,8 @@
       "task": 10,
       "lines": 26,
       "sha256": "8cf7b063319833ec1ccc751e306723e1e213ed6b79e2a92d768e9bb4d86004cd",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/kanban_files.py",
@@ -218,7 +220,8 @@
       "task": 10,
       "lines": 92,
       "sha256": "ef39ce7988896c8cd4f87c6d9a5bb6a4ac74a9ea37a894eec98fc4096b195dba",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/kanban_owner.py",
@@ -227,7 +230,8 @@
       "task": 10,
       "lines": 53,
       "sha256": "8d8f70d4a0c9506a769f31cb9dd8c7f6134bc34da5b4e44fd0d4333c98349475",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/kanban_wire.py",
@@ -236,7 +240,8 @@
       "task": 10,
       "lines": 58,
       "sha256": "1456f2e9dd95b2755305c3114633a37f7835279928ab54daee4fffad3ed2ebac",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/kanban_worker.py",
@@ -245,7 +250,8 @@
       "task": 10,
       "lines": 87,
       "sha256": "8c9b2fd51f802fcc56ebd17b9148cd7b2ff1b3bd85493a3043eb388fb9747cec",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/matrix_crypto.py",
@@ -1138,7 +1144,8 @@
       "task": 10,
       "lines": 25,
       "sha256": "5c92887c13ea19a779288c53f4c32fd6990a7827b385575e20673b39b60d870e",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_archive_format.py",
@@ -1147,7 +1154,8 @@
       "task": 10,
       "lines": 125,
       "sha256": "670f9cbf7b2130f75ea354ea3e35d27d783625e77c6bd4d16ba27e1419be2520",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_artifacts.py",
@@ -1156,7 +1164,8 @@
       "task": 10,
       "lines": 159,
       "sha256": "c942da399dda7df45a85c61bdc20510e7f7e0cb0d97e50dfface7d50482fa211",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_attachment_cleanup.py",
@@ -1165,7 +1174,8 @@
       "task": 10,
       "lines": 121,
       "sha256": "c513e64b0dc0351e53f5a6b31d07cbdbbe2912fb1132ae4338c50e1b06ff27f5",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_boards.py",
@@ -1174,7 +1184,8 @@
       "task": 10,
       "lines": 173,
       "sha256": "893b534376e1c14a24255c6d6651ea9910a80fe2106af2942ba5ed14d10c2b09",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_claims.py",
@@ -1183,7 +1194,8 @@
       "task": 10,
       "lines": 127,
       "sha256": "044bb1b0382ec39092ff698797962e6216eadf991f7bdd55f8eca17512b48557",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_command_receipts.py",
@@ -1192,7 +1204,8 @@
       "task": 10,
       "lines": 58,
       "sha256": "6fb2f4e81421ba109be1cb605caae7e78b25871433a662147100b2e9bbc3737c",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_completion.py",
@@ -1201,7 +1214,8 @@
       "task": 10,
       "lines": 146,
       "sha256": "05942f94c5e8b42d5ff47eda0ee0bb7df60719a50b73fbdee6e151e4711a934a",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_completion_acceptance.py",
@@ -1210,7 +1224,8 @@
       "task": 10,
       "lines": 42,
       "sha256": "aafd3737bb1532d46a8e67ab546f4eed2abec57d51b7030f10eac981415cdb9c",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_completion_guards.py",
@@ -1219,7 +1234,8 @@
       "task": 10,
       "lines": 96,
       "sha256": "3ed63e3cda25a85a8be8a99e92f60955aa00edc8b5e94985d3c227ef630fb8fe",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_crash_sweeps.py",
@@ -1228,7 +1244,8 @@
       "task": 10,
       "lines": 110,
       "sha256": "a229f9d950aa9bf5ebde36ff5836c1ce58d017112a4ee00fe9b0d3ae47210471",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_create.py",
@@ -1237,7 +1254,8 @@
       "task": 10,
       "lines": 137,
       "sha256": "623fbbf5b84894c2ff6266aac7e8d96773d1e563527f37056fe241d86d777140",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_dashboard.py",
@@ -1246,7 +1264,8 @@
       "task": 10,
       "lines": 54,
       "sha256": "889c94da850c50559df2a77db55adadc66323866d0dce6a7d2306110e45047d6",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_diagnostic_snapshot.py",
@@ -1255,7 +1274,8 @@
       "task": 10,
       "lines": 32,
       "sha256": "9c8c135867d64e949a1f46aa229ec3c9cf25e90c14ec6ffa4f3f41905d402380",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_dispatch.py",
@@ -1264,7 +1284,8 @@
       "task": 10,
       "lines": 26,
       "sha256": "b47de8456a0272ae8196a3c5245a793c4e90a0979fe99aef11084fd2ab763c45",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_dispatch_lane.py",
@@ -1273,7 +1294,8 @@
       "task": 10,
       "lines": 99,
       "sha256": "966e0e467a1405bdbfe33c0be8b00e6c64aec92e4325b2c08403cb2d419cfeff",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_dispatch_lease.py",
@@ -1282,7 +1304,8 @@
       "task": 10,
       "lines": 99,
       "sha256": "fc35e19a5d977715ce93ebd10ad9898600bf8df178e1f7e222924b57245d7dc5",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_dispatch_permit.py",
@@ -1291,7 +1314,8 @@
       "task": 10,
       "lines": 53,
       "sha256": "0649833714c215fab064cdf2738861c9494634c4769582ab7acfec78dd5b381f",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_dispatch_queries.py",
@@ -1300,7 +1324,8 @@
       "task": 10,
       "lines": 95,
       "sha256": "573558a2c1f3d180d4ccac13984c0885ae797999c45bfaf4561c2341c37f0b78",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_effects.py",
@@ -1309,7 +1334,8 @@
       "task": 10,
       "lines": 101,
       "sha256": "95fb62c49d851216e42d2e9821e0d67fd096a157a494fb079241b5582008c964",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_events.py",
@@ -1318,7 +1344,8 @@
       "task": 10,
       "lines": 8,
       "sha256": "21a256d9a7963169b5470c32da877614384c92996bd8e73428ab1de3b87eb298",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_failures.py",
@@ -1327,7 +1354,8 @@
       "task": 10,
       "lines": 74,
       "sha256": "e703030b2b7cd7cd1bf7bdecfa80a83d3ea18a77e37fc7de712187c13673f117",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_file_cleanup.py",
@@ -1336,7 +1364,8 @@
       "task": 10,
       "lines": 68,
       "sha256": "d5f593f7e83ff954cf8e6a8233e81dc1d3e06576a0cb0904690e8be93a0cce20",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_file_jobs.py",
@@ -1345,7 +1374,8 @@
       "task": 10,
       "lines": 171,
       "sha256": "c16ef7ac4e23de2939bad4ee1d844faf854f9374a6e8760d26ad7a532144ebe3",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_graph.py",
@@ -1354,16 +1384,18 @@
       "task": 10,
       "lines": 192,
       "sha256": "d558da108df401d6ec1ac47bc8d49fb92d932ddfa06784604d1752af249b070d",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_import.py",
-      "stage1_target": "hermes_db/domains/kanban/postgres/operations/import.py",
+      "stage1_target": "hermes_db/domains/kanban/postgres/operations/imports.py",
       "action": "move",
       "task": 10,
       "lines": 171,
       "sha256": "a95ad3fc8308713e8cd61cca488e8fb99e4344ecaadcda552abeb29c21ba77e5",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_import_files.py",
@@ -1372,7 +1404,8 @@
       "task": 10,
       "lines": 110,
       "sha256": "befba613f446238eca6bbcb79ba83dbf473f6bbf2f3ad05b761583c75e4193b9",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_lease_sweeps.py",
@@ -1381,7 +1414,8 @@
       "task": 10,
       "lines": 60,
       "sha256": "bd3da6ad51e3d94e6fd97e51f1459f3cbd1affa6d24da7f4558ee49ef061d6a2",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_maintenance.py",
@@ -1390,7 +1424,8 @@
       "task": 10,
       "lines": 85,
       "sha256": "04cf5c493195fb02abf6478f1b2789f0d681afa43ebc73aed7685a3cce802a5a",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_notify.py",
@@ -1399,7 +1434,8 @@
       "task": 10,
       "lines": 199,
       "sha256": "650150096137d58bfa2cd5214aafae9ed408d1a94c11e004410e046804ba6651",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_owner.py",
@@ -1408,7 +1444,8 @@
       "task": 10,
       "lines": 107,
       "sha256": "38acb8d4787213c00783133efa8af44d0cb5bbc2dcd42285819693d2d1355b7a",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_owner_recovery.py",
@@ -1417,7 +1454,8 @@
       "task": 10,
       "lines": 39,
       "sha256": "883ea3cd436f17e2e1e5e5863633cf75945144931040352a9b597d625be40562",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_queries.py",
@@ -1426,7 +1464,8 @@
       "task": 10,
       "lines": 60,
       "sha256": "71f960c010dd175a5fa96c0c256de96aefa1c591043135fb68fbf002c3604807",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_reopen.py",
@@ -1435,7 +1474,8 @@
       "task": 10,
       "lines": 55,
       "sha256": "3cf67085fa8af1b011772caca3be2185d458402a05ae6dfc0f01572c2d1ff9ac",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_result_edit.py",
@@ -1444,7 +1484,8 @@
       "task": 10,
       "lines": 35,
       "sha256": "cfc553385af5fb4e83f91abb5d1ab18c8b176815c3b586c47d3f26372b777918",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_review.py",
@@ -1453,7 +1494,8 @@
       "task": 10,
       "lines": 170,
       "sha256": "3c84333cdb10421dd2fa708cbbadf590d91a941e93bd7c3d808ccb804b76a76a",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_runs.py",
@@ -1462,7 +1504,8 @@
       "task": 10,
       "lines": 99,
       "sha256": "e76408fafa87af8952b1bf9d4bb2652bdb8a443344597023719722cb805aa8ab",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_runtime_sweeps.py",
@@ -1471,7 +1514,8 @@
       "task": 10,
       "lines": 64,
       "sha256": "ffc0e9661265e8b44546b3a3b5685851b5802f68b23b3622e2632e83c8d5e0f1",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_swarm.py",
@@ -1480,7 +1524,8 @@
       "task": 10,
       "lines": 88,
       "sha256": "168b058a426aa76a2eb42df67258ce36cfcf9bc6ffb8c2d39ea117add807bde4",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_sweep_support.py",
@@ -1489,7 +1534,8 @@
       "task": 10,
       "lines": 64,
       "sha256": "3979147b07cce518eae553c3d926f8918563e0648f9551872c37b9234eb11bdd",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_tasks.py",
@@ -1498,7 +1544,8 @@
       "task": 10,
       "lines": 217,
       "sha256": "94d5be534ab621b01b7962916f2e320bcf06df264e1c596e933c064c420efd7d",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_terminal_workers.py",
@@ -1507,7 +1554,8 @@
       "task": 10,
       "lines": 49,
       "sha256": "93175aedac2952a124a8e77ec0f3348b47c8efa27c6a038c534f5cb5bf9a2333",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_transfer.py",
@@ -1516,7 +1564,8 @@
       "task": 10,
       "lines": 107,
       "sha256": "ce0fcf4f4048214784ae1b8b41a07802376665fefe1bad2fb17d61ec1a633ab3",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_transitions.py",
@@ -1525,7 +1574,8 @@
       "task": 10,
       "lines": 108,
       "sha256": "31655f30462507a215af45c365714ec84bea018cf64982223e58efecc981926e",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_upload_cleanup.py",
@@ -1534,7 +1584,8 @@
       "task": 10,
       "lines": 71,
       "sha256": "8df7742195cee69233d39738d8f9d587c848a1f3e54bd26ebd6d40cf1f4c7ec1",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_worker_identity.py",
@@ -1543,7 +1594,8 @@
       "task": 10,
       "lines": 41,
       "sha256": "ef6ce77453992751443a8660f622ecb5e6fc07e5a0e94e6334477d0fa2bcac47",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_workspace_cleanup.py",
@@ -1552,7 +1604,8 @@
       "task": 10,
       "lines": 122,
       "sha256": "8065987efc3c3a78545000bc484f97f48c255ead6dbb9cc5612644eb7532a0a4",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/kanban_workspaces.py",
@@ -1561,7 +1614,8 @@
       "task": 10,
       "lines": 84,
       "sha256": "3ef9b1df970a5c83e0639cdb37328e8e67859dcce4317591629c3315b090e123",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/leases.py",
@@ -2549,7 +2603,8 @@
       "task": 10,
       "lines": 105,
       "sha256": "5d34b61a327e52f266b889556ff879a2c9c51ab930ef5ee1a5b7ee7e9572a972",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/kanban_evidence.py",
@@ -2558,7 +2613,8 @@
       "task": 10,
       "lines": 43,
       "sha256": "d0520a0b3f7a482a5814bbbc24a7bd4c857a6cd66fa2727adbcec8e0c09ce668",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/kanban_runs.py",
@@ -2567,7 +2623,8 @@
       "task": 10,
       "lines": 67,
       "sha256": "520892c5e2ea28fd36ebec566fcb8d341a66721d72cfe1a4725b05852d84f01a",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/kanban_workspaces.py",
@@ -2576,7 +2633,8 @@
       "task": 10,
       "lines": 85,
       "sha256": "2cd265349ca9df5af47b9f3a2f52501e1605616fd46febb00956d6de0fd17935",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/leases.py",
@@ -4175,6 +4233,40 @@
       "path": "hermes_db/domains/rooms/postgres/queries/__init__.py",
       "task": 9,
       "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/kanban/__init__.py",
+      "task": 10,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/kanban/routing/__init__.py",
+      "task": 10,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/kanban/postgres/operations/__init__.py",
+      "task": 10,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/kanban/postgres/__init__.py",
+      "task": 10,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/kanban/postgres/queries/__init__.py",
+      "task": 10,
+      "role": "empty-package-namespace"
+    }
+  ],
+  "implementation_amendments": [
+    {
+      "task": 10,
+      "source": "hermes_db/operations/kanban_import.py",
+      "old_target": "hermes_db/domains/kanban/postgres/operations/import.py",
+      "new_target": "hermes_db/domains/kanban/postgres/operations/imports.py",
+      "reason": "Python keyword import is not a valid regular import module segment; baseline source/hash and SQL unchanged"
     }
   ]
 }

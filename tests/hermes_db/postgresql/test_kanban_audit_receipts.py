@@ -7,16 +7,16 @@ import pytest
 from sqlalchemy.exc import OperationalError
 
 from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
-from hermes_db.domains.kanban import BoardResource
+from hermes_db.domains.kanban.api import BoardResource
 from hermes_db.errors import UnknownCommitError
-from hermes_db.operations.kanban_command_receipts import CommandReceipt, CommandReplay
+from hermes_db.domains.kanban.postgres.operations.command_receipts import CommandReceipt, CommandReplay
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 
 
 @contextmanager
 def lose_audit_ack(board, monkeypatch):
-    from hermes_db.repositories import kanban as repo
+    from hermes_db.domains.kanban.postgres.queries import kanban as repo
     dialect, armed = board._transactions.engine.dialect, []
     commit, event = dialect.do_commit, repo.event
     def observed(conn, store, task_id, kind, *args, **kwargs):

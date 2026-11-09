@@ -22,7 +22,7 @@ import time
 from typing import Any, Iterable, Optional
 
 from hermes_cli import kanban_db as kb
-from hermes_db.domains.kanban import domain_operation
+from hermes_db.domains.kanban.api import domain_operation
 
 BLACKBOARD_PREFIX = "[swarm:blackboard] "
 

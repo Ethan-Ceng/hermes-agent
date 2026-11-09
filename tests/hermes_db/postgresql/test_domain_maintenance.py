@@ -16,7 +16,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 def lose_completion_ack(monkeypatch):
     from hermes_db.errors import UnknownCommitError
     from hermes_db.backends.postgresql.transactions import Transactions
-    from hermes_db.repositories import kanban as repo
+    from hermes_db.domains.kanban.postgres.queries import kanban as repo
     original, event, completed = Transactions.write, repo.event, []
     def observed(conn, store, task_id, kind, *args, **kwargs):
         result = event(conn, store, task_id, kind, *args, **kwargs)
@@ -38,7 +38,7 @@ def lose_completion_ack(monkeypatch):
 
 @pytest.mark.parametrize("removed_before_crash", [False, True])
 def test_maintenance_resumes_workspace_token_and_releases_reference_fence(pg_profiles, monkeypatch, removed_before_crash):
-    from hermes_db.repositories import kanban as repo
+    from hermes_db.domains.kanban.postgres.queries import kanban as repo
     from hermes_db.errors import StorageBusyError
     with pg_profiles("one") as home:
         with kbc.connect_closing() as store:
@@ -78,7 +78,7 @@ def test_maintenance_resumes_workspace_token_and_releases_reference_fence(pg_pro
 
 
 def test_maintenance_replays_retirement_then_does_not_move_recreated_slug(pg_profiles, monkeypatch):
-    from hermes_db.operations import kanban_file_jobs as files
+    from hermes_db.domains.kanban.postgres.operations import file_jobs as files
     with pg_profiles("one") as home:
         kb.create_board("retired", name="Original")
         with monkeypatch.context() as fault:
@@ -134,7 +134,7 @@ def test_committed_completion_recovers_downstream_and_hook_after_lost_ack(pg_pro
 
 
 def test_deleted_task_cannot_strand_interrupted_workspace_intent(pg_profiles, monkeypatch):
-    from hermes_db.repositories import kanban as repo
+    from hermes_db.domains.kanban.postgres.queries import kanban as repo
     from hermes_db.maintenance import maintain_profile
     with pg_profiles("one") as home, kbc.connect_closing() as board:
         task = kb.create_task(board, title="removable", workspace_kind="scratch")

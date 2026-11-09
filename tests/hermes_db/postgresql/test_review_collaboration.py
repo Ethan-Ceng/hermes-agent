@@ -49,8 +49,8 @@ def test_unknown_rejected_claim_replays_original_verdict(pg_profiles, monkeypatc
     from uuid import uuid4
     from sqlalchemy.exc import OperationalError
     from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
-    from hermes_db.domains.kanban import BoardResource
-    from hermes_db.operations.kanban_command_receipts import CommandReceipt, CommandReplay
+    from hermes_db.domains.kanban.api import BoardResource
+    from hermes_db.domains.kanban.postgres.operations.command_receipts import CommandReceipt, CommandReplay
     from hermes_db.errors import UnknownCommitError
     with pg_profiles("review-rejected-claim"), kbc.connect_closing() as board:
         parent = kb.create_task(board, title="unfinished parent")

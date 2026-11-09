@@ -17,7 +17,7 @@ def build(store):
 
 def test_swarm_is_dispatchable_idempotent_and_survives_reopen(pg_profiles):
     from hermes_cli.kanban import run_slash
-    from hermes_db.repositories import kanban as repo
+    from hermes_db.domains.kanban.postgres.queries import kanban as repo
     from hermes_db.tables.kanban import events
     from sqlalchemy import update
     with pg_profiles("one"):
@@ -43,7 +43,7 @@ def test_swarm_is_dispatchable_idempotent_and_survives_reopen(pg_profiles):
 
 
 def test_swarm_failure_rolls_back_whole_graph_and_activation(pg_profiles, monkeypatch):
-    from hermes_db.operations import kanban_swarm as core
+    from hermes_db.domains.kanban.postgres.operations import swarm as core
     with pg_profiles("one"), kbc.connect_closing() as writer, kbc.connect_closing() as observer:
         original = core.create.insert_prepared
         calls = []

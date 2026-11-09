@@ -2,10 +2,10 @@
 
 import asyncio
 
-from hermes_db.domains.kanban_owner import open_board_owner
-from hermes_db.domains.kanban_wire import pack
+from hermes_db.domains.kanban.routing.owner import open_board_owner
+from hermes_db.domains.kanban.routing.wire import pack
 from hermes_db.errors import StorageError
-from hermes_db.operations.kanban_command_receipts import CommandReceipt, CommandReplay, refusal
+from hermes_db.domains.kanban.postgres.operations.command_receipts import CommandReceipt, CommandReplay, refusal
 from hermes_state_keys import admission_fingerprint
 from hermes_state_runtime import RuntimeStoreError
 

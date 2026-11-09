@@ -31,7 +31,7 @@ def test_recreated_slug_never_reuses_retired_board_content_root(pg_profiles, mon
 def test_archive_intent_recovers_interruption_before_allowing_slug_reuse(pg_profiles, monkeypatch, failure):
     from contextlib import contextmanager
     from hermes_db.errors import StorageBusyError, UnknownCommitError
-    from hermes_db.operations import kanban_file_jobs as files
+    from hermes_db.domains.kanban.postgres.operations import file_jobs as files
     with pg_profiles("one"):
         kb.create_board("interrupted", name="Kept name")
         with kbc.connect_closing(board="interrupted") as store:
@@ -73,7 +73,7 @@ def test_hard_delete_preserves_shared_content_and_fences_new_references(pg_profi
     from hermes_cli import kanban_db_workspace as workspace
     from hermes_db.errors import StorageBusyError
     from hermes_db.factory import acquire_profile_domain
-    from hermes_db.operations import kanban_file_jobs as files, kanban_file_cleanup as cleanup
+    from hermes_db.domains.kanban.postgres.operations import file_jobs as files, file_cleanup as cleanup
     with pg_profiles("one"):
         kb.create_board("victim")
         kb.create_board("survivor")

@@ -39,7 +39,7 @@ from hermes_cli import kanban_db_workspace as kbw
 from hermes_cli import kanban_diagnostics as kd
 from hermes_cli import kanban_db_queries as queries
 from hermes_db.errors import StorageError
-from hermes_db.domains.kanban import domain_operation
+from hermes_db.domains.kanban.api import domain_operation
 from hermes_cli.kanban_db import KANBAN_ATTACHMENT_MAX_BYTES, _collision_free_path, _safe_attachment_name
 
 log = logging.getLogger(__name__)

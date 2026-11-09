@@ -6,8 +6,8 @@
 - 全量归属：[398项基准映射](../designs/hermes-db-package-map.json)。
 - 文档分支：`docs/hermes-db-package-layout`；实施分支：`refactor/hermes-db-packages`。
 - 源码基准：`cbfc773dd7`，运行实现等价`0d69702244`。
-- 整体状态：`IMPLEMENTING`；当前阶段：第一阶段机械落位；当前任务：Task10（待开始）；完成：9 / 18。
-- 本轮已建立独立实施检出并完成Task1–9；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
+- 整体状态：`IMPLEMENTING`；当前阶段：第二阶段规则/组件/工作流收敛；当前任务：Task11（待开始）；完成：10 / 18。
+- 本轮已建立独立实施检出并完成Task1–10；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
 - 核心设计待决策：无；Task1隔离PM与PG基线已通过，Matrix实际SDK已由Task6新环境核对并实测。原统一后端Task24及七项非WSL缺证独立保留。
 - 更新时间：2026-11-09（Asia/Shanghai）。恢复位置：`D:/AI/hermes-db-packages`；从首个in_progress任务继续，不重跑整轮数据库选型。
 
@@ -69,6 +69,7 @@ PG选项只用于tests/hermes_db下已注册该选项的文件；其他目录Nat
 | 2026-11-09 | IMPLEMENTING | Task7 Sessions九十项机械落位完成，7/18；Native516、PG121及15静态通过，组件收敛仍待Task12 |
 | 2026-11-09 | IMPLEMENTING | Task8 Runtime/Worker五十二项机械落位完成，8/18；Windows Native504、Linux PG38及15静态通过 |
 | 2026-11-09 | IMPLEMENTING | Task9 Rooms/附件三十九项与17-topic路由完成，9/18；根精确11，Native566+Linux附件24、PG40及15静态通过 |
+| 2026-11-09 | IMPLEMENTING | Task10 Kanban五十八项与28-topic路由完成，10/18；全部320移动落实；Native536+Linux核心24、PG整改复验40、15静态通过 |
 
 ## 方案准备自检
 
@@ -618,11 +619,11 @@ Windows使用Task1 PM环境、Linux使用Task6新环境；各自home/runtime绑�
 - Linux同runner `tests/hermes_db/postgresql/test_rooms_store.py tests/hermes_db/postgresql/test_room_runs.py tests/hermes_db/postgresql/test_room_policy_process.py tests/hermes_db/postgresql/test_room_attachment_service.py tests/hermes_db/postgresql/test_room_attachment_concurrency.py tests/hermes_db/postgresql/test_merge_collaboration_consumers.py tests/hermes_db/postgresql/test_merge_commit_recovery.py tests/hermes_db/postgresql/test_merge_process_recovery.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，exit0，8文件40passed/0failed/0skip，143.0秒（task9-pg-linux.log）；实际HTTP/collector/supervisor、债务及附件持久化、提交故障、双PID恢复与store隔离使用随机所有权Schema通过。
 - `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，exit0，15checks通过，health624文件0blocking/0advisory（task9-check.log）；最终计划/映射状态元数据更新后暂存空白检查exit0。root_keep集合比较精确11。
 - 未验证：Room工作流及私有门面依赖收敛仍由Task15/16；最终全量双后端/SDK/发行及升级仍待Task17。原Task24七项非WSL缺证保持。
-- 恢复点：本地提交标题 `refactor(storage): package rooms attachments and routing`；下一Task10。
+- 恢复点：本地提交 `80d8a53e8b`，标题 `refactor(storage): package rooms attachments and routing`；下一Task10。
 
 ## Task 10：Kanban机械分包
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -664,11 +665,25 @@ Invoke-PgCases -Files @('tests/hermes_db/postgresql/test_kanban_tasks.py', 'test
 
 ### 执行结果
 
-未执行。
+从Task9 `80d8a53e8b`继续，将Kanban五十八项按清单机械落位；更新CLI/Worker/通知/文件/转移实际消费者及测试读取点。显式惰性_KANBAN_MODULES覆盖28个逻辑topic、111处真实注册，替代全局kanban_{topic}拼接；Board/store身份、命令/回执名、租约、workspace token及outbox保持。
+
+映射修正：原kanban_import.py目标operations/import.py含Python关键字，首次辅助改写在kanban_transfer消费者解析时SyntaxError停止，尚未物理移动/运行测试。只恢复从干净Task9点产生的78个本轮部分改写，保留账本/诊断；将唯一目标改为operations/imports.py，源hash/归属/SQL不变。全部320个move目标已补验合法模块标识符，设计与JSONimplementation_amendments记录此修订，没有重做整轮方案。
+
+第一轮PG发现一处子进程代码字符串遗漏旧分组导入，派发租约child在取得租约前ImportError退出。具体为test_kanban_dispatch.py的dead_dispatch_process_lease测试；历史4bd7861dfc确认其本意是持久租约死亡/接管。仅把子进程from hermes_db.operations import kanban_dispatch_lease改为实际新模块的dispatch_lease，保留leases绑定/LEASE_SECONDS及测试全部行为。现有实库合同提供修复前红；全仓同类operations/repositories/domains/postgresql/sqlite分组导入及旧动态导入扫描无其他遗漏，修复后完整八文件PG复验全绿。
+
+398模块机械AST在精确校验三处路由表后等价；31 revisions/版本init/28表定义内容保持、29表模块路径/metadata身份保持，tables init仅Task2必要import差异。新增5个空初始化文件，累计64个、总Python462、root精确11；全部320移动已落实。仅两个空旧operations/repositories初始化文件按计划留Task16删除，无内部re-export shim。36/10 Mixin及薄碎片尚待阶段二；当前文件总数尚未净减少。
 
 ### 验证证据
 
-未执行；实施时记录实际解释器/源码commit、展开命令、退出状态、计数、日志、未验证项和恢复commit。
+Windows使用Task1专用PM环境；Linux使用Task6新PM环境，均绑定隔离home/runtime，retries=0；日志只在 `.build/package-layout/`，失败诊断先遮蔽既有DSN/密码/令牌后读取。
+
+- `PM Python .build/package-layout/audit_mechanical.py` 最终exit0（task10-audit-final.log）：398 AST机械等价、全部源/新增归属和固定锚点通过；28-topic/111注册表精确核对。模块名关键字修正及本轮部分改写恢复清单仅本地诊断，原始秘密/日志未提交。
+- Windows `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts tests/hermes_cli/test_kanban_core_functionality.py tests/hermes_cli/test_kanban_cli.py -j 4 --file-timeout 1200 -- --tb=short`，exit0，92文件536passed/0failed/6skipped，645.1秒（task10-native.log）。原4平台skip加核心文件2个Linux专用，均未算通过。
+- Linux `bash scripts/run_tests.sh tests/hermes_cli/test_kanban_core_functionality.py -j 1 --file-timeout 1200 -- --tb=short`，exit0，完整文件24passed/0failed/0skip，31.4秒（task10-kanban-native-linux.log），真实Linux补齐zombie liveness及protocol-violation budget两个用例。
+- Linux同runner `tests/hermes_db/postgresql/test_kanban_tasks.py tests/hermes_db/postgresql/test_kanban_dispatch.py tests/hermes_db/postgresql/test_kanban_worker_e2e.py tests/hermes_db/postgresql/test_kanban_notify.py tests/hermes_db/postgresql/test_kanban_transfer.py tests/hermes_db/postgresql/test_kanban_command_receipts.py tests/hermes_db/postgresql/test_kanban_workspaces.py tests/hermes_db/postgresql/test_kanban_integration.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，最终exit0，8文件40passed/0failed/0skip，274.1秒（task10-pg-linux-final.log）。第一轮226.1秒39passed/1failed（task10-pg-linux.log）是上述child旧导入；一行修复后含原回归用例的完整批次通过，没有更改租约期限或绕过真实Worker。
+- `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，exit0，15checks通过，health690文件0blocking/0advisory（task10-check.log）；最终完成记录/映射元数据更新后暂存空白检查exit0。
+- 未验证：第一阶段检查点不替代阶段二职责收敛、最终完整DB/SDK/独立发行/升级/审查；原统一Task24七项非WSL缺证仍独立保留。
+- 恢复点：本地提交标题 `refactor(storage): package kanban workflows and explicit routing`；下一Task11。
 
 ## Task 11：收敛小型域并提取共享纯规则
 
@@ -1092,10 +1107,10 @@ git diff --check
 
 ### 执行结果
 
-- 单元/Native/PG/实际SDK/并发/故障/关闭：未执行重构验证。
+- 单元/Native/PG/实际SDK/并发/故障/关闭：Task1–10局部验证已执行并逐项记录；阶段二后最终完整验收待Task17。
 - Schema：设计要求零变化；旧数据前向/重复升级和0031重开仍须Task17实测。
-- 静态/类型/共享契约/发行：重构后未执行。
-- 手工检查：方案阶段已核对源目录和迁移依赖，未触碰正式Profile/进程；不替代未来运行验证。
+- 静态/类型/共享契约/发行：已完成Task的15项静态检查均有证据；最终共享契约/独立发行等仍待Task17。
+- 手工检查：独立checkout内已核对模块、路由、root11和固定锚点；未触碰正式Profile/源码/进程；不替代最终运行验证。
 - 独立代码审查：未执行重构审查。
 
 ### 验收标准检查
@@ -1110,7 +1125,7 @@ git diff --check
 
 ### 未通过项目与最终状态
 
-实施推进中，当前9/18；局部验证见已完成Task，最终重构验收仍未执行；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
+实施推进中，当前10/18；局部验证见已完成Task，最终重构验收仍未执行；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
 实施后仅可根据真实终态填写本次重构`READY_TO_MERGE / BLOCKED / FAILED`，并与原系统统一后端整体验收状态分别报告。
 
 ### Task5锚点计数说明更正

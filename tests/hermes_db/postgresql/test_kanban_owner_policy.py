@@ -9,9 +9,9 @@ from gateway.session_contract import SessionActor
 from gateway.session_kanban import build_kanban_policy
 from gateway.session_kanban_policy import admit_postgresql_claim
 from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
-from hermes_db.domains.kanban_owner import board_reference, open_board_owner
+from hermes_db.domains.kanban.routing.owner import board_reference, open_board_owner
 from hermes_db.errors import StorageConfigurationError
-from hermes_db.operations import kanban_owner
+from hermes_db.domains.kanban.postgres.operations import owner as kanban_owner
 from hermes_state_runtime import RuntimeStoreError
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]

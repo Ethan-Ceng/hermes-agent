@@ -100,7 +100,7 @@ def test_pg_import_persists_complete_graph_history_files_and_separate_generation
 
 
 def test_pg_import_rolls_back_board_graph_and_its_exclusive_stage(pg_profiles, tmp_path, monkeypatch):
-    from hermes_db.operations import kanban_import as core
+    from hermes_db.domains.kanban.postgres.operations import imports as core
     archive, _parent, _child, _run = make_archive(pg_profiles, tmp_path)
     with pg_profiles("two") as home:
         original, calls = core.insert_import_row, []
@@ -128,7 +128,7 @@ def test_original_import_job_recovers_without_reimporting_graph(pg_profiles, tmp
     from sqlalchemy import select
     from hermes_db.errors import StorageBusyError, UnknownCommitError
     from hermes_db.factory import acquire_profile_domain
-    from hermes_db.operations import kanban_file_jobs as files, kanban_import_files as publication
+    from hermes_db.domains.kanban.postgres.operations import file_jobs as files, import_files as publication
     from hermes_db.tables.kanban_file_jobs import file_jobs
     from hermes_db.core.values import decode_text
     archive, parent, child, _run = make_archive(pg_profiles, tmp_path)

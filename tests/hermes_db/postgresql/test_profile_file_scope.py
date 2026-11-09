@@ -122,7 +122,7 @@ def test_profile_move_refuses_retarget_then_resumes_its_original_dataset(rename_
 
 def test_rename_preserves_cleanup_fence_and_replays_under_new_home(rename_home, monkeypatch):
     from hermes_cli.profiles import rename_profile
-    from hermes_db.repositories import kanban as repo
+    from hermes_db.domains.kanban.postgres.queries import kanban as repo
     from hermes_db.maintenance import maintain_profile
     from hermes_db.errors import StorageBusyError
     source = rename_home
