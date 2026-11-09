@@ -22,7 +22,7 @@ from typing import Any
 
 from gateway import hosted_rooms
 from gateway.hosted_rooms_common import DbPath
-from hermes_db.domains.rooms import room_operation
+from hermes_db.domains.rooms.api import room_operation
 
 MAX_PURPOSE_CHARS = 500
 MAX_NOTES_BYTES = 4 * 1024

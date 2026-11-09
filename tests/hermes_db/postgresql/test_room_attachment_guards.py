@@ -25,7 +25,7 @@ def append(location, manifest):
 
 def test_failed_event_rolls_back_retention_and_abort_releases_only_unpublished_commit(pg_profiles, monkeypatch):
     from sqlalchemy import select
-    from hermes_db.domains.rooms import open_room_store
+    from hermes_db.domains.rooms.api import open_room_store
     from hermes_db.tables.room_attachments import attachments
     with pg_profiles("one"):
         location = rooms.default_db_path()
@@ -77,7 +77,7 @@ def test_recipient_range_and_canonical_blob_digest_are_enforced(pg_profiles):
 def test_captured_namespace_refuses_replaced_dataset_before_touching_rows_or_files(pg_profiles):
     import secrets
     from sqlalchemy import update, select, func
-    from hermes_db.domains.rooms import open_room_store
+    from hermes_db.domains.rooms.api import open_room_store
     from hermes_db.errors import StorageConfigurationError
     from hermes_db.tables.room_attachments import roots, attachments
     with pg_profiles("one"):

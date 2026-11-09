@@ -17,7 +17,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from functools import partial
 from typing import Any, Callable, Literal, get_args
-from hermes_db.domains.rooms import room_operation, assert_sqlite_location
+from hermes_db.domains.rooms.api import room_operation, assert_sqlite_location
 
 from gateway.hosted_rooms_common import (
     DbPath, bounded_int, canonical_json, compact_json, connect, fenced_update, identifier, table_columns, text,

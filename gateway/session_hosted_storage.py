@@ -10,7 +10,7 @@ from hermes_state_runtime import RuntimeStoreError
 def coordination_path(db):
     if not is_postgresql_store(db):
         return Path(db.db_path)
-    from hermes_db.domains.rooms import room_reference
+    from hermes_db.domains.rooms.api import room_reference
     return room_reference(db)
 
 
@@ -32,7 +32,7 @@ class RoomCoordination:
             runtime_for_store(self.authority.db).check_epoch(self.authority.epoch)
 
     def _prepare(self):
-        from hermes_db.domains.rooms import capture_room_store
+        from hermes_db.domains.rooms.api import capture_room_store
         if capture_room_store(profile_home_for_store(self.authority.db)) != self.path:
             raise RuntimeStoreError("profile_mismatch")
 
@@ -56,7 +56,7 @@ class RoomCoordination:
             return operation(conn, self.authority.db.scope, *args)
 
     def core_authorize(self, subject, room_id, *, create=False, conn=None):
-        from hermes_db.operations.room_coordination import authorize_room
+        from hermes_db.domains.rooms.postgres.operations.coordination import authorize_room
         if conn is not None:
             return authorize_room(conn, self.authority.db, self.authority.epoch, subject, room_id, create=create)
         with self.authority.db._transactions.write() as connection:
@@ -79,7 +79,7 @@ class HostedMemberAuthorization:
         self.values = dict(owner_subject=owner, binding=binding, member_id=member, profile=profile)
 
     def apply(self, conn, scope, operation, identity, generation):
-        from hermes_db.operations.room_coordination import member_authorized
+        from hermes_db.domains.rooms.postgres.operations.coordination import member_authorized
         authority = self.coordination.authority
         if scope != authority.db.scope:
             return False

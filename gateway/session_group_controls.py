@@ -71,7 +71,7 @@ async def dispatch_group_control(connection, method, params):
         raise RuntimeStoreError('invalid_params')
     home = Path(authority.profile_id)
     from gateway.session_hosted_storage import coordination_path
-    from hermes_db.domains.rooms import location_root
+    from hermes_db.domains.rooms.api import location_root
     db_home = await asyncio.to_thread(location_root(coordination_path(authority.db)).resolve)
     if db_home != await asyncio.to_thread(home.resolve):
         raise RuntimeStoreError('profile_mismatch')
@@ -128,7 +128,7 @@ def _group(authority, actor, method, params, *, host_scope=False):
     service = getattr(authority, 'hosted_room_service', None)
     room_authorizer = getattr(service, 'authorize_room', None)
     if service is not None:
-        from hermes_db.domains.rooms import normalize_location, RoomStoreRef
+        from hermes_db.domains.rooms.api import normalize_location, RoomStoreRef
         left, right = normalize_location(service.db_path), normalize_location(db_path)
         same = left == right if isinstance(left, RoomStoreRef) or isinstance(right, RoomStoreRef) else left.resolve() == right.resolve()
         if not same:

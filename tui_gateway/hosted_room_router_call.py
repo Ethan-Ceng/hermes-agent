@@ -96,9 +96,9 @@ class RouterCalls:
     ``record`` runs once it answers."""
 
     def __new__(cls, db_path, *, clock=time.time):
-        from hermes_db.domains.rooms import is_postgresql_location
+        from hermes_db.domains.rooms.api import is_postgresql_location
         if cls is RouterCalls and is_postgresql_location(db_path):
-            from hermes_db.room_router import PostgresRouterCalls
+            from hermes_db.integration.room_router import PostgresRouterCalls
             return object.__new__(PostgresRouterCalls)
         return super().__new__(cls)
 
@@ -110,7 +110,7 @@ class RouterCalls:
         self._inflight: set[tuple[str, str]] = set()
 
     def _transaction(self):
-        from hermes_db.domains.rooms import assert_sqlite_location
+        from hermes_db.domains.rooms.api import assert_sqlite_location
         assert_sqlite_location(self._db_path)
         from hermes_cli.sqlite_util import open_db, transaction
 

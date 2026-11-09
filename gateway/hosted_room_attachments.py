@@ -92,7 +92,7 @@ class AttachmentData:
 
 def default_attachment_root(db_path: Path | str) -> Path:
     """Return the selected store's private byte root or persistent PG namespace."""
-    from hermes_db.domains.rooms import is_postgresql_location
+    from hermes_db.domains.rooms.api import is_postgresql_location
     if is_postgresql_location(db_path):
         return HostedRoomAttachmentStore(db_path).root
     return Path(db_path).parent / "hosted-room-attachments"
@@ -303,9 +303,9 @@ class HostedRoomAttachmentStore:
     """Selected-backend metadata and private, content-deduplicated blob bytes."""
 
     def __new__(cls, db_path, **kwargs):
-        from hermes_db.domains.rooms import is_postgresql_location
+        from hermes_db.domains.rooms.api import is_postgresql_location
         if cls is HostedRoomAttachmentStore and is_postgresql_location(db_path):
-            from hermes_db.room_attachments import PostgresAttachmentStore
+            from hermes_db.domains.rooms.attachments.postgres.store import PostgresAttachmentStore
             return object.__new__(PostgresAttachmentStore)
         return super().__new__(cls)
 
@@ -424,7 +424,7 @@ class HostedRoomAttachmentStore:
         )
 
     def _connect(self) -> sqlite3.Connection:
-        from hermes_db.domains.rooms import assert_sqlite_location
+        from hermes_db.domains.rooms.api import assert_sqlite_location
         assert_sqlite_location(self.db_path)
         from hermes_state_wal import apply_wal_with_fallback
 

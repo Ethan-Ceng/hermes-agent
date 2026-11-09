@@ -165,7 +165,7 @@ class HostedRoomService:
         self, server: ModuleType, *, db_path: Path | str | None = None,
         peer_routes: Mapping[tuple[str, str], PeerMemberRoute] | None = None,
         peer_clients: Mapping[Any, HostedRoomPeerClient] | None = None) -> None:
-        from hermes_db.domains.rooms import normalize_location
+        from hermes_db.domains.rooms.api import normalize_location
         self.server, self.db_path = server, normalize_location(db_path or hosted_rooms.default_db_path())
         self.discussion_limits = _discussion_limits(self.root)
         hosted_rooms.prune_disbanded_rooms(self.db_path)
@@ -254,7 +254,7 @@ class HostedRoomService:
 
     @property
     def root(self) -> Path:
-        from hermes_db.domains.rooms import location_root
+        from hermes_db.domains.rooms.api import location_root
         return location_root(self.db_path)
 
     def local_profiles(self) -> tuple[str, ...]:

@@ -15,7 +15,7 @@ import urllib.request
 from collections.abc import Callable, Mapping, Sequence
 from contextlib import suppress
 from typing import Any, NoReturn
-from hermes_db.domains.rooms import normalize_location
+from hermes_db.domains.rooms.api import normalize_location
 from gateway.hosted_rooms_common import DbPath
 
 from gateway.hosted_room_peer import (

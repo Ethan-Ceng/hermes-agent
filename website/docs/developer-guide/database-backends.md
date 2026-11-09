@@ -22,8 +22,10 @@ in SQLite mode.
 | --- | --- |
 | Existing facade and selected domain adapter | Preserve public business inputs, records and errors |
 | `hermes_db/domains/` | Capture the owning profile and expose named domain operations |
-| `hermes_db/repositories/` | Core statements, scoped predicates and lossless row conversion |
-| `hermes_db/operations/` | Locks, quotas, state transitions, receipts and multi-step transactions |
+| `hermes_db/core/` | Driver-free values, resource contracts and domain capability catalog |
+| `hermes_db/integration/` | Store composition, profile binding and cross-domain coordination |
+| `hermes_db/domains/<domain>/postgres/queries/` | Core statements, scoped predicates and lossless row conversion |
+| `hermes_db/domains/<domain>/postgres/operations/` | Locks, quotas, state transitions, receipts and multi-step transactions |
 | `hermes_db/tables/` | Shared current Core metadata, composite keys and scope-preserving foreign keys |
 | `hermes_db/backends/postgresql/transactions.py` | Bounded connections, transaction outcomes and sanitized failures |
 | `hermes_db/migrations/` | Explicit forward Alembic revisions and frozen historical schema definitions |

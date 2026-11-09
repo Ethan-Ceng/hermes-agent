@@ -54,7 +54,7 @@ def _room_stores(profile: Optional[str]):
     from gateway.hosted_rooms import default_db_path
     home = _profile_home(profile)
     from hermes_cli.db_setup import _owning_profile
-    from hermes_db.domains.rooms import RoomStoreRef
+    from hermes_db.domains.rooms.api import RoomStoreRef
     with _owning_profile(home):
         shared = default_db_path()
     return [shared if isinstance(shared, RoomStoreRef) else home / "state.db", shared]
@@ -68,7 +68,7 @@ def _find_room_store(room_id: str, profile: Optional[str]) -> Optional[Path]:
     session_store, shared_store = _room_stores(profile)
     if _serves(session_store, room_id):
         return session_store
-    from hermes_db.domains.rooms import RoomStoreRef
+    from hermes_db.domains.rooms.api import RoomStoreRef
     if isinstance(shared_store, RoomStoreRef):
         return None
     if not probe_hosted_room(shared_store, room_id=room_id):

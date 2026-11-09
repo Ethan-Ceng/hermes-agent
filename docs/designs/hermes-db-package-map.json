@@ -1,7 +1,7 @@
 {
   "baseline": "cbfc773dd79241752697e647067c63338fc01680",
   "baseline_runtime": "0d69702244d623a31be149a9bac6a2658e0322ae",
-  "stage": "Tasks2-8 verified; Rooms/attachments mechanical move continues from Task9",
+  "stage": "Tasks2-9 verified; root eleven actual entries reached; Kanban mechanical move continues from Task10",
   "hash_basis": "SHA256 of Git blob bytes at baseline; independent of checkout line endings",
   "counts": {
     "keep": 76,
@@ -324,7 +324,8 @@
       "task": 9,
       "lines": 32,
       "sha256": "edf7c9615aa547e459b7bb2c1f8b6b418030e105331b637e6dcf162fe5275854",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/rooms.py",
@@ -333,7 +334,8 @@
       "task": 9,
       "lines": 83,
       "sha256": "0eef03f17188da8846eebd930fa8f3986dd6a94f9535b5ad086116c63855fa21",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/verification.py",
@@ -1808,7 +1810,8 @@
       "task": 9,
       "lines": 86,
       "sha256": "9fcce2a9e90a2f1cf24b9c59b916d131d959a9dea7d53380846e354d8f525cc5",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_attachment_commits.py",
@@ -1817,7 +1820,8 @@
       "task": 9,
       "lines": 85,
       "sha256": "85f2d8c88ec309692de2a96de1a043987815298b11adab3d21c079ca75242b9d",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_attachment_reads.py",
@@ -1826,7 +1830,8 @@
       "task": 9,
       "lines": 54,
       "sha256": "f87b4ee53360a6cfb27105c8b4b6aba92064dc767c2e7bcf95569f92c1a5e72f",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_attachment_uploads.py",
@@ -1835,7 +1840,8 @@
       "task": 9,
       "lines": 57,
       "sha256": "906e2154e34deddb7bdf86ba83211e6285ca4c48ad3a1c8721b7a803689db291",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_authority.py",
@@ -1844,7 +1850,8 @@
       "task": 9,
       "lines": 76,
       "sha256": "bac3f71094e93661694402c1afc450485158ef1082834495d635e7cb950ac466",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_context.py",
@@ -1853,7 +1860,8 @@
       "task": 9,
       "lines": 48,
       "sha256": "23f513e40cff4166f238705acae449b6f62e929be2cea14212c9df448feabf57",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_coordination.py",
@@ -1862,7 +1870,8 @@
       "task": 9,
       "lines": 66,
       "sha256": "ea03f2fe0994901980880dd7a7730fb7616bc15196cfafa6eba9b3aac534d11d",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_grants.py",
@@ -1871,7 +1880,8 @@
       "task": 9,
       "lines": 81,
       "sha256": "fa272ba5c602d8a6e5abe14f9c6f8bff60edb395cfaed3b4cd495a33e3233527",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_leases.py",
@@ -1880,7 +1890,8 @@
       "task": 9,
       "lines": 64,
       "sha256": "423e86b5909fb02cfb2907bb733086e62559ee4c75c151c832c71cd98d5efd13",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_links.py",
@@ -1889,7 +1900,8 @@
       "task": 9,
       "lines": 93,
       "sha256": "fd1e8657e8c7bfd4f7b0bdeeaa7721a0f209701987aa74f9b1f9836de8f01fc1",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_member_homes.py",
@@ -1898,7 +1910,8 @@
       "task": 9,
       "lines": 77,
       "sha256": "6d3d08f076c573b40402d71beef4c839fbc68c694cd20fa23a2814ee74a6f525",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_ownership.py",
@@ -1907,7 +1920,8 @@
       "task": 9,
       "lines": 8,
       "sha256": "bd0e0432ee27a2c03fa94e28a04facdda7daa25fafbd002d2d68d1c9641b536d",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_policy.py",
@@ -1916,7 +1930,8 @@
       "task": 9,
       "lines": 78,
       "sha256": "5c14c0164fd91e1d81913cc53c7348cdb8780582daa9c1c267d35da86ec48a55",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_policy_projection.py",
@@ -1925,7 +1940,8 @@
       "task": 9,
       "lines": 97,
       "sha256": "f647aa97f55ba9a70d61652c66fced7f956629385eab699ee37715dcddcbe5fe",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_policy_reads.py",
@@ -1934,7 +1950,8 @@
       "task": 9,
       "lines": 63,
       "sha256": "9ce3ffd6a6bd4b1da43faf5520dcc7c26aed0865b920273be7eb884cfdbdd54b",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_reads.py",
@@ -1943,7 +1960,8 @@
       "task": 9,
       "lines": 53,
       "sha256": "6e78b70661001e2fed3fa53787eea7dd747c76035ae2fb2e43731b36fac6e5be",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_replicas.py",
@@ -1952,7 +1970,8 @@
       "task": 9,
       "lines": 125,
       "sha256": "2de822f890b8bf3646d450d071b74ea58522df191af2dd47333a726bc1b1a842",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_retention.py",
@@ -1961,7 +1980,8 @@
       "task": 9,
       "lines": 55,
       "sha256": "8fcd596a686e63b6e26137b5da4715e80e8a76b4b558ed196de233d0669b8486",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_revoke_debts.py",
@@ -1970,7 +1990,8 @@
       "task": 9,
       "lines": 111,
       "sha256": "f1613e5b95c6308128122f61969d2e3425cb1f18b678d74df15c5fc829567692",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_runs.py",
@@ -1979,7 +2000,8 @@
       "task": 9,
       "lines": 124,
       "sha256": "a3574fcdae2b260c33d3a045995dab6073e25dd3158760f6198da68818fc388c",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_task_recovery.py",
@@ -1988,7 +2010,8 @@
       "task": 9,
       "lines": 82,
       "sha256": "008d717e30df0fd6b25d72f6b904ebb6b31bed61ae6333ce5ccb1d9893e4e8a0",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_task_retention.py",
@@ -1997,7 +2020,8 @@
       "task": 9,
       "lines": 26,
       "sha256": "22111992df6ad29c66b79aaad486810348fb4dfdd218272c95e68b7cbaf50a7c",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_task_settlement.py",
@@ -2006,7 +2030,8 @@
       "task": 9,
       "lines": 95,
       "sha256": "dc714025a3f1912ba24c31f8bc26578522220f456b86b674a28dfdc205a2a8ec",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_work.py",
@@ -2015,7 +2040,8 @@
       "task": 9,
       "lines": 77,
       "sha256": "41a8521d18de4c5ecaa57430af3640a4de1d6f355b22b43361a6f0bd4f35a03e",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_work_delivery.py",
@@ -2024,7 +2050,8 @@
       "task": 9,
       "lines": 73,
       "sha256": "db298703f572c1d5b687f4f3b5422debcb865e3e0e96e40a1026ca48d3ce6008",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/room_work_snapshot.py",
@@ -2033,7 +2060,8 @@
       "task": 9,
       "lines": 95,
       "sha256": "c963877f5c9868b574e43ea99a810045dfce8b3b2b17a8f5b7ff2c826f3e5b08",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/rooms.py",
@@ -2042,7 +2070,8 @@
       "task": 9,
       "lines": 112,
       "sha256": "61a9896a5545c5a0d840490663bc088464539f1b4a9f709deb2cf9efe4ee4bfd",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/runtime.py",
@@ -2726,7 +2755,8 @@
       "task": 9,
       "lines": 48,
       "sha256": "823fc3e21c984cfdcd1e799763a7069774bf6e3e9e08dbf7205f902d1b4b7e4d",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/room_policy.py",
@@ -2735,7 +2765,8 @@
       "task": 9,
       "lines": 65,
       "sha256": "8b4ff8c859ddbde2c1e1ef29ae6fb432772ee030ea8d5fb0a3616452460e48ab",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/room_runs.py",
@@ -2744,7 +2775,8 @@
       "task": 9,
       "lines": 67,
       "sha256": "f12379a6219edd5251197181a80c5b9c0325d37e38cb592707156fa135ec6b8b",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/room_work.py",
@@ -2753,7 +2785,8 @@
       "task": 9,
       "lines": 75,
       "sha256": "85b8fb04445d2dae88c49be7fc4e50b0b16c4b4724673849d3fa5df9730f9639",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/rooms.py",
@@ -2762,7 +2795,8 @@
       "task": 9,
       "lines": 71,
       "sha256": "765858846e5aa7f34d68e4c04c3fec8b105e9ab85ae3d5687161e9cafaddc16e",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/runtime.py",
@@ -2881,7 +2915,8 @@
       "task": 9,
       "lines": 45,
       "sha256": "21078fe4ad767fe814dba0ace60e29f650e27cf6c2e8c0725f20b63c9efa12ca",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/room_attachment_reads.py",
@@ -2890,7 +2925,8 @@
       "task": 9,
       "lines": 56,
       "sha256": "7511414299c9d2a22046560e2a3adda8b016c46492060446a22502e266f51986",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/room_attachments.py",
@@ -2899,7 +2935,8 @@
       "task": 9,
       "lines": 158,
       "sha256": "f14aa686f938ffb54a1d7c09ce4ba3607b43c9e199424859f4f87f3486107443",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/room_policy.py",
@@ -2908,7 +2945,8 @@
       "task": 9,
       "lines": 50,
       "sha256": "005401aa83c40a2ac6a11d8b32be8a5730bb1649a12446917c5169ba3291aa82",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/room_router.py",
@@ -2917,7 +2955,8 @@
       "task": 9,
       "lines": 35,
       "sha256": "8bb2750cfd53585b6f615543ff176ee6921b1e6f47d24921fbf6bdaddbd7971a",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/run_idempotency_store.py",
@@ -4095,6 +4134,46 @@
     {
       "path": "hermes_db/domains/runtime/postgres/capabilities/__init__.py",
       "task": 8,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/rooms/attachments/__init__.py",
+      "task": 9,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/rooms/__init__.py",
+      "task": 9,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/rooms/attachments/postgres/operations/__init__.py",
+      "task": 9,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/rooms/attachments/postgres/__init__.py",
+      "task": 9,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/rooms/postgres/operations/__init__.py",
+      "task": 9,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/rooms/postgres/__init__.py",
+      "task": 9,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/rooms/attachments/postgres/queries/__init__.py",
+      "task": 9,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/rooms/postgres/queries/__init__.py",
+      "task": 9,
       "role": "empty-package-namespace"
     }
   ]

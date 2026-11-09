@@ -28,7 +28,7 @@ def child(home, role):
 
 def test_file_success_database_refusal_leaves_recoverable_orphan_and_no_row(pg_profiles, monkeypatch):
     from hermes_db.errors import StorageWriteError
-    from hermes_db.operations import room_attachment_uploads
+    from hermes_db.domains.rooms.attachments.postgres.operations import uploads as room_attachment_uploads
     with pg_profiles("one"):
         store = HostedRoomAttachmentStore(rooms.default_db_path())
         def refuse(*args, **kwargs):
@@ -46,7 +46,7 @@ def test_file_success_database_refusal_leaves_recoverable_orphan_and_no_row(pg_p
 
 def test_actual_metadata_commit_lost_ack_keeps_unique_bytes_and_restarts(pg_profiles, monkeypatch):
     from hermes_db.errors import UnknownCommitError
-    from hermes_db.operations import room_attachment_uploads
+    from hermes_db.domains.rooms.attachments.postgres.operations import uploads as room_attachment_uploads
     with pg_profiles("one") as home:
         location = rooms.default_db_path()
         store = HostedRoomAttachmentStore(location)
@@ -67,8 +67,8 @@ def test_actual_metadata_commit_lost_ack_keeps_unique_bytes_and_restarts(pg_prof
 
 
 def test_cleanup_failure_is_persistent_and_new_process_replays_exact_blob_job(pg_profiles, monkeypatch):
-    from hermes_db.domains.rooms import open_room_store
-    from hermes_db.operations.room_attachment_cleanup import pending_jobs
+    from hermes_db.domains.rooms.api import open_room_store
+    from hermes_db.domains.rooms.attachments.postgres.operations.cleanup import pending_jobs
     with pg_profiles("one") as home:
         now = [100.0]
         store = HostedRoomAttachmentStore(rooms.default_db_path(), clock=lambda: now[0])
@@ -95,7 +95,7 @@ def test_cleanup_failure_is_persistent_and_new_process_replays_exact_blob_job(pg
 
 
 def test_content_io_never_holds_a_pg_connection(pg_profiles, monkeypatch):
-    from hermes_db.domains.rooms import open_room_store
+    from hermes_db.domains.rooms.api import open_room_store
     from hermes_db.backends.postgresql.engine import get_engine
     with pg_profiles("one"):
         store = HostedRoomAttachmentStore(rooms.default_db_path())

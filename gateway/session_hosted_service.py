@@ -10,7 +10,7 @@ from gateway.session_hosted_controls import HostedControls
 from gateway.owner_identity import same_owner
 from hermes_state_runtime import RuntimeStoreError, _epoch
 from tui_gateway.hosted_room_service import HostedRoomService
-from hermes_db.domains.rooms import room_operation
+from hermes_db.domains.rooms.api import room_operation
 
 _OWNER = 'gateway.hosted.owner.v1:'
 # What the Stop of an attempt asks its admitting home after the profile moved: never create, submit or approve.
@@ -144,7 +144,7 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
 
     def bindings(self):
         if self._coordination.native:
-            from hermes_db.operations.room_coordination import owners
+            from hermes_db.domains.rooms.postgres.operations.coordination import owners
             owned = set(self._coordination.core_read(owners))
             return tuple(b for b in super().bindings() if b.room_id in owned)
         with self._coordination.read() as conn:
@@ -186,7 +186,7 @@ class CanonicalHostedRoomService(HostedControls, HostedRoomService):
 
     def _owner(self, room_id):
         if self._coordination.native:
-            from hermes_db.operations.room_coordination import owner
+            from hermes_db.domains.rooms.postgres.operations.coordination import owner
             saved = self._coordination.core_read(owner, room_id)
             if saved is None:
                 raise RuntimeStoreError('permission_denied')

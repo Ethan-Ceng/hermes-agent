@@ -33,7 +33,7 @@ class HostedRoomServerRPC:
         self._ids = itertools.count(1)
         # Event-bound files resolve from the room store, as on the gateway route; without the
         # store there is nothing to resolve them from, so the driver refuses the turn by name.
-        from hermes_db.domains.rooms import normalize_location
+        from hermes_db.domains.rooms.api import normalize_location
         self.db_path = normalize_location(db_path) if db_path is not None else None
         self.accepts_attachments = self.db_path is not None
 

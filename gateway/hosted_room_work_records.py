@@ -10,7 +10,7 @@ import sqlite3
 from gateway import hosted_rooms as rooms
 from gateway import hosted_room_work_storage as storage
 from gateway.hosted_rooms_common import identifier, table_exists
-from hermes_db.domains.rooms import room_operation
+from hermes_db.domains.rooms.api import room_operation
 
 VERSION = 1
 PERMISSION = "work_records"

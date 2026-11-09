@@ -14,7 +14,7 @@ def invoke(params, call):
 
 def service_matches(service):
     from gateway.hosted_rooms import default_db_path
-    from hermes_db.domains.rooms import normalize_location, RoomStoreRef
+    from hermes_db.domains.rooms.api import normalize_location, RoomStoreRef
     current, selected = normalize_location(service.db_path), normalize_location(default_db_path())
     if isinstance(current, RoomStoreRef) or isinstance(selected, RoomStoreRef):
         return current == selected

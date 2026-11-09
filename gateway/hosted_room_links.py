@@ -129,7 +129,7 @@ def load_room_links_tolerant(db_path: DbPath) -> tuple[tuple[StoredRoomLink, ...
 def save_room_link(db_path: DbPath, link: StoredRoomLink) -> None:
     hosted_rooms.upsert_room_link_record(
         db_path, record=link.as_record(), max_links=MAX_LINKS, expiry=room_grant_hard_expiry)
-    from hermes_db.domains.rooms import is_postgresql_location
+    from hermes_db.domains.rooms.api import is_postgresql_location
     if os.name == "posix" and not is_postgresql_location(db_path):
         with contextlib.suppress(OSError):
             Path(db_path).chmod(0o600)

@@ -54,7 +54,7 @@ def handoff_gateway_id() -> str:
 
 def source_for(target_db: Path) -> Path | None:
     """The standalone store this gateway store imports from, or ``None`` (named profile, tests)."""
-    from hermes_db.domains.rooms import is_postgresql_location
+    from hermes_db.domains.rooms.api import is_postgresql_location
     if is_postgresql_location(target_db):
         return None
     target_db = Path(target_db)
