@@ -6,8 +6,8 @@
 - 全量归属：[398项基准映射](../designs/hermes-db-package-map.json)。
 - 文档分支：`docs/hermes-db-package-layout`；实施分支：`refactor/hermes-db-packages`。
 - 源码基准：`cbfc773dd7`，运行实现等价`0d69702244`。
-- 整体状态：`IMPLEMENTING`；当前阶段：第二阶段规则/组件/工作流收敛；当前任务：Task11（待开始）；完成：10 / 18。
-- 本轮已建立独立实施检出并完成Task1–10；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
+- 整体状态：`IMPLEMENTING`；当前阶段：第二阶段规则/组件/工作流收敛；当前任务：Task12（pending）；完成：11 / 18。
+- 本轮已建立独立实施检出并完成Task1–11；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
 - 核心设计待决策：无；Task1隔离PM与PG基线已通过，Matrix实际SDK已由Task6新环境核对并实测。原统一后端Task24及七项非WSL缺证独立保留。
 - 更新时间：2026-11-09（Asia/Shanghai）。恢复位置：`D:/AI/hermes-db-packages`；从首个in_progress任务继续，不重跑整轮数据库选型。
 
@@ -15,7 +15,7 @@
 
 Task1–10形成可独立检查点的机械迁移；11–16为规则/组件/工作流收敛；17为完整验证；18为独立审查及整改复验。编号为推荐顺序，真实前置见各Task；不要求并行或子Agent。
 环境阻塞时保持该任务blocked，可继续依赖已满足的独立pending任务；不能越过依赖、跳过必需SDK或把blocked计为完成。功能失败先定位根因并记录受影响范围，依赖该行为的任务不得推进。
-每项开始先改in_progress；完成后立即记录实际修改、命令、退出码、通过/失败/skip、未验证项、恢复点并本地commit。当前18项均pending，准备方案不等于Task1已实施。
+每项开始先改in_progress；完成后立即记录实际修改、命令、退出码、通过/失败/skip、未验证项、恢复点并本地commit。初始18项均pending；当前实施状态以每项状态及证据为准。
 
 1. 在不被正式进程引用的独立checkout工作，普通Git分支即可，可选worktree/clone。新检出不得继承正式Profile的HERMES_HOME。
 2. SQLite/PG配置、稳定store/Board/账号/房间身份、公开方法/DTO/错误及回执/序号/目标摘要保持；31个revision、29个表模块和0031要求保持。
@@ -70,6 +70,8 @@ PG选项只用于tests/hermes_db下已注册该选项的文件；其他目录Nat
 | 2026-11-09 | IMPLEMENTING | Task8 Runtime/Worker五十二项机械落位完成，8/18；Windows Native504、Linux PG38及15静态通过 |
 | 2026-11-09 | IMPLEMENTING | Task9 Rooms/附件三十九项与17-topic路由完成，9/18；根精确11，Native566+Linux附件24、PG40及15静态通过 |
 | 2026-11-09 | IMPLEMENTING | Task10 Kanban五十八项与28-topic路由完成，10/18；全部320移动落实；Native536+Linux核心24、PG整改复验40、15静态通过 |
+
+| 2026-11-09 | IMPLEMENTING | Task11八组合并与共享规则完成，11/18；462→444；Native513、PG失败整改后62、15静态通过 |
 
 ## 方案准备自检
 
@@ -683,11 +685,11 @@ Windows使用Task1专用PM环境；Linux使用Task6新PM环境，均绑定隔离
 - Linux同runner `tests/hermes_db/postgresql/test_kanban_tasks.py tests/hermes_db/postgresql/test_kanban_dispatch.py tests/hermes_db/postgresql/test_kanban_worker_e2e.py tests/hermes_db/postgresql/test_kanban_notify.py tests/hermes_db/postgresql/test_kanban_transfer.py tests/hermes_db/postgresql/test_kanban_command_receipts.py tests/hermes_db/postgresql/test_kanban_workspaces.py tests/hermes_db/postgresql/test_kanban_integration.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，最终exit0，8文件40passed/0failed/0skip，274.1秒（task10-pg-linux-final.log）。第一轮226.1秒39passed/1failed（task10-pg-linux.log）是上述child旧导入；一行修复后含原回归用例的完整批次通过，没有更改租约期限或绕过真实Worker。
 - `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，exit0，15checks通过，health690文件0blocking/0advisory（task10-check.log）；最终完成记录/映射元数据更新后暂存空白检查exit0。
 - 未验证：第一阶段检查点不替代阶段二职责收敛、最终完整DB/SDK/独立发行/升级/审查；原统一Task24七项非WSL缺证仍独立保留。
-- 恢复点：本地提交标题 `refactor(storage): package kanban workflows and explicit routing`；下一Task11。
+- 恢复点：本地提交 `c0a4b50397`，标题 `refactor(storage): package kanban workflows and explicit routing`；下一Task11。
 
 ## Task 11：收敛小型域并提取共享纯规则
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -730,11 +732,21 @@ Invoke-PgCases -Files @('tests/hermes_db/postgresql/test_projects_store.py', 'te
 
 ### 执行结果
 
-未执行。
+从Task10 `c0a4b50397`继续，完成八个实际归组：Projects与verification各合并为单一postgres.py；Cron execution/incident/query归为executions，独立delivery/notepad保留；metrics counter/query归为records、consent/package/send-claim归为outbox；插件records协议实现与CAS/配额SQL合并。Projects四个纯slug/path规则移入rules.py，由Native和PG直接复用；公共DTO/异常身份保持。删除11个经核验为空的临时namespace，462→444个Python文件（业务模块净减7，namespace净减11），根仍精确11。映射记录final_target/八组合并沿革与移除namespace，398源项仍完整归属。
+
+保留小模块理由：Cron delivery有独立durable claim/settlement，notepad有独立quota/write fence；metrics Store提供实际协议、sender包裹真实HTTP、snapshot提供实际跨域查询。Task16仍需关闭时钟/DTO转换、Native metrics格式化等私有facade耦合，本Task不宣称闭环。
+
+首轮PG真实暴露Projects.create_project的folders参数与内联表别名遮蔽（2失败），改为明确的project_folders表名；对所有被内联的原模块属性进行局部绑定冲突扫描，仅发现这一处。原有两个失败合同作为本次red证据，整改后全16文件复验，不改公开folders参数或SQL。
 
 ### 验证证据
 
-未执行；实施时记录实际解释器/源码commit、展开命令、退出状态、计数、日志、未验证项和恢复commit。
+- Windows隔离PM Python3.14.9、Linux独立PM环境与Task6相同，均在导入前绑定隔离HERMES_HOME/HERMES_RUNTIME_DIR；源码来自独立checkout，不使用PM安装的旧拷贝。
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts tests/hermes_cli/test_projects_db.py tests/hermes_cli/test_projects_cli.py -j 4 --file-timeout 1200 -- --tb=short`，exit0，92文件513passed/0failed/4skipped，327.0秒（task11-native.log）。1 POSIX及3 Linux SDK skip单列，最终Linux全量待Task17。
+- Linux PG首轮误写两个测试文件名导致runner exit2、未执行任何业务；核对实际文件名后16文件exit1，60passed/2failed（均为上述folders遮蔽），221.6秒（task11-pg.log）。原始失败日志仅存忽略目录，不提交或打印秘密。
+- 复验PG覆盖计划五文件以及Cron execution/delivery/bot、metrics consent/consumers/faults/HTTP/process、Discord恢复、Worker领域回执与metrics root共16文件；Linux最终命令为`bash scripts/run_tests.sh <上述16个真实文件> -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，exit0，16文件62passed/0failed/0skip，214.4秒（task11-pg-final.log）。
+- 独立AST/绑定/归属审计：152个合并函数/类、4个共享规则等价；60个不可变文件内容相同（31revision + versions初始化 + 28表定义），tables初始化另仅保留Task2必要导入；总444、根11，398源项与所有新增项无缺失/无未登记文件（task11-audit-final.log exit0）。此核对不替代业务合同。
+- 静态首轮15检查通过、health672文件0blocking/0advisory（156.7秒）；修复后的最终`PM Python -X utf8 scripts/check --staged --base cbfc773dd7` exit0、15检查通过，health672文件0blocking/0advisory（135.3秒，task11-check-final.log）；最终账本/映射状态更新后暂存空白检查通过。
+- 未验证：大域组件收敛、最终全DB/SDK/独立发行/旧Schema仍由后续Task负责。原统一后端Task24及七项非WSL缺证独立保留。恢复点：本Task本地提交，标题`refactor(storage): consolidate small persistence domains and shared project rules`；下一Task12。
 
 ## Task 12：Sessions改显式组件并收敛碎片
 

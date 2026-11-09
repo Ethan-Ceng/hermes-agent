@@ -9,8 +9,8 @@ from hermes_cli.observability.shared_metrics_contract import CLIENT_ACTIVE_METRI
 from hermes_cli.observability.shared_metrics_sender import SharedMetricsSender
 from hermes_db.domains.metrics.api import open_metrics
 from hermes_db.errors import UnknownCommitError
-from hermes_db.domains.metrics.postgres.operations import packages as metric_packages
-from hermes_db.domains.metrics.postgres.queries import metrics as repo
+from hermes_db.domains.metrics.postgres import outbox as metric_packages
+from hermes_db.domains.metrics.postgres import records as repo
 from hermes_db.tables.metrics import packages
 from sqlalchemy import select
 from tests.hermes_db.postgresql.test_metrics_store import DAY, RESOURCE

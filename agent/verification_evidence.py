@@ -675,7 +675,7 @@ def _insert_evidence(evidence: VerificationEvidence) -> dict[str, Any]:
 
     resource = postgres_resource()
     if resource is not None:
-        from hermes_db.domains.verification.postgres.operations.verification import record
+        from hermes_db.domains.verification.postgres import record
         with resource:
             return record(resource, e.__dict__, created_at,
                 cutoff=(datetime.now(UTC) - timedelta(days=_MAX_EVIDENCE_AGE_DAYS)).isoformat(),
@@ -735,7 +735,7 @@ def mark_workspace_edited(
     from hermes_db.domains.verification.api import postgres_resource
     resource = postgres_resource()
     if resource is not None:
-        from hermes_db.domains.verification.postgres.operations.verification import mark_edited
+        from hermes_db.domains.verification.postgres import mark_edited
         with resource:
             return mark_edited(resource, sid, root, changed_paths, edited_at)
 
@@ -799,7 +799,7 @@ def verification_status(*, session_id: str | None, cwd: str | Path | None) -> di
     from hermes_db.domains.verification.api import postgres_resource
     resource = postgres_resource()
     if resource is not None:
-        from hermes_db.domains.verification.postgres.operations.verification import status
+        from hermes_db.domains.verification.postgres import status
         with resource:
             return status(resource, sid, root)
     with _DB_LOCK, _transaction() as conn:

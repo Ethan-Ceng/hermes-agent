@@ -19,6 +19,10 @@ from typing import Iterable, List, Optional
 from hermes_cli.sqlite_util import add_column_if_missing as _add_column_if_missing, open_db, write_txn
 from hermes_constants import get_hermes_home
 from hermes_db.domains.projects.api import domain_operation
+from hermes_db.domains.projects.rules import (
+    normalize_slug, slugify as _slugify,
+    normalize_path as _normalize_path, primary_path_key as _primary_path_key,
+)
 
 
 def projects_db_path() -> Path:
@@ -67,9 +71,6 @@ CREATE TABLE IF NOT EXISTS discovered_repos (
 );
 """
 
-# Lowercase alphanumerics, hyphens, underscores; 1-64 chars; no leading separator. Strict enough to
-# stop traversal/path separators, loose enough for kebab-case. Display formatting lives in ``name``.
-_SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9\-_]{0,63}$")
 # Deterministic branch slug: lowercase, separators collapsed, capped.
 _BRANCH_SAFE_RE = re.compile(r"[^a-z0-9._-]+")
 _INITIALIZED_PATHS: set[str] = set()
@@ -82,34 +83,8 @@ _ACTIVE_META_KEY = "active_id"
 _DISCOVERY_POLICY_META_KEY = "repo_discovery_policy"
 
 
-def _slugify(name: str) -> str:
-    """Derive a slug candidate from a human name (best-effort)."""
-    s = re.sub(r"[^a-z0-9]+", "-", str(name or "").strip().lower()).strip("-_")
-    return s[:64].strip("-_") or "project"
-
-
-def normalize_slug(slug: Optional[str]) -> Optional[str]:
-    """Lowercase + strip a slug; validate; return ``None`` for empty."""
-    s = str(slug).strip().lower() if slug is not None else ""
-    if not s:
-        return None
-    if not _SLUG_RE.match(s):
-        raise ValueError(
-            f"invalid project slug {slug!r}: must be 1-64 chars, lowercase "
-            f"alphanumerics / hyphens / underscores, not starting with "
-            f"'-' or '_'"
-        )
-    return s
-
-
 def _now() -> int:
     return int(time.time())
-
-
-def _normalize_path(path: str) -> str:
-    """Absolute, user-expanded, separator-normalized path (no trailing sep)."""
-    p = os.path.abspath(os.path.expanduser(str(path).strip()))
-    return p.rstrip("/\\") or p
 
 
 def connect(db_path: Optional[Path] = None, *, profile_home: Optional[Path] = None):
@@ -206,9 +181,6 @@ def _unique_slug(conn: sqlite3.Connection, candidate: str) -> str:
     return slug
 
 
-def _primary_path_key(path: str) -> str:
-    """Comparison key for primary-path dedup (absolute + case/sep-normalized)."""
-    return os.path.normcase(_normalize_path(path))
 
 
 @domain_operation

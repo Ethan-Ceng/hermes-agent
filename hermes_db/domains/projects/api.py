@@ -12,7 +12,7 @@ def domain_operation(sqlite_operation):
         if isinstance(store, DomainResource):
             if store.name != "projects" or store.settings.backend != "postgresql":
                 raise StorageConfigurationError("Project operations require the selected Projects store")
-            from hermes_db.domains.projects.postgres.operations import projects
+            from hermes_db.domains.projects import postgres as projects
             return getattr(projects, sqlite_operation.__name__)(store, *args, **kwargs)
         return sqlite_operation(store, *args, **kwargs)
     return operation

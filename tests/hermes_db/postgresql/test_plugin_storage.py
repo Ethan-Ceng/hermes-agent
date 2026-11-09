@@ -46,7 +46,7 @@ def test_pg_expiry_prune_preserves_monotonic_revision(pg_profiles):
     from sqlalchemy import update
     from plugins.plugin_storage import plugin_store
     from hermes_db.domains.plugin_storage.records.api import open_plugin
-    from hermes_db.domains.plugin_storage.records.postgres.operations.records import scope
+    from hermes_db.domains.plugin_storage.records.postgres.store import scope
     from hermes_db.tables.plugins import records
     with pg_profiles("one"):
         store = plugin_store("expiry")
@@ -76,7 +76,7 @@ def test_retained_key_quota_rolls_back_and_releases_after_delete(pg_profiles):
     from plugins.plugin_storage import plugin_store, PluginStorageQuotaError
     from plugins.plugin_storage_types import MAX_NAMESPACE_KEYS
     from hermes_db.domains.plugin_storage.records.api import open_plugin
-    from hermes_db.domains.plugin_storage.records.postgres.operations.records import scope
+    from hermes_db.domains.plugin_storage.records.postgres.store import scope
     from hermes_db.tables.plugins import namespaces, records
     with pg_profiles("one"):
         store = plugin_store("key-quota")

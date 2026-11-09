@@ -30,7 +30,7 @@ def open_metrics(reference, *, write=False):
     from hermes_cli.db_setup import _owning_profile
     from hermes_db.factory import acquire_profile_domain
     from hermes_db.integration.transfer.move_values import resource_key
-    from hermes_db.domains.metrics.postgres.queries.metrics import lock_store
+    from hermes_db.domains.metrics.postgres.records import lock_store
     with _owning_profile(reference.profile_home), acquire_profile_domain("metrics", profile_home=reference.profile_home) as resource:
         if resource.settings.backend != "postgresql" or resource.scope.store_id != reference.store_id:
             raise StorageConfigurationError("Captured metrics backend or store_id changed")

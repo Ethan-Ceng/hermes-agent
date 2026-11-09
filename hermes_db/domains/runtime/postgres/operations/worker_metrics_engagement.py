@@ -7,9 +7,9 @@ from sqlalchemy import delete, select
 
 from hermes_cli.observability import shared_metrics as native, shared_metrics_contract as contract
 from hermes_cli.observability import shared_metrics_engagement as engagement
-from hermes_db.domains.metrics.postgres.operations import metrics
+from hermes_db.domains.metrics.postgres import records as metrics
 from hermes_db.domains.runtime.postgres.operations.worker_domains import ReceiptDomainResource
-from hermes_db.domains.metrics.postgres.queries import metrics as repo
+from hermes_db.domains.metrics.postgres import records as repo
 from hermes_db.tables.metrics import state
 from hermes_db.core.values import decode_text
 from hermes_state_runtime import RuntimeStoreError

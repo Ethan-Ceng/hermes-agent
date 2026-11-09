@@ -13,7 +13,7 @@ class BoundMetricsRef:
 
 @contextmanager
 def open_bound(reference, *, write=False):
-    from hermes_db.domains.metrics.postgres.queries.metrics import lock_store
+    from hermes_db.domains.metrics.postgres.records import lock_store
     resource = SimpleNamespace(scope=reference.scope)
     with (reference.source.write() if write else reference.source.read()) as conn:
         if write:

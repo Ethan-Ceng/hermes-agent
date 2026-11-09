@@ -19,7 +19,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 
 
 def test_response_and_portable_cursor_roll_back_together(pg_profiles, monkeypatch):
-    from hermes_db.domains.plugin_storage.records.postgres.operations import records as plugin_storage
+    from hermes_db.domains.plugin_storage.records.postgres import store as plugin_storage
     with pg_profiles("one"):
         adapter = build_adapter(monkeypatch)
         adapter._record_discord_message_seen(make_message(message_id=322), status="processing")

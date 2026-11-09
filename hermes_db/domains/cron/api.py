@@ -4,10 +4,10 @@ from functools import wraps
 
 
 _POSTGRES_MODULES = {
-    "executions": "hermes_db.domains.cron.postgres.operations.executions",
-    "incidents": "hermes_db.domains.cron.postgres.operations.incidents",
-    "delivery": "hermes_db.domains.cron.postgres.operations.delivery",
-    "notepad": "hermes_db.domains.cron.postgres.operations.notepad",
+    "executions": 'hermes_db.domains.cron.postgres.executions',
+    "incidents": 'hermes_db.domains.cron.postgres.executions',
+    "delivery": 'hermes_db.domains.cron.postgres.delivery',
+    "notepad": 'hermes_db.domains.cron.postgres.notepad',
 }
 
 

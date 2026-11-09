@@ -136,6 +136,8 @@ Task1冻结接口、动态引用与活动回归基线；Task2处理基础设施�
 | Rooms | lifecycle/reads；ownership/leases；grants/links/debts；tasks；work；policy；replication；attachments | 保留exact-grant、CAS、generation、held债务、purge后存活和后台付债，不跨组开启独立事务 |
 | 小型域 | Projects/verification、Cron、metrics、records/Discord/Retain | 合并同域薄操作/查询；共享纯规则先以Projects试点。Matrix codec/cache/failure通道可因独立SDK职责保持分离 |
 
+Task11实际收敛：Projects与verification各为单一`postgres.py`；Cron execution/incident/query合并，delivery与notepad按独立持久化生命周期保留；metrics counter/query合并为records、consent/package/claim合并为outbox；插件records的协议实现与具体CAS/配额SQL同置。纯Projects规则由两个后端共用。移除11个临时空namespace，462→444个Python文件；后续大域继续净收敛。最终落位与源模块沿革记录在映射的`final_target`、`consolidations`及`new_files.final_status`。
+
 Session/Runtime最终使用少量明确组件和显式门面方法委托，去除36/10基类组合。组件共享一个带scope、事务、snapshot pin及关闭状态的上下文；不各自创建连接池，不互相保存整个Facade作为万能self，也不使用万能`__getattr__`/运行时反射自动导出全部方法。
 上下文的缓存/pin身份沿用原Store实例及完整资源身份，不能只按store_id合并不同目标。共享上下文不意味着所有read自动切换活动Profile；原活动绑定的生命周期点须逐项保持。导入/组件初始化不新增配置、秘密、模型或数据库I/O，既有按需行为仍在原操作位置执行。
 公共存储方法保留既有签名/返回与权限语义；内部构造方式可以随组合重构同步更新所有消费者。接口只服务真实消费者，不为每张表新建Protocol、DTO或基类。

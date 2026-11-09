@@ -8,7 +8,7 @@ from sqlalchemy import func, select
 from hermes_cli.observability import shared_metrics as native
 from hermes_db.domains.metrics.bound import bound_store
 from hermes_db.domains.runtime.postgres.operations.worker_domains import ReceiptDomainResource, fields
-from hermes_db.domains.metrics.postgres.queries import metrics as repo
+from hermes_db.domains.metrics.postgres import records as repo
 from hermes_db.tables.conversations import sessions
 from hermes_state_runtime import RuntimeStoreError
 

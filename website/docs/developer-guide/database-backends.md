@@ -30,6 +30,13 @@ in SQLite mode.
 | `hermes_db/backends/postgresql/transactions.py` | Bounded connections, transaction outcomes and sanitized failures |
 | `hermes_db/migrations/` | Explicit forward Alembic revisions and frozen historical schema definitions |
 
+Small domains keep scoped statements and their operations together: Projects and
+verification use a single `postgres.py`; Cron separates execution history, durable
+delivery and notepad quotas; metrics separates counter records from its persistent
+outbox. Projects shares slug and path rules with the native implementation in
+`hermes_db/domains/projects/rules.py`. Larger domains retain separate query and
+workflow modules where they have distinct responsibilities.
+
 SQLite retains its native implementations. Domain adapters select PG before a
 SQLite file-existence check or connection. There is no general SQLite SQL
 translator or PG object pretending to be a SQLite connection. A migrated

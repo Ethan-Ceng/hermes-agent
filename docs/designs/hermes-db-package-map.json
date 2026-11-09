@@ -1,7 +1,7 @@
 {
   "baseline": "cbfc773dd79241752697e647067c63338fc01680",
   "baseline_runtime": "0d69702244d623a31be149a9bac6a2658e0322ae",
-  "stage": "Stage1 mechanical checkpoint verified (Tasks1-10); 320 moves complete, root11; consolidation proceeds from Task11; two empty legacy namespaces remain for Task16",
+  "stage": "Stage2 Task11 verified: shared project rules and eight small-domain consolidations; Task12 pending",
   "hash_basis": "SHA256 of Git blob bytes at baseline; independent of checkout line endings",
   "counts": {
     "keep": 76,
@@ -995,7 +995,9 @@
       "lines": 155,
       "sha256": "fc5981c894698e7dd2f3c2ecd004902ec486a7f5051063e4d217a7b9337125e2",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/cron/postgres/delivery.py",
+      "consolidated_by_task": 11
     },
     {
       "source": "hermes_db/operations/cron_executions.py",
@@ -1005,7 +1007,9 @@
       "lines": 240,
       "sha256": "50574409a7aab00ae998edd0fcd1ac0c84dbfd000c631acd4a883463f90bfd86",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/cron/postgres/executions.py",
+      "consolidated_by_task": 11
     },
     {
       "source": "hermes_db/operations/cron_incidents.py",
@@ -1015,7 +1019,9 @@
       "lines": 84,
       "sha256": "a3c7e7713f7355ed66d92cf85aad8eded47356dcf9c16ff1ea5177f4a9dcb1a8",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/cron/postgres/executions.py",
+      "consolidated_by_task": 11
     },
     {
       "source": "hermes_db/operations/cron_notepad.py",
@@ -1025,7 +1031,9 @@
       "lines": 61,
       "sha256": "05a25d0149cdf8e443328f137dab09a2facb008f5354ee12f11cda6d0b8b00a9",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/cron/postgres/notepad.py",
+      "consolidated_by_task": 11
     },
     {
       "source": "hermes_db/operations/current_history.py",
@@ -1685,7 +1693,9 @@
       "lines": 34,
       "sha256": "9b655e292e1ba6184f4ad49621b110a951b70633663381d0df4d358af2f7c3b6",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/metrics/postgres/outbox.py",
+      "consolidated_by_task": 11
     },
     {
       "source": "hermes_db/operations/metric_packages.py",
@@ -1695,7 +1705,9 @@
       "lines": 71,
       "sha256": "ab018ab450b66d0ef7b71c2bf9dc5581ec8199274c3e6cc02884e881327ede81",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/metrics/postgres/outbox.py",
+      "consolidated_by_task": 11
     },
     {
       "source": "hermes_db/operations/metric_sender.py",
@@ -1705,7 +1717,9 @@
       "lines": 67,
       "sha256": "41cbaaaf7259728246b7050bdb51997808b456ac3d49dfa147a3054a266c1173",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/metrics/postgres/outbox.py",
+      "consolidated_by_task": 11
     },
     {
       "source": "hermes_db/operations/metrics.py",
@@ -1715,7 +1729,9 @@
       "lines": 60,
       "sha256": "09fb03d4f5b5852c791839547d70d546334cae88531c7069a8ddf254b0b03e85",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/metrics/postgres/records.py",
+      "consolidated_by_task": 11
     },
     {
       "source": "hermes_db/operations/mutation_branch.py",
@@ -1765,7 +1781,9 @@
       "lines": 71,
       "sha256": "45cd9345225ef59a767a0bc160a578333f757c72d4dd1a3a94f6f9f9485bc8ec",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/plugin_storage/records/postgres/store.py",
+      "consolidated_by_task": 11
     },
     {
       "source": "hermes_db/operations/portability.py",
@@ -1815,7 +1833,9 @@
       "lines": 232,
       "sha256": "debf01b70b08b465c48a6bbbec60a82126832baf73325ef1015d8cb2dda7a31f",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/projects/postgres.py",
+      "consolidated_by_task": 11
     },
     {
       "source": "hermes_db/operations/retain_queue.py",
@@ -2205,7 +2225,9 @@
       "lines": 52,
       "sha256": "0a46d79c7f3bf1d19ecb2c39c862a6137984123df1602055bd782012de497706",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/verification/postgres.py",
+      "consolidated_by_task": 11
     },
     {
       "source": "hermes_db/operations/worker_children.py",
@@ -2355,7 +2377,9 @@
       "lines": 40,
       "sha256": "ba93270a045589ef326bb13dd0fbedac79c71839fae82313497c8ae02ebf4c5a",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/plugin_storage/records/postgres/store.py",
+      "consolidated_by_task": 11
     },
     {
       "source": "hermes_db/portability_values.py",
@@ -2514,7 +2538,9 @@
       "lines": 85,
       "sha256": "e286df0ff20f21b3f8a956c42b4ae7a908a8e87d55317b0b0a6ab5b14260b584",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/cron/postgres/executions.py",
+      "consolidated_by_task": 11
     },
     {
       "source": "hermes_db/repositories/delegations.py",
@@ -2704,7 +2730,9 @@
       "lines": 62,
       "sha256": "53103925f5438ea259de0e736e8d1c1757703cb70f63a4112bc688633eadf8b8",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/metrics/postgres/records.py",
+      "consolidated_by_task": 11
     },
     {
       "source": "hermes_db/repositories/mutation_binding.py",
@@ -2744,7 +2772,9 @@
       "lines": 74,
       "sha256": "5b48c09c1f564023574d0ccc935b8b332769a512c83fc71f8e53ec212975b16f",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/projects/postgres.py",
+      "consolidated_by_task": 11
     },
     {
       "source": "hermes_db/repositories/prompts.py",
@@ -2924,7 +2954,9 @@
       "lines": 91,
       "sha256": "ec9e1edfcdb3f042b3afa96b354cdeec1259a1ecb81a1fa9c8a62b1b7eb9ccce",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/verification/postgres.py",
+      "consolidated_by_task": 11
     },
     {
       "source": "hermes_db/repositories/worker_retirement.py",
@@ -3992,32 +4024,50 @@
     {
       "path": "hermes_db/domains/projects/postgres/operations/__init__.py",
       "task": 3,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 11,
+      "reason": "Temporary technical-layer namespace removed after concrete domain consolidation"
     },
     {
       "path": "hermes_db/domains/projects/postgres/__init__.py",
       "task": 3,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 11,
+      "reason": "Temporary technical-layer namespace removed after concrete domain consolidation"
     },
     {
       "path": "hermes_db/domains/verification/postgres/operations/__init__.py",
       "task": 3,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 11,
+      "reason": "Temporary technical-layer namespace removed after concrete domain consolidation"
     },
     {
       "path": "hermes_db/domains/verification/postgres/__init__.py",
       "task": 3,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 11,
+      "reason": "Temporary technical-layer namespace removed after concrete domain consolidation"
     },
     {
       "path": "hermes_db/domains/projects/postgres/queries/__init__.py",
       "task": 3,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 11,
+      "reason": "Temporary technical-layer namespace removed after concrete domain consolidation"
     },
     {
       "path": "hermes_db/domains/verification/postgres/queries/__init__.py",
       "task": 3,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 11,
+      "reason": "Temporary technical-layer namespace removed after concrete domain consolidation"
     },
     {
       "path": "hermes_db/domains/cron/__init__.py",
@@ -4037,7 +4087,10 @@
     {
       "path": "hermes_db/domains/cron/postgres/operations/__init__.py",
       "task": 4,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 11,
+      "reason": "Temporary technical-layer namespace removed after concrete domain consolidation"
     },
     {
       "path": "hermes_db/domains/cron/postgres/__init__.py",
@@ -4047,17 +4100,26 @@
     {
       "path": "hermes_db/domains/metrics/postgres/operations/__init__.py",
       "task": 4,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 11,
+      "reason": "Temporary technical-layer namespace removed after concrete domain consolidation"
     },
     {
       "path": "hermes_db/domains/cron/postgres/queries/__init__.py",
       "task": 4,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 11,
+      "reason": "Temporary technical-layer namespace removed after concrete domain consolidation"
     },
     {
       "path": "hermes_db/domains/metrics/postgres/queries/__init__.py",
       "task": 4,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 11,
+      "reason": "Temporary technical-layer namespace removed after concrete domain consolidation"
     },
     {
       "path": "hermes_db/domains/plugin_storage/discord/postgres/__init__.py",
@@ -4092,7 +4154,10 @@
     {
       "path": "hermes_db/domains/plugin_storage/records/postgres/operations/__init__.py",
       "task": 5,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 11,
+      "reason": "Temporary technical-layer namespace removed after concrete domain consolidation"
     },
     {
       "path": "hermes_db/domains/plugin_storage/records/postgres/__init__.py",
@@ -4258,6 +4323,11 @@
       "path": "hermes_db/domains/kanban/postgres/queries/__init__.py",
       "task": 10,
       "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/projects/rules.py",
+      "task": 11,
+      "role": "shared-project-slug-and-path-rules"
     }
   ],
   "implementation_amendments": [
@@ -4267,6 +4337,80 @@
       "old_target": "hermes_db/domains/kanban/postgres/operations/import.py",
       "new_target": "hermes_db/domains/kanban/postgres/operations/imports.py",
       "reason": "Python keyword import is not a valid regular import module segment; baseline source/hash and SQL unchanged"
+    }
+  ],
+  "consolidations": [
+    {
+      "task": 11,
+      "target": "hermes_db/domains/projects/postgres.py",
+      "sources": [
+        "hermes_db/domains/projects/postgres/queries/projects.py",
+        "hermes_db/domains/projects/postgres/operations/projects.py"
+      ],
+      "purpose": "Project query/materialization helpers and complete short transactions share one module and captured scope"
+    },
+    {
+      "task": 11,
+      "target": "hermes_db/domains/verification/postgres.py",
+      "sources": [
+        "hermes_db/domains/verification/postgres/queries/verification.py",
+        "hermes_db/domains/verification/postgres/operations/verification.py"
+      ],
+      "purpose": "Evidence state/materialization and atomic sharing/retention have one real persistence owner"
+    },
+    {
+      "task": 11,
+      "target": "hermes_db/domains/cron/postgres/executions.py",
+      "sources": [
+        "hermes_db/domains/cron/postgres/queries/cron.py",
+        "hermes_db/domains/cron/postgres/operations/executions.py",
+        "hermes_db/domains/cron/postgres/operations/incidents.py"
+      ],
+      "purpose": "Attempt and incident lifecycles share scope, exact-value projection and the same store fence"
+    },
+    {
+      "task": 11,
+      "target": "hermes_db/domains/cron/postgres/delivery.py",
+      "sources": [
+        "hermes_db/domains/cron/postgres/operations/delivery.py"
+      ],
+      "purpose": "Independent durable delivery claim/settlement workflow"
+    },
+    {
+      "task": 11,
+      "target": "hermes_db/domains/cron/postgres/notepad.py",
+      "sources": [
+        "hermes_db/domains/cron/postgres/operations/notepad.py"
+      ],
+      "purpose": "Independent per-job quota/write-fence workflow"
+    },
+    {
+      "task": 11,
+      "target": "hermes_db/domains/metrics/postgres/records.py",
+      "sources": [
+        "hermes_db/domains/metrics/postgres/queries/metrics.py",
+        "hermes_db/domains/metrics/postgres/operations/metrics.py"
+      ],
+      "purpose": "Counter/latch/rollup writes and their concrete scoped row helpers have no separate lifecycle"
+    },
+    {
+      "task": 11,
+      "target": "hermes_db/domains/metrics/postgres/outbox.py",
+      "sources": [
+        "hermes_db/domains/metrics/postgres/operations/consent.py",
+        "hermes_db/domains/metrics/postgres/operations/packages.py",
+        "hermes_db/domains/metrics/postgres/operations/sender.py"
+      ],
+      "purpose": "Consent, packaging and send-claim SQL form the same persistent metrics outbox lifecycle"
+    },
+    {
+      "task": 11,
+      "target": "hermes_db/domains/plugin_storage/records/postgres/store.py",
+      "sources": [
+        "hermes_db/domains/plugin_storage/records/postgres/store.py",
+        "hermes_db/domains/plugin_storage/records/postgres/operations/records.py"
+      ],
+      "purpose": "The actual PluginStore consumer owns one captured namespace and its concrete record operations"
     }
   ]
 }

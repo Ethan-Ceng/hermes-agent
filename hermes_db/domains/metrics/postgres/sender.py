@@ -2,7 +2,7 @@
 
 from hermes_cli.observability.shared_metrics_sender import SharedMetricsSender, logger
 from hermes_db.domains.metrics.api import open_metrics
-from hermes_db.domains.metrics.postgres.operations import sender as metric_sender
+from hermes_db.domains.metrics.postgres import outbox as metric_sender
 from hermes_db.errors import StorageConfigurationError, StorageError
 
 

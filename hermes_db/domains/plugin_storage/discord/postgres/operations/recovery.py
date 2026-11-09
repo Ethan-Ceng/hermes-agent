@@ -4,7 +4,7 @@ from sqlalchemy import delete, func, select, update
 from hermes_db.domains.plugin_storage.discord.postgres.queries import recovery as repo
 from hermes_db.tables.discord_recovery import messages, scans
 from hermes_db.domains.plugin_storage.records.api import PluginRef
-from hermes_db.domains.plugin_storage.records.postgres.operations import records as plugin_storage
+from hermes_db.domains.plugin_storage.records.postgres import store as plugin_storage
 
 
 def probe(conn, reference):

@@ -38,7 +38,7 @@ def text(value):
 
 
 def verification(conn, scope, session_id, payload, *, operation):
-    from hermes_db.domains.verification.postgres.operations import verification as operations
+    from hermes_db.domains.verification import postgres as operations
     resource = ReceiptDomainResource(conn, scope, writable=operation != 'status')
     if operation == 'record':
         return {'value': record_verification(resource, session_id, payload)}
@@ -59,7 +59,7 @@ def record_verification(resource, session_id, payload):
         VerificationEvidence, _utc_now, _MAX_EVIDENCE_AGE_DAYS,
         _MAX_EVENTS_PER_SESSION_ROOT, _MAX_TOTAL_UNREFERENCED_EVENTS,
     )
-    from hermes_db.domains.verification.postgres.operations.verification import record
+    from hermes_db.domains.verification.postgres import record
     fields(payload, {'evidence'})
     evidence = payload['evidence']
     fields(evidence, VerificationEvidence.__dataclass_fields__)
