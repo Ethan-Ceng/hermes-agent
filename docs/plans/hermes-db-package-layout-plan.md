@@ -4,12 +4,12 @@
 
 - 设计：[按业务域分包](../designs/hermes-db-package-layout.md)。
 - 全量归属：[398项基准映射](../designs/hermes-db-package-map.json)。
-- 文档分支：`docs/hermes-db-package-layout`；未来实施分支：`refactor/hermes-db-packages`。
+- 文档分支：`docs/hermes-db-package-layout`；实施分支：`refactor/hermes-db-packages`。
 - 源码基准：`cbfc773dd7`，运行实现等价`0d69702244`。
-- 整体状态：`PLAN_READY`；当前阶段：方案准备；当前任务：无；完成：0 / 18。
-- 本轮未实施、未搬模块、未改Schema/数据、未停止正在验收的Hermes。
-- 核心设计待决策：无；执行环境待Task1核对。原统一后端Task24及七项非WSL缺证独立保留。
-- 更新时间：2026-11-09（Asia/Shanghai）。恢复时从Task1开始，不重跑整轮数据库选型。
+- 整体状态：`IMPLEMENTING`；当前阶段：第一阶段机械落位；当前任务：Task2（待开始）；完成：1 / 18。
+- 本轮已建立独立实施检出并完成Task1；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
+- 核心设计待决策：无；Task1隔离PM与PG基线已通过，Matrix实际SDK由Task6核对。原统一后端Task24及七项非WSL缺证独立保留。
+- 更新时间：2026-11-09（Asia/Shanghai）。恢复位置：`D:/AI/hermes-db-packages`；从首个in_progress任务继续，不重跑整轮数据库选型。
 
 ## 任务依赖与全局约束
 
@@ -60,6 +60,7 @@ PG选项只用于tests/hermes_db下已注册该选项的文件；其他目录Nat
 | 日期 | 状态 | 记录 |
 | --- | --- | --- |
 | 2026-11-09 | PLAN_READY | 用户要求准备分包方案；完成实际模块归属与设计/计划，0/18，尚未实施 |
+| 2026-11-09 | IMPLEMENTING | 独立checkout/PM及Task1接口依赖基线完成，1/18；Native504+PG26，4平台skip单列 |
 
 ## 方案准备自检
 
@@ -69,7 +70,7 @@ PM解释器执行`scripts/check --staged --base cbfc773dd7`实际exit0、15检�
 
 ## Task 1：冻结模块/接口基线与建立隔离检出
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -111,11 +112,23 @@ Invoke-PgCases -Files @('tests/hermes_db/postgresql/test_surface_flow.py', 'test
 
 ### 执行结果
 
-未执行。
+已从规划提交建立 `D:/AI/hermes-db-packages` worktree、`refactor/hermes-db-packages` 普通分支，原目录干净且分支未切换。首次PM/应用导入前绑定本检出的 `.build/package-layout/profile` 与 `runtime`。PM从既有Python 3.14.9 bootstrap创建专用 `test-env`，dev/test及postgresql/telegram/discord extras构建exit0。没有修改既有环境或正式Profile。
+
+新增 `scripts/hermes_db_layout_audit.py` 和两份历史JSON基线、具名依赖分类账本 `docs/designs/hermes-db-package-baseline.md`。398项Git blob全部匹配；359个公共定义模块、239个外部依赖拥有者、内部依赖、动态路由/patch/Worker入口、外部DTO/异常和配置注册值已冻结。31个revision/29个表模块及tables init共61锚点，0031要求不变。基准两个提交只有文档差异，没有映射修订需要。
+
+持久值核对：闭合JSON command/DTO kind、目标摘要和SDK Olm pickle不以hermes_db完整模块名作为反序列化地址；动态物理路径须在Task4/9/10更新，逻辑操作名保持。纯共享符号、Native桥接、历史迁移和待移除私有facade逐类登记，不扩大plugin API或全量重生成boundary baseline。
 
 ### 验证证据
 
-未执行；实施时记录实际解释器/源码commit、展开命令、退出状态、计数、日志、未验证项和恢复commit。
+实际测试解释器：`D:/AI/hermes-db-packages/.build/package-layout/test-env/Scripts/python.exe`；源码 `7f5f1e74ed`，运行实现等价 `cbfc773dd7`。环境与所有原始日志只在本地 `.build/package-layout/`，不提交秘密或日志。
+
+- PM：`bootstrap-python -m pm.build_env --source . --out .build/package-layout/test-env --group dev --group test --extra postgresql --extra telegram --extra discord`，exit0；初次SSL EOF经自动重试成功（pm-build.log）。
+- `PM Python scripts/hermes_db_layout_audit.py`，exit0：398 hash全匹配，无未归属模块；脚本不导入应用。
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts -j 4 --file-timeout 1200 -- --tb=short`，exit0，90文件504passed/0failed/4skipped，289.5秒（task1-native.log）。四项分别为domain_resources一个POSIX合同、matrix_close两个Linux SDK合同、single_backend一个Linux SDK合同，均不算通过。
+- 同runner `tests/hermes_db/postgresql/test_surface_flow.py tests/hermes_db/postgresql/test_merge_storage_contracts.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，exit0，2文件26passed/0failed/0skip，74.9秒（task1-pg.log）。fixture验证独立验收DB及随机Schema所有权；非正式Schema。surface流程拒绝SQLite连接。
+- `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，最终exit0，15checks全部通过，health1文件0blocking/0advisory（task1-check-accepted.log）。首轮BOM读取/超时/blob超限均已整改；拆分台账保留全部记录。最终计划记录更新后 `git diff --cached --check` exit0。
+- 未验证：重构后行为、独立无PG发行载荷、完整PG/SDK/升级/跨进程恢复均属后续任务，不以本Task基线代替。原统一后端Task24及非WSL七项缺证不变。
+- 恢复点：本地提交标题 `docs(storage): freeze hermes_db packaging implementation baseline`；下一任务Task2，先置in_progress再机械搬迁。
 
 ## Task 2：搬迁基础设施与组合桥接
 
