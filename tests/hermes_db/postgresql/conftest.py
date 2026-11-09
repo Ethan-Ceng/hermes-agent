@@ -10,7 +10,7 @@ def pg_store(postgres_test_config, postgres_schema, tmp_path):
     from hermes_db.backends.postgresql.engine import get_engine
     from hermes_db.schema import upgrade_schema
     from hermes_db.scope import DatabaseScope
-    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
+    from hermes_db.integration.session_composition import create_session_store
     from hermes_db.backends.postgresql.transactions import Transactions
 
     settings = replace(postgres_test_config.settings, schema=postgres_schema)
@@ -18,7 +18,7 @@ def pg_store(postgres_test_config, postgres_schema, tmp_path):
     transactions = Transactions(get_engine(settings), settings.schema,
                                  lock_timeout=settings.write_lock_timeout_seconds,
                                  statement_timeout=settings.statement_timeout_seconds)
-    store = PostgresSessionStore(transactions, DatabaseScope(tmp_path, "contract-store"))
+    store = create_session_store(transactions, DatabaseScope(tmp_path, "contract-store"))
     try:
         yield store
     finally:
@@ -34,8 +34,8 @@ def pg_runtime(pg_store):
 @pytest.fixture
 def pg_pair(pg_store, tmp_path):
     from hermes_db.scope import DatabaseScope
-    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
-    peer = PostgresSessionStore(pg_store._transactions, DatabaseScope(tmp_path / "other", "other-store"))
+    from hermes_db.integration.session_composition import create_session_store
+    peer = create_session_store(pg_store._transactions, DatabaseScope(tmp_path / "other", "other-store"))
     try:
         yield [pg_store, peer]
     finally:

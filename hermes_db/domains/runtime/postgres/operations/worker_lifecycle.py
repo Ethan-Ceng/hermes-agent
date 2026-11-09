@@ -139,7 +139,7 @@ def billing_route(conn, scope, session_id, payload):
 
 
 def api_content(conn, scope, session_id, payload, *, addressed=False):
-    from hermes_state_messages import _scrub_surrogates
+    from hermes_db.domains.sessions.codec import _scrub_surrogates
     _fields(payload, ("row_id", "content", "api_content") if addressed else ("content", "api_content"))
     if not isinstance(payload["api_content"], str):
         raise RuntimeStoreError("invalid_params")

@@ -11,14 +11,16 @@ def test_transcript_snapshot_pins_public_reads_without_crossing_profile(pg_pair)
         store.append_message("same", "user", content)
     with owner.transcript_read_snapshot() as consistent:
         assert [row["content"] for row in owner.get_messages("same")] == ["owner first"]
+        assert owner.get_session("same")["message_count"] == 1
         owner.append_message("same", "assistant", "owner committed")
         assert [row["content"] for row in owner.get_messages("same")] == ["owner first"]
+        assert owner.get_session("same")["message_count"] == 1
         with owner.transcript_read_snapshot() as nested:
             assert nested() and consistent() and nested.pinned
         assert [row["content"] for row in peer.get_messages("same")] == ["peer only"]
     assert [row["content"] for row in owner.get_messages("same")] == ["owner first", "owner committed"]
-    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
-    reopened = PostgresSessionStore(owner._transactions, owner.scope)
+    from hermes_db.integration.session_composition import create_session_store
+    reopened = create_session_store(owner._transactions, owner.scope)
     try:
         assert reopened.get_session("same")["message_count"] == 2
         assert [row["content"] for row in reopened.get_messages("same")] == ["owner first", "owner committed"]
@@ -149,7 +151,7 @@ def test_explicit_archive_retires_visible_reaped_bot_chat(pg_store):
 
 
 def test_refused_turn_keeps_display_and_reopens_without_model_input(pg_pair):
-    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
+    from hermes_db.integration.session_composition import create_session_store
     owner, peer = pg_pair
     for store in (owner, peer):
         store.create_session('s', 'cli')
@@ -159,7 +161,7 @@ def test_refused_turn_keeps_display_and_reopens_without_model_input(pg_pair):
     owner.append_message('s', 'assistant', 'refusal')
     owner.append_message('s', 'user', 'late steer')
     assert owner.retain_refused_turn_for_display('s', notice='try again', boundary_row_id=boundary)
-    reopened = PostgresSessionStore(owner._transactions, owner.scope)
+    reopened = create_session_store(owner._transactions, owner.scope)
     try:
         assert [row['content'] for row in reopened.get_messages('s')] == ['accepted', 'answer']
         shown = reopened.get_messages('s', include_compacted=True)
@@ -193,11 +195,11 @@ def test_refusal_fallback_releases_checkout_for_one_connection_pool(pg_store, po
     from dataclasses import replace
     from hermes_db.backends.postgresql.engine import get_engine
     from hermes_db.backends.postgresql.transactions import Transactions
-    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
+    from hermes_db.integration.session_composition import create_session_store
     settings = replace(postgres_test_config.settings, pool_size=1, max_overflow=0,
                        connection_budget=1, pool_timeout_seconds=1)
     engine = get_engine(settings)
-    store = PostgresSessionStore(Transactions(engine, pg_store._transactions.schema), pg_store.scope)
+    store = create_session_store(Transactions(engine, pg_store._transactions.schema), pg_store.scope)
     try:
         store.create_session('fallback', 'cli')
         store.append_message('fallback', 'user', 'no boundary available')

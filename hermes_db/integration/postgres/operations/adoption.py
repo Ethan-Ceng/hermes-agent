@@ -10,7 +10,7 @@ from hermes_db.integration.transfer.portability_values import values
 from hermes_db.domains.sessions.postgres.queries import messages, sessions
 from hermes_db.domains.runtime.postgres.queries import runtime
 from hermes_db.integration.postgres.queries import profile_move
-from hermes_db.integration.transfer.session_capabilities.portability import _export
+from hermes_db.integration.transfer.session_store import _export
 
 
 def _key(source, sid):

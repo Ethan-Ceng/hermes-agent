@@ -39,8 +39,8 @@ def test_shared_message_contract_on_postgresql(pg_store, contract):
 
 def test_same_schema_message_isolation(pg_store, tmp_path):
     from hermes_db.scope import DatabaseScope
-    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
-    peer = PostgresSessionStore(pg_store._transactions, DatabaseScope(tmp_path / "other", "other-store"))
+    from hermes_db.integration.session_composition import create_session_store
+    peer = create_session_store(pg_store._transactions, DatabaseScope(tmp_path / "other", "other-store"))
     try:
         isolation.test_message_queries_mutations_and_results_are_scoped([pg_store, peer])
     finally:

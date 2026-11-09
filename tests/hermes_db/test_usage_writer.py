@@ -65,14 +65,17 @@ def test_unknown_commit_is_not_replayed_and_is_visible_to_the_barrier(tmp_path, 
 
 
 def test_read_barrier_does_not_wait_on_an_asyncio_loop():
-    from hermes_db.domains.sessions.postgres.capabilities.usage import SessionUsage
+    from types import SimpleNamespace
+    from hermes_db.domains.sessions.postgres.usage import SessionUsage
 
-    class Reader(SessionUsage):
-        def flush_token_counts(self, timeout=5):
+    class Writer:
+        def flush(self, timeout=5):
             assert timeout == 0
             return False
 
+    reader = SessionUsage(SimpleNamespace(usage_writer=Writer()))
+
     async def read():
-        assert not Reader().flush_for_read()
+        assert not reader.flush_for_read()
 
     asyncio.run(read())

@@ -19,8 +19,8 @@ class RuntimeMedia:
             return [reference for raw in rows for reference in admission_media_references(json.loads(raw))]
 
     def release_media(self, references, *, retain_history=True):
-        from hermes_db.domains.sessions.postgres.capabilities.media import release
-        return release(self._store, references, retain_history=retain_history)
+        from hermes_db.domains.sessions.postgres.support.retired_media import release
+        return release(self._store._context, references, retain_history=retain_history)
 
     def retire_refused_media(self, references):
         with self._write() as conn:

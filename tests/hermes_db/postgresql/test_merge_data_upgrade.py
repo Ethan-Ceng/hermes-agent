@@ -17,7 +17,7 @@ def old_store(postgres_test_config, postgres_schema, tmp_path):
     from hermes_db.schema import _prepare_schema
     from hermes_db.backends.postgresql.transactions import Transactions
     from hermes_db.scope import DatabaseScope
-    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
+    from hermes_db.integration.session_composition import create_session_store
     settings = replace(postgres_test_config.settings, schema=postgres_schema)
     directory = Path(__file__).parents[3] / 'hermes_db' / 'migrations'
     config = Config(str(directory / 'alembic.ini'))
@@ -27,7 +27,7 @@ def old_store(postgres_test_config, postgres_schema, tmp_path):
         _prepare_schema(conn, settings)
         config.attributes['connection'] = conn
         command.upgrade(config, '0030_room_revoke_debts')
-    store = PostgresSessionStore(Transactions(get_engine(settings), settings.schema,
+    store = create_session_store(Transactions(get_engine(settings), settings.schema,
         lock_timeout=settings.write_lock_timeout_seconds, statement_timeout=settings.statement_timeout_seconds),
         DatabaseScope(tmp_path, 'upgrade-owner'))
     try:

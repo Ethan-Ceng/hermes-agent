@@ -11,7 +11,7 @@ from hermes_db.domains.sessions.postgres.queries import messages as repo, sessio
 from hermes_db.tables.conversations import messages
 from hermes_db.core.values import encode_config, model_config
 from hermes_state_errors import PruneRowStaleError, PruneRowUnresolvedError
-from hermes_state_messages import _MESSAGE_WRITE_COLUMNS, _parse_tool_calls
+from hermes_db.domains.sessions.codec import _MESSAGE_WRITE_COLUMNS, _parse_tool_calls
 
 _FIXED = {"session_id", "role", "tool_call_id", "timestamp", "active", "display_identity"}
 

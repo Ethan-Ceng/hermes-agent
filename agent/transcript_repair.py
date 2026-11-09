@@ -14,7 +14,8 @@ from agent.message_metadata import (
     copy_identity_fields, message_uid_or_none)
 from hermes_state_common import _id_chunks, _placeholders
 from hermes_state_identity import _fill_missing_tool_call_uids, _restore_row_identity
-from hermes_state_messages import _MESSAGE_WRITE_COLUMNS, SessionMessagesMixin
+from hermes_db.domains.sessions.codec import _MESSAGE_WRITE_COLUMNS
+from hermes_state_messages import SessionMessagesMixin
 
 
 # Durable payload columns a row-addressed rewrite may change: every INSERT column except row identity,

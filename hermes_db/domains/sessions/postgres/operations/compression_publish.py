@@ -12,7 +12,8 @@ from hermes_db.domains.sessions.postgres.queries import compression as repo, mes
 from hermes_db.domains.sessions.postgres.queries.lineage import advance_local_target
 from hermes_db.tables.conversations import messages as table
 from hermes_db.core.values import model_config
-from hermes_state_messages import _parse_tool_calls, _scrub_surrogates, _tool_calls_len
+from hermes_db.domains.sessions.codec import _parse_tool_calls, _scrub_surrogates
+from hermes_state_messages import _tool_calls_len
 
 
 def publish(transactions, scope, *, messages, own_profile=None, **options):

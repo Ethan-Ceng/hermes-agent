@@ -4,6 +4,10 @@ Plain mixin for ``hermes_state.SessionDB`` (no ``__init__``/state of its own).
 Must never import hermes_state (cycle); shared constants live in hermes_state_common.
 """
 
+
+
+from hermes_db.domains.sessions.search_rules import search_sessions_by_id
+from hermes_db.domains.sessions.search_rules import SearchRules, _FTS5_SPECIAL_CHARS, _FTS5_SPECIAL_RE, _LIKE_TOKEN_RE, _QUOTED_PHRASE_RE, _CJK_RANGES, _is_cjk
 import contextlib
 import contextvars
 import logging
@@ -130,13 +134,9 @@ def _search_slow_ms() -> float:
 # Characters FTS5's query grammar rejects outside a quoted phrase (anything missing
 # reaches MATCH raw and raises -> zero results). ``%`` is deliberately excluded: the
 # CJK LIKE fallback needs it literal (that path escapes wildcards itself).
-_FTS5_SPECIAL_CHARS = '+{}():"^@/#&|~[]<>,;!?$=\\\''
-_FTS5_SPECIAL_RE = re.compile(f"[{re.escape(_FTS5_SPECIAL_CHARS)}]")
 
 _FTS_OPERATORS = frozenset({"AND", "OR", "NOT"})
 _LIKE_SKIP_TOKENS = _FTS_OPERATORS | {"NEAR"}
-_LIKE_TOKEN_RE = re.compile(r'"[^"]+"|\S+')
-_QUOTED_PHRASE_RE = re.compile(r'"[^"]*"')
 
 # Column list shared by every search route (snippet + metadata, never content).
 _SEARCH_SELECT_TAIL = "m.timestamp, m.tool_name, s.source, s.model, s.started_at AS session_started"
@@ -167,10 +167,6 @@ FROM target t JOIN messages m ON m.id IN (
 )
 ORDER BY t.id, m.timestamp, m.id"""
 # Unified Ideographs, Extension A, Extension B, CJK Symbols, Hiragana, Katakana, Hangul Syllables.
-_CJK_RANGES = (
-    (0x4E00, 0x9FFF), (0x3400, 0x4DBF), (0x20000, 0x2A6DF), (0x3000, 0x303F), (0x3040, 0x309F),
-    (0x30A0, 0x30FF), (0xAC00, 0xD7AF),
-)
 
 
 def _meta_row(conn, key: str) -> Optional[sqlite3.Row]:
@@ -180,10 +176,6 @@ def _meta_row(conn, key: str) -> Optional[sqlite3.Row]:
 
 def _delete_meta(conn, *keys: str) -> None:
     conn.execute(f"DELETE FROM state_meta WHERE key IN ({','.join('?' for _ in keys)})", keys)
-
-
-def _is_cjk(cp: int) -> bool:
-    return any(lo <= cp <= hi for lo, hi in _CJK_RANGES)
 
 
 def _non_operator_tokens(raw_query: str) -> list[str]:
@@ -285,25 +277,10 @@ def _search_filter_clauses(
         params.append(int(before_ts))
 
 
-class SessionSearchMixin:
+class SessionSearchMixin(SearchRules):
     """See module docstring — mixin for SessionDB (Search cluster)."""
 
-    _SEARCH_MESSAGE_RESULT_FIELDS = (
-        "id", "session_id", "role", "snippet", "timestamp", "tool_name", "source", "model", "session_started", "context"
-    )
 
-    @classmethod
-    def _search_message_fields(cls, fields: Optional[Collection[str]]) -> Optional[tuple[str, ...]]:
-        """Validate and canonically order an optional result projection."""
-        if fields is None:
-            return None
-        if isinstance(fields, str):
-            raise TypeError("search fields must be a collection of field names, not a string")
-        requested = set(fields)
-        unknown = requested.difference(cls._SEARCH_MESSAGE_RESULT_FIELDS)
-        if unknown:
-            raise ValueError(f"unknown search result field(s): {', '.join(sorted(unknown))}")
-        return tuple(field for field in cls._SEARCH_MESSAGE_RESULT_FIELDS if field in requested)
 
     def _try_incremental_merge_fts(self) -> None:
         """One bounded FTS5 merge pass that never fails the already-committed write (a caller
@@ -921,65 +898,12 @@ class SessionSearchMixin:
 
     # ── Query analysis ─────────────────────────────────────────────────────
 
-    @staticmethod
-    def _sanitize_fts5_query(query: str) -> str:
-        """Sanitize user input for FTS5 MATCH (raw special characters raise): preserve paired
-        quoted phrases, strip unmatched special characters, and quote hyphenated/dotted
-        terms so FTS5 matches them as phrases (``chat-send``, ``P2.2``, ``my-app.config.ts``)."""
-        # Cap before any regex processing so adversarial input stays bounded.
-        query = query[:MAX_FTS5_QUERY_CHARS]
 
-        # 1. Protect balanced quoted phrases via numbered placeholders (``"[^"]*"`` pairs
-        # left-to-right without backtracking); a leftover unmatched quote becomes whitespace.
-        _quoted_parts: list = []
-
-        def _hold(m: re.Match[str]) -> str:
-            _quoted_parts.append(m.group(0))
-            return f"\x00Q{len(_quoted_parts) - 1}\x00"
-
-        sanitized = _QUOTED_PHRASE_RE.sub(_hold, query).replace('"', " ")
-
-        # 2. Strip FTS5-special characters (an unquoted ``TODO: fix`` parses as
-        # ``column:term``). ``%`` is only spared for the CJK LIKE fallback.
-        sanitized = _FTS5_SPECIAL_RE.sub(" ", sanitized)
-        if "%" in sanitized and not SessionSearchMixin._contains_cjk(sanitized):
-            sanitized = sanitized.replace("%", " ")
-        # 3. Collapse repeated * and drop leading * (prefix needs a char).
-        sanitized = re.sub(r"\*+", "*", sanitized)
-        sanitized = re.sub(r"(^|\s)\*", r"\1", sanitized)
-        # 4. Drop dangling boolean operators at start/end (syntax errors).
-        sanitized = re.sub(r"(?i)^(AND|OR|NOT)\b\s*", "", sanitized.strip())
-        sanitized = re.sub(r"(?i)\s+(AND|OR|NOT)\s*$", "", sanitized.strip())
-        # 5. Quote dotted/hyphenated/underscored terms in ONE pass (sequential passes
-        # double-quote ``my-app.config``).
-        sanitized = re.sub(r"\b(\w+(?:[._-]\w+)+)\b", r'"\1"', sanitized)
-        # 6. Restore preserved quoted phrases.
-        for i, quoted in enumerate(_quoted_parts):
-            sanitized = sanitized.replace(f"\x00Q{i}\x00", quoted)
-        return sanitized.strip()
-
-    @staticmethod
-    def _contains_cjk(text: str) -> bool:
-        return any(_is_cjk(ord(ch)) for ch in text)
 
     @staticmethod
     def _count_cjk(text: str) -> int:
         return sum(1 for ch in text if _is_cjk(ord(ch)))
 
-    @staticmethod
-    def _or_relaxed_query(query: str) -> Optional[str]:
-        """The sanitized implicit-AND query rewritten as an any-term OR query, or ``None`` when
-        relaxation does not apply: fewer than two searchable units (a single term cannot relax)
-        or explicit ``OR``/``NOT`` (the caller expressed exact semantics). Quoted phrases stay
-        whole units: ``"docker networking" tls`` -> ``"docker networking" OR tls``."""
-        units: list[str] = []
-        for raw_token in _LIKE_TOKEN_RE.findall(query):
-            upper = raw_token.upper()
-            if upper in {"OR", "NOT"}:
-                return None
-            if upper != "AND":
-                units.append(raw_token)
-        return " OR ".join(units) if len(units) >= 2 else None
 
     @staticmethod
     def _trigram_eligible_tokens(query: str) -> bool:
@@ -1308,27 +1232,10 @@ class SessionSearchMixin:
         return self._like_rows(where, [terms[0], *params, limit], order_by="ORDER BY m.timestamp DESC",
                                limit_sql="LIMIT ?")
 
-    def search_sessions_by_id(
-        self, query: str, limit: int = 20, include_archived: bool = True, source: str | None = None,
-        sources: list[str] | None = None, exclude_sources: list[str] | None = None) -> list[dict[str, Any]]:
+    def search_sessions_by_id(self, query: str, limit: int=20, include_archived: bool=True, source: str | None=None, sources: list[str] | None=None, exclude_sources: list[str] | None=None) -> list[dict[str, Any]]:
         """Search surfaced sessions by exact/prefix/substring session id. Also matches
-        ``_lineage_root_id`` so an old compression root id resolves to the live continuation."""
-        needle = (query or "").strip().lower()
-        if not needle or limit <= 0:
-            return []
-        # list_sessions_rich pushes the id LIKE filter (own id + forward compression
-        # chain) into SQL; over-fetch so the in-Python ranking has candidates.
-        candidates = self.list_sessions_rich(
-            source=source, sources=sources, exclude_sources=exclude_sources, limit=max(limit * 4, limit),
-            offset=0, include_archived=include_archived, order_by_last_active=True, id_query=needle)
-
-        def score(row: dict[str, Any]) -> int:
-            normalized = [v.lower() for v in (str(row.get("id") or ""), str(row.get("_lineage_root_id") or "")) if v]
-            if any(value == needle for value in normalized):
-                return 0
-            return 1 if any(value.startswith(needle) for value in normalized) else 2
-        ranked = sorted(enumerate(candidates), key=lambda item: (score(item[1]), item[0]))
-        return [row for _, row in ranked[:limit]]
+            ``_lineage_root_id`` so an old compression root id resolves to the live continuation."""
+        return search_sessions_by_id(self.list_sessions_rich, query, limit, include_archived, source, sources, exclude_sources)
 
     # ── FTS maintenance commands ───────────────────────────────────────────
 

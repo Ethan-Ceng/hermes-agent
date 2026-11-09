@@ -145,10 +145,10 @@ def test_core_moved_file_lives_until_last_recipient_history_is_deleted(core_pair
 
 def test_core_file_grant_follows_a_second_move_without_moving_file_bytes(core_pair, tmp_path):
     from hermes_db.scope import DatabaseScope
-    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
+    from hermes_db.integration.session_composition import create_session_store
     source, middle = core_pair
     path = _move_file(source, middle)
-    final = PostgresSessionStore(source._transactions, DatabaseScope(tmp_path / "final", "final"))
+    final = create_session_store(source._transactions, DatabaseScope(tmp_path / "final", "final"))
     try:
         final.import_moved_session(middle.export_session_for_move("s"), profile_name="final")
         assert middle.delete_moved_session("s") and path.exists()
@@ -200,7 +200,7 @@ def test_core_grant_creation_rolls_back_with_target_copy_and_unknown_ack_replays
     assert target.get_session("s") is None and path.exists()
     with source._read() as conn:
         assert file_grants.rows(conn, source.scope, file_grants.OWNED) == []
-    original_write = target._write
+    original_write = target._context.write
 
     @contextmanager
     def lost_ack():
@@ -209,7 +209,7 @@ def test_core_grant_creation_rolls_back_with_target_copy_and_unknown_ack_replays
         raise UnknownCommitError("injected commit acknowledgement loss")
 
     with monkeypatch.context() as patch:
-        patch.setattr(target, "_write", lost_ack)
+        patch.setattr(target._context, "write", lost_ack)
         with pytest.raises(UnknownCommitError):
             target.import_moved_session(payload, profile_name="target")
     assert source.get_session("s") is not None

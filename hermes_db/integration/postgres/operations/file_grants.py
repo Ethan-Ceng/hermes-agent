@@ -93,7 +93,7 @@ def transfer(conn, source, target, snapshot):
 
 def _remaining(conn, scope, grants):
     from hermes_db.domains.sessions.postgres.queries.archive_refs import message_names
-    from hermes_db.domains.sessions.postgres.capabilities.media import _history
+    from hermes_db.domains.sessions.postgres.support.retired_media import _history
     names = message_names(conn, scope)
     if names is None:
         return None

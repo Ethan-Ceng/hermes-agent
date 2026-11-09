@@ -37,6 +37,12 @@ outbox. Projects shares slug and path rules with the native implementation in
 `hermes_db/domains/projects/rules.py`. Larger domains retain separate query and
 workflow modules where they have distinct responsibilities.
 
+PG sessions use explicit catalog, messages, history, lifecycle and usage components,
+plus profile transfer coordination. `hermes_db/integration/session_composition.py`
+binds them to one captured context; transactions, deferred accounting, close state
+and transcript snapshot pins retain the same resource identity. Native and PG
+share pure transcript, search and validation rules.
+
 SQLite retains its native implementations. Domain adapters select PG before a
 SQLite file-existence check or connection. There is no general SQLite SQL
 translator or PG object pretending to be a SQLite connection. A migrated

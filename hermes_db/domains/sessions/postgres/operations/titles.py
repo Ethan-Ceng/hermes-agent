@@ -28,9 +28,9 @@ def set_title(transactions, scope, session_id, title, source):
 
 
 def set_title_on_connection(conn, scope, session_id, title, source):
-    from hermes_state_titles import SessionTitlesMixin
+    from hermes_db.domains.sessions.rules import sanitize_title
 
-    title = SessionTitlesMixin.sanitize_title(title)
+    title = sanitize_title(title)
     repo.lock_store(conn, scope, exclusive=True)
     row = repo.lock_session(conn, scope, session_id)
     if row is None:

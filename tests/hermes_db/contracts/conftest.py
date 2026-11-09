@@ -58,7 +58,7 @@ def store(request, tmp_path):
             yield db
         return
     sa = pytest.importorskip("sqlalchemy", reason="optional postgresql extra")
-    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
+    from hermes_db.integration.session_composition import create_session_store
     from hermes_db.scope import DatabaseScope
     from hermes_db.tables import load_metadata
     from hermes_db.backends.postgresql.transactions import Transactions
@@ -68,7 +68,7 @@ def store(request, tmp_path):
         conn.exec_driver_sql("PRAGMA foreign_keys=ON")
         load_metadata().create_all(conn)
     try:
-        store = PostgresSessionStore(Transactions(engine, schema=None), DatabaseScope(tmp_path, "contract-store"))
+        store = create_session_store(Transactions(engine, schema=None), DatabaseScope(tmp_path, "contract-store"))
         yield store
         store.close()
     finally:
@@ -78,7 +78,7 @@ def store(request, tmp_path):
 @pytest.fixture
 def core_pair(tmp_path):
     sa = pytest.importorskip("sqlalchemy", reason="optional postgresql extra")
-    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
+    from hermes_db.integration.session_composition import create_session_store
     from hermes_db.scope import DatabaseScope
     from hermes_db.tables import load_metadata
     from hermes_db.backends.postgresql.transactions import Transactions
@@ -88,7 +88,7 @@ def core_pair(tmp_path):
         conn.exec_driver_sql("PRAGMA foreign_keys=ON")
         load_metadata().create_all(conn)
     transactions = Transactions(engine, schema=None)
-    stores = [PostgresSessionStore(transactions, DatabaseScope(tmp_path / store, store)) for store in ("one", "two")]
+    stores = [create_session_store(transactions, DatabaseScope(tmp_path / store, store)) for store in ("one", "two")]
     try:
         yield stores
     finally:
@@ -100,11 +100,11 @@ def core_pair(tmp_path):
 @pytest.fixture
 def native_registry(core_pair, monkeypatch):
     from hermes_db.integration import registry as native_registry
-    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
+    from hermes_db.integration.session_composition import create_session_store
     opened = []
 
     def construct(settings, scope):
-        store = PostgresSessionStore(core_pair[0]._transactions, scope)
+        store = create_session_store(core_pair[0]._transactions, scope)
         opened.append(store)
         return store
 

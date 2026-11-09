@@ -14,7 +14,8 @@ from typing import Any, Optional
 from agent.context_compressor import _DB_PERSISTED_MARKER as _DB_PERSISTED_MARKER_KEY
 from agent.message_metadata import DB_ROW_SNAPSHOT
 from hermes_state_common import _id_chunks, _placeholders
-from hermes_state_messages import _INSERT_MESSAGE_SQL, _parse_tool_calls
+from hermes_state_messages import _INSERT_MESSAGE_SQL
+from hermes_db.domains.sessions.codec import _parse_tool_calls
 
 # _INSERT_MESSAGE_SQL's columns in bind order, so a row rewrite can diff _message_row_params by name.
 _MESSAGE_ROW_COLUMNS = tuple(

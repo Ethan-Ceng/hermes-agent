@@ -1,7 +1,7 @@
 {
   "baseline": "cbfc773dd79241752697e647067c63338fc01680",
   "baseline_runtime": "0d69702244d623a31be149a9bac6a2658e0322ae",
-  "stage": "Stage2 Task11 verified: shared project rules and eight small-domain consolidations; Task12 pending",
+  "stage": "Stage2 Task12 verified: six explicit session components and shared pure rules; Task13 pending",
   "hash_basis": "SHA256 of Git blob bytes at baseline; independent of checkout line endings",
   "counts": {
     "keep": 76,
@@ -3246,7 +3246,10 @@
       "lines": 15,
       "sha256": "6ecc2c43f1c16e6605444fca598fa6ed3913f8a1fa1abdc2b4610a2f0d87ce36",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/usage.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_bookkeeping.py",
@@ -3256,7 +3259,10 @@
       "lines": 33,
       "sha256": "d9afcfc2970ae68616850929a1b7abd27678b10429e6a139161883d7ffb709f5",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/usage.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_compression.py",
@@ -3266,7 +3272,10 @@
       "lines": 57,
       "sha256": "3d4f9555ff962b08a3f5cc18b99369bc0fc086239ee6538ee4989cfe1048ea3e",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/history.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_compression_state.py",
@@ -3276,7 +3285,10 @@
       "lines": 100,
       "sha256": "650ff4229218c230dd2c2606df2f092f06e8a6cd92e09bba4b0582f670de2128",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/history.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_files.py",
@@ -3286,7 +3298,10 @@
       "lines": 27,
       "sha256": "bd8f81017f204fd6ebfe922402ac71f4a8170494333010de1af72acaba91d895",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/support/retired_files.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_gateway.py",
@@ -3296,7 +3311,10 @@
       "lines": 51,
       "sha256": "99bf9619813b2144a846d84d17b1013465a957d83f1a02acc160e32fffa369f6",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/lifecycle.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_gateway_peers.py",
@@ -3306,7 +3324,10 @@
       "lines": 49,
       "sha256": "1fc7eff893eeda0a87e63949c9f9f866c92b31e747bad0c201bd92acfaa0c854",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/lifecycle.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_handoffs.py",
@@ -3316,7 +3337,10 @@
       "lines": 60,
       "sha256": "af6bd489853c737ad5b8885fd1995a7166a415019883b158443365fa2bd6548e",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/lifecycle.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_health.py",
@@ -3326,7 +3350,10 @@
       "lines": 34,
       "sha256": "eec4770ba7b8e959e5fa76d9681e8b96ed7b417f2ed08ab57456535a00cb2e16",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/lifecycle.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_heartbeats.py",
@@ -3336,7 +3363,10 @@
       "lines": 52,
       "sha256": "9fa2e6d0a830f74242eeb4fbfa7c46ff6052a15da5707cb6e859b35ca85156c3",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/lifecycle.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_housekeeping.py",
@@ -3346,7 +3376,10 @@
       "lines": 95,
       "sha256": "12ca8b786bb344aaddff39503e67e5cd8dd8ba14f845fc08e20fc6ed7d4b080d",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/lifecycle.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_leases.py",
@@ -3356,7 +3389,10 @@
       "lines": 93,
       "sha256": "8960bcf694ed0aea7dae6a52e240a8b3eeaa251c7789c841819ceab30416cf40",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/lifecycle.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_lineage_reads.py",
@@ -3366,7 +3402,10 @@
       "lines": 53,
       "sha256": "44aa1fc956f226a7e01c41cde4f68e31e6cbff647812c8e655d7f2144f13ed07",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/history.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_maintenance.py",
@@ -3376,7 +3415,10 @@
       "lines": 99,
       "sha256": "f8d3e777a253f362b2d0f6c6f1f75901cb51a9eb7a0c7819f3300e0147358634",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/lifecycle.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_media.py",
@@ -3386,7 +3428,10 @@
       "lines": 141,
       "sha256": "108090cf92ea0b5128add7c2ef109a30f70c3b31c63b01c75f256426a356ac50",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/support/retired_media.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_message_edits.py",
@@ -3396,7 +3441,10 @@
       "lines": 110,
       "sha256": "531aa9805b461014b346b635540c9c9d756f9fa2e42d3dfd569be6b71e7bdad4",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/messages.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_message_lookup.py",
@@ -3406,7 +3454,10 @@
       "lines": 96,
       "sha256": "c5d2ce7f6bfa3bb6a97fd8dfd4b73a76ae86d59f4367863f7e536a4e3ea50c97",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/messages.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_message_reactions.py",
@@ -3416,7 +3467,10 @@
       "lines": 76,
       "sha256": "01c45e9ae4e0ca73307058f105037258d1fe81866891ef8d92601d679253782a",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/messages.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_message_reads.py",
@@ -3426,7 +3480,10 @@
       "lines": 206,
       "sha256": "35c9a5a460f8312e91a181f19123ec3c65efa0cc7e2e1c18718aa6f8c0fb917a",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/messages.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_message_results.py",
@@ -3436,7 +3493,10 @@
       "lines": 121,
       "sha256": "f72fd7b72acb3399a441c4426603bfd3aa7eeafecc12c642af7f377a4a3416a2",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/messages.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_messages.py",
@@ -3446,7 +3506,10 @@
       "lines": 58,
       "sha256": "a7e94358041dcecfdbe4fbc0e287f46afe5b7577053604b6ec71eae943a9d2ca",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/messages.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_metadata.py",
@@ -3456,7 +3519,10 @@
       "lines": 234,
       "sha256": "9c8ebbdb48f23b5caf03c32ebe80144e3b125a8390e61ee10be270b3c7817bb2",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/catalog.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_picker_reads.py",
@@ -3466,7 +3532,10 @@
       "lines": 70,
       "sha256": "2eac616b8f72e1e55f714e64f61cfd524f4b90c357d59ea2dd17c967ef1c1245",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/catalog.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_portability.py",
@@ -3476,7 +3545,10 @@
       "lines": 69,
       "sha256": "b3847dc2edfb0ee731b6c5da3d0d163359c4e9bd0876f21e4f91f2941f175691",
       "role": "integration",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/integration/transfer/session_store.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_portability_queries.py",
@@ -3486,7 +3558,10 @@
       "lines": 115,
       "sha256": "36a82a414d434a0277ad16513b728d57d8f237005d408997b5bcb2b2a42f433e",
       "role": "integration",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/integration/transfer/session_store.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_profile_moves.py",
@@ -3496,7 +3571,10 @@
       "lines": 42,
       "sha256": "51167af0d9982bd6ae67066a4ea3accf91cc6d50566f60ad4df194714d7b005a",
       "role": "integration",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/integration/transfer/session_store.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_profile_repair.py",
@@ -3506,7 +3584,10 @@
       "lines": 67,
       "sha256": "fb58369b084c11f4aca41579647ab5ff38e78b1d000e8168576ec95fdc30c7ce",
       "role": "integration",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/integration/transfer/session_store.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_prompt_refresh.py",
@@ -3516,7 +3597,10 @@
       "lines": 30,
       "sha256": "29c7222cb283a4ebb77553857be8bac2548846eb88625bee4ac7a0a95eb81461",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/catalog.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_queries.py",
@@ -3526,7 +3610,10 @@
       "lines": 156,
       "sha256": "7b6369a23499a9e04edf12d3b68083a989a144845cac78cb82d0a27847a93cfa",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/catalog.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_read_snapshot.py",
@@ -3536,7 +3623,10 @@
       "lines": 41,
       "sha256": "473715084ec6555ad5217552547698510622c87a8828965248d47aede20332fe",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/context.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_recall_views.py",
@@ -3546,7 +3636,10 @@
       "lines": 52,
       "sha256": "9de53a7c89f3410c2070e61299ee6d47530704c67becf26759ed5e02e8608185",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/history.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_resource.py",
@@ -3566,7 +3659,10 @@
       "lines": 76,
       "sha256": "d0abeb5cf405d892de0fb7fa31b43a573750f9edf9338bd63a514353076185fa",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/lifecycle.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_rewrites.py",
@@ -3576,7 +3672,10 @@
       "lines": 56,
       "sha256": "5843a1b993d112647cb1d3f34ee380ec607aa0200879cc2cb8ee5806a440d15c",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/history.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_search.py",
@@ -3586,7 +3685,10 @@
       "lines": 37,
       "sha256": "53822354e7dfa3b89a1369b788f46507925a6236230404ad0a9479f15a942068",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/history.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_store.py",
@@ -3606,7 +3708,10 @@
       "lines": 87,
       "sha256": "8185c781a50e2f7e152679b3e74b38979b2c6bff60062710ab6610b34ec3e545",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/catalog.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_topics.py",
@@ -3616,7 +3721,10 @@
       "lines": 116,
       "sha256": "d28e112c5d359809041889cb6d890f908a02189c5f385283133142f17daa3505",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/catalog.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_transcript_pages.py",
@@ -3626,7 +3734,10 @@
       "lines": 153,
       "sha256": "92633460487765643c8904b33ed19184b118836f1907a404420455cd5a7ab7cc",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/history.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/session_usage.py",
@@ -3636,7 +3747,10 @@
       "lines": 80,
       "sha256": "59806359eda31598b62eb4131bcd91199d62a0a0be544185bc1b96fa116828c7",
       "role": "domain",
-      "stage1_status": "verified"
+      "stage1_status": "verified",
+      "final_target": "hermes_db/domains/sessions/postgres/usage.py",
+      "consolidated_by_task": 12,
+      "final_status": "verified"
     },
     {
       "source": "hermes_db/settings.py",
@@ -4227,12 +4341,18 @@
     {
       "path": "hermes_db/domains/sessions/postgres/capabilities/__init__.py",
       "task": 7,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 12,
+      "reason": "Temporary capability namespace replaced by explicit components"
     },
     {
       "path": "hermes_db/integration/transfer/session_capabilities/__init__.py",
       "task": 7,
-      "role": "empty-package-namespace"
+      "role": "empty-package-namespace",
+      "final_status": "removed",
+      "removed_by_task": 12,
+      "reason": "Temporary capability namespace replaced by explicit components"
     },
     {
       "path": "hermes_db/domains/runtime/postgres/__init__.py",
@@ -4328,6 +4448,36 @@
       "path": "hermes_db/domains/projects/rules.py",
       "task": 11,
       "role": "shared-project-slug-and-path-rules"
+    },
+    {
+      "path": "hermes_db/domains/sessions/codec.py",
+      "task": 12,
+      "role": "shared-session-rule"
+    },
+    {
+      "path": "hermes_db/domains/sessions/coverage.py",
+      "task": 12,
+      "role": "shared-session-rule"
+    },
+    {
+      "path": "hermes_db/domains/sessions/postgres/queries/lineage_reads.py",
+      "task": 12,
+      "role": "explicit-session-composition-or-connection-query"
+    },
+    {
+      "path": "hermes_db/domains/sessions/rules.py",
+      "task": 12,
+      "role": "shared-session-rule"
+    },
+    {
+      "path": "hermes_db/domains/sessions/search_rules.py",
+      "task": 12,
+      "role": "shared-session-rule"
+    },
+    {
+      "path": "hermes_db/integration/session_composition.py",
+      "task": 12,
+      "role": "explicit-session-composition-or-connection-query"
     }
   ],
   "implementation_amendments": [
@@ -4411,6 +4561,253 @@
         "hermes_db/domains/plugin_storage/records/postgres/operations/records.py"
       ],
       "purpose": "The actual PluginStore consumer owns one captured namespace and its concrete record operations"
+    },
+    {
+      "task": 12,
+      "target": "hermes_db/domains/sessions/postgres/catalog.py",
+      "sources": [
+        "hermes_db/domains/sessions/postgres/capabilities/metadata.py",
+        "hermes_db/domains/sessions/postgres/capabilities/queries.py",
+        "hermes_db/domains/sessions/postgres/capabilities/titles.py",
+        "hermes_db/domains/sessions/postgres/capabilities/topics.py",
+        "hermes_db/domains/sessions/postgres/capabilities/picker_reads.py",
+        "hermes_db/domains/sessions/postgres/capabilities/prompt_refresh.py"
+      ],
+      "purpose": "Explicit catalog component; injected callbacks: flush_for_read, flush_token_counts",
+      "status": "verified"
+    },
+    {
+      "task": 12,
+      "target": "hermes_db/domains/sessions/postgres/messages.py",
+      "sources": [
+        "hermes_db/domains/sessions/postgres/capabilities/messages.py",
+        "hermes_db/domains/sessions/postgres/capabilities/message_reads.py",
+        "hermes_db/domains/sessions/postgres/capabilities/message_lookup.py",
+        "hermes_db/domains/sessions/postgres/capabilities/message_edits.py",
+        "hermes_db/domains/sessions/postgres/capabilities/message_reactions.py",
+        "hermes_db/domains/sessions/postgres/capabilities/message_results.py"
+      ],
+      "purpose": "Explicit messages component; injected callbacks: get_session",
+      "status": "verified"
+    },
+    {
+      "task": 12,
+      "target": "hermes_db/domains/sessions/postgres/history.py",
+      "sources": [
+        "hermes_db/domains/sessions/postgres/capabilities/compression.py",
+        "hermes_db/domains/sessions/postgres/capabilities/compression_state.py",
+        "hermes_db/domains/sessions/postgres/capabilities/rewrites.py",
+        "hermes_db/domains/sessions/postgres/capabilities/transcript_pages.py",
+        "hermes_db/domains/sessions/postgres/capabilities/lineage_reads.py",
+        "hermes_db/domains/sessions/postgres/capabilities/recall_views.py",
+        "hermes_db/domains/sessions/postgres/capabilities/search.py"
+      ],
+      "purpose": "Explicit history component; injected callbacks: get_active_message_ids, get_messages_as_conversation, list_sessions_rich, rewind_to_message",
+      "status": "verified"
+    },
+    {
+      "task": 12,
+      "target": "hermes_db/domains/sessions/postgres/lifecycle.py",
+      "sources": [
+        "hermes_db/domains/sessions/postgres/capabilities/leases.py",
+        "hermes_db/domains/sessions/postgres/capabilities/retirement.py",
+        "hermes_db/domains/sessions/postgres/capabilities/housekeeping.py",
+        "hermes_db/domains/sessions/postgres/capabilities/maintenance.py",
+        "hermes_db/domains/sessions/postgres/capabilities/heartbeats.py",
+        "hermes_db/domains/sessions/postgres/capabilities/handoffs.py",
+        "hermes_db/domains/sessions/postgres/capabilities/gateway.py",
+        "hermes_db/domains/sessions/postgres/capabilities/gateway_peers.py",
+        "hermes_db/domains/sessions/postgres/capabilities/health.py"
+      ],
+      "purpose": "Explicit lifecycle component; injected callbacks: flush_for_read",
+      "status": "verified"
+    },
+    {
+      "task": 12,
+      "target": "hermes_db/domains/sessions/postgres/usage.py",
+      "sources": [
+        "hermes_db/domains/sessions/postgres/capabilities/usage.py",
+        "hermes_db/domains/sessions/postgres/capabilities/analytics.py",
+        "hermes_db/domains/sessions/postgres/capabilities/bookkeeping.py"
+      ],
+      "purpose": "Explicit usage component; injected callbacks: ",
+      "status": "verified"
+    },
+    {
+      "task": 12,
+      "target": "hermes_db/integration/transfer/session_store.py",
+      "sources": [
+        "hermes_db/integration/transfer/session_capabilities/portability.py",
+        "hermes_db/integration/transfer/session_capabilities/portability_queries.py",
+        "hermes_db/integration/transfer/session_capabilities/profile_moves.py",
+        "hermes_db/integration/transfer/session_capabilities/profile_repair.py"
+      ],
+      "purpose": "Explicit transfer component; injected callbacks: _after_session_delete, flush_for_read, flush_token_counts",
+      "status": "verified"
+    }
+  ],
+  "shared_pure_extractions": [
+    {
+      "source": "hermes_state_messages.py",
+      "target": "hermes_db/domains/sessions/codec.py",
+      "methods": [
+        "_canonical_replayed_user_content",
+        "_decode_content",
+        "_decode_display_metadata",
+        "_decoded_repair_row",
+        "_dedupe_display_generations",
+        "_dedupe_replayed_user",
+        "_display_dedupe_key",
+        "_display_identity",
+        "_encode_content",
+        "_encode_display_metadata",
+        "_exact_replayed_user_clone_key",
+        "_find_duplicate_replayed_user_message",
+        "_fold_summary_carrier",
+        "_is_explicit_fork_child_row",
+        "_is_model_only_row",
+        "_loaded_view_content",
+        "_message_row_params",
+        "_reasoning_json_text",
+        "_row_identity",
+        "_row_to_message_dict",
+        "_rows_to_conversation",
+        "_serialized_message_row",
+        "_split_rewind_target",
+        "_stamp_tool_call_uids"
+      ],
+      "helpers": [
+        "logger",
+        "_MESSAGE_WRITE_COLUMNS",
+        "_MESSAGE_SCHEMA_KEYS",
+        "_INVALID",
+        "_parse_tool_calls",
+        "_scrub_surrogates"
+      ],
+      "task": 12,
+      "status": "verified"
+    },
+    {
+      "source": "hermes_state_portability.py",
+      "target": "hermes_db/integration/transfer/portability_values.py",
+      "methods": [
+        "_coerce_or",
+        "_import_float_or_finite",
+        "_import_int_or_bounded",
+        "_import_int_or_none",
+        "_import_json_object_or_none",
+        "_import_load_json",
+        "_import_non_finite_path",
+        "_import_text_or_none",
+        "_normalize_import_message",
+        "_normalize_import_session",
+        "_validate_import_message_content",
+        "_validate_import_payload",
+        "_validate_import_session"
+      ],
+      "helpers": [
+        "_IMPORT_SESSION_TEXT_FIELDS",
+        "_IMPORT_MESSAGE_TEXT_FIELDS",
+        "_IMPORT_MESSAGE_JSON_FIELDS",
+        "_IMPORT_INT_COLS",
+        "_IMPORT_FLOAT_COLS"
+      ],
+      "task": 12,
+      "status": "verified"
+    },
+    {
+      "source": "hermes_state_coverage.py",
+      "target": "hermes_db/domains/sessions/coverage.py",
+      "methods": [
+        "_carried_tail_slots",
+        "_claim_stored_copy",
+        "_copy_of_current_row",
+        "_index_held_dicts",
+        "_proved_coverage",
+        "_replays_as",
+        "_rewrite_explains",
+        "_rewritten_carry",
+        "_tail_originals",
+        "_uncounted_merged_rows"
+      ],
+      "helpers": [
+        "_text_of",
+        "_holds_as_block",
+        "_images_replaced"
+      ],
+      "task": 12,
+      "status": "verified"
+    },
+    {
+      "source": "hermes_state_search.py",
+      "target": "hermes_db/domains/sessions/search_rules.py",
+      "methods": [
+        "_contains_cjk",
+        "_or_relaxed_query",
+        "_sanitize_fts5_query",
+        "_search_message_fields"
+      ],
+      "helpers": [
+        "_FTS5_SPECIAL_CHARS",
+        "_FTS5_SPECIAL_RE",
+        "_LIKE_TOKEN_RE",
+        "_QUOTED_PHRASE_RE",
+        "_CJK_RANGES",
+        "_is_cjk"
+      ],
+      "task": 12,
+      "status": "verified"
+    },
+    {
+      "source": "hermes_state_search.py",
+      "target": "hermes_db/domains/sessions/search_rules.py",
+      "method_to_function": "search_sessions_by_id",
+      "callbacks": {
+        "list_sessions_rich": "list_sessions_rich"
+      },
+      "task": 12,
+      "status": "verified"
+    },
+    {
+      "source": "hermes_state_rewind.py",
+      "target": "hermes_state_rewind.py",
+      "method_to_function": "plan_user_turn_rewind",
+      "callbacks": {
+        "get_messages_as_conversation": "get_messages_as_conversation",
+        "get_active_message_ids": "get_active_message_ids"
+      },
+      "task": 12,
+      "status": "verified"
+    },
+    {
+      "source": "hermes_state_rewind.py",
+      "target": "hermes_state_rewind.py",
+      "method_to_function": "rewind_user_turn",
+      "callbacks": {
+        "plan_user_turn_rewind": "plan_user_turn_rewind",
+        "rewind_to_message": "rewind_to_message"
+      },
+      "task": 12,
+      "status": "verified"
+    },
+    {
+      "source": "hermes_state_titles.py",
+      "target": "hermes_db/domains/sessions/rules.py",
+      "method_to_function": "sanitize_title",
+      "helpers": [
+        "_TITLE_CONTROL_RE",
+        "_TITLE_INVISIBLE_RE"
+      ],
+      "task": 12,
+      "status": "verified"
+    },
+    {
+      "source": "hermes_state_gateway.py",
+      "target": "hermes_db/domains/sessions/rules.py",
+      "method_to_function": "session_gateway_runtime",
+      "helpers": [],
+      "task": 12,
+      "status": "verified"
     }
   ]
 }

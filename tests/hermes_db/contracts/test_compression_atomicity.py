@@ -48,7 +48,7 @@ def test_core_archive_failure_rolls_back_rows_config_counters_and_physical_stamp
 
 def test_core_worker_publication_origin_retry_and_scope_survive_new_handle(core_pair, tmp_path):
     from hermes_db.domains.runtime.postgres.store import PostgresRuntimeStore
-    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
+    from hermes_db.integration.session_composition import create_session_store
 
     first, foreign = core_pair
     for store in core_pair:
@@ -64,7 +64,7 @@ def test_core_worker_publication_origin_retry_and_scope_survive_new_handle(core_
     assert first.try_acquire_compression_lock("p", "holder")
     params = dict(**assignment, sequence=1, operation="compression.publish", payload=payload)
     expected = runtime.mutate_worker(**params)
-    reopened = PostgresSessionStore(first._transactions, first.scope)
+    reopened = create_session_store(first._transactions, first.scope)
     try:
         recovered = PostgresRuntimeStore(reopened)
         assert recovered.mutate_worker(**params) == expected

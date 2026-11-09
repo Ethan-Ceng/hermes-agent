@@ -3,6 +3,8 @@ replayed-user dedupe. Mixin bound via the MRO, built on SessionDB's _read_ctx/_e
 
 from __future__ import annotations
 
+from hermes_db.domains.sessions.codec import TranscriptCodec, logger, _MESSAGE_WRITE_COLUMNS, _MESSAGE_SCHEMA_KEYS, _INVALID, _parse_tool_calls, _scrub_surrogates
+
 import hashlib
 import json
 import logging
@@ -29,7 +31,6 @@ from hermes_state_stored_reads import SessionStoredReadsMixin
 from hermes_state_identity import (
     _absorbed_uids_json, _restore_identity_columns, _stable_tool_key, _tool_call_uid_map, _tool_call_uid_or_none, _tool_call_uids_json, _uid_list)
 
-logger = logging.getLogger("hermes_state")  # caplog tests pin the origin module's name
 
 # One INSERT shape for every message writer (append, batch, replace, compact, import).
 _INSERT_MESSAGE_SQL = """INSERT INTO messages (session_id, role, content, tool_call_id,
@@ -42,10 +43,6 @@ _INSERT_MESSAGE_SQL = """INSERT INTO messages (session_id, role, content, tool_c
 # Every column this module knows how to read: the ones it writes plus the three SQLite/compaction
 # owns. `_row_to_message_dict` drops raw bytes ONLY outside this set — a schema column keeps its
 # key (and its typed decoder) even when a row holds a BLOB, so no reader ever loses msg["content"].
-_MESSAGE_WRITE_COLUMNS = tuple(
-    re.findall(r"\w+", _INSERT_MESSAGE_SQL.split("(", 1)[1].split(")", 1)[0])
-)
-_MESSAGE_SCHEMA_KEYS = frozenset(_MESSAGE_WRITE_COLUMNS) | {"id", "compacted", "display_order"}
 _BUMP_GENERATION_SQL = """
             INSERT INTO conversation_generations (source, session_key, generation)
             VALUES (?, ?, 1)
@@ -75,7 +72,6 @@ _ARCHIVE_ACTIVE_SQL = "UPDATE messages SET active = 0, compacted = 1 WHERE sessi
 _SHADOWED_CHECKPOINT_ROWS_SQL = ("SELECT id, codex_reasoning_items FROM messages WHERE session_id = ? AND active = 1 "
     "AND role = 'assistant' AND id < ? AND codex_reasoning_items LIKE '%\"compaction\"%'")
 _SET_CODEX_REASONING_SQL = "UPDATE messages SET codex_reasoning_items = ? WHERE id = ?"
-_INVALID = object()  # _json_or sentinel where the fallback must be distinguishable from JSON null
 
 
 def _coerce_timestamp(value: Any, default: float) -> float:
@@ -90,16 +86,6 @@ def _coerce_timestamp(value: Any, default: float) -> float:
     return 0.0 if result == 0.0 else result
 
 
-def _parse_tool_calls(tool_calls: Any) -> Any:
-    """tool_calls is a list (live agent) or JSON string (import/export); parse so json.dumps never double-encodes."""
-    if not isinstance(tool_calls, str):
-        return tool_calls
-    try:
-        return json.loads(tool_calls)
-    except (json.JSONDecodeError, TypeError):
-        return []
-
-
 def _tool_calls_count(tool_calls: Any) -> int:
     return 0 if tool_calls is None else (len(tool_calls) if isinstance(tool_calls, list) else 1)
 
@@ -110,18 +96,13 @@ def _tool_calls_len(raw: Any, scalar: int = 0) -> int:
     return len(parsed) if isinstance(parsed, list) else (scalar if parsed else 0)
 
 
-def _scrub_surrogates(value: Any) -> Any:
-    """Lone surrogates make sqlite3 raise UnicodeEncodeError and abort the whole write."""
-    return _sanitize_surrogates(value) if isinstance(value, str) else value
-
-
 def _stale_holder(row, now: float) -> bool:
     """A lock/lease row whose holder is expired or a provably dead local process."""
     from hermes_state import _compression_lock_holder_process_is_dead
     return float(row["expires_at"]) <= now or _compression_lock_holder_process_is_dead(row["holder"])
 
 
-class SessionMessagesMixin(SessionDetachedResultsMixin, SessionTodoResultMixin, SessionStoredReadsMixin):
+class SessionMessagesMixin(SessionDetachedResultsMixin, SessionTodoResultMixin, SessionStoredReadsMixin, TranscriptCodec):
     """Message append/replace/rewind, reactions, resume conversations, replay dedupe (detached results: the base)."""
 
     def _bump_conversation_generation(self, conn, session_id: str, end_reason: str) -> None:
@@ -137,79 +118,6 @@ class SessionMessagesMixin(SessionDetachedResultsMixin, SessionTodoResultMixin, 
         if source and session_key:
             conn.execute(_BUMP_GENERATION_SQL, (source, session_key))
 
-    @classmethod
-    def _encode_content(cls, content: Any) -> Any:
-        """Serialize list/dict content (multimodal parts) as a sentinel-prefixed JSON string (sqlite3 binds
-        only scalars). Lone UTF-16 surrogates (unsanitized web-scraped tool results) are scrubbed here: left
-        raw, sqlite3 raises UnicodeEncodeError and the session silently stops persisting. Pairs with
-        :meth:`_decode_content`.
-
-        A literal string carrying the reserved ``\\x00json:`` prefix is indistinguishable from
-        stored structured content, so it is JSON-string-wrapped (decoded back verbatim on read)
-        instead of written raw — a crafted import can't smuggle the marker in and have the read
-        path decode attacker-chosen structure."""
-        if isinstance(content, str):
-            content = _sanitize_surrogates(content)
-            if not content.startswith(cls._CONTENT_JSON_PREFIX):
-                return content
-            # Fall through: escape the reserved prefix by double-encoding the literal.
-        elif content is None or isinstance(content, (bytes, int, float)):
-            return content
-        try:
-            return cls._CONTENT_JSON_PREFIX + json.dumps(content)  # ensure_ascii escapes surrogates: bindable
-        except (TypeError, ValueError):
-            return _sanitize_surrogates(str(content))
-
-    @classmethod
-    def _decode_content(cls, content: Any) -> Any:
-        """Reverse :meth:`_encode_content`; returns scalars unchanged. Fail closed: a reserved-prefix
-        string that isn't valid JSON (a legacy/malformed marker row) returns the raw string."""
-        if isinstance(content, str) and content.startswith(cls._CONTENT_JSON_PREFIX):
-            return _json_or(content[len(cls._CONTENT_JSON_PREFIX):], content,
-                "Failed to decode JSON-encoded message content; returning raw string")
-        return content
-
-    @staticmethod
-    def _encode_display_metadata(display_metadata: Any) -> Optional[str]:
-        """Serialize ``display_metadata`` for its TEXT column; an already-serialized JSON string
-        (import/replace paths) is not double-encoded."""
-        if not display_metadata:
-            return None
-        if isinstance(display_metadata, str):
-            display_metadata = _json_or(display_metadata, _INVALID, "Ignoring non-JSON display metadata on write")
-            if display_metadata is _INVALID:
-                return None
-            if not isinstance(display_metadata, dict):
-                logger.warning("Ignoring non-object display metadata on write")
-                return None
-        elif not isinstance(display_metadata, dict):
-            logger.warning("Ignoring unexpected display metadata type on write: %s", type(display_metadata).__name__)
-            return None
-        return json.dumps(display_metadata)
-
-    @staticmethod
-    def _decode_display_metadata(raw: Any) -> Optional[dict[str, Any]]:
-        """Decode a ``display_metadata`` column to a dict (never raw TEXT: the desktop does ``'task_count'
-        in meta``). Pre-guard rows are double-encoded, so a second string layer is unwrapped."""
-        if raw is None:
-            return None
-        meta = raw
-        for _ in range(2):  # pre-guard rows carry a second string layer
-            if isinstance(meta, str):
-                meta = _json_or(meta, _INVALID, "Ignoring invalid display metadata on message row")
-        if meta is _INVALID:
-            return None
-        if not isinstance(meta, dict):
-            logger.warning("Ignoring non-object display metadata on message row")
-            return None
-        return meta
-
-    @staticmethod
-    def _reasoning_json_text(value: Any) -> Optional[str]:
-        """Serialize a structured reasoning field for its TEXT column. Strings are stored as-is: round-trips
-        (get_messages -> replace_messages) hand back raw TEXT; re-dumping would double-encode it and
-        reasoning-replay consumers (``isinstance(..., list)``) would drop it."""
-        return None if not value else (value if isinstance(value, str) else json.dumps(value))
 
     def _check_transcript_write_guards(self, conn, session_id: str, compression_lock_holder: Optional[str],
         turn_lease_holder: Optional[str] = None, turn_lease_ttl_seconds: float = 300.0,
@@ -268,118 +176,6 @@ class SessionMessagesMixin(SessionDetachedResultsMixin, SessionTodoResultMixin, 
         if _ended_by_compression(conn.execute(_ENDED_ROW_SQL, (session_id,)).fetchone()) and not allow_closed_compression_parent:
             raise CompressionSessionClosedError(session_id)
 
-    def _message_row_params(self, session_id: str, role: str, msg: dict[str, Any], tool_calls: Any,
-        message_timestamp: float, *, keep_reasoning: bool) -> tuple:
-        """Bind values for ``_INSERT_MESSAGE_SQL`` from one message dict (*tool_calls* already parsed;
-        *keep_reasoning* False NULLs every reasoning column). ``platform_message_id`` falls back to
-        ``message_id`` (yuanbao's message-dict convention)."""
-        _str_or_none = lambda v: _scrub_surrogates(v) if isinstance(v, str) else None
-        _reasoning = lambda key: msg.get(key) if keep_reasoning else None
-        encoded_content = self._encode_content(msg.get("content"))
-        encoded_tool_calls = json.dumps(tool_calls) if tool_calls else None
-        encoded_tool_name = _scrub_surrogates(msg.get("tool_name"))
-        display_metadata = msg.get("display_metadata")
-        if msg.get(DATA_USE) and isinstance(display_metadata, (dict, type(None))):
-            # Writers that copy a fixed field list (/branch) carry the key, not display_metadata.
-            display_metadata = {**(display_metadata or {}), DATA_USE: list(msg[DATA_USE])}
-        display_metadata = self._encode_display_metadata(display_metadata)
-        identity_row = {
-            "role": role, "content": encoded_content, "timestamp": message_timestamp,
-            "tool_call_id": msg.get("tool_call_id"), "tool_calls": encoded_tool_calls,
-            "tool_name": encoded_tool_name, "display_kind": msg.get("display_kind"),
-            "display_metadata": display_metadata,
-        }
-        return (session_id, role, encoded_content, msg.get("tool_call_id"),
-            encoded_tool_calls, encoded_tool_name,
-            msg.get("effect_disposition"), message_timestamp, msg.get("token_count"), msg.get("finish_reason"),
-            _scrub_surrogates(_reasoning("reasoning")), _scrub_surrogates(_reasoning("reasoning_content")),
-            *(self._reasoning_json_text(_reasoning(k))
-              for k in ("reasoning_details", "codex_reasoning_items", "codex_message_items")),
-            msg.get("platform_message_id") or msg.get("message_id"),
-            1 if msg.get("observed") else 0, 1 if msg.get("_compressed_summary") else 0, 1,
-            _str_or_none(msg.get("api_content")), _str_or_none(msg.get("display_kind")),
-            display_metadata, self._display_identity(self._display_dedupe_key(identity_row)),
-            message_uid_or_none(msg), _absorbed_uids_json(msg),
-            _tool_call_uids_json(msg), _tool_call_uid_or_none(msg))
-
-    @staticmethod
-    def _stamp_tool_call_uids(msg: dict[str, Any], tool_calls: Any, batch_index: dict[str, str]) -> None:
-        """Per-occurrence tool-call identity at insert: an assistant row gets a uid for every tool call that
-        has none yet (``_tool_call_uids``, keyed by the effective provider id, which stays untouched); a
-        tool-result row that has none is resolved through *batch_index*, the calls the same batch's
-        assistant rows named. A result flushed in a later batch is resolved from the live list by the flush
-        (``tool_call_uid_from_history``) or, on restore, from the preceding assistant row."""
-        role = msg.get("role")
-        if role == "assistant" and tool_calls:
-            uids = _tool_call_uid_map(msg)
-            for tc in tool_calls:
-                call_id = coalesce_tool_call_id(tc)
-                if call_id and call_id not in uids:
-                    uids[call_id] = mint_uid()  # one per provider id: a repeat in one response shares it
-            if uids:
-                msg[TOOL_CALL_UIDS] = uids
-            index_tool_call_uids(batch_index, msg)  # this row's ids shadow any earlier occurrence's
-        elif role == "user":
-            batch_index.clear()  # a result never pairs across a user turn
-        elif role == "tool" and _tool_call_uid_or_none(msg) is None:
-            uid = resolve_tool_call_uid(batch_index, msg.get("tool_call_id"))
-            if uid:
-                msg[TOOL_CALL_UID] = uid
-
-    def _serialized_message_row(
-        self, session_id: str, msg: dict[str, Any], message_timestamp: float
-    ) -> dict[str, Any]:
-        """Serialize one live message with the exact durable shape used by INSERT."""
-        role = msg.get("role", "unknown")
-        params = self._message_row_params(
-            session_id,
-            role,
-            msg,
-            _parse_tool_calls(msg.get("tool_calls")),
-            message_timestamp,
-            keep_reasoning=role == "assistant",
-        )
-        return dict(zip(_MESSAGE_WRITE_COLUMNS, params))
-
-    def _decoded_repair_row(self, row) -> dict[str, Any]:
-        """Decode one durable row without replay dedupe, alternation repair, or content stripping."""
-        msg: dict[str, Any] = {
-            "role": row["role"],
-            "content": self._decode_content(row["content"]),
-        }
-        for column in ("tool_call_id", "tool_name", "effect_disposition", "token_count", "finish_reason"):
-            if row[column] is not None:
-                msg[column] = row[column]
-        if row["tool_calls"]:
-            msg["tool_calls"] = _json_or(
-                row["tool_calls"], [], "Failed to deserialize repaired tool_calls, falling back to []"
-            )
-        if row["platform_message_id"] is not None:
-            msg["message_id"] = row["platform_message_id"]
-            msg["platform_message_id"] = row["platform_message_id"]
-        if row["observed"]:
-            msg["observed"] = True
-        if row["_compressed_summary"]:
-            msg["_compressed_summary"] = True
-        _restore_identity_columns(row, msg)
-        if row["api_content"] is not None:
-            msg["api_content"] = row["api_content"]
-        if row["display_kind"] is not None:
-            msg["display_kind"] = row["display_kind"]
-        if row["display_metadata"] is not None:
-            metadata = self._decode_display_metadata(row["display_metadata"])
-            if metadata is not None:
-                msg["display_metadata"] = metadata
-        if row["role"] == "assistant":
-            for column in ("reasoning", "reasoning_content"):
-                if row[column] is not None:
-                    msg[column] = row[column]
-            for column in ("reasoning_details", "codex_reasoning_items", "codex_message_items"):
-                if row[column]:
-                    msg[column] = _json_or(
-                        row[column], None, f"Failed to deserialize repaired {column}, falling back to None"
-                    )
-        return msg
 
     @staticmethod
     def _bump_session_counters(conn, session_id: str, inserted: int, tool_calls: int, *, unit: bool) -> None:
@@ -777,13 +573,6 @@ class SessionMessagesMixin(SessionDetachedResultsMixin, SessionTodoResultMixin, 
         conn.execute(f"{_SET_COUNTERS_SQL} WHERE id = ?",
                      (kept + inserted, kept_tool_calls + inserted_tool_calls, session_id))
 
-    @classmethod
-    def _row_identity(cls, role: str, content: Any, tool_call_id: Any, tool_calls: Any) -> tuple:
-        """The (role, content, tool_call_id, tool_calls) columns a message writes — the identity the
-        kept-prefix match compares. *content* is passed through the loader's lens first so a message
-        read back from the DB matches the row it came from."""
-        return (role, cls._encode_content(cls._loaded_view_content(role, content)), tool_call_id,
-                json.dumps(tool_calls) if tool_calls else None)
 
     def _stamp_kept_live_prefix(self, live: list, messages: list[dict[str, Any]]) -> int:
         """Length of the in-order prefix of *messages* already present as the leading live rows; each
@@ -804,13 +593,6 @@ class SessionMessagesMixin(SessionDetachedResultsMixin, SessionTodoResultMixin, 
             kept += 1
         return kept
 
-    @staticmethod
-    def _loaded_view_content(role: str, content: Any) -> Any:
-        """Content as ``_rows_to_messages`` hands it to callers: user/assistant strings are sanitized and
-        stripped on load, so a reloaded session's messages must be compared to rows through the same lens."""
-        if role in {"user", "assistant"} and isinstance(content, str):
-            return sanitize_context(content).strip()
-        return content
 
     def has_archived_messages(self, session_id: str) -> bool:
         """True if the session has any soft-archived (``active = 0``) rows (tests/diagnostics).
@@ -1104,106 +886,6 @@ class SessionMessagesMixin(SessionDetachedResultsMixin, SessionTodoResultMixin, 
             "UPDATE messages SET active = 0 WHERE session_id = ? AND display_kind = ? AND active = 1",
             (session_id, _scrub_surrogates(display_kind)))
 
-    def _display_dedupe_key(self, row) -> tuple[Any, ...]:
-        """Historical display identity, including normalized live content from user handoff carriers."""
-        dedupe_content = row["content"]
-        if row["role"] == "user":
-            handoff, live_view = split_user_originated_turn({
-                "role": "user", "content": self._decode_content(row["content"]),
-                "display_kind": row["display_kind"],
-                "display_metadata": self._decode_display_metadata(row["display_metadata"])})
-            if handoff is not None and live_view is not None:
-                dedupe_content = self._encode_content(live_view.get("content"))
-        return _stable_tool_key(row) or (
-            row["role"], dedupe_content, row["timestamp"], row["tool_call_id"], row["tool_calls"], row["tool_name"])
-
-    def _is_model_only_row(self, row) -> bool:
-        """Python twin of :data:`DISPLAY_VISIBLE_SQL`."""
-        return bool((self._decode_display_metadata(row["display_metadata"]) or {}).get(MODEL_ONLY_DISPLAY_METADATA_KEY))
-
-    @staticmethod
-    def _display_identity(key: tuple[Any, ...]) -> bytes:
-        """Fixed-width durable identity for indexed display-generation lookup."""
-        return hashlib.sha256(repr(key).encode("utf-8", "surrogatepass")).digest()
-
-    @staticmethod
-    def _fold_summary_carrier(row, key: Any, first_by_uid: dict) -> Any:
-        """The display identity both display reads give *row*, scanning rows in ``id`` order.
-
-        A compaction carrier keeps its message's ``message_uid`` but not its content (the prior tail
-        wrapped around the summary), so it is a copy of the first row with that uid: shown once."""
-        uid = row["message_uid"]
-        if not uid:
-            return key
-        if row["_compressed_summary"]:
-            return first_by_uid.get(uid, key)
-        first_by_uid.setdefault(uid, key)
-        return key
-
-    def _dedupe_display_generations(self, rows, *, drop_removed: bool = False, first_ids: Optional[dict] = None):
-        """Collapse compaction generations so each logical message appears once (the protected tail is copied
-        into each generation: same role/content/timestamp, different ``active``/id); prefer the live row, then
-        the newest. The ONE definition every display projection shares. *rows* must be ordered by ``id``.
-
-        *drop_removed*: *rows* also hold the removed rows (``active=0, compacted=0``: rewound, or replaced by a
-        newer copy) and ``compacted``. A message whose newest copy is removed is not shown, so a rewind in a
-        compression child never brings back the parent's copy. Copies share the display key or ``message_uid``
-        (a micro-compaction merge also stands for the rows it absorbed). *first_ids* gets each kept row's id ->
-        its message's first durable row id, a removed copy's included (a carried tail's superseded original):
-        the key no compaction or rotation moves.
-
-        Storage interface: port as ``display_generations`` (``first_ids`` is ``session.transcript``'s)."""
-        seen: dict[tuple[Any, ...], Any] = {}
-        first_id: dict[tuple[Any, ...], int] = {}
-        uid_key: dict[Any, tuple[Any, ...]] = {}  # message_uid -> the display key of its first copy
-        removed: dict[Any, bool] = {}  # copy identity -> its newest copy is removed (rows come in id order)
-        identities: dict[tuple[Any, ...], list[Any]] = {}
-        removed_ts: set[Any] = set()
-        removed_first: dict[Any, int] = {}  # copy identity -> its first removed row (rows come in id order)
-        rows = rows if isinstance(rows, list) else list(rows)
-        later_copies = later_tool_copy_ids(self, rows)  # a compacted tool result paints once, as its original
-        if drop_removed:
-            # Every display key carries the row's timestamp third, so a live row can share a removed row's identity
-            # only at one of the removed rows' timestamps; hash just those (a sha256 per live row cost a warm
-            # 30k-row resume ~0.17 s, RT-39). No removed row at all: nothing can hide a copy.
-            removed_ts = {row["timestamp"] for row in rows if not row["active"] and not row["compacted"]}
-            drop_removed = bool(removed_ts)
-        for row in rows:
-            copies, key = None, None
-            if drop_removed:
-                # A removed row is read without its body (``_removed_identity_rows``): its stored display identity.
-                gone = not row["active"] and not row["compacted"]
-                stored = row["display_identity"] if gone else None
-                key = None if stored else self._display_dedupe_key(row)
-                hashed = stored or (self._display_identity(key) if key is not None and (
-                    gone or row["timestamp"] in removed_ts) else None)
-                copies = [*((hashed,) if hashed else ()), *(
-                    ("uid", uid) for uid in (row["message_uid"], *_uid_list(row["absorbed_message_uids"])) if uid)]
-                removed.update(dict.fromkeys(copies, gone))
-                if gone:
-                    for copy in copies:
-                        removed_first.setdefault(copy, row["id"])
-                    continue
-            if self._is_model_only_row(row) or row["id"] in later_copies:
-                continue
-            key = key or self._display_dedupe_key(row)
-            # Only the summary carrier folds by uid: other rewritten copies (a pruned tool stub) must keep
-            # their archived original visible.
-            key = self._fold_summary_carrier(row, key, uid_key)
-            cur = seen.get(key)
-            if cur is None or (row["active"], row["id"]) > (cur["active"], cur["id"]):
-                seen[key] = row
-                identities[key] = copies
-            first_id[key] = min(first_id.get(key, row["id"]), row["id"])
-        # Order by the logical message's FIRST row, not the chosen representative's: a protected-tail
-        # copy in a newer generation has a higher id than messages emitted after the original.
-        keys = sorted(seen, key=first_id.__getitem__)
-        if drop_removed:
-            keys = [key for key in keys if not any(removed[copy] for copy in identities[key])]
-        if first_ids is not None:
-            first_ids.update((seen[key]["id"], min([first_id[key], *(
-                removed_first[copy] for copy in identities[key] or () if copy in removed_first)])) for key in keys)
-        return [seen[key] for key in keys]
 
     def _reconcile_display_orders(self, conn, session_id: str) -> None:
         """Re-fold split display generations by the recomputed display key.
@@ -1305,29 +987,6 @@ class SessionMessagesMixin(SessionDetachedResultsMixin, SessionTodoResultMixin, 
                 if conn.in_transaction:
                     conn.execute("ROLLBACK")
 
-    def _row_to_message_dict(self, row, *, warn_context: str, summary_flag: bool) -> dict[str, Any]:
-        """``dict(row)`` with content/tool_calls/display_metadata decoded; *summary_flag* keeps
-        ``_compressed_summary`` only as ``True``."""
-        msg = dict(row)
-        msg.pop("display_identity", None)
-        msg.pop("display_order", None)
-        if summary_flag and msg.pop("_compressed_summary", 0):
-            msg["_compressed_summary"] = True
-        msg["content"] = self._decode_content(msg["content"])
-        if msg.get("tool_calls"):
-            msg["tool_calls"] = _json_or(
-                msg["tool_calls"], [], f"Failed to deserialize tool_calls in {warn_context}, falling back to []")
-        if msg.get("display_metadata") is not None:
-            msg["display_metadata"] = self._decode_display_metadata(msg["display_metadata"])
-        # A `SELECT *` picks up every column, including any BLOB added to the schema later; the
-        # JSON encoder that serves these dicts over HTTP fails outright on raw bytes. Drop them
-        # here, once, rather than needing a new named pop for each future binary column. Known
-        # columns are exempt: popping `content` because a row holds bytes turns a decode problem
-        # into a KeyError for every msg["content"] reader downstream.
-        for key, value in list(msg.items()):
-            if key not in _MESSAGE_SCHEMA_KEYS and isinstance(value, (bytes, bytearray)):
-                msg.pop(key)
-        return msg
 
     @staticmethod
     def _display_rows_from_conn(conn, session_id: str, *, limit: Optional[int] = None,
@@ -1551,123 +1210,7 @@ class SessionMessagesMixin(SessionDetachedResultsMixin, SessionTodoResultMixin, 
             f" WHERE id IN ({marks})) FROM messages WHERE session_id IN ({marks}) AND active = 1", (*ids, *ids))
         return (tuple(ids), int(row[0]), int(row[1]), int(row[2]))
 
-    def _dedupe_replayed_user(self, messages, msg, exact_user_clones) -> tuple[bool, Any]:
-        """Ancestor-lineage dedupe of one decoded user *msg* -> ``(skip, exact_clone_key)``. Rotation
-        column-clones the concurrent tail into the child, so copies need not be adjacent: the exact
-        ``(timestamp, canonical content)`` clone index is checked first, then the adjacent heuristic. A
-        rotated child carrier wins over the ancestor copy."""
-        canonical_content = self._canonical_replayed_user_content(msg)[0]
-        exact_clone_key = self._exact_replayed_user_clone_key(msg.get("timestamp"), canonical_content)
-        previous_exact = exact_user_clones.get(exact_clone_key) if exact_clone_key is not None else None
-        duplicate = None
-        if previous_exact is not None:
-            previous_index = next((i for i, candidate in enumerate(messages) if candidate is previous_exact), None)
-            if previous_index is not None:
-                duplicate = (previous_index, True)
-        if duplicate is None:
-            duplicate = self._find_duplicate_replayed_user_message(messages, msg)
-        if duplicate is None:
-            return False, exact_clone_key
-        duplicate_index, prefer_current = duplicate
-        if prefer_current:
-            messages.pop(duplicate_index)
-        return not prefer_current, exact_clone_key
 
-    def _rows_to_conversation(self, rows, *, session_id: str, include_ancestors: bool, repair_alternation: bool,
-                              include_row_ids: bool = False,
-                              include_summary_markers: bool = False) -> list[dict[str, Any]]:
-        """Decode fetched rows (ordered by id, pre-filtered) into OpenAI format, stable key order. Every dict is
-        stamped ``_DB_PERSISTED_MARKER_KEY`` (born durable) so an identity-losing handoff never re-appends the
-        transcript on flush. Unaddressed live-replay projections also carry the stored-row CAS digest: if a later rewrite
-        loses its physical ``_row_id``, logical ``message_uid`` can recover the row without guessing by
-        mutable payload while the digest still fences a concurrent winner. ``_row_id`` is opt-in (gateway
-        reactions); reasoning restored on assistant rows only; ``api_content`` VERBATIM (no sanitize/strip)
-        so replay keeps the provider prompt cache byte-stable."""
-        from hermes_state import _strip_background_review_harness, _strip_stale_tool_call_markers
-        # Runtime import avoids the transcript_repair -> hermes_state_messages module cycle.
-        from agent.transcript_repair import transcript_row_snapshot
-        # Only the unaddressed live replay gets the digest: row-addressed loaders (include_row_ids) keep the
-        # legacy resumed-dict path, whose rewrite never re-writes columns the projection does not decode
-        # (a CAS-match rewrite of a resumed row would otherwise null token_count).
-        stamp_snapshot = repair_alternation and not include_row_ids
-        messages = []
-        exact_user_clones: dict[tuple[Any, str], dict[str, Any]] = {}
-        tool_uid_index: dict[str, str] = {}  # pairing-id variant -> uid, from the assistant rows indexed so far
-        # Assistant rows since the last user row not yet indexed: only a result without a stored uid (an older
-        # build's) needs the index, so rows this build wrote never pay for it. Indexed in order: same shadowing.
-        unindexed_tool_owners: list[dict[str, Any]] = []
-        for row in rows:
-            content = self._loaded_view_content(row["role"], self._decode_content(row["content"]))
-            # Underscore-prefixed like ``_row_id``: transports strip it before the wire; compression's
-            # assembly copies strip it so rotated child handoffs still flush (_fresh_compaction_message_copy).
-            msg = {"role": row["role"], "content": content, _DB_PERSISTED_MARKER_KEY: True}
-            if stamp_snapshot:
-                msg[DB_ROW_SNAPSHOT] = transcript_row_snapshot(row)
-            # Born durable (#92231): this dict is materialized FROM a durable row, so stamp the persistence
-            # marker at the source instead of relying on every restore caller to thread the loaded list back
-            # through a flush as ``conversation_history=`` — any identity-losing handoff (compression's
-            # durable-snapshot adoption, incremental persists with no history arg) would otherwise re-append
-            # the ENTIRE transcript on flush.
-            if include_row_ids and row["id"] is not None:
-                msg["_row_id"] = row["id"]
-            # The durable identity is part of the message, like ``timestamp``: restored on EVERY projection
-            # (ACP, gateway, CLI, TUI, compression adoption), never opt-in like ``_row_id``.
-            _restore_identity_columns(row, msg)
-            msg.update((col, row[col]) for col in ("api_content", "display_kind") if row[col])
-            if row["display_metadata"] and (decoded := self._decode_display_metadata(row["display_metadata"])) is not None:
-                msg["display_metadata"] = decoded
-                lift_data_use(msg)
-            if include_summary_markers and row["_compressed_summary"]:
-                msg["_compressed_summary"] = True
-            msg.update(
-                (col, row[col]) for col in ("timestamp", "tool_call_id", "tool_name", "effect_disposition") if row[col])
-            if row["tool_calls"]:
-                msg["tool_calls"] = _json_or(
-                    row["tool_calls"], [], "Failed to deserialize tool_calls in conversation replay, falling back to []")
-            if row["platform_message_id"]:  # platform-side id exposed as ``message_id`` (JSONL transcript compat)
-                msg["message_id"] = row["platform_message_id"]
-            if row["observed"]:
-                msg["observed"] = True
-            if row["role"] == "assistant":
-                msg.update((col, row[col]) for col in ("finish_reason", "reasoning") if row[col])
-                if row["reasoning_content"] is not None:
-                    msg["reasoning_content"] = row["reasoning_content"]
-                msg.update(
-                    (col, _json_or(row[col], None, f"Failed to deserialize {col}, falling back to None"))
-                    for col in ("reasoning_details", "codex_reasoning_items", "codex_message_items") if row[col])
-                if msg.get("tool_calls"):
-                    unindexed_tool_owners.append(msg)
-            elif row["role"] == "user":
-                tool_uid_index.clear()  # a result never pairs across a user turn
-                unindexed_tool_owners.clear()
-            elif row["role"] == "tool" and not row["tool_call_uid"] and row["tool_call_id"]:
-                # No stored uid (a result appended by an older build or a lone append): the one its assistant
-                # row named. Rows are read in id order, so the call always precedes its result. Provider ids
-                # repeat: a later row's calls shadow an earlier occurrence's, and a row without a map (an older
-                # writer's) leaves its results unpaired rather than mispaired.
-                for owner in unindexed_tool_owners:
-                    index_tool_call_uids(tool_uid_index, owner)
-                unindexed_tool_owners.clear()
-                if tool_uid := resolve_tool_call_uid(tool_uid_index, row["tool_call_id"]):
-                    msg[TOOL_CALL_UID] = tool_uid
-            if include_ancestors:
-                skip, exact_clone_key = self._dedupe_replayed_user(messages, msg, exact_user_clones)
-                if skip:
-                    continue
-                if exact_clone_key is not None:
-                    exact_user_clones[exact_clone_key] = msg
-            messages.append(msg)
-        # Defense-in-depth: strip a background-review harness turn (older builds shared the parent's
-        # session_id) plus its curator reply, and bare tool-call marker content ("[memory]") persisted as an answer.
-        messages = _strip_stale_tool_call_markers(_strip_background_review_harness(messages))
-        if repair_alternation and messages:
-            from agent.agent_runtime_helpers import repair_message_sequence
-            repaired = repair_message_sequence(None, messages)
-            if repaired:
-                logger.info("Repaired %d message-alternation violation(s) while "
-                    "restoring session %s — durable transcript kept them, "
-                    "see repair_message_sequence", repaired, session_id)
-        return messages
 
     def get_resume_conversations(self, session_id: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         """``(model_history, display_history)`` for a resume from ONE SELECT; byte-identical to the separate
@@ -1779,46 +1322,6 @@ class SessionMessagesMixin(SessionDetachedResultsMixin, SessionTodoResultMixin, 
         chain = self._session_lineage_root_to_tip(session_id)
         return chain[0] if chain and chain[0] else session_id
 
-    @staticmethod
-    def _canonical_replayed_user_content(msg: dict[str, Any]) -> tuple[Any, bool]:
-        """Return canonical live content and whether *msg* is composite."""
-        if msg.get("role") != "user":
-            return None, False
-        handoff, live_view = split_user_originated_turn(msg)
-        is_composite = handoff is not None and live_view is not None
-        return live_view.get("content") if is_composite else msg.get("content"), is_composite
-
-    @staticmethod
-    def _exact_replayed_user_clone_key(timestamp: Any, content: Any) -> Optional[tuple[Any, str]]:
-        """Return a hashable key for a column-exact rotation clone."""
-        if timestamp is None or content in (None, "", []):
-            return None
-        try:
-            return timestamp, json.dumps(content, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-        except (TypeError, ValueError):
-            return None
-
-    @staticmethod
-    def _find_duplicate_replayed_user_message(messages: list[dict[str, Any]],
-                                              msg: dict[str, Any]) -> Optional[tuple[int, bool]]:
-        """Adjacent replay duplicate ``(index, prefer_current)`` or None. Rotation may persist the current ask
-        in the parent and again inside a composite child carrier: carriers compare by canonical live payload,
-        ordinary users by exact string. The child carrier wins (it owns the durable row id and scaffold)."""
-        if msg.get("role") != "user":
-            return None
-        canonical = SessionMessagesMixin._canonical_replayed_user_content
-        content, prefer_current = canonical(msg)
-        if content in (None, "", []):
-            return None
-        for index in range(len(messages) - 1, -1, -1):
-            prev = messages[index]
-            if prev.get("role") == "user":
-                prev_content, prev_is_composite = canonical(prev)
-                if prev_content == content and (prefer_current or prev_is_composite or isinstance(content, str)):
-                    return index, prefer_current
-            elif prev.get("role") == "assistant" and (prev.get("content") or prev.get("tool_calls")):
-                return None
-        return None
 
     # ========================================================================= Rewind (soft-delete) — see
     # /rewind slash command + issue #21910
@@ -1833,24 +1336,6 @@ class SessionMessagesMixin(SessionDetachedResultsMixin, SessionTodoResultMixin, 
         rows = conn.execute("SELECT tool_calls FROM messages WHERE session_id = ? AND active = 1", (session_id,)).fetchall()
         return len(rows), sum(_tool_calls_len(row[0], scalar=1) for row in rows)
 
-    def _split_rewind_target(self, target_row: dict[str, Any], expected_target_content: Any, preserve_compaction_handoff: bool):
-        """Validate an active rewind target; return its handoff scaffold (or None). ``ValueError``: inactive /
-        non-user-originated / missing composite carrier; ``RuntimeError``: live payload changed."""
-        if not target_row.get("active"):
-            raise ValueError("rewind target is not active")
-        handoff, live_view = split_user_originated_turn({
-            **target_row, "content": self._decode_content(target_row.get("content")),
-            "display_metadata": self._decode_display_metadata(target_row.get("display_metadata"))})
-        if live_view is None:
-            raise ValueError("rewind target is not a user-originated turn")
-        live_content = live_view.get("content")
-        if isinstance(live_content, str):
-            live_content = sanitize_context(live_content).strip()
-        if expected_target_content is not None and live_content != expected_target_content:
-            raise RuntimeError("rewind target changed before it could be persisted")
-        if preserve_compaction_handoff and handoff is None:
-            raise ValueError("preserve_compaction_handoff requires an active composite carrier")
-        return handoff if preserve_compaction_handoff else None
 
     def rewind_to_message(self, session_id: str, target_message_id: int, *, preserve_compaction_handoff: bool = False,
                           expected_active_ids: Optional[list[int]] = None,
@@ -1906,26 +1391,6 @@ class SessionMessagesMixin(SessionDetachedResultsMixin, SessionTodoResultMixin, 
             "SELECT 1 FROM messages WHERE session_id = ? AND platform_message_id = ? LIMIT 1",
             (session_id, platform_message_id)) is not None
 
-    def _is_explicit_fork_child_row(self, session: dict[str, Any], *, include_reset: bool = False) -> bool:
-        """True when *session* is a branch, delegate, or tool child of its parent (``include_reset``: also a
-        reset fork). Markers only count when they point at ``parent_session_id``: compression copies
-        ``model_config`` onto the continuation, so presence-only matching would misclassify it (same binding
-        as ``_NON_CONTINUATION_CHILD_FILTER_SQL``)."""
-        if session.get("source") == "tool":
-            return True
-        cfg = session.get("model_config")
-        if isinstance(cfg, str):
-            try:
-                cfg = json.loads(cfg)
-            except json.JSONDecodeError:
-                return False
-        if not isinstance(cfg, dict):
-            return False
-        markers = (cfg.get("_branched_from"), cfg.get("_delegate_from"))
-        if include_reset:
-            markers += (cfg.get("_reset_from"),)
-        parent_id = session.get("parent_session_id")
-        return parent_id in markers if parent_id else any(m is not None for m in markers)
 
     def is_explicit_fork_child(self, session_id: str) -> bool:
         """Read-only :meth:`_is_explicit_fork_child_row`; a missing row is not a fork (prompt_cache_scope keeps

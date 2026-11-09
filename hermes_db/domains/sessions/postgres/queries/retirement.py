@@ -85,7 +85,7 @@ def compression_members(conn, scope, session_ids):
 
 def display_snapshot(conn, scope, session_id):
     from hermes_db.domains.sessions.postgres.support.message_codec import codec
-    from hermes_db.domains.sessions.postgres.capabilities.message_reads import _display_page
+    from hermes_db.domains.sessions.postgres.messages import _display_page
 
     if sessions.raw_session(conn, scope, session_id) is None:
         return None

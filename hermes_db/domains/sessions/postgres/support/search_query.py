@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 import re
 
-from hermes_state_search import SessionSearchMixin
+from hermes_db.domains.sessions.search_rules import SearchRules
 
 
 @dataclass(frozen=True)
@@ -19,7 +19,7 @@ class SearchQuery:
 
 
 def parse_query(raw):
-    text = SessionSearchMixin._sanitize_fts5_query((raw or "").replace("\x00", ""))
+    text = SearchRules._sanitize_fts5_query((raw or "").replace("\x00", ""))
     groups, current, negative = [], [], False
     for token in re.findall(r'"[^"]*"\*?|\S+', text):
         upper = token.upper()
@@ -37,5 +37,5 @@ def parse_query(raw):
             negative = False
     if current:
         groups.append(tuple(current))
-    cjk = SessionSearchMixin._contains_cjk(text)
-    return SearchQuery(text, tuple(groups), cjk, None if cjk else SessionSearchMixin._or_relaxed_query(text))
+    cjk = SearchRules._contains_cjk(text)
+    return SearchQuery(text, tuple(groups), cjk, None if cjk else SearchRules._or_relaxed_query(text))

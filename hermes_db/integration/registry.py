@@ -33,11 +33,11 @@ def _construct_store(settings, scope):
     from hermes_db.backends.postgresql.engine import get_engine
     from hermes_db.backends.postgresql.transactions import Transactions
     from hermes_db.schema import check_schema
-    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
+    from hermes_db.integration.session_composition import create_session_store
     check_schema(settings)
     transactions = Transactions(get_engine(settings), settings.schema, lock_timeout=settings.write_lock_timeout_seconds,
         statement_timeout=settings.statement_timeout_seconds)
-    return PostgresSessionStore(transactions, scope)
+    return create_session_store(transactions, scope)
 
 
 def _handle(key, entry):

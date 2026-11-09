@@ -12,7 +12,8 @@ from hermes_db.domains.sessions.postgres.support.message_codec import codec
 from hermes_db.domains.sessions.postgres.operations import transcript_guards, transcript_repair
 from hermes_db.domains.sessions.postgres.queries import messages as repo, sessions as session_repo
 from hermes_db.tables.conversations import messages, sessions
-from hermes_state_messages import _coerce_timestamp, _parse_tool_calls, _tool_calls_count, _tool_calls_len
+from hermes_state_messages import _coerce_timestamp, _tool_calls_count, _tool_calls_len
+from hermes_db.domains.sessions.codec import _parse_tool_calls
 
 
 def insert_rows(conn, scope, session_id, batch, *, keep_all_reasoning=False, prune_checkpoints=True):
@@ -38,7 +39,7 @@ def insert_rows(conn, scope, session_id, batch, *, keep_all_reasoning=False, pru
 
 
 def _write_columns():
-    from hermes_state_messages import _MESSAGE_WRITE_COLUMNS
+    from hermes_db.domains.sessions.codec import _MESSAGE_WRITE_COLUMNS
     return _MESSAGE_WRITE_COLUMNS
 
 
