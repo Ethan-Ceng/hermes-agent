@@ -6,7 +6,7 @@
 - 全量归属：[398项基准映射](../designs/hermes-db-package-map.json)。
 - 文档分支：`docs/hermes-db-package-layout`；实施分支：`refactor/hermes-db-packages`。
 - 源码基准：`cbfc773dd7`，运行实现等价`0d69702244`。
-- 整体状态：`IMPLEMENTING`；当前阶段：第一阶段机械落位；当前任务：Task2（待开始）；完成：1 / 18。
+- 整体状态：`IMPLEMENTING`；当前阶段：第一阶段机械落位；当前任务：Task3（待开始）；完成：2 / 18。
 - 本轮已建立独立实施检出并完成Task1；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
 - 核心设计待决策：无；Task1隔离PM与PG基线已通过，Matrix实际SDK由Task6核对。原统一后端Task24及七项非WSL缺证独立保留。
 - 更新时间：2026-11-09（Asia/Shanghai）。恢复位置：`D:/AI/hermes-db-packages`；从首个in_progress任务继续，不重跑整轮数据库选型。
@@ -61,6 +61,7 @@ PG选项只用于tests/hermes_db下已注册该选项的文件；其他目录Nat
 | --- | --- | --- |
 | 2026-11-09 | PLAN_READY | 用户要求准备分包方案；完成实际模块归属与设计/计划，0/18，尚未实施 |
 | 2026-11-09 | IMPLEMENTING | 独立checkout/PM及Task1接口依赖基线完成，1/18；Native504+PG26，4平台skip单列 |
+| 2026-11-09 | IMPLEMENTING | Task2基础设施/组合40模块移动并验证，2/18；Native504、PG41、driver-free2、15静态全绿，4平台skip单列 |
 
 ## 方案准备自检
 
@@ -128,11 +129,11 @@ Invoke-PgCases -Files @('tests/hermes_db/postgresql/test_surface_flow.py', 'test
 - 同runner `tests/hermes_db/postgresql/test_surface_flow.py tests/hermes_db/postgresql/test_merge_storage_contracts.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，exit0，2文件26passed/0failed/0skip，74.9秒（task1-pg.log）。fixture验证独立验收DB及随机Schema所有权；非正式Schema。surface流程拒绝SQLite连接。
 - `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，最终exit0，15checks全部通过，health1文件0blocking/0advisory（task1-check-accepted.log）。首轮BOM读取/超时/blob超限均已整改；拆分台账保留全部记录。最终计划记录更新后 `git diff --cached --check` exit0。
 - 未验证：重构后行为、独立无PG发行载荷、完整PG/SDK/升级/跨进程恢复均属后续任务，不以本Task基线代替。原统一后端Task24及非WSL七项缺证不变。
-- 恢复点：本地提交标题 `docs(storage): freeze hermes_db packaging implementation baseline`；下一任务Task2，先置in_progress再机械搬迁。
+- 恢复点：本地提交 `1564c08225`，标题 `docs(storage): freeze hermes_db packaging implementation baseline`；下一任务Task2，先置in_progress再机械搬迁。
 
 ## Task 2：搬迁基础设施与组合桥接
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -175,11 +176,23 @@ Task2映射均落实；SQLite driver-free入口及PG构造/作用域合同通过
 
 ### 执行结果
 
-未执行。
+以Task1 `1564c08225`为起点，完成映射52项（40移动、12保留）。连接/事务/表达式移到backends/postgresql，Native桥接到backends/sqlite；值/目录能力/资源定义到core，具体registry/Profile活动/跨域维护到integration。同步生产消费者、延迟导入、测试读取/patch字符串与活跃开发文档；历史方案/执行记录和Task1冻结清单不重写。新增8个空父包初始化文件已逐项登记new_files，无旧路径re-export shim。
+
+根Python文件113→90，总文件398→406（暂增8个必要包初始化；业务模块不增）。最终根11及净减少仍由后续分域/收敛任务实现，不能在本Task声称达到最终结构。398模块AST审计未发现导入与模块路径字符串以外逻辑漂移；31 revision和29表定义Git规范hash保持。tables/__init__.py只把catalog导入改为core.catalog，merge_data_repair.py只调整values导入，未改历史SQL、算法、DTO、错误、事务或池粒度。
+
+正式checkout仍为规划分支且工作区干净；所有源码改动/测试在独立worktree，未操作正式配置或业务数据。
 
 ### 验证证据
 
-未执行；实施时记录实际解释器/源码commit、展开命令、退出状态、计数、日志、未验证项和恢复commit。
+沿用Task1专用PM解释器与隔离home/runtime，retries=0；下列日志仅在本检出的 `.build/package-layout/`。
+
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts -j 4 --file-timeout 1200 -- --tb=short`，exit0，90文件504passed/0failed/4skipped，852.8秒（task2-native.log）。四项与Task1相同：1 POSIX、3 Linux SDK；没有把skip算通过。
+- 同runner `tests/hermes_db/postgresql/test_schema.py tests/hermes_db/postgresql/test_domain_schema.py tests/hermes_db/postgresql/test_sessions.py tests/hermes_db/postgresql/test_surface_flow.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，exit0，4文件41passed/0failed/0skip，151.2秒（task2-pg.log）。独立DB/随机Schema归属fixture，surface进程SQLite拒绝护栏保留。
+- 同runner `tests/hermes_db/test_optional_dependencies.py -j 1 --file-timeout 1200 -- --tb=short`，exit0，2passed/0failed/0skip，6.1秒（task2-optional.log）；真实子进程拒绝PG依赖导入仍完成SQLite会话/队列持久操作。
+- 本地 `PM Python .build/package-layout/task2-audit.py`，最终exit0（task2-audit-accepted.log）：398模块机械AST等价、31 revision和29表定义hash不变。首轮审计工具对未存入object DB的新tables初始化blob执行cat-file失败；已修正为31+29锚点比较，初始化文件必要导入变化单列，不是业务失败。
+- `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，exit0，15checks通过，health336文件0blocking/0advisory（task2-check-final.log）；最终映射/计划元数据更新后暂存空白检查exit0。
+- 未验证：完整PG/实际Matrix SDK/发行及旧Schema业务升级由后续任务验收；本Task局部绿不解除Task17/18或原统一Task24缺证。表metadata身份与Schema保持原模块路径。
+- 恢复点：本地提交标题 `refactor(storage): package database infrastructure and composition`；下一Task3，继续机械分包Projects/verification。
 
 ## Task 3：Projects与验证证据分包试点
 

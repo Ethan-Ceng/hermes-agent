@@ -85,7 +85,7 @@ def test_deferred_sqlite_reads_remain_bound_to_the_owning_profile(tmp_path):
 def test_postgres_entry_is_fail_closed_when_unavailable(tmp_path, monkeypatch):
     pytest.importorskip("psycopg", reason="optional postgresql extra")
     home = _profile(tmp_path, "pg")
-    from hermes_db import native_registry
+    from hermes_db.integration import registry as native_registry
     def unavailable(settings, scope):
         raise StorageUnavailableError('test storage unavailable')
     monkeypatch.setattr(native_registry, '_construct_store', unavailable)

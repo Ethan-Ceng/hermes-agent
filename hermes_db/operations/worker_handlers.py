@@ -9,7 +9,7 @@ from hermes_db.operations import messages as transcript, sessions as lifecycle
 from hermes_db.operations.effects import CoreEffect
 from hermes_db.repositories import messages, prompts, sessions, usage
 from hermes_db.tables.conversations import messages as message_table
-from hermes_db.values import encode_config, model_config
+from hermes_db.core.values import encode_config, model_config
 from hermes_state_runtime import RuntimeStoreError, _MESSAGE_FIELDS, _text, row_annotations
 from hermes_state_worker_context import SIDECAR_KEYS
 

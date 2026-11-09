@@ -9,7 +9,7 @@ from sqlalchemy.dialects.postgresql import insert
 from hermes_db.repositories import kanban as repo
 from hermes_db.repositories import kanban_workspaces as workspaces
 from hermes_db.tables.kanban import tasks
-from hermes_db.values import encode_text, decode_text
+from hermes_db.core.values import encode_text, decode_text
 
 
 def _workspace(store, fields):

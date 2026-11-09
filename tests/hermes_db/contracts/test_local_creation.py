@@ -22,7 +22,7 @@ def _receipt(store):
 
 
 def test_local_create_retry_keeps_the_original_policy_route_and_prompt_prefix(store, runtime):
-    from hermes_db.local_access import commit_local_session, local_receipt, handoff_head
+    from hermes_db.integration.local_access import commit_local_session, local_receipt, handoff_head
     from hermes_state_runtime import RuntimeStoreError
     epoch = runtime.begin_epoch(instance_id="owner")
     receipt = _receipt(store)
@@ -43,7 +43,7 @@ def test_local_create_retry_keeps_the_original_policy_route_and_prompt_prefix(st
 
 
 def test_idle_close_shares_fifo_idleness_and_new_work_does_not_disappear(store, runtime):
-    from hermes_db.local_access import commit_local_session, end_idle_local_session
+    from hermes_db.integration.local_access import commit_local_session, end_idle_local_session
     epoch = runtime.begin_epoch(instance_id="owner")
     receipt = _receipt(store)
     sid = receipt["session_id"]
@@ -56,8 +56,8 @@ def test_idle_close_shares_fifo_idleness_and_new_work_does_not_disappear(store, 
 @pytest.mark.parametrize("old", ["alpha", "main"])
 def test_native_profile_rename_keeps_local_creation_identity_and_frozen_prefix(core_pair, old):
     from hermes_db.health import persisted_profile_id
-    from hermes_db.local_access import commit_local_session, local_receipt, validate_local_lineage
-    from hermes_db.runtime_access import runtime_for_store
+    from hermes_db.integration.local_access import commit_local_session, local_receipt, validate_local_lineage
+    from hermes_db.integration.runtime_access import runtime_for_store
     from hermes_state_keys import local_identity
     from gateway.session import _session_key_namespace
     from types import SimpleNamespace
@@ -87,8 +87,8 @@ def test_native_profile_rename_keeps_local_creation_identity_and_frozen_prefix(c
 
 def test_core_unknown_create_ack_preserves_published_prefill_and_replays_receipt(core_pair, monkeypatch):
     from hermes_db.errors import UnknownCommitError
-    from hermes_db.local_access import commit_local_session
-    from hermes_db.runtime_access import runtime_for_store
+    from hermes_db.integration.local_access import commit_local_session
+    from hermes_db.integration.runtime_access import runtime_for_store
     store = core_pair[0]
     receipt = _receipt(store)
     epoch = runtime_for_store(store).begin_epoch(instance_id="owner")

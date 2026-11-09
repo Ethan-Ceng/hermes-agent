@@ -62,7 +62,7 @@ def test_stale_and_orphan_sweeps_close_runs_without_charging_failure(pg_profiles
 
 
 def test_new_owner_evidence_during_termination_prevents_old_snapshot_reclaim(pg_profiles, monkeypatch):
-    from hermes_db.engine import get_engine
+    from hermes_db.backends.postgresql.engine import get_engine
     with pg_profiles("one"), kbc.connect_closing() as store:
         task_id, run_id = claimed(store)
         with store.write() as conn:
@@ -80,7 +80,7 @@ def test_new_owner_evidence_during_termination_prevents_old_snapshot_reclaim(pg_
 
 
 def test_runtime_kills_real_worker_without_retaining_connection(pg_profiles):
-    from hermes_db.engine import get_engine
+    from hermes_db.backends.postgresql.engine import get_engine
     with pg_profiles("one"), kbc.connect_closing() as store:
         task_id, run_id = claimed(store, max_runtime_seconds=1, max_retries=1)
         child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(90)"])

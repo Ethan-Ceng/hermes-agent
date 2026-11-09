@@ -5,7 +5,7 @@ from sqlalchemy import exists, func, select
 from hermes_db.message_codec import content_from_bytes
 from hermes_db.operations.compression_state import lineage
 from hermes_db.tables.conversations import messages, sessions
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 _FIELDS = ("id", "source", "title", "started_at", "last_activity_at", "message_count", "user_id", "archived")
 

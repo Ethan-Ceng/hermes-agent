@@ -21,9 +21,9 @@ class MatrixRef:
 def capture_matrix(profile_home, homeserver, account_id, device_id):
     from hermes_cli.db_setup import resolve_db_configuration
     from hermes_db.access import _owner_only
-    from hermes_db.engine import get_engine
-    from hermes_db.move_values import resource_key
-    from hermes_db.postgresql.transactions import Transactions
+    from hermes_db.backends.postgresql.engine import get_engine
+    from hermes_db.integration.transfer.move_values import resource_key
+    from hermes_db.backends.postgresql.transactions import Transactions
     _owner_only()
     if not homeserver or not account_id or not device_id:
         raise StorageConfigurationError("PG Matrix encryption requires authenticated homeserver, user and device identities")
@@ -40,7 +40,7 @@ def capture_matrix(profile_home, homeserver, account_id, device_id):
 def resource_for(reference):
     from hermes_cli.db_setup import _owning_profile
     from hermes_db.factory import acquire_profile_domain
-    from hermes_db.move_values import resource_key
+    from hermes_db.integration.transfer.move_values import resource_key
     with _owning_profile(reference.profile_home), acquire_profile_domain("matrix_crypto", profile_home=reference.profile_home) as resource:
         if resource.settings.backend != "postgresql" or resource.scope.store_id != reference.store_id:
             raise StorageConfigurationError("Captured Matrix backend or store_id changed")

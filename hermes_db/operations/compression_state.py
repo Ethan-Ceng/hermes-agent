@@ -7,7 +7,7 @@ from sqlalchemy import case, select
 from hermes_db.repositories import leases, sessions
 from hermes_db.tables.conversations import messages, sessions as table
 from hermes_db.tables.gateway import compression_locks
-from hermes_db.values import decode_text, encode_text, explicit_fork
+from hermes_db.core.values import decode_text, encode_text, explicit_fork
 
 
 def lineage(conn, scope, session_id):

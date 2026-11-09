@@ -8,7 +8,7 @@ from sqlalchemy import and_, delete, select, update
 from sqlalchemy.dialects.postgresql import insert
 
 from hermes_db.tables.cron import cron_executions as executions, cron_incidents as incidents, cron_locks as locks
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 _BYTES = {"id", "job_id", "source", "process_id", "error", "delivery_outcome", "failure_type", "output_file"}
 _PROJECTIONS = {"claimed_order", "finished_order", "last_seen_order"}

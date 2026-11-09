@@ -73,7 +73,7 @@ def test_old_raw_alias_attachment_rows_retain_file_until_last_reference(pg_profi
     from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
     from hermes_db.tables.kanban_artifacts import attachments, blobs
     from hermes_db.repositories import kanban as repo
-    from hermes_db.values import encode_text
+    from hermes_db.core.values import encode_text
     with pg_profiles("review-old-alias"), kbc.connect_closing() as board:
         task = kb.create_task(board, title="old aliases")
         first = kb.store_attachment_bytes(board, task, "proof.bin", b"keep")
@@ -100,7 +100,7 @@ def test_old_raw_cleanup_token_reconciles_or_preserves_canonical_live_reference(
     from hermes_db.operations.kanban_attachment_cleanup import reconcile
     from hermes_db.domains.kanban_files import board_files
     from hermes_db.errors import StorageBusyError
-    from hermes_db.values import encode_text
+    from hermes_db.core.values import encode_text
     with pg_profiles("review-old-token"), kbc.connect_closing() as board:
         task = kb.create_task(board, title="old pending token")
         item = kb.store_attachment_bytes(board, task, "proof.bin", b"keep")

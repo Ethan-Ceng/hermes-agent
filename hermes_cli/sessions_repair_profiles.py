@@ -97,7 +97,7 @@ class _Session:
 
     def close(self) -> None:
         from hermes_db.access import release_session_store as release_or_close
-        from hermes_db.session_resource import SessionResource
+        from hermes_db.core.session_resource import SessionResource
         for db in self._dbs.values():
             if db is _EMPTY_STORE:
                 continue

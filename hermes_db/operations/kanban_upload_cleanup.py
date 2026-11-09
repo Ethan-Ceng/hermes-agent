@@ -25,7 +25,7 @@ def _gate(root):
 
 
 def _completed(resource, manifest, root):
-    from hermes_db.move_values import resource_key
+    from hermes_db.integration.transfer.move_values import resource_key
     marker = root / "command.json"
     owner = manifest["owner"]
     if (owner["store_id"] != resource.scope.require_store_id() or manifest.get("board_target") != resource_key(resource._transactions)
@@ -39,7 +39,7 @@ def _completed(resource, manifest, root):
                 command_receipts.c.command_id == command["command_id"], command_receipts.c.request_digest == command["request_digest"]))
         if found is not None:
             return True
-    from hermes_db.observations import terminal_execution
+    from hermes_db.integration.observations import terminal_execution
     return terminal_execution(manifest["session_store"], manifest["execution_id"], manifest["generation"])
 
 

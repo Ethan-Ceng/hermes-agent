@@ -48,7 +48,7 @@ def _registry_owned(handle: Any) -> bool:
     """True while the process-wide registry owns *handle*; an ``AsyncSessionDB`` (the only handle
     type with a ``_db``) is judged by the SessionDB it wraps. ``close_all`` / ``close_all_under``
     clear the flag when they tear the generation down."""
-    from hermes_db.session_resource import SessionResource
+    from hermes_db.core.session_resource import SessionResource
     if isinstance(handle, SessionResource):
         return handle.is_open
     inner = getattr(handle, "_db", handle)

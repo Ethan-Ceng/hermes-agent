@@ -6,7 +6,7 @@ from threading import Event
 import pytest
 
 from hermes_db.errors import UnknownCommitError
-from hermes_db.profile_context import OwnedProfileContext
+from hermes_db.integration.profile_context import OwnedProfileContext
 from hermes_db.scope import DatabaseScope
 from hermes_db.usage_writer import UsageWriter
 

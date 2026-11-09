@@ -7,7 +7,7 @@ from sqlalchemy import and_, select
 from hermes_db.domains.kanban_evidence import typed_owner_receipt
 from hermes_db.repositories import kanban as repo
 from hermes_db.tables.kanban import events, tasks
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 
 def _current_payload(store, task_id, kind):

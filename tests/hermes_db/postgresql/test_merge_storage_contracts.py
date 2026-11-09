@@ -191,8 +191,8 @@ def test_worker_tool_root_and_marked_delegate_reads(pg_store):
 
 def test_refusal_fallback_releases_checkout_for_one_connection_pool(pg_store, postgres_test_config):
     from dataclasses import replace
-    from hermes_db.engine import get_engine
-    from hermes_db.postgresql.transactions import Transactions
+    from hermes_db.backends.postgresql.engine import get_engine
+    from hermes_db.backends.postgresql.transactions import Transactions
     from hermes_db.session_store import PostgresSessionStore
     settings = replace(postgres_test_config.settings, pool_size=1, max_overflow=0,
                        connection_budget=1, pool_timeout_seconds=1)

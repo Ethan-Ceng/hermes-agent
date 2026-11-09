@@ -4,7 +4,7 @@ from sqlalchemy import or_, select
 
 from hermes_db.repositories import sessions
 from hermes_db.tables.conversations import sessions as table
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 
 class SessionHandoffs:

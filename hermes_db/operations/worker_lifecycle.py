@@ -11,7 +11,7 @@ from hermes_db.operations.worker_handlers import _fields
 from hermes_db.repositories import messages, sessions
 from hermes_db.tables.conversations import messages as message_table, sessions as session_table
 from hermes_db.tables.runtime import worker_executions, worker_receipts
-from hermes_db.values import decode_text, encode_config, encode_text, model_config
+from hermes_db.core.values import decode_text, encode_config, encode_text, model_config
 from hermes_state_runtime import RuntimeStoreError
 from hermes_state_worker_lifecycle import _CONSTRUCTOR_CONFIG, _CREATE_FIELDS, _IDENTITY_FIELDS, _row_id
 

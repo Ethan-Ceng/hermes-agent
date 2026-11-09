@@ -9,7 +9,7 @@ def storage_identity(db):
     from hermes_db.health import is_postgresql_store, profile_home_for_store
     pg = is_postgresql_store(db)
     if pg:
-        from hermes_db.move_values import resource_key
+        from hermes_db.integration.transfer.move_values import resource_key
     return {'version': 1, 'backend': 'postgresql' if pg else 'sqlite',
             'profile_home': str(profile_home_for_store(db)),
             'store_id': db.scope.require_store_id() if pg else None,
@@ -27,7 +27,7 @@ async def worker_domain_read(connection, ref, params):
 def _read(connection, ref, params):
     from gateway.session_worker_recall import verify_read
     from hermes_db.health import is_postgresql_store
-    from hermes_db.runtime_access import runtime_for_store
+    from hermes_db.integration.runtime_access import runtime_for_store
     verify_read(connection, ref, params)
     db = connection.authority.db
     if not is_postgresql_store(db):

@@ -7,7 +7,7 @@ import unicodedata
 from sqlalchemy import select
 
 from hermes_db.errors import StorageConflictError, StorageConfigurationError
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 
 def relocate(value, old, new, *, key=False):

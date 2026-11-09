@@ -6,15 +6,15 @@ import re
 from uuid import uuid4
 from sqlalchemy import select, update
 
-from hermes_db.domains.resource import DomainResource
+from hermes_db.core.resource import DomainResource
 from hermes_db.errors import StorageConfigurationError, StorageBusyError
 from hermes_db.operations.kanban_file_jobs import local_files_lock, lock_files
 from hermes_db.tables.kanban_artifacts import attachments, blobs
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 
 def _owner(resource):
-    from hermes_db.move_values import resource_key
+    from hermes_db.integration.transfer.move_values import resource_key
     return dict(home=str(resource.scope.profile_home), store_id=resource.scope.require_store_id(), target=resource_key(resource._transactions))
 
 

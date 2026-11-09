@@ -9,7 +9,7 @@ import pytest
 
 @pytest.fixture
 def unavailable_native(monkeypatch):
-    from hermes_db import native_registry
+    from hermes_db.integration import registry as native_registry
     from hermes_db.errors import StorageUnavailableError
     def unavailable(*args):
         raise StorageUnavailableError('test storage unavailable')
@@ -61,7 +61,7 @@ def store(request, tmp_path):
     from hermes_db.session_store import PostgresSessionStore
     from hermes_db.scope import DatabaseScope
     from hermes_db.tables import load_metadata
-    from hermes_db.postgresql.transactions import Transactions
+    from hermes_db.backends.postgresql.transactions import Transactions
 
     engine = _offline_engine(sa, tmp_path, "core.db")
     with engine.begin() as conn:
@@ -81,7 +81,7 @@ def core_pair(tmp_path):
     from hermes_db.session_store import PostgresSessionStore
     from hermes_db.scope import DatabaseScope
     from hermes_db.tables import load_metadata
-    from hermes_db.postgresql.transactions import Transactions
+    from hermes_db.backends.postgresql.transactions import Transactions
 
     engine = _offline_engine(sa, tmp_path, "isolated.db")
     with engine.begin() as conn:
@@ -99,7 +99,7 @@ def core_pair(tmp_path):
 
 @pytest.fixture
 def native_registry(core_pair, monkeypatch):
-    from hermes_db import native_registry
+    from hermes_db.integration import registry as native_registry
     from hermes_db.session_store import PostgresSessionStore
     opened = []
 
@@ -117,7 +117,7 @@ def native_registry(core_pair, monkeypatch):
 def runtime(store, tmp_path):
     from hermes_state import SessionDB
     if isinstance(store, SessionDB):
-        from hermes_db.legacy_sqlite import SQLiteRuntime
+        from hermes_db.backends.sqlite.acquire import SQLiteRuntime
         from hermes_db.scope import DatabaseScope
         return SQLiteRuntime(store, DatabaseScope(tmp_path))
     from hermes_db.runtime_store import PostgresRuntimeStore

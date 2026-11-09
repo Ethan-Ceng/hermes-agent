@@ -5,10 +5,10 @@ import time
 
 from hermes_cli.timefmt import coerce_epoch
 from hermes_db.operations import messages as writes, sessions as lifecycle
-from hermes_db.portability_values import values
+from hermes_db.integration.transfer.portability_values import values
 from hermes_db.repositories import messages as transcript, sessions
 from hermes_db.tables.conversations import messages, sessions as table
-from hermes_db.values import encode_text, explicit_fork, model_config
+from hermes_db.core.values import encode_text, explicit_fork, model_config
 from hermes_state_portability import _IMPORT_FLAG_COLS, _IMPORT_FLOAT_COLS, _IMPORT_INT_COLS, _IMPORT_MESSAGE_JSON_FIELDS, _IMPORT_PASSTHROUGH_COLS
 from hermes_state_messages import _parse_tool_calls, _tool_calls_count
 from utils import safe_json_loads

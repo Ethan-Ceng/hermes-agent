@@ -47,9 +47,9 @@ else:
     sys.addaudithook(reject_sqlite)
     from alembic.config import Config
     from alembic.script import ScriptDirectory
-    from hermes_db.engine import require_postgresql_driver
+    from hermes_db.backends.postgresql.engine import require_postgresql_driver
     from hermes_db.schema import REQUIRED_REVISION
-    from hermes_db.postgresql.transactions import Transactions
+    from hermes_db.backends.postgresql.transactions import Transactions
     from hermes_db.session_store import PostgresSessionStore
     require_postgresql_driver()
     migrations = package.parent / 'migrations'
@@ -60,7 +60,7 @@ else:
     assert scripts.get_revision(REQUIRED_REVISION).path
     assert (migrations / 'env.py').is_file()
     from hermes_db.tables import load_metadata
-    from hermes_db.domains.catalog import POSTGRES_DOMAINS, KNOWN_DOMAINS, required_tables
+    from hermes_db.core.catalog import POSTGRES_DOMAINS, KNOWN_DOMAINS, required_tables
     metadata = load_metadata()
     assert set(POSTGRES_DOMAINS) == set(KNOWN_DOMAINS)
     present = {table.name for table in metadata.tables.values()}

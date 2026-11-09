@@ -10,7 +10,7 @@ from hermes_db.operations.kanban_artifacts import insert_attachment
 from hermes_db.operations.kanban_graph import _unsatisfied
 from hermes_db.repositories import kanban as repo, kanban_runs as run_repo
 from hermes_db.tables.kanban import runs, events
-from hermes_db.values import decode_text
+from hermes_db.core.values import decode_text
 
 
 def _latest(conn, store, task_id, kind, run_id=None):

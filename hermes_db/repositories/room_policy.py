@@ -8,7 +8,7 @@ from gateway import hosted_room_policy_checkpoint as policy
 from hermes_db.repositories import rooms as room_repo
 from hermes_db.tables.rooms import events
 from hermes_db.tables.room_policy import active, transcript
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 
 def insert_ignore(conn, store, table, fields):

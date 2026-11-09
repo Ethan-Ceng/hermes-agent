@@ -60,7 +60,7 @@ class PostgresRuntimeStore(RuntimeWorkers, RuntimeTerminal, RuntimeLocal, Runtim
         with self._write() as conn:
             result, event = mutate(conn, self.scope, **kwargs)
         if event is not None:
-            from hermes_db.events import emit_deleted
+            from hermes_db.integration.events import emit_deleted
             emit_deleted(self._store._profile, event[0], reason=event[1], primary=kwargs["session_id"])
             if event[1] == "delete":
                 self._store.collect_retired_media()

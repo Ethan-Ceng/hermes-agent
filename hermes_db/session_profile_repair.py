@@ -2,8 +2,9 @@
 
 from sqlalchemy import func, select
 
-from hermes_db.operations import profile_repair
-from hermes_db.repositories import gateway, profile_repair as repo
+from hermes_db.integration.postgres.operations import profile_repair
+from hermes_db.repositories import gateway
+from hermes_db.integration.postgres.queries import profile_repair as repo
 from hermes_db.tables.conversations import messages, sessions
 from hermes_db.tables.gateway import telegram_dm_topic_bindings as bindings
 from hermes_state_profile_repair import session_key_profile

@@ -23,7 +23,7 @@ from gateway.session_pending_controls import PendingControls
 from gateway.session_producer_lifecycle import drop_producer_turn, mark_producer_admission
 from hermes_cli.observability.shared_metrics_busy import busy_row_settled
 from hermes_state_runtime import STEERING, RuntimeStoreError
-from hermes_db.runtime_calls import admit_session_input, begin_runtime_epoch, cancel_session_input, claim_session_input, get_session_admission, list_session_admissions, recover_session_inputs, resolve_unknown_session_input
+from hermes_db.integration.runtime_calls import admit_session_input, begin_runtime_epoch, cancel_session_input, claim_session_input, get_session_admission, list_session_admissions, recover_session_inputs, resolve_unknown_session_input
 
 # Capped backoff for a claim refused by transient storage (writer lock, full disk).
 _CLAIM_RETRY_MIN_S, _CLAIM_RETRY_MAX_S = 0.25, 5.0
@@ -728,7 +728,7 @@ class SessionAuthority:
         def admitted():
             # The exact durable identity (authenticated principal + target + request id); the
             # attachment fields it yields still pass the full payload-digest comparison below.
-            from hermes_db.runtime_calls import find_session_admission
+            from hermes_db.integration.runtime_calls import find_session_admission
             return find_session_admission(self.db, principal_id=actor.subject,
                                           session_id=request.ref.session_id, request_id=request.request_id)
         payload = {'text': request.payload['text'], **finite, **admit_surface(request.payload),
@@ -774,7 +774,7 @@ class SessionAuthority:
         try:
             from hermes_db.health import is_postgresql_store
             if is_postgresql_store(self.db):
-                from hermes_db.runtime_access import runtime_for_store
+                from hermes_db.integration.runtime_access import runtime_for_store
                 runtime_for_store(self.db).retire_refused_media(media)
             else:
                 self.db._execute_write(lambda conn: retire_media(conn, {'attachments_v1': {'media': media}}))
@@ -898,7 +898,7 @@ class SessionAuthority:
         # result the answer is normally already the transcript tail, so the closer is a no-op.
         from gateway.session_results import close_discarded_turn
         from gateway.session_runtime_workers import tracked_write
-        from hermes_db.runtime_access import effect_for_store
+        from hermes_db.integration.runtime_access import effect_for_store
 
         def discarded(conn, lost):
             return close_discarded_turn(self.db, conn, lost, None if (

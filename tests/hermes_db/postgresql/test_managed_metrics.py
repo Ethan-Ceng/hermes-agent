@@ -41,7 +41,7 @@ def test_worker_counters_and_engagement_recover_without_changing_owner_consent(p
     from hermes_cli.observability.shared_metrics_engagement import STATE_KEY
     from hermes_db.tables.metrics import state, windows
     from hermes_db.tables.runtime import session_admissions, worker_executions
-    from hermes_db.values import decode_text, encode_text
+    from hermes_db.core.values import decode_text, encode_text
     from tests.hermes_db.postgresql.test_metrics_store import RESOURCE
 
     guard, audit = install_guard(tmp_path)

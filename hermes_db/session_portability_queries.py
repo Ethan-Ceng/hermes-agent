@@ -8,7 +8,7 @@ from hermes_db.message_codec import content_from_bytes
 from hermes_db.repositories import runtime, session_queries, sessions
 from hermes_db.tables.conversations import messages, sessions as table
 from hermes_db.tables.runtime import session_admissions
-from hermes_db.values import decode_text
+from hermes_db.core.values import decode_text
 from hermes_state_keys import CRON_PRINCIPAL_ID, cron_run_from_request
 from hermes_state_local import POLICY_PREFIX
 
@@ -82,8 +82,8 @@ class SessionPortabilityQueries:
             return find_foreign(conn, self.scope, origin)
 
     def import_foreign_history(self, origin, messages, *, title, cwd, profile):
-        from hermes_db.operations import portability
-        from hermes_db.portability_values import values
+        from hermes_db.integration.postgres.operations import portability
+        from hermes_db.integration.transfer.portability_values import values
         from hermes_state_ids import new_session_id
 
         sid = new_session_id(hex_len=12)

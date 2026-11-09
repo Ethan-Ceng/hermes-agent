@@ -1,6 +1,6 @@
 """Ordinary runtime call sites dispatch to the selected scoped implementation."""
 
-from hermes_db.runtime_access import runtime_for_store
+from hermes_db.integration.runtime_access import runtime_for_store
 
 
 def begin_runtime_epoch(db, **kwargs):

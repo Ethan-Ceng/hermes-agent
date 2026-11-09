@@ -62,7 +62,7 @@ def expand_native(conn, scope, session_id, *, compression=False):
 
 
 def compression_members(conn, scope, session_ids):
-    from hermes_db.values import explicit_fork
+    from hermes_db.core.values import explicit_fork
 
     roots = select(table.c.lineage_root_id).where(table.c.store_id == scope.require_store_id(), table.c.id.in_(session_ids))
     rows = {row["id"]: dict(row) for row in conn.execute(select(table).where(table.c.store_id == scope.require_store_id(),
@@ -125,7 +125,7 @@ def canonical_targets(conn, scope, session_id):
 
 
 def compression_neighbors(conn, scope, session_id):
-    from hermes_db.values import explicit_fork
+    from hermes_db.core.values import explicit_fork
 
     row = sessions.raw_session(conn, scope, session_id)
     if row is None:

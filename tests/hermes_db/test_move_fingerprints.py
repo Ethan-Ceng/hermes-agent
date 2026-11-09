@@ -2,7 +2,7 @@
 
 import pytest
 
-from hermes_db.move_values import recipient_snapshot_digest, snapshot_digest
+from hermes_db.integration.transfer.move_values import recipient_snapshot_digest, snapshot_digest
 
 
 @pytest.mark.parametrize('recipient', [False, True])

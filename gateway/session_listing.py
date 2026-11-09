@@ -40,7 +40,7 @@ def legacy_readable(authority, actor, sid):
     try:
         from hermes_db.health import is_postgresql_store
         if is_postgresql_store(db):
-            from hermes_db.authority_access import authorize_history as native_authorize
+            from hermes_db.integration.authority_access import authorize_history as native_authorize
             from gateway.session_native_history import LOCAL_SOURCES
             return row['source'] in LOCAL_SOURCES and native_authorize(authority, actor, sid)
         validate_legacy_row(db, row, subject=actor.subject)
@@ -143,7 +143,7 @@ def _stored_closed(authority, actor, owner):
     its stored receipt as ``authorize`` and ``closed_and_unviewed`` would after a restore. No viewer.
     The stored receipt uses the restore's persisted checks; the live route check stays the restore's."""
     from gateway.session_local_recovery import restorable_receipt
-    from hermes_db.runtime_calls import list_session_admissions
+    from hermes_db.integration.runtime_calls import list_session_admissions
     if actor.profile_id != authority.profile_id or 'session:read' not in actor.capabilities:
         return False
     try:

@@ -5,7 +5,7 @@ from sqlalchemy import delete, select
 
 from hermes_db.repositories import kanban as repo
 from hermes_db.tables.kanban import tasks, links
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 
 
 def parent_ids(store, task_id):

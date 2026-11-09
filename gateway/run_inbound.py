@@ -666,7 +666,7 @@ class GatewayInboundMixin(GatewayInboundHooksMixin, GatewayInboundTranscriptionM
             return
         from gateway.session_contract import SessionActor, SessionRef
         from hermes_state_runtime import RuntimeStoreError
-        from hermes_db.runtime_calls import list_session_admissions
+        from hermes_db.integration.runtime_calls import list_session_admissions
         ref = SessionRef(authority.profile_id, sid)
         actor = SessionActor('messaging-control', authority.profile_id,
                           frozenset({'session:submit', 'session:control'}), 'busy-command')

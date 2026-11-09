@@ -8,7 +8,7 @@ from sqlalchemy import select
 from hermes_cli.observability import shared_metrics_engagement as engagement
 from hermes_cli.observability.shared_metrics import SharedMetricsStore
 from hermes_db.tables.metrics import state
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 from tests.hermes_db.postgresql.test_metrics_store import RESOURCE
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]

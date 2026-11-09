@@ -10,7 +10,7 @@ _FIELDS = {"version", "backend", "profile_home", "store_id", "board_id", "board"
 
 
 def board_reference(store):
-    from hermes_db.move_values import resource_key
+    from hermes_db.integration.transfer.move_values import resource_key
     return {"version": 2, "backend": "postgresql", "profile_home": str(store.scope.profile_home),
             "store_id": store.scope.require_store_id(), "board_id": store.board_id, "board": store.slug,
             "target": resource_key(store._transactions)}
@@ -37,7 +37,7 @@ def open_board_owner(reference, *, command=None):
             "kanban_tasks", profile_home=Path(reference["profile_home"])) as resource:
         if resource.settings.backend != "postgresql" or resource.scope.require_store_id() != reference["store_id"]:
             raise StorageConfigurationError("Kanban Board owner backend or store_id changed")
-        from hermes_db.move_values import resource_key
+        from hermes_db.integration.transfer.move_values import resource_key
         if resource_key(resource._transactions) != reference["target"]:
             raise StorageConfigurationError("Kanban Board owner database target changed; reopen its owning runtime")
         with resource.read() as conn:

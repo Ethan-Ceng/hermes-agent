@@ -10,7 +10,7 @@ from hermes_db.operations import messages as writes, transcript_guards
 from hermes_db.repositories import compression as repo, leases, messages, sessions
 from hermes_db.tables.conversations import messages as table
 from hermes_db.tables.gateway import compression_locks
-from hermes_db.values import encode_config, model_config
+from hermes_db.core.values import encode_config, model_config
 
 
 def require_lease(conn, scope, session_id, holder, *, error_type, refresh=False, ttl=300):

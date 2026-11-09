@@ -91,7 +91,7 @@ def test_root_intents_commit_without_source_connection_and_never_count_a_later_d
 def test_root_keeps_its_own_pg_target_when_satellite_uses_another_owned_schema(pg_profiles, postgres_engine, postgres_test_config):
     from hermes_cli.config import atomic_config_write, read_user_config_raw
     from hermes_cli.db_setup import open_profile_db
-    from hermes_db.move_values import resource_key
+    from hermes_db.integration.transfer.move_values import resource_key
     from hermes_db.schema import upgrade_schema
     from tests.hermes_db.pg_support import isolated_namespace
 

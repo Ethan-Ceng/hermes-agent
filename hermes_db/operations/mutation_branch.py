@@ -7,7 +7,7 @@ from sqlalchemy import func, select
 from hermes_db.operations import compression_publish, mutation_policy, retirement_guards, titles
 from hermes_db.repositories import compression, gateway, messages as transcript, runtime, sessions
 from hermes_db.tables.conversations import messages, sessions as table
-from hermes_db.values import decode_text
+from hermes_db.core.values import decode_text
 from hermes_state_local import POLICY_PREFIX
 from hermes_state_mutation_branch import _child_policy
 from hermes_state_runtime import RuntimeStoreError, _json

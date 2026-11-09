@@ -6,7 +6,7 @@ from sqlalchemy import and_, delete, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 
 from hermes_db.tables.verification import verification_events as events, verification_locks as locks, verification_state as states
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 EXACT_FIELDS = ("session_id", "cwd", "root", "command", "canonical_command", "output_summary")
 

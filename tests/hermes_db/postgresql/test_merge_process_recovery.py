@@ -24,7 +24,7 @@ sys.addaudithook(reject_sqlite)
 try:
     if kind == 'closed':
         from gateway.platforms.api_server_run_idempotency import RunIdempotencyStore
-        from hermes_db.run_resources import ProfileRunStores
+        from hermes_db.integration.run_resources import ProfileRunStores
         with_store = ProfileRunStores(RunIdempotencyStore)
         try:
             if phase == 'write':
@@ -73,7 +73,7 @@ def test_merge_state_survives_new_process_with_sqlite_rejected(pg_profiles, tmp_
     with pg_profiles('two'):
         from gateway import hosted_rooms as rooms
         from gateway.platforms.api_server_run_idempotency import RunIdempotencyStore
-        from hermes_db.run_resources import ProfileRunStores
+        from hermes_db.integration.run_resources import ProfileRunStores
         assert not rooms.owes_room_grant_revokes(rooms.default_db_path())
         resources = ProfileRunStores(RunIdempotencyStore)
         try:

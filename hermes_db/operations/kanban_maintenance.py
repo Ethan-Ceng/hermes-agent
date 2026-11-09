@@ -8,7 +8,7 @@ from hermes_db.domains.kanban_files import board_files
 from hermes_db.operations import kanban_file_jobs as files
 from hermes_db.tables.kanban import kanban_boards, tasks
 from hermes_db.tables.kanban_file_jobs import file_jobs
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 
 def replay_files(resource):
@@ -44,7 +44,7 @@ def _orphan_imports(resource):
 
 def owns_import_stage(resource, stage):
     import json
-    from hermes_db.move_values import resource_key
+    from hermes_db.integration.transfer.move_values import resource_key
     marker = stage / ".owner.json"
     if not marker.is_file() or marker.is_symlink():
         return False

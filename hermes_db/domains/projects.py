@@ -2,7 +2,7 @@
 
 from functools import wraps
 
-from hermes_db.domains.resource import DomainResource
+from hermes_db.core.resource import DomainResource
 from hermes_db.errors import StorageConfigurationError
 
 

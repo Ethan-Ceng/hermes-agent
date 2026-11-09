@@ -8,7 +8,7 @@ from sqlalchemy import func, select
 from hermes_db.errors import StorageConfigurationError
 from hermes_db.repositories import kanban as repo, kanban_runs as run_repo
 from hermes_db.tables.kanban import tasks
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 
 
 @dataclass(frozen=True)

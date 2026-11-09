@@ -14,7 +14,7 @@ attachment content retain their file formats. See the
 
 `hermes_cli/db_setup.py` resolves configuration and secrets in the owning profile.
 `hermes_db/factory.py` acquires session handles or a named domain resource.
-`hermes_db/domains/catalog.py` declares each implemented capability, its minimum
+`hermes_db/core/catalog.py` declares each implemented capability, its minimum
 revision and its current table modules. These imports do not require a PG driver
 in SQLite mode.
 
@@ -25,7 +25,7 @@ in SQLite mode.
 | `hermes_db/repositories/` | Core statements, scoped predicates and lossless row conversion |
 | `hermes_db/operations/` | Locks, quotas, state transitions, receipts and multi-step transactions |
 | `hermes_db/tables/` | Shared current Core metadata, composite keys and scope-preserving foreign keys |
-| `hermes_db/postgresql/transactions.py` | Bounded connections, transaction outcomes and sanitized failures |
+| `hermes_db/backends/postgresql/transactions.py` | Bounded connections, transaction outcomes and sanitized failures |
 | `hermes_db/migrations/` | Explicit forward Alembic revisions and frozen historical schema definitions |
 
 SQLite retains its native implementations. Domain adapters select PG before a

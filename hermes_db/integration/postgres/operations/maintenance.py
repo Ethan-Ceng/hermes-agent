@@ -9,7 +9,7 @@ from hermes_db.repositories import retention, retirement_housekeeping, sessions
 from hermes_db.repositories import runtime, session_queries
 from hermes_db.tables.conversations import sessions as table
 from hermes_db.tables.gateway import gateway_heartbeats
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 from hermes_state_runtime import RuntimeStoreError
 
 

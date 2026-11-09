@@ -6,7 +6,7 @@ from sqlalchemy import func, or_, select
 
 from hermes_db.repositories import session_queries, sessions
 from hermes_db.tables.conversations import sessions as table
-from hermes_db.values import explicit_fork
+from hermes_db.core.values import explicit_fork
 
 
 def not_pinned():

@@ -7,7 +7,7 @@ from sqlalchemy import select
 
 from hermes_db.repositories import kanban as repo, kanban_runs as run_repo
 from hermes_db.tables.kanban import events
-from hermes_db.values import decode_text
+from hermes_db.core.values import decode_text
 from hermes_state_runtime import RuntimeStoreError
 
 

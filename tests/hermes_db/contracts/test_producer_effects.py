@@ -28,7 +28,7 @@ def test_automation_fold_refuses_changed_fifo_then_commits_payload_and_cancellat
 
 def test_retry_rewrite_stays_unchanged_when_admission_refuses_and_commits_with_acceptance(store, runtime):
     from gateway.session_retry_admission import RetryRewrite, compose
-    from hermes_db.runtime_access import effect_for_store
+    from hermes_db.integration.runtime_access import effect_for_store
     from hermes_state_runtime import RuntimeStoreError
     store.create_session("s", "cli")
     store.append_message("s", "user", "keep")

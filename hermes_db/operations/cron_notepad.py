@@ -6,7 +6,7 @@ from sqlalchemy import and_, delete, func, select
 from sqlalchemy.dialects.postgresql import insert
 
 from hermes_db.tables.cron_notepad import cron_notepad as notes, cron_notepad_locks as locks
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 
 def _job(table, resource, job_id):

@@ -7,7 +7,7 @@ from hermes_db.operations.effects import CoreEffect
 from hermes_db.operations.rooms import append_event
 from hermes_db.repositories import rooms as repo
 from hermes_db.tables.rooms import events
-from hermes_db.values import encode_text, decode_text
+from hermes_db.core.values import encode_text, decode_text
 
 
 def _latest(conn, store, room_id, before_seq):

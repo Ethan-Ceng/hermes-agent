@@ -2,7 +2,7 @@
 
 ## 文档状态
 
-- 状态：`DESIGN_READY`；本轮只准备方案，没有移动运行代码。
+- 状态：`IMPLEMENTING`；Task1基线已提交，Task2在独立检出搬迁基础设施，进度及证据见实施计划。
 - 日期：2026-11-09；负责人：Codex / 项目维护者。
 - 源码基准：`cbfc773dd7`；运行实现基准为`0d69702244`，两者仅文档不同。
 - 文档分支：`docs/hermes-db-package-layout`；实施分支建议：`refactor/hermes-db-packages`。

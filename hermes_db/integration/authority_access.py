@@ -1,12 +1,12 @@
 """Ordinary authority read gates select explicit native or existing SQLite operations."""
 
 from hermes_db.health import is_postgresql_store
-from hermes_db.runtime_access import runtime_for_store
+from hermes_db.integration.runtime_access import runtime_for_store
 
 
 def validate_import(db, payload):
     if is_postgresql_store(db):
-        from hermes_db.portability_values import values
+        from hermes_db.integration.transfer.portability_values import values
         return values._validate_import_payload(payload)
     return db._validate_import_payload(payload)
 
@@ -91,7 +91,7 @@ def session_launch_source(db, session_id):
 
 def is_compression_child(db, child):
     if is_postgresql_store(db):
-        from hermes_db.values import explicit_fork
+        from hermes_db.core.values import explicit_fork
         parent_id = child.get("parent_session_id")
         if not parent_id or explicit_fork(child):
             return False

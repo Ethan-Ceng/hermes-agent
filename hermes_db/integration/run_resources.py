@@ -3,7 +3,7 @@
 from contextlib import ExitStack
 from threading import RLock
 
-from hermes_db.api_resources import OwnedApiStore, open_run_store
+from hermes_db.integration.api_resources import OwnedApiStore, open_run_store
 from hermes_db.errors import StorageClosedError, StorageConfigurationError
 from hermes_db.health import is_postgresql_store
 

@@ -5,7 +5,7 @@ from sqlalchemy import and_, case, exists, func, or_, select
 from hermes_db.repositories import sessions as repo
 from hermes_db.tables.conversations import messages, sessions
 from hermes_db.tables.runtime import session_admissions
-from hermes_db.values import decode_text, preferred_children
+from hermes_db.core.values import decode_text, preferred_children
 
 
 def filters(conn, scope, *, source=None, sources=None, session_key=None, exclude_sources=None, cwd_prefix=None,

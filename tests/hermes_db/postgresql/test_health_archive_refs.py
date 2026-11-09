@@ -76,7 +76,7 @@ def test_sqlite_payload_and_ledgered_source_are_refused(pg_pair, tmp_path):
 
 def test_configured_readiness_and_archive_refs_without_local_file(pg_store, postgres_test_config, monkeypatch):
     from hermes_cli import db_setup
-    from hermes_db import archive_refs
+    from hermes_db.integration import archive_refs
     from hermes_db.health import configured_probe
     from hermes_db.settings import DatabaseSettings
     from tools import tool_result_storage as tools
@@ -155,7 +155,7 @@ def test_move_append_race_never_erases_new_source_work(pg_pair):
 
 def test_archive_sweep_waits_for_committed_new_reference(pg_store, monkeypatch):
     from sqlalchemy import text
-    from hermes_db import archive_refs
+    from hermes_db.integration import archive_refs
     from hermes_db.operations.messages import insert_rows
     from hermes_db.repositories import messages, sessions
     from tests.waiting import wait_until

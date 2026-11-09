@@ -113,7 +113,7 @@ def _kanban_busy() -> str | None:
     from hermes_constants import get_hermes_home
     home = get_hermes_home()
     if storage_backend(home) == "postgresql":
-        from hermes_db.observations import kanban_due_board
+        from hermes_db.integration.observations import kanban_due_board
         slug = kanban_due_board(home, _KANBAN_DUE_STATUSES)
         return f"kanban work on board {slug}" if slug is not None else None
     from hermes_cli import kanban_db
@@ -144,7 +144,7 @@ def _ledger_busy(runner) -> str | None:
     for authority in all_authorities(runner):
         db = authority.db
         from hermes_db.health import is_postgresql_store
-        from hermes_db.runtime_access import runtime_for_store
+        from hermes_db.integration.runtime_access import runtime_for_store
         if is_postgresql_store(db):
             reason = runtime_for_store(db).runtime_busy_reason()
             if reason:

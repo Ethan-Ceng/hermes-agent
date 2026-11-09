@@ -165,7 +165,7 @@ def _resume_count(conn, scope, session_id, tip_only, limit=None):
 
 
 def display_ids(conn, scope, session_id, limit=None, offset=0, latest=False, after=None):
-    from hermes_db.query_projections import display_value, query_token
+    from hermes_db.backends.postgresql.expressions.projections import display_value, query_token
     from agent.context_compressor import MODEL_ONLY_DISPLAY_METADATA_KEY
 
     original = messages.alias("original")
@@ -199,7 +199,7 @@ def _display_page(conn, scope, session_id, limit, offset, latest):
 
 
 def _transcript_lineage_ids(conn, scope, session_id):
-    from hermes_db.values import model_config
+    from hermes_db.core.values import model_config
     row = session_repo.get_session(conn, scope, session_id)
     if row is None or not model_config(row.get("model_config")).get("_delegate_from"):
         return [session_id]

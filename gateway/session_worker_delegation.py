@@ -194,11 +194,11 @@ def persist_worker_delegation(db, *, epoch, execution_id, session_id, generation
     Gateway calls this ONLY after its ordinary worker claim verification. The
     verified process identity is deliberately separate from the operation payload.
     """
-    from hermes_db.runtime_calls import apply_worker_receipt
+    from hermes_db.integration.runtime_calls import apply_worker_receipt
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(db):
         from hermes_db.operations.worker_delegations import verify_owner
-        from hermes_db.runtime_access import runtime_for_store
+        from hermes_db.integration.runtime_access import runtime_for_store
         owner = verify_owner(execution_id, worker_pid, worker_birth)
         return runtime_for_store(db).persist_delegation(owner=owner, epoch=epoch, execution_id=execution_id,
             session_id=session_id, generation=generation, sequence=sequence, operation=operation, payload=payload)
@@ -228,7 +228,7 @@ async def worker_delegation_request(connection, ref, params):
         if params['operation'] == 'delegation.complete':
             from hermes_db.health import is_postgresql_store
             if is_postgresql_store(authority.db):
-                from hermes_db.runtime_access import runtime_for_store
+                from hermes_db.integration.runtime_access import runtime_for_store
                 event = runtime_for_store(authority.db).delegation_event(
                     ref.session_id, params['execution_id'], params['payload']['event']['delegation_id'])
             else:

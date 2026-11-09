@@ -40,7 +40,7 @@ def _execute(connection, ref, params, command):
     if params["operation"] == "board.resolve":
         return pack(context)
     from hermes_db.health import profile_home_for_store
-    from hermes_db.move_values import resource_key
+    from hermes_db.integration.transfer.move_values import resource_key
     database = connection.authority.db
     context = dict(context, principal=connection.actor.subject, session_store={
         "home": str(profile_home_for_store(database)), "store_id": database.scope.require_store_id(),

@@ -5,8 +5,8 @@ from dataclasses import replace
 
 def test_native_webhook_delivery_queries_and_finalization_do_not_cross_stores(api_owner):
     from gateway.platforms.webhook_ingress import _committed, finalize_webhook
-    from hermes_db.authority_access import pending_target_ids
-    from hermes_db.runtime_access import runtime_for_store
+    from hermes_db.integration.authority_access import pending_target_ids
+    from hermes_db.integration.runtime_access import runtime_for_store
     owner, db, other = api_owner
     runtime = runtime_for_store(db)
     db.create_session('hook', 'webhook')
@@ -33,7 +33,7 @@ def test_native_webhook_delivery_queries_and_finalization_do_not_cross_stores(ap
 
 def test_native_webhook_pending_successor_and_stale_epoch_refuse_closure(api_owner):
     from gateway.platforms.webhook_ingress import finalize_webhook
-    from hermes_db.runtime_access import runtime_for_store
+    from hermes_db.integration.runtime_access import runtime_for_store
     owner, db, _ = api_owner
     runtime = runtime_for_store(db)
     db.create_session('hook', 'webhook')

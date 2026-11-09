@@ -68,7 +68,7 @@ def test_core_profile_repair_scan_and_move_batch_work_without_database_files(cor
 
 def test_session_resource_releases_only_its_handle_once(core_pair):
     from hermes_db.handle import DatabaseHandle
-    from hermes_db.session_resource import SessionResource
+    from hermes_db.core.session_resource import SessionResource
     store = core_pair[0]
     releases = []
     handle = DatabaseHandle(store.scope, store, "runtime", lambda: releases.append(True))

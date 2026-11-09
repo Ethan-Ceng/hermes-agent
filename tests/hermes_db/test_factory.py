@@ -34,7 +34,7 @@ def test_sqlite_handles_share_registry_and_release_independently(tmp_path):
 def test_postgres_uninitialized_backend_never_opens_sqlite(tmp_path, monkeypatch):
     pytest.importorskip("psycopg", reason="optional postgresql extra")
     settings = DatabaseSettings("postgresql", PostgresSettings("postgresql://localhost/unused", "hermes"))
-    from hermes_db import native_registry
+    from hermes_db.integration import registry as native_registry
     def uninitialized(settings, scope):
         raise StorageSchemaError('schema is not initialized')
     monkeypatch.setattr(native_registry, '_construct_store', uninitialized)

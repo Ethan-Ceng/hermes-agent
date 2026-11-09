@@ -1,6 +1,6 @@
 """API auxiliary stores acquire the same configured session backend and owning scope."""
 
-from hermes_db.session_resource import SessionResource
+from hermes_db.core.session_resource import SessionResource
 
 
 class OwnedApiStore:

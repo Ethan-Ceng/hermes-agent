@@ -11,7 +11,7 @@ from hermes_db.repositories import gateway, retirement_housekeeping, runtime, se
 from hermes_db.tables.conversations import sessions as table
 from hermes_db.tables.gateway import gateway_routing
 from hermes_db.tables.runtime import session_admissions
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 from hermes_state_local import API_BINDING_PREFIX, API_DECLARED_PREFIX
 from hermes_state_runtime import RuntimeStoreError, _json
 

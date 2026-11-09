@@ -77,7 +77,7 @@ def reserve_admission_worker(authority, *, admission_id, process, principal_id, 
     secret = secrets.token_urlsafe(32)
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(authority.db):
-        from hermes_db.runtime_access import runtime_for_store
+        from hermes_db.integration.runtime_access import runtime_for_store
         return runtime_for_store(authority.db).reserve_admission_worker(epoch=authority.epoch,
             admission_id=admission_id, principal_id=principal_id, worker_subject=worker_subject,
             identity=dict(profile_id=authority.profile_id, pid=pid, birth=birth, secret=secret))
@@ -124,7 +124,7 @@ def lose_admission_worker(authority, row, scope):
     """
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(authority.db):
-        from hermes_db.runtime_access import runtime_for_store
+        from hermes_db.integration.runtime_access import runtime_for_store
         return runtime_for_store(authority.db).lose_admission_worker(epoch=scope['epoch'],
             admission_id=row['admission_id'], execution_id=scope['execution_id'], generation=scope['generation'])
 

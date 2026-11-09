@@ -11,7 +11,7 @@ from sqlalchemy.dialects.postgresql import insert
 from hermes_db.domains.kanban_files import BoardFiles, _path, content_root
 from hermes_db.errors import StorageBusyError, StorageConfigurationError
 from hermes_db.tables.kanban_file_jobs import file_jobs as jobs, file_locks as locks
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 ROOT_FIELDS = ("data_root", "attachments_root", "workspaces_root", "logs_root")
 

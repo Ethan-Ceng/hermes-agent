@@ -212,7 +212,7 @@ def reconcile_native_retry(db, *, principal_id, session_id, request_id, payload,
     the fingerprint recorded at ingress (``ingress_fingerprint``); a changed resend, or a row
     committed before fingerprints, is compared exactly as above."""
     fresh = payload.get('native_text_v1', {}).get('media') or []
-    from hermes_db.runtime_calls import find_session_admission
+    from hermes_db.integration.runtime_calls import find_session_admission
     row = find_session_admission(db, principal_id=principal_id, session_id=session_id, request_id=request_id)
     retained = row['payload'] if row is not None else {}
     recorded = retained.get('native_text_v1', {}).get('ingress_sha256')
@@ -438,7 +438,7 @@ def release_admission_media(db, admission_id):
     files can collect independently; physical aliases and uncertain stat results
     retain conservatively. A shared hardlink can consequently retain an extra old alias.
     """
-    from hermes_db.runtime_calls import get_session_admission
+    from hermes_db.integration.runtime_calls import get_session_admission
     row = get_session_admission(db, admission_id=admission_id)
     if row is None or row['status'] != 'terminal':
         return 0
@@ -474,7 +474,7 @@ def sweep_settled_media(db, *, now=None):
         return 0
     _last_sweep[key] = now
     if is_postgresql_store(db):
-        from hermes_db.runtime_access import runtime_for_store
+        from hermes_db.integration.runtime_access import runtime_for_store
         references = runtime_for_store(db).settled_native_media()
     else:
         with db._read_ctx() as conn:
@@ -562,7 +562,7 @@ def release_unheld_media(db, references, *, retain_history=True):
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(db):
         from hermes_constants import get_hermes_home
-        from hermes_db.runtime_access import runtime_for_store
+        from hermes_db.integration.runtime_access import runtime_for_store
         if profile_home_for_store(db) != get_hermes_home().resolve():
             return 0
         return runtime_for_store(db).release_media(references, retain_history=retain_history)

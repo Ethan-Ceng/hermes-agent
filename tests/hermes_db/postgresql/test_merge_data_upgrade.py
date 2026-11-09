@@ -13,9 +13,9 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 def old_store(postgres_test_config, postgres_schema, tmp_path):
     from alembic import command
     from alembic.config import Config
-    from hermes_db.engine import get_engine
+    from hermes_db.backends.postgresql.engine import get_engine
     from hermes_db.schema import _prepare_schema
-    from hermes_db.postgresql.transactions import Transactions
+    from hermes_db.backends.postgresql.transactions import Transactions
     from hermes_db.scope import DatabaseScope
     from hermes_db.session_store import PostgresSessionStore
     settings = replace(postgres_test_config.settings, schema=postgres_schema)
@@ -49,7 +49,7 @@ def test_forward_upgrade_repairs_delegate_roots_and_refusal_once(old_store):
     from hermes_db.schema import upgrade_schema
     from hermes_db.tables.conversations import sessions
     from hermes_db.repositories import sessions as repo
-    from hermes_db.values import model_config
+    from hermes_db.core.values import model_config
     store, settings = old_store
     store.create_session('parent', 'cli')
     store.end_session('parent', 'compression')

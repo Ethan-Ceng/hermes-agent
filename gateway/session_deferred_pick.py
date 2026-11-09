@@ -38,7 +38,7 @@ def defer_pick(authority, actor, ref, params):
             'application_id': 'deferred-pick:' + params['request_id']}
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(authority.db):
-        from hermes_db.runtime_access import runtime_for_store
+        from hermes_db.integration.runtime_access import runtime_for_store
         return runtime_for_store(authority.db).defer_pick(epoch=authority.epoch, session_id=ref.session_id,
             key=key, digest=digest, operation=operation, pick=pick, shown=shown)
 
@@ -74,7 +74,7 @@ def deferred_value(current, operation, pick, shown):
 def _compare_pick(authority, key, raw, value):
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(authority.db):
-        from hermes_db.runtime_access import runtime_for_store
+        from hermes_db.integration.runtime_access import runtime_for_store
         return runtime_for_store(authority.db).compare_deferred_pick(key=key, expected=raw, value=value)
 
     def write(conn):
@@ -102,7 +102,7 @@ async def _commit(authority, ref, entry, operation):
     import asyncio
     from gateway.session_mutations import write_mutation
     from hermes_state_mutation_guards import MUTATION_GUARD_REFUSALS
-    from hermes_db.authority_access import has_mutation_receipt
+    from hermes_db.integration.authority_access import has_mutation_receipt
     if await asyncio.to_thread(has_mutation_receipt, authority.db, entry['principal_id'], ref.session_id,
                                entry['application_id']):
         return {'status': 'replayed'}  # committed before a restart, not yet removed: never apply it twice

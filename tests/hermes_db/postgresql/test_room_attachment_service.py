@@ -11,7 +11,7 @@ from gateway import hosted_room_driver as driver
 from gateway.session_hosted_service import CanonicalHostedRoomService
 from gateway.session_hosted_attachments import upload, download, submission_payload
 from hermes_db.access import open_session_store
-from hermes_db.runtime_access import runtime_for_store
+from hermes_db.integration.runtime_access import runtime_for_store
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 

@@ -1,6 +1,6 @@
 """Read-only per-domain support and table checks for explicit schema management."""
 
-from hermes_db.domains.catalog import KNOWN_DOMAINS, POSTGRES_DOMAINS, required_tables
+from hermes_db.core.catalog import KNOWN_DOMAINS, POSTGRES_DOMAINS, required_tables
 
 
 def domain_status_on_connection(conn, schema, *, revision_ready, extensions_ready):

@@ -28,9 +28,9 @@ def capture_worktree_store(profile_home=None):
     home = Path(profile_home if profile_home is not None else get_hermes_home()).resolve()
     if storage_backend(home) == "sqlite":
         return home / "state.db"
-    from hermes_db.engine import get_engine
-    from hermes_db.move_values import resource_key
-    from hermes_db.postgresql.transactions import Transactions
+    from hermes_db.backends.postgresql.engine import get_engine
+    from hermes_db.integration.transfer.move_values import resource_key
+    from hermes_db.backends.postgresql.transactions import Transactions
     settings, scope = resolve_db_configuration(home)
     pg = settings.postgresql
     return ProfileStore(home, scope.require_store_id(), resource_key(Transactions(get_engine(pg), pg.schema)))
@@ -70,7 +70,7 @@ def _active(value):
 
 def _observations(reference, worktree_path):
     from hermes_cli.worktree_ops import _inside_tree
-    from hermes_db.observations import worktree_sessions
+    from hermes_db.integration.observations import worktree_sessions
     rows, meta = worktree_sessions(reference.home, reference.store_id, reference.target)
     inside = _inside_tree(worktree_path)
     return [row for row in rows if inside(row["cwd"])], {key for key, value in meta if _active(value)}

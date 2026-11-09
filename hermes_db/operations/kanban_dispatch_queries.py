@@ -6,7 +6,7 @@ from sqlalchemy import func, select
 
 from hermes_db.repositories import kanban as repo
 from hermes_db.tables.kanban import comments, events, runs, tasks
-from hermes_db.values import decode_text
+from hermes_db.core.values import decode_text
 
 
 def _running_per_profile(store):

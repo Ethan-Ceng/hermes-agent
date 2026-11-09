@@ -4,7 +4,7 @@ import time
 
 from hermes_db.operations import sessions as lifecycle
 from hermes_db.repositories import messages, sessions
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 
 
 def record(conn, scope, session_id, *, source, own_profile=None, include_compression_ancestors=False, **peer):

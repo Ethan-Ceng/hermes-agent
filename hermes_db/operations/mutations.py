@@ -8,7 +8,7 @@ from hermes_db.operations import mutation_policy, retirement, retirement_guards,
 from hermes_db.operations.effects import invoke
 from hermes_db.repositories import retirement as target_repo, runtime, sessions
 from hermes_db.tables.conversations import sessions as table
-from hermes_db.values import decode_text
+from hermes_db.core.values import decode_text
 from hermes_state_mutations import validate_action
 from hermes_state_runtime import RuntimeStoreError, _json, _text, mutation_receipt_key
 
@@ -77,8 +77,8 @@ def mutate(conn, scope, *, epoch, principal_id, session_id, request_id, expected
 
 def _apply(conn, scope, session_id, operation, payload, targets, prepared):
     if operation == "import":
-        from hermes_db.operations.portability import import_current
-        from hermes_db.portability_values import values
+        from hermes_db.integration.postgres.operations.portability import import_current
+        from hermes_db.integration.transfer.portability_values import values
         if len(payload["sessions"]) > values._IMPORT_MAX_SESSIONS:
             raise RuntimeStoreError("invalid_params")
         normalized, errors = values._validate_import_payload(payload["sessions"])

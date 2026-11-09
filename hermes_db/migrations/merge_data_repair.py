@@ -17,7 +17,7 @@ from hermes_db.tables.conversations import messages, sessions
 from hermes_db.tables.gateway import compression_locks, session_turn_leases
 from hermes_db.tables.metadata import SCHEMA
 from hermes_db.tables.runtime import worker_executions
-from hermes_db.values import encode_config, explicit_fork, model_config
+from hermes_db.core.values import encode_config, explicit_fork, model_config
 
 
 def repair(conn, schema):

@@ -15,7 +15,7 @@ from hermes_db.operations.kanban_transfer import TABLES, scrub_runtime
 from hermes_db.repositories import kanban as repo
 from hermes_db.repositories.kanban_workspaces import canonical_path
 from hermes_db.tables.kanban_file_jobs import file_jobs
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 
 
 def compensate_stage(stage, root, primary):
@@ -84,7 +84,7 @@ def _prepare_rows(tables, fields):
 
 def _stage(extracted, resource, board_id):
     from hermes_cli.archive_safe import copy_regular_files
-    from hermes_db.move_values import resource_key
+    from hermes_db.integration.transfer.move_values import resource_key
     from utils import atomic_json_write
     home = resource.scope.profile_home
     root = home / "kanban" / "imports"

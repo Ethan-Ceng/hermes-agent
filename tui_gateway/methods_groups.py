@@ -150,7 +150,7 @@ def _room_link_run_storage_durable() -> bool:
         return True
     from hermes_cli.db_setup import storage_backend
     from hermes_constants import get_hermes_home
-    from hermes_db.api_resources import open_run_store
+    from hermes_db.integration.api_resources import open_run_store
     from gateway.platforms.api_server_run_idempotency import RunIdempotencyStore
     home = get_hermes_home()
     if storage_backend(home) == "postgresql":

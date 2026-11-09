@@ -5,7 +5,7 @@ from datetime import timedelta
 from sqlalchemy import select
 from hermes_db.repositories import metrics as repo
 from hermes_db.tables.metrics import state, counters
-from hermes_db.values import decode_text
+from hermes_db.core.values import decode_text
 
 
 def record(conn, store, metric, dimensions, resource, now, amount=1):

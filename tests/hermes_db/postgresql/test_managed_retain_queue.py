@@ -55,7 +55,7 @@ def test_managed_sync_persists_before_http_and_new_owner_worker_replays_same_pen
     from hermes_cli.db_setup import open_profile_db
     from hermes_db.tables.retain_queue import pending
     from hermes_db.tables.runtime import session_admissions, worker_executions
-    from hermes_db.values import decode_text
+    from hermes_db.core.values import decode_text
 
     guard, audit = install_guard(tmp_path)
     model = ThreadingHTTPServer(('127.0.0.1', 0), Model)

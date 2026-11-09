@@ -8,7 +8,7 @@ from hermes_db.operations import retirement_guards
 from hermes_db.repositories import lineage, retirement, runtime, sessions
 from hermes_db.tables.conversations import sessions as table
 from hermes_db.tables.runtime import state_meta
-from hermes_db.values import model_config
+from hermes_db.core.values import model_config
 from hermes_state_local import POLICY_PREFIX
 from hermes_state_mutation_prepared import DEFERRED_PICK_PREFIX
 from hermes_state_runtime import RuntimeStoreError, _json

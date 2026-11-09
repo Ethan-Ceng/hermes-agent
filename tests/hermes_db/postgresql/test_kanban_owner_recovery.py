@@ -6,7 +6,7 @@ import pytest
 
 from hermes_cli import kanban_db as kb, kanban_db_connect as kbc, kanban_owner_recovery as recovery
 from hermes_db.access import open_session_store
-from hermes_db.runtime_access import runtime_for_store
+from hermes_db.integration.runtime_access import runtime_for_store
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 
@@ -22,7 +22,7 @@ def test_owner_receipt_reads_real_admission_and_only_current_attempt(pg_profiles
         runtime.admit_input(epoch=epoch, principal_id="producer", session_id="owner", request_id="attempt", payload={})
         receipt = dict(storage_backend="postgresql", profile_home=str(home), store_id=db.scope.store_id,
                        principal_id="producer", session_id="owner", request_id="attempt")
-        from hermes_db.move_values import resource_key
+        from hermes_db.integration.transfer.move_values import resource_key
         receipt["target"] = resource_key(db._transactions)
         kb._append_event(store, task_id, "owner_admitted", receipt, run_id=first.current_run_id)
         assert recovery.owner_reclaim_paused(store, task_id)
@@ -84,7 +84,7 @@ def test_owner_admission_receipt_refuses_same_ids_from_a_retargeted_schema(pg_pr
     from copy import deepcopy
     from dataclasses import replace
     from hermes_cli.config import atomic_config_write, read_user_config_raw
-    from hermes_db.move_values import resource_key
+    from hermes_db.integration.transfer.move_values import resource_key
     from hermes_db.schema import upgrade_schema
     from tests.hermes_db.pg_support import isolated_namespace
     with isolated_namespace(postgres_engine, postgres_test_config) as other_schema:

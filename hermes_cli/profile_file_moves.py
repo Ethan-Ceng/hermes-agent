@@ -37,7 +37,7 @@ def resolve_move(old_name, new_name):
 
 
 def _identity(resource):
-    from hermes_db.move_values import resource_key
+    from hermes_db.integration.transfer.move_values import resource_key
     return dict(store_id=resource.scope.require_store_id(), target=resource_key(resource._transactions))
 
 
@@ -78,7 +78,7 @@ def _gate(journal):
 def _reanchor_database(old, new, identity):
     from hermes_cli.db_setup import _owning_profile
     from hermes_db.factory import acquire_profile_domain
-    from hermes_db.profile_paths import reanchor
+    from hermes_db.integration.profile_paths import reanchor
     with _owning_profile(new), acquire_profile_domain("kanban_tasks", profile_home=new) as resource:
         if resource.settings.backend != "postgresql" or _identity(resource) != identity:
             raise StorageConfigurationError("Profile move database identity changed; preserve the journal and local files")
@@ -86,7 +86,7 @@ def _reanchor_database(old, new, identity):
 
 
 def _markers(old, new, identity):
-    from hermes_db.profile_paths import payload_paths
+    from hermes_db.integration.profile_paths import payload_paths
     patterns = ("kanban/data/*/attachments/*/*/.owner.json", "kanban/imports/*/.owner.json", "kanban/uploads/*/*/manifest.json")
     for pattern in patterns:
         for path in new.glob(pattern):

@@ -5,7 +5,7 @@ from sqlalchemy import and_, or_, select
 
 from hermes_db.repositories import kanban as repo
 from hermes_db.tables.kanban import tasks, links
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 TERMINAL = (b"done", b"archived", b"failed", b"cancelled")
 

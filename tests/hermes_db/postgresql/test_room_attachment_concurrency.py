@@ -48,7 +48,7 @@ def test_two_actual_processes_respect_shared_room_quota_and_keep_one_blob(pg_pro
 def test_sweep_waits_for_real_pending_sql_commit_before_deciding_file_liveness(pg_profiles, monkeypatch):
     from sqlalchemy import text, select, func
     from hermes_db.domains.rooms import open_room_store
-    from hermes_db.postgresql.transactions import Transactions
+    from hermes_db.backends.postgresql.transactions import Transactions
     from hermes_db.repositories import rooms as repo
     from hermes_db.tables.room_attachments import attachments, blobs
     from tests.waiting import wait_until

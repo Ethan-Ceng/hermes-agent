@@ -88,7 +88,7 @@ async def test_gateway_api_responses_and_run_receipts_share_one_connection(surfa
     from gateway.platforms.api_server import APIServerAdapter
     from gateway.platforms.api_server_response_admissions import _lookup_admission
     from gateway.session_api_turn import admit_api_turn
-    from hermes_db.runtime_access import runtime_for_store
+    from hermes_db.integration.runtime_access import runtime_for_store
     from hermes_constants import set_hermes_home_override, reset_hermes_home_override
     home = surface_config[0]
     token = set_hermes_home_override(home)
@@ -147,7 +147,7 @@ async def test_hosted_coordination_uses_selected_backend_and_preserves_scope_on_
     from gateway.session_hosted_service import CanonicalHostedRoomService
     from hermes_cli.db_setup import _owning_profile
     from hermes_db.access import open_session_store
-    from hermes_db.runtime_access import runtime_for_store
+    from hermes_db.integration.runtime_access import runtime_for_store
     from hermes_state_runtime import RuntimeStoreError
     home, other_home = surface_config
     monkeypatch.setattr('gateway.hosted_rooms.local_authority_gateway_id', lambda: 'test')

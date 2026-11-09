@@ -6,7 +6,7 @@ from importlib import import_module
 from pathlib import Path
 from contextlib import contextmanager
 
-from hermes_db.domains.resource import DomainResource
+from hermes_db.core.resource import DomainResource
 from hermes_db.errors import StorageConfigurationError
 
 
@@ -28,7 +28,7 @@ def location_root(location):
 
 
 def room_reference(store):
-    from hermes_db.move_values import resource_key
+    from hermes_db.integration.transfer.move_values import resource_key
     return RoomStoreRef(store.scope.profile_home, store.scope.require_store_id(), resource_key(store._transactions))
 
 

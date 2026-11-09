@@ -15,7 +15,7 @@ from dataclasses import asdict
 from functools import partial
 
 from hermes_state_runtime import STEERING, RuntimeStoreError, check_replaced_input, replacement_binding, retire_replaced_input, steer_replayed
-from hermes_db.runtime_calls import find_session_admission, get_session_admission, revert_steer_input, steer_session_input
+from hermes_db.integration.runtime_calls import find_session_admission, get_session_admission, revert_steer_input, steer_session_input
 
 # A steer carries plain text and its presentation only. Attachments, finite runs, classic-CLI turns,
 # native envelopes and automation rows are whole turns: neither verb may drop what they carry.
@@ -39,7 +39,7 @@ def _interactive(authority, session_id):
     counts, a write). Under WAL it takes the lock-free reader pool, as ``_pending_rows`` does there."""
     sources = authority.launch_sources
     if session_id not in sources:
-        from hermes_db.authority_access import session_launch_source
+        from hermes_db.integration.authority_access import session_launch_source
         found = session_launch_source(authority.db, session_id)
         if found is None:
             return False

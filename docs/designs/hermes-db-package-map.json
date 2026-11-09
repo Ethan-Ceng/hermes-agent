@@ -1,7 +1,7 @@
 {
   "baseline": "cbfc773dd79241752697e647067c63338fc01680",
   "baseline_runtime": "0d69702244d623a31be149a9bac6a2658e0322ae",
-  "stage": "design-only; no application modules moved",
+  "stage": "Task2 infrastructure verified; domain moves continue from Task3 in isolated checkout",
   "hash_basis": "SHA256 of Git blob bytes at baseline; independent of checkout line endings",
   "counts": {
     "keep": 76,
@@ -30,7 +30,8 @@
       "task": 2,
       "lines": 1,
       "sha256": "72cc5fb53ab4d25fd4f8bb13c74a87c44882f4e701127115d8e82344399a8fcf",
-      "role": "public-entry"
+      "role": "public-entry",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/access.py",
@@ -39,7 +40,8 @@
       "task": 2,
       "lines": 82,
       "sha256": "0d82719e07bb939bd50011713404e9985c0cd65dec77391e57092bd3c12f2771",
-      "role": "public-entry"
+      "role": "public-entry",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/api_resources.py",
@@ -48,7 +50,8 @@
       "task": 2,
       "lines": 56,
       "sha256": "3d0dce70b1e15b7e37e2d57bcfb5811ee210a3d831a6b3e6b6e273366f25d41f",
-      "role": "integration"
+      "role": "integration",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/archive_projection.py",
@@ -66,7 +69,8 @@
       "task": 2,
       "lines": 72,
       "sha256": "6a725fda7e5379313d74e6fdc3a39631e660a465ad3241d58eb215e7bbdf9e6f",
-      "role": "integration"
+      "role": "integration",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/authority_access.py",
@@ -75,7 +79,8 @@
       "task": 2,
       "lines": 119,
       "sha256": "54aec427e5b6122d01d83634983748743f7868d82e417d2def030594485a7755",
-      "role": "integration"
+      "role": "integration",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/compression_coverage.py",
@@ -93,7 +98,8 @@
       "task": 2,
       "lines": 13,
       "sha256": "9319f89963a86432421f25200d35080b4f66aa4c8e300e4882e61fd4991cbed7",
-      "role": "public-entry"
+      "role": "public-entry",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/delegation_store.py",
@@ -138,7 +144,8 @@
       "task": 2,
       "lines": 18,
       "sha256": "ce4cd56bb2f3f369e52191ca6ad17032b9fc64a79a80d245f5841252ae7d6f79",
-      "role": "infrastructure"
+      "role": "infrastructure",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/__init__.py",
@@ -147,7 +154,8 @@
       "task": 2,
       "lines": 1,
       "sha256": "5b1a5fea2aa565d9391ca762339c8f80f8a54903f9e2ed623ebc4233665e4d30",
-      "role": "namespace"
+      "role": "namespace",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/catalog.py",
@@ -156,7 +164,8 @@
       "task": 2,
       "lines": 48,
       "sha256": "86a1a0d93340970346937ab9c83d2522c3d7b995936252914c55a92f455d5cc6",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/cron.py",
@@ -282,7 +291,8 @@
       "task": 2,
       "lines": 49,
       "sha256": "fb8f03a2b052098430c3b0813d640a2e49de639d92eacf29826d93d9688186ec",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/retain_queue.py",
@@ -327,7 +337,8 @@
       "task": 2,
       "lines": 90,
       "sha256": "a4b2fd1470a37f40b28ff079925430e4ca0830cc7c24cdc5b13841ab60a5978e",
-      "role": "infrastructure"
+      "role": "infrastructure",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/errors.py",
@@ -336,7 +347,8 @@
       "task": 2,
       "lines": 53,
       "sha256": "205afb8235c330a864ac71aaec9da5ecf6f007427414b68f76ffced8481f62cf",
-      "role": "public-entry"
+      "role": "public-entry",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/events.py",
@@ -345,7 +357,8 @@
       "task": 2,
       "lines": 21,
       "sha256": "0b911744b98a8a466c6bb33b57037c20525060ec5d4af9a3387d80e0fc258160",
-      "role": "integration"
+      "role": "integration",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/factory.py",
@@ -354,7 +367,8 @@
       "task": 2,
       "lines": 50,
       "sha256": "fbc5d5c40a192c9ce67a6495d031acbd8bbfef6452f9f10a62064319e71b7c0f",
-      "role": "public-entry"
+      "role": "public-entry",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/file_scope.py",
@@ -363,7 +377,8 @@
       "task": 2,
       "lines": 31,
       "sha256": "b10042a99453c0afeac50314a634f6b837a872b1f06ee99a0237ca627ae3db79",
-      "role": "infrastructure"
+      "role": "infrastructure",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/handle.py",
@@ -372,7 +387,8 @@
       "task": 2,
       "lines": 58,
       "sha256": "44c082225f8787cf9720bfafa32a7a60370417390e3a033c2418898e4d029677",
-      "role": "public-entry"
+      "role": "public-entry",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/health.py",
@@ -381,7 +397,8 @@
       "task": 2,
       "lines": 61,
       "sha256": "170ac452c3a4402a60dfbfe4fd9027efcc3d23f65d7e697b964f31e518ec5642",
-      "role": "public-entry"
+      "role": "public-entry",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/json_paths.py",
@@ -390,7 +407,8 @@
       "task": 2,
       "lines": 35,
       "sha256": "74e2981efce61747a63ea6130747826cef90d3df4e145952bc777269c98653be",
-      "role": "infrastructure"
+      "role": "infrastructure",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/legacy_sqlite.py",
@@ -399,7 +417,8 @@
       "task": 2,
       "lines": 69,
       "sha256": "70ed466e89e566cad95751e0f692ab6a53ba3a6531c9cad604cfc585c90e6ab4",
-      "role": "infrastructure"
+      "role": "infrastructure",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/local_access.py",
@@ -408,7 +427,8 @@
       "task": 2,
       "lines": 40,
       "sha256": "1509845f550b6b029df52ccc6f5e10e39606e1b16c577a6cf5cc42da1675a390",
-      "role": "integration"
+      "role": "integration",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/maintenance.py",
@@ -417,7 +437,8 @@
       "task": 2,
       "lines": 54,
       "sha256": "0d9ed56199a56104972d9c64354d44d1eeb0802cf5de6e5f588bdb170ebc7832",
-      "role": "public-entry"
+      "role": "public-entry",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/matrix_codec.py",
@@ -831,7 +852,8 @@
       "task": 2,
       "lines": 48,
       "sha256": "58e3da643a039c616ef7bd475ecec1d13962d8c4f961429aad213f0fe3911ef0",
-      "role": "infrastructure"
+      "role": "infrastructure",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/native_registry.py",
@@ -840,7 +862,8 @@
       "task": 2,
       "lines": 136,
       "sha256": "04f2a4725df378915d5ee2ebae341249bdb7325cea1577a93c6c92171851866a",
-      "role": "integration"
+      "role": "integration",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/observations.py",
@@ -849,7 +872,8 @@
       "task": 2,
       "lines": 81,
       "sha256": "097c26c1adbf89c68065cc7860c1e258fc20057df8f56eedac8d02b23485b257",
-      "role": "integration"
+      "role": "integration",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/__init__.py",
@@ -867,7 +891,8 @@
       "task": 2,
       "lines": 75,
       "sha256": "78c5441cd0c9a484974843d19fe7ee54cfef41a1de68ffe57e0fdd54ecca79dd",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/api.py",
@@ -1011,7 +1036,8 @@
       "task": 2,
       "lines": 135,
       "sha256": "a5a888dba823a88162ec98e796c3bbd9504f7af568cb4ee4f3fa7bb04436f168",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/gateway.py",
@@ -1515,7 +1541,8 @@
       "task": 2,
       "lines": 123,
       "sha256": "d75c79ee3a45e670a40f8fa167fb7460cc55febba170d977d9564a6426630d8c",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/matrix_accounts.py",
@@ -1632,7 +1659,8 @@
       "task": 2,
       "lines": 115,
       "sha256": "9c8040f986fe3ab93fa5b0a14bd6889a8c7a8f1e762dd376ab4b331c499aafda",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/profile_move.py",
@@ -1641,7 +1669,8 @@
       "task": 2,
       "lines": 168,
       "sha256": "69b784d47273a5c2339ebd61f690fe74b7480f40c5d731d690a5f58834fe1b70",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/profile_purge.py",
@@ -1650,7 +1679,8 @@
       "task": 2,
       "lines": 33,
       "sha256": "cb1dad8e8c984cec14201bea19f32f92de94f8ba69acae7b6cbc3420d4368fc7",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/profile_repair.py",
@@ -1659,7 +1689,8 @@
       "task": 2,
       "lines": 86,
       "sha256": "52d3946f35a6edfac5747929e688d0b503e263262f5be686cc0c79b6bc91f5a2",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/projects.py",
@@ -2163,7 +2194,8 @@
       "task": 2,
       "lines": 25,
       "sha256": "f7fffb33a0059373f75a3b1cc1a6d8faee3dcadff2b57faf7ff380dd13de3b52",
-      "role": "infrastructure"
+      "role": "infrastructure",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/postgresql/__init__.py",
@@ -2172,7 +2204,8 @@
       "task": 2,
       "lines": 1,
       "sha256": "d25be3701918af8aefadbb337bfcb570b99101680ea2740c7fbe7a461a2d4565",
-      "role": "backend"
+      "role": "backend",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/postgresql/changes.py",
@@ -2181,7 +2214,8 @@
       "task": 2,
       "lines": 30,
       "sha256": "5ff734ea47e76367f010b5e0cbdc1eedb238fbd2f5242f7774d2ed011a7dbf6c",
-      "role": "backend"
+      "role": "backend",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/postgresql/search.py",
@@ -2190,7 +2224,8 @@
       "task": 2,
       "lines": 102,
       "sha256": "8a96bf7c1bd0ce0938717f935a8cb390de31c71a4cf676669c8cb2ad2ccebd9a",
-      "role": "backend"
+      "role": "backend",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/postgresql/transactions.py",
@@ -2199,7 +2234,8 @@
       "task": 2,
       "lines": 69,
       "sha256": "f4111381c37bcd663067f92423717a06c78e88aa52fb05bb68356b7bb8e6839a",
-      "role": "backend"
+      "role": "backend",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/profile_context.py",
@@ -2208,7 +2244,8 @@
       "task": 2,
       "lines": 32,
       "sha256": "4fafee2bca643b765ccc712abe208f569b0ea489678ebf4068acc890f52014ea",
-      "role": "integration"
+      "role": "integration",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/profile_paths.py",
@@ -2217,7 +2254,8 @@
       "task": 2,
       "lines": 138,
       "sha256": "5e8a2bea5abe31123f77e32956edd82ca199a93d72e119905e93995bacd910ca",
-      "role": "integration"
+      "role": "integration",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/query_projections.py",
@@ -2226,7 +2264,8 @@
       "task": 2,
       "lines": 20,
       "sha256": "7aa4b3668643a3253a60bc0f39b911b930bf18eb4500b991a3870f82d5e5389c",
-      "role": "infrastructure"
+      "role": "infrastructure",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/__init__.py",
@@ -2487,7 +2526,8 @@
       "task": 2,
       "lines": 34,
       "sha256": "e636caab43d2db64f8c2e445cfda861eb7aa1a8f6d8440d85d37fa6372d275d2",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/profile_repair.py",
@@ -2496,7 +2536,8 @@
       "task": 2,
       "lines": 41,
       "sha256": "30ed41e141fb009a71be00f2f9a7158e6700a2e31e1f037057dfceb017e10afb",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/projects.py",
@@ -2766,7 +2807,8 @@
       "task": 2,
       "lines": 126,
       "sha256": "437a39fa1c07315ffe982587c93934c8479173159c1502a78d3010750f49d788",
-      "role": "integration"
+      "role": "integration",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/runtime_access.py",
@@ -2775,7 +2817,8 @@
       "task": 2,
       "lines": 22,
       "sha256": "d3f3f07d6480def74707bf2a7e3c90d06e574a2b9899c231f33da339440c2fc0",
-      "role": "integration"
+      "role": "integration",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/runtime_api.py",
@@ -2802,7 +2845,8 @@
       "task": 2,
       "lines": 79,
       "sha256": "eac1045d9a09557d12a729ce5b49a05bce191eb95c91f315436b6eea5b5346c7",
-      "role": "integration"
+      "role": "integration",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/runtime_history.py",
@@ -2892,7 +2936,8 @@
       "task": 2,
       "lines": 122,
       "sha256": "b8651e793a7c163ae995821376465023eed6c72afa9f24db43293fc9df039c89",
-      "role": "public-entry"
+      "role": "public-entry",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/scope.py",
@@ -2901,7 +2946,8 @@
       "task": 2,
       "lines": 39,
       "sha256": "34323815898c78bcb9f89031cdf11c2630f29ed1205d7be9aa052f1c54276555",
-      "role": "public-entry"
+      "role": "public-entry",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/search_projection.py",
@@ -3207,7 +3253,8 @@
       "task": 2,
       "lines": 35,
       "sha256": "942d2c6c3b248fcdb3b5148f4b9736cadbb4b133648592264e01d2a60c98d218",
-      "role": "infrastructure"
+      "role": "infrastructure",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/session_retirement.py",
@@ -3288,7 +3335,8 @@
       "task": 2,
       "lines": 54,
       "sha256": "c65b127dd66e5957c522be6d8248e8a7df6e1410b840f07d5b433df9a2644eb4",
-      "role": "public-entry"
+      "role": "public-entry",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/sqlite/__init__.py",
@@ -3297,7 +3345,8 @@
       "task": 2,
       "lines": 1,
       "sha256": "b0d6d06c4445d1064b7152d7d3a2c269c1d87b7ef52cb0bfa00316c620f1e3ef",
-      "role": "backend"
+      "role": "backend",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/sqlite/plugin_storage.py",
@@ -3306,7 +3355,8 @@
       "task": 2,
       "lines": 95,
       "sha256": "df5f12d0309f4884ebceeac676a6028592cf2873733d2242820d0168d13d066a",
-      "role": "backend"
+      "role": "backend",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/tables/__init__.py",
@@ -3585,7 +3635,8 @@
       "task": 2,
       "lines": 50,
       "sha256": "b3705c9c71926dd4a56c9dbd61e5a7e600ddd325bb37dfbcedfaaa7e0fcb7546",
-      "role": "infrastructure"
+      "role": "infrastructure",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/worker_access.py",
@@ -3594,7 +3645,8 @@
       "task": 2,
       "lines": 18,
       "sha256": "ad3952b5e6a0d2ca6a15c180cf0c7bb9f5d8d2607476065bcb48870ae94774e4",
-      "role": "integration"
+      "role": "integration",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/worker_metrics_store.py",
@@ -3604,6 +3656,48 @@
       "lines": 75,
       "sha256": "fe254c78af986d3e512522b85dbca4668d48c8a293db2720075cf690888c6ea3",
       "role": "domain"
+    }
+  ],
+  "new_files": [
+    {
+      "path": "hermes_db/backends/__init__.py",
+      "task": 2,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/backends/postgresql/expressions/__init__.py",
+      "task": 2,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/core/__init__.py",
+      "task": 2,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/integration/__init__.py",
+      "task": 2,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/integration/postgres/__init__.py",
+      "task": 2,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/integration/postgres/operations/__init__.py",
+      "task": 2,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/integration/postgres/queries/__init__.py",
+      "task": 2,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/integration/transfer/__init__.py",
+      "task": 2,
+      "role": "empty-package-namespace"
     }
   ]
 }

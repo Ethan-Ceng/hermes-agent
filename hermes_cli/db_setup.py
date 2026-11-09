@@ -134,7 +134,7 @@ def storage_backend(profile_home: Path | None = None):
 def open_profile_sessions(profile_home: Path | None = None, *, read_only=False):
     """Caller-owned resource; SQLite observational opens retain their no-DDL contract."""
     from hermes_db.factory import acquire_db
-    from hermes_db.session_resource import SessionResource
+    from hermes_db.core.session_resource import SessionResource
     settings, scope = resolve_db_configuration(profile_home)
     if read_only and settings.backend == "sqlite":
         from hermes_state import SessionDB

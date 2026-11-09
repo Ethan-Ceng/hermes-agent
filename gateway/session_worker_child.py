@@ -11,7 +11,7 @@ import secrets
 from functools import partial
 
 from hermes_state_runtime import RuntimeStoreError
-from hermes_db.runtime_calls import apply_worker_receipt
+from hermes_db.integration.runtime_calls import apply_worker_receipt
 from hermes_state_runtime_workers import CHILD_SEPARATOR, descendant_range
 
 _DEFAULTS = {'max_concurrent_children': 10, 'max_spawn_depth': 1}
@@ -32,7 +32,7 @@ def delegation_limits(authority, execution_id, session_id):
     if root != execution_id:
         from hermes_db.health import is_postgresql_store
         if is_postgresql_store(authority.db):
-            from hermes_db.runtime_access import runtime_for_store
+            from hermes_db.integration.runtime_access import runtime_for_store
             session_id = runtime_for_store(authority.db).worker_session(root) or session_id
         else:
             with authority.db._read_ctx() as conn:

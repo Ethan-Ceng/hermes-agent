@@ -9,7 +9,7 @@ from hermes_db.message_codec import codec
 from hermes_db.operations import transcript_guards
 from hermes_db.repositories import messages as repo, sessions
 from hermes_db.tables.conversations import messages
-from hermes_db.values import encode_config, model_config
+from hermes_db.core.values import encode_config, model_config
 from hermes_state_errors import PruneRowStaleError, PruneRowUnresolvedError
 from hermes_state_messages import _MESSAGE_WRITE_COLUMNS, _parse_tool_calls
 

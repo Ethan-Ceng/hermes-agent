@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import insert
 from hermes_db.domains.matrix_crypto import resource_for
 from hermes_db.errors import StorageConfigurationError
 from hermes_db.tables.matrix_crypto import roots
-from hermes_db.values import encode_text, decode_text
+from hermes_db.core.values import encode_text, decode_text
 
 RAW_FIELDS = frozenset({"pickle", "account_pickle"})
 

@@ -6,7 +6,7 @@ import re
 import uuid
 
 from hermes_db.errors import RetryableStorageError
-from hermes_db.file_scope import owner_id
+from hermes_db.core.file_scope import owner_id
 from hermes_db.repositories import file_grants as repo, media, sessions
 from hermes_db.scope import DatabaseScope
 from hermes_db.search_projection import content_text
@@ -75,7 +75,7 @@ def _grant(conn, origin, target, files, *, file_owner_id=None):
 
 def transfer(conn, source, target, snapshot):
     from hermes_db.archive_projection import spillover_names
-    from hermes_db.profile_context import OwnedProfileContext
+    from hermes_db.integration.profile_context import OwnedProfileContext
 
     texts = _texts(snapshot)
     names = {name for row in snapshot["messages"] for name in (spillover_names(row) or ())}

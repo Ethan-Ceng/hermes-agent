@@ -4,7 +4,7 @@ from sqlalchemy import case, func, select
 
 from hermes_db.repositories import sessions as repo
 from hermes_db.tables.conversations import messages, sessions
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 RANK = {"derived": 0, "llm": 1, "user": 2}
 BOT_TITLE = "Bot Chat"

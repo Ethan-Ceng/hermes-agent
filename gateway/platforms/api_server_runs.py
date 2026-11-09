@@ -258,7 +258,7 @@ def _uses_room_run_auth(self, request: web.Request) -> bool:
 
 def _initialize_run_state(self, *, store_factory) -> None:
     """Initialize adapter-owned durable and live ``/v1/runs`` state."""
-    from hermes_db.run_resources import ProfileRunStores
+    from hermes_db.integration.run_resources import ProfileRunStores
     self._run_idempotency_store = ProfileRunStores(store_factory)
     self._run_owner_pid = os.getpid()
     try:

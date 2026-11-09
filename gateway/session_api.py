@@ -207,7 +207,7 @@ def bind_api_steps(authority, session_id, *, hosted_dispatch=None, declared_key=
 
     if is_postgresql_store(authority.db):
         from hermes_db.operations.effects import CoreEffect
-        from hermes_db.runtime_access import runtime_for_store
+        from hermes_db.integration.runtime_access import runtime_for_store
         yield partial(runtime_for_store(authority.db).bind_api_session, epoch=authority.epoch,
             receipt=receipt, storage_source=storage_source, title=title, walked_from=walked_from,
             guard=CoreEffect(lambda conn, scope: authority._require_admission_open()))

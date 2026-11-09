@@ -9,7 +9,7 @@ from hermes_db.operations.kanban_file_jobs import ROOT_FIELDS, lock_files, set_j
 from hermes_db.tables.kanban import tasks
 from hermes_db.tables.kanban_artifacts import attachments
 from hermes_db.tables.kanban_workspaces import references
-from hermes_db.values import decode_text
+from hermes_db.core.values import decode_text
 
 
 def _references(conn, store, roots):

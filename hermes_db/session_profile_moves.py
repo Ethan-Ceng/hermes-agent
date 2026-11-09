@@ -2,16 +2,16 @@
 
 from copy import deepcopy
 
-from hermes_db.move_values import resource_key
-from hermes_db.operations import profile_move
+from hermes_db.integration.transfer.move_values import resource_key
+from hermes_db.integration.postgres.operations import profile_move
 
 
 class SessionProfileMoves:
     def adopt_session_lineage_from(self, donor_db, session_id, *, retire_donor=True):
         from hermes_db.errors import StorageConfigurationError
-        from hermes_db.operations.adoption import adopt
+        from hermes_db.integration.postgres.operations.adoption import adopt
         from hermes_db.session_store import PostgresSessionStore
-        from hermes_db.session_resource import SessionResource
+        from hermes_db.core.session_resource import SessionResource
         if isinstance(donor_db, SessionResource):
             donor_db = donor_db.session_store
         if (not isinstance(donor_db, PostgresSessionStore) or donor_db.scope.store_id == self.scope.store_id

@@ -11,7 +11,7 @@ from hermes_db.operations import metrics
 from hermes_db.operations.worker_domains import ReceiptDomainResource
 from hermes_db.repositories import metrics as repo
 from hermes_db.tables.metrics import state
-from hermes_db.values import decode_text
+from hermes_db.core.values import decode_text
 from hermes_state_runtime import RuntimeStoreError
 
 PREFIX = 'worker.root_profile.v1:'

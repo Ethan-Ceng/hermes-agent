@@ -9,7 +9,7 @@ import os
 
 from gateway.session_admission import admission_fingerprint
 from hermes_state_runtime import RuntimeStoreError, _secret_digest
-from hermes_db.runtime_calls import adopt_worker_execution, mutate_worker_execution, register_worker_execution
+from hermes_db.integration.runtime_calls import adopt_worker_execution, mutate_worker_execution, register_worker_execution
 
 _SCOPE = {'profile_id', 'session_id', 'execution_id', 'generation', 'pid', 'birth', 'secret'}
 
@@ -37,18 +37,18 @@ def _claim(connection, ref, params):
         raise RuntimeStoreError('worker_not_live') from exc
     # Reuse the durable adoption digest as the producer claim. Changing any
     # assignment, principal, profile, PID birth or secret cannot adopt it.
-    from hermes_db.worker_access import worker_claim_origin
+    from hermes_db.integration.worker_access import worker_claim_origin
     origin = worker_claim_origin(authority.db, params)
     return admission_fingerprint(canonical_target=origin, payload={
         key: params[key] for key in _SCOPE} | {'session_id': origin, 'principal': connection.actor.subject})
 
 
 def _verify(connection, ref, params, claim):
-    from hermes_db.worker_access import worker_retry_target
+    from hermes_db.integration.worker_access import worker_retry_target
     authority = connection.authority
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(authority.db):
-        from hermes_db.runtime_access import runtime_for_store
+        from hermes_db.integration.runtime_access import runtime_for_store
         return runtime_for_store(authority.db).verify_worker_claim(params, claim)
     target = worker_retry_target(authority.db, params)
     with authority.db._read_ctx() as conn:

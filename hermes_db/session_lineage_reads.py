@@ -1,7 +1,7 @@
 """Native lineage reads for delegation and prompt-cache identities."""
 
 from hermes_db.repositories import retirement, sessions as repo
-from hermes_db.values import model_config
+from hermes_db.core.values import model_config
 
 
 class SessionLineageReads:

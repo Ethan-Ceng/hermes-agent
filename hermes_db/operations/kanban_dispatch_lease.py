@@ -7,7 +7,7 @@ import uuid
 from sqlalchemy import BigInteger, cast, delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 
-from hermes_db.domains.resource import DomainResource
+from hermes_db.core.resource import DomainResource
 from hermes_db.errors import StorageBusyError, StorageError
 from hermes_db.tables.kanban_dispatch import dispatch_leases as leases
 

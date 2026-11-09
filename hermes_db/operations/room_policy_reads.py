@@ -5,7 +5,7 @@ from gateway import hosted_room_policy_checkpoint as native
 from hermes_db.repositories import rooms as room_repo, room_policy as repo
 from hermes_db.tables.rooms import events
 from hermes_db.tables.room_work import publications
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 
 
 def publication_exists(store, *, room_id, task_id, status, execution_generation):

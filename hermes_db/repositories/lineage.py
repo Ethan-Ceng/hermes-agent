@@ -7,8 +7,8 @@ from sqlalchemy import select
 
 from hermes_db.repositories import sessions
 from hermes_db.tables.conversations import sessions as session_table
-from hermes_db.values import model_config
-from hermes_db.values import preferred_children
+from hermes_db.core.values import model_config
+from hermes_db.core.values import preferred_children
 from hermes_state_local import POLICY_PREFIX
 from hermes_state_runtime import RuntimeStoreError
 

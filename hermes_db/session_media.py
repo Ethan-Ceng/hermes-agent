@@ -49,9 +49,9 @@ def collect_scope(transactions, scope, profile):
 
 def _release_foreign(store):
     from hermes_db.errors import StorageError
-    from hermes_db.file_scope import owner_id
-    from hermes_db.operations.file_grants import release_unused
-    from hermes_db.profile_context import OwnedProfileContext
+    from hermes_db.core.file_scope import owner_id
+    from hermes_db.integration.postgres.operations.file_grants import release_unused
+    from hermes_db.integration.profile_context import OwnedProfileContext
     try:
         with store._profile.activate(), store._write() as conn:
             origins = release_unused(conn, store.scope)
@@ -84,7 +84,7 @@ def _history(conn, scope, references):
 
 
 def _collect_spills(scope, candidates, referenced):
-    from hermes_db.file_scope import identity, owner_id
+    from hermes_db.core.file_scope import identity, owner_id
     done, root = [], (scope.profile_home / "cache" / "spillover").resolve()
     owner = owner_id(scope.profile_home)
     for key, reference in candidates:

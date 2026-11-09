@@ -12,7 +12,7 @@ def _read(home, expected_identity=None):
         if resource.settings.backend != "postgresql":
             raise StorageConfigurationError("PG observations require the Profile PostgreSQL backend")
         if expected_identity is not None:
-            from hermes_db.move_values import resource_key
+            from hermes_db.integration.transfer.move_values import resource_key
             if (resource.scope.store_id, resource_key(resource._transactions)) != expected_identity:
                 raise StorageConfigurationError("Captured operational database identity changed")
         with resource.read() as conn:
@@ -29,7 +29,7 @@ def has_messages(home):
 def approval_history_rows(home, since):
     from sqlalchemy import select
     from hermes_db.tables.conversations import messages
-    from hermes_db.values import decode_text
+    from hermes_db.core.values import decode_text
     with _read(home) as (conn, store_id):
         scope = (messages.c.store_id == store_id) & (messages.c.timestamp >= since)
         calls = list(conn.scalars(select(messages.c.tool_calls).where(scope,
@@ -73,7 +73,7 @@ def cron_writers(home):
 def kanban_due_board(home, statuses):
     from sqlalchemy import select
     from hermes_db.tables.kanban import tasks, kanban_boards
-    from hermes_db.values import encode_text
+    from hermes_db.core.values import encode_text
     with _read(home) as (conn, owned):
         return conn.scalar(select(kanban_boards.c.slug).join(tasks,
             (tasks.c.store_id == kanban_boards.c.store_id) & (tasks.c.board_id == kanban_boards.c.board_id)).where(

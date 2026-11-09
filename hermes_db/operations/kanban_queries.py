@@ -3,7 +3,7 @@
 from sqlalchemy import and_, func, select
 from hermes_db.repositories import kanban as repo
 from hermes_db.tables.kanban import tasks, events, links, comments, runs
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 
 def latest_event_id(store):

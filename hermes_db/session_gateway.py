@@ -11,7 +11,7 @@ class SessionGateway:
     session_gateway_runtime = staticmethod(SessionGatewayMixin.session_gateway_runtime)
 
     def purge_profile_state(self, profile):
-        from hermes_db.operations.profile_purge import purge
+        from hermes_db.integration.postgres.operations.profile_purge import purge
         with self._write() as conn:
             return purge(conn, self.scope, profile)
 

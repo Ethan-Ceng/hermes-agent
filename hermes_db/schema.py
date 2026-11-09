@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from hermes_db.engine import get_engine, read_connection, require_postgresql_driver
+from hermes_db.backends.postgresql.engine import get_engine, read_connection, require_postgresql_driver
 from hermes_db.errors import StorageSchemaError, StorageUnavailableError
 from hermes_db.settings import PostgresSettings
 
@@ -32,7 +32,7 @@ def _missing_extensions(conn):
 
 
 def status_on_connection(conn, settings):
-    from hermes_db.domain_schema import domain_status_on_connection
+    from hermes_db.core.schema_status import domain_status_on_connection
 
     revision = _revision(conn, settings.schema)
     missing = _missing_extensions(conn)
@@ -63,7 +63,7 @@ def check_schema(settings: PostgresSettings) -> None:
 
 
 def check_domain_schema(settings: PostgresSettings, name: str) -> None:
-    from hermes_db.domains.catalog import require_domain
+    from hermes_db.core.catalog import require_domain
     from hermes_db.errors import StorageNotReadyError
 
     require_domain(name)

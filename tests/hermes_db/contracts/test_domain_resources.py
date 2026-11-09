@@ -14,7 +14,7 @@ from hermes_db.settings import DatabaseSettings
 
 
 def test_sqlite_path_is_only_a_domain_location_not_a_profile(tmp_path, monkeypatch):
-    from hermes_db.domains.catalog import POSTGRES_DOMAINS
+    from hermes_db.core.catalog import POSTGRES_DOMAINS
     monkeypatch.delitem(POSTGRES_DOMAINS, "sessions")
     owner = tmp_path / "owner"
     owner.mkdir()
@@ -54,7 +54,7 @@ class BlockDrivers(importlib.abc.MetaPathFinder):
         if fullname.split('.')[0] in {'sqlalchemy', 'psycopg', 'alembic'}:
             raise ImportError('optional PG dependency unavailable')
 sys.meta_path.insert(0, BlockDrivers())
-from hermes_db.domains.catalog import KNOWN_DOMAINS
+from hermes_db.core.catalog import KNOWN_DOMAINS
 from hermes_db.factory import acquire_profile_domain
 with acquire_profile_domain('projects', profile_home=sys.argv[1]) as resource:
     assert resource.settings.backend == 'sqlite'

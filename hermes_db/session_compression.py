@@ -19,7 +19,7 @@ class SessionCompression:
 
     def get_compression_chain(self, session_id):
         from hermes_db.repositories import sessions
-        from hermes_db.values import preferred_children
+        from hermes_db.core.values import preferred_children
         with self._read() as conn:
             children = preferred_children(sessions.lineage_rows(conn, self.scope, session_id))
         chain = [session_id] if session_id else []

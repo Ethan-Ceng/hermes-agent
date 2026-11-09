@@ -9,7 +9,7 @@ from sqlalchemy.dialects.postgresql import insert
 from hermes_db.domains.retain_queue import open_queue, WorkerRetainQueueRef
 from hermes_db.errors import StorageConflictError
 from hermes_db.tables.retain_queue import pending
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 LEASE_SECONDS = 120
 TEXT_FIELDS = frozenset({"user_id", "session_id", "messages_json", "last_error"})

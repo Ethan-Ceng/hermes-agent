@@ -154,7 +154,7 @@ def scan_approval_history(db_path: Optional[Path] = None, days: int = 90) -> lis
     from hermes_constants import get_hermes_home
     since_ts = 0.0 if days <= 0 else time.time() - days * 86400
     if storage_backend() == "postgresql":
-        from hermes_db.observations import approval_history_rows
+        from hermes_db.integration.observations import approval_history_rows
         from hermes_db.errors import StorageConfigurationError
         if db_path is not None and Path(db_path).resolve() != default_db_path().resolve():
             raise StorageConfigurationError("PostgreSQL approval history belongs to the selected Profile; --db is SQLite-only")

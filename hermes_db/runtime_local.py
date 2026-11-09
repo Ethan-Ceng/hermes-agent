@@ -26,7 +26,7 @@ class RuntimeLocal:
             runtime.set_meta(conn, self.scope, key, value)
 
     def label_hosted_session(self, *, epoch, session_id, title):
-        from hermes_db.values import encode_text
+        from hermes_db.core.values import encode_text
         with self._write() as conn:
             runtime.require_epoch(conn, self.scope, epoch)
             sessions.lock_store(conn, self.scope, exclusive=True)

@@ -10,7 +10,7 @@ import hermes_yaml as yaml
 def test_pg_profile_clones_have_new_store_and_file_owner_identities(tmp_path, monkeypatch, clone_all):
     import hermes_constants
     from hermes_cli import profiles
-    from hermes_db.file_scope import owner_id
+    from hermes_db.core.file_scope import owner_id
     root = tmp_path / ".hermes"
     root.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)

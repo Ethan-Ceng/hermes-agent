@@ -37,7 +37,7 @@ def text_rows(conn, scope, session_ids=None):
 
 
 def retire_spillover(conn, scope, session_ids):
-    from hermes_db.file_scope import identity, owner_id
+    from hermes_db.core.file_scope import identity, owner_id
     from tools.tool_result_storage import spillover_names_in_text
     root = scope.profile_home / "cache" / "spillover"
     owner = owner_id(scope.profile_home, create=True)

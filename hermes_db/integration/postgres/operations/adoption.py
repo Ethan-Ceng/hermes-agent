@@ -3,10 +3,12 @@
 import json
 import time
 
-from hermes_db.move_values import digest, recipient_snapshot_digest, snapshot_digest
-from hermes_db.operations import file_grants, portability, retirement_guards as guards
-from hermes_db.portability_values import values
-from hermes_db.repositories import messages, profile_move, runtime, sessions
+from hermes_db.integration.transfer.move_values import digest, recipient_snapshot_digest, snapshot_digest
+from hermes_db.integration.postgres.operations import file_grants, portability
+from hermes_db.operations import retirement_guards as guards
+from hermes_db.integration.transfer.portability_values import values
+from hermes_db.repositories import messages, runtime, sessions
+from hermes_db.integration.postgres.queries import profile_move
 from hermes_db.session_portability import _export
 
 

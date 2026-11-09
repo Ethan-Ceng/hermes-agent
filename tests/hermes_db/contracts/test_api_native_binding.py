@@ -32,7 +32,7 @@ def test_native_api_admission_replays_and_refuses_retargeted_client_key(api_owne
     from gateway.session_api_turn import admit_api_turn, api_settings
     from hermes_state_runtime import RuntimeStoreError
     owner, db, other = api_owner
-    from hermes_db.runtime_access import runtime_for_store
+    from hermes_db.integration.runtime_access import runtime_for_store
     adapter = SimpleNamespace(gateway_runner=owner.runner, _ensure_session_db=lambda: db,
         _model_routes={}, _model=None, _model_provider=None)
     owner.runner._adapter_for_source = lambda source: adapter
@@ -51,7 +51,7 @@ def test_native_api_admission_replays_and_refuses_retargeted_client_key(api_owne
 def test_deleted_native_api_generation_replays_its_original_terminal_identity(api_owner):
     from gateway.session_api import api_generation_id, implicit_api_session
     from gateway.session_api_turn import admit_api_turn
-    from hermes_db.runtime_access import runtime_for_store
+    from hermes_db.integration.runtime_access import runtime_for_store
     owner, db, _other = api_owner
     adapter = SimpleNamespace(gateway_runner=owner.runner, _ensure_session_db=lambda: db, _model_routes={})
     owner.runner._adapter_for_source = lambda source: adapter

@@ -7,22 +7,22 @@ from hermes_db.settings import DatabaseSettings
 
 def acquire_db(settings: DatabaseSettings, scope: DatabaseScope) -> DatabaseHandle:
     if settings.backend == "sqlite":
-        from hermes_db.legacy_sqlite import acquire_sqlite
+        from hermes_db.backends.sqlite.acquire import acquire_sqlite
 
         return acquire_sqlite(scope)
     scope.require_store_id()
-    from hermes_db.engine import require_postgresql_driver
+    from hermes_db.backends.postgresql.engine import require_postgresql_driver
 
     require_postgresql_driver()
-    from hermes_db.native_registry import acquire
+    from hermes_db.integration.registry import acquire
     return acquire(settings.postgresql, scope)
 
 
 def acquire_domain(name, settings: DatabaseSettings, scope: DatabaseScope, *, sqlite_path=None):
     """Explicit owner scope; a domain file path never selects the Profile/backend."""
     from hermes_db.access import _owner_only
-    from hermes_db.domains.catalog import POSTGRES_DOMAINS, require_domain
-    from hermes_db.domains.resource import DomainResource
+    from hermes_db.core.catalog import POSTGRES_DOMAINS, require_domain
+    from hermes_db.core.resource import DomainResource
     from hermes_db.errors import StorageNotReadyError
 
     _owner_only()
@@ -32,9 +32,9 @@ def acquire_domain(name, settings: DatabaseSettings, scope: DatabaseScope, *, sq
     scope.require_store_id()
     if name not in POSTGRES_DOMAINS:
         raise StorageNotReadyError(f"PostgreSQL storage domain {name} is not implemented")
-    from hermes_db.engine import get_engine
+    from hermes_db.backends.postgresql.engine import get_engine
     from hermes_db.schema import check_domain_schema
-    from hermes_db.postgresql.transactions import Transactions
+    from hermes_db.backends.postgresql.transactions import Transactions
 
     pg = settings.postgresql
     check_domain_schema(pg, name)

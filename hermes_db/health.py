@@ -17,7 +17,7 @@ def is_postgresql_store(store):
 
 def storage_identity(store):
     if is_postgresql_store(store):
-        from hermes_db.move_values import resource_key
+        from hermes_db.integration.transfer.move_values import resource_key
         return ("postgresql", resource_key(store._transactions), store.scope.require_store_id())
     return Path(store.db_path).resolve()
 
@@ -43,9 +43,9 @@ def configured_probe(home):
             return None
         settings, scope = resolve_db_configuration(home)
         from sqlalchemy import select
-        from hermes_db.engine import read_connection
+        from hermes_db.backends.postgresql.engine import read_connection
         from hermes_db.errors import StorageSchemaError
-        from hermes_db.profile_context import OwnedProfileContext
+        from hermes_db.integration.profile_context import OwnedProfileContext
         from hermes_db.schema import status_on_connection
         from hermes_db.tables.conversations import sessions
         from hermes_db.tables.metadata import SCHEMA

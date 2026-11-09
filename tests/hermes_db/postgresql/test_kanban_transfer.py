@@ -130,7 +130,7 @@ def test_original_import_job_recovers_without_reimporting_graph(pg_profiles, tmp
     from hermes_db.factory import acquire_profile_domain
     from hermes_db.operations import kanban_file_jobs as files, kanban_import_files as publication
     from hermes_db.tables.kanban_file_jobs import file_jobs
-    from hermes_db.values import decode_text
+    from hermes_db.core.values import decode_text
     archive, parent, child, _run = make_archive(pg_profiles, tmp_path)
     with pg_profiles("two"), acquire_profile_domain("kanban_tasks") as resource:
         with monkeypatch.context() as fault:

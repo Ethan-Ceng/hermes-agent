@@ -9,7 +9,7 @@ from hermes_db.domains.kanban_evidence import TaskEvidence
 from hermes_db.repositories import kanban as repo
 from hermes_db.repositories import kanban_runs as run_repo
 from hermes_db.tables.kanban import events, tasks
-from hermes_db.values import decode_text
+from hermes_db.core.values import decode_text
 
 
 def snapshot(conn, store, task_id):

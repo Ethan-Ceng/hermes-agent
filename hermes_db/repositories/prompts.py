@@ -6,7 +6,7 @@ from sqlalchemy import and_, delete, exists, select
 from sqlalchemy.dialects.postgresql import insert
 
 from hermes_db.tables.conversations import sessions, system_prompts
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 
 
 def store_prompt(conn, scope, prompt):

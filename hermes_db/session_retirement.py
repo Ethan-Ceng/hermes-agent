@@ -32,7 +32,7 @@ class SessionRetirement:
         return count
 
     def _after_session_delete(self, targets, *, primary=None, reason="delete", sessions_dir=None):
-        from hermes_db.events import emit_deleted
+        from hermes_db.integration.events import emit_deleted
         from hermes_db.session_files import remove
 
         emit_deleted(self._profile, targets, reason=reason, primary=primary)

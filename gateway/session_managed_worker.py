@@ -498,7 +498,7 @@ def _execution_tip(db, execution_id):
         return None
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(db):
-        from hermes_db.runtime_access import runtime_for_store
+        from hermes_db.integration.runtime_access import runtime_for_store
         return runtime_for_store(db).worker_session(execution_id)
     with db._read_ctx() as conn:
         row = conn.execute('SELECT session_id FROM worker_executions WHERE execution_id=?', (execution_id,)).fetchone()
@@ -508,7 +508,7 @@ def _execution_tip(db, execution_id):
 def _continuation_path(db, start, tip):
     """Ids from *start* to *tip* when *tip* reaches *start* through compression continuations only, else None."""
     path, current = [tip], tip
-    from hermes_db.authority_access import is_compression_child
+    from hermes_db.integration.authority_access import is_compression_child
     while current != start and len(path) <= 200:
         row = db.get_session(current)
         if not row or not is_compression_child(db, row):
@@ -520,7 +520,7 @@ def _continuation_path(db, start, tip):
 
 def _compression_ancestors(db, session_id):
     """Root-first ids of the sessions *session_id* continues by compression, excluding itself."""
-    from hermes_db.authority_access import is_compression_child
+    from hermes_db.integration.authority_access import is_compression_child
     ancestors, current = [], db.get_session(session_id)
     while current and is_compression_child(db, current) and len(ancestors) < 200:
         parent = current['parent_session_id']

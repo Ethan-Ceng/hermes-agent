@@ -7,11 +7,11 @@ from sqlalchemy import delete, func, or_, select, update
 
 from hermes_db.domains.kanban import BoardResource
 from hermes_db.domains.kanban_files import board_files
-from hermes_db.domains.resource import DomainResource
+from hermes_db.core.resource import DomainResource
 from hermes_db.repositories import kanban as repo
 from hermes_db.tables.kanban import kanban_boards
 from hermes_db.tables.kanban_effects import effects
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 
 
 def enqueue(conn, store, steps):

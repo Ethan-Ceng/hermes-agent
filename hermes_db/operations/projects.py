@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from hermes_db.repositories import projects as repo
 from hermes_db.tables.projects import projects, project_folders as folders, project_meta as meta, discovered_repos as repo_cache
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 
 @contextmanager

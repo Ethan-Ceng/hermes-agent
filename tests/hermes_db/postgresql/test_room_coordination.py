@@ -10,7 +10,7 @@ from gateway.session_hosted_storage import RoomCoordination, HostedMemberAuthori
 from gateway.session_hosted_service import probe_native_room_owner
 from hermes_db.access import open_session_store
 from hermes_db.operations.room_coordination import owner, owners
-from hermes_db.runtime_access import runtime_for_store
+from hermes_db.integration.runtime_access import runtime_for_store
 from hermes_state_runtime import RuntimeStoreError
 from tui_gateway.hosted_room_driver import HostedRoomBinding
 

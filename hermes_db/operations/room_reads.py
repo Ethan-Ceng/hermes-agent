@@ -5,7 +5,7 @@ from gateway import hosted_rooms as native
 from gateway.hosted_room_pages import replay_page
 from hermes_db.repositories import rooms as repo
 from hermes_db.tables.rooms import rooms, events
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 
 
 def list_rooms(store, *, include_disbanded=False, limit=native.MAX_ROOM_LIST_LIMIT, offset=0):

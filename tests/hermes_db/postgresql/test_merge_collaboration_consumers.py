@@ -45,7 +45,7 @@ async def test_discard_closes_real_http_admission_and_blocks_delayed_post_after_
     from gateway.session_group_peers import room_link
     from gateway.session_hosted_service import CanonicalHostedRoomService
     from hermes_db.access import open_session_store
-    from hermes_db.run_resources import ProfileRunStores
+    from hermes_db.integration.run_resources import ProfileRunStores
     from gateway.platforms.api_server_run_idempotency import RunIdempotencyStore
     from tests.gateway import test_session_group_peers as peers
     from tui_gateway.hosted_room_peer_http import PeerRunsHTTPError

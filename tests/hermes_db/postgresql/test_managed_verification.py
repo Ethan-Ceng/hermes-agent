@@ -24,7 +24,7 @@ def test_actual_worker_edit_evidence_survives_owner_restart_and_peer_isolation(p
     from hermes_cli.db_setup import open_profile_db
     from hermes_db.tables.runtime import session_admissions, worker_executions
     from hermes_db.tables.verification import verification_state
-    from hermes_db.values import encode_text
+    from hermes_db.core.values import encode_text
 
     guard, audit = install_guard(tmp_path)
     model = ThreadingHTTPServer(('127.0.0.1', 0), Model)

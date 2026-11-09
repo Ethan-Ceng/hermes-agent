@@ -5,7 +5,7 @@ from sqlalchemy import delete, func, select
 
 from hermes_db.repositories import kanban as repo
 from hermes_db.tables.kanban import tasks, comments, events
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 from hermes_db.operations.kanban_create import create_task
 

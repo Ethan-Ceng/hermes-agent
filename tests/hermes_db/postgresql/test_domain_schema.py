@@ -15,14 +15,14 @@ def settings(postgres_test_config, postgres_schema):
 
 def test_domain_resource_persistence_isolation_pool_and_lifetime(settings, tmp_path):
     from sqlalchemy import select
-    from hermes_db.engine import get_engine
+    from hermes_db.backends.postgresql.engine import get_engine
     from hermes_db.errors import StorageClosedError
     from hermes_db.factory import acquire_domain
     from hermes_db.schema import upgrade_schema
     from hermes_db.scope import DatabaseScope
     from hermes_db.settings import DatabaseSettings
     from hermes_db.tables.conversations import system_prompts
-    from hermes_db.values import decode_text, encode_text
+    from hermes_db.core.values import decode_text, encode_text
 
     upgrade_schema(settings)
     config = DatabaseSettings("postgresql", settings)
@@ -55,7 +55,7 @@ def test_domain_resource_persistence_isolation_pool_and_lifetime(settings, tmp_p
 
 def test_missing_domains_never_initialize_at_open_and_all_capabilities_require_tables(settings, tmp_path):
     from sqlalchemy import inspect, text
-    from hermes_db.engine import get_engine
+    from hermes_db.backends.postgresql.engine import get_engine
     from hermes_db.errors import StorageSchemaError
     from hermes_db.factory import acquire_domain
     from hermes_db.schema import schema_status, upgrade_schema
@@ -97,7 +97,7 @@ def test_previous_revision_forward_upgrade(settings):
     from alembic import command
     from alembic.config import Config
     from pathlib import Path
-    from hermes_db.engine import get_engine
+    from hermes_db.backends.postgresql.engine import get_engine
     from hermes_db.schema import schema_status, upgrade_schema
 
     config = Config()
@@ -112,7 +112,7 @@ def test_previous_revision_forward_upgrade(settings):
 
 def test_permission_failure_propagates_and_returns_connection(settings, tmp_path):
     from sqlalchemy import select, text
-    from hermes_db.engine import get_engine
+    from hermes_db.backends.postgresql.engine import get_engine
     from hermes_db.errors import StorageUnavailableError
     from hermes_db.factory import acquire_domain
     from hermes_db.schema import upgrade_schema

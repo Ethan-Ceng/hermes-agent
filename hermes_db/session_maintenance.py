@@ -4,7 +4,7 @@ import logging
 
 from sqlalchemy import func, select
 
-from hermes_db.operations import maintenance
+from hermes_db.integration.postgres.operations import maintenance
 from hermes_db.repositories import retention
 from hermes_db.tables.conversations import sessions
 
@@ -41,7 +41,7 @@ class SessionMaintenance:
         return count
 
     def _emit_archives(self, events):
-        from hermes_db.events import emit_deleted
+        from hermes_db.integration.events import emit_deleted
         for primary, ids in events:
             emit_deleted(self._profile, ids, reason="archive", primary=primary)
 

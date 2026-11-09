@@ -55,7 +55,7 @@ async def run_task(connection, params):
     from gateway.session_local import create_local_session
     from gateway.session_contract import Submission
     from gateway.session_local_recovery import local_identity
-    from hermes_db.local_access import local_receipt
+    from hermes_db.integration.local_access import local_receipt
     from gateway.session_policy import restore_policy
     authority = connection.authority
     # Resolved off-loop up front: no await separates the saved-claim check from session
@@ -63,7 +63,7 @@ async def run_task(connection, params):
     # concurrent retry of the same attempt meets that marker (same session) or a stale claim.
     from hermes_db.health import is_postgresql_store, profile_home_for_store
     if is_postgresql_store(authority.db):
-        from hermes_db.move_values import resource_key
+        from hermes_db.integration.transfer.move_values import resource_key
         owner_storage = {'storage_backend': 'postgresql', 'store_id': authority.db.scope.require_store_id(),
                          'target': resource_key(authority.db._transactions),
                          'profile_home': str(profile_home_for_store(authority.db)), 'principal_id': connection.actor.subject}
@@ -126,7 +126,7 @@ async def run_task(connection, params):
     # card (approvals.single_query_mode applies). Never unattended: that is `-z`'s auto-approval.
     # A retry of an attempt admitted before cards were finite resubmits its committed payload,
     # so the store returns the original receipt instead of admission_conflict.
-    from hermes_db.runtime_calls import find_session_admission
+    from hermes_db.integration.runtime_calls import find_session_admission
     committed = None if not saved else await asyncio.to_thread(find_session_admission, authority.db,
         principal_id=connection.actor.subject, session_id=ref.session_id, request_id=request_id)
     payload: dict = {'text': f'work kanban task {params["task_id"]}'}

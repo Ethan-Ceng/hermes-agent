@@ -7,7 +7,7 @@ from sqlalchemy.dialects.postgresql import insert
 from hermes_db.repositories import kanban as repo
 from hermes_db.tables.kanban import events, tasks
 from hermes_db.tables.kanban_notify import subscriptions as subs, TEXT_FIELDS
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 
 
 def _key(store, task_id, platform, chat_id, thread_id=None):

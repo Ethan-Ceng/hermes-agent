@@ -15,7 +15,7 @@ from hermes_db.errors import StorageClosedError
 from hermes_db.matrix_runtime import MatrixRuntime
 from hermes_db.operations import matrix_accounts as accounts, matrix_sessions as sessions
 from hermes_db.repositories.matrix_crypto import initialize
-from hermes_db.values import decode_text
+from hermes_db.core.values import decode_text
 
 
 class PostgresCryptoStore(CryptoStore, SyncStore):

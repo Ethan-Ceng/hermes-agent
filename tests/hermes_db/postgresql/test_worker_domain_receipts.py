@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import func, select
 
 from hermes_db.errors import UnknownCommitError
-from hermes_db.runtime_access import runtime_for_store
+from hermes_db.integration.runtime_access import runtime_for_store
 from hermes_db.tables.verification import verification_events as events
 from hermes_state_runtime import RuntimeStoreError
 

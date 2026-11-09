@@ -81,5 +81,5 @@ def get_outbound_group_session(conn, reference, *, room_id):
 
 
 def remove_outbound_group_sessions(conn, reference, *, rooms):
-    from hermes_db.values import encode_text
+    from hermes_db.core.values import encode_text
     conn.execute(delete(outbound).where(repo.scope(outbound, reference), outbound.c.room_id.in_([encode_text(room) for room in rooms])))

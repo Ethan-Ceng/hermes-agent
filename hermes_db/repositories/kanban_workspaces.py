@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import insert
 from hermes_db.errors import StorageBusyError
 from hermes_db.tables.kanban import tasks, links
 from hermes_db.tables.kanban_workspaces import paths, references
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 
 TERMINAL = (b"done", b"archived", b"failed", b"cancelled")
 
@@ -48,12 +48,12 @@ def register(conn, store, task_id, key):
 
 
 def key_for_task(conn, store, task_id):
-    from hermes_db.values import decode_text
+    from hermes_db.core.values import decode_text
     return decode_text(conn.scalar(select(references.c.path_key).where(reference_scope(store, task_id))))
 
 
 def guard_live_task(conn, store, task_id):
-    from hermes_db.values import decode_text
+    from hermes_db.core.values import decode_text
     parent_ids = select(links.c.parent_id).where(links.c.store_id == store.scope.require_store_id(),
         links.c.board_id == store.board_id, links.c.child_id == encode_text(task_id))
     keys = conn.scalars(select(references.c.path_key).where(references.c.store_id == store.scope.require_store_id(),

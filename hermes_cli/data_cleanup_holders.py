@@ -93,7 +93,7 @@ def _refuse_cron_writers(home: Path) -> None:
     from hermes_cli.db_setup import storage_backend
     from hermes_cli.data_cleanup_storage import refuse_cron_writers
     if storage_backend(home) == "postgresql":
-        from hermes_db.observations import cron_writers
+        from hermes_db.integration.observations import cron_writers
         refuse_cron_writers(home, cron_writers(home))
         return
     from contextlib import closing

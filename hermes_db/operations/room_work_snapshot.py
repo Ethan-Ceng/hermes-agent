@@ -8,7 +8,7 @@ from gateway import hosted_room_authority_history as history
 from hermes_db.repositories import rooms as room_repo, room_work as repo
 from hermes_db.tables.rooms import events, remote_runs
 from hermes_db.tables.room_runs import tasks
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 
 
 def history_anchor(conn, store, room_id, seq):

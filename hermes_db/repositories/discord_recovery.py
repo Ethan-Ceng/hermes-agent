@@ -3,7 +3,7 @@
 from sqlalchemy import LargeBinary, and_, select
 from sqlalchemy.dialects.postgresql import insert
 from hermes_db.tables.discord_recovery import locks, messages
-from hermes_db.values import encode_text, decode_text
+from hermes_db.core.values import encode_text, decode_text
 
 
 def scope(table, reference):

@@ -94,7 +94,7 @@ def test_failed_pg_acquisition_never_creates_a_local_database(native_registry, c
 def test_profile_unserve_invalidates_held_resources_and_reopens_one_generation(native_registry, core_pair):
     from gateway.session_db_recovery import RecoverableHandleCache
     from hermes_db.errors import StorageClosedError
-    from hermes_db.session_resource import SessionResource
+    from hermes_db.core.session_resource import SessionResource
     registry, opened = native_registry
     scope = core_pair[0].scope
     cache = RecoverableHandleCache()
@@ -119,7 +119,7 @@ def test_profile_unserve_invalidates_held_resources_and_reopens_one_generation(n
 
 def test_ordinary_profile_close_invalidates_only_its_native_resources(native_registry, core_pair):
     from hermes_db.access import close_session_resources_under, session_store_is_live
-    from hermes_db.session_resource import SessionResource
+    from hermes_db.core.session_resource import SessionResource
     registry, _ = native_registry
     first = SessionResource(registry.acquire(_settings(), core_pair[0].scope))
     second = SessionResource(registry.acquire(_settings(), core_pair[1].scope))

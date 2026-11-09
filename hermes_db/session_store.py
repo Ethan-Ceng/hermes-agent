@@ -54,7 +54,7 @@ class PostgresSessionStore(SessionMetadata, SessionQueries, SessionTitles, Sessi
     def __init__(self, transactions, scope):
         from hermes_constants import profile_name_for_home
         from hermes_db.usage_writer import UsageWriter
-        from hermes_db.profile_context import OwnedProfileContext
+        from hermes_db.integration.profile_context import OwnedProfileContext
 
         self._transactions = transactions
         self._scope = scope

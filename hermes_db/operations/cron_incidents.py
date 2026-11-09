@@ -4,7 +4,7 @@ from sqlalchemy import func, select, update
 
 from hermes_db.repositories import cron as repo
 from hermes_db.tables.cron import cron_incidents as incidents
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 
 
 def upsert_incident(resource, job_id, error, *, job_name=None, failure_type=None, output_file=None):

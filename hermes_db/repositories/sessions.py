@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from hermes_db.tables.conversations import sessions, system_prompts, transcript_roots
 from hermes_db.tables.runtime import state_meta
-from hermes_db.values import decode_text, model_config, model_markers, preferred_children
+from hermes_db.core.values import decode_text, model_config, model_markers, preferred_children
 
 _TEXT_BYTES = ("system_prompt", "display_name", "title", "last_activity_description", "handoff_error", "compression_failure_error")
 

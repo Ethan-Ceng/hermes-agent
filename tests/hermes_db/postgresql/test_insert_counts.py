@@ -25,7 +25,7 @@ def test_route_repair_counts_only_new_rows_in_the_owning_store(pg_pair):
 
 def test_worker_change_tracker_distinguishes_noop_insert_from_new_row(pg_store):
     from sqlalchemy.dialects.postgresql import insert
-    from hermes_db.postgresql.changes import track_changes
+    from hermes_db.backends.postgresql.changes import track_changes
     from hermes_db.tables.runtime import state_meta
     statement = insert(state_meta).values(store_id=pg_store.scope.store_id, key='observed', value='same')
     statement = statement.on_conflict_do_nothing(index_elements=list(state_meta.primary_key.columns))

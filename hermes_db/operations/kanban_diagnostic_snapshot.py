@@ -3,7 +3,7 @@
 from sqlalchemy import select
 from hermes_db.repositories import kanban as repo
 from hermes_db.tables.kanban import tasks, events, runs
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 
 
 def diagnostic_snapshot(store, task_id=None, *, task_ids=None):

@@ -9,7 +9,7 @@ from hermes_cli.kanban_swarm_plan import plan_swarm
 from hermes_db.operations import kanban_create as create
 from hermes_db.repositories import kanban as repo, kanban_runs as run_repo
 from hermes_db.tables.kanban import tasks, comments
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 
 def _blackboard(conn, store, root):

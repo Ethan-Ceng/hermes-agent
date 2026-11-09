@@ -7,7 +7,7 @@ from sqlalchemy import select
 from hermes_db.operations import sessions as operations
 from hermes_db.repositories import sessions as repo
 from hermes_db.tables.conversations import sessions
-from hermes_db.values import encode_config, encode_text, model_config
+from hermes_db.core.values import encode_config, encode_text, model_config
 
 
 class SessionMetadata:
@@ -77,7 +77,7 @@ class SessionMetadata:
             return tip
 
     def session_ids_with_model_config_key(self, key):
-        from hermes_db.json_paths import path_value
+        from hermes_db.backends.postgresql.expressions.json_paths import path_value
         found, cursor = [], None
         with self._read() as conn:
             statement = select(sessions.c.id, sessions.c.started_at, sessions.c.model_config).where(
@@ -113,7 +113,7 @@ class SessionMetadata:
                 retire_bot_chat(conn, self.scope, ids)
             newly_archived = archived and row and not row["archived"]
         if newly_archived and notify:
-            from hermes_db.events import emit_deleted
+            from hermes_db.integration.events import emit_deleted
             emit_deleted(self._profile, ids, reason="archive", primary=session_id)
         return bool(ids)
 

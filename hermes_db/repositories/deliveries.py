@@ -4,7 +4,7 @@ from sqlalchemy import and_, case, func, or_, select
 from sqlalchemy.dialects.postgresql import insert
 
 from hermes_db.tables.gateway import delivery_obligations as table
-from hermes_db.values import decode_text
+from hermes_db.core.values import decode_text
 
 
 def where(scope, oid=None):

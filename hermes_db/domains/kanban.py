@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from functools import wraps
 from importlib import import_module
 
-from hermes_db.domains.resource import DomainResource
+from hermes_db.core.resource import DomainResource
 from hermes_db.errors import StorageConfigurationError
 
 

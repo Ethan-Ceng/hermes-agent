@@ -5,7 +5,7 @@ import json
 from uuid import uuid4
 from sqlalchemy import select, update
 
-from hermes_db.domains.resource import DomainResource
+from hermes_db.core.resource import DomainResource
 from hermes_db.errors import StorageError
 from hermes_db.repositories import kanban as repo, kanban_workspaces as workspaces
 from hermes_db.tables.kanban import tasks, links

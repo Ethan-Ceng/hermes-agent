@@ -10,7 +10,7 @@ from hermes_db.operations.worker_handlers import _fields
 from hermes_db.repositories import messages, runtime, sessions, workers
 from hermes_db.tables.conversations import messages as message_table
 from hermes_db.tables.runtime import worker_executions
-from hermes_db.values import model_config
+from hermes_db.core.values import model_config
 from hermes_state_runtime import HANDOFF_MESSAGE_FIELDS, RuntimeStoreError, _text, row_annotations
 from hermes_state_worker_context import SIDECAR_KEYS
 

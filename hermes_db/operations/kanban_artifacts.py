@@ -11,7 +11,7 @@ from sqlalchemy.dialects.postgresql import insert
 from hermes_db.errors import StorageBusyError, UnknownCommitError
 from hermes_db.repositories import kanban as repo
 from hermes_db.tables.kanban_artifacts import attachments, blobs
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 
 
 def _blob_key(store, path):
@@ -53,7 +53,7 @@ def _preflight_reference(store, path):
         guard_reference(conn, store, key)
         pending = list(conn.scalars(select(blobs.c.path).where(blobs.c.store_id == store.scope.require_store_id(),
             blobs.c.cleanup_token.is_not(None))))
-    from hermes_db.values import decode_text
+    from hermes_db.core.values import decode_text
     if any(canonical_path(decode_text(raw)) == key for raw in pending):
         raise StorageBusyError("Attachment file cleanup is pending; retain the file and retry after reconciliation")
 

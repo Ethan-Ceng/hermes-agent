@@ -9,7 +9,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from hermes_db.repositories.cron import instant_order
 from hermes_db.tables.cron_delivery import cron_deliveries as rows, cron_delivery_tombstones as tombs, cron_delivery_locks as locks
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 _EXACT = {"execution_id", "job_json", "content", "owner_process_id", "error"}
 

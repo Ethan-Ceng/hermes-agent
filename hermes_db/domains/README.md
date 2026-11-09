@@ -27,7 +27,7 @@ fails explicitly. Opening a resource never creates tables. New tables use
 remain frozen. Domain migrations are added alongside their actual implementation,
 not as placeholder tables or empty revisions.
 
-Reuse `hermes_db.values.encode_text`/`decode_text` for exact text that may contain
+Reuse `hermes_db.core.values.encode_text`/`decode_text` for exact text that may contain
 NUL, with binary columns. Serialize arbitrary JSON with its types intact (including
 booleans, numeric zero, empty containers and null); never use truthiness to drop a
 valid value. PostgreSQL Text/JSONB query projections must be separately defined and

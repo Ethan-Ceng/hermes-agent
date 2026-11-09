@@ -4,7 +4,7 @@ from sqlalchemy import and_, select
 from sqlalchemy.dialects.postgresql import insert
 
 from hermes_db.tables.projects import projects, project_folders as folders, project_meta as meta, project_locks as locks
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 EXACT_FIELDS = ("id", "name", "description", "icon", "color", "board_slug", "primary_path")
 

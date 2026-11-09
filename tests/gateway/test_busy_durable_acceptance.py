@@ -27,7 +27,7 @@ async def test_busy_receive_returns_after_acceptance_but_delivers_once_after_com
     delivery = AsyncMock()
     monkeypatch.setattr(ingress, 'deliver_response', delivery)
     # admit_message re-reads the committed row (a drain may already have settled it); still queued.
-    monkeypatch.setattr('hermes_db.runtime_calls.get_session_admission', lambda db, admission_id: {'status': 'queued'})
+    monkeypatch.setattr('hermes_db.integration.runtime_calls.get_session_admission', lambda db, admission_id: {'status': 'queued'})
     event = MessageEvent(text='next', source=SessionSource(platform=Platform.TELEGRAM, chat_id='chat'))
     receive = asyncio.create_task(dispatch_shared_busy(adapter, event, 'route'))
     await asyncio.wait_for(accepted.wait(), 5)

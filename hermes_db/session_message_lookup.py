@@ -4,10 +4,10 @@ from sqlalchemy import func, select
 
 from hermes_db.message_codec import codec
 from hermes_db.repositories import messages as repo, sessions as session_repo
-from hermes_db.query_projections import display_value, query_token
+from hermes_db.backends.postgresql.expressions.projections import display_value, query_token
 from hermes_db.tables.conversations import messages, sessions
 from hermes_db.tables.gateway import conversation_generations
-from hermes_db.values import explicit_fork
+from hermes_db.core.values import explicit_fork
 
 
 class SessionMessageLookup:

@@ -8,7 +8,7 @@ from hermes_db.errors import StorageClosedError
 
 def initialize_response_state(adapter, sqlite_factory):
     from hermes_constants import get_hermes_home
-    from hermes_db.api_resources import open_response_store
+    from hermes_db.integration.api_resources import open_response_store
     home = get_hermes_home()
     adapter._response_store = open_response_store(home, sqlite_factory, launch=True)
     adapter._response_store_home = str(home)
@@ -20,7 +20,7 @@ def initialize_response_state(adapter, sqlite_factory):
 
 def current_response_store(adapter):
     from hermes_constants import get_hermes_home
-    from hermes_db.api_resources import open_response_store
+    from hermes_db.integration.api_resources import open_response_store
     home = get_hermes_home()
     with adapter._response_store_lock:
         if getattr(adapter, "_response_store_closed", False):
@@ -53,7 +53,7 @@ def _cached_response(adapter, home):
 
 
 def _live_response(store):
-    from hermes_db.api_resources import OwnedApiStore
+    from hermes_db.integration.api_resources import OwnedApiStore
     return store is not None and (not isinstance(store, OwnedApiStore) or store.is_open)
 
 
@@ -71,7 +71,7 @@ def drain_response_stores(adapter):
 
 def persist_run_status(adapter, run_id, status, *, scope=None):
     from hermes_db.health import is_postgresql_store
-    from hermes_db.run_resources import ProfileRunStores
+    from hermes_db.integration.run_resources import ProfileRunStores
     store = adapter._run_idempotency_store
     if isinstance(store, ProfileRunStores) or is_postgresql_store(store):
         return store.update_status(run_id, status, scope=scope or adapter._run_owners.get(run_id))
@@ -80,7 +80,7 @@ def persist_run_status(adapter, run_id, status, *, scope=None):
 
 def native_run_scope(adapter, scope):
     from hermes_db.health import is_postgresql_store
-    from hermes_db.run_resources import ProfileRunStores
+    from hermes_db.integration.run_resources import ProfileRunStores
     store = adapter._run_idempotency_store
     return store.is_native_scope(scope) if isinstance(store, ProfileRunStores) else is_postgresql_store(store)
 

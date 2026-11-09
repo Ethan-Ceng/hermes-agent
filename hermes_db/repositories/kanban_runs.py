@@ -6,7 +6,7 @@ from sqlalchemy import and_, select, update
 
 from hermes_db.repositories import kanban as repo
 from hermes_db.tables.kanban import runs, events
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 
 TEXT_FIELDS = {"task_id", "profile", "step_key", "status", "claim_lock", "worker_started_at", "outcome", "summary", "metadata", "error"}
 _UNSET = object()
@@ -53,7 +53,7 @@ def retry_status(conn, store, task_id, run_id):
         return "ready"
     payload = conn.scalar(select(events.c.payload).where(repo.key(store, task_id, events),
         events.c.run_id == int(run_id), events.c.kind == b"claimed").order_by(events.c.id.desc()).limit(1))
-    from hermes_db.values import decode_text
+    from hermes_db.core.values import decode_text
     from hermes_cli.kanban_db import _json_dict
     data = _json_dict(decode_text(payload))
     return "review" if data.get("source_status") == "review" else "ready"

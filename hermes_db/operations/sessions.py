@@ -7,7 +7,7 @@ from sqlalchemy import insert, or_, select
 
 from hermes_db.repositories import prompts, sessions as repo
 from hermes_db.tables.conversations import sessions
-from hermes_db.values import encode_config, encode_text, explicit_fork, model_config, model_markers
+from hermes_db.core.values import encode_config, encode_text, explicit_fork, model_config, model_markers
 
 _CREATION_FIELDS = ("model", "user_id", "session_key", "chat_id", "chat_type", "thread_id", "parent_session_id",
                     "cwd", "profile_name", "transport_profile", "git_repo_root", "origin_json", "display_name")
@@ -82,7 +82,7 @@ def _same_namespace(parent, child):
 
 
 def _stamp_surface(conn, scope, session_id):
-    from hermes_db.values import preferred_children
+    from hermes_db.core.values import preferred_children
 
     current = repo.raw_session(conn, scope, session_id)
     surface = current["created_source"]

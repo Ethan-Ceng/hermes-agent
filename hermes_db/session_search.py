@@ -1,6 +1,6 @@
 """Native PG search with exact-first recall and stable, bounded result pages."""
 
-from hermes_db.postgresql.search import statement
+from hermes_db.backends.postgresql.search import statement
 from hermes_db.repositories import search_context
 from hermes_db.search_query import parse_query
 from hermes_state_search import SessionSearchMixin

@@ -11,7 +11,7 @@ from hermes_db.operations import compression, messages as writes, sessions as li
 from hermes_db.repositories import compression as repo, messages as transcript, sessions
 from hermes_db.repositories.lineage import advance_local_target
 from hermes_db.tables.conversations import messages as table
-from hermes_db.values import model_config
+from hermes_db.core.values import model_config
 from hermes_state_messages import _parse_tool_calls, _scrub_surrogates, _tool_calls_len
 
 
@@ -78,7 +78,7 @@ def create_child(conn, scope, parent, *, child_session_id, source, model=None, c
     config = {**carried, **(config or {})}
     routing = {key: parent[key] for key in lifecycle._PARENT_ROUTING}
     # Constructor takes text for display_name, while repository rows hold BYTEA.
-    from hermes_db.values import decode_text
+    from hermes_db.core.values import decode_text
     routing["display_name"] = decode_text(routing["display_name"])
     lifecycle.create_on_connection(conn, scope, child_session_id, source, own_profile=own_profile,
         parent_session_id=parent["id"], model=model, model_config=config, system_prompt=system_prompt,

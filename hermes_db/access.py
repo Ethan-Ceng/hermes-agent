@@ -18,7 +18,7 @@ def acquire_sessions(db_path=None):
     _owner_only()
     from hermes_cli.db_setup import resolve_db_configuration
     from hermes_db.factory import acquire_db
-    from hermes_db.session_resource import SessionResource
+    from hermes_db.core.session_resource import SessionResource
     path = _path(db_path)
     settings, scope = resolve_db_configuration(path.resolve().parent)
     if settings.backend == "sqlite":
@@ -31,7 +31,7 @@ def open_session_store(db_path=None, *, read_only=False):
     _owner_only()
     from hermes_cli.db_setup import resolve_db_configuration
     from hermes_db.factory import acquire_db
-    from hermes_db.session_resource import SessionResource
+    from hermes_db.core.session_resource import SessionResource
     path = _path(db_path)
     settings, scope = resolve_db_configuration(path.resolve().parent)
     if settings.backend == "sqlite":
@@ -51,7 +51,7 @@ def session_store_exists(db_path=None):
 
 
 def release_session_store(store):
-    from hermes_db.session_resource import SessionResource
+    from hermes_db.core.session_resource import SessionResource
     if isinstance(store, SessionResource):
         store.close()
     else:
@@ -60,22 +60,22 @@ def release_session_store(store):
 
 
 def session_store_is_live(store):
-    from hermes_db.session_resource import SessionResource
+    from hermes_db.core.session_resource import SessionResource
     if isinstance(store, SessionResource):
         return store.is_open
     return getattr(store, "_shared_registry_owned", True) is not False
 
 
 def close_session_resources_under(home):
-    from hermes_db.native_registry import close_all as close_native
+    from hermes_db.integration.registry import close_all as close_native
     from hermes_state_registry import close_all_under
     return close_all_under(home) + close_native(home)
 
 
 def close_session_resources():
     """The gateway calls this only after all producer/worker quiesce checks pass."""
-    from hermes_db.engine import close_engines
-    from hermes_db.native_registry import close_all as close_native
+    from hermes_db.backends.postgresql.engine import close_engines
+    from hermes_db.integration.registry import close_all as close_native
     from hermes_state_registry import close_all
     count = close_all() + close_native()
     close_engines()

@@ -310,7 +310,7 @@ def retire_editor_mcp(authority, sid):
 def install_editor_mcp(authority, sid, servers):
     """After a committed change: *sid*'s borrowed credentials follow its committed policy (memory only)."""
     from gateway.session_policy import restore_policy
-    from hermes_db.local_access import local_receipt
+    from hermes_db.integration.local_access import local_receipt
     policy = restore_policy(local_receipt(authority.db, sid)['policy'])
     data = json.loads(policy.editor_mcp_json or '{}')
     borrowed = getattr(authority, '_local_editor_mcp', None)
@@ -411,7 +411,7 @@ async def refreeze_editor_mcp(authority, ref, live):
 
 async def _refreeze(authority, ref):
     from gateway.session_policy import restore_policy
-    from hermes_db.local_access import local_receipt
+    from hermes_db.integration.local_access import local_receipt
     # The committed policy the claim just restored (``restore_local_session``).
     receipt = await asyncio.to_thread(local_receipt, authority.db, ref.session_id)
     policy = restore_policy(receipt['policy'])
@@ -439,7 +439,7 @@ async def _commit_refreeze(authority, ref, servers):
     """The ``editor_mcp`` change on the owning principal's behalf, through ``session.mutate``'s own
     writer (the drain holds the session's locks, and a schema re-check needs no capability)."""
     from gateway.session_mutations import write_mutation
-    from hermes_db.local_access import local_receipt
+    from hermes_db.integration.local_access import local_receipt
     owner = await asyncio.to_thread(local_receipt, authority.db, ref.session_id)
     row = await asyncio.to_thread(authority.db.get_session, ref.session_id)
     payload, servers = private_mutation_payload('editor_mcp', {'mcp_servers': servers})
@@ -468,7 +468,7 @@ async def prepare_branch_editor(authority, ref, servers, gate):
     generation, idle) runs first; an exact retry's durable receipt comes back as ``prepared``."""
     from gateway.session_policy import restore_policy
     from hermes_state_keys import local_identity
-    from hermes_db.local_access import local_receipt
+    from hermes_db.integration.local_access import local_receipt
     try:
         saved = await asyncio.to_thread(local_receipt, authority.db, ref.session_id)
     except RuntimeStoreError:

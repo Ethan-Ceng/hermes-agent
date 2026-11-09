@@ -30,8 +30,8 @@ _entries = {}
 
 
 def _construct_store(settings, scope):
-    from hermes_db.engine import get_engine
-    from hermes_db.postgresql.transactions import Transactions
+    from hermes_db.backends.postgresql.engine import get_engine
+    from hermes_db.backends.postgresql.transactions import Transactions
     from hermes_db.schema import check_schema
     from hermes_db.session_store import PostgresSessionStore
     check_schema(settings)

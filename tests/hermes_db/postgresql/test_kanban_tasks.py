@@ -164,7 +164,7 @@ def test_project_inheritance_overrides_sort_and_process_recovery(kanban_profiles
     import subprocess
     import sys
     from hermes_cli import kanban_db as kb, projects_db as pdb
-    from hermes_db.engine import close_engines
+    from hermes_db.backends.postgresql.engine import close_engines
     with kanban_profiles("one") as home:
         with pdb.connect_closing() as projects:
             project_id = pdb.create_project(projects, name="Repo", slug="repo", primary_path=str(tmp_path / "repo"))

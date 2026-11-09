@@ -43,7 +43,7 @@ def resumable_current_row(row, subject):
 def resolve_native_target(authority, actor, row):
     from gateway.session_contract import SessionRef
     from gateway.session_local_recovery import restore_local_session
-    from hermes_db.runtime_access import runtime_for_store
+    from hermes_db.integration.runtime_access import runtime_for_store
     from hermes_state_local import POLICY_PREFIX
     db, sid = authority.db, row['id']
     bound = db.get_meta(POLICY_PREFIX + (row.get('chat_id') or sid)) is not None
@@ -60,9 +60,9 @@ def resume_current_history(authority, actor, row):
     from gateway.run import _load_gateway_config
     from gateway.session_local_recovery import local_source, restore_local_session
     from gateway.session_policy import build_policy, bind_launch_key
-    from hermes_db.authority_access import authorize_history
+    from hermes_db.integration.authority_access import authorize_history
     from hermes_db.health import persisted_profile_id
-    from hermes_db.runtime_access import runtime_for_store
+    from hermes_db.integration.runtime_access import runtime_for_store
     if actor.profile_id != authority.profile_id:
         raise RuntimeStoreError("profile_mismatch")
     native = getattr(authority, "_native_legacy_transports", {}).get(actor.transport_id) == actor

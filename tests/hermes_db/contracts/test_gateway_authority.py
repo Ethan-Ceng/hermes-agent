@@ -82,7 +82,7 @@ async def test_native_resume_refreshes_settings_without_rewriting_prompt_or_hist
     import json
     from gateway.session_local import create_local_session
     from gateway.session_policy_refresh import commit_refresh
-    from hermes_db.local_access import local_receipt
+    from hermes_db.integration.local_access import local_receipt
     db, _other = core_pair
     async with _owner_at(db, monkeypatch, "refresh-owner") as (owner, actor):
         home = db.scope.profile_home

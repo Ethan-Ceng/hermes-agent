@@ -8,7 +8,7 @@ from hermes_state_runtime import RuntimeStoreError
 
 def _root_policy(authority, params):
     from gateway.session_policy import policy_for_source
-    from hermes_db.runtime_access import runtime_for_store
+    from hermes_db.integration.runtime_access import runtime_for_store
     from hermes_state_runtime_workers import CHILD_SEPARATOR
     execution = params["execution_id"]
     root = execution.split(CHILD_SEPARATOR, 1)[0]

@@ -59,7 +59,7 @@ def storage_source(db, source, session_id, fallback):
         from hermes_state_local_migration import LEGACY_PREFIX
         if db.get_meta(LEGACY_PREFIX + str(source.chat_id)) is None:
             return fallback
-    from hermes_db.local_access import local_receipt
+    from hermes_db.integration.local_access import local_receipt
     receipt = local_receipt(db, source.chat_id)
     if session_id not in receipt.get('lineage', [receipt['session_id']]):
         raise RuntimeStoreError('admission_conflict')
@@ -95,7 +95,7 @@ async def forward(connection, params):
     from gateway.session_local_recovery import local_identity, restore_local_session
     from gateway.session_local import stage_local_session
     from gateway.session_runtime_workers import tracked_write
-    from hermes_db.local_access import commit_local_session, local_receipt
+    from hermes_db.integration.local_access import commit_local_session, local_receipt
     from hermes_state_mutation_retirement import first_generation
     from hermes_state_terminal import identity_key
     # A context whose session the user deleted continues on its next generation (the deleted id

@@ -5,8 +5,8 @@ from copy import deepcopy
 from sqlalchemy import select
 
 from hermes_db.message_codec import codec
-from hermes_db.operations import portability
-from hermes_db.portability_values import values
+from hermes_db.integration.postgres.operations import portability
+from hermes_db.integration.transfer.portability_values import values
 from hermes_db.repositories import messages, session_queries, sessions
 from hermes_db.tables.conversations import sessions as table
 from hermes_state_portability import _export_timings

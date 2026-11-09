@@ -35,7 +35,7 @@ class WithoutPostgres(importlib.abc.MetaPathFinder):
 sys.meta_path.insert(0, WithoutPostgres())
 import hermes_db
 from hermes_state import SessionDB
-from hermes_db.legacy_sqlite import SQLiteRuntime
+from hermes_db.backends.sqlite.acquire import SQLiteRuntime
 from hermes_db.scope import DatabaseScope
 with SessionDB(db_path=Path(sys.argv[1])) as db:
     db.create_session('sqlite-only', source='cli')

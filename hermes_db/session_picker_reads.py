@@ -8,7 +8,7 @@ from hermes_db.message_codec import content_from_bytes
 from hermes_db.repositories import sessions as repo, session_queries as queries
 from hermes_db.tables.conversations import messages, sessions
 from hermes_db.tables.runtime import state_meta
-from hermes_db.values import decode_text
+from hermes_db.core.values import decode_text
 
 
 class SessionPickerReads:
@@ -58,7 +58,7 @@ class SessionPickerReads:
 
 def _replies(conn, scope, segment):
     from agent.context_compressor import MODEL_ONLY_DISPLAY_METADATA_KEY
-    from hermes_db.query_projections import display_value, query_token
+    from hermes_db.backends.postgresql.expressions.projections import display_value, query_token
     from hermes_db.message_codec import codec
     from hermes_db.repositories.messages import where, visible
     model_only = tuple(query_token(value) for value in (True, 1, 'true', '1'))

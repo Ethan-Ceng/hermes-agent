@@ -4,7 +4,7 @@ import time
 
 from sqlalchemy import or_
 
-from hermes_db.operations.profile_repair import delete_routes
+from hermes_db.integration.postgres.operations.profile_repair import delete_routes
 from hermes_db.repositories import gateway, sessions
 from hermes_db.tables.gateway import delivery_obligations, gateway_heartbeats
 from hermes_db.tables.gateway import telegram_dm_topic_bindings as bindings, telegram_dm_topic_mode as modes

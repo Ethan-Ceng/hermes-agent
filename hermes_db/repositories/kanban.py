@@ -6,7 +6,7 @@ from sqlalchemy import and_, select, update
 from sqlalchemy.dialects.postgresql import insert
 
 from hermes_db.tables.kanban import tasks, links, comments, events, kanban_boards as boards, TASK_TEXT_FIELDS
-from hermes_db.values import decode_text, encode_text
+from hermes_db.core.values import decode_text, encode_text
 
 
 def scope(table, store):

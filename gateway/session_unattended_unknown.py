@@ -45,9 +45,9 @@ def settle_recovered_unattended(db, epoch) -> int:
     from gateway.session_ingress_media import release_admission_media
     from gateway.session_results import close_discarded_turn
     from hermes_state_runtime import RuntimeStoreError, _row
-    from hermes_db.runtime_calls import resolve_unknown_session_input
+    from hermes_db.integration.runtime_calls import resolve_unknown_session_input
     from hermes_db.health import is_postgresql_store
-    from hermes_db.runtime_access import effect_for_store, runtime_for_store
+    from hermes_db.integration.runtime_access import effect_for_store, runtime_for_store
     if is_postgresql_store(db):
         rows = runtime_for_store(db).unknown_inputs()
     else:
@@ -80,7 +80,7 @@ async def settle_unattended_unknown(authority, ref) -> bool:
 
     from agent.turn_failure_copy import AUTOMATION_INTERRUPTED_NOTICE
     from hermes_state_runtime import RuntimeStoreError
-    from hermes_db.runtime_calls import list_session_admissions
+    from hermes_db.integration.runtime_calls import list_session_admissions
     rows = await asyncio.to_thread(list_session_admissions, authority.db, session_id=ref.session_id)
     settled = False
     for row in _unattended_unknown(rows):

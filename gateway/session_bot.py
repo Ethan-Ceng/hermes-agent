@@ -5,7 +5,7 @@ admission is the only consumer; unknown execution is never retried as inference.
 """
 
 from hermes_db.health import persisted_profile_id, is_postgresql_store
-from hermes_db.runtime_access import runtime_for_store
+from hermes_db.integration.runtime_access import runtime_for_store
 
 from hermes_db.health import profile_home_for_store
 import asyncio
@@ -20,7 +20,7 @@ from gateway.session_contract import SessionActor, SessionRef
 from gateway.config import Platform
 from gateway.platforms.event import MessageEvent
 from hermes_state_runtime import RuntimeStoreError
-from hermes_db.runtime_calls import get_session_admission
+from hermes_db.integration.runtime_calls import get_session_admission
 from tools.bot_failure_reasons import HELD_NOT_SENT, UNKNOWN
 from tools.bot_live_delivery import _TERMINAL, _delivery_id, _read
 logger = logging.getLogger(__name__)
@@ -358,7 +358,7 @@ async def _create_bot_chat(authority, actor, *, displace=None):
     from gateway.session_local_recovery import restore_local_session
     from gateway.session_local_title import title_new_session
     from gateway.session_runtime_workers import tracked_write
-    from hermes_db.local_access import commit_local_session
+    from hermes_db.integration.local_access import commit_local_session
     lock = getattr(authority, '_titled_create_lock', None)
     if lock is None:
         lock = authority._titled_create_lock = asyncio.Lock()

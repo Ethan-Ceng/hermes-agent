@@ -7,7 +7,7 @@ from hermes_db.repositories import rooms as room_repo, room_policy as repo
 from hermes_db.tables.rooms import events
 from hermes_db.tables.room_policy import active, threads, watermarks, cursors
 from hermes_db.tables.room_work import publications
-from hermes_db.values import encode_text
+from hermes_db.core.values import encode_text
 
 
 def _thread(conn, store, event, thread_id, discussion_id):
