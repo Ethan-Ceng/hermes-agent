@@ -8,9 +8,9 @@ import sys
 from types import SimpleNamespace
 import pytest
 from sqlalchemy import select, update
-from hermes_db.domains.discord_recovery import open_discord
+from hermes_db.domains.plugin_storage.discord.api import open_discord
 from hermes_db.errors import UnknownCommitError
-from hermes_db.repositories import discord_recovery as repo
+from hermes_db.domains.plugin_storage.discord.postgres.queries import recovery as repo
 from hermes_db.tables.discord_recovery import messages, scans
 from tests.hermes_db.postgresql.test_discord_recovery import build_adapter
 from tests.gateway.test_discord_missed_message_backfill import make_message
@@ -19,7 +19,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 
 
 def test_response_and_portable_cursor_roll_back_together(pg_profiles, monkeypatch):
-    from hermes_db.operations import plugin_storage
+    from hermes_db.domains.plugin_storage.records.postgres.operations import records as plugin_storage
     with pg_profiles("one"):
         adapter = build_adapter(monkeypatch)
         adapter._record_discord_message_seen(make_message(message_id=322), status="processing")
@@ -38,7 +38,7 @@ def test_response_and_portable_cursor_roll_back_together(pg_profiles, monkeypatc
 
 
 def test_actual_commit_missing_ack_recovers_receipt_and_cursor_in_new_process(pg_profiles, monkeypatch):
-    from hermes_db import discord_recovery_store
+    from hermes_db.domains.plugin_storage.discord.postgres import store as discord_recovery_store
     from tests.gateway.fixtures.local_recovery_probe import child_env
     with pg_profiles("one") as home:
         adapter = build_adapter(monkeypatch)

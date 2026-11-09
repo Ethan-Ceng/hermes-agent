@@ -187,7 +187,7 @@ class _WriteQueue:
     def __new__(cls, client, db_path, *, profile_home=None):
         from hermes_cli.db_setup import storage_backend
         if cls is _WriteQueue and storage_backend(profile_home) == "postgresql":
-            from hermes_db.retain_queue import PostgresWriteQueue
+            from hermes_db.domains.plugin_storage.retain.postgres.queue import PostgresWriteQueue
             return PostgresWriteQueue(client, db_path, profile_home=profile_home)
         return object.__new__(cls)
 

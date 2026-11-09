@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from functools import partial
 
-from hermes_db.operations import retain_queue as operations
+from hermes_db.domains.plugin_storage.retain.postgres.operations import queue as operations
 from hermes_db.operations.worker_domains import fields, text
 from hermes_state_runtime import RuntimeStoreError
 

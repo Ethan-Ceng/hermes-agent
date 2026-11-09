@@ -1,7 +1,7 @@
 """Selected PG implementation of the driver-free plugin storage protocol."""
 
-from hermes_db.domains.plugins import capture_plugin, open_plugin
-from hermes_db.operations import plugin_storage as operations
+from hermes_db.domains.plugin_storage.records.api import capture_plugin, open_plugin
+from hermes_db.domains.plugin_storage.records.postgres.operations import records as operations
 from plugins import plugin_storage_types as contract
 
 

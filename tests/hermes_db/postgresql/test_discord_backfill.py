@@ -5,8 +5,8 @@ import pytest
 from sqlalchemy import select
 from gateway.config import PlatformConfig
 from gateway.platforms.event import ProcessingOutcome
-from hermes_db.domains.discord_recovery import open_discord
-from hermes_db.repositories.discord_recovery import scope
+from hermes_db.domains.plugin_storage.discord.api import open_discord
+from hermes_db.domains.plugin_storage.discord.postgres.queries.recovery import scope
 from hermes_db.tables.discord_recovery import scans
 from plugins.platforms.discord.adapter import DiscordAdapter
 from tests.gateway.test_discord_missed_message_backfill import FakeChannel, make_message
@@ -55,7 +55,7 @@ async def test_actual_backfill_scan_receipts_duplicate_suppression_and_reopen(pg
 @pytest.mark.asyncio
 async def test_pg_failure_never_becomes_empty_recovery_or_successful_scan(pg_profiles, monkeypatch):
     from contextlib import contextmanager
-    from hermes_db import discord_recovery_store
+    from hermes_db.domains.plugin_storage.discord.postgres import store as discord_recovery_store
     from hermes_db.errors import StorageUnavailableError
     with pg_profiles("one"):
         adapter = adapter_for(monkeypatch)

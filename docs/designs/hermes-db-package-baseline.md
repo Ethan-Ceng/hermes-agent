@@ -55,6 +55,8 @@ JSON 和 [引用台账](hermes-db-package-reference-baseline.json) 合计包含�
 
 ## 固定锚点与缺证边界
 
-31 个 Alembic revision 文件的 Git blob SHA256、revision/down_revision，以及 29 个表定义模块和 tables/__init__ 共同计 61 个锚点已冻结；`REQUIRED_REVISION` 保持 `0031_merge_data_repair`。DomainSpec 的 16 个逻辑域键、revision/table_modules、settings 字段/默认值同时冻结。后续表/版本资源不移位，不增加 revision，不迁移任何正式数据。
+31 个 Alembic revision 文件的 Git blob SHA256、revision/down_revision，连同版本包初始化文件及29个表模块（含tables/__init__，其余28个定义模块）共同计61个锚点已冻结；`REQUIRED_REVISION` 保持 `0031_merge_data_repair`。DomainSpec 的 16 个逻辑域键、revision/table_modules、settings 字段/默认值同时冻结。后续表/版本资源不移位，不增加 revision，不迁移任何正式数据。
 
 Task1 实际命令、计数、退出码及未验证项见计划对应条目。本次不把历史 686 PG、36 专项、32 SDK 或 Native503 当成重构后证据。原统一后端 Task24 与七项非 WSL 缺证独立保留；本 Task1 的基线通过也不解除它们。
+
+计数口径更正（Task5核对）：先前将29个表模块统称为29个定义模块的说明不精确。冻结JSON本身始终有正确的61项：31 revisions + versions/__init__ + 29 tables模块。Task2对tables/__init__仅同步catalog导入；31个revision、版本初始化和其余28个表定义规范内容不变，全部29表模块路径与metadata/表身份保留。历史测试日志中的静态审计打印标签“29 table definitions”也是这一计数标签错误，不作为额外第29个定义模块的证据。

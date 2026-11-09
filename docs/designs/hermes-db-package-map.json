@@ -1,7 +1,7 @@
 {
   "baseline": "cbfc773dd79241752697e647067c63338fc01680",
   "baseline_runtime": "0d69702244d623a31be149a9bac6a2658e0322ae",
-  "stage": "Tasks2-4 verified; domain moves continue from Task5 in isolated checkout",
+  "stage": "Tasks2-5 verified; Matrix SDK move and verification continue from Task6",
   "hash_basis": "SHA256 of Git blob bytes at baseline; independent of checkout line endings",
   "counts": {
     "keep": 76,
@@ -135,7 +135,8 @@
       "task": 5,
       "lines": 39,
       "sha256": "2f8813a9a1a22353c2634153b829b4e01fe6d56a4f4e24d6c5cc34120a7a232f",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domain_schema.py",
@@ -184,7 +185,8 @@
       "task": 5,
       "lines": 35,
       "sha256": "787be6e344ea96becd8e42c35def3f8dcf9d646a02d381e73ccc067d7e1ba764",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/kanban.py",
@@ -276,7 +278,8 @@
       "task": 5,
       "lines": 36,
       "sha256": "0daba4c955ba2aec6040e70d6e62f6db4b4c69bcc09375ddcf4e7672b4135f47",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/projects.py",
@@ -305,7 +308,8 @@
       "task": 5,
       "lines": 59,
       "sha256": "8293458b669be775d942efa27006704619ced019a94099e0c623909981ef3f37",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/room_attachments.py",
@@ -1030,7 +1034,8 @@
       "task": 5,
       "lines": 104,
       "sha256": "c72ba6ac7124087d21e66a500115278eb979ad3a2bb91a46b2f36e2249adc0c6",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/effects.py",
@@ -1666,7 +1671,8 @@
       "task": 5,
       "lines": 71,
       "sha256": "45cd9345225ef59a767a0bc160a578333f757c72d4dd1a3a94f6f9f9485bc8ec",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/portability.py",
@@ -1725,7 +1731,8 @@
       "task": 5,
       "lines": 141,
       "sha256": "52aa6e87ef59b3ee82d866489e9f6d91de2133a0de2e927d0c0a7b3fa89627c2",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/retirement.py",
@@ -2203,7 +2210,8 @@
       "task": 5,
       "lines": 40,
       "sha256": "ba93270a045589ef326bb13dd0fbedac79c71839fae82313497c8ae02ebf4c5a",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/portability_values.py",
@@ -2383,7 +2391,8 @@
       "task": 5,
       "lines": 35,
       "sha256": "125ac44ea56036250abfc05d92b1c9dcc39605100474db0f70d2585541ca324d",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/file_grants.py",
@@ -2766,7 +2775,8 @@
       "task": 5,
       "lines": 105,
       "sha256": "777559e3b6cce80a661988e914e2bb5aecad8d1bc2b7a8935e1a860ca784ad27",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/room_attachment_files.py",
@@ -3799,6 +3809,61 @@
     {
       "path": "hermes_db/domains/metrics/postgres/queries/__init__.py",
       "task": 4,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/plugin_storage/discord/postgres/__init__.py",
+      "task": 5,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/plugin_storage/discord/__init__.py",
+      "task": 5,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/plugin_storage/__init__.py",
+      "task": 5,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/plugin_storage/records/__init__.py",
+      "task": 5,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/plugin_storage/retain/__init__.py",
+      "task": 5,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/plugin_storage/discord/postgres/operations/__init__.py",
+      "task": 5,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/plugin_storage/records/postgres/operations/__init__.py",
+      "task": 5,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/plugin_storage/records/postgres/__init__.py",
+      "task": 5,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/plugin_storage/retain/postgres/operations/__init__.py",
+      "task": 5,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/plugin_storage/retain/postgres/__init__.py",
+      "task": 5,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/plugin_storage/discord/postgres/queries/__init__.py",
+      "task": 5,
       "role": "empty-package-namespace"
     }
   ]

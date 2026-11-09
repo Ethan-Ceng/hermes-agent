@@ -1,10 +1,10 @@
 """Discord recovery writes serialize by owning store; delivered replies stay terminal."""
 
 from sqlalchemy import delete, func, select, update
-from hermes_db.repositories import discord_recovery as repo
+from hermes_db.domains.plugin_storage.discord.postgres.queries import recovery as repo
 from hermes_db.tables.discord_recovery import messages, scans
-from hermes_db.domains.plugins import PluginRef
-from hermes_db.operations import plugin_storage
+from hermes_db.domains.plugin_storage.records.api import PluginRef
+from hermes_db.domains.plugin_storage.records.postgres.operations import records as plugin_storage
 
 
 def probe(conn, reference):

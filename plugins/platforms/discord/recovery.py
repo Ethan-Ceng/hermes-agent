@@ -27,7 +27,7 @@ class DiscordRecoveryStore(RecoveryOperations):
         from hermes_cli.db_setup import storage_backend
         self._backend = None
         if storage_backend(hermes_home) == "postgresql":
-            from hermes_db.discord_recovery_store import PostgresDiscordRecoveryStore
+            from hermes_db.domains.plugin_storage.discord.postgres.store import PostgresDiscordRecoveryStore
             self._backend = PostgresDiscordRecoveryStore(hermes_home)
             self.reference = self._backend.reference
             return

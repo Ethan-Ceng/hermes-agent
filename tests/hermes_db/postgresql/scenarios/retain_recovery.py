@@ -16,7 +16,7 @@ sqlite3.connect = reject
 sys.addaudithook(lambda event, args: reject() if event == "sqlite3.connect" else None)
 threading.excepthook = lambda args: failures.append(args.exc_value)
 from hermes_db.factory import acquire_profile_domain
-from hermes_db.operations import retain_queue as operations
+from hermes_db.domains.plugin_storage.retain.postgres.operations import queue as operations
 from plugins.memory.retaindb import _WriteQueue
 from hermes_constants import get_hermes_home
 

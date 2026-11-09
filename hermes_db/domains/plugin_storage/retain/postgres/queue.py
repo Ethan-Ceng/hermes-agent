@@ -10,9 +10,9 @@ from agent.memory_provider import spawn_context_thread
 from agent.runtime_session_store import WorkerPersistenceError
 from agent.redact import redact_sensitive_text
 from hermes_cli.db_setup import _owning_profile
-from hermes_db.domains.retain_queue import capture_queue
+from hermes_db.domains.plugin_storage.retain.api import capture_queue
 from hermes_db.errors import StorageConfigurationError, StorageError, UnknownCommitError
-from hermes_db.operations import retain_queue as operations
+from hermes_db.domains.plugin_storage.retain.postgres.operations import queue as operations
 
 logger = logging.getLogger(__name__)
 

@@ -3,9 +3,9 @@
 from dataclasses import replace
 import pytest
 from sqlalchemy import update
-from hermes_db.domains.retain_queue import capture_queue, open_queue
+from hermes_db.domains.plugin_storage.retain.api import capture_queue, open_queue
 from hermes_db.errors import StorageConflictError
-from hermes_db.operations import retain_queue as operations
+from hermes_db.domains.plugin_storage.retain.postgres.operations import queue as operations
 from hermes_db.tables.retain_queue import pending
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]

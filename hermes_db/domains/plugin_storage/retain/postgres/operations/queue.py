@@ -6,7 +6,7 @@ import uuid
 from contextlib import nullcontext
 from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
-from hermes_db.domains.retain_queue import open_queue, WorkerRetainQueueRef
+from hermes_db.domains.plugin_storage.retain.api import open_queue, WorkerRetainQueueRef
 from hermes_db.errors import StorageConflictError
 from hermes_db.tables.retain_queue import pending
 from hermes_db.core.values import decode_text, encode_text

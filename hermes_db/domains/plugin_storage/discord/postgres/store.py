@@ -2,10 +2,10 @@
 
 import datetime as dt
 import threading
-from hermes_db.domains.discord_recovery import capture_discord, open_discord
+from hermes_db.domains.plugin_storage.discord.api import capture_discord, open_discord
 from hermes_db.errors import StorageConfigurationError
-from hermes_db.operations import discord_recovery as operations
-from hermes_db.repositories.discord_recovery import lock_store
+from hermes_db.domains.plugin_storage.discord.postgres.operations import recovery as operations
+from hermes_db.domains.plugin_storage.discord.postgres.queries.recovery import lock_store
 
 READS = frozenset({"probe", "is_complete", "active_claim", "attempts_exhausted", "cursor"})
 

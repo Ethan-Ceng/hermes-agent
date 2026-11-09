@@ -5,9 +5,9 @@ import subprocess
 import sys
 import pytest
 from sqlalchemy import select, update
-from hermes_db.domains.retain_queue import open_queue
+from hermes_db.domains.plugin_storage.retain.api import open_queue
 from hermes_db.errors import UnknownCommitError
-from hermes_db.operations import retain_queue as operations
+from hermes_db.domains.plugin_storage.retain.postgres.operations import queue as operations
 from hermes_db.tables.retain_queue import pending
 from plugins.memory.retaindb import _WriteQueue
 from tests.hermes_db.postgresql.test_retain_queue_worker import Client

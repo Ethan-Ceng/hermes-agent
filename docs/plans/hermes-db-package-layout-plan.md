@@ -6,8 +6,8 @@
 - 全量归属：[398项基准映射](../designs/hermes-db-package-map.json)。
 - 文档分支：`docs/hermes-db-package-layout`；实施分支：`refactor/hermes-db-packages`。
 - 源码基准：`cbfc773dd7`，运行实现等价`0d69702244`。
-- 整体状态：`IMPLEMENTING`；当前阶段：第一阶段机械落位；当前任务：Task5（待开始）；完成：4 / 18。
-- 本轮已建立独立实施检出并完成Task1–4；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
+- 整体状态：`IMPLEMENTING`；当前阶段：第一阶段机械落位；当前任务：Task6（待开始）；完成：5 / 18。
+- 本轮已建立独立实施检出并完成Task1–5；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
 - 核心设计待决策：无；Task1隔离PM与PG基线已通过，Matrix实际SDK由Task6核对。原统一后端Task24及七项非WSL缺证独立保留。
 - 更新时间：2026-11-09（Asia/Shanghai）。恢复位置：`D:/AI/hermes-db-packages`；从首个in_progress任务继续，不重跑整轮数据库选型。
 
@@ -64,6 +64,7 @@ PG选项只用于tests/hermes_db下已注册该选项的文件；其他目录Nat
 | 2026-11-09 | IMPLEMENTING | Task2基础设施/组合40模块移动并验证，2/18；Native504、PG41、driver-free2、15静态全绿，4平台skip单列 |
 | 2026-11-09 | IMPLEMENTING | Task3 Projects/verification六项移动并验证，3/18；Native/CLI513、PG7、15静态通过，4平台skip单列 |
 | 2026-11-09 | IMPLEMENTING | Task4 Cron/metrics十六项及闭合动态路由验证，4/18；Native504、PG26、15静态通过，4平台skip单列 |
+| 2026-11-09 | IMPLEMENTING | Task5 插件十项移动、两条既有边界路径精确迁移并验证，5/18；Native504、PG25、15静态通过；更正表模块计数文字口径 |
 
 ## 方案准备自检
 
@@ -117,7 +118,7 @@ Invoke-PgCases -Files @('tests/hermes_db/postgresql/test_surface_flow.py', 'test
 
 已从规划提交建立 `D:/AI/hermes-db-packages` worktree、`refactor/hermes-db-packages` 普通分支，原目录干净且分支未切换。首次PM/应用导入前绑定本检出的 `.build/package-layout/profile` 与 `runtime`。PM从既有Python 3.14.9 bootstrap创建专用 `test-env`，dev/test及postgresql/telegram/discord extras构建exit0。没有修改既有环境或正式Profile。
 
-新增 `scripts/hermes_db_layout_audit.py` 和两份历史JSON基线、具名依赖分类账本 `docs/designs/hermes-db-package-baseline.md`。398项Git blob全部匹配；359个公共定义模块、239个外部依赖拥有者、内部依赖、动态路由/patch/Worker入口、外部DTO/异常和配置注册值已冻结。31个revision/29个表模块及tables init共61锚点，0031要求不变。基准两个提交只有文档差异，没有映射修订需要。
+新增 `scripts/hermes_db_layout_audit.py` 和两份历史JSON基线、具名依赖分类账本 `docs/designs/hermes-db-package-baseline.md`。398项Git blob全部匹配；359个公共定义模块、239个外部依赖拥有者、内部依赖、动态路由/patch/Worker入口、外部DTO/异常和配置注册值已冻结。31个revision、版本包init及29个表模块（含tables init）共61锚点，0031要求不变。基准两个提交只有文档差异，没有映射修订需要。
 
 持久值核对：闭合JSON command/DTO kind、目标摘要和SDK Olm pickle不以hermes_db完整模块名作为反序列化地址；动态物理路径须在Task4/9/10更新，逻辑操作名保持。纯共享符号、Native桥接、历史迁移和待移除私有facade逐类登记，不扩大plugin API或全量重生成boundary baseline。
 
@@ -180,7 +181,7 @@ Task2映射均落实；SQLite driver-free入口及PG构造/作用域合同通过
 
 以Task1 `1564c08225`为起点，完成映射52项（40移动、12保留）。连接/事务/表达式移到backends/postgresql，Native桥接到backends/sqlite；值/目录能力/资源定义到core，具体registry/Profile活动/跨域维护到integration。同步生产消费者、延迟导入、测试读取/patch字符串与活跃开发文档；历史方案/执行记录和Task1冻结清单不重写。新增8个空父包初始化文件已逐项登记new_files，无旧路径re-export shim。
 
-根Python文件113→90，总文件398→406（暂增8个必要包初始化；业务模块不增）。最终根11及净减少仍由后续分域/收敛任务实现，不能在本Task声称达到最终结构。398模块AST审计未发现导入与模块路径字符串以外逻辑漂移；31 revision和29表定义Git规范hash保持。tables/__init__.py只把catalog导入改为core.catalog，merge_data_repair.py只调整values导入，未改历史SQL、算法、DTO、错误、事务或池粒度。
+根Python文件113→90，总文件398→406（暂增8个必要包初始化；业务模块不增）。最终根11及净减少仍由后续分域/收敛任务实现，不能在本Task声称达到最终结构。398模块AST审计未发现导入与模块路径字符串以外逻辑漂移；31 revision和28表定义Git规范hash保持。tables/__init__.py只把catalog导入改为core.catalog，merge_data_repair.py只调整values导入，未改历史SQL、算法、DTO、错误、事务或池粒度。
 
 正式checkout仍为规划分支且工作区干净；所有源码改动/测试在独立worktree，未操作正式配置或业务数据。
 
@@ -191,7 +192,7 @@ Task2映射均落实；SQLite driver-free入口及PG构造/作用域合同通过
 - `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts -j 4 --file-timeout 1200 -- --tb=short`，exit0，90文件504passed/0failed/4skipped，852.8秒（task2-native.log）。四项与Task1相同：1 POSIX、3 Linux SDK；没有把skip算通过。
 - 同runner `tests/hermes_db/postgresql/test_schema.py tests/hermes_db/postgresql/test_domain_schema.py tests/hermes_db/postgresql/test_sessions.py tests/hermes_db/postgresql/test_surface_flow.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，exit0，4文件41passed/0failed/0skip，151.2秒（task2-pg.log）。独立DB/随机Schema归属fixture，surface进程SQLite拒绝护栏保留。
 - 同runner `tests/hermes_db/test_optional_dependencies.py -j 1 --file-timeout 1200 -- --tb=short`，exit0，2passed/0failed/0skip，6.1秒（task2-optional.log）；真实子进程拒绝PG依赖导入仍完成SQLite会话/队列持久操作。
-- 本地 `PM Python .build/package-layout/task2-audit.py`，最终exit0（task2-audit-accepted.log）：398模块机械AST等价、31 revision和29表定义hash不变。首轮审计工具对未存入object DB的新tables初始化blob执行cat-file失败；已修正为31+29锚点比较，初始化文件必要导入变化单列，不是业务失败。
+- 本地 `PM Python .build/package-layout/task2-audit.py`，最终exit0（task2-audit-accepted.log）：398模块机械AST等价、31 revision和28表定义hash不变。首轮审计工具对未存入object DB的新tables初始化blob执行cat-file失败；已修正为31+29锚点比较，初始化文件必要导入变化单列，不是业务失败。
 - `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，exit0，15checks通过，health336文件0blocking/0advisory（task2-check-final.log）；最终映射/计划元数据更新后暂存空白检查exit0。
 - 未验证：完整PG/实际Matrix SDK/发行及旧Schema业务升级由后续任务验收；本Task局部绿不解除Task17/18或原统一Task24缺证。表metadata身份与Schema保持原模块路径。
 - 恢复点：本地提交 `ee2ea1130c`，标题 `refactor(storage): package database infrastructure and composition`；下一Task3，继续机械分包Projects/verification。
@@ -241,13 +242,13 @@ Invoke-PgCases -Files @('tests/hermes_db/postgresql/test_projects_store.py', 'te
 
 从Task2 `ee2ea1130c`继续，将Projects与verification的api/operations/queries六项一对一移动到各自业务域。同步CLI装饰器、Agent验证证据入口、Worker领域handler及真实测试import/patch读取点；public DTO与异常仍由原定义模块提供，规范化/重复目录/排序/锁/SQL保持。Projects私有规则提取仍属Task11。
 
-新增8个必要空初始化文件逐项进入new_files台账；当前16个新增均为空命名空间，总Python文件414、根90。398项机械AST等价，全部源/新增文件有归属；31 revision与29表定义不变。公开plugin_api与boundary baseline均未改；没有旧内部路径shim或SQL行为变更。历史设计/执行证据保持原基准路径。
+新增8个必要空初始化文件逐项进入new_files台账；当前16个新增均为空命名空间，总Python文件414、根90。398项机械AST等价，全部源/新增文件有归属；31 revision与28表定义不变。公开plugin_api与boundary baseline均未改；没有旧内部路径shim或SQL行为变更。历史设计/执行证据保持原基准路径。
 
 ### 验证证据
 
 沿用Task1 PM解释器/隔离home/runtime，所有日志在本地 `.build/package-layout/`，retries=0。
 
-- `PM Python .build/package-layout/audit_mechanical.py`，exit0（task3-audit.log）：398 AST机械等价、源/新增归属闭合、31 revision/29表定义保持。
+- `PM Python .build/package-layout/audit_mechanical.py`，exit0（task3-audit.log）：398 AST机械等价、源/新增归属闭合、31 revision/28表定义保持。
 - `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts tests/hermes_cli/test_projects_db.py tests/hermes_cli/test_projects_cli.py -j 4 --file-timeout 1200 -- --tb=short`，exit0，92文件513passed/0failed/4skipped，276.8秒（task3-native.log）；skip仍为1 POSIX+3 Linux SDK，均未记通过。
 - 同runner `tests/hermes_db/postgresql/test_projects_store.py tests/hermes_db/postgresql/test_verification_store.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，exit0，2文件7passed/0failed/0skip，22.0秒（task3-pg.log）；使用所有权核对随机Schema验证真实持久化与store隔离。
 - `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，exit0，15checks通过，health349文件0blocking/0advisory（task3-check.log）；最终计划/映射状态更新后暂存空白检查exit0。
@@ -299,22 +300,22 @@ Invoke-PgCases -Files @('tests/hermes_db/postgresql/test_cron_executions.py', 't
 
 从Task3 `210831263e`继续，按映射机械移动Cron/metrics十六项，更新Cron四类消费者、metrics sender/snapshot/bound store、Worker指标路径及测试patch/import读取点。Cron原全局cron_{topic}拼接改为四项显式模块表（executions/incidents/delivery/notepad），仅在所选PG分支调用时导入；逻辑topic、原函数名、domain键及回执保持。无额外驱动启动依赖。
 
-未改TTL/配额、claim/unknown/终态、consent/去重或时钟语义；文件/HTTP/等待仍在原事务外，Profile捕获不变。审计对Cron新表精确核对四个目标并将此唯一预期路由差异规范化后，398模块AST机械等价。31个revision和29个表定义保持，未改Schema/历史SQL。再增8个必要空初始化文件，全部入图；累计24个新增命名空间、总Python422、根87，业务模块未增加；最终净减少仍由阶段二验收。公开plugin API/boundary baseline未变化。
+未改TTL/配额、claim/unknown/终态、consent/去重或时钟语义；文件/HTTP/等待仍在原事务外，Profile捕获不变。审计对Cron新表精确核对四个目标并将此唯一预期路由差异规范化后，398模块AST机械等价。31个revision和28个表定义保持，未改Schema/历史SQL。再增8个必要空初始化文件，全部入图；累计24个新增命名空间、总Python422、根87，业务模块未增加；最终净减少仍由阶段二验收。公开plugin API/boundary baseline未变化。
 
 ### 验证证据
 
 沿用Task1隔离PM解释器/home/runtime，retries=0，本地日志根 `.build/package-layout/`。
 
-- `PM Python .build/package-layout/audit_mechanical.py`，exit0（task4-audit.log）：精确Cron路由表规范化后398 AST机械等价、源/新增归属闭合，31 revisions/29表定义不变。没有以读取源码的pytest代替行为合同。
+- `PM Python .build/package-layout/audit_mechanical.py`，exit0（task4-audit.log）：精确Cron路由表规范化后398 AST机械等价、源/新增归属闭合，31 revisions/28表定义不变。没有以读取源码的pytest代替行为合同。
 - `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts -j 4 --file-timeout 1200 -- --tb=short`，exit0，90文件504passed/0failed/4skipped，547.6秒（task4-native.log）；skip仍为1 POSIX+3 Linux SDK，单列未算通过。
 - 同runner `tests/hermes_db/postgresql/test_cron_executions.py tests/hermes_db/postgresql/test_cron_delivery_store.py tests/hermes_db/postgresql/test_cron_notepad.py tests/hermes_db/postgresql/test_cron_bot_delivery.py tests/hermes_db/postgresql/test_metrics_store.py tests/hermes_db/postgresql/test_metrics_http.py tests/hermes_db/postgresql/test_metrics_process.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，exit0，7文件26passed/0failed/0skip，103.1秒（task4-pg.log）；真实消费者、HTTP发送状态、独立进程恢复和store隔离使用有归属随机Schema。
 - `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，exit0，15checks通过，health380文件0blocking/0advisory（task4-check.log）；计划/映射最终状态更新后暂存空白检查exit0。
 - 未验证：实际Matrix SDK、独立发行、全量业务/旧Schema升级/最终组件收敛由后续任务验收，原Task24非WSL七项缺证保持。
-- 恢复点：本地提交标题 `refactor(storage): package cron and metrics domains`；下一Task5。
+- 恢复点：本地提交 `494b1a99c7`，标题 `refactor(storage): package cron and metrics domains`；下一Task5。
 
 ## Task 5：通用插件记录、Discord与Retain分包
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -357,11 +358,22 @@ Invoke-PgCases -Files @('tests/hermes_db/postgresql/test_plugin_storage.py', 'te
 
 ### 执行结果
 
-未执行。
+从Task4 `494b1a99c7`继续，按映射将records、Discord、Retain十项移动至domains/plugin_storage各业务包，更新插件真实factory/recovery/queue入口和全部测试读取点。保留公开PluginRecord/PluginStore/错误身份；没有core继承具体插件或PG向SQLite回落。
+
+boundary baseline仅精确替换Retain PostgresWriteQueue及Discord PostgresDiscordRecoveryStore两条既有module路径，各计数仍为1；未运行全量baseline更新，plugin_api.json未变化。CAS/ABA、配额、scan、游标、队列取消/COMMIT/close均保留。新增11个空命名空间逐项归属，累计35个，总Python433、根84，业务模块不增。
+
+398项机械等价，29表模块路径/metadata身份保持，其中28定义模块及31 revisions的内容不变。Task5发现并更正早期“29表定义”文字/审计打印标签：61个冻结锚点实际为31 revisions、versions init及29表模块（含tables init）；冻结JSON一直完整。tables init仅有Task2必要导入调整，详见本计划末尾更正说明，没有改Schema/历史SQL/算法。
 
 ### 验证证据
 
-未执行；实施时记录实际解释器/源码commit、展开命令、退出状态、计数、日志、未验证项和恢复commit。
+沿用Task1隔离PM解释器/home/runtime，retries=0，日志只在本地 `.build/package-layout/`。
+
+- `PM Python .build/package-layout/audit_mechanical.py`，exit0（task5-audit-accepted.log）：398 AST机械等价、源/新增归属闭合；Cron既有四项路由表按Task4规则精确规范化。更正后的锚点计数标签如上，不修改历史日志或基准hash。
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts -j 4 --file-timeout 1200 -- --tb=short`，exit0，90文件504passed/0failed/4skipped，294.3秒（task5-native.log）；1 POSIX+3 Linux SDK skip仍单列未算通过。
+- 同runner `tests/hermes_db/postgresql/test_plugin_storage.py tests/hermes_db/postgresql/test_plugin_storage_process.py tests/hermes_db/postgresql/test_discord_backfill.py tests/hermes_db/postgresql/test_discord_recovery.py tests/hermes_db/postgresql/test_retain_queue.py tests/hermes_db/postgresql/test_retain_queue_transactions.py tests/hermes_db/postgresql/test_retain_queue_worker.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，exit0，7文件25passed/0failed/0skip，85.7秒（task5-pg.log）；真实PG持久读写、独立进程恢复、插件隔离和队列事务/关闭合同通过，均为所有权核对随机Schema。
+- `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，exit0，15checks通过，health409文件0blocking/0advisory（task5-check.log）。最终计数说明及状态元数据更正后暂存空白检查exit0；运行源码未再变化。
+- 未验证：Task6 Matrix实际SDK、最终发行/全量业务/旧Schema升级与组件收敛仍待后续；不以旧SDK32代替，原Task24缺证保持。
+- 恢复点：本地提交标题 `refactor(storage): package records discord and retain storage`；下一Task6。
 
 ## Task 6：Matrix分包并验证真实SDK
 
@@ -1050,5 +1062,9 @@ git diff --check
 
 ### 未通过项目与最终状态
 
-实施推进中，当前4/18；局部验证见已完成Task，最终重构验收仍未执行；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
+实施推进中，当前5/18；局部验证见已完成Task，最终重构验收仍未执行；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
 实施后仅可根据真实终态填写本次重构`READY_TO_MERGE / BLOCKED / FAILED`，并与原系统统一后端整体验收状态分别报告。
+
+### Task5锚点计数说明更正
+
+固定61项为31个revision + versions/__init__ + 29个表模块；29个表模块包括tables/__init__，其余28个为定义模块。Task1–4账本中“29个表定义”口径已更正；历史审计日志的同名字样为打印标签错误，源hash清单始终完整。31 revisions、版本初始化及28表定义内容不变；tables初始化仅有Task2必要catalog导入调整，29模块路径及metadata/表身份保持。没有新增迁移或Schema变更。

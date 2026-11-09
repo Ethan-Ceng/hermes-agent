@@ -3,8 +3,8 @@
 from threading import Event
 import pytest
 from plugins.memory import retaindb
-from hermes_db.domains.retain_queue import open_queue, capture_queue
-from hermes_db.operations import retain_queue as operations
+from hermes_db.domains.plugin_storage.retain.api import open_queue, capture_queue
+from hermes_db.domains.plugin_storage.retain.postgres.operations import queue as operations
 from hermes_db.tables.retain_queue import pending
 from sqlalchemy import select
 

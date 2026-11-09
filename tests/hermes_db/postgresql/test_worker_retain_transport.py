@@ -9,9 +9,9 @@ from websockets.sync.server import serve
 
 from agent.runtime_domain_store import WorkerDomainStore
 from agent.runtime_session_store import RuntimeSessionStore, WorkerPersistenceError, WorkerRPC, _OwnerLink
-from hermes_db.domains.retain_queue import WorkerRetainQueueRef
-from hermes_db.operations import retain_queue as operations
-from hermes_db.retain_queue import PostgresWriteQueue
+from hermes_db.domains.plugin_storage.retain.api import WorkerRetainQueueRef
+from hermes_db.domains.plugin_storage.retain.postgres.operations import queue as operations
+from hermes_db.domains.plugin_storage.retain.postgres.queue import PostgresWriteQueue
 from tests.hermes_db.postgresql.test_worker_domain_receipts import assignment
 from tests.waiting import wait_until
 
@@ -76,7 +76,7 @@ def test_websocket_close_preserves_consumer_and_requires_pending_write_reconcili
 
     monkeypatch.setattr(threading, 'excepthook', lambda args: faults.append(args.exc_value))
     monkeypatch.setattr(PostgresWriteQueue, '_wait', observed_wait)
-    monkeypatch.setattr('hermes_db.retain_queue.capture_queue', lambda *args: reference)
+    monkeypatch.setattr('hermes_db.domains.plugin_storage.retain.postgres.queue.capture_queue', lambda *args: reference)
     queue = PostgresWriteQueue(Client(), tmp_path / 'unused.sqlite3', profile_home=pg_store.scope.profile_home)
     try:
         request_id = 'retained-row'

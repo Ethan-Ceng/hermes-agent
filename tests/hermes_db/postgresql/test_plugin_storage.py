@@ -45,8 +45,8 @@ def test_pg_public_portable_record_contract_and_validation(pg_profiles):
 def test_pg_expiry_prune_preserves_monotonic_revision(pg_profiles):
     from sqlalchemy import update
     from plugins.plugin_storage import plugin_store
-    from hermes_db.domains.plugins import open_plugin
-    from hermes_db.operations.plugin_storage import scope
+    from hermes_db.domains.plugin_storage.records.api import open_plugin
+    from hermes_db.domains.plugin_storage.records.postgres.operations.records import scope
     from hermes_db.tables.plugins import records
     with pg_profiles("one"):
         store = plugin_store("expiry")
@@ -75,8 +75,8 @@ def test_retained_key_quota_rolls_back_and_releases_after_delete(pg_profiles):
     from sqlalchemy import insert, update
     from plugins.plugin_storage import plugin_store, PluginStorageQuotaError
     from plugins.plugin_storage_types import MAX_NAMESPACE_KEYS
-    from hermes_db.domains.plugins import open_plugin
-    from hermes_db.operations.plugin_storage import scope
+    from hermes_db.domains.plugin_storage.records.api import open_plugin
+    from hermes_db.domains.plugin_storage.records.postgres.operations.records import scope
     from hermes_db.tables.plugins import namespaces, records
     with pg_profiles("one"):
         store = plugin_store("key-quota")
@@ -99,7 +99,7 @@ def test_retained_key_quota_rolls_back_and_releases_after_delete(pg_profiles):
 def test_unknown_plugin_commit_is_observable_without_blind_cas_retry(pg_profiles, monkeypatch):
     from contextlib import contextmanager
     from plugins.plugin_storage import plugin_store, PluginStorageConflict
-    from hermes_db import plugin_store as implementation
+    from hermes_db.domains.plugin_storage.records.postgres import store as implementation
     from hermes_db.errors import UnknownCommitError
     with pg_profiles("one"):
         store = plugin_store("unknown-commit")

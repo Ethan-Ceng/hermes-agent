@@ -64,7 +64,7 @@ def plugin_store(name: str, *, namespace: str = "default", profile_home: Path | 
     _validate_name(namespace)
     home = Path(profile_home if profile_home is not None else get_hermes_home()).resolve()
     if storage_backend(home) == "postgresql":
-        from hermes_db.plugin_store import PostgresPluginStore
+        from hermes_db.domains.plugin_storage.records.postgres.store import PostgresPluginStore
         return PostgresPluginStore(name, namespace, home)
     from hermes_db.backends.sqlite.plugin_storage import SQLitePluginStore
     return SQLitePluginStore(name, namespace, home)
