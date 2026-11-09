@@ -2,11 +2,11 @@
 
 from functools import partial
 
-from hermes_db.operations import compression_state, leases as operations
+from hermes_db.domains.sessions.postgres.operations import compression_state, leases as operations
 from hermes_db.operations.worker_compression import number
 from hermes_db.operations.worker_compression_reads import ReadView
 from hermes_db.operations.worker_handlers import _fields
-from hermes_db.repositories import leases, sessions
+from hermes_db.domains.sessions.postgres.queries import leases, sessions
 from hermes_db.tables.gateway import compression_locks, session_turn_leases
 from hermes_state_runtime import RuntimeStoreError, _text
 

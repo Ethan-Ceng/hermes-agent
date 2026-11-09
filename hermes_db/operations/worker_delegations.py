@@ -8,7 +8,8 @@ import time
 from sqlalchemy import case, func, or_
 
 from hermes_db.operations.effects import CoreEffect
-from hermes_db.repositories import delegations as repo, sessions
+from hermes_db.repositories import delegations as repo
+from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.gateway import async_delegations as table
 from hermes_state_runtime import RuntimeStoreError
 from gateway.session_worker_delegation import _EVENT_KEYS, _ROUTE, _TASK_KEYS, _number, _shape, _text

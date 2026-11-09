@@ -34,7 +34,7 @@ def test_shared_runtime_contract_on_postgresql(pg_store, pg_runtime, contract):
 @pytest.mark.parametrize("contract", ISOLATION, ids=lambda fn: fn.__name__.removeprefix("test_"))
 def test_same_schema_runtime_isolation(pg_store, tmp_path, contract):
     from hermes_db.scope import DatabaseScope
-    from hermes_db.session_store import PostgresSessionStore
+    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
     peer = PostgresSessionStore(pg_store._transactions, DatabaseScope(tmp_path / "other", "other-store"))
     try:
         contract([pg_store, peer])

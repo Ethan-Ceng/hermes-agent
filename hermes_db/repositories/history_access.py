@@ -2,7 +2,7 @@
 
 from sqlalchemy import select
 
-from hermes_db.repositories import mutation_binding, retirement, sessions
+from hermes_db.domains.sessions.postgres.queries import mutation_binding, retirement, sessions
 from hermes_db.tables.conversations import sessions as table
 from hermes_state_mutation_binding import _owner_user
 from hermes_state_runtime import RuntimeStoreError

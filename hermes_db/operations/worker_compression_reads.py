@@ -2,15 +2,15 @@
 
 from contextlib import nullcontext
 
-from hermes_db.message_codec import codec
+from hermes_db.domains.sessions.postgres.support.message_codec import codec
 from hermes_db.operations.worker_handlers import _fields
-from hermes_db.repositories import messages, sessions
-from hermes_db.session_compression import SessionCompression
-from hermes_db.session_compression_state import SessionCompressionState
-from hermes_db.session_message_lookup import SessionMessageLookup
-from hermes_db.session_message_reads import SessionMessageReads, _active_filter
-from hermes_db.session_metadata import SessionMetadata
-from hermes_db.session_lineage_reads import SessionLineageReads
+from hermes_db.domains.sessions.postgres.queries import messages, sessions
+from hermes_db.domains.sessions.postgres.capabilities.compression import SessionCompression
+from hermes_db.domains.sessions.postgres.capabilities.compression_state import SessionCompressionState
+from hermes_db.domains.sessions.postgres.capabilities.message_lookup import SessionMessageLookup
+from hermes_db.domains.sessions.postgres.capabilities.message_reads import SessionMessageReads, _active_filter
+from hermes_db.domains.sessions.postgres.capabilities.metadata import SessionMetadata
+from hermes_db.domains.sessions.postgres.capabilities.lineage_reads import SessionLineageReads
 from hermes_state_runtime import RuntimeStoreError, _text
 
 

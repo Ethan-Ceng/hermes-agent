@@ -6,8 +6,8 @@ import secrets
 from sqlalchemy import func, select
 
 from hermes_db.operations.effects import CoreEffect
-from hermes_db.operations.sessions import create_on_connection
-from hermes_db.repositories import sessions
+from hermes_db.domains.sessions.postgres.operations.sessions import create_on_connection
+from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.repositories.worker_retirement import descendant_condition
 from hermes_db.tables.runtime import worker_executions
 from hermes_state_runtime import RuntimeStoreError, _secret_digest

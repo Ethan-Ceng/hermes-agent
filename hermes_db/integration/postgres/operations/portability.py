@@ -4,9 +4,9 @@ from copy import deepcopy
 import time
 
 from hermes_cli.timefmt import coerce_epoch
-from hermes_db.operations import messages as writes, sessions as lifecycle
+from hermes_db.domains.sessions.postgres.operations import messages as writes, sessions as lifecycle
 from hermes_db.integration.transfer.portability_values import values
-from hermes_db.repositories import messages as transcript, sessions
+from hermes_db.domains.sessions.postgres.queries import messages as transcript, sessions
 from hermes_db.tables.conversations import messages, sessions as table
 from hermes_db.core.values import encode_text, explicit_fork, model_config
 from hermes_state_portability import _IMPORT_FLAG_COLS, _IMPORT_FLOAT_COLS, _IMPORT_INT_COLS, _IMPORT_MESSAGE_JSON_FIELDS, _IMPORT_PASSTHROUGH_COLS
@@ -84,7 +84,7 @@ def _cycle(conn, scope, proposed, sid, parent):
 
 
 def import_current(conn, scope, normalized, *, canonical=False):
-    from hermes_db.repositories.mutation_binding import bindings_agree, history_binding
+    from hermes_db.domains.sessions.postgres.queries.mutation_binding import bindings_agree, history_binding
     from hermes_state_runtime import RuntimeStoreError
 
     sessions.lock_store(conn, scope, exclusive=True)

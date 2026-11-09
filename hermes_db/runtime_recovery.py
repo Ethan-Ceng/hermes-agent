@@ -5,7 +5,8 @@ import time
 
 from sqlalchemy import func, select
 
-from hermes_db.repositories import runtime, sessions
+from hermes_db.repositories import runtime
+from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.conversations import sessions as table
 from hermes_db.tables.runtime import runtime_epoch, session_admissions as admissions, worker_executions
 

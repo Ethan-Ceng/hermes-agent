@@ -4,7 +4,7 @@ import json
 
 from sqlalchemy import select
 
-from hermes_db.repositories import media, sessions
+from hermes_db.domains.sessions.postgres.queries import media, sessions
 from hermes_db.tables.runtime import session_admissions as table
 from hermes_state_runtime import _json
 
@@ -19,7 +19,7 @@ class RuntimeMedia:
             return [reference for raw in rows for reference in admission_media_references(json.loads(raw))]
 
     def release_media(self, references, *, retain_history=True):
-        from hermes_db.session_media import release
+        from hermes_db.domains.sessions.postgres.capabilities.media import release
         return release(self._store, references, retain_history=retain_history)
 
     def retire_refused_media(self, references):

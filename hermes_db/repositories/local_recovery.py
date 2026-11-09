@@ -4,7 +4,8 @@ import json
 
 from sqlalchemy import select
 
-from hermes_db.repositories import runtime, sessions
+from hermes_db.repositories import runtime
+from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.runtime import session_admissions, state_meta
 from hermes_state_local import POLICY_PREFIX
 

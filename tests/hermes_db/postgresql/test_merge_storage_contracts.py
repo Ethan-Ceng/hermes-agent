@@ -17,7 +17,7 @@ def test_transcript_snapshot_pins_public_reads_without_crossing_profile(pg_pair)
             assert nested() and consistent() and nested.pinned
         assert [row["content"] for row in peer.get_messages("same")] == ["peer only"]
     assert [row["content"] for row in owner.get_messages("same")] == ["owner first", "owner committed"]
-    from hermes_db.session_store import PostgresSessionStore
+    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
     reopened = PostgresSessionStore(owner._transactions, owner.scope)
     try:
         assert reopened.get_session("same")["message_count"] == 2
@@ -68,7 +68,7 @@ def test_deferred_room_reopens_same_generation_and_resets_deadline(pg_profiles):
 def test_history_binding_owner_equivalence_keeps_store_namespace(pg_pair):
     import json
     from gateway.owner_identity import host_owner_subject
-    from hermes_db.repositories.mutation_binding import bindings_agree
+    from hermes_db.domains.sessions.postgres.queries.mutation_binding import bindings_agree
     owner, peer = pg_pair
     current = json.dumps(["store:" + owner.scope.store_id, host_owner_subject()])
     login = json.dumps(["store:" + owner.scope.store_id, "basic:previous-login"])
@@ -149,7 +149,7 @@ def test_explicit_archive_retires_visible_reaped_bot_chat(pg_store):
 
 
 def test_refused_turn_keeps_display_and_reopens_without_model_input(pg_pair):
-    from hermes_db.session_store import PostgresSessionStore
+    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
     owner, peer = pg_pair
     for store in (owner, peer):
         store.create_session('s', 'cli')
@@ -193,7 +193,7 @@ def test_refusal_fallback_releases_checkout_for_one_connection_pool(pg_store, po
     from dataclasses import replace
     from hermes_db.backends.postgresql.engine import get_engine
     from hermes_db.backends.postgresql.transactions import Transactions
-    from hermes_db.session_store import PostgresSessionStore
+    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
     settings = replace(postgres_test_config.settings, pool_size=1, max_overflow=0,
                        connection_budget=1, pool_timeout_seconds=1)
     engine = get_engine(settings)

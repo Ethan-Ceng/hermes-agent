@@ -48,7 +48,7 @@ def test_delete_mutation_refuses_live_lease_and_replays_after_row_disappears(sto
 
 def test_core_mutation_receipt_failure_rolls_back_title_and_revision(core_pair, monkeypatch):
     from hermes_db.runtime_store import PostgresRuntimeStore
-    from hermes_db.operations import mutations
+    from hermes_db.domains.sessions.postgres.operations import mutations
 
     store, _ = core_pair
     store.create_session("s", "cli")

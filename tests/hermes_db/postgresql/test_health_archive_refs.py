@@ -156,8 +156,8 @@ def test_move_append_race_never_erases_new_source_work(pg_pair):
 def test_archive_sweep_waits_for_committed_new_reference(pg_store, monkeypatch):
     from sqlalchemy import text
     from hermes_db.integration import archive_refs
-    from hermes_db.operations.messages import insert_rows
-    from hermes_db.repositories import messages, sessions
+    from hermes_db.domains.sessions.postgres.operations.messages import insert_rows
+    from hermes_db.domains.sessions.postgres.queries import messages, sessions
     from tests.waiting import wait_until
     pg_store.create_session("s", "cli")
     folder = pg_store.scope.profile_home / "cache" / "spillover"

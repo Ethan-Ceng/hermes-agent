@@ -5,11 +5,12 @@ import time
 
 from hermes_db.integration.transfer.move_values import digest, recipient_snapshot_digest, snapshot_digest
 from hermes_db.integration.postgres.operations import file_grants, portability
-from hermes_db.operations import retirement_guards as guards
+from hermes_db.domains.sessions.postgres.operations import retirement_guards as guards
 from hermes_db.integration.transfer.portability_values import values
-from hermes_db.repositories import messages, runtime, sessions
+from hermes_db.domains.sessions.postgres.queries import messages, sessions
+from hermes_db.repositories import runtime
 from hermes_db.integration.postgres.queries import profile_move
-from hermes_db.session_portability import _export
+from hermes_db.integration.transfer.session_capabilities.portability import _export
 
 
 def _key(source, sid):

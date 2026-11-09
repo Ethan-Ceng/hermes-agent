@@ -2,7 +2,7 @@
 
 from sqlalchemy import select
 
-from hermes_db.repositories import bot_views
+from hermes_db.domains.sessions.postgres.queries import bot_views
 from hermes_db.tables.runtime import session_admissions
 
 

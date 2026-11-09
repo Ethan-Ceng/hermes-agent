@@ -5,8 +5,8 @@ import re
 from sqlalchemy import and_, case, cast, false, func, literal, literal_column, not_, or_, select
 from sqlalchemy.dialects.postgresql import JSON
 
-from hermes_db.repositories.messages import visible, where
-from hermes_db.search_projection import short_grams
+from hermes_db.domains.sessions.postgres.queries.messages import visible, where
+from hermes_db.domains.sessions.postgres.support.search_projection import short_grams
 from hermes_db.tables.conversations import message_search_chunks as chunks, messages as m, sessions as s
 from hermes_state_common import FTS_TRIGRAM_EXCLUDED_SOURCES
 

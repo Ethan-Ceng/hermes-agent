@@ -5,10 +5,10 @@ import time
 
 from sqlalchemy import func, or_, select
 
-from hermes_db.message_codec import codec, content_to_bytes
-from hermes_db.operations import sessions as lifecycle, titles
+from hermes_db.domains.sessions.postgres.support.message_codec import codec, content_to_bytes
+from hermes_db.domains.sessions.postgres.operations import sessions as lifecycle, titles
 from hermes_db.operations.worker_handlers import _fields
-from hermes_db.repositories import messages, sessions
+from hermes_db.domains.sessions.postgres.queries import messages, sessions
 from hermes_db.tables.conversations import messages as message_table, sessions as session_table
 from hermes_db.tables.runtime import worker_executions, worker_receipts
 from hermes_db.core.values import decode_text, encode_config, encode_text, model_config
@@ -159,7 +159,7 @@ def user_content(conn, scope, session_id, payload):
         return {"value": 0}
     values = {"content": codec._encode_content(payload["content"])}
     if "display_metadata" in payload:
-        from hermes_db.message_codec import merge_display_metadata
+        from hermes_db.domains.sessions.postgres.support.message_codec import merge_display_metadata
         patch = codec._decode_display_metadata(codec._encode_display_metadata(payload['display_metadata'])) or {}
         metadata = merge_display_metadata(codec._decode_display_metadata(row['display_metadata']), patch)
         values.update(api_content=None, display_metadata=codec._encode_display_metadata(metadata))

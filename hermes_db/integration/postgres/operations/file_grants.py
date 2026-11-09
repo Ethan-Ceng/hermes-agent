@@ -7,9 +7,9 @@ import uuid
 
 from hermes_db.errors import RetryableStorageError
 from hermes_db.core.file_scope import owner_id
-from hermes_db.repositories import file_grants as repo, media, sessions
+from hermes_db.domains.sessions.postgres.queries import file_grants as repo, media, sessions
 from hermes_db.scope import DatabaseScope
-from hermes_db.search_projection import content_text
+from hermes_db.domains.sessions.postgres.support.search_projection import content_text
 from hermes_state_media import PREFIX
 from hermes_state_runtime import RuntimeStoreError
 
@@ -74,7 +74,7 @@ def _grant(conn, origin, target, files, *, file_owner_id=None):
 
 
 def transfer(conn, source, target, snapshot):
-    from hermes_db.archive_projection import spillover_names
+    from hermes_db.domains.sessions.postgres.support.archive_projection import spillover_names
     from hermes_db.integration.profile_context import OwnedProfileContext
 
     texts = _texts(snapshot)
@@ -92,8 +92,8 @@ def transfer(conn, source, target, snapshot):
 
 
 def _remaining(conn, scope, grants):
-    from hermes_db.repositories.archive_refs import message_names
-    from hermes_db.session_media import _history
+    from hermes_db.domains.sessions.postgres.queries.archive_refs import message_names
+    from hermes_db.domains.sessions.postgres.capabilities.media import _history
     names = message_names(conn, scope)
     if names is None:
         return None

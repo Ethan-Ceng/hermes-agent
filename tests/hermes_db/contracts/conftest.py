@@ -58,7 +58,7 @@ def store(request, tmp_path):
             yield db
         return
     sa = pytest.importorskip("sqlalchemy", reason="optional postgresql extra")
-    from hermes_db.session_store import PostgresSessionStore
+    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
     from hermes_db.scope import DatabaseScope
     from hermes_db.tables import load_metadata
     from hermes_db.backends.postgresql.transactions import Transactions
@@ -78,7 +78,7 @@ def store(request, tmp_path):
 @pytest.fixture
 def core_pair(tmp_path):
     sa = pytest.importorskip("sqlalchemy", reason="optional postgresql extra")
-    from hermes_db.session_store import PostgresSessionStore
+    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
     from hermes_db.scope import DatabaseScope
     from hermes_db.tables import load_metadata
     from hermes_db.backends.postgresql.transactions import Transactions
@@ -100,7 +100,7 @@ def core_pair(tmp_path):
 @pytest.fixture
 def native_registry(core_pair, monkeypatch):
     from hermes_db.integration import registry as native_registry
-    from hermes_db.session_store import PostgresSessionStore
+    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
     opened = []
 
     def construct(settings, scope):

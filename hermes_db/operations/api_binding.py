@@ -5,9 +5,10 @@ import json
 
 from sqlalchemy import select
 
-from hermes_db.operations import sessions as lifecycle
+from hermes_db.domains.sessions.postgres.operations import sessions as lifecycle
 from hermes_db.operations.effects import invoke
-from hermes_db.repositories import gateway, retirement_housekeeping, runtime, sessions, terminal
+from hermes_db.domains.sessions.postgres.queries import gateway, retirement_housekeeping, sessions
+from hermes_db.repositories import runtime, terminal
 from hermes_db.tables.conversations import sessions as table
 from hermes_db.tables.gateway import gateway_routing
 from hermes_db.tables.runtime import session_admissions

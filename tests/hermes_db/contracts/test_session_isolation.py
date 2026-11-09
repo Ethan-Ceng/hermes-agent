@@ -24,7 +24,7 @@ def test_same_ids_titles_prompt_hashes_and_topic_ids_are_store_scoped(core_pair)
 
 def test_constructor_failure_rolls_back_prompt_and_control_rows(core_pair, monkeypatch):
     from sqlalchemy import func, select
-    from hermes_db.repositories import prompts
+    from hermes_db.domains.sessions.postgres.queries import prompts
     from hermes_db.tables.conversations import sessions, system_prompts, transcript_roots
 
     store = core_pair[0]

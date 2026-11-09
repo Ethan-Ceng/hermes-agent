@@ -42,7 +42,7 @@ def purge_store(captured, *, selected=None):
             raise StorageConfigurationError("Selected database identity changed after the removal plan; preserve all local files")
         metadata = load_metadata()
         with resource.write() as conn:
-            from hermes_db.repositories.sessions import lock_store
+            from hermes_db.domains.sessions.postgres.queries.sessions import lock_store
             lock_store(conn, resource.scope, exclusive=True)
             # Historical room evidence can only be erased after the room is disbanded.
             conn.execute(update(rooms).where(rooms.c.store_id == captured.store_id).values(disbanded_at=0))

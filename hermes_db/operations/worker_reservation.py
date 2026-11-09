@@ -5,7 +5,8 @@ import json
 from sqlalchemy import select
 
 from gateway.owner_identity import same_owner
-from hermes_db.repositories import lineage, runtime, sessions, worker_retirement, workers
+from hermes_db.domains.sessions.postgres.queries import lineage, sessions
+from hermes_db.repositories import runtime, worker_retirement, workers
 from hermes_db.tables.conversations import sessions as session_table
 from hermes_db.tables.runtime import worker_executions
 from hermes_state_keys import admission_fingerprint

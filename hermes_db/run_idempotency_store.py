@@ -8,7 +8,8 @@ import uuid
 from sqlalchemy import select
 
 from hermes_db.errors import StorageClosedError
-from hermes_db.repositories import api_runs as repo, sessions
+from hermes_db.repositories import api_runs as repo
+from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.api import run_idempotency as table
 from gateway.platforms.api_server_run_idempotency import _encode_status
 

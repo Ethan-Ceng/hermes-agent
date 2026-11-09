@@ -4,7 +4,8 @@ import json
 
 from sqlalchemy import select
 
-from hermes_db.repositories import runtime, session_queries, sessions
+from hermes_db.repositories import runtime
+from hermes_db.domains.sessions.postgres.queries import session_queries, sessions
 from hermes_db.tables.conversations import sessions as table
 from hermes_db.tables.runtime import session_admissions, state_meta, worker_executions
 from hermes_db.core.values import decode_text

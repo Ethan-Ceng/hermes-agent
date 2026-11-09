@@ -5,8 +5,8 @@ import time
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 
-from hermes_db.operations import retirement, retirement_guards as guards
-from hermes_db.repositories import gateway, sessions
+from hermes_db.domains.sessions.postgres.operations import retirement, retirement_guards as guards
+from hermes_db.domains.sessions.postgres.queries import gateway, sessions
 from hermes_db.integration.postgres.queries import profile_repair as repo
 from hermes_db.tables.gateway import gateway_routing as routes
 from hermes_db.tables.gateway import telegram_dm_topic_bindings as bindings, telegram_dm_topic_mode as modes

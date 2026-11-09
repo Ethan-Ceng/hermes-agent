@@ -4,9 +4,10 @@ import time
 
 from sqlalchemy import select
 
-from hermes_db.operations import housekeeping, retirement, retirement_guards, sessions as session_ops, titles
-from hermes_db.repositories import retention, retirement_housekeeping, sessions
-from hermes_db.repositories import runtime, session_queries
+from hermes_db.domains.sessions.postgres.operations import housekeeping, retirement, retirement_guards, sessions as session_ops, titles
+from hermes_db.domains.sessions.postgres.queries import retention, retirement_housekeeping, sessions
+from hermes_db.repositories import runtime
+from hermes_db.domains.sessions.postgres.queries import session_queries
 from hermes_db.tables.conversations import sessions as table
 from hermes_db.tables.gateway import gateway_heartbeats
 from hermes_db.core.values import encode_text
@@ -69,7 +70,7 @@ def _due(raw, now, hours):
 def _quiet_ids(conn, scope, ids):
     retirement_guards.lock_targets(conn, scope, ids)
     quiet = []
-    from hermes_db.repositories.retirement import compression_members
+    from hermes_db.domains.sessions.postgres.queries.retirement import compression_members
     for sid in ids:
         members = compression_members(conn, scope, [sid])
         if retirement_guards.guarded_ids(conn, scope, members):

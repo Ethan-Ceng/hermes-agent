@@ -8,7 +8,7 @@ import pytest
 from hermes_db.errors import UnknownCommitError
 from hermes_db.integration.profile_context import OwnedProfileContext
 from hermes_db.scope import DatabaseScope
-from hermes_db.usage_writer import UsageWriter
+from hermes_db.domains.sessions.postgres.support.usage_writer import UsageWriter
 
 
 def test_writer_captures_owner_and_preserves_queue_order(tmp_path):
@@ -65,7 +65,7 @@ def test_unknown_commit_is_not_replayed_and_is_visible_to_the_barrier(tmp_path, 
 
 
 def test_read_barrier_does_not_wait_on_an_asyncio_loop():
-    from hermes_db.session_usage import SessionUsage
+    from hermes_db.domains.sessions.postgres.capabilities.usage import SessionUsage
 
     class Reader(SessionUsage):
         def flush_token_counts(self, timeout=5):

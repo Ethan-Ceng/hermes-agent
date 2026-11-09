@@ -46,7 +46,7 @@ async def test_pg_create_retry_uses_stable_store_identity_across_local_homes(cor
     from gateway.session_contract import SessionRef
     from gateway.session_mutations import mutate_session
     from hermes_db.scope import DatabaseScope
-    from hermes_db.session_store import PostgresSessionStore
+    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
     original, other = core_pair
     second = PostgresSessionStore(original._transactions,
         DatabaseScope(tmp_path / "another-node", original.scope.store_id))

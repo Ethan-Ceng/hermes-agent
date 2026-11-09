@@ -10,8 +10,8 @@ from pathlib import Path
 from sqlalchemy import func, select, text
 
 from hermes_db.errors import StorageSchemaError
-from hermes_db.message_codec import codec
-from hermes_db.repositories import messages as message_repo, sessions as repo
+from hermes_db.domains.sessions.postgres.support.message_codec import codec
+from hermes_db.domains.sessions.postgres.queries import messages as message_repo, sessions as repo
 from hermes_db.scope import DatabaseScope
 from hermes_db.tables.conversations import messages, sessions
 from hermes_db.tables.gateway import compression_locks, session_turn_leases

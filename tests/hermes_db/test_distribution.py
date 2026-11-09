@@ -50,7 +50,7 @@ else:
     from hermes_db.backends.postgresql.engine import require_postgresql_driver
     from hermes_db.schema import REQUIRED_REVISION
     from hermes_db.backends.postgresql.transactions import Transactions
-    from hermes_db.session_store import PostgresSessionStore
+    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
     require_postgresql_driver()
     migrations = package.parent / 'migrations'
     config = Config(str(migrations / 'alembic.ini'))

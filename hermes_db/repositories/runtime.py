@@ -5,7 +5,7 @@ import json
 from sqlalchemy import and_, insert, select
 from sqlalchemy.dialects.postgresql import insert as upsert
 
-from hermes_db.repositories import sessions
+from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.runtime import runtime_epoch, session_admissions, state_meta, worker_executions
 from hermes_state_runtime import RuntimeStoreError
 
@@ -37,7 +37,7 @@ def lock_api_request(conn, scope, request_id):
 
 
 def lock_target(conn, scope, session_id):
-    from hermes_db.repositories.lineage import runtime_targets
+    from hermes_db.domains.sessions.postgres.queries.lineage import runtime_targets
     from hermes_db.tables.conversations import sessions as session_table
 
     sessions.lock_store(conn, scope)
@@ -97,7 +97,7 @@ def insert_admission(conn, scope, values):
 
 
 def worker_states(conn, scope, session_id):
-    from hermes_db.repositories.lineage import runtime_targets
+    from hermes_db.domains.sessions.postgres.queries.lineage import runtime_targets
     return set(conn.execute(select(worker_executions.c.status).where(worker_executions.c.store_id == scope.require_store_id(),
         worker_executions.c.session_id.in_(runtime_targets(conn, scope, session_id)),
         worker_executions.c.status.in_(("registered", "running", "unknown")))).scalars())

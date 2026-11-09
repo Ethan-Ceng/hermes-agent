@@ -21,7 +21,7 @@ def test_search_filter_and_projection_contract(reference):
 
 
 def test_pg_plan_preserves_boolean_phrase_prefix_and_zero_hit_relaxation():
-    from hermes_db.search_query import parse_query
+    from hermes_db.domains.sessions.postgres.support.search_query import parse_query
     plan = parse_query('alpha AND "docker networking" OR beta NOT gamma')
     assert plan.groups == ((("alpha", False, False), ("docker networking", False, False)),
         (("beta", False, False), ("gamma", False, True)))
@@ -33,7 +33,7 @@ def test_pg_plan_preserves_boolean_phrase_prefix_and_zero_hit_relaxation():
 
 
 def test_pg_projection_bounds_tool_index_and_indexes_short_terms_without_mutating_content():
-    from hermes_db.search_projection import projection
+    from hermes_db.domains.sessions.postgres.support.search_projection import projection
     from hermes_state_common import FTS_TOOL_CONTENT_PREFIX_CHARS
     original = "你\x00好AI" + "x" * FTS_TOOL_CONTENT_PREFIX_CHARS + "tailneedle"
     document, grams = projection(dict(content=original, role="tool", tool_name="terminal", tool_calls=None))
@@ -41,7 +41,7 @@ def test_pg_projection_bounds_tool_index_and_indexes_short_terms_without_mutatin
     assert {"你", "好", "你好", "ai"} <= set(grams)
     assert "\x00" not in document and "\x00" in original
     assert "tailneedle" in projection(dict(content=original, role="user"))[0]
-    from hermes_db.search_projection import content_text
+    from hermes_db.domains.sessions.postgres.support.search_projection import content_text
     assert "工具JSON桂林" in content_text({"content": [{"type": "text", "text": "工具JSON桂林"}]})
 
 
@@ -66,7 +66,7 @@ def test_search_sql_binds_untrusted_terms_and_keeps_store_filter(tmp_path):
     from sqlalchemy.dialects import postgresql
     from hermes_db.backends.postgresql.search import statement
     from hermes_db.scope import DatabaseScope
-    from hermes_db.search_query import parse_query
+    from hermes_db.domains.sessions.postgres.support.search_query import parse_query
     for route in ("fts", "substring"):
         query = statement(DatabaseScope(tmp_path, "owned-store"), parse_query('"桂林%_\' DROP TABLE messages;"'), route=route)
         compiled = query.compile(dialect=postgresql.dialect())
@@ -76,7 +76,7 @@ def test_search_sql_binds_untrusted_terms_and_keeps_store_filter(tmp_path):
 
 
 def test_core_search_context_uses_scoped_ids_even_when_physical_ids_collide(core_pair):
-    from hermes_db.repositories import search_context
+    from hermes_db.domains.sessions.postgres.queries import search_context
     from hermes_db.tables.conversations import messages
     first, other = core_pair
     for store in core_pair:

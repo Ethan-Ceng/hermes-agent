@@ -17,7 +17,7 @@ def old_store(postgres_test_config, postgres_schema, tmp_path):
     from hermes_db.schema import _prepare_schema
     from hermes_db.backends.postgresql.transactions import Transactions
     from hermes_db.scope import DatabaseScope
-    from hermes_db.session_store import PostgresSessionStore
+    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
     settings = replace(postgres_test_config.settings, schema=postgres_schema)
     directory = Path(__file__).parents[3] / 'hermes_db' / 'migrations'
     config = Config(str(directory / 'alembic.ini'))
@@ -48,7 +48,7 @@ def seed_refusal(store, session_id, *, source='cli'):
 def test_forward_upgrade_repairs_delegate_roots_and_refusal_once(old_store):
     from hermes_db.schema import upgrade_schema
     from hermes_db.tables.conversations import sessions
-    from hermes_db.repositories import sessions as repo
+    from hermes_db.domains.sessions.postgres.queries import sessions as repo
     from hermes_db.core.values import model_config
     store, settings = old_store
     store.create_session('parent', 'cli')

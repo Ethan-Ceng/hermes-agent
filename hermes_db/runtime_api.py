@@ -5,8 +5,8 @@ from hermes_db.operations import api_binding
 
 class RuntimeApi:
     def create_api_session(self, *, session_id, source, title, **values):
-        from hermes_db.operations import sessions as lifecycle, titles
-        from hermes_db.repositories import sessions
+        from hermes_db.domains.sessions.postgres.operations import sessions as lifecycle, titles
+        from hermes_db.domains.sessions.postgres.queries import sessions
         try:
             with self._write() as conn:
                 sessions.lock_store(conn, self.scope, exclusive=True)

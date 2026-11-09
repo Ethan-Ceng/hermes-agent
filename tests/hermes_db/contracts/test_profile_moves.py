@@ -145,7 +145,7 @@ def test_core_moved_file_lives_until_last_recipient_history_is_deleted(core_pair
 
 def test_core_file_grant_follows_a_second_move_without_moving_file_bytes(core_pair, tmp_path):
     from hermes_db.scope import DatabaseScope
-    from hermes_db.session_store import PostgresSessionStore
+    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
     source, middle = core_pair
     path = _move_file(source, middle)
     final = PostgresSessionStore(source._transactions, DatabaseScope(tmp_path / "final", "final"))
@@ -177,7 +177,7 @@ def test_core_parent_first_retirement_keeps_child_snapshot_valid(core_pair):
 def test_core_grant_creation_rolls_back_with_target_copy_and_unknown_ack_replays_receipt(core_pair, monkeypatch):
     from contextlib import contextmanager
     from hermes_db.errors import UnknownCommitError
-    from hermes_db.repositories import file_grants
+    from hermes_db.domains.sessions.postgres.queries import file_grants
     source, target = core_pair
     folder = source.scope.profile_home / "cache" / "spillover"
     folder.mkdir(parents=True)

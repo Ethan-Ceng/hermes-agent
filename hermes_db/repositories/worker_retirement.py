@@ -5,7 +5,7 @@ import time
 
 from sqlalchemy import and_, func, select
 
-from hermes_db.repositories import sessions
+from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.runtime import worker_executions, worker_receipts
 from hermes_state_runtime_workers import CHILD_SEPARATOR, RETIRED_RECEIPT
 

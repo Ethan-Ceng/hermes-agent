@@ -4,8 +4,9 @@ import json
 
 from sqlalchemy import select
 
-from hermes_db.operations import retirement_guards as guards
-from hermes_db.repositories import gateway, history_access, runtime, sessions
+from hermes_db.domains.sessions.postgres.operations import retirement_guards as guards
+from hermes_db.domains.sessions.postgres.queries import gateway, sessions
+from hermes_db.repositories import history_access, runtime
 from hermes_db.tables.gateway import gateway_routing
 from hermes_state_local import POLICY_PREFIX
 from hermes_state_runtime import RuntimeStoreError, _json

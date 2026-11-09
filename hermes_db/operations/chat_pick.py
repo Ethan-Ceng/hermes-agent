@@ -1,7 +1,8 @@
 """Messaging pick receipts recheck mount fences after edge-side preparation."""
 
-from hermes_db.operations.mutations import replay_receipt, save_receipt
-from hermes_db.repositories import runtime, sessions
+from hermes_db.domains.sessions.postgres.operations.mutations import replay_receipt, save_receipt
+from hermes_db.repositories import runtime
+from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.conversations import sessions as table
 from hermes_state_runtime import RuntimeStoreError
 

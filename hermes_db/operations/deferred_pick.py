@@ -2,8 +2,9 @@
 
 import json
 
-from hermes_db.operations.mutations import replay_receipt, save_receipt
-from hermes_db.repositories import runtime, sessions
+from hermes_db.domains.sessions.postgres.operations.mutations import replay_receipt, save_receipt
+from hermes_db.repositories import runtime
+from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.runtime import state_meta
 from hermes_state_mutation_prepared import DEFERRED_PICK_PREFIX
 from hermes_state_runtime import _json

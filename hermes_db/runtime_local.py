@@ -4,7 +4,8 @@ import json
 
 from hermes_db.errors import UnknownCommitError
 from hermes_db.operations import local_sessions
-from hermes_db.repositories import runtime, sessions
+from hermes_db.repositories import runtime
+from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_state_local import POLICY_PREFIX, _policy_target
 from hermes_state_runtime import RuntimeStoreError, _json
 
@@ -49,7 +50,7 @@ class RuntimeLocal:
             return local_owner(conn, self.scope, session_id)
 
     def validate_local_lineage(self, receipt):
-        from hermes_db.repositories.lineage import validate_local_receipt
+        from hermes_db.domains.sessions.postgres.queries.lineage import validate_local_receipt
         with self._store._read() as conn:
             return validate_local_receipt(conn, self.scope, receipt, receipt["session_id"])
 

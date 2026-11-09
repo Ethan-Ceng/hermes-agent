@@ -3,7 +3,7 @@
 import time
 
 from hermes_db.operations.worker_handlers import _fields
-from hermes_db.repositories import leases, sessions
+from hermes_db.domains.sessions.postgres.queries import leases, sessions
 from hermes_db.tables.gateway import session_turn_leases
 from hermes_state_runtime import RuntimeStoreError, _text
 

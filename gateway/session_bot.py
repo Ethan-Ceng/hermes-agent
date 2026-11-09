@@ -414,7 +414,7 @@ def _bot_chat_creation_id(authority, actor):
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(authority.db):
         from hermes_db.operations.effects import CoreEffect
-        from hermes_db.repositories import sessions
+        from hermes_db.domains.sessions.postgres.queries import sessions
 
         def native_spent(conn, scope, sid):
             row = sessions.raw_session(conn, scope, sid)

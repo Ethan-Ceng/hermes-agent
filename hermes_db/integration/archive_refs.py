@@ -32,7 +32,7 @@ def for_profile(home):
     settings, scope = resolve_db_configuration(home)
     if settings.backend == "sqlite":
         return False, None
-    from hermes_db.repositories.archive_refs import referenced_names
+    from hermes_db.domains.sessions.postgres.queries.archive_refs import referenced_names
     with _read_scope(settings.postgresql, scope) as conn:
         return True, referenced_names(conn, scope)
 
@@ -44,7 +44,7 @@ def cleanup_if_postgresql(home, paths, *, cutoff):
         settings, scope = resolve_db_configuration(home)
         if settings.backend == "sqlite":
             return None
-        from hermes_db.repositories import archive_refs, sessions
+        from hermes_db.domains.sessions.postgres.queries import archive_refs, sessions
         with _write_scope(settings.postgresql, scope) as conn:
             sessions.lock_store(conn, scope, exclusive=True)
             names = archive_refs.referenced_names(conn, scope)

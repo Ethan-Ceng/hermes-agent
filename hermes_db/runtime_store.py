@@ -56,7 +56,7 @@ class PostgresRuntimeStore(RuntimeWorkers, RuntimeTerminal, RuntimeLocal, Runtim
                 runtime_epoch.c.singleton == 1))
 
     def mutate_session(self, **kwargs):
-        from hermes_db.operations.mutations import mutate
+        from hermes_db.domains.sessions.postgres.operations.mutations import mutate
         with self._write() as conn:
             result, event = mutate(conn, self.scope, **kwargs)
         if event is not None:
@@ -67,12 +67,12 @@ class PostgresRuntimeStore(RuntimeWorkers, RuntimeTerminal, RuntimeLocal, Runtim
         return result
 
     def policy_picks(self, session_id):
-        from hermes_db.operations.mutation_policy import picks
+        from hermes_db.domains.sessions.postgres.operations.mutation_policy import picks
         with self._store._read() as conn:
             return picks(conn, self.scope, session_id)
 
     def commit_refreshed_policy(self, **kwargs):
-        from hermes_db.operations.mutation_policy import refresh
+        from hermes_db.domains.sessions.postgres.operations.mutation_policy import refresh
         with self._write() as conn:
             return refresh(conn, self.scope, **kwargs)
 

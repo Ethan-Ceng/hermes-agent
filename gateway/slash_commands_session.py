@@ -545,7 +545,7 @@ class GatewaySessionCommandsMixin:
 
         from hermes_db.health import is_postgresql_store
         if is_postgresql_store(db):
-            from hermes_db.operations import messages as native_messages
+            from hermes_db.domains.sessions.postgres.operations import messages as native_messages
             from hermes_db.operations.effects import CoreEffect
             if composite:
                 write = CoreEffect(lambda conn, scope: native_messages.rewind(conn, scope, session_id, plan.target_row_id,

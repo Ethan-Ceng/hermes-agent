@@ -7,7 +7,8 @@ from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 
 from hermes_db.operations.effects import invoke
-from hermes_db.repositories import runtime as repo, sessions
+from hermes_db.repositories import runtime as repo
+from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.conversations import messages, sessions as session_table
 from hermes_db.tables.runtime import runtime_epoch, session_admissions, worker_executions
 from hermes_state_keys import admission_fingerprint
@@ -96,7 +97,7 @@ def claim(conn, scope, *, epoch, session_id, _guard=None, head=ANY_HEAD):
     result = repo.public_row(repo.admission(conn, scope, row["admission_id"]))
     # Only this FIFO's lineage matters. The root lock precedes both IDs and
     # this mark, so another lineage's pending sequence never defines our turn.
-    from hermes_db.repositories.lineage import runtime_targets
+    from hermes_db.domains.sessions.postgres.queries.lineage import runtime_targets
     peer_ids = runtime_targets(conn, scope, session_id)
     result["transcript_mark"] = conn.scalar(select(func.coalesce(func.max(messages.c.id), 0)).where(
         messages.c.store_id == scope.require_store_id(), messages.c.session_id.in_(peer_ids)))

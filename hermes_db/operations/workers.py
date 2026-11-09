@@ -7,8 +7,9 @@ from sqlalchemy import select
 
 from hermes_db.operations.effects import CoreEffect
 from hermes_db.backends.postgresql.changes import track_changes
-from hermes_db.repositories import runtime, sessions, workers as repo
-from hermes_db.repositories.lineage import runtime_targets
+from hermes_db.repositories import runtime, workers as repo
+from hermes_db.domains.sessions.postgres.queries import sessions
+from hermes_db.domains.sessions.postgres.queries.lineage import runtime_targets
 from hermes_db.repositories.worker_retirement import compact_terminal
 from hermes_db.tables.conversations import sessions as session_table
 from hermes_db.tables.runtime import session_admissions, worker_executions, worker_receipts

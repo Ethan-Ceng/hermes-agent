@@ -183,7 +183,7 @@ async def _mutate_session(authority, actor, ref, params, *, commit_lock=None, ow
             raise RuntimeStoreError('permission_denied')
 
     def authorize_core(conn, scope):
-        from hermes_db.repositories.mutation_binding import authorize_history, import_history_control
+        from hermes_db.domains.sessions.postgres.queries.mutation_binding import authorize_history, import_history_control
         if operation == 'import':
             import_history_control(conn, scope, actor, imported_ids)
         elif not authorize_history(conn, scope, actor, ref.session_id, claim=True):

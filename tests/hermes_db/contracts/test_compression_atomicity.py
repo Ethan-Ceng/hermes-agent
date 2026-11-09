@@ -25,7 +25,7 @@ def test_core_late_parent_backfill_keeps_lease_and_refuses_two_live_holders(core
 
 
 def test_core_archive_failure_rolls_back_rows_config_counters_and_physical_stamps(core_pair, monkeypatch):
-    from hermes_db.operations import messages
+    from hermes_db.domains.sessions.postgres.operations import messages
 
     store, _ = core_pair
     store.create_session("s", "test")
@@ -48,7 +48,7 @@ def test_core_archive_failure_rolls_back_rows_config_counters_and_physical_stamp
 
 def test_core_worker_publication_origin_retry_and_scope_survive_new_handle(core_pair, tmp_path):
     from hermes_db.runtime_store import PostgresRuntimeStore
-    from hermes_db.session_store import PostgresSessionStore
+    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
 
     first, foreign = core_pair
     for store in core_pair:
@@ -107,7 +107,7 @@ def test_unaddressed_held_snapshot_rejects_rewritten_active_uid(store):
 def test_core_local_route_and_receipt_advance_atomically_with_child(core_pair):
     import json
     from hermes_db.repositories import runtime
-    from hermes_db.repositories.lineage import physical_target
+    from hermes_db.domains.sessions.postgres.queries.lineage import physical_target
     from hermes_db.tables.gateway import gateway_routing
     from hermes_state_keys import local_identity
     from hermes_state_local import POLICY_PREFIX

@@ -5,7 +5,8 @@ import uuid
 
 from gateway import delivery_ledger as policy
 from hermes_db.delivery_claim import DeliveryClaim
-from hermes_db.repositories import deliveries as repo, sessions
+from hermes_db.repositories import deliveries as repo
+from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.gateway import delivery_obligations as table
 from hermes_db.core.values import encode_text
 from hermes_state_runtime import RuntimeStoreError

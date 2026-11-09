@@ -22,7 +22,7 @@ def pending_target_ids(db, statuses):
 def import_history_effect(db, actor, session_ids):
     if is_postgresql_store(db):
         from hermes_db.operations.effects import CoreEffect
-        from hermes_db.repositories.mutation_binding import import_history_control
+        from hermes_db.domains.sessions.postgres.queries.mutation_binding import import_history_control
         return CoreEffect(lambda conn, scope: import_history_control(conn, scope, actor, session_ids))
     from functools import partial
     from hermes_state_mutation_binding import import_history_control
@@ -102,7 +102,7 @@ def is_compression_child(db, child):
 
 def history_binding_names(db, saved, actor):
     if is_postgresql_store(db):
-        from hermes_db.repositories.mutation_binding import binding_names
+        from hermes_db.domains.sessions.postgres.queries.mutation_binding import binding_names
         return binding_names(saved, db.scope, actor.subject)
     from hermes_state_mutation_binding import binding_names
     return binding_names(saved, actor.subject)

@@ -6,8 +6,9 @@ import time
 
 from sqlalchemy import select
 
-from hermes_db.operations import retirement_guards as guards, sessions as lifecycle
-from hermes_db.repositories import gateway, runtime, sessions
+from hermes_db.domains.sessions.postgres.operations import retirement_guards as guards, sessions as lifecycle
+from hermes_db.domains.sessions.postgres.queries import gateway, sessions
+from hermes_db.repositories import runtime
 from hermes_db.tables.gateway import gateway_routing
 from hermes_state_local import POLICY_PREFIX, _row_cwd, same_create_retry
 from hermes_state_runtime import RuntimeStoreError, _json

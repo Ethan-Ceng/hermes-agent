@@ -39,7 +39,7 @@ def test_shared_message_contract_on_postgresql(pg_store, contract):
 
 def test_same_schema_message_isolation(pg_store, tmp_path):
     from hermes_db.scope import DatabaseScope
-    from hermes_db.session_store import PostgresSessionStore
+    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
     peer = PostgresSessionStore(pg_store._transactions, DatabaseScope(tmp_path / "other", "other-store"))
     try:
         isolation.test_message_queries_mutations_and_results_are_scoped([pg_store, peer])
@@ -50,8 +50,8 @@ def test_same_schema_message_isolation(pg_store, tmp_path):
 @pytest.mark.parametrize("operation", ["append", "watermark"])
 def test_watermark_and_append_share_root_lock(pg_store, monkeypatch, operation):
     from sqlalchemy import text
-    from hermes_db.operations.messages import insert_rows
-    from hermes_db.repositories import messages as repo, sessions
+    from hermes_db.domains.sessions.postgres.operations.messages import insert_rows
+    from hermes_db.domains.sessions.postgres.queries import messages as repo, sessions
     from tests.waiting import wait_until
 
     pg_store.create_session("s", "cli")

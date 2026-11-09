@@ -2,7 +2,7 @@
 
 from sqlalchemy import select
 
-from hermes_db.repositories import messages as transcript, retirement, sessions
+from hermes_db.domains.sessions.postgres.queries import messages as transcript, retirement, sessions
 from hermes_db.tables.conversations import session_model_usage, system_prompts
 from hermes_db.tables.runtime import session_admissions, worker_executions
 from hermes_state_profile_repair import SessionLedgeredError

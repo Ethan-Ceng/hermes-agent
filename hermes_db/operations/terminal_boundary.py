@@ -4,9 +4,9 @@ import time
 
 from sqlalchemy import select
 
-from hermes_db.message_codec import codec
-from hermes_db.operations.messages import append_on_connection
-from hermes_db.repositories import lineage, messages, sessions
+from hermes_db.domains.sessions.postgres.support.message_codec import codec
+from hermes_db.domains.sessions.postgres.operations.messages import append_on_connection
+from hermes_db.domains.sessions.postgres.queries import lineage, messages, sessions
 from hermes_db.tables.conversations import messages as table
 
 

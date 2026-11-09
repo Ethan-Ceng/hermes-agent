@@ -97,7 +97,7 @@ def test_native_api_auth_namespace_survives_local_home_and_profile_label_changes
     from gateway.platforms.api_server_runs import _run_idempotency_scope
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
     from hermes_db.scope import DatabaseScope
-    from hermes_db.session_store import PostgresSessionStore
+    from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
     from hermes_db.response_store import PostgresResponseStore
     first, other = core_pair
     alias = PostgresSessionStore(first._transactions, DatabaseScope(tmp_path / "renamed", first.scope.store_id))

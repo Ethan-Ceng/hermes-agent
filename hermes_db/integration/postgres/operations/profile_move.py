@@ -11,8 +11,9 @@ from sqlalchemy import select
 from hermes_db.errors import StorageConfigurationError, RetryableStorageError
 from hermes_db.integration.transfer.move_values import imported_key, prepared_key, recipient_snapshot_digest, snapshot_digest
 from hermes_db.integration.postgres.operations import file_grants
-from hermes_db.operations import retirement, retirement_guards as guards, sessions as lifecycle
-from hermes_db.repositories import messages as transcript, prompts, runtime, sessions
+from hermes_db.domains.sessions.postgres.operations import retirement, retirement_guards as guards, sessions as lifecycle
+from hermes_db.domains.sessions.postgres.queries import messages as transcript, prompts, sessions
+from hermes_db.repositories import runtime
 from hermes_db.integration.postgres.queries import profile_move as repo
 from hermes_db.scope import DatabaseScope
 from hermes_db.tables.conversations import messages, session_model_usage, sessions as table

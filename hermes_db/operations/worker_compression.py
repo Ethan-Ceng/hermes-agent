@@ -5,9 +5,10 @@ import math
 
 from sqlalchemy import select
 
-from hermes_db.operations import compression, compression_publish, messages as transcript
+from hermes_db.domains.sessions.postgres.operations import compression, compression_publish, messages as transcript
 from hermes_db.operations.worker_handlers import _fields
-from hermes_db.repositories import messages, runtime, sessions, workers
+from hermes_db.domains.sessions.postgres.queries import messages, sessions
+from hermes_db.repositories import runtime, workers
 from hermes_db.tables.conversations import messages as message_table
 from hermes_db.tables.runtime import worker_executions
 from hermes_db.core.values import model_config

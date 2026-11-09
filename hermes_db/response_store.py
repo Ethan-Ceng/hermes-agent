@@ -10,7 +10,8 @@ from sqlalchemy import func, select
 
 from hermes_db.errors import StorageClosedError
 from hermes_db.operations import api as operations
-from hermes_db.repositories import api as repo, sessions
+from hermes_db.repositories import api as repo
+from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.tables.api import conversations, responses, response_keys, response_admissions
 
 
