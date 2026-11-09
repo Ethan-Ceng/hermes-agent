@@ -1861,6 +1861,28 @@ server实际closing准备已有局部证据：原15/5/cleanup15及全业务断�
 
 验证边界：本次是用户授权的运行配置、显式迁移、真实启动持久行及重启就绪核对；没有向外部平台发送测试消息，也没有在正式Profile写入测试会话。完整PG业务689及Matrix实SDK证据仍按冻结生产等价范围引用，不因运行切换重命名为本次测试。七项非WSL POSIX验收仍未验证，Task24保持in_progress、23/24、总体BLOCKED/CHANGES_REQUIRED。本次仅文档进入本地commit；`PM Python -X utf8 scripts/check --staged --base 9b292893eb`实际14检查通过、no measured files changed、exit0，日志`local-pg-rollout-docs-checks.log`。独立foundation已逐项只读核对脚本/JSON/计划/Git，在其followup报告第919行起确认本次运维范围未发现blocking/major，明确不扩大业务验收结论；此后仅补检查结果及独立复核文字，diff-check通过。以本地标题`docs(storage): record local PostgreSQL trial restart`保存运行与恢复记录，不是Task24完成提交。
 
+### 2026-11-09：本机可见验收入口
+
+用户要求启动Hermes供手工验收时，正式网关26656已经运行，两个Profile仍PG。`hermes desktop --local`首次在PM准备Node依赖时因Tailwind原生文件EPERM失败；实际memory_maps和精确脚本路径证明占用来自PyCharm的Tailwind语言服务。未停止编辑器，单个生成依赖在核对源/目标均位于工作区后重命名保留到`.build/postgresql/desktop-native-preserved-012b6378e5a042d889ca7d640892c62f/`，SHA256记在desktop-native-preserve-state.json；PM随后实际重新生成该依赖。第二次官方桌面启动仍exit1，原因是get-windows的node-gyp未找到可用Visual Studio C++工具链；SDK在常见安装目录亦未找到vswhere。该构建环境限制没有以禁用原生功能或伪造构建回执绕过；原生桌面未启动，日志local-pg-desktop-launch.log保留，后续修复依赖继续通过项目PM。
+
+官方`hermes webapp --status`确认现有网关已在loopback9120提供浏览器版Desktop；`hermes webapp --skip-build`实际打开Chrome中的Hermes窗口，沿用现成Webapp构建，不冒称已重新构建前端/桌面。第一次捕获输出的操作助手因Windows默认GBK解码失败，不能据此重试副作用；先重新观察到唯一Chrome/Hermes窗口，再核对监听状态。Computer Use在进一步窗口核对时因无法可靠确认浏览器URL而停止，所以只确认窗口已打开，未自动验证页面内容。并行CLI db status检查曾30秒启动超时、原因未定；随后直接用正式PM解释器执行verify_local_pg_rollout.py，实际PG连接、两Profile16领域、网关running/session_store.ok及原SQLite主文件hash均通过（02:17:21Z）。本轮没有修改产品代码或正式配置、向外部平台发送消息或在正式Profile写入测试会话。
+
+### 2026-11-09：用户授权清理数据库测试遗留
+
+用户在核对hermes_agent的Schema位置后要求删除多余无关对象。本次范围限定数据库内明确属于本项目的可丢弃测试Schema；保留正式Profile数据集、public、扩展对象及旧SQLite文件。先读取当前两Profile实际目标，再由inventory_pg_cleanup.py只读清点：14个非系统Schema，其中正式Schema1个/public1个/Timescale扩展成员7个、可丢弃测试Schema5个。Timescale成员通过pg_depend的extension归属核实，不能仅凭extension的主namespace误判为无关对象。
+
+五个候选均符合hermes_test_加32位随机hex命名、精确hermes-pg-tests:token归属注释、当前角色所有权及固定OID；3个各110表、2个为空，没有其他会话关系锁或忙连接引用。跨Schema依赖核对将默认值和触发器通过pg_attrdef/pg_trigger实际所属表解析namespace，最终外部依赖0；未依据对象描述字符串推断归属。原始完整清单保存在`.build/postgresql/pg-cleanup-inventory.json`，预检查日志pg-cleanup-preflight.log。
+
+实际执行`PM Python .build/postgresql/cleanup_owned_pg_test_schemas.py`：exit0、verified_complete。仅在同一事务内对以下五个精确Schema执行SQLAlchemy DropSchema(cascade=True)，删除前再次核对OID/注释/所有者/扩展成员/活跃引用；设置事务局部2秒锁等待及60秒语句期限，不终止其他会话。事务内提交前比较其余Schema、关系、列、约束、默认值、触发器、规则、函数、类型、扩展和事件触发器的目录快照；提交后独立连接再次比较并确认目标Schema全部不存在，两Profile再做完整schema_status均ready/full_system_ready=true。脚本拒绝盲目重跑，若提交阶段异常应先按实际目录状态协调结果；本次已明确成功，不需要重试。
+
+- hermes_test_3ec04ae9f89c4aebaf97b6493e5f14fc
+- hermes_test_732fec57c82e4c00ad01fdcaa8e3cf8e
+- hermes_test_d7cd307601244c6b88fe5d8360a28c44
+- hermes_test_d80a80cacf7247a0a6be8cb8506a5c33
+- hermes_test_f9ed7d1537804f4f82991198da07cc45
+
+结果：删除5个测试Schema、330张测试表；其余目录快照hash保持一致，正式Schema仍110表，遗留hermes_test_数量为0。`hermes gateway status`与`hermes webapp --status`清理后均exit0，网关仍PID26656、Webapp仍在loopback9120提供服务。审计/结果在`.build/postgresql/pg-cleanup-execution.json`和pg-cleanup-execution.log，包含候选OID、保留Schema及目录hash、独立连接核对和两Profile健康结果，不含DSN或行内容。本次不修改数据库服务、扩展、角色、产品代码或正式Profile配置；删除的是一次性验收数据，不涉及业务数据迁移/回迁，重放测试时由原fixture创建新的独立随机Schema，不重建这些旧名字。Task24及七项适用主机缺证保持原状态；文档diff-check后保存本地恢复记录，不宣称全系统验收完成。
+
 ### 历史恢复记录
 
 以下保留当时结果与恢复位置；其中“下一步/仍在运行”是历史状态，不替代上述当前恢复点。
