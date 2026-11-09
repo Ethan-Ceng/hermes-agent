@@ -16,7 +16,7 @@
 - 当前任务：Task24（in_progress）；ours为`264dc20077`，incoming为`781dc1e05fc7e781b714790d6ea2ab459835b3bb`，merge-base为`ff09cead02e906a4b1da909268c2cc58ec6e144d`。起始有19个冲突文件、2325个自动暂存文件；先保留三方和工作区字节，再逐项恢复SQLAlchemy/PG路径并兼容上游新行为。
 - 已完成：实施23 / 24；本次合并影响检查/代码整改已完成。会话阶段的17/18和原验证限制另行保留，不混入本计划计数。
 - 未完成：Task24全系统最终门禁；非WSL POSIX私有启动页七项仍缺适用主机。本次做合并相关Native/PG/发行/故障回归，未重跑当前合并源码的全仓Native宽批或完整Desktop/TUI TypeScript构建，不能继承旧完整批为当前全系统通过。
-- 当前实际安装：2026-11-09用户明确授权默认和“股票大师”两个Profile都切换本机PG并重启。PM已安装postgresql extra，独立新Schema已显式升级，旧网关14412排空停止、新网关26656运行，两个Profile均PG就绪；旧SQLite保留，不导入。本机试运行记录见下文，不解除Task24的平台验收阻塞。
+- 当前实际安装：2026-11-09用户再次要求重启供验收；当前分支develop、运行源码0d69702244与已验收合并一致。PM已准备新正式环境，旧网关26656经官方流程停止，原正式Schema显式升级0028→0031，新PID37296服务默认和“股票大师”，各自16域ready；旧SQLite保留且hash未变。官方Webapp已打开，控制通道serving、无代理直连HTTP200。本次运行就绪不解除Task24整体门禁。
 - 更新时间：2026-11-09（Asia/Shanghai）。
 
 ### 当前合并整改恢复点
@@ -107,6 +107,25 @@ scripts/gen_gateway_contracts.py --check
 测试只使用归属随机Schema；没有升级/重启正式两个Profile或管理PG服务。一次原始失败堆栈含连接参数被读到工具输出，已明确告知用户；审计日志2份已脱敏，后续统一short traceback且工具只显示摘要，秘密不入Git。
 
 当前恢复：分支/ours/incoming不变，unmerged index为0，合并未提交。先解决真实HTTP register红，再结算实SDK、原中断文件、独立载荷和最新静态/独立审查；原非WSL七项缺证继续保留。不要重放最初冲突解析脚本、旧Schema清理脚本或正式切换脚本；不以消除文本冲突宣布全系统完成。
+
+### 2026-11-09：合并代码后的用户验收重启
+
+用户在合并整改提交后要求“重启一下Hermes，我验收”，授权排空、必要的正式PG显式升级和重启。
+执行时当前分支已由用户切到`develop`，HEAD仍为已验证的`0d69702244d623a31be149a9bac6a2658e0322ae`，工作区干净；
+保留该分支，不拉取或切换源码。恢复资料在忽略目录`.build/postgresql/restart-0d69702244-20261109/`。
+
+实际过程与结果：
+
+1. 正式两Profile通过既有秘密来源解析，核对原Schema/store_id、当前数据库、归属、扩展及非recovery状态；两者均为0028。旧网关PID26656，active_agents=0。配置/.env和保留SQLite仅保存哈希，不输出秘密。
+2. 使用项目`pm.sync_venv(['postgresql'], explicit=True)`，保留原记录extras并按当前lock创建正式环境`af0c65dfafda4c18a2fb6b2c08be800c`，exit0；没有raw pip/uv或数据库服务操作。Windows/Linux现有路径均未发现pg_dump客户端，未声称创建逻辑PG备份，也未安装客户端/服务。
+3. 官方`hermes gateway stop` exit0，旧PID实际退出。首次升级保护在任何DDL之前因默认config hash变化拒绝；核对官方CLI留下的`config.yaml.bak-20261109T071313Z`恰与停机前哈希一致，解析后只有_config_version52→53变化，其他设置和.env完全相同，保存此证据后更新操作基线。没有回滚用户配置或绕过目标校验。
+4. 用新正式PM解释器执行本次`upgrade.py`，再次核对旧进程已退出、源码/冻结配置、两Profile同一PG目标与归属，调用实际`upgrade_schema`，一事务升级0028_kanban_effects→0031_merge_data_repair，exit0。升级前后sessions/messages总行数一致；两个Profile均16域ready、full_system_ready=true。没有导入旧SQLite、迁移配置/附件文件、双写或回迁。
+5. 官方`hermes gateway start` exit0，新PID37296。正式解释器执行`verify.py`最终exit0：真实进程身份及启动代码0d69702244正确、心跳新鲜、gateway_state=running、session_store.status=ok，served_profiles恰为默认和股票大师，parked_profiles为空；实际PYTHONPATH包含本次新PM环境。逐Profile只读检查PG0031/16域、store_id及持久启动行；配置/秘密哈希保持受控版本升级后的基线，旧SQLite主文件hash不变、未见打开的根部SQLite句柄。句柄只是补充，不能代替此前业务验收。
+6. 官方`hermes webapp --status` exit0，控制RPC返回serving；关闭代理后直连`http://127.0.0.1:9120/`为HTTP200且HTML，实际新PID持有该端口连接。额外LISTEN-only检查没有找到条目，随后观察到同端口属于新PID的NONE/ESTABLISHED等连接记录；按实际socket归属与官方控制状态核对，不把这个诊断差异直接认定为产品故障。`hermes webapp --skip-build` exit0，发起打开供用户验收的官方私有启动链接；未输出凭据，复用现有Webapp构建，没有重建原生Desktop/前端，也未自动验证浏览器页面内的业务操作。
+
+证据为preflight.json、config-version-migration.json、upgrade.json、verified.json及各命令的独立日志；首次冻结拒绝和诊断记录保留。
+未向外部平台发送测试消息，未在正式Profile写测试会话，未管理PG服务/扩展/角色。本次仅记录实际升级与运行就绪，用户手工验收仍待进行，Task24维持in_progress、23/24和整体BLOCKED/CHANGES_REQUIRED。
+恢复时以当前正式Schema0031和运行源码0d69702244为准，不按旧9b292/0028步骤直接启动；PM旧代和原SQLite数据保留。
 
 ## 目标、约束与范围变化
 

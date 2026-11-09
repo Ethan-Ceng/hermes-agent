@@ -8,6 +8,11 @@
 
 ## 当前本地develop合并整改（2026-11-09）
 
+后续运行更新：用户另行要求重启供验收，正式Schema已显式升级0031，新PID37296运行已验收源码0d69702244，
+两个Profile各16域ready，Webapp控制状态serving/直连HTTP200并已打开；旧SQLite保持原哈希。
+这是授权的运行升级与只读就绪检查，不是新的独立全系统批准；详细操作、首次配置冻结拒绝及恢复点见
+[计划的用户验收重启段](../plans/unified-database-backends-plan.md#2026-11-09合并代码后的用户验收重启)。下方“正式Schema仍0028”是此前合并整改阶段的历史边界，不能当当前运行状态。
+
 - 用户既有合并：ours `264dc20077`、incoming `781dc1e05fc7e781b714790d6ea2ab459835b3bb`；原19文本冲突已解决，自动合并文件及三方备份保留，以本地提交标题`Merge develop into feat/postgresql-session-storage`保存本次收尾，不是Task24完成提交。
 - 当前运行源码冻结tree `bb811be4a8132bcdb52190ab730ae1ab329b8512`。Stored transcript/picker/Worker/归档/refusal、房间grant债务/home/实际HTTP/关闭键、Kanban新消费者等语义缺口已整改；新增0029–0031只作用于明确升级的PG候选，正式Schema仍0028，本轮不重启正式Profile。
 - 新合同六文件36pass/0fail（246秒），包含实际collector/HTTP/supervisor、双进程恢复、真实COMMIT后丢ACK及旧PG空展示身份两方向分页。空身份曾稳定0pass/2fail，已最小补齐后转绿，不以更改seed掩盖缺口。
