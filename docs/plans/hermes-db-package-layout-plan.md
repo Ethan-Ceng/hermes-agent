@@ -6,8 +6,8 @@
 - 全量归属：[398项基准映射](../designs/hermes-db-package-map.json)。
 - 文档分支：`docs/hermes-db-package-layout`；实施分支：`refactor/hermes-db-packages`。
 - 源码基准：`cbfc773dd7`，运行实现等价`0d69702244`。
-- 整体状态：`IMPLEMENTING`；当前阶段：第一阶段机械落位；当前任务：Task3（待开始）；完成：2 / 18。
-- 本轮已建立独立实施检出并完成Task1；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
+- 整体状态：`IMPLEMENTING`；当前阶段：第一阶段机械落位；当前任务：Task4（待开始）；完成：3 / 18。
+- 本轮已建立独立实施检出并完成Task1–3；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
 - 核心设计待决策：无；Task1隔离PM与PG基线已通过，Matrix实际SDK由Task6核对。原统一后端Task24及七项非WSL缺证独立保留。
 - 更新时间：2026-11-09（Asia/Shanghai）。恢复位置：`D:/AI/hermes-db-packages`；从首个in_progress任务继续，不重跑整轮数据库选型。
 
@@ -62,6 +62,7 @@ PG选项只用于tests/hermes_db下已注册该选项的文件；其他目录Nat
 | 2026-11-09 | PLAN_READY | 用户要求准备分包方案；完成实际模块归属与设计/计划，0/18，尚未实施 |
 | 2026-11-09 | IMPLEMENTING | 独立checkout/PM及Task1接口依赖基线完成，1/18；Native504+PG26，4平台skip单列 |
 | 2026-11-09 | IMPLEMENTING | Task2基础设施/组合40模块移动并验证，2/18；Native504、PG41、driver-free2、15静态全绿，4平台skip单列 |
+| 2026-11-09 | IMPLEMENTING | Task3 Projects/verification六项移动并验证，3/18；Native/CLI513、PG7、15静态通过，4平台skip单列 |
 
 ## 方案准备自检
 
@@ -192,11 +193,11 @@ Task2映射均落实；SQLite driver-free入口及PG构造/作用域合同通过
 - 本地 `PM Python .build/package-layout/task2-audit.py`，最终exit0（task2-audit-accepted.log）：398模块机械AST等价、31 revision和29表定义hash不变。首轮审计工具对未存入object DB的新tables初始化blob执行cat-file失败；已修正为31+29锚点比较，初始化文件必要导入变化单列，不是业务失败。
 - `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，exit0，15checks通过，health336文件0blocking/0advisory（task2-check-final.log）；最终映射/计划元数据更新后暂存空白检查exit0。
 - 未验证：完整PG/实际Matrix SDK/发行及旧Schema业务升级由后续任务验收；本Task局部绿不解除Task17/18或原统一Task24缺证。表metadata身份与Schema保持原模块路径。
-- 恢复点：本地提交标题 `refactor(storage): package database infrastructure and composition`；下一Task3，继续机械分包Projects/verification。
+- 恢复点：本地提交 `ee2ea1130c`，标题 `refactor(storage): package database infrastructure and composition`；下一Task3，继续机械分包Projects/verification。
 
 ## Task 3：Projects与验证证据分包试点
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -237,11 +238,20 @@ Invoke-PgCases -Files @('tests/hermes_db/postgresql/test_projects_store.py', 'te
 
 ### 执行结果
 
-未执行。
+从Task2 `ee2ea1130c`继续，将Projects与verification的api/operations/queries六项一对一移动到各自业务域。同步CLI装饰器、Agent验证证据入口、Worker领域handler及真实测试import/patch读取点；public DTO与异常仍由原定义模块提供，规范化/重复目录/排序/锁/SQL保持。Projects私有规则提取仍属Task11。
+
+新增8个必要空初始化文件逐项进入new_files台账；当前16个新增均为空命名空间，总Python文件414、根90。398项机械AST等价，全部源/新增文件有归属；31 revision与29表定义不变。公开plugin_api与boundary baseline均未改；没有旧内部路径shim或SQL行为变更。历史设计/执行证据保持原基准路径。
 
 ### 验证证据
 
-未执行；实施时记录实际解释器/源码commit、展开命令、退出状态、计数、日志、未验证项和恢复commit。
+沿用Task1 PM解释器/隔离home/runtime，所有日志在本地 `.build/package-layout/`，retries=0。
+
+- `PM Python .build/package-layout/audit_mechanical.py`，exit0（task3-audit.log）：398 AST机械等价、源/新增归属闭合、31 revision/29表定义保持。
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts tests/hermes_cli/test_projects_db.py tests/hermes_cli/test_projects_cli.py -j 4 --file-timeout 1200 -- --tb=short`，exit0，92文件513passed/0failed/4skipped，276.8秒（task3-native.log）；skip仍为1 POSIX+3 Linux SDK，均未记通过。
+- 同runner `tests/hermes_db/postgresql/test_projects_store.py tests/hermes_db/postgresql/test_verification_store.py -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`，exit0，2文件7passed/0failed/0skip，22.0秒（task3-pg.log）；使用所有权核对随机Schema验证真实持久化与store隔离。
+- `PM Python -X utf8 scripts/check --staged --base cbfc773dd7`，exit0，15checks通过，health349文件0blocking/0advisory（task3-check.log）；最终计划/映射状态更新后暂存空白检查exit0。
+- 未验证：完整DB/SDK/独立发行/最终升级与组件收敛仍属后续，原Task24缺证不变。
+- 恢复点：本地提交标题 `refactor(storage): package projects and verification domains`；下一Task4。
 
 ## Task 4：Cron与指标分包
 
@@ -1030,5 +1040,5 @@ git diff --check
 
 ### 未通过项目与最终状态
 
-尚未开始实施，以上重构验收均未执行；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
+实施推进中，当前3/18；局部验证见已完成Task，最终重构验收仍未执行；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
 实施后仅可根据真实终态填写本次重构`READY_TO_MERGE / BLOCKED / FAILED`，并与原系统统一后端整体验收状态分别报告。

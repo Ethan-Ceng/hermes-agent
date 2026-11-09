@@ -671,11 +671,11 @@ def _insert_evidence(evidence: VerificationEvidence) -> dict[str, Any]:
     created_at = _utc_now()
     e = evidence
     _UNATTRIBUTED_RUNS.pop(_run_key(e.session_id, e.root), None)
-    from hermes_db.domains.verification import postgres_resource
+    from hermes_db.domains.verification.api import postgres_resource
 
     resource = postgres_resource()
     if resource is not None:
-        from hermes_db.operations.verification import record
+        from hermes_db.domains.verification.postgres.operations.verification import record
         with resource:
             return record(resource, e.__dict__, created_at,
                 cutoff=(datetime.now(UTC) - timedelta(days=_MAX_EVIDENCE_AGE_DAYS)).isoformat(),
@@ -732,10 +732,10 @@ def mark_workspace_edited(
     changed_paths = sorted({str(p) for p in (paths or []) if p})
     edited_at = _utc_now()
 
-    from hermes_db.domains.verification import postgres_resource
+    from hermes_db.domains.verification.api import postgres_resource
     resource = postgres_resource()
     if resource is not None:
-        from hermes_db.operations.verification import mark_edited
+        from hermes_db.domains.verification.postgres.operations.verification import mark_edited
         with resource:
             return mark_edited(resource, sid, root, changed_paths, edited_at)
 
@@ -796,10 +796,10 @@ def verification_status(*, session_id: str | None, cwd: str | Path | None) -> di
 
     sid = str(session_id or "default")
     root = _root_for(facts, cwd)
-    from hermes_db.domains.verification import postgres_resource
+    from hermes_db.domains.verification.api import postgres_resource
     resource = postgres_resource()
     if resource is not None:
-        from hermes_db.operations.verification import status
+        from hermes_db.domains.verification.postgres.operations.verification import status
         with resource:
             return status(resource, sid, root)
     with _DB_LOCK, _transaction() as conn:

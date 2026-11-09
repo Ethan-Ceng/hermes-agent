@@ -18,7 +18,7 @@ from typing import Iterable, List, Optional
 
 from hermes_cli.sqlite_util import add_column_if_missing as _add_column_if_missing, open_db, write_txn
 from hermes_constants import get_hermes_home
-from hermes_db.domains.projects import domain_operation
+from hermes_db.domains.projects.api import domain_operation
 
 
 def projects_db_path() -> Path:

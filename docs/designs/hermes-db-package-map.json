@@ -1,7 +1,7 @@
 {
   "baseline": "cbfc773dd79241752697e647067c63338fc01680",
   "baseline_runtime": "0d69702244d623a31be149a9bac6a2658e0322ae",
-  "stage": "Task2 infrastructure verified; domain moves continue from Task3 in isolated checkout",
+  "stage": "Tasks2-3 verified; domain moves continue from Task4 in isolated checkout",
   "hash_basis": "SHA256 of Git blob bytes at baseline; independent of checkout line endings",
   "counts": {
     "keep": 76,
@@ -282,7 +282,8 @@
       "task": 3,
       "lines": 18,
       "sha256": "6f3199ef977b38ecae26f4a184ba322c9f4d0a702d0728955230682762edf463",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/domains/resource.py",
@@ -328,7 +329,8 @@
       "task": 3,
       "lines": 15,
       "sha256": "b71b54877c829a8183f35e24574d868478c79bccd817e03e7835054bf0c11d58",
-      "role": "routing"
+      "role": "routing",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/engine.py",
@@ -1699,7 +1701,8 @@
       "task": 3,
       "lines": 232,
       "sha256": "debf01b70b08b465c48a6bbbec60a82126832baf73325ef1015d8cb2dda7a31f",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/retain_queue.py",
@@ -2050,7 +2053,8 @@
       "task": 3,
       "lines": 52,
       "sha256": "0a46d79c7f3bf1d19ecb2c39c862a6137984123df1602055bd782012de497706",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/operations/worker_children.py",
@@ -2546,7 +2550,8 @@
       "task": 3,
       "lines": 74,
       "sha256": "5b48c09c1f564023574d0ccc935b8b332769a512c83fc71f8e53ec212975b16f",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/prompts.py",
@@ -2708,7 +2713,8 @@
       "task": 3,
       "lines": 91,
       "sha256": "ec9e1edfcdb3f042b3afa96b354cdeec1259a1ecb81a1fa9c8a62b1b7eb9ccce",
-      "role": "domain"
+      "role": "domain",
+      "stage1_status": "verified"
     },
     {
       "source": "hermes_db/repositories/worker_retirement.py",
@@ -3697,6 +3703,46 @@
     {
       "path": "hermes_db/integration/transfer/__init__.py",
       "task": 2,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/projects/__init__.py",
+      "task": 3,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/verification/__init__.py",
+      "task": 3,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/projects/postgres/operations/__init__.py",
+      "task": 3,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/projects/postgres/__init__.py",
+      "task": 3,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/verification/postgres/operations/__init__.py",
+      "task": 3,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/verification/postgres/__init__.py",
+      "task": 3,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/projects/postgres/queries/__init__.py",
+      "task": 3,
+      "role": "empty-package-namespace"
+    },
+    {
+      "path": "hermes_db/domains/verification/postgres/queries/__init__.py",
+      "task": 3,
       "role": "empty-package-namespace"
     }
   ]

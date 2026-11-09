@@ -73,7 +73,7 @@ def test_domain_write_and_worker_receipt_survive_rollback_and_lost_commit_ack(pg
 
 
 def test_worker_domain_rejects_foreign_session_and_client_selected_scope(pg_store, tmp_path):
-    from hermes_db.operations.verification import record
+    from hermes_db.domains.verification.postgres.operations.verification import record
     from hermes_db.operations.worker_domains import ReceiptDomainResource
     runtime, args = assignment(pg_store)
     pg_store.create_session('foreign', 'cli')

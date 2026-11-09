@@ -2,7 +2,7 @@
 
 import json
 
-from hermes_db.repositories import verification as repo
+from hermes_db.domains.verification.postgres.queries import verification as repo
 
 
 def record(resource, evidence, created_at, *, cutoff, per_root_limit, total_limit):
