@@ -5,7 +5,7 @@
 - 设计：[持久层职责精简](../designs/hermes-db-persistence-scope.md)；映射：[生产文件/接口/测试/锚点](../designs/hermes-db-persistence-scope-map.json)。
 - 实施分支：`refactor/hermes-db-persistence-scope`；隔离检出：`D:/AI/hermes-db-packages`。
 - 源码基准：`90a2987e8c`；与正式启动`9a8093841b`仅部署记录文档不同。首轮准备提交`7f151a3299`不含运行代码。
-- 整体状态：`IMPLEMENTING`；阶段：feature-development；当前实施任务：Task7；完成：6 / 9；阻塞：无。
+- 整体状态：`IMPLEMENTING`；阶段：feature-development；当前实施任务：Task8；完成：7 / 9；阻塞：无。
 - 日期：2026-11-10。本轮用户已授权按计划实施并逐Task本地commit；旧分包/规划证据不计为本轮实施。
 - 准备依据：已核对22个生产路径、16项Store方法、22个相关测试文件及正常生命周期共享依赖；精确hash/处置在映射中。
 
@@ -397,11 +397,11 @@ Windows完整Native4文件11pass/0fail/1skip；skip为contracts/test_single_back
 - `D:/AI/hermes-db-packages/.build/package-layout/test-env/Scripts/python.exe scripts/check --staged --base 90a2987e8c`：exit0，16 checks ok；日志`task6-check.log`。
 - `git -c safe.directory=D:/AI/hermes-db-packages diff --cached --check`：exit0。
 
-未验证：后续Task的完整双后端/发行/最终审查；不把本Task局部通过冒充全系统验收。恢复点为本Task本地commit；下一Task7。
+未验证：后续Task的完整双后端/发行/最终审查；不把本Task局部通过冒充全系统验收。恢复commit：`75bcaf309b`；下一Task7。
 
 ## Task 7：全仓消费者、文档与边界闭合
 
-状态：in_progress
+状态：completed
 
 ### 目标
 
@@ -432,15 +432,29 @@ PM解释器执行scripts/check --staged --base 90a2987e8c、boundary_lint.py --c
 
 ### 执行结果
 
-未实施。
+全仓生产/动态字符串/patch读取点/活动指南闭合，旧维护方法、adoption和3个旧模块路径无剩余活动消费者。Title碰撞专用正常边界未丢失：新resume合同明确以ID与仅在另一store的title、活动/归档两状态测试，且同时监视donor get_session/get_session_by_title均不得调用；正常owned ID/title及未知目标保留。最新20项（边界脚本7、resume8、CLI5）完整批次exit0/0fail/0skip。
+
+边界许可逐consumer+symbol精确核对：scripts/hermes_db_boundary_rules.json没有涉及9个已删除生产路径、3个移动路径或16个维护symbol的许可项；这些变化属于integration组合层，不能为凑计划中的edit重刷/扩大registry。因此映射该项改为review_unchanged并保留原planned_action=edit。当前DB边界checker10130 resolved imports/0violations；插件边界847 module_to_core/26 core_to_module，无新增，公开plugin_api.json未改。generator --check无漂移，未改变TS可执行代码或wire形状，不以Python绿宣称前端全量已验。
+
+活动sessions/CLI/hooks指南已在对应Task同步，本Task将设计/计划的planning-only陈述更新为当前用户授权与6项实施进度，并记录最终完整验收/审查尚待执行。映射结算22生产处置、23相关测试（含Task4删除前补入的混合insert_counts）、6新行为文件和1个测试载荷helper，累计60条测试取消/替换/转换记录（不等于60个取消的pytest参数化用例）。没有通过删除正常Worker/导入/文件/生命周期断言变绿。
+
+结构与scope保持DB365→359/root11、16维护方法取消、3模块改名不计净减少；正常DTO/合同、事务/锁/回执/关闭语义与0031/31revision/29表/61固定锚点/4迁移资源不变。没有新核心工具、HERMES行为配置、通用CRUD/SQL框架、未来后端注册层或旧内部shim。正常Profile migrate-identity/rename/purge、当前session/Worker恢复与Kanban业务导入导出均保留。
+
+Task7不改变或掩盖Windows Profile八项独立基准问题、原统一Task24、七项非WSL缺证；所有都继续独立。Task5服务端恢复窗口仍保留原失败与完整复验证据，Task8必须再取得冻结当前源码的完整PG批次exit0。正式目录/分支/配置/秘密/业务数据及进程未受实施影响；本轮未推送/PR/合并/部署/重启。
 
 ### 验证证据
 
-未执行。
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/scripts/test_hermes_db_boundary_lint.py tests/tui_gateway/test_session_resume_store_boundary.py tests/hermes_cli/test_sessions_command_boundary.py -j 2 --file-timeout 1200 -- --tb=short -ra -vv`：exit0；=== Summary: 3 files, 20 tests passed, 0 failed (100% complete) in 11.3s (2 workers) ===；日志`task7-native.log`。
+- `D:/AI/hermes-db-packages/.build/package-layout/test-env/Scripts/python.exe scripts/check --staged --base 90a2987e8c`：exit0，16 checks ok；日志`task7-check.log`。
+- `D:/AI/hermes-db-packages/.build/package-layout/test-env/Scripts/python.exe scripts/hermes_db_boundary_lint.py --check`：exit0，10130 resolved imports/0 violations（task7-db-boundary.log）。
+- 同解释器 `scripts/boundary_lint.py --check`：exit0，847/26（task7-plugin-boundary.log）；`scripts/gen_gateway_contracts.py --check`：exit0，无漂移（task7-contracts.log）。
+- `git -c safe.directory=D:/AI/hermes-db-packages diff --cached --check`：exit0。
+
+未验证：后续Task的完整双后端/发行/最终审查；不把本Task局部通过冒充全系统验收。恢复点为本Task本地commit；下一Task8。
 
 ## Task 8：冻结当前源码并执行完整双后端/发行/SDK验收
 
-状态：pending
+状态：in_progress
 
 ### 目标
 
@@ -536,13 +550,13 @@ PM解释器执行scripts/check --staged --base 90a2987e8c、boundary_lint.py --c
 
 ### 当前执行结果
 
-- 本轮Task1 completed，完成1/9：局部Native27、消费者51、真实PG43均exit0，无skip；完整验收仍待后续Task。
+- 本轮Tasks1–7 completed，完成7/9；逐Task最新命令、退出码、skip与恢复commit见上文。Task7闭合检查已通过，完整冻结验收/独立审查仍待Tasks8–9。
 - 规划核对：映射22生产路径、16方法、22测试文件、6个拟新增行为测试文件及61锚点/4迁移资源已静态核对；方案文档/依赖/本地链接/基准hash和本轮staged检查的实际结果在准备记录补入。
 - 正式目录保持90a2987e8c及已启动运行时代码，未停止、重启、改配置/秘密或接触业务数据库。
 
 ### 未通过项目与最终状态
 
-尚未实施，业务验证和独立审查均待执行。本计划当前仅`PLAN_READY`，不能标READY_TO_MERGE。未来据实际证据填READY_TO_MERGE、BLOCKED或FAILED，并保留所有具名skip/初次失败与复验记录。
+当前`IMPLEMENTING`，局部业务已验证，完整冻结验收和独立审查仍待执行，不能标READY_TO_MERGE。Windows Profile八项基准问题、原Task24与七项非WSL缺证各自保留，不把Linux通过改写为Windows通过。
 
 ## 方案准备记录与恢复
 

@@ -65,7 +65,8 @@ def _resume(mod, target, profile="developer"):
 
 
 @pytest.mark.parametrize("archived", [False, True])
-def test_resume_does_not_read_or_copy_another_store(gateway, monkeypatch, archived):
+@pytest.mark.parametrize("target", ["legacy-other-store", "Other dataset"])
+def test_resume_does_not_read_or_copy_another_store(gateway, monkeypatch, archived, target):
     mod, donor, profile_home = gateway
     sid = "legacy-other-store"
     _seed(donor, sid, "Other dataset")
@@ -73,11 +74,14 @@ def test_resume_does_not_read_or_copy_another_store(gateway, monkeypatch, archiv
         donor.set_session_archived(sid, True)
     before = donor.export_session(sid, include_inactive=True)
     lookup = MagicMock(wraps=donor.get_session)
+    title_lookup = MagicMock(wraps=donor.get_session_by_title)
     with monkeypatch.context() as scoped:
         scoped.setattr(donor, "get_session", lookup)
-        response = _resume(mod, sid)
+        scoped.setattr(donor, "get_session_by_title", title_lookup)
+        response = _resume(mod, target)
     assert response.get("error", {}).get("code") == 4007
     lookup.assert_not_called()
+    title_lookup.assert_not_called()
     assert donor.export_session(sid, include_inactive=True) == before
     with SessionDB(db_path=profile_home / "state.db") as owned:
         assert owned.get_session(sid) is None
@@ -92,13 +96,16 @@ def test_resume_uses_owned_id_or_title_without_reading_other_store(gateway, monk
     with SessionDB(db_path=profile_home / "state.db") as owned:
         _seed(owned, "owned-id", "Owned title")
     lookup = MagicMock(wraps=donor.get_session)
+    title_lookup = MagicMock(wraps=donor.get_session_by_title)
     with monkeypatch.context() as scoped:
         scoped.setattr(donor, "get_session", lookup)
+        scoped.setattr(donor, "get_session_by_title", title_lookup)
         response = _resume(mod, target)
     assert not response.get("error")
     assert response["result"]["resumed"] == "owned-id"
     assert response["result"]["message_count"] == 2
     lookup.assert_not_called()
+    title_lookup.assert_not_called()
     assert donor.export_session("owned-id", include_inactive=True) == before
 
 

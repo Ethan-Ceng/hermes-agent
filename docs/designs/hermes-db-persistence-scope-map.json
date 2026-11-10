@@ -3,7 +3,7 @@
   "baseline_runtime": "9a8093841b4142cdee3e7ba25ab9669d0c24e93e",
   "hash_basis": "SHA256 of Git blob bytes at baseline; never checkout line endings",
   "proposal": "A: retire historical repair-profiles and stranded-session adoption; no external replacement tool",
-  "approval_scope": "Planning only; no runtime code changed or feature deletion executed",
+  "approval_scope": "User authorized implementation in isolated checkout and per-Task local commits on 2026-11-10; no push, PR, merge, deployment, production configuration/data mutation or restart",
   "branch": "refactor/hermes-db-persistence-scope",
   "entries": [
     {
@@ -340,14 +340,19 @@
     {
       "source": "scripts/hermes_db_boundary_rules.json",
       "baseline_sha256": "6f749626b984fd05d3c68fad8f1f367640974d8d34158e8276d98964b779be6d",
-      "action": "edit",
+      "action": "review_unchanged",
       "task": 7,
       "target": "scripts/hermes_db_boundary_rules.json",
       "reason": "delete retired symbol exceptions; precise moves for retained owners, no baseline expansion",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         7
-      ]
+      ],
+      "actual_disposition": "reviewed unchanged: no affected consumer+symbol grant; no automatic registry refresh",
+      "planned_action": "edit",
+      "implementation_tasks": {
+        "7": "completed"
+      }
     }
   ],
   "retired_postgres_store_methods": [
@@ -372,12 +377,14 @@
     {
       "path": "tests/hermes_cli/test_sessions_repair_profiles.py",
       "disposition": "retire with command",
-      "task": 4
+      "task": 4,
+      "status": "disposed"
     },
     {
       "path": "tests/hermes_db/contracts/test_profile_moves.py",
       "disposition": "retire move-only cases; grant safety replacements are required in Task2/5",
-      "task": 4
+      "task": 4,
+      "status": "disposed"
     },
     {
       "path": "tests/hermes_db/contracts/test_profile_repair.py",
@@ -387,17 +394,20 @@
         3,
         4
       ],
-      "intermediate_requirement": "Task3 removes adoption-only cases/import entries immediately; Task4 removes remaining move/repair cases while retaining normal contracts"
+      "intermediate_requirement": "Task3 removes adoption-only cases/import entries immediately; Task4 removes remaining move/repair cases while retaining normal contracts",
+      "status": "disposed"
     },
     {
       "path": "tests/hermes_db/test_move_fingerprints.py",
       "disposition": "retire digest-only contract",
-      "task": 4
+      "task": 4,
+      "status": "disposed"
     },
     {
       "path": "tests/tui_gateway/test_stranded_session_adoption.py",
       "disposition": "retire adoption tests; move applicable normal resume cases to test_session_resume_store_boundary.py with no-copy scenarios",
-      "task": 3
+      "task": 3,
+      "status": "disposed"
     },
     {
       "path": "tests/hermes_db/contracts/test_review_data_safety.py",
@@ -407,12 +417,14 @@
         3,
         4
       ],
-      "intermediate_requirement": "Task3 removes adoption-only cases/import entries immediately; Task4 removes remaining move/repair cases while retaining normal contracts"
+      "intermediate_requirement": "Task3 removes adoption-only cases/import entries immediately; Task4 removes remaining move/repair cases while retaining normal contracts",
+      "status": "disposed"
     },
     {
       "path": "tests/hermes_db/contracts/test_file_consumers.py",
       "disposition": "remove repair scan/move case only; retain roster/stats/release/backup checks",
-      "task": 4
+      "task": 4,
+      "status": "disposed"
     },
     {
       "path": "tests/hermes_db/postgresql/test_health_archive_refs.py",
@@ -422,86 +434,101 @@
         3,
         4
       ],
-      "intermediate_requirement": "Task3 removes adoption-only cases/import entries immediately; Task4 removes remaining move/repair cases while retaining normal contracts"
+      "intermediate_requirement": "Task3 removes adoption-only cases/import entries immediately; Task4 removes remaining move/repair cases while retaining normal contracts",
+      "status": "disposed"
     },
     {
       "path": "tests/hermes_state/test_session_import_keep_flags.py",
       "disposition": "split adoption-only tests from ordinary import inactive/checkpoint flag tests",
-      "task": 3
+      "task": 3,
+      "status": "disposed"
     },
     {
       "path": "tests/hermes_state/test_import_deleted_session.py",
       "disposition": "remove only any adoption-specific assertion; preserve import/deleted-parent behavior",
-      "task": 3
+      "task": 3,
+      "status": "disposed"
     },
     {
       "path": "tests/gateway/test_bot_chat_follows_profile.py",
       "disposition": "audit resume mocks for retired adoption hook; preserve routed home behavior",
       "task": 3,
-      "fixture_requirement": "Prepare current-scope rows directly if adoption was used only for setup; do not delete normal routing assertions"
+      "fixture_requirement": "Prepare current-scope rows directly if adoption was used only for setup; do not delete normal routing assertions",
+      "status": "disposed"
     },
     {
       "path": "tests/gateway/test_legacy_session_route_turn.py",
       "disposition": "audit retired hook references; retain current routing/scope contracts",
       "task": 3,
-      "fixture_requirement": "Prepare current-scope rows directly if adoption was used only for setup; do not delete normal routing assertions"
+      "fixture_requirement": "Prepare current-scope rows directly if adoption was used only for setup; do not delete normal routing assertions",
+      "status": "disposed"
     },
     {
       "path": "tests/hermes_db/postgresql/test_profile_file_scope.py",
       "disposition": "KEEP normal Profile filesystem rename, not historical session move",
-      "task": 2
+      "task": 2,
+      "status": "disposed"
     },
     {
       "path": "tests/hermes_db/contracts/test_remaining_read_maintenance.py",
       "disposition": "KEEP normal Profile purge/read/retention checks",
-      "task": 2
+      "task": 2,
+      "status": "disposed"
     },
     {
       "path": "tests/gateway/test_profile_identity_purge.py",
       "disposition": "KEEP normal lifecycle",
-      "task": 2
+      "task": 2,
+      "status": "disposed"
     },
     {
       "path": "tests/hermes_cli/test_profile_identity_purge_cmd.py",
       "disposition": "KEEP normal lifecycle",
-      "task": 2
+      "task": 2,
+      "status": "disposed"
     },
     {
       "path": "tests/tui_gateway/test_session_resume_materializes_minted_key.py",
       "disposition": "KEEP fresh minted-key recovery",
-      "task": 3
+      "task": 3,
+      "status": "disposed"
     },
     {
       "path": "tests/tui_gateway/test_session_resume_db_ownership.py",
       "disposition": "KEEP handle ownership/release",
-      "task": 3
+      "task": 3,
+      "status": "disposed"
     },
     {
       "path": "tests/hermes_db/contracts/test_retired_files.py",
       "disposition": "KEEP normal retention and file safety",
-      "task": 5
+      "task": 5,
+      "status": "disposed"
     },
     {
       "path": "tests/hermes_db/postgresql/test_merge_commit_recovery.py",
       "disposition": "KEEP real commit-before-ack-loss recovery",
-      "task": 8
+      "task": 8,
+      "status": "disposed"
     },
     {
       "path": "tests/hermes_db/postgresql/test_merge_process_recovery.py",
       "disposition": "KEEP new-PID recovery",
-      "task": 8
+      "task": 8,
+      "status": "disposed"
     },
     {
       "path": "tests/hermes_db/postgresql/test_merge_data_upgrade.py",
       "disposition": "KEEP deployed Schema upgrade compatibility",
-      "task": 8
+      "task": 8,
+      "status": "disposed"
     },
     {
       "path": "tests/hermes_db/postgresql/test_insert_counts.py",
       "disposition": "Task4 audit amendment: retire route repair count only; KEEP real worker change tracker no-op/new-row assertions",
       "task": 4,
       "baseline_sha256": "a52eaa6794c83e0a48fb47c25b52fb5df34ff2f64094cd0d0e4bba43ceee2946",
-      "status": "in_progress"
+      "status": "disposed"
     }
   ],
   "new_behavior_tests": [
@@ -1120,5 +1147,22 @@
       "status": "completed",
       "purpose": "Installed independent payload probe; records only PID, dataset markers, optional-dependency availability and storage error types; no production interface"
     }
-  ]
+  ],
+  "boundary_disposition": {
+    "task": 7,
+    "status": "reviewed",
+    "affected_consumer_symbol_grants": 0,
+    "reason": "Retired/moved files are integration composition modules, not consumers of lower-domain reviewed reuse grants. No existing grant names any deleted/moved path or retired maintenance symbol. Preserve exact registry unchanged rather than rebuilding/expanding a baseline."
+  },
+  "actual_counts": {
+    "db_python": 359,
+    "root_db_python": 11,
+    "db_net_reduction": 6,
+    "renamed_existing_db_python": 3,
+    "retired_store_methods": 16,
+    "deleted_other_production_python": 3,
+    "related_test_files": 23,
+    "new_behavior_test_files": 6,
+    "new_test_support_files": 1
+  }
 }
