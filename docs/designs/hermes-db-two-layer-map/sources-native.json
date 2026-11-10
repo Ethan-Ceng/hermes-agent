@@ -176,7 +176,7 @@
       "hermes_db/infra/backends/sqlite/schema.py"
     ],
     "task": 3,
-    "status": "pending",
+    "status": "completed",
     "reason": "Move real shared primitives; schema callback is explicit lifecycle, no re-export at old internal path.",
     "symbol_routes": {
       "open_db": {
@@ -206,7 +206,8 @@
       "transaction",
       "add_column_if_missing",
       "write_txn"
-    ]
+    ],
+    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed"
   },
   {
     "source": "hermes_state.py",
@@ -1442,7 +1443,7 @@
       "hermes_db/infra/backends/sqlite/lockguard.py"
     ],
     "task": 3,
-    "status": "pending",
+    "status": "completed",
     "reason": "SQLite lock-safe connections/runtime facts, no application Profile discovery.",
     "symbol_routes": {},
     "baseline_abi_sha256": "0ba203485edb5e17e0647d89f3db7f781965992257b9e91465e4b8003b204abf",
@@ -1455,7 +1456,8 @@
       "_guard_ranges",
       "hold",
       "release"
-    ]
+    ],
+    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed"
   },
   {
     "source": "hermes_state_lockowners.py",
@@ -2399,7 +2401,7 @@
       "hermes_cli/db_sqlite_policy.py"
     ],
     "task": 3,
-    "status": "pending",
+    "status": "completed",
     "reason": "PRAGMA/WAL safety mechanism stays technical; config and update hints are captured in application.",
     "symbol_routes": {
       "_mode_from_row": {
@@ -2490,7 +2492,8 @@
       "apply_wal_with_fallback": {
         "target": "hermes_db/infra/backends/sqlite/wal.py",
         "task": 3,
-        "constraint": "Application resolves existing config/update hints under captured Profile; mechanism receives explicit values and preserves WAL-reset/never-live-downgrade policy."
+        "constraint": "Application resolves existing config/update hints under captured Profile; mechanism receives explicit values and preserves WAL-reset/never-live-downgrade policy. Explicit options are technical; captured Profile configuration and original nonblocking config-lock coordination are application-owned.",
+        "application_target": "hermes_cli/db_sqlite_policy.py"
       },
       "_enable_wal": {
         "target": "hermes_db/infra/backends/sqlite/wal.py",
@@ -2533,9 +2536,9 @@
         "constraint": "Application resolves existing config/update hints under captured Profile; mechanism receives explicit values and preserves WAL-reset/never-live-downgrade policy."
       },
       "resolve_synchronous_level": {
-        "target": "hermes_cli/db_sqlite_policy.py",
+        "target": "hermes_db/infra/backends/sqlite/wal.py",
         "task": 3,
-        "constraint": "Application resolves existing config/update hints under captured Profile; mechanism receives explicit values and preserves WAL-reset/never-live-downgrade policy."
+        "constraint": "Pure conversion of an explicit supplied value; no Profile/config access, one canonical implementation shared by synchronous PRAGMA execution."
       },
       "_apply_synchronous_pragma": {
         "target": "hermes_db/infra/backends/sqlite/wal.py",
@@ -2545,7 +2548,8 @@
       "apply_database_pragmas": {
         "target": "hermes_db/infra/backends/sqlite/wal.py",
         "task": 3,
-        "constraint": "Application resolves existing config/update hints under captured Profile; mechanism receives explicit values and preserves WAL-reset/never-live-downgrade policy."
+        "constraint": "Application resolves existing config/update hints under captured Profile; mechanism receives explicit values and preserves WAL-reset/never-live-downgrade policy. Explicit options are technical; captured Profile configuration and original nonblocking config-lock coordination are application-owned.",
+        "application_target": "hermes_cli/db_sqlite_policy.py"
       }
     },
     "baseline_abi_sha256": "dee72b4aebe21cd104e3d6782c800906aadf47ed3187a223001e428dfd2bea96",
@@ -2579,7 +2583,8 @@
       "resolve_synchronous_level",
       "_apply_synchronous_pragma",
       "apply_database_pragmas"
-    ]
+    ],
+    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed"
   },
   {
     "source": "hermes_state_worker_compression.py",
@@ -4854,7 +4859,7 @@
       "hermes_db/infra/backends/sqlite/runtime.py"
     ],
     "task": 3,
-    "status": "pending",
+    "status": "completed",
     "reason": "SQLite lock-safe connections/runtime facts, no application Profile discovery.",
     "symbol_routes": {},
     "baseline_abi_sha256": "72cc27d40e08d6c99f1a36f51beb4e3602b5c3ed249569dcfca4c4ff1bad828c",
@@ -4864,7 +4869,8 @@
       "SQLiteRuntimeInfo",
       "isolated_interpreter_env",
       "probe_sqlite_runtime"
-    ]
+    ],
+    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed"
   },
   {
     "source": "hermes_cli/sqlite_safe_read.py",
@@ -4875,7 +4881,7 @@
       "hermes_db/infra/backends/sqlite/safe_read.py"
     ],
     "task": 3,
-    "status": "pending",
+    "status": "completed",
     "reason": "SQLite lock-safe connections/runtime facts, no application Profile discovery.",
     "symbol_routes": {},
     "baseline_abi_sha256": "97899ac3baf3716b350055cbb74999a4886056ee0336b7424d2459aad764402d",
@@ -4898,7 +4904,8 @@
       "file_length_matches_header",
       "read_header_bytes_preopen",
       "offline_file_access"
-    ]
+    ],
+    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed"
   },
   {
     "source": "hermes_cli/update_downgrade_guard.py",

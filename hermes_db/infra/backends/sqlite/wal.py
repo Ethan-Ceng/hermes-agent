@@ -1,6 +1,6 @@
 """SQLite journal-mode and PRAGMA policy for state.db (split from hermes_state).
 
-Patchable helpers are looked up as module globals at call time, so tests patch ``hermes_state_wal.<name>``.
+Resolved options are supplied by applications; driver helpers remain patchable at their production read sites.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ import threading
 import time
 from typing import Any, Dict, Optional
 
-from hermes_cli.sqlite_runtime import is_sqlite_wal_reset_vulnerable as _is_sqlite_wal_reset_vulnerable
+from hermes_db.infra.backends.sqlite.runtime import is_sqlite_wal_reset_vulnerable as _is_sqlite_wal_reset_vulnerable
 from hermes_state_errors import is_sqlite_lock_error
 
 # Log-record parity with the origin module (caplog tests pin "hermes_state").
@@ -154,17 +154,6 @@ def _database_has_content(conn: sqlite3.Connection) -> bool:
         return False
 
 
-def resolve_journal_mode() -> str:
-    """The configured ``database.journal_mode`` (``wal`` default; ``delete`` for filesystems without WAL-safe
-    durability: macOS virtiofs, NFS, SMB). Invalid values fail safe to ``wal``."""
-    try:
-        from hermes_cli.config import load_config_readonly
-        database = (load_config_readonly() or {}).get("database", {})
-        raw = database.get("journal_mode", "wal") if isinstance(database, dict) else "wal"
-    except Exception:
-        return "wal"
-    mode = raw.strip().lower() if isinstance(raw, str) else ""
-    return mode if mode in ("wal", "delete") else "wal"
 
 
 class WalUnsupportedError(sqlite3.OperationalError):
@@ -251,7 +240,7 @@ def _verify_configured_delete(actual: str) -> str:
     return actual
 
 
-def apply_wal_with_fallback(conn: sqlite3.Connection, *, db_label: str = "state.db", require_wal: bool = False) -> str:
+def apply_wal_with_fallback(conn: sqlite3.Connection, *, db_label: str = "state.db", require_wal: bool = False, journal_mode: str = "wal", repair_hint: str = "upgrade the linked SQLite runtime") -> str:
     """Set ``journal_mode=WAL`` on ``conn``, falling back to DELETE on failure.
 
     Returns the mode actually set — or, when the read-only mode probe is blocked by a concurrent opener, ``"wal"``
@@ -274,34 +263,12 @@ def apply_wal_with_fallback(conn: sqlite3.Connection, *, db_label: str = "state.
     still documents the WAL-reset bug as real through 3.51.2 with serious consequences. Until a fixed
     runtime is delivered, keep new databases out of WAL.
     """
-    config_module = sys.modules.get("hermes_cli.config")
-    if getattr(getattr(config_module, "__spec__", None), "_initializing", False):
-        config_module = None
-    config_lock = getattr(config_module, "_CONFIG_LOCK", None)
-    acquired = config_lock is not None and config_lock.acquire(blocking=False)
-    try:
-        if config_lock is not None and not acquired:
-            # A config writer cannot hold up work on an initialized database.
-            # Preserve its observed mode; defer configuration-driven transitions.
-            current_mode = _on_disk_journal_mode(conn)
-            if current_mode == "wal":
-                if is_sqlite_wal_reset_vulnerable():
-                    return _apply_delete_for_wal_reset_bug(conn, db_label=db_label)
-                _apply_wal_companions(conn)
-                return "wal"
-            if current_mode == "delete" and not require_wal and _database_has_content(conn):
-                if is_sqlite_wal_reset_vulnerable():
-                    _log_wal_reset_bug_once(db_label, kept_wal=False)
-                return "delete"
-        configured = resolve_journal_mode()
-    finally:
-        if acquired:
-            config_lock.release()
+    configured = journal_mode
 
     # Vulnerable SQLite: never enable WAL on non-WAL files (configured mode resolved first so an explicit DELETE
     # request is still verified).
     if is_sqlite_wal_reset_vulnerable():
-        return _apply_delete_for_wal_reset_bug(conn, db_label=db_label, require_delete=configured == "delete")
+        return _apply_delete_for_wal_reset_bug(conn, db_label=db_label, require_delete=configured == "delete", repair_hint=repair_hint)
     # Read-only probe (no flock/checkpoint/WAL-SHM unlink): WAL-init must not unlink files other connections hold.
     current_mode = _on_disk_journal_mode(conn)
     if current_mode == "wal":
@@ -447,7 +414,7 @@ def _warn_existing_wal_on_cross_vm_fs(conn: sqlite3.Connection) -> None:
         _log_once("cross_vm_fs_existing_wal", db_file)
 
 
-def _apply_delete_for_wal_reset_bug(conn: sqlite3.Connection, *, db_label: str, require_delete: bool = False) -> str:
+def _apply_delete_for_wal_reset_bug(conn: sqlite3.Connection, *, db_label: str, require_delete: bool = False, repair_hint: str = "upgrade the linked SQLite runtime") -> str:
     """Avoid enabling WAL when the linked SQLite has the WAL-reset bug.
 
     Already-WAL on disk: keep WAL (no live downgrade) and warn. Mode unreadable (probe blocked by a concurrent
@@ -456,7 +423,7 @@ def _apply_delete_for_wal_reset_bug(conn: sqlite3.Connection, *, db_label: str, 
     waiting out openers and warn; an explicit operator request additionally verifies SQLite accepted DELETE."""
     current = _on_disk_journal_mode(conn)
     if current == "wal":
-        _log_wal_reset_bug_once(db_label, kept_wal=True)
+        _log_wal_reset_bug_once(db_label, kept_wal=True, repair_hint=repair_hint)
         if require_delete:
             # Upgrading SQLite doesn't help here; emit the actionable message last.
             _log_configured_delete_overridden_once(db_label)
@@ -466,7 +433,7 @@ def _apply_delete_for_wal_reset_bug(conn: sqlite3.Connection, *, db_label: str, 
     if current is None:
         if require_delete:
             raise sqlite3.OperationalError(_CANNOT_VERIFY_DELETE_MSG)
-        _log_wal_reset_bug_once(db_label, kept_wal=True, indeterminate=True)
+        _log_wal_reset_bug_once(db_label, kept_wal=True, indeterminate=True, repair_hint=repair_hint)
         return "wal"
     actual = ""
     try:
@@ -476,29 +443,15 @@ def _apply_delete_for_wal_reset_bug(conn: sqlite3.Connection, *, db_label: str, 
             raise
         if is_sqlite_lock_error(exc):
             # A concurrent opener appeared between probe and flip: leave the mode as is.
-            _log_wal_reset_bug_once(db_label, kept_wal=True, indeterminate=True)
+            _log_wal_reset_bug_once(db_label, kept_wal=True, indeterminate=True, repair_hint=repair_hint)
             return current or "delete"
         # Best-effort otherwise: DELETE is already the default for new file-backed DBs.
     if require_delete:
         _verify_configured_delete(actual)
-    _log_wal_reset_bug_once(db_label, kept_wal=False)
+    _log_wal_reset_bug_once(db_label, kept_wal=False, repair_hint=repair_hint)
     return "delete"
 
 
-def _wal_reset_repair_hint() -> str:
-    """Repair hint matching what ``hermes update`` can actually do for this install type.
-
-    See #75153.
-    """
-    try:
-        from hermes_cli.config import detect_install_method, get_project_root, recommended_update_command_for_method
-        method = detect_install_method(get_project_root())
-        cmd = recommended_update_command_for_method(method)
-        if method in {"git", "unknown"}:
-            return f"Hermes-managed installs can repair the embedded runtime with `{cmd}`"
-        return f"update the container image with `{cmd}`" if method == "docker" else cmd  # else nix/nixos
-    except Exception:
-        return "install a Python build bundled with SQLite 3.51.3+ (or backports 3.50.7 / 3.44.6) and restart Hermes"
 
 
 # Once-per-(process, db_label) log table. Levels are deliberate: falling back to DELETE and an ignored
@@ -582,10 +535,10 @@ def _log_once(kind: str, db_label: str, *args: Any) -> None:
     logger.log(level, message, db_label, *(a() if callable(a) else a for a in args))
 
 
-def _log_wal_reset_bug_once(db_label: str, *, kept_wal: bool, indeterminate: bool = False) -> None:
+def _log_wal_reset_bug_once(db_label: str, *, kept_wal: bool, indeterminate: bool = False, repair_hint: str = "upgrade the linked SQLite runtime") -> None:
     """Log once per (process, db_label) about the WAL-reset vulnerability path."""
     action = _WAL_RESET_BUG_ACTIONS["indeterminate" if indeterminate else "kept_wal" if kept_wal else "delete"]
-    _log_once("wal_reset_bug", db_label, sqlite3.sqlite_version, sys.executable, action, _wal_reset_repair_hint)
+    _log_once("wal_reset_bug", db_label, sqlite3.sqlite_version, sys.executable, action, repair_hint)
 
 
 def _log_journal_mode_upgrade_once(db_label: str, previous_mode: str) -> None:
@@ -641,7 +594,7 @@ def _apply_synchronous_pragma(conn: sqlite3.Connection, raw_value: Any, *, db_la
         conn.execute(f"PRAGMA synchronous={level}")
 
 
-def apply_database_pragmas(conn: sqlite3.Connection, *, db_label: str = "state.db") -> None:
+def apply_database_pragmas(conn: sqlite3.Connection, *, pragmas: dict, db_label: str = "state.db") -> None:
     """Apply optional performance and WAL-sizing PRAGMAs from ``config.yaml``.
 
     Journal mode is NOT handled here (owned by :func:`apply_wal_with_fallback`). ``database:`` keys: ``cache_size``
@@ -649,13 +602,8 @@ def apply_database_pragmas(conn: sqlite3.Connection, *, db_label: str = "state.d
     (pages), ``journal_size_limit`` (bytes), ``synchronous`` (unset leaves the compile-time default, which differs
     between bundled/distro/Homebrew builds). Best-effort: failures are ignored so DB init never breaks on a
     malformed section. Applied to ALL connection types: writer, read_only, WAL readers."""
-    try:
-        from hermes_cli.config import cfg_get, load_config_readonly  # local: avoids a circular import
-        cfg = load_config_readonly()
-    except Exception:
-        return
     for pragma_name in ("cache_size", "mmap_size", "temp_store", "wal_autocheckpoint", "journal_size_limit"):
-        if (raw_value := cfg_get(cfg, "database", pragma_name, default=None)) is None:
+        if (raw_value := pragmas.get(pragma_name)) is None:
             continue
         try:
             value = int(str(raw_value).strip())
@@ -665,5 +613,5 @@ def apply_database_pragmas(conn: sqlite3.Connection, *, db_label: str = "state.d
         with contextlib.suppress(sqlite3.OperationalError):
             conn.execute(f"PRAGMA {pragma_name}={value}")
     # Last: sizing pragmas cannot change durability (see _apply_synchronous_pragma).
-    if (raw_synchronous := cfg_get(cfg, "database", "synchronous", default=None)) is not None:
+    if (raw_synchronous := pragmas.get("synchronous")) is not None:
         _apply_synchronous_pragma(conn, raw_synchronous, db_label=db_label)

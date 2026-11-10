@@ -507,58 +507,7 @@ def test_gateway_boot_waits_while_the_holder_has_not_published_its_record(tmp_pa
         holder.wait()
 
 
-_SLOW_BROWSE = r'''
-import json, os, sqlite3, sys, time
-from pathlib import Path
-import hermes_cli.sqlite_safe_read as ssr
-from fastapi import HTTPException
-from hermes_cli.web_server_sessions import _open_session_db_at_path
-
-phase = sys.argv[2]
-original = ssr.connect_tracked
-
-class SlowConnection:
-    """A real sqlite connection whose VM runs slowly (stand-in for a cold multi-GB disk). The
-    slowdown is installed here, whether or not the code under test sets its own progress handler,
-    and chains to that handler when it does."""
-    def __init__(self, conn):
-        self._conn = conn
-        self.set_progress_handler(None, 0)
-    def __getattr__(self, name):
-        return getattr(self._conn, name)
-    def set_progress_handler(self, handler, n):
-        def slow():
-            time.sleep(0.01)
-            return handler() if handler is not None else 0
-        return self._conn.set_progress_handler(slow, 5)
-    def close(self):
-        return self._conn.close()
-
-def holding_lock():
-    """Only connections opened while THIS process holds gateway.lock are slowed."""
-    lock = Path(sys.argv[1]).with_name("gateway.lock")
-    try:
-        return json.loads(lock.read_text()).get("pid") == os.getpid()
-    except (OSError, ValueError):
-        return False
-
-def slowed(path, *a, **kw):
-    conn = original(path, *a, **kw)
-    read_only = "mode=ro" in str(path)
-    if holding_lock() and (phase == "integrity") == read_only:
-        print("slowed", flush=True)  # this process holds gateway.lock and the slow phase begins
-        return SlowConnection(conn)
-    return conn
-
-ssr.connect_tracked = slowed
-started = time.monotonic()
-print("started", flush=True)
-try:
-    _open_session_db_at_path(Path(sys.argv[1]), read_only=True).close()
-    print("RESULT 200", time.monotonic() - started, flush=True)
-except HTTPException as exc:
-    print("RESULT", exc.status_code, time.monotonic() - started, exc.detail, flush=True)
-'''
+_SLOW_BROWSE = '\nimport json, os, sqlite3, sys, time\nfrom pathlib import Path\nimport hermes_db.infra.backends.sqlite.safe_read as ssr\nfrom fastapi import HTTPException\nfrom hermes_cli.web_server_sessions import _open_session_db_at_path\n\nphase = sys.argv[2]\noriginal = ssr.connect_tracked\n\nclass SlowConnection:\n    """A real sqlite connection whose VM runs slowly (stand-in for a cold multi-GB disk). The\n    slowdown is installed here, whether or not the code under test sets its own progress handler,\n    and chains to that handler when it does."""\n    def __init__(self, conn):\n        self._conn = conn\n        self.set_progress_handler(None, 0)\n    def __getattr__(self, name):\n        return getattr(self._conn, name)\n    def set_progress_handler(self, handler, n):\n        def slow():\n            time.sleep(0.01)\n            return handler() if handler is not None else 0\n        return self._conn.set_progress_handler(slow, 5)\n    def close(self):\n        return self._conn.close()\n\ndef holding_lock():\n    """Only connections opened while THIS process holds gateway.lock are slowed."""\n    lock = Path(sys.argv[1]).with_name("gateway.lock")\n    try:\n        return json.loads(lock.read_text()).get("pid") == os.getpid()\n    except (OSError, ValueError):\n        return False\n\ndef slowed(path, *a, **kw):\n    conn = original(path, *a, **kw)\n    read_only = "mode=ro" in str(path)\n    if holding_lock() and (phase == "integrity") == read_only:\n        print("slowed", flush=True)  # this process holds gateway.lock and the slow phase begins\n        return SlowConnection(conn)\n    return conn\n\nssr.connect_tracked = slowed\nstarted = time.monotonic()\nprint("started", flush=True)\ntry:\n    _open_session_db_at_path(Path(sys.argv[1]), read_only=True).close()\n    print("RESULT 200", time.monotonic() - started, flush=True)\nexcept HTTPException as exc:\n    print("RESULT", exc.status_code, time.monotonic() - started, exc.detail, flush=True)\n'
 
 
 @pytest.mark.platforms("linux", "macos")
@@ -687,40 +636,7 @@ def test_integrity_scan_runs_before_the_lock_is_taken(tmp_path, monkeypatch):
     assert "last_read_at" in _session_columns(path)
 
 
-_SLOW_SCAN_BROWSE = r'''
-import sys, time
-from pathlib import Path
-import hermes_cli.sqlite_safe_read as ssr
-from fastapi import HTTPException
-from hermes_cli.web_server_sessions import _open_session_db_at_path
-
-original = ssr.connect_tracked
-
-class SlowScan:
-    """A real read-only connection whose integrity scan runs slowly (a cold multi-GB store)."""
-    def __init__(self, conn):
-        self._conn = conn
-    def __getattr__(self, name):
-        return getattr(self._conn, name)
-    def execute(self, sql, *a):
-        if sql.startswith("PRAGMA integrity_check"):
-            time.sleep(float(sys.argv[2]))
-        return self._conn.execute(sql, *a)
-    def close(self):
-        return self._conn.close()
-
-def slowed(path, *a, **kw):
-    conn = original(path, *a, **kw)
-    return SlowScan(conn) if "mode=ro" in str(path) else conn
-
-ssr.connect_tracked = slowed
-print("started", flush=True)
-try:
-    _open_session_db_at_path(Path(sys.argv[1]), read_only=True).close()
-    print("RESULT 200", flush=True)
-except HTTPException as exc:
-    print("RESULT", exc.status_code, exc.detail, flush=True)
-'''
+_SLOW_SCAN_BROWSE = '\nimport sys, time\nfrom pathlib import Path\nimport hermes_db.infra.backends.sqlite.safe_read as ssr\nfrom fastapi import HTTPException\nfrom hermes_cli.web_server_sessions import _open_session_db_at_path\n\noriginal = ssr.connect_tracked\n\nclass SlowScan:\n    """A real read-only connection whose integrity scan runs slowly (a cold multi-GB store)."""\n    def __init__(self, conn):\n        self._conn = conn\n    def __getattr__(self, name):\n        return getattr(self._conn, name)\n    def execute(self, sql, *a):\n        if sql.startswith("PRAGMA integrity_check"):\n            time.sleep(float(sys.argv[2]))\n        return self._conn.execute(sql, *a)\n    def close(self):\n        return self._conn.close()\n\ndef slowed(path, *a, **kw):\n    conn = original(path, *a, **kw)\n    return SlowScan(conn) if "mode=ro" in str(path) else conn\n\nssr.connect_tracked = slowed\nprint("started", flush=True)\ntry:\n    _open_session_db_at_path(Path(sys.argv[1]), read_only=True).close()\n    print("RESULT 200", flush=True)\nexcept HTTPException as exc:\n    print("RESULT", exc.status_code, exc.detail, flush=True)\n'
 
 
 @pytest.mark.platforms("linux", "macos")
@@ -781,7 +697,7 @@ class _SlowProgress:
 def test_slow_integrity_scan_is_bounded_and_not_repeated_on_every_poll(tmp_path, monkeypatch):
     """alt-glitch C1: the pre-lock scan still has a deadline (retryable 503, nothing written), and a
     sidebar polling the same unchanged store does not rescan the whole file on every request."""
-    import hermes_cli.sqlite_safe_read as ssr
+    import hermes_db.infra.backends.sqlite.safe_read as ssr
     import hermes_state_reconcile as reconcile
 
     path = _lagging_store_with_history(_profile_home(tmp_path), rows=400)
@@ -863,7 +779,7 @@ def test_budget_refusal_on_unowned_store_names_repair_not_a_gateway(tmp_path, mo
     """Round-2 decision: the 3 s browse budget stays. When it runs out on a store no gateway owns,
     the 503 must be actionable: name `hermes -p NAME sessions repair` (no time limit), say the
     history is untouched, and never tell a user with no gateway to restart one."""
-    import hermes_cli.sqlite_safe_read as ssr
+    import hermes_db.infra.backends.sqlite.safe_read as ssr
     import hermes_state_reconcile as reconcile
 
     assert reconcile.BROWSE_INTEGRITY_BUDGET_S == reconcile.BROWSE_RECONCILE_BUDGET_S == 3.0

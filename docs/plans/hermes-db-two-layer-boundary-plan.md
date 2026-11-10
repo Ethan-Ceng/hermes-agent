@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`IMPLEMENTING`；阶段：PG基础设施提纯已验证；当前实施任务：Task2完成，下一项Task3；完成：2 / 20；阻塞：无；日期2026-11-11。
+- 整体状态：`IMPLEMENTING`；阶段：SQLite公共基础设施已验证；当前实施任务：Task3完成，下一项Task4；完成：3 / 20；阻塞：无；日期2026-11-11。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 范围与可判定边界
@@ -18,7 +18,7 @@ infra承担已解析数据源选择、连接/池、短事务、关闭、版本�
 
 冻结映射含359个DB provider、141个外部provider，191个DB混合符号路由及134个Native符号路由；3033个文件45160个静态读取点采用索引表编码，29个Native patch候选单列。67个领域边界文件、63个应用capability函数和69个直接I/O站点均有所属Task。另有58个非Python引用文件区分活动消费者与历史证据。读取点数量含保留公共API及静态literal候选，不能冒充3033个必改文件；Task1/16按实际符号影响结算。
 
-默认DB Python<=359、根11；目标路径并集含必要包初始化的当前投影350。投影不是已实现净减，迁出到应用的源码仍计全项目生产文件，不能以改名/迁出数字宣称算法减少。新增文件/health或预算无法闭合时先修订设计与映射，不损失正常覆盖或堆大文件。
+默认DB Python<=359、根11；目标路径并集含必要包初始化的当前投影348。投影不是已实现净减，迁出到应用的源码仍计全项目生产文件，不能以改名/迁出数字宣称算法减少。新增文件/health或预算无法闭合时先修订设计与映射，不损失正常覆盖或堆大文件。
 
 ### 必须保持
 
@@ -128,6 +128,7 @@ function Check-Storage {
 | 2026-11-10 | PLAN_READY | 无；下一项Task1 | 用户要求准备infra两层实施方案，全部20项pending；生产实现未开始 |
 | 2026-11-11 | IMPLEMENTING | Task1完成；下一项Task2 | fresh双主机PM、基准Native/PG及结构/静态门禁通过，1/20 |
 | 2026-11-11 | IMPLEMENTING | Task2完成；下一项Task3 | PG infra/Schema token/消费者及最新双主机合同、真实PG和静态通过，2/20 |
+| 2026-11-11 | IMPLEMENTING | Task3完成；下一项Task4 | SQLite机制/应用策略、纯载荷恢复、双主机合同及最新全部静态通过，3/20 |
 
 ## 任务依赖总表
 
@@ -135,7 +136,7 @@ function Check-Storage {
 | --- | --- | --- | --- |
 | 1 | 冻结隔离源码、合同和完整调用点 | 无 | completed |
 | 2 | 提纯PostgreSQL连接池与事务基础设施 | 1 | completed |
-| 3 | 提取SQLite公共连接与WAL机制 | 2 | pending |
+| 3 | 提取SQLite公共连接与WAL机制 | 2 | completed |
 | 4 | 分离SessionDB连接状态、池与关闭语义 | 3 | pending |
 | 5 | 拆开数据源选择和业务资源获取 | 2,3,4 | pending |
 | 6 | 分离PG迁移执行与业务Schema就绪判断 | 5 | pending |
@@ -278,7 +279,7 @@ PG驱动/池/事务独立于业务表、Store和应用模块。
 
 ## Task 3：提取SQLite公共连接与WAL机制
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -323,11 +324,29 @@ SQLite公共连接、锁安全和WAL机制成为纯技术能力。
 
 ### 执行结果
 
-未实施；planning不计完成。
+2026-11-11：Task2实际恢复commit为124302809fe656ee33c3cfedecef7de8ed61cc0e。读取并校验Task3的sources-native分区hash、逐符号路由与当前SQLite实现。开始实现Task3生产/测试，完成前保持in_progress。
+
+发现既定Task3路径将连接/事务/DDL执行3个模块及lockguard/WAL/runtime/safe_read共7个包外技术模块迁入hermes_db，使中间状态359→366；最终全计划投影348。此前发出中间提交范围澄清。续行要求允许推进中的临时状态，现按既有依赖与最终路径预算继续；逐Task准确记录实际数，最终DB<=359/root11仍为阻断门禁，不把迁入/迁出当代码净减少。
+
+已核对的实际合同：WAL读取config与非阻塞_CONFIG_LOCK协调、安装类型repair hint属于应用；显式配置必须传入技术机制，保留锁忙时沿用已观测mode、WAL-reset门禁和never-live-downgrade。open_db当前11个initialize读取点需随新接口同步；Profile解析归open_profile_sqlite，业务callback仅显式initialize_profile_sqlite/infra Schema执行器执行，但真正普通获取无DDL要在Task7/8/15完整生命周期闭合；不得只删初始化能力。所有失败/未验证均不计完成。
+
+
+补充实际影响：0d原基准独立导出、使用本轮新Windows解释器运行原TestDetectCrossVmFs，完整选定类exit1（16 passed/3 failed），与当前同3个POSIX路径断言一致。该类检查Linux /proc/self/mountinfo路径匹配，生产调用也仅Linux启用；按tests/AGENTS主机规则加platforms(linux)，19个用例全部保留在Linux执行，不用假OS或改算法获得通过。该新增Windows平台skip与原Windows八项基准分别记录。
+
+Discord两个原私有SQLite helper跨界已移除，真实消费者通过原已公开plugins.plugin_storage模块的事务/WAL能力；public helper行为测试已加，未扩展私有infra白名单。插件baseline只移除两个精确旧键，847→845，未自动重刷其他权限。
 
 ### 验证证据
 
-未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
+实际展开命令、父/子解释器、cwd/HOME/RUNTIME、source_parent=124302809f、每批dirty diff hash、退出码与失败/整改见[Task3完整记录](../designs/hermes-db-two-layer-task3.json)。原始日志只在ignored .build；独立0d基准导出archive SHA256与原WAL SHA256已记录，未使用旧环境结果充当本轮验收。
+
+- 最终规定Native三文件+公开插件helper测试，Windows/Linux各exit0，6 passed/0 failed/0 skipped。
+- 13文件直接消费者完整组：Windows exit0，168 passed/0 failed/24 skips；Linux exit0，189 passed/0 failed/3 skips。Windows含19个Linux mountinfo真实marker；原基准同3失败的exit1保留。Linux的2 macOS同步floor和1 Windows fcntl marker具名记录。
+- 额外4文件真实OFD/WAL代次/退出恢复：Linux exit0，23 passed/0 failed/7 skips（6 macOS、1当前setconfig能力使退化场景不适用）；Windows exit0，5 passed/0 failed/25平台/能力skips。正常业务断言保留，未退役/删除测试。
+- canonical连接、冷导入配置锁、旧daemon缓存模块skew三文件两端各exit0，26 passed/0 failed。
+- 通过PM新建无extras的Windows纯SQLite载荷，构建exit0；-I证实SQLAlchemy/psycopg/Alembic/mautrix/asyncpg均不存在。以该解释器为父子执行统一runner的SQLite独立性合同，真实写入、不同PID恢复及覆盖open起点的SQL trace零DDL，exit0/1 passed。早期误标pure但实际使用PG开发解释器的那条命令不计纯载荷证据。
+- Check-Storage最新完整exit0：scripts/check16 checks ok、health0 blocking/0 advisory；DB边界10141 imports/0 violations；插件module_to_core845/core_to_module26；生成契约及git diff --cached --check通过。未改TS/wire，未以Python结果声称前端构建。
+- 独立操作审计exit0：65固定资源hash、31编号revision/29表、根11；runtime/safe_read/lockguard及原事务/DDL帮助函数AST保持，WAL纯机制函数等价；实际旧Python import清零（测试中模拟旧缓存模块有明确理由），infra无应用/领域表依赖。当前DB366，全项目生产Python3435→3438（+3），不宣称迁入/迁出减少算法。最终<=359仍待Task16及最终冻结阻断检查。
+- 当前生产Python hash：a3777659260383a552dbb3a841c8973ca8469363619f0db744fca57b1fc58beb；计算方式及源码文件口径见审计。Task4以后及最终独立载荷/SDK/完整PG/审查未验；本Task紧随本次完成记录创建本地commit，实际hash写入Task4恢复点。
 
 ## Task 4：分离SessionDB连接状态、池与关闭语义
 

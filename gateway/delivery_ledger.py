@@ -11,6 +11,8 @@ best-effort: ledger failures must never block a send; callers wrap every call in
 """
 
 from __future__ import annotations
+
+from hermes_cli.db_sqlite_policy import initialize_profile_sqlite
 from gateway.delivery_rules import MAX_ATTEMPTS, STALE_AFTER_SECONDS, _RETENTION_SECONDS, _MAX_ROWS, RECOVERED_MARKER, RECONNECTED_MARKER, FLOOD_MARKER, _RUNTIME_RETRYABLE_ERRORS, _RETRY_BACKOFF_SECONDS, FLOOD_ERROR_PREFIX, FLOOD_RETRY_DEFAULT_SECONDS, FLOOD_RETRY_CAP_SECONDS, FLOOD_RETRY_SLACK_SECONDS, _RAW_FLOOD_RE, _raw_flood_wait, is_reconnect_only, is_flood_error, flood_wait_seconds, flood_retry_delay, _failed_stamp, flood_not_before, retry_not_before, _claimed_row
 
 import hashlib
@@ -22,7 +24,7 @@ import threading
 import time
 from typing import Any, Dict, List, Optional
 
-from hermes_cli.sqlite_util import add_column_if_missing
+from hermes_db.infra.backends.sqlite.schema import add_column_if_missing
 from hermes_constants import get_process_hermes_home
 
 logger = logging.getLogger(__name__)
@@ -37,11 +39,11 @@ def _db_path():
 
 
 def _connect() -> sqlite3.Connection:
-    from hermes_cli.sqlite_util import open_db
+    from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
 
     # Shared state.db: SessionDB owns the durable PRAGMA set; this opener keeps the plain-tuple rows
     # and the 10 s busy timeout it always had.
-    return open_db(_db_path(), db_label="state.db (delivery_ledger)", busy_timeout_ms=10_000,
+    return initialize_profile_sqlite(_db_path(), db_label="state.db (delivery_ledger)", busy_timeout_ms=10_000,
                    row_factory=None, initialize=_initialize_schema)
 
 
@@ -69,7 +71,7 @@ def _initialize_schema(conn: sqlite3.Connection) -> None:
 
 
 def _transaction():
-    from hermes_cli.sqlite_util import transaction
+    from hermes_db.infra.backends.sqlite.transactions import transaction
 
     return transaction(_connect())
 

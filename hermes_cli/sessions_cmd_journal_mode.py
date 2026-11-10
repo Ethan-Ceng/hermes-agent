@@ -46,8 +46,8 @@ def cmd_set_journal_mode(args) -> int:
         return 1
     from hermes_state import _default_db_path
     from hermes_state_holders import describe_holder_pid, foreign_state_db_holders
-    from hermes_state_wal import (_path_on_cross_vm_fs, _set_journal_mode_no_wait, is_sqlite_wal_reset_vulnerable,
-                                  resolve_journal_mode)
+    from hermes_db.infra.backends.sqlite.wal import _path_on_cross_vm_fs, _set_journal_mode_no_wait, is_sqlite_wal_reset_vulnerable
+    from hermes_cli.db_sqlite_policy import resolve_journal_mode
 
     target = args.mode
     db_path = Path(getattr(args, "db", None) or _default_db_path())

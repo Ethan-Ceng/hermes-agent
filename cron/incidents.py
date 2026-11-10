@@ -12,6 +12,8 @@ the operator (``alerted_at`` = when the latest one did; the scheduler withholds 
 
 from __future__ import annotations
 
+from hermes_cli.db_sqlite_policy import initialize_profile_sqlite
+
 import hashlib
 import re
 import sqlite3
@@ -66,7 +68,7 @@ def _connect() -> sqlite3.Connection:
     # ``hermes_cli.sqlite_util`` / ``cron.jobs`` cached, so new names must be resolved at call time,
     # not at import time (the guarantee cron/ledger.py used to carry, see e24c8499).
     from cron.jobs import _ensure_cron_dir
-    from hermes_cli.sqlite_util import open_db
+    from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
     from hermes_cli.db_setup import storage_backend
     from hermes_db.errors import StorageConfigurationError
 
@@ -75,11 +77,11 @@ def _connect() -> sqlite3.Connection:
 
     path = _db_path()
     _ensure_cron_dir(path.parent)
-    return open_db(path, db_label="cron/executions.db", synchronous_full=True, initialize=_initialize_schema)
+    return initialize_profile_sqlite(path, db_label="cron/executions.db", synchronous_full=True, initialize=_initialize_schema)
 
 
 def _initialize_schema(conn: sqlite3.Connection) -> None:
-    from hermes_cli.sqlite_util import add_column_if_missing
+    from hermes_db.infra.backends.sqlite.schema import add_column_if_missing
 
     conn.execute(
         """CREATE TABLE IF NOT EXISTS cron_incidents (
@@ -111,7 +113,7 @@ def _initialize_schema(conn: sqlite3.Connection) -> None:
 
 @contextmanager
 def _transaction() -> Iterator[sqlite3.Connection]:
-    from hermes_cli.sqlite_util import transaction
+    from hermes_db.infra.backends.sqlite.transactions import transaction
 
     with _lock, transaction(_connect()) as conn:
         yield conn

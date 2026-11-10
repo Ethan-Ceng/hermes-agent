@@ -3,7 +3,8 @@
 from contextlib import contextmanager
 import time
 from hermes_cli.db_setup import _owning_profile, storage_backend
-from hermes_cli.sqlite_util import open_db, write_txn
+from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
+from hermes_db.infra.backends.sqlite.transactions import write_txn
 from hermes_constants import mkdir_under_hermes_home
 from hermes_db.errors import StorageConfigurationError
 from plugins import plugin_storage_types as contract

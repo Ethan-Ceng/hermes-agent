@@ -960,17 +960,9 @@
       ]
     },
     {
-      "target": "hermes_cli.sqlite_util.open_db",
+      "target": "hermes_cli.db_sqlite_policy.open_profile_sqlite",
       "category": "sqlite-bridge",
-      "reason": "Native adapter selected by the SQLite backend only; original SessionDB registry lifetime and bound method semantics.",
-      "consumers": [
-        "hermes_db/backends/sqlite/plugin_storage.py"
-      ]
-    },
-    {
-      "target": "hermes_cli.sqlite_util.write_txn",
-      "category": "sqlite-bridge",
-      "reason": "Native adapter selected by the SQLite backend only; original SessionDB registry lifetime and bound method semantics.",
+      "reason": "Existing SQLite plugin adapter obtains captured application WAL policy; ordinary technical open has no Profile discovery. Business adapter relocation/lifecycle remains Task15.",
       "consumers": [
         "hermes_db/backends/sqlite/plugin_storage.py"
       ]
@@ -2957,6 +2949,14 @@
       "reason": "Existing lossless display metadata projection for persisted message rows; no connection, Profile or external effect.",
       "consumers": [
         "hermes_db/domains/sessions/postgres/queries/messages.py"
+      ]
+    },
+    {
+      "target": "hermes_state_errors.is_sqlite_lock_error",
+      "category": "technical-error-classification",
+      "reason": "Existing pure SQLITE_BUSY/SQLITE_LOCKED code/string classifier shared with native consumers; no SessionDB, Profile, application state or I/O. Canonical predicate remains one actual definition.",
+      "consumers": [
+        "hermes_db/infra/backends/sqlite/wal.py"
       ]
     }
   ]

@@ -1,4 +1,4 @@
-"""Invariants for the canonical SQLite connect/transaction layer (``hermes_cli/sqlite_util.py``).
+"""Invariants for the canonical SQLite connect/transaction layer (``hermes_db/infra/backends/sqlite/``).
 
 Every small store used to carry its own connect + PRAGMA + ``with conn:`` stack, so the #69567 fd-leak
 fix and the WAL fallback rules had to be re-pasted per module (and at least one copy missed each).
@@ -7,21 +7,24 @@ These tests pin the contract: one opener, one closer, and every store routed thr
 
 from __future__ import annotations
 
+from hermes_cli import db_sqlite_policy as sqlite_policy
+from hermes_db.infra.backends.sqlite import transactions as sqlite_transactions
+
 import sqlite3
 
 import pytest
 
-from hermes_cli import sqlite_util
+from hermes_db.infra.backends.sqlite import connections as sqlite_util
 
 
 def test_transaction_closes_the_connection_even_when_the_body_raises(tmp_path):
     db = tmp_path / "t.db"
-    conn = sqlite_util.open_db(db, db_label="t.db", wal=False)
+    conn = sqlite_policy.open_profile_sqlite(db, db_label="t.db", wal=False)
     conn.execute("CREATE TABLE t (x)")
     conn.commit()
 
     with pytest.raises(RuntimeError):
-        with sqlite_util.transaction(conn) as c:
+        with sqlite_transactions.transaction(conn) as c:
             c.execute("INSERT INTO t VALUES (1)")
             raise RuntimeError("mid-transaction")
 
@@ -32,8 +35,8 @@ def test_transaction_closes_the_connection_even_when_the_body_raises(tmp_path):
         assert check.execute("SELECT count(*) FROM t").fetchone()[0] == 0
 
     # The success path closes too.
-    conn = sqlite_util.open_db(db, db_label="t.db", wal=False)
-    with sqlite_util.transaction(conn) as c:
+    conn = sqlite_policy.open_profile_sqlite(db, db_label="t.db", wal=False)
+    with sqlite_transactions.transaction(conn) as c:
         c.execute("INSERT INTO t VALUES (2)")
     with pytest.raises(sqlite3.ProgrammingError):
         conn.execute("SELECT 1")
@@ -54,7 +57,7 @@ def test_open_db_closes_the_half_open_connection_when_initialize_raises(monkeypa
         raise sqlite3.OperationalError("boom")
 
     with pytest.raises(sqlite3.OperationalError):
-        sqlite_util.open_db(tmp_path / "x.db", db_label="x.db", wal=False, initialize=broken)
+        sqlite_policy.initialize_profile_sqlite(tmp_path / "x.db", db_label="x.db", wal=False, initialize=broken)
     assert len(opened) == 1
     with pytest.raises(sqlite3.ProgrammingError):
         opened[0].execute("SELECT 1")
@@ -117,17 +120,16 @@ def test_plugin_db_wal_goes_through_the_shared_fallback(monkeypatch, tmp_path):
     """A raw ``PRAGMA journal_mode=WAL`` bypasses the network-FS fallback and the WAL-reset-bug gate;
     plugin databases must obey the same rules as every core store."""
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    import hermes_state_wal
     from plugins import plugin_storage
 
     seen = []
-    real = hermes_state_wal.apply_wal_with_fallback
+    real = sqlite_policy.apply_wal_with_fallback
 
     def spy(conn, **kwargs):
         seen.append(kwargs["db_label"])
         return real(conn, **kwargs)
 
-    monkeypatch.setattr(hermes_state_wal, "apply_wal_with_fallback", spy)
+    monkeypatch.setattr(sqlite_policy, "apply_wal_with_fallback", spy)
     conn = plugin_storage.plugin_db("board")
     try:
         assert conn.execute("PRAGMA foreign_keys").fetchone()[0] == 1

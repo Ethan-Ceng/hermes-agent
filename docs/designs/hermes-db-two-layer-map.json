@@ -31,7 +31,7 @@
     {
       "id": 3,
       "title": "提取SQLite公共连接与WAL机制",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         2
       ]
@@ -1187,14 +1187,14 @@
     "entries": [
       {
         "path": "hermes-db-two-layer-map/sources-db.json",
-        "sha256": "eb5d3d9c135114188a588d0c2db3311d09588d4ce2ddee49401b7c336b89508a",
+        "sha256": "fe819d8856424c2f07333d3801676fc617d3f1d76ac5feedd0796b96cf4ca903",
         "items": 359
       }
     ],
     "external_sources": [
       {
         "path": "hermes-db-two-layer-map/sources-native.json",
-        "sha256": "2eab8fb9fa66effb93ee22c1105e14240d6ae8c36629cd874005fd93fc20bfee",
+        "sha256": "8c2998bdf3a159e5f8e0a67f8de1bee4139864f77bf2152bb02f7ef710af6790",
         "items": 141
       }
     ],
@@ -1289,7 +1289,8 @@
   "implementation_evidence": {
     "task1": "docs/designs/hermes-db-two-layer-baseline.json",
     "planning_metrics_note": "Planning metrics/status snapshots are historical baseline; tasks[] contains current execution status.",
-    "task2": "docs/designs/hermes-db-two-layer-task2.json"
+    "task2": "docs/designs/hermes-db-two-layer-task2.json",
+    "task3": "docs/designs/hermes-db-two-layer-task3.json"
   },
   "task1_commit": "a936df0ec1af7e627b6043e363dd9d598693e24f",
   "implementation_adjustments": [
@@ -1297,6 +1298,26 @@
       "task": 2,
       "reason": "Intermediate original plan count 361 exceeds cap 359",
       "resolution": "Merge two small business query helper modules; remove empty original namespace; target projection 348; hard cap unchanged"
+    },
+    {
+      "task": 3,
+      "reason": "Separate actual resolved application WAL policy from technical mechanisms; preserve configuration lock semantics and explicit initializer callbacks",
+      "interfaces": [
+        "infra.connections.open_db: technical open, no initialize parameter",
+        "db_sqlite_policy.open_profile_sqlite: application WAL/PRAGMA policy",
+        "db_sqlite_policy.initialize_profile_sqlite: explicit business Schema lifecycle",
+        "infra.schema.initialize_database: explicit callback execution and failure-close"
+      ]
     }
-  ]
+  ],
+  "task2_commit": "124302809fe656ee33c3cfedecef7de8ed61cc0e",
+  "pending_clarification": {
+    "task": 3,
+    "question": "Does DB Python <=359 also constrain every intermediate Task commit?",
+    "original_task3_intermediate_count": 366,
+    "final_projection": 348,
+    "response": "Proceeding with existing dependency plan under continuation allowing temporary states; <=359/root11 remain final blocking gates. No intermediate count is presented as final acceptance.",
+    "code_changed": false
+  },
+  "task3_intermediate_db_modules": 366
 }

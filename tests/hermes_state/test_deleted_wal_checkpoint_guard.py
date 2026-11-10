@@ -11,6 +11,8 @@ converts the contained split-brain into page corruption in the main DB — exact
 incident's close-time damage.
 """
 
+from hermes_cli import db_sqlite_policy as sqlite_policy
+
 import sys
 from pathlib import Path
 from unittest.mock import ANY, patch
@@ -18,7 +20,7 @@ from unittest.mock import ANY, patch
 import pytest
 
 import hermes_state
-import hermes_state_wal
+from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
 from hermes_state import DeletedWalGenerationError, SessionDB
 
 
@@ -30,7 +32,7 @@ def force_wal(monkeypatch):
         "is_sqlite_wal_reset_vulnerable",
         lambda version_info=None: False,
     )
-    monkeypatch.setattr(hermes_state_wal, "resolve_journal_mode", lambda: "wal")
+    monkeypatch.setattr(sqlite_policy, "resolve_journal_mode", lambda: "wal")
 
 
 def _make_db(path: Path, session_id: str, content: str) -> SessionDB:

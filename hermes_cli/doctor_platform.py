@@ -72,14 +72,8 @@ def _unreadable_reason(db_path: Path) -> str:
 
 
 def _read_journal_mode(db_path: Path) -> tuple[str | None, str | None]:
-    """Return (journal mode, error) from header byte 18 (2=WAL, 1=rollback) without opening the database.
-
-    Opening through SQLite — even read-only — creates -wal/-shm sidecars, which a diagnostic must not do.
-    ``read_header_bytes_preopen`` rather than a bare ``open()``: closing *any* descriptor cancels this
-    process's POSIX advisory locks (see ``hermes_cli.sqlite_safe_read``), and the dashboard console runs
-    ``run_doctor`` in-process with live ``SessionDB`` connections — the helper refuses then (unreadable).
-    """
-    from hermes_cli.sqlite_safe_read import has_live_connection, read_header_bytes_preopen
+    "Return (journal mode, error) from header byte 18 (2=WAL, 1=rollback) without opening the database.\n\n    Opening through SQLite — even read-only — creates -wal/-shm sidecars, which a diagnostic must not do.\n    ``read_header_bytes_preopen`` rather than a bare ``open()``: closing *any* descriptor cancels this\n    process's POSIX advisory locks (see ``hermes_db.infra.backends.sqlite.safe_read``), and the dashboard console runs\n    ``run_doctor`` in-process with live ``SessionDB`` connections — the helper refuses then (unreadable).\n    "
+    from hermes_db.infra.backends.sqlite.safe_read import has_live_connection, read_header_bytes_preopen
     header = read_header_bytes_preopen(db_path, length=20)
     if header is None:
         return None, "database is open in this process" if has_live_connection(db_path) else _unreadable_reason(db_path)
@@ -124,9 +118,8 @@ def _report_database_journal_modes(hermes_home: Path | None = None, version_info
     """List each database's journal mode; warn on WAL under a vulnerable SQLite, and on a configured
     ``database.journal_mode: delete`` that never took effect."""
     from hermes_cli.doctor import HERMES_HOME
-    from hermes_state_wal import (
-        _path_on_cross_vm_fs, _wal_reset_repair_hint, is_sqlite_wal_reset_vulnerable, resolve_journal_mode,
-    )
+    from hermes_db.infra.backends.sqlite.wal import _path_on_cross_vm_fs, is_sqlite_wal_reset_vulnerable
+    from hermes_cli.db_sqlite_policy import _wal_reset_repair_hint, resolve_journal_mode
     vulnerable = is_sqlite_wal_reset_vulnerable(version_info)
     configured = resolve_journal_mode()
     try:
@@ -440,7 +433,7 @@ def _check_python_environment(should_fix: bool, f: Finding) -> None:
     # python-build-standalone can keep a vulnerable SQLite across upgrades).
     with warn_on_error("SQLite version probe failed: {e}", ""):
         import sqlite3
-        from hermes_state_wal import is_sqlite_wal_reset_vulnerable, sqlite_source_id
+        from hermes_db.infra.backends.sqlite.wal import is_sqlite_wal_reset_vulnerable, sqlite_source_id
         src = sqlite_source_id()
         # Warn-only: Hermes already refuses WAL on fresh DBs and runtime repair is best-effort.
         check_bool(not is_sqlite_wal_reset_vulnerable(), f"SQLite {sqlite3.sqlite_version}",

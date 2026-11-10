@@ -1,12 +1,4 @@
-"""A live writer's WAL generation survives lock cancellation and sibling closes.
-
-SQLite guards a WAL generation with per-PROCESS POSIX locks, so any raw ``open()``/``close()`` of
-``state.db`` or ``-shm`` inside the holder (howtocorrupt.html §2.2) silently drops them; the next
-last-connection close anywhere then checkpoints and unlinks ``-wal``/``-shm`` and the holder
-sticky-halts with ``DeletedWalGenerationError`` (#109727, #110042, #110276, Desktop "chat fails
-after update"). ``hermes_state_lockguard`` re-holds the same ranges as OFD locks that a stray
-close cannot cancel. Linux-only: the scenario needs ``/proc``-visible POSIX lock semantics.
-"""
+'A live writer\'s WAL generation survives lock cancellation and sibling closes.\n\nSQLite guards a WAL generation with per-PROCESS POSIX locks, so any raw ``open()``/``close()`` of\n``state.db`` or ``-shm`` inside the holder (howtocorrupt.html §2.2) silently drops them; the next\nlast-connection close anywhere then checkpoints and unlinks ``-wal``/``-shm`` and the holder\nsticky-halts with ``DeletedWalGenerationError`` (#109727, #110042, #110276, Desktop "chat fails\nafter update"). ``hermes_db.infra.backends.sqlite.lockguard`` re-holds the same ranges as OFD locks that a stray\nclose cannot cancel. Linux-only: the scenario needs ``/proc``-visible POSIX lock semantics.\n'
 
 import os
 import sqlite3

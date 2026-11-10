@@ -2,7 +2,7 @@
 
 ## 文档状态
 
-- 状态：`IMPLEMENTING`；2026-11-11用户授权按既有20项计划实施。Task1新鲜基准、Task2 PG基础设施已通过，2/20；后续分层与最终验证/独立审查尚未完成。
+- 状态：`IMPLEMENTING`；2026-11-11用户授权按既有20项计划实施。Task1新鲜基准、Task2 PG基础设施和Task3 SQLite公共机制已通过，3/20；后续分层与最终验证/独立审查尚未完成。
 - 日期：2026-11-10；设计基准：`0d8782ba8adb168a86abb6a8e338591d70d03428`。
 - 隔离目录：D:/AI/hermes-db-packages；当前分支refactor/hermes-db-persistence-scope。正式D:/AI/hermes-agent仍在90a2987e8c，未切换。
 - 依据：[持久层精简设计](hermes-db-persistence-scope.md)、[已完成实施账本](../plans/hermes-db-persistence-scope-plan.md)、[逐项映射及固定锚点](hermes-db-persistence-scope-map.json)、[统一后端设计](unified-database-backends.md)。本设计不改写这些工作的历史验收。

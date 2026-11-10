@@ -16,12 +16,12 @@ import pytest
 
 _SKEW_SCRIPT = """
 import sys, types
-import hermes_cli.sqlite_util as sqlite_util
 import cron.jobs as jobs
 
-# The pre-upgrade sqlite_util only had add_column_if_missing / write_txn.
-for name in ("open_db", "transaction"):
-    delattr(sqlite_util, name)
+# A daemon may still cache the retired internal module, without the later opener/transaction names.
+# New code must import its real current owner, rather than relying on that cached shape.
+legacy = types.ModuleType("hermes_cli.sqlite_util")
+sys.modules["hermes_cli.sqlite_util"] = legacy
 sys.modules.pop("cron.{store}", None)
 
 import cron.{store}

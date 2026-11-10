@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone, UTC
 
 from agent.retry_utils import parse_retry_after_seconds
-from hermes_cli.sqlite_util import write_txn
+from hermes_db.infra.backends.sqlite.transactions import write_txn
 
 from hermes_db.domains.metrics.policy import _isoformat, _utc_now
 from hermes_db.domains.metrics.sending import GZIP_THRESHOLD_BYTES, MAX_ATTEMPTS, MAX_OBS_ADVANCE_SECONDS, MAX_PACKAGES_PER_PASS, MAX_SEND_ATTEMPTS, MetricsTransport, REQUEST_TIMEOUT_SECONDS, _BACKOFF_BASE_SECONDS, _BACKOFF_FACTOR, _CLAIM_LEASE_SECONDS, _FAILURE_BACKOFF_SECONDS, _PERMANENT_STATUSES, _parse_stamp, _post, _retry_after_seconds

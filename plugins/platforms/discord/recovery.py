@@ -73,14 +73,14 @@ class DiscordRecoveryStore(RecoveryOperations):
         if self._backend is not None:
             return self._backend._operation(name, default=default, **fields)
         from . import recovery_sqlite
-        from hermes_cli.sqlite_util import write_txn
+        from plugins.plugin_storage import plugin_sqlite_transaction as write_txn
         def invoke(conn):
             with write_txn(conn):
                 return getattr(recovery_sqlite, name)(conn, **fields)
         return self.call(invoke, default)
 
     def _initialize(self, conn: sqlite3.Connection) -> None:
-        from hermes_state_wal import apply_wal_with_fallback
+        from plugins.plugin_storage import configure_plugin_sqlite as apply_wal_with_fallback
         apply_wal_with_fallback(conn, db_label="discord_recovery.db")
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS discord_messages (

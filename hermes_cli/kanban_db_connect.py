@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from dataclasses import field
 from hermes_cli.kanban_sqlite_schema import SCHEMA_SQL
 from agent.deadline import poll_until
-from hermes_cli.sqlite_util import add_column_if_missing as _add_column_if_missing
+from hermes_db.infra.backends.sqlite.schema import add_column_if_missing as _add_column_if_missing
 from pathlib import Path
 from typing import Any
 from typing import Optional
@@ -61,7 +61,7 @@ def _sqlite_connect(path: Path) -> sqlite3.Connection:
     """Open a Kanban SQLite connection via ``connect_tracked``: while registered,
     byte-level probes of the file are refused because an ``open()``/``close()``
     would cancel this process's POSIX advisory locks (see ``sqlite_safe_read``)."""
-    from hermes_cli.sqlite_safe_read import connect_tracked
+    from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
 
     busy_timeout_ms = _resolve_busy_timeout_ms()
     conn = connect_tracked(
@@ -277,7 +277,7 @@ def _validate_sqlite_header(path: Path) -> None:
     # Byte-level probe: must run BEFORE any connection to this path exists
     # (read_header_bytes_preopen refuses once one is live, because the close()
     # would cancel this process's POSIX locks).
-    from hermes_cli.sqlite_safe_read import read_header_bytes_preopen
+    from hermes_db.infra.backends.sqlite.safe_read import read_header_bytes_preopen
 
     head = read_header_bytes_preopen(path, length=64)
     if head is None or head.startswith(_SQLITE_HEADER):
@@ -361,7 +361,7 @@ def _backup_corrupt_db(path: Path) -> Optional[Path]:
     # must only run once the board is out of service. Another SessionDB/kanban
     # connection in this process would still be at risk — so REFUSE rather than
     # warn-and-proceed: losing a forensic copy beats corrupting the live DB.
-    from hermes_cli.sqlite_safe_read import has_live_connection
+    from hermes_db.infra.backends.sqlite.safe_read import has_live_connection
 
     if has_live_connection(resolved):
         _kb._log.error(
@@ -648,7 +648,7 @@ def _open_configured(path: Path, under_lock) -> tuple[sqlite3.Connection, Any]:
         with _INIT_LOCK:
             # WAL doesn't work on network filesystems; the helper falls back to
             # DELETE with one ERROR log (see hermes_state_wal._WAL_INCOMPAT_MARKERS).
-            from hermes_state_wal import apply_wal_with_fallback
+            from hermes_cli.db_sqlite_policy import apply_wal_with_fallback
             apply_wal_with_fallback(conn, db_label=f"kanban.db ({path.name})")
             # FULL (not NORMAL): fsync before each checkpoint to narrow the
             # crash window that can leave a b-tree page header torn.
@@ -1195,7 +1195,7 @@ def _check_file_length_invariant(conn: sqlite3.Connection) -> None:
     file, silently dropping concurrent writers' (and a running VACUUM's) locks
     and letting other processes write into a database a writer still believed
     it owned (sqlite.org/howtocorrupt.html §2.2)."""
-    from hermes_cli.sqlite_safe_read import file_length_matches_header
+    from hermes_db.infra.backends.sqlite.safe_read import file_length_matches_header
 
     # In WAL mode a just-committed page can still live in -wal, so the main
     # file legitimately lags its page count; only enforce under a rollback

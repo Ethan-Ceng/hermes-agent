@@ -250,11 +250,12 @@
       "hermes_db/infra/backends/sqlite/__init__.py"
     ],
     "task": 3,
-    "status": "pending",
+    "status": "completed",
     "reason": "Driver/pool/transaction implementation; schema translation token is injected, no business table import.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed"
   },
   {
     "source": "hermes_db/backends/sqlite/acquire.py",

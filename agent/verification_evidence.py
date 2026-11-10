@@ -3,6 +3,8 @@ a code workspace. Deliberately passive — it never runs a suite, never blocks
 completion, and never upgrades targeted checks into "repo green"."""
 
 from __future__ import annotations
+
+from hermes_cli.db_sqlite_policy import initialize_profile_sqlite
 from hermes_db.domains.verification.values import VerificationEvidence, _MAX_EVENTS_PER_SESSION_ROOT, _MAX_EVIDENCE_AGE_DAYS, _MAX_TOTAL_UNREFERENCED_EVENTS, _utc_now
 
 import json
@@ -119,13 +121,13 @@ def _ledger_enabled() -> bool:
 
 
 def _connect() -> sqlite3.Connection:
-    from hermes_cli.sqlite_util import open_db
+    from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
 
-    return open_db(_db_path(), db_label="verification_evidence.db", initialize=_ensure_schema)
+    return initialize_profile_sqlite(_db_path(), db_label="verification_evidence.db", initialize=_ensure_schema)
 
 
 def _transaction():
-    from hermes_cli.sqlite_util import transaction
+    from hermes_db.infra.backends.sqlite.transactions import transaction
 
     return transaction(_connect())
 

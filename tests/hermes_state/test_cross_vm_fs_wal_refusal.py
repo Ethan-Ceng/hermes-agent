@@ -5,13 +5,16 @@ WAL over a VM-boundary filesystem (Docker Desktop / OrbStack / Podman host bind 
 while never live-downgrading an on-disk WAL database and never flagging an ordinary filesystem.
 """
 
+from hermes_cli import db_sqlite_policy as sqlite_policy
+
 import logging
 import sqlite3
 
 import pytest
 
-import hermes_state_wal
-from hermes_state_wal import WalUnsupportedError, _detect_cross_vm_fs, apply_wal_with_fallback
+from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
+from hermes_db.infra.backends.sqlite.wal import WalUnsupportedError, _detect_cross_vm_fs
+from hermes_cli.db_sqlite_policy import apply_wal_with_fallback
 
 
 def _mountinfo(tmp_path, lines):
@@ -28,6 +31,7 @@ NESTED_EXT4 = "614 612 8:2 / /data/native rw,relatime - ext4 /dev/sdb1 rw"
 SPACE_VIRTIOFS = "615 25 0:55 / /mnt/my\\040share rw,relatime - virtiofs share rw"
 
 
+@pytest.mark.platforms("linux")
 class TestDetectCrossVmFs:
     @pytest.mark.parametrize("path,expected", [
         ("/data/agent", True),          # fuse.virtiofs bind mount
@@ -59,7 +63,7 @@ class TestWalRefusalOnCrossVmFs:
         # Pin the WAL-reset vulnerability gate OFF: on builds bundling a vulnerable SQLite (3.50.4 on CI)
         # apply_wal_with_fallback returns via _apply_delete_for_wal_reset_bug before the cross-VM check.
         monkeypatch.setattr(hermes_state_wal, "is_sqlite_wal_reset_vulnerable", lambda *a, **k: False)
-        monkeypatch.setattr(hermes_state_wal, "resolve_journal_mode", lambda: "wal")
+        monkeypatch.setattr(sqlite_policy, "resolve_journal_mode", lambda: "wal")
         hermes_state_wal._cross_vm_warned_paths.clear()
         hermes_state_wal._cross_vm_existing_wal_warned_paths.clear()
 

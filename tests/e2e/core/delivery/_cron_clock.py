@@ -36,6 +36,8 @@ timing, decides every fire.
 
 from __future__ import annotations
 
+from hermes_cli import db_sqlite_policy as sqlite_policy
+
 import contextvars
 import datetime as _dt
 import json
@@ -269,9 +271,9 @@ def install(clock: VirtualClock, control: Control, setattr_fn=setattr) -> None:
     # Durability is not under test (SIGKILL keeps the page cache); per-write fsync of
     # jobs.json/markers dominates wall time at virtual cadence. Atomic renames stay real.
     setattr_fn(os, "fsync", lambda _fd: None)
-    from hermes_cli import sqlite_util
+    from hermes_db.infra.backends.sqlite import connections as sqlite_util
 
-    real_open_db = sqlite_util.open_db
+    real_open_db = sqlite_policy.open_profile_sqlite
 
     def open_db_no_full_sync(*args, **kwargs):  # same connection, WAL, schema; no per-commit fsync
         kwargs["synchronous_full"] = False

@@ -237,7 +237,7 @@ class HostedRoomAttachmentStore(AttachmentContent):
     def _connect(self) -> sqlite3.Connection:
         from hermes_db.domains.rooms.api import assert_sqlite_location
         assert_sqlite_location(self.db_path)
-        from hermes_state_wal import apply_wal_with_fallback
+        from hermes_cli.db_sqlite_policy import apply_wal_with_fallback
 
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         conn = sqlite3.connect(self.db_path, timeout=10)

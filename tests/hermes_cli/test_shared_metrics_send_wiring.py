@@ -304,7 +304,7 @@ class TestConsentWindows:
         from hermes_cli.observability.shared_metrics_sender import (
             reconcile_send_consent,
         )
-        from hermes_cli.sqlite_util import write_txn
+        from hermes_db.infra.backends.sqlite.transactions import write_txn
 
         # Lay the store out exactly as production does, under a redirected
         # HERMES_HOME: the boot reconciler probes the default path (without

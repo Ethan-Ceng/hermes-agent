@@ -9,6 +9,8 @@ Existing on-disk WAL databases are left alone (no live downgrade).
 
 from __future__ import annotations
 
+from hermes_cli import db_sqlite_policy as sqlite_policy
+
 import sqlite3
 import subprocess
 import sys
@@ -16,8 +18,9 @@ import time
 
 import pytest
 
-import hermes_state_wal
-from hermes_state_wal import apply_wal_with_fallback, is_sqlite_wal_reset_vulnerable
+from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
+from hermes_cli.db_sqlite_policy import apply_wal_with_fallback
+from hermes_db.infra.backends.sqlite.wal import is_sqlite_wal_reset_vulnerable
 
 @pytest.fixture(autouse=True)
 def _reset_wal_reset_bug_warnings():
@@ -287,7 +290,7 @@ class TestNoDowngradeUnderConcurrentOpeners:
             hermes_state_wal, "is_sqlite_wal_reset_vulnerable",
             lambda version_info=None: False,
         )
-        monkeypatch.setattr(hermes_state_wal, "resolve_journal_mode", lambda: "delete")
+        monkeypatch.setattr(sqlite_policy, "resolve_journal_mode", lambda: "delete")
         db = tmp_path / "cfg_delete.db"
         seed = sqlite3.connect(str(db))
         try:

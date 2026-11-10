@@ -6,30 +6,7 @@ import json
 import subprocess
 
 
-_SQLITE_PROBE = r"""
-import json
-import sqlite3
-
-from hermes_cli.sqlite_runtime import is_sqlite_wal_reset_vulnerable
-
-db = sqlite3.connect(":memory:")
-try:
-    db.execute("CREATE VIRTUAL TABLE docs USING fts5(content, tokenize='trigram')")
-    db.execute("INSERT INTO docs VALUES ('hermes')")
-    matches = db.execute(
-        "SELECT count(*) FROM docs WHERE docs MATCH 'erm'"
-    ).fetchone()[0]
-finally:
-    db.close()
-
-print(json.dumps({
-    "sqlite_version": sqlite3.sqlite_version,
-    "wal_reset_vulnerable": is_sqlite_wal_reset_vulnerable(
-        sqlite3.sqlite_version_info
-    ),
-    "trigram_matches": matches,
-}))
-"""
+_SQLITE_PROBE = '\nimport json\nimport sqlite3\n\nfrom hermes_db.infra.backends.sqlite.runtime import is_sqlite_wal_reset_vulnerable\n\ndb = sqlite3.connect(":memory:")\ntry:\n    db.execute("CREATE VIRTUAL TABLE docs USING fts5(content, tokenize=\'trigram\')")\n    db.execute("INSERT INTO docs VALUES (\'hermes\')")\n    matches = db.execute(\n        "SELECT count(*) FROM docs WHERE docs MATCH \'erm\'"\n    ).fetchone()[0]\nfinally:\n    db.close()\n\nprint(json.dumps({\n    "sqlite_version": sqlite3.sqlite_version,\n    "wal_reset_vulnerable": is_sqlite_wal_reset_vulnerable(\n        sqlite3.sqlite_version_info\n    ),\n    "trigram_matches": matches,\n}))\n'
 
 
 def test_image_links_fixed_sqlite_with_fts5_trigram(built_image: str) -> None:

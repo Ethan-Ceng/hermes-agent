@@ -7,6 +7,8 @@ fail closed on both the open and write paths instead of creating the second
 generation.
 """
 
+from hermes_cli import db_sqlite_policy as sqlite_policy
+
 import errno
 import gc
 import os
@@ -18,7 +20,7 @@ import pytest
 
 import hermes_state_dbfile
 import hermes_state_readpool
-import hermes_state_wal
+from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
 from hermes_state import (
     DeletedWalGenerationError, SessionDB, StateDbReplacedError, _close_time_checkpoint_configurable,
     classify_persistence_error, refuse_deleted_wal_generation,
@@ -65,7 +67,7 @@ def test_clean_open_and_second_open_still_work(tmp_path, force_wal):
 
 
 def test_delete_journal_two_writers_still_work(tmp_path, monkeypatch):
-    monkeypatch.setattr(hermes_state_wal, "resolve_journal_mode", lambda: "delete")
+    monkeypatch.setattr(sqlite_policy, "resolve_journal_mode", lambda: "delete")
     monkeypatch.setattr(
         hermes_state_wal, "is_sqlite_wal_reset_vulnerable", lambda version_info=None: False
     )

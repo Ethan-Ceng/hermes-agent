@@ -3,6 +3,8 @@ state.db, even where SQLite's own lock probe is blind (``journal_mode=DELETE`` r
 
 from __future__ import annotations
 
+from hermes_cli import db_sqlite_policy as sqlite_policy
+
 import select
 import subprocess
 import sys
@@ -26,8 +28,8 @@ conn.close()
 
 @pytest.fixture
 def delete_mode_db(tmp_path, monkeypatch) -> Path:
-    import hermes_state_wal
-    monkeypatch.setattr(hermes_state_wal, "resolve_journal_mode", lambda: "delete")
+    from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
+    monkeypatch.setattr(sqlite_policy, "resolve_journal_mode", lambda: "delete")
     db = tmp_path / "state.db"
     handle = SessionDB(db_path=db)
     sid = handle.create_session(session_id=str(uuid.uuid4()), source="cli")

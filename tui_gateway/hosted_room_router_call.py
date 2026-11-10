@@ -111,7 +111,8 @@ class RouterCalls(RouterCallLifecycle):
     def _transaction(self):
         from hermes_db.domains.rooms.api import assert_sqlite_location
         assert_sqlite_location(self._db_path)
-        from hermes_cli.sqlite_util import open_db, transaction
+        from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
+        from hermes_db.infra.backends.sqlite.transactions import transaction
 
         conn = open_db(self._db_path, db_label="shared-state.db (room router claims)", busy_timeout_ms=10_000)
         conn.execute(_CLAIMS_DDL)

@@ -80,6 +80,11 @@ helper needs review; approving one symbol does not approve the rest of its modul
 Native facades cannot be imported by lower PG workflows. Historical migrations
 remain frozen and do not receive runtime dependency permissions.
 
+SQLite technical connections, transactions, WAL, lock guards and runtime inspection live under
+`hermes_db/infra/backends/sqlite/`. They accept resolved options and never initialize business
+Schema during ordinary `open_db`. `hermes_cli/db_sqlite_policy.py` captures Profile WAL settings
+and composes explicit `initialize_profile_sqlite` calls with the existing business algorithms.
+
 SQLite retains its native implementations. Domain adapters select PG before a
 SQLite file-existence check or connection. There is no general SQLite SQL
 translator or PG object pretending to be a SQLite connection. A migrated

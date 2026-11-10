@@ -14,7 +14,7 @@ from unittest import mock
 import pytest
 
 import hermes_state
-import hermes_state_wal
+from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
 import hermes_state_common
 import hermes_state_schema
 from agent.session_activity import ActivityProvenance, build_activity_snapshot
@@ -187,7 +187,7 @@ class TestConnectionLifecycle:
         self, tmp_path, monkeypatch
     ):
         """A failed schema init must close the connection opened before it."""
-        from hermes_cli.sqlite_safe_read import has_live_connection
+        from hermes_db.infra.backends.sqlite.safe_read import has_live_connection
 
         db_path = tmp_path / "state.db"
         opened = []
@@ -220,7 +220,7 @@ class TestConnectionLifecycle:
         self, tmp_path, monkeypatch
     ):
         """A post-open read setup failure must close its unregistered conn."""
-        from hermes_cli import sqlite_safe_read
+        from hermes_db.infra.backends.sqlite import safe_read as sqlite_safe_read
 
         db_path = tmp_path / "state.db"
         db = SessionDB(db_path=db_path)
@@ -324,7 +324,7 @@ class TestConnectionLifecycle:
         forensic backup."""
         import sqlite3
 
-        from hermes_cli.sqlite_safe_read import has_live_connection
+        from hermes_db.infra.backends.sqlite.safe_read import has_live_connection
 
         db_path = tmp_path / "state.db"
         writable = SessionDB(db_path=db_path)
@@ -373,7 +373,7 @@ class TestConnectionLifecycle:
         """
         import sqlite3
 
-        from hermes_cli.sqlite_safe_read import has_live_connection
+        from hermes_db.infra.backends.sqlite.safe_read import has_live_connection
 
         db_path = tmp_path / "state.db"
         writable = SessionDB(db_path=db_path)
@@ -1912,7 +1912,7 @@ class TestSanitizeTitle:
 class TestSchemaInit:
     def test_wal_mode(self, db):
         """Prefer WAL on fixed SQLite; DELETE on WAL-reset-vulnerable builds (#69784)."""
-        from hermes_state_wal import is_sqlite_wal_reset_vulnerable
+        from hermes_db.infra.backends.sqlite.wal import is_sqlite_wal_reset_vulnerable
 
         cursor = db._conn.execute("PRAGMA journal_mode")
         mode = cursor.fetchone()[0].lower()
@@ -4850,7 +4850,7 @@ class TestApplyWalProbe:
     def test_sets_wal_on_fresh_connection(self, tmp_path):
         """Probe sees 'delete', then set-pragma runs and returns 'wal'."""
         import sqlite3
-        from hermes_state_wal import apply_wal_with_fallback
+        from hermes_cli.db_sqlite_policy import apply_wal_with_fallback
 
         class _TracingConn(sqlite3.Connection):
             def __init__(self, *a, **kw):
@@ -4883,7 +4883,7 @@ class TestApplyWalProbe:
         import sys
         import threading
         import sqlite3
-        from hermes_state_wal import apply_wal_with_fallback
+        from hermes_cli.db_sqlite_policy import apply_wal_with_fallback
 
         db_path = tmp_path / "concurrent.db"
         errors = []

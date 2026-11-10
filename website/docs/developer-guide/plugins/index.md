@@ -1207,6 +1207,13 @@ translation, automatic SQLite import, fallback, or per-plugin backend override.
 Existing JSON configuration and content files remain files through
 `plugin_data_dir()`. Secrets stay in the standard `.env` / secret-scope path.
 
+Legacy SQLite plugins that already own a connection can use
+`plugin_sqlite_transaction(connection)` from `plugins.plugin_storage` for an explicit
+commit/rollback operation that keeps the connection open.
+`configure_plugin_sqlite(connection, db_label="my-plugin")` applies the captured
+Profile's existing WAL safety policy without creating business tables. These helpers
+serve the existing Discord recovery ledger; portable data continues to use `plugin_store`.
+
 ### Bundle skills
 
 Plugins can ship skill files that the agent loads via `skill_view("plugin:skill")`. Register them in your `__init__.py`:

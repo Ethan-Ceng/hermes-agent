@@ -5,6 +5,8 @@ generation through the path from another process, and driving a long-lived "gate
 serves stdin commands so a test can stop it at the exact split-brain moment.
 """
 
+from hermes_cli import db_sqlite_policy as sqlite_policy
+
 import contextlib
 import json
 import os
@@ -19,7 +21,7 @@ from pathlib import Path
 import pytest
 
 import hermes_state
-import hermes_state_wal
+from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
 from hermes_state import SessionDB
 
 
@@ -28,7 +30,7 @@ def pin_wal(monkeypatch) -> None:
     monkeypatch.setattr(
         hermes_state_wal, "is_sqlite_wal_reset_vulnerable", lambda version_info=None: False
     )
-    monkeypatch.setattr(hermes_state_wal, "resolve_journal_mode", lambda: "wal")
+    monkeypatch.setattr(sqlite_policy, "resolve_journal_mode", lambda: "wal")
 
 
 def make_db(path: Path, session_id: str, content: str) -> SessionDB:
@@ -114,53 +116,7 @@ def message_count(db_path: Path) -> int:
 #
 # Events: ``ready`` | ``skip`` (WAL not active) | ``write`` {refused, artifact} | ``closed`` {error}.
 _GATEWAY_CHILD = textwrap.dedent(
-    """
-    import gc, json, os, sys
-    from pathlib import Path
-    repo, hermes_home, db_path = sys.argv[1], sys.argv[2], sys.argv[3]
-    sys.path.insert(0, repo)
-    os.environ["HERMES_HOME"] = hermes_home
-    import hermes_state_wal
-    if hermes_state_wal.is_sqlite_wal_reset_vulnerable():
-        hermes_state_wal.is_sqlite_wal_reset_vulnerable = lambda version_info=None: False
-    hermes_state_wal.resolve_journal_mode = lambda: "wal"
-    from hermes_state import DeletedWalGenerationError, SessionDB
-
-    def emit(**e):
-        sys.stdout.write(json.dumps(e) + "\\n"); sys.stdout.flush()
-
-    db = SessionDB(db_path=Path(db_path))
-    if not db._wal_active:
-        emit(event="skip"); sys.exit(3)
-    for sid in ("gw-0", "gw-1", "gw-2", "gw-3"):
-        db.create_session(sid, "cli")
-        db.append_message(sid, role="user", content="seed")
-    db._try_wal_checkpoint()  # history checkpointed into state.db, like a `sessions optimize` pass
-    db._conn.execute("PRAGMA wal_autocheckpoint=0")
-    for sid in ("gw-0", "gw-1", "gw-2", "gw-3"):
-        db.append_message(sid, role="assistant", content="uncheckpointed " + "x" * 3000)
-    emit(event="ready")
-
-    for line in sys.stdin:
-        cmd = line.strip()
-        if cmd == "write":
-            try:
-                db.append_message("gw-0", role="user", content="post-loss turn")
-                emit(event="write", refused=False, artifact=None)
-            except DeletedWalGenerationError:
-                capture = db._retired_generation_capture
-                emit(event="write", refused=True, artifact=None if capture is None else str(capture))
-        elif cmd == "close":
-            try:
-                db.close()
-                emit(event="closed", error=None)
-            except Exception as exc:
-                emit(event="closed", error=repr(exc))
-            del db
-            gc.collect()
-        elif cmd == "quit":
-            break
-    """
+    '\n\nimport gc, json, os, sys\nfrom pathlib import Path\nrepo, hermes_home, db_path = sys.argv[1], sys.argv[2], sys.argv[3]\nsys.path.insert(0, repo)\nos.environ["HERMES_HOME"] = hermes_home\nfrom hermes_db.infra.backends.sqlite import wal as hermes_state_wal\nfrom hermes_cli import db_sqlite_policy as sqlite_policy\nif hermes_state_wal.is_sqlite_wal_reset_vulnerable():\n    hermes_state_wal.is_sqlite_wal_reset_vulnerable = lambda version_info=None: False\nsqlite_policy.resolve_journal_mode = lambda: "wal"\nfrom hermes_state import DeletedWalGenerationError, SessionDB\n\ndef emit(**e):\n    sys.stdout.write(json.dumps(e) + "\\n"); sys.stdout.flush()\n\ndb = SessionDB(db_path=Path(db_path))\nif not db._wal_active:\n    emit(event="skip"); sys.exit(3)\nfor sid in ("gw-0", "gw-1", "gw-2", "gw-3"):\n    db.create_session(sid, "cli")\n    db.append_message(sid, role="user", content="seed")\ndb._try_wal_checkpoint()  # history checkpointed into state.db, like a `sessions optimize` pass\ndb._conn.execute("PRAGMA wal_autocheckpoint=0")\nfor sid in ("gw-0", "gw-1", "gw-2", "gw-3"):\n    db.append_message(sid, role="assistant", content="uncheckpointed " + "x" * 3000)\nemit(event="ready")\n\nfor line in sys.stdin:\n    cmd = line.strip()\n    if cmd == "write":\n        try:\n            db.append_message("gw-0", role="user", content="post-loss turn")\n            emit(event="write", refused=False, artifact=None)\n        except DeletedWalGenerationError:\n            capture = db._retired_generation_capture\n            emit(event="write", refused=True, artifact=None if capture is None else str(capture))\n    elif cmd == "close":\n        try:\n            db.close()\n            emit(event="closed", error=None)\n        except Exception as exc:\n            emit(event="closed", error=repr(exc))\n        del db\n        gc.collect()\n    elif cmd == "quit":\n        break\n'
 )
 
 

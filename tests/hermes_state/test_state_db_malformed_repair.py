@@ -12,6 +12,8 @@ journal_mode in apply_wal_with_fallback), before _init_schema runs — so it
 cannot be handled at the FTS-rebuild layer. These tests verify the
 sqlite_master surgery path recovers the canonical data and self-heals on open.
 """
+
+from hermes_cli import db_sqlite_policy as sqlite_policy
 import contextlib
 import json
 import sqlite3
@@ -24,7 +26,7 @@ import pytest
 
 import hermes_state
 import hermes_state_repair
-import hermes_state_wal
+from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
 from hermes_state import SessionDB, is_malformed_db_error
 from hermes_state_repair import repair_state_db_schema
 
@@ -800,7 +802,7 @@ def test_repair_restore_failure_is_nonfatal(
         raise sqlite3.OperationalError("database is locked")
 
     with (
-        patch.object(hermes_state_wal, "apply_wal_with_fallback", _refused),
+        patch.object(sqlite_policy, "apply_wal_with_fallback", _refused),
         caplog.at_level(logging.WARNING, logger="hermes_state"),
     ):
         report = repair_state_db_schema(db_path)

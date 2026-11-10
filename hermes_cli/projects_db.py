@@ -6,6 +6,8 @@ opening an old DB is always safe.
 
 from __future__ import annotations
 
+from hermes_cli.db_sqlite_policy import initialize_profile_sqlite
+
 import contextlib
 import os
 import re
@@ -16,7 +18,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, List, Optional
 
-from hermes_cli.sqlite_util import add_column_if_missing as _add_column_if_missing, open_db, write_txn
+from hermes_db.infra.backends.sqlite.schema import add_column_if_missing as _add_column_if_missing
+from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
+from hermes_db.infra.backends.sqlite.transactions import write_txn
 from hermes_constants import get_hermes_home
 from hermes_db.domains.projects.api import domain_operation
 from hermes_db.domains.projects.rules import (
@@ -112,7 +116,7 @@ def connect(db_path: Optional[Path] = None, *, profile_home: Optional[Path] = No
                 _add_column_if_missing(conn, "projects", col, f"{col} TEXT")
         _INITIALIZED_PATHS.add(resolved)
 
-    return open_db(path, db_label="projects.db", foreign_keys=True, initialize=_initialize)
+    return initialize_profile_sqlite(path, db_label="projects.db", foreign_keys=True, initialize=_initialize)
 
 
 @contextlib.contextmanager

@@ -1,39 +1,4 @@
-"""The SessionDB read path must not leak one connection per (SessionDB x thread).
-
-``_get_read_conn`` used to cache a read-only connection in ``threading.local()``
-and pin it in a strong set (``_read_conns``) that was only ever drained by
-``close()``. Starlette dispatches sync routes on anyio worker threads, so a
-SessionDB that is never closed -- the dashboard's module-global ``_db`` and
-the per-session ``session_db`` handles -- gained a connection, and a file
-descriptor, for every worker thread that ever served a read. In production
-that walked into the 256 soft ``RLIMIT_NOFILE`` a service manager hands the
-process, after which every request failed with ``OSError`` EMFILE while the
-process stayed alive, so the supervisor's restart-on-exit never fired.
-
-Worse, those connections were opened WITHOUT ``check_same_thread=False`` (both
-writer opens pass it), so ``close()`` on them raised ``ProgrammingError`` from
-a different thread and the bare ``except Exception: pass`` hid it -- leaving
-``hermes_cli.sqlite_safe_read``'s registry permanently over-counted as well.
-
-The contract pinned here: reads borrow from a BOUNDED pool, connections are
-returned and reused, surplus connections are closed rather than dropped, and
-``close()`` actually closes them from whatever thread it runs on.
-
-Bounded means bounded at PEAK, not merely at rest. Pooling returns behind a
-``maxsize`` LifoQueue while opening unconditionally on a miss still lets a
-burst of N simultaneous readers on a cold pool open N descriptors before
-closing the surplus -- which is the exact shape of the production incident,
-since the burst that exhausts the pool is the burst that exhausts the fd
-table. Peak is held down by a permit acquired before the open and released
-after the close; past the ceiling readers degrade to the locked writer
-connection. Tests that join their workers before counting cannot see any of
-this, so the peak assertions use a barrier.
-
-These assert on the pool/registry counts, never on ``lsof``: SQLite's unix VFS
-parks a closed descriptor on a per-inode reuse list while any connection still
-holds POSIX locks on that inode, so raw descriptor counts lag the real
-connection count and make such assertions flaky.
-"""
+"The SessionDB read path must not leak one connection per (SessionDB x thread).\n\n``_get_read_conn`` used to cache a read-only connection in ``threading.local()``\nand pin it in a strong set (``_read_conns``) that was only ever drained by\n``close()``. Starlette dispatches sync routes on anyio worker threads, so a\nSessionDB that is never closed -- the dashboard's module-global ``_db`` and\nthe per-session ``session_db`` handles -- gained a connection, and a file\ndescriptor, for every worker thread that ever served a read. In production\nthat walked into the 256 soft ``RLIMIT_NOFILE`` a service manager hands the\nprocess, after which every request failed with ``OSError`` EMFILE while the\nprocess stayed alive, so the supervisor's restart-on-exit never fired.\n\nWorse, those connections were opened WITHOUT ``check_same_thread=False`` (both\nwriter opens pass it), so ``close()`` on them raised ``ProgrammingError`` from\na different thread and the bare ``except Exception: pass`` hid it -- leaving\n``hermes_db.infra.backends.sqlite.safe_read``'s registry permanently over-counted as well.\n\nThe contract pinned here: reads borrow from a BOUNDED pool, connections are\nreturned and reused, surplus connections are closed rather than dropped, and\n``close()`` actually closes them from whatever thread it runs on.\n\nBounded means bounded at PEAK, not merely at rest. Pooling returns behind a\n``maxsize`` LifoQueue while opening unconditionally on a miss still lets a\nburst of N simultaneous readers on a cold pool open N descriptors before\nclosing the surplus -- which is the exact shape of the production incident,\nsince the burst that exhausts the pool is the burst that exhausts the fd\ntable. Peak is held down by a permit acquired before the open and released\nafter the close; past the ceiling readers degrade to the locked writer\nconnection. Tests that join their workers before counting cannot see any of\nthis, so the peak assertions use a barrier.\n\nThese assert on the pool/registry counts, never on ``lsof``: SQLite's unix VFS\nparks a closed descriptor on a per-inode reuse list while any connection still\nholds POSIX locks on that inode, so raw descriptor counts lag the real\nconnection count and make such assertions flaky.\n"
 
 import hermes_state_readpool
 import queue
@@ -47,7 +12,7 @@ from hermes_state import SessionDB
 
 def _live_count(path) -> int:
     """Live-connection count the tracking registry holds for *path*."""
-    import hermes_cli.sqlite_safe_read as mod
+    import hermes_db.infra.backends.sqlite.safe_read as mod
 
     with mod._live_lock:
         return mod._live_connections.get(mod._key(path), 0)

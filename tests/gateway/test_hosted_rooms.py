@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from hermes_cli import db_sqlite_policy as sqlite_policy
+
 import json
 import logging
 import sqlite3
@@ -11,7 +13,7 @@ import pytest
 
 from gateway import hosted_room_driver as driver
 from gateway import hosted_rooms as rooms
-import hermes_state_wal
+from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
 from gateway.hosted_room_policy_checkpoint import HostedRoomPolicyCheckpoint
 from hermes_state import SessionDB
 
@@ -168,7 +170,7 @@ def test_first_database_open_retries_only_transient_journal_lock(
     tmp_path,
     monkeypatch,
 ):
-    original = hermes_state_wal.apply_wal_with_fallback
+    original = sqlite_policy.apply_wal_with_fallback
     attempts = 0
 
     def transient_lock(conn, **kwargs):
@@ -178,7 +180,7 @@ def test_first_database_open_retries_only_transient_journal_lock(
             raise sqlite3.OperationalError("database is locked")
         return original(conn, **kwargs)
 
-    monkeypatch.setattr(hermes_state_wal, "apply_wal_with_fallback", transient_lock)
+    monkeypatch.setattr(sqlite_policy, "apply_wal_with_fallback", transient_lock)
 
     assert _create(tmp_path / "state.db")["room_id"] == "room-1"
     assert attempts == 3
@@ -198,7 +200,7 @@ def test_first_database_open_does_not_retry_other_journal_errors(
         )
 
     monkeypatch.setattr(
-        hermes_state_wal, "apply_wal_with_fallback",
+        sqlite_policy, "apply_wal_with_fallback",
         configured_delete_refusal,
     )
 

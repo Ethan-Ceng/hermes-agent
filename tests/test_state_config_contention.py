@@ -1,5 +1,7 @@
 """Existing databases remain usable while a config writer finishes publication."""
 
+from hermes_cli import db_sqlite_policy as sqlite_policy
+
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import closing
 import os
@@ -13,9 +15,9 @@ from threading import Event, Thread
 import pytest
 
 from hermes_cli import config
-from hermes_state_wal import apply_wal_with_fallback
+from hermes_cli.db_sqlite_policy import apply_wal_with_fallback
 from utils import atomic_yaml_write
-import hermes_state_wal as wal
+from hermes_db.infra.backends.sqlite import wal
 
 
 def test_config_import_and_provider_env_catalog_never_read_config(tmp_path):
@@ -29,7 +31,7 @@ def test_config_import_and_provider_env_catalog_never_read_config(tmp_path):
         import os, sqlite3
 
         import providers
-        import hermes_state_wal as wal
+        from hermes_cli import db_sqlite_policy as wal
 
         listed = []
         providers.list_providers = lambda: listed.append(1) or []
@@ -168,17 +170,17 @@ def test_unestablished_or_strict_modes_still_wait_for_real_policy(tmp_path, monk
     if state == "unknown":
         monkeypatch.setattr(wal, "_on_disk_journal_mode", lambda _conn: None)
     resolving = Event()
-    original = wal.resolve_journal_mode
+    original = sqlite_policy.resolve_journal_mode
 
     def resolve():
         resolving.set()
         return original()
 
-    monkeypatch.setattr(wal, "resolve_journal_mode", resolve)
+    monkeypatch.setattr(sqlite_policy, "resolve_journal_mode", resolve)
 
     def opener():
         with closing(sqlite3.connect(path)) as conn:
-            return wal.apply_wal_with_fallback(conn, require_wal=state == "required_wal")
+            return sqlite_policy.apply_wal_with_fallback(conn, require_wal=state == "required_wal")
 
     with ThreadPoolExecutor(max_workers=1) as pool:
         with config._CONFIG_LOCK:
@@ -200,7 +202,7 @@ def test_deferred_mode_change_is_applied_after_writer_finishes(tmp_path, monkeyp
 
     def opener():
         with closing(sqlite3.connect(path)) as conn:
-            return wal.apply_wal_with_fallback(conn)
+            return sqlite_policy.apply_wal_with_fallback(conn)
 
     with ThreadPoolExecutor(max_workers=1) as pool:
         with config._CONFIG_LOCK:

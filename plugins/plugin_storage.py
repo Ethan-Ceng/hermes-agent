@@ -8,12 +8,13 @@ Usage: ``plugin_data_dir("my-plugin") / "state.json"``; ``plugin_db("my-plugin")
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 import re
 import sqlite3
 from pathlib import Path
 from .plugin_storage_types import PluginRecord, PluginStorageConflict, PluginStorageQuotaError, PluginStore
 
-__all__ = ["PluginRecord", "PluginStorageConflict", "PluginStorageQuotaError", "PluginStore", "plugin_data_dir", "plugin_db", "plugin_store"]
+__all__ = ["PluginRecord", "PluginStorageConflict", "PluginStorageQuotaError", "PluginStore", "configure_plugin_sqlite", "plugin_data_dir", "plugin_db", "plugin_sqlite_transaction", "plugin_store"]
 
 # Mirrors the plugin-name shape `hermes plugins install` accepts (no separators/traversal).
 _NAME_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$")
@@ -44,7 +45,7 @@ def plugin_db(name: str, filename: str = "data.db") -> sqlite3.Connection:
     if storage_backend() != "sqlite":
         from hermes_db.errors import StorageConfigurationError
         raise StorageConfigurationError(f"Plugin {name} uses the SQLite-only plugin_db API; use plugin_store or its portable domain storage")
-    from hermes_cli.sqlite_util import open_db
+    from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
 
     # WAL via the shared fallback helper: network filesystems degrade to DELETE and WAL-reset-bug
     # builds never enable it, instead of every plugin DB bypassing those rules with a raw PRAGMA.
@@ -68,3 +69,17 @@ def plugin_store(name: str, *, namespace: str = "default", profile_home: Path | 
         return PostgresPluginStore(name, namespace, home)
     from hermes_db.backends.sqlite.plugin_storage import SQLitePluginStore
     return SQLitePluginStore(name, namespace, home)
+
+
+@contextmanager
+def plugin_sqlite_transaction(conn):
+    """Commit or roll back an explicit legacy SQLite plugin operation without closing its connection."""
+    from hermes_db.infra.backends.sqlite.transactions import write_txn
+    with write_txn(conn):
+        yield conn
+
+
+def configure_plugin_sqlite(conn, *, db_label):
+    """Apply the active Profile's WAL safety policy to an existing legacy plugin connection."""
+    from hermes_cli.db_sqlite_policy import apply_wal_with_fallback
+    return apply_wal_with_fallback(conn, db_label=db_label)

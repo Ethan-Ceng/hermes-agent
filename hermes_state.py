@@ -57,7 +57,7 @@ from hermes_state_portability import SessionPortabilityMixin
 from hermes_state_telegram import SessionTelegramTopicsMixin
 from hermes_state_schema import SessionSchemaMixin
 import hermes_state_holders as _state_holders
-import hermes_state_lockguard as _lockguard
+import hermes_db.infra.backends.sqlite.lockguard as _lockguard
 from hermes_state_lockowners import log_write_lock_holders
 from hermes_state_dbfile import (
     _connect_tracked_db, _fd_is_truly_unlinked, _prepare_connection_retirement,
@@ -71,9 +71,8 @@ from hermes_state_prune_rewrite import SessionPruneRewriteMixin
 from hermes_state_api_content import SessionApiContentMixin
 from hermes_state_coverage import SessionCoverageMixin
 from hermes_state_rewind import SessionRewindMixin
-from hermes_state_wal import (
-    _WAL_INCOMPAT_MARKERS, _on_disk_journal_mode, apply_database_pragmas, apply_wal_with_fallback,
-)
+from hermes_db.infra.backends.sqlite.wal import _WAL_INCOMPAT_MARKERS, _on_disk_journal_mode
+from hermes_cli.db_sqlite_policy import apply_database_pragmas, apply_wal_with_fallback
 from hermes_state_repair import _claim_repair_attempt, preflight_db_writability, repair_state_db_schema
 from hermes_state_titles import SessionTitlesMixin
 from hermes_state_prompt_refresh import SessionPromptRefreshMixin

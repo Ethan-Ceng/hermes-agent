@@ -9,6 +9,8 @@ crash-recovery wiring. Only the async lifecycle lives here; the child run is an 
 
 from __future__ import annotations
 
+from hermes_cli.db_sqlite_policy import initialize_profile_sqlite
+
 import collections
 import contextvars
 import json
@@ -121,7 +123,7 @@ def _connect() -> sqlite3.Connection:
     from agent.runtime_session_store import WorkerPersistenceError, is_worker_process
     if is_worker_process():
         raise WorkerPersistenceError('worker_delegation_ledger_unavailable')
-    from hermes_cli.sqlite_util import open_db
+    from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
     # Same state.db as hermes_state.SessionDB -- reuse its owner-only (0600)
     # hardening so this writer doesn't create/leave the file (and its WAL
     # sidecars) at the process umask. See hermes_state._secure_state_db_files.
@@ -133,7 +135,7 @@ def _connect() -> sqlite3.Connection:
     mkdir_under_hermes_home(path.parent)
     _secure_state_db_files(path, create_main=True)
     # wal=False: SessionDB owns state.db's journal mode (_initialize_schema applies the barriers).
-    conn = open_db(path, db_label="state.db (async_delegation)", busy_timeout_ms=10_000,
+    conn = initialize_profile_sqlite(path, db_label="state.db (async_delegation)", busy_timeout_ms=10_000,
                    wal=False, row_factory=None, initialize=_initialize_schema)
     _secure_state_db_files(path)
     return conn
@@ -156,7 +158,7 @@ def _initialize_schema(conn: sqlite3.Connection) -> None:
 
 
 def _transaction():
-    from hermes_cli.sqlite_util import transaction
+    from hermes_db.infra.backends.sqlite.transactions import transaction
 
     return transaction(_connect())
 
