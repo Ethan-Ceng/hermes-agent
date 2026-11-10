@@ -520,12 +520,14 @@
     {
       "path": "tests/hermes_db/test_backend_dataset_selection.py",
       "task": 6,
-      "purpose": "controller plus fresh SQLite and PG child payloads: selecting existing backend never copies the other dataset"
+      "purpose": "controller plus fresh SQLite and PG child payloads: selecting existing backend never copies the other dataset",
+      "status": "completed"
     },
     {
       "path": "tests/hermes_db/postgresql/test_backend_dataset_selection.py",
       "task": 6,
-      "purpose": "fresh-process PG selection and missing/incompatible backend fail-closed behavior; child denies all SQLite connects"
+      "purpose": "fresh-process PG selection and missing/incompatible backend fail-closed behavior; child denies all SQLite connects",
+      "status": "completed"
     },
     {
       "path": "tests/tui_gateway/test_session_resume_store_boundary.py",
@@ -1109,6 +1111,14 @@
       "task": 4,
       "disposition": "retired",
       "reason": "Only exercises insert_gateway_routing_rows_if_absent/list_gateway_routing_rows retired repair API. Normal worker change tracker test in same file is retained and run against real PG."
+    }
+  ],
+  "new_test_support": [
+    {
+      "path": "tests/hermes_db/dataset_selection_support.py",
+      "task": 6,
+      "status": "completed",
+      "purpose": "Installed independent payload probe; records only PID, dataset markers, optional-dependency availability and storage error types; no production interface"
     }
   ]
 }

@@ -5,7 +5,7 @@
 - 设计：[持久层职责精简](../designs/hermes-db-persistence-scope.md)；映射：[生产文件/接口/测试/锚点](../designs/hermes-db-persistence-scope-map.json)。
 - 实施分支：`refactor/hermes-db-persistence-scope`；隔离检出：`D:/AI/hermes-db-packages`。
 - 源码基准：`90a2987e8c`；与正式启动`9a8093841b`仅部署记录文档不同。首轮准备提交`7f151a3299`不含运行代码。
-- 整体状态：`IMPLEMENTING`；阶段：feature-development；当前实施任务：Task6；完成：5 / 9；阻塞：无。
+- 整体状态：`IMPLEMENTING`；阶段：feature-development；当前实施任务：Task7；完成：6 / 9；阻塞：无。
 - 日期：2026-11-10。本轮用户已授权按计划实施并逐Task本地commit；旧分包/规划证据不计为本轮实施。
 - 准备依据：已核对22个生产路径、16项Store方法、22个相关测试文件及正常生命周期共享依赖；精确hash/处置在映射中。
 
@@ -342,11 +342,11 @@ file_grants.py→integration/media_grants.py；profile_purge.py→integration/pr
 - `D:/AI/hermes-db-packages/.build/package-layout/test-env/Scripts/python.exe scripts/check --staged --base 90a2987e8c`：exit0，16 checks ok；日志`task5-check.log`。
 - `git -c safe.directory=D:/AI/hermes-db-packages diff --cached --check`：exit0。
 
-未验证：后续Task的完整双后端/发行/最终审查；不把本Task局部通过冒充全系统验收。恢复点为本Task本地commit；下一Task6。
+未验证：后续Task的完整双后端/发行/最终审查；不把本Task局部通过冒充全系统验收。恢复commit：`a52f187310`；下一Task6。
 
 ## Task 6：验证顶层后端选择与独立数据集语义
 
-状态：in_progress
+状态：completed
 
 ### 目标
 
@@ -377,15 +377,31 @@ file_grants.py→integration/media_grants.py；profile_purge.py→integration/pr
 
 ### 执行结果
 
-未实施。
+新增两份行为测试与dataset_selection_support测试子进程载荷，没有生产代码/配置/DTO/Schema变更。临时Profile使用项目atomic_config_write/replace和read_config_doc实际选择storage.backend，每次启动新PID；不热换运行会话，不重建提示缓存。PG拒绝全部SQLite连接的进程审计在应用存储打开前安装，包含内存/URI/别名/直接构造所共用的CPython审计事件，既有guard全入口合同也在组内执行。
+
+以已提交生产源码a52f187310新导出无.git载荷（task6-source.zip SHA256 5ca94011c968e91fff5c1e323cbd306743cab092ab30dbc2f4762de14b4c3dfc），项目PM API build_environment(...,groups=(dev,test),explicit=True,frozen=True)新建3环境，均exit0：Windows .build/persistence-scope/task6-payload/env-sqlite；Linux /var/tmp/hermes-db-persistence-scope-task6-a52f187310/env-sqlite及env-postgresql。源码分别为同根/source，Python3.14.9。两份普通SQLite实际无SQLAlchemy/psycopg/Alembic/mautrix/asyncpg；PG extras为postgresql/messaging/matrix，实际mautrix0.21.1。完整命令分别为Windows开发PM解释器执行task6_build.py win D:/AI/hermes-db-packages/.build/persistence-scope/task6-payload D:/AI/hermes-db-packages/.build/persistence-scope/task6-source.zip D:/AI/hermes-db-packages/.build/package-layout/runtime，及WSL隔离PM解释器执行task6_build.py linux /var/tmp/hermes-db-persistence-scope-task6-a52f187310 /mnt/d/AI/hermes-db-packages/.build/persistence-scope/task6-source.zip /var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime；环境身份/解释器完整值在environments.json与下面实际测试命令中。Task8仍须冻结最终源码/测试并新建完整发行载荷，Task6不冒充最终发行验收。
+
+JUnit和task6-safe-processes.json保存当前安全事实：Windows纯SQLite新进程PID21312→46712实际写读sqlite-marker，所有可选依赖find_spec均false；Linux数据集切换4进程PID670416(SQLite A)→670419(PG B)→670423(SQLite只恢复A)→670426(PG只恢复B)。四个PID不同，初始目标PG无A/B，后续两端各仅有自己的标记和原内容，PG两次SQLite attempts=0。配置不全/未初始化/不可达PG子进程PID670459/670460/670461分别得到StorageConfigurationError/StorageSchemaError/StorageUnavailableError，全部SQLite attempts=0，未产生SQLite文件；fixture随机Schema仍0表，证明普通打开未DDL。不可达使用该临时配置的loopback端口1，不停止服务或修改角色。
+
+Windows完整Native4文件11pass/0fail/1skip；skip为contracts/test_single_backend.py::test_full_sqlite_business_including_actual_matrix_sdk_crypto_restarts_without_pg_service（Linux宿主），真实Linux相同完整4文件12pass/0fail/0skip已实际补验。真实PG2文件5pass/0fail/0skip，包含完整10领域、两scope、实际SDK与新PID恢复的既有单后端业务合同。两个新文件各以单文件完整JUnit批次重跑，3/4项分别全部通过，避免并行多个文件覆盖同一XML；只有安全标记和PID/类型/依赖布尔值进入报告，无秘密或原始堆栈。
+
+新增pytest属性报告后尝试重跑静态时，旧进程仍占用同名task6-check.log导致PowerShell重定向未实际启动；该驱动输出的exit0无效、不作证据。旧检查完成后，用ErrorActionPreference=Stop及独立task6-check-final.log重新完整运行最新16 checks exit0，日志再复制为task6-check.log。未改断言掩盖失败，未把宿主skip算通过；正常架构没有新增后端注册层、CRUD/SQL框架或HERMES行为环境变量。
 
 ### 验证证据
 
-未执行。
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/test_backend_dataset_selection.py tests/hermes_db/test_factory.py tests/hermes_db/test_optional_dependencies.py tests/hermes_db/contracts/test_single_backend.py -j 2 --file-timeout 1200 -- --tb=short -ra -vv --hermes-distribution-source=D:\AI\hermes-db-packages\.build\persistence-scope\task6-payload/source --hermes-sqlite-python=D:\AI\hermes-db-packages\.build\persistence-scope\task6-payload/env-sqlite/Scripts/python.exe`：exit0；=== Summary: 4 files, 11 tests passed, 0 failed, 1 skipped (100% complete) in 36.6s (2 workers) ===；日志`task6-native.log`。
+- `wsl.exe -d Ubuntu-26.04 --cd /mnt/d/AI/hermes-db-packages -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/persistence-scope-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime HERMES_PYTHON=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/test-env/bin/python HERMES_TEST_FILE_RETRIES=0 PYTHONDONTWRITEBYTECODE=1 bash scripts/run_tests.sh tests/hermes_db/test_backend_dataset_selection.py tests/hermes_db/test_factory.py tests/hermes_db/test_optional_dependencies.py tests/hermes_db/contracts/test_single_backend.py -j 2 --file-timeout 1200 -- --tb=short -ra -vv --hermes-distribution-source=/var/tmp/hermes-db-persistence-scope-task6-a52f187310/source --hermes-sqlite-python=/var/tmp/hermes-db-persistence-scope-task6-a52f187310/env-sqlite/bin/python --hermes-postgresql-python=/var/tmp/hermes-db-persistence-scope-task6-a52f187310/env-postgresql/bin/python`：exit0；=== Summary: 4 files, 12 tests passed, 0 failed (100% complete) in 89.0s (2 workers) ===；日志`task6-native-linux.log`。
+- `wsl.exe -d Ubuntu-26.04 --cd /mnt/d/AI/hermes-db-packages -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/persistence-scope-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime HERMES_PYTHON=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/test-env/bin/python HERMES_TEST_FILE_RETRIES=0 PYTHONDONTWRITEBYTECODE=1 bash scripts/run_tests.sh tests/hermes_db/postgresql/test_backend_dataset_selection.py tests/hermes_db/postgresql/test_single_backend.py -j 2 --file-timeout 1200 -- --tb=short -ra -vv -m integration --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml --hermes-distribution-source=/var/tmp/hermes-db-persistence-scope-task6-a52f187310/source --hermes-sqlite-python=/var/tmp/hermes-db-persistence-scope-task6-a52f187310/env-sqlite/bin/python --hermes-postgresql-python=/var/tmp/hermes-db-persistence-scope-task6-a52f187310/env-postgresql/bin/python`：exit0；=== Summary: 2 files, 5 tests passed, 0 failed (100% complete) in 35.1s (2 workers) ===；日志`task6-pg.log`。
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/test_backend_dataset_selection.py -j 2 --file-timeout 1200 -- --tb=short -ra -vv --hermes-distribution-source=D:\AI\hermes-db-packages\.build\persistence-scope\task6-payload/source --hermes-sqlite-python=D:\AI\hermes-db-packages\.build\persistence-scope\task6-payload/env-sqlite/Scripts/python.exe --junitxml=.build/persistence-scope/task6-sqlite-evidence.xml -o junit_family=xunit1`：exit0；=== Summary: 1 files, 3 tests passed, 0 failed (100% complete) in 8.8s (2 workers) ===；日志`task6-sqlite-evidence.log`。
+- `wsl.exe -d Ubuntu-26.04 --cd /mnt/d/AI/hermes-db-packages -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/persistence-scope-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime HERMES_PYTHON=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/test-env/bin/python HERMES_TEST_FILE_RETRIES=0 PYTHONDONTWRITEBYTECODE=1 bash scripts/run_tests.sh tests/hermes_db/postgresql/test_backend_dataset_selection.py -j 2 --file-timeout 1200 -- --tb=short -ra -vv -m integration --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml --hermes-distribution-source=/var/tmp/hermes-db-persistence-scope-task6-a52f187310/source --hermes-sqlite-python=/var/tmp/hermes-db-persistence-scope-task6-a52f187310/env-sqlite/bin/python --hermes-postgresql-python=/var/tmp/hermes-db-persistence-scope-task6-a52f187310/env-postgresql/bin/python --junitxml=.build/persistence-scope/task6-pg-evidence.xml -o junit_family=xunit1`：exit0；=== Summary: 1 files, 4 tests passed, 0 failed (100% complete) in 15.8s (2 workers) ===；日志`task6-pg-evidence.log`。
+- `D:/AI/hermes-db-packages/.build/package-layout/test-env/Scripts/python.exe scripts/check --staged --base 90a2987e8c`：exit0，16 checks ok；日志`task6-check.log`。
+- `git -c safe.directory=D:/AI/hermes-db-packages diff --cached --check`：exit0。
+
+未验证：后续Task的完整双后端/发行/最终审查；不把本Task局部通过冒充全系统验收。恢复点为本Task本地commit；下一Task7。
 
 ## Task 7：全仓消费者、文档与边界闭合
 
-状态：pending
+状态：in_progress
 
 ### 目标
 
