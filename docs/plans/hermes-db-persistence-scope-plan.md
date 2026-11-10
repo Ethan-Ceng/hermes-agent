@@ -5,8 +5,8 @@
 - 设计：[持久层职责精简](../designs/hermes-db-persistence-scope.md)；映射：[生产文件/接口/测试/锚点](../designs/hermes-db-persistence-scope-map.json)。
 - 实施分支：`refactor/hermes-db-persistence-scope`；隔离检出：`D:/AI/hermes-db-packages`。
 - 源码基准：`90a2987e8c`；与正式启动`9a8093841b`仅部署记录文档不同。首轮准备提交`7f151a3299`不含运行代码。
-- 整体状态：`PLAN_READY`（推荐整体退役历史修复）；阶段：planning；当前实施任务：无；完成：0 / 9；阻塞：无。
-- 日期：2026-11-10。用户本次只要求准备实施方案；9项全部pending，不把只读调研或旧分包验证计作新实施完成。
+- 整体状态：`IMPLEMENTING`；阶段：feature-development；当前实施任务：Task2；完成：1 / 9；阻塞：无。
+- 日期：2026-11-10。本轮用户已授权按计划实施并逐Task本地commit；旧分包/规划证据不计为本轮实施。
 - 准备依据：已核对22个生产路径、16项Store方法、22个相关测试文件及正常生命周期共享依赖；精确hash/处置在映射中。
 
 ## 目标、非目标与执行纪律
@@ -80,7 +80,7 @@ SQLite纯载荷另以不含PG/Matrix的PM环境执行其普通业务与新PID合
 
 ## Task 1：冻结当前合同、实施源与隔离环境
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -112,11 +112,24 @@ SQLite纯载荷另以不含PG/Matrix的PM环境执行其普通业务与新PID合
 
 ### 执行结果
 
-尚未实施。规划阶段只读清单不计为本Task完成。
+本轮基于f9b777f9c0重新核对：隔离分支正确、两个checkout干净，正式HEAD90a2987e8c；运行代码与基准无差异。进程只读探针未发现既有进程引用隔离checkout（探针自身排除），未停止/修改任何进程。
+
+独立PM环境已实际重新探测：Windows Python3.14.9 dev/test+postgresql/telegram/discord；Linux Python3.14.9 dev/test+postgresql/matrix/telegram/discord，mautrix0.21.1、python-olm3.2.16，实际CryptoStore非抽象且加载隔离源码。PG17.11独立验收DB归属、pg_trgm就绪。沿用已由项目PM创建的开发测试环境，不复制或修改正式环境；Task8仍须创建冻结源码的新发行载荷。
+
+`.build/persistence-scope/task1-baseline.json`保存295项PostgresSessionStore签名、224个类方法合同、消费者候选（含字符串/getattr路径）、22文件测试节点和61+4锚点；365个DB Python/root11。映射22文件Git blob与工作树规范blob完全一致，无基准影响需要修订。
 
 ### 验证证据
 
-尚未执行业务基线命令；开始实施后记录实际展开命令、退出状态、计数和恢复commit。
+命令均在D:/AI/hermes-db-packages执行；PM/应用之前已绑定隔离HOME/RUNTIME，retries=0。原始日志仅留隔离.build，未提交秘密/原始堆栈。
+
+- `D:/AI/hermes-db-packages/.build/package-layout/test-env/Scripts/python.exe .build/persistence-scope/validate_scope_plan.py`：exit0，22路径/16方法/61锚点/4资源/365模块/root11匹配。
+- 同解释器执行`.build/persistence-scope/task1_audit.py`：exit0，源码/接口审计PASS。
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts/test_profile_moves.py tests/hermes_db/contracts/test_profile_repair.py tests/hermes_db/contracts/test_remaining_read_maintenance.py -j 2 --file-timeout 1200 -- --tb=short -ra`：exit0，27passed/0failed/0skip；日志`task1-native.log`。
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/tui_gateway/test_stranded_session_adoption.py tests/tui_gateway/test_session_resume_materializes_minted_key.py tests/tui_gateway/test_session_resume_db_ownership.py tests/hermes_cli/test_sessions_repair_profiles.py -j 2 --file-timeout 1200 -- --tb=short -ra`：exit0，51passed/0failed/0skip；日志`task1-consumers.log`。
+- `wsl.exe -d Ubuntu-26.04 --cd /mnt/d/AI/hermes-db-packages -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/persistence-scope-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime HERMES_PYTHON=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/test-env/bin/python HERMES_TEST_FILE_RETRIES=0 PYTHONDONTWRITEBYTECODE=1 bash scripts/run_tests.sh tests/hermes_db/postgresql/test_health_archive_refs.py tests/hermes_db/postgresql/test_profile_file_scope.py tests/hermes_db/postgresql/test_review_foundation_profile_delete.py -j 2 --file-timeout 1200 -- --tb=short -ra -m integration --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`：exit0，43passed/0failed/0skip；日志`task1-pg.log`。
+- `wsl.exe -d Ubuntu-26.04 --cd /mnt/d/AI/hermes-db-packages -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/persistence-scope-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime PYTHONDONTWRITEBYTECODE=1 /var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/test-env/bin/python .build/package-layout/linux_probe.py`：exit0；安全事实见task1-linux-probe.json。
+
+未验证：完整双后端/发行/新PID切换/最终SDK行为在后续Task执行；本Task没有生产代码变动，不把SDK协议探针当SDK业务通过。原统一Task24/七项非WSL缺证保持独立。恢复点为本Task本地commit，下一Task2。
 
 ## Task 2：先解正常Profile生命周期与既有授权的共享依赖
 
@@ -451,7 +464,7 @@ PM解释器执行scripts/check --staged --base 90a2987e8c、boundary_lint.py --c
 
 ### 当前执行结果
 
-- 生产实施、单元/集成/PG/SDK/发行/构建：未执行；9项均pending，完成0/9。
+- 本轮Task1 completed，完成1/9：局部Native27、消费者51、真实PG43均exit0，无skip；完整验收仍待后续Task。
 - 规划核对：映射22生产路径、16方法、22测试文件、6个拟新增行为测试文件及61锚点/4迁移资源已静态核对；方案文档/依赖/本地链接/基准hash和本轮staged检查的实际结果在准备记录补入。
 - 正式目录保持90a2987e8c及已启动运行时代码，未停止、重启、改配置/秘密或接触业务数据库。
 
