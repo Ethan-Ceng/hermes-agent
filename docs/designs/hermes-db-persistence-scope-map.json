@@ -1,0 +1,577 @@
+{
+  "baseline": "90a2987e8c5decb7997157ca17a301ff51ecce78",
+  "baseline_runtime": "9a8093841b4142cdee3e7ba25ab9669d0c24e93e",
+  "hash_basis": "SHA256 of Git blob bytes at baseline; never checkout line endings",
+  "proposal": "A: retire historical repair-profiles and stranded-session adoption; no external replacement tool",
+  "approval_scope": "Planning only; no runtime code changed or feature deletion executed",
+  "branch": "refactor/hermes-db-persistence-scope",
+  "entries": [
+    {
+      "source": "hermes_db/integration/postgres/operations/adoption.py",
+      "baseline_sha256": "85ad089ab6b3ffe3f8530ab4f6ca49ab74225158f80a899f48457b17cbf669a3",
+      "action": "delete",
+      "task": 3,
+      "target": null,
+      "reason": "TUI stranded-session compatibility only; remove with SQLite equivalent and resume caller",
+      "status": "pending",
+      "changed_in_tasks": [
+        3
+      ]
+    },
+    {
+      "source": "hermes_db/integration/postgres/operations/profile_move.py",
+      "baseline_sha256": "d5c822acbe03999f7da742a81abd63d0cec89b97d79732d6bc713837bc789983",
+      "action": "delete",
+      "task": 4,
+      "target": null,
+      "reason": "repair-profiles only after adoption removed",
+      "status": "pending",
+      "changed_in_tasks": [
+        4
+      ]
+    },
+    {
+      "source": "hermes_db/integration/postgres/queries/profile_move.py",
+      "baseline_sha256": "13294103eefdbad6c04f9f1e785b32afef3faf0a8759a9abb6b2dbf8814d670d",
+      "action": "delete",
+      "task": 4,
+      "target": null,
+      "reason": "snapshot/unledgered helpers have no remaining business consumer after Tasks3-4",
+      "status": "pending",
+      "changed_in_tasks": [
+        4
+      ]
+    },
+    {
+      "source": "hermes_db/integration/postgres/operations/profile_repair.py",
+      "baseline_sha256": "6a21849a64ec9f2ff728df4e32496d211ff811816317f768e85010c3ef4ce06c",
+      "action": "delete",
+      "task": 4,
+      "target": null,
+      "reason": "normal delete_routes ownership first separated in Task2",
+      "status": "pending",
+      "changed_in_tasks": [
+        2,
+        4
+      ]
+    },
+    {
+      "source": "hermes_db/integration/postgres/queries/profile_repair.py",
+      "baseline_sha256": "30ed41e141fb009a71be00f2f9a7158e6700a2e31e1f037057dfceb017e10afb",
+      "action": "delete",
+      "task": 4,
+      "target": null,
+      "reason": "repair-only label/parent queries",
+      "status": "pending",
+      "changed_in_tasks": [
+        4
+      ]
+    },
+    {
+      "source": "hermes_db/integration/transfer/move_values.py",
+      "baseline_sha256": "cf406992bb3a3e5dcb47f3225896c0c02784781f5e72209a5db1099e5bed0ff5",
+      "action": "delete",
+      "task": 4,
+      "target": null,
+      "reason": "prepared/imported ticket keys and digests serve retired move/adoption only",
+      "status": "pending",
+      "changed_in_tasks": [
+        4
+      ]
+    },
+    {
+      "source": "hermes_state_profile_repair.py",
+      "baseline_sha256": "68d7c90ce216ac22ab42be4a7beef2f498edfc5538173d911127b90e1ffad119",
+      "action": "delete",
+      "task": 4,
+      "target": null,
+      "reason": "remove SessionProfileRepairMixin and maintenance-only helpers/errors after full consumer audit",
+      "status": "pending",
+      "changed_in_tasks": [
+        4
+      ]
+    },
+    {
+      "source": "hermes_cli/sessions_repair_profiles.py",
+      "baseline_sha256": "3f5b1c2ed6b08a2615b2470f2423da8887d76af460695bf696e9178b600c9ac8",
+      "action": "delete",
+      "task": 4,
+      "target": null,
+      "reason": "retire repair-profiles orchestration; no replacement tool",
+      "status": "pending",
+      "changed_in_tasks": [
+        4
+      ]
+    },
+    {
+      "source": "hermes_cli/sessions_cmd_repair_profiles.py",
+      "baseline_sha256": "a0ec1c786f971336a49ffa148334ce9924befaad945a91327a8f5ba10c304541",
+      "action": "delete",
+      "task": 4,
+      "target": null,
+      "reason": "retire repair-profiles command handler",
+      "status": "pending",
+      "changed_in_tasks": [
+        4
+      ]
+    },
+    {
+      "source": "hermes_db/domains/sessions/postgres/queries/gateway.py",
+      "baseline_sha256": "7ccbc8ac136aa910c2c9f73eb43c6cbd1b452230232ec8fd918b2227fe717421",
+      "action": "edit",
+      "task": 2,
+      "target": "hermes_db/domains/sessions/postgres/queries/gateway.py",
+      "reason": "single owner of route deletion/retirement SQL; caller retains same Connection/scope",
+      "status": "pending",
+      "changed_in_tasks": [
+        2
+      ]
+    },
+    {
+      "source": "hermes_db/integration/postgres/operations/profile_purge.py",
+      "baseline_sha256": "a3b864ceff9b5776dccc2fdf0e9696542f453c20a59f894b3a5232933673e541",
+      "action": "edit_then_move",
+      "task": 5,
+      "target": "hermes_db/integration/profile_lifecycle.py",
+      "reason": "Task2 update delete_routes read point; Task5 move normal Profile lifecycle helper, preserve behavior",
+      "status": "pending",
+      "changed_in_tasks": [
+        2,
+        5
+      ]
+    },
+    {
+      "source": "hermes_db/integration/postgres/operations/file_grants.py",
+      "baseline_sha256": "432f2bca9f61f4fe97066892154dceb6fdd9470cf733ffdf968f676fdcd56bed",
+      "action": "reduce_then_move",
+      "task": 5,
+      "target": "hermes_db/integration/media_grants.py",
+      "reason": "remove transfer producers; preserve received/origin/locking/release of already persisted grants",
+      "status": "pending",
+      "changed_in_tasks": [
+        5
+      ]
+    },
+    {
+      "source": "hermes_db/integration/media_retirement.py",
+      "baseline_sha256": "45f50603062513b5b15c525afa81ffa6330887912142b96e89729c07df0a8440",
+      "action": "edit",
+      "task": 5,
+      "target": "hermes_db/integration/media_retirement.py",
+      "reason": "read retained grant cleanup from its actual new owner",
+      "status": "pending",
+      "changed_in_tasks": [
+        5
+      ]
+    },
+    {
+      "source": "hermes_db/integration/transfer/session_store.py",
+      "baseline_sha256": "adcd3f3e597da76b306444dcef923a4aba351b8bce33e4d39959a04c3e65e8ba",
+      "action": "reduce_then_move",
+      "task": 5,
+      "target": "hermes_db/integration/session_portability.py",
+      "reason": "Tasks3-4 remove historical methods; Task5 rename SessionTransfer to SessionPortability, retain business export/import and reads",
+      "status": "pending",
+      "changed_in_tasks": [
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "source": "hermes_db/integration/session_composition.py",
+      "baseline_sha256": "c1b36e07d7948db7e56c57a2d2c3ca11d23b86f2760e3d4a5a1f242a38e1d248",
+      "action": "edit",
+      "task": 5,
+      "target": "hermes_db/integration/session_composition.py",
+      "reason": "update explicit component and normal Profile effects owners; no facade proxy",
+      "status": "pending",
+      "changed_in_tasks": [
+        4,
+        5
+      ]
+    },
+    {
+      "source": "hermes_db/domains/sessions/postgres/store.py",
+      "baseline_sha256": "9f152d2773eeddb2fad1c26c63c0319c91f93e01644dd3ace00df783813886d4",
+      "action": "edit",
+      "task": 4,
+      "target": "hermes_db/domains/sessions/postgres/store.py",
+      "reason": "remove sixteen maintenance/stranded-adoption delegates; retain all other behavior",
+      "status": "pending",
+      "changed_in_tasks": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "source": "hermes_state.py",
+      "baseline_sha256": "1c9c66bc0f05553c5d83901416464bf9f6964013c4b93c5ca1f18b5c3dc64139",
+      "action": "edit",
+      "task": 4,
+      "target": "hermes_state.py",
+      "reason": "remove SQLite repair mixin import/base only; preserve normal facade and siblings",
+      "status": "pending",
+      "changed_in_tasks": [
+        4
+      ]
+    },
+    {
+      "source": "hermes_state_portability.py",
+      "baseline_sha256": "e05b63bc3b5e171213d712ba17a6398bb02cd7204fd9d660a6c8ccf0fe63166e",
+      "action": "edit",
+      "task": 3,
+      "target": "hermes_state_portability.py",
+      "reason": "remove adopt_session_lineage_from and _retire_donor_segment only; keep ordinary import/export",
+      "status": "pending",
+      "changed_in_tasks": [
+        3
+      ]
+    },
+    {
+      "source": "tui_gateway/methods_session.py",
+      "baseline_sha256": "1e2813ea6cd3e5cddb038efdf1b91dc42964e509358fb442d3085c8f9123cd4f",
+      "action": "edit",
+      "task": 3,
+      "target": "tui_gateway/methods_session.py",
+      "reason": "remove _resume_adopt_stranded definition/call; keep minted/lazy and owned-store resume paths",
+      "status": "pending",
+      "changed_in_tasks": [
+        3
+      ]
+    },
+    {
+      "source": "hermes_cli/subcommands/sessions.py",
+      "baseline_sha256": "683c48e3f851189844641c336dfe8070a163bf594cba68b3ee2098a96ae8f8f8",
+      "action": "edit",
+      "task": 4,
+      "target": "hermes_cli/subcommands/sessions.py",
+      "reason": "remove repair-profiles parser branch, not unrelated sessions commands",
+      "status": "pending",
+      "changed_in_tasks": [
+        4
+      ]
+    },
+    {
+      "source": "hermes_cli/sessions_cmd.py",
+      "baseline_sha256": "2b1ecfcc64b2f07b034799f2e93d67a4066013209213e2c22f189a9dc1f8210d",
+      "action": "edit",
+      "task": 4,
+      "target": "hermes_cli/sessions_cmd.py",
+      "reason": "remove repair handler import and dispatch entry",
+      "status": "pending",
+      "changed_in_tasks": [
+        4
+      ]
+    },
+    {
+      "source": "scripts/hermes_db_boundary_rules.json",
+      "baseline_sha256": "6f749626b984fd05d3c68fad8f1f367640974d8d34158e8276d98964b779be6d",
+      "action": "edit",
+      "task": 7,
+      "target": "scripts/hermes_db_boundary_rules.json",
+      "reason": "delete retired symbol exceptions; precise moves for retained owners, no baseline expansion",
+      "status": "pending",
+      "changed_in_tasks": [
+        7
+      ]
+    }
+  ],
+  "retired_postgres_store_methods": [
+    "export_session_for_move",
+    "import_moved_session",
+    "delete_moved_session",
+    "find_crossed_profile_sessions",
+    "_ledgered_session_ids",
+    "list_gateway_routing_rows",
+    "find_profile_less_telegram_topic_rows",
+    "count_messages_all",
+    "relabel_sessions_to_key_profile",
+    "sever_crossed_parents",
+    "rekey_legacy_main_sessions",
+    "delete_gateway_routing_rows",
+    "insert_gateway_routing_rows_if_absent",
+    "relabel_telegram_topic_rows",
+    "key_profiles_for_chat",
+    "adopt_session_lineage_from"
+  ],
+  "test_dispositions": [
+    {
+      "path": "tests/hermes_cli/test_sessions_repair_profiles.py",
+      "disposition": "retire with command",
+      "task": 4
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_profile_moves.py",
+      "disposition": "retire move-only cases; grant safety replacements are required in Task2/5",
+      "task": 4
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_profile_repair.py",
+      "disposition": "retire repair/adoption-only cases",
+      "task": 4,
+      "changed_in_tasks": [
+        3,
+        4
+      ],
+      "intermediate_requirement": "Task3 removes adoption-only cases/import entries immediately; Task4 removes remaining move/repair cases while retaining normal contracts"
+    },
+    {
+      "path": "tests/hermes_db/test_move_fingerprints.py",
+      "disposition": "retire digest-only contract",
+      "task": 4
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "disposition": "retire adoption tests; move applicable normal resume cases to test_session_resume_store_boundary.py with no-copy scenarios",
+      "task": 3
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_review_data_safety.py",
+      "disposition": "remove move/adoption cases; retain prepared_compression late-append conflict",
+      "task": 4,
+      "changed_in_tasks": [
+        3,
+        4
+      ],
+      "intermediate_requirement": "Task3 removes adoption-only cases/import entries immediately; Task4 removes remaining move/repair cases while retaining normal contracts"
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_file_consumers.py",
+      "disposition": "remove repair scan/move case only; retain roster/stats/release/backup checks",
+      "task": 4
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_health_archive_refs.py",
+      "disposition": "remove retired imports/parameter rows/wrappers; retain health, archive backfill, retention, purge and concurrency coverage",
+      "task": 4,
+      "changed_in_tasks": [
+        3,
+        4
+      ],
+      "intermediate_requirement": "Task3 removes adoption-only cases/import entries immediately; Task4 removes remaining move/repair cases while retaining normal contracts"
+    },
+    {
+      "path": "tests/hermes_state/test_session_import_keep_flags.py",
+      "disposition": "split adoption-only tests from ordinary import inactive/checkpoint flag tests",
+      "task": 3
+    },
+    {
+      "path": "tests/hermes_state/test_import_deleted_session.py",
+      "disposition": "remove only any adoption-specific assertion; preserve import/deleted-parent behavior",
+      "task": 3
+    },
+    {
+      "path": "tests/gateway/test_bot_chat_follows_profile.py",
+      "disposition": "audit resume mocks for retired adoption hook; preserve routed home behavior",
+      "task": 3,
+      "fixture_requirement": "Prepare current-scope rows directly if adoption was used only for setup; do not delete normal routing assertions"
+    },
+    {
+      "path": "tests/gateway/test_legacy_session_route_turn.py",
+      "disposition": "audit retired hook references; retain current routing/scope contracts",
+      "task": 3,
+      "fixture_requirement": "Prepare current-scope rows directly if adoption was used only for setup; do not delete normal routing assertions"
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_profile_file_scope.py",
+      "disposition": "KEEP normal Profile filesystem rename, not historical session move",
+      "task": 2
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_remaining_read_maintenance.py",
+      "disposition": "KEEP normal Profile purge/read/retention checks",
+      "task": 2
+    },
+    {
+      "path": "tests/gateway/test_profile_identity_purge.py",
+      "disposition": "KEEP normal lifecycle",
+      "task": 2
+    },
+    {
+      "path": "tests/hermes_cli/test_profile_identity_purge_cmd.py",
+      "disposition": "KEEP normal lifecycle",
+      "task": 2
+    },
+    {
+      "path": "tests/tui_gateway/test_session_resume_materializes_minted_key.py",
+      "disposition": "KEEP fresh minted-key recovery",
+      "task": 3
+    },
+    {
+      "path": "tests/tui_gateway/test_session_resume_db_ownership.py",
+      "disposition": "KEEP handle ownership/release",
+      "task": 3
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_retired_files.py",
+      "disposition": "KEEP normal retention and file safety",
+      "task": 5
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_merge_commit_recovery.py",
+      "disposition": "KEEP real commit-before-ack-loss recovery",
+      "task": 8
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_merge_process_recovery.py",
+      "disposition": "KEEP new-PID recovery",
+      "task": 8
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_merge_data_upgrade.py",
+      "disposition": "KEEP deployed Schema upgrade compatibility",
+      "task": 8
+    }
+  ],
+  "new_behavior_tests": [
+    {
+      "path": "tests/hermes_db/contracts/test_existing_media_grants.py",
+      "task": 2,
+      "purpose": "seed existing grant rows directly in temp scopes; normal reads/pins/release remain safe without calling retired mover"
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_existing_media_grants.py",
+      "task": 2,
+      "purpose": "reuse same grant behavioral contract against owned random PG schemas"
+    },
+    {
+      "path": "tests/hermes_db/test_backend_dataset_selection.py",
+      "task": 6,
+      "purpose": "controller plus fresh SQLite and PG child payloads: selecting existing backend never copies the other dataset"
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_backend_dataset_selection.py",
+      "task": 6,
+      "purpose": "fresh-process PG selection and missing/incompatible backend fail-closed behavior; child denies all SQLite connects"
+    },
+    {
+      "path": "tests/tui_gateway/test_session_resume_store_boundary.py",
+      "task": 3,
+      "purpose": "resume cannot adopt from another store; missing non-minted key stays missing; retain normal lazy/minted/owned-store cases"
+    },
+    {
+      "path": "tests/hermes_cli/test_sessions_command_boundary.py",
+      "task": 4,
+      "purpose": "retired repair-profiles invocation is refused before any storage write/open, while supported sessions commands still dispatch"
+    }
+  ],
+  "fixed_anchors": {
+    "hermes_db/migrations/versions/0001_session_storage.py": "0eee9b15deea629a03eae63966d6fa72e2bf05fe9936fc49ffad13d267dfa903",
+    "hermes_db/migrations/versions/0002_search_projection.py": "c9f39b72e2f9cb68f4130067643416a7ce642fdf784bb1429bb5542a701aaf8e",
+    "hermes_db/migrations/versions/0003_archive_refs.py": "bb24b63a206c62ff2c4704368eb466eda17b8b1b50393724773accaf67cd17e2",
+    "hermes_db/migrations/versions/0004_model_markers.py": "660e983e729fdbd154ae5db67bdd3b6b525b161c23287c7063d1b86d0ce420c4",
+    "hermes_db/migrations/versions/0005_verification.py": "9138f62155e3cbb89d1ab89ebd84b63f3cd43bed1284dc89239f38f68841baa1",
+    "hermes_db/migrations/versions/0006_projects.py": "60bf7d7988a6629b8276f2976bfd2b6dac36e30200d6213e20dc61bcd14ff558",
+    "hermes_db/migrations/versions/0007_cron_executions.py": "163c97cc932da8d1e4a35dc38af068d14f7e9f5b466c83de1c452239efd99625",
+    "hermes_db/migrations/versions/0008_cron_delivery.py": "e5a4d119409305fa39fb99540e890d4686fce6cb0ff75ba560e98ee0b1a0d8a0",
+    "hermes_db/migrations/versions/0009_cron_notepad.py": "01b150ad6ad0b85a864ebf13f0adee86bc31209706d77633b051125e37ae8b8b",
+    "hermes_db/migrations/versions/0010_kanban_tasks.py": "5bcb27c3f758d8bed457c448e66096cb93e32889f1c88d184e1246209492e787",
+    "hermes_db/migrations/versions/0011_kanban_runs.py": "292bc4d11abff31b8e49c37350cbe0fee1f72d66d56b79daa02accba2c7b6952",
+    "hermes_db/migrations/versions/0012_kanban_artifacts.py": "d1016c2c68a857a82bc5a7205433bd6eb73ac06d042a49058db96a0825810081",
+    "hermes_db/migrations/versions/0013_kanban_dispatch.py": "a2fed1f13dbf047f27d5c175dd7b90f26ecbc710e3ec1c055137ce6f2e434245",
+    "hermes_db/migrations/versions/0014_kanban_commands.py": "484246086d95e502cfc7fbc29fb040fc6d0e40329d69f92d8834bc72c12942dd",
+    "hermes_db/migrations/versions/0015_kanban_workspaces.py": "7ab3a260f2d678951fde9b0fc33cf63ccac861b7ac7a9276e27855a8701507d2",
+    "hermes_db/migrations/versions/0016_kanban_notify.py": "d6deba6cc58d67fde45aaf73d8afbdc772d9ab2df5c1bfba8a27cc463ce8a975",
+    "hermes_db/migrations/versions/0017_kanban_file_jobs.py": "38d1571976b5b51eccf8a21884158b3b566c7c7895a199192f0749d1e4e61175",
+    "hermes_db/migrations/versions/0018_kanban_imports.py": "f232a7310eacf63b01cf58aa05ca8ef1c238bf8a32f7979fe99f9aafddb3f203",
+    "hermes_db/migrations/versions/0019_room_events.py": "8fa706df1cd32ca4bbc2a111ffea5facee5b0cbe610cf3f86c9e51bf9ed93749",
+    "hermes_db/migrations/versions/0020_room_runs.py": "94f436dfa25e0af80f0dab4b1f48c1b63b890021ae8de32371bab3037937c5ba",
+    "hermes_db/migrations/versions/0021_room_policy.py": "88be596f16779a41d34397128a1040752e81abc92840d9060a01163ac12a6885",
+    "hermes_db/migrations/versions/0022_room_attachments.py": "e414ddfdea30d7b309559505ee7fa9e1d38b075f72d898f3e754b5089e8f56c5",
+    "hermes_db/migrations/versions/0023_metrics.py": "2b89d8f725fb100a80a72178880b4ef09ce530c5017acda47dddb549b9e9a642",
+    "hermes_db/migrations/versions/0024_plugins.py": "8deee03a839cd631c1d9183cef175437c3bc51df6a248c36a65f341b54fdb6c1",
+    "hermes_db/migrations/versions/0025_discord_recovery.py": "83d23ce1a8b0f7d0bb7d6dd76851953ac8d941216fd1242c68280084da9c591e",
+    "hermes_db/migrations/versions/0026_retain_queue.py": "106664a925b315adb6ec24d91a2d9bd6acdf534eded3434ca6e18c0efc116cc5",
+    "hermes_db/migrations/versions/0027_matrix_crypto.py": "27de799ebfeb58d3b4dd3e23c5d98ed19ef01f2d202011500bdad4a69c393df7",
+    "hermes_db/migrations/versions/0028_kanban_effects.py": "06a8253672f8ac3df2910a9681035ff738236894d6058788288f0277118c0118",
+    "hermes_db/migrations/versions/0029_transcript_cursor.py": "8b6529f6d6c696c7ad1627e7fd4a599d9ff31bf68ec1d45742312d8c53d177c7",
+    "hermes_db/migrations/versions/0030_room_revoke_debts.py": "7971057f0edec3486b517952f10c98b91900b50ebe4d7c968e7c22082f333b3d",
+    "hermes_db/migrations/versions/0031_merge_data_repair.py": "883b3a0e353445e1af5553042be4bd0fb718e85462e3f98dae72a4dcf4ab1033",
+    "hermes_db/migrations/versions/__init__.py": "397fdc49bfcf6269013ea1c22e60e2f9bf50520349e8d4370a51fac80e2d832d",
+    "hermes_db/tables/__init__.py": "d5f4ccbacc7a8c2fc8eebef3390023d860859f9d4400a5acf075ca7a9d48b806",
+    "hermes_db/tables/api.py": "cc10cc120699a87834369e84290eefb2ac67bad4cb72ecdaead1f6ad0010737f",
+    "hermes_db/tables/conversations.py": "f37f08b497d2268c250cddbe3f6e7c73df3f9ed6165a2932b75537ffee0c2462",
+    "hermes_db/tables/cron.py": "45a54452b16d286093fde133a4ffd71b3a4f26caa94157116854c158c4e0f4a9",
+    "hermes_db/tables/cron_delivery.py": "a7c75828e0d67c8688a9f910cc323b1fbfa2757681509dcdd584058c5e4eea65",
+    "hermes_db/tables/cron_notepad.py": "f8601ba256d18e66d86b919228000e166fa2b21e6c749476de9b5295a93a5ada",
+    "hermes_db/tables/discord_recovery.py": "d4ed50af3444a577d8705e3b77a65385d75e673cd0433a6ba077d67bff455a00",
+    "hermes_db/tables/gateway.py": "581bec850c10e825f9a360d96b1e701cf1690f0f3f5f98f3ee55d11809e040c0",
+    "hermes_db/tables/kanban.py": "cec6945c127fbc89fb59edb0945170f512bec26a0755379452104d8993786dcb",
+    "hermes_db/tables/kanban_artifacts.py": "083d830a7a2ab5c5e2e4d976bfaab97a1e0e57430d453624e82c99c13ea1ed10",
+    "hermes_db/tables/kanban_commands.py": "2119acb3d7f108a59c2d303fedc5668007befa5a076b5e02570d4a21e199b0e1",
+    "hermes_db/tables/kanban_dispatch.py": "f771f642ecfd7c3d6218c151f7478661d0cde418ccf6820dcf6668f425fcb722",
+    "hermes_db/tables/kanban_effects.py": "b44080e3ee1ceedef2b8710a5ff4b54723ae822e71e71db82bf37c4b8995ecf9",
+    "hermes_db/tables/kanban_file_jobs.py": "796a7a81be9861a6f2cd85d147e0e12bda8c1636fb3be05e9c686e12c5fdb2ec",
+    "hermes_db/tables/kanban_notify.py": "36ccf3be697f8d7d4015b0a856f9e7b131775cdbf0e4252313bc44d8ccfb1775",
+    "hermes_db/tables/kanban_workspaces.py": "898101639b0887cd81ffeef9861a6ba910264b43cfd039c060610807de46453f",
+    "hermes_db/tables/matrix_crypto.py": "21f48c446aef102b49c8037aedb57935b90c736952746ab0bb2ff13a8ed4d979",
+    "hermes_db/tables/metadata.py": "c9ca08bc11e5f1417282c82d0012c64c26fdc0c04f3452c24b7ed33063243996",
+    "hermes_db/tables/metrics.py": "dceabe38c8ca1b73558046ea30dfd132287b0dc49f72dba9ba6593253256cc5d",
+    "hermes_db/tables/plugins.py": "d7b4f5b0ea64d5633d64ec1c0ad9304295283af8dbc7fe97f3018420bba9cece",
+    "hermes_db/tables/projects.py": "9a8225c1409f29710490b90a0839f3800077487dc64882af68ebaab068e3eb8d",
+    "hermes_db/tables/retain_queue.py": "e19e6c457841fe1ba4737f12f2bd6ff757ab27ceca3d2181ddd17f8e9eda897e",
+    "hermes_db/tables/room_attachments.py": "60b95e44538e919c41b7dee21fcbba7597eecf4bfe254424bc767b9c995859a7",
+    "hermes_db/tables/room_policy.py": "474268067323dd78488479e33f958a1495eb7896227f59d2324d4def17bfacfc",
+    "hermes_db/tables/room_runs.py": "9bbc0eec2fc90a03d915812fdfad43ada09062b1fe2d5c1aa452505615f847c0",
+    "hermes_db/tables/room_work.py": "5b57cf0c05bb102efc52bba11ebaed5395600ad6637412e04f42d35e470e9720",
+    "hermes_db/tables/rooms.py": "21a25e4aedf3d95925a6db6ab646c5a6574a4ba8d9f7e60d1692e1ddae2f0f35",
+    "hermes_db/tables/runtime.py": "7487cd45304c56552c00c9406f7f3e9cfc4359a4289ba00fdb5f09af21d0cdf4",
+    "hermes_db/tables/verification.py": "c25a0d164ff60db98ce488585c2b17d9cd73b1370de2a02c74c883da40e581cc"
+  },
+  "required_revision": "0031_merge_data_repair",
+  "counts": {
+    "baseline_db_python": 365,
+    "delete_db_python": 6,
+    "delete_other_production_python": 3,
+    "rename_existing_db_python": 3,
+    "minimum_db_net_reduction": 6,
+    "expected_db_python_upper_bound": 359,
+    "root_db_python": 11,
+    "retired_store_methods": 16
+  },
+  "non_goals": [
+    "Schema squash/history rewrite",
+    "data migration, dual write or fallback",
+    "new backend implementation/registry/framework",
+    "production restart/deployment or data mutations",
+    "original unified Task24/seven non-WSL acceptance gaps"
+  ],
+  "fixed_migration_resources": {
+    "hermes_db/migrations/merge_data_repair.py": "b564b7f9061c1bf5e63eb58a847e052a369069edde41a31870bc52b2d917fd85",
+    "hermes_db/migrations/env.py": "9824d82c2d769a2036c0df60e6699a5f44956063aef63286c9dce45b8463f96d",
+    "hermes_db/migrations/__init__.py": "f4f67901bc6f5e171dcb803a444e8e71d6c211419871a69ea220ba1acdd79fb8",
+    "hermes_db/migrations/alembic.ini": "40921a6e0f9641501a7cbbb69e22d69f275643f20973adafb4aa6b5c64dc884e"
+  },
+  "task_dependencies": {
+    "1": [],
+    "2": [
+      1
+    ],
+    "3": [
+      2
+    ],
+    "4": [
+      3
+    ],
+    "5": [
+      4
+    ],
+    "6": [
+      5
+    ],
+    "7": [
+      6
+    ],
+    "8": [
+      7
+    ],
+    "9": [
+      8
+    ]
+  },
+  "proposal_status": "Design recommendation for implementation planning; no claim that product retirement is implemented or separately approved",
+  "status": "PLAN_READY"
+}
