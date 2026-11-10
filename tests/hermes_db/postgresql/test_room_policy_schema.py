@@ -13,7 +13,8 @@ def test_upgrade_backfills_scoped_opaque_keys_from_existing_pg_events(postgres_t
     from alembic import command
     from alembic.config import Config
     from sqlalchemy import text
-    from hermes_db.schema import _prepare_schema, upgrade_schema
+    from hermes_db.infra.backends.postgresql.schema import prepare_schema
+    from hermes_db.schema import REQUIRED_EXTENSIONS, _PG_TRGM_ACTION, upgrade_schema
     settings = replace(postgres_test_config.settings, schema=postgres_schema)
     migration = Path(__file__).resolve().parents[3] / "hermes_db" / "migrations"
     config = Config(str(migration / "alembic.ini"))
@@ -22,7 +23,8 @@ def test_upgrade_backfills_scoped_opaque_keys_from_existing_pg_events(postgres_t
     payloads = {"one": json.dumps({"thread_id": "讨论\x00🙂", "discussion_event_id": "source\x00🙂"}).encode(),
                 "two": json.dumps({"thread_id": "other", "discussion_event_id": False}).encode()}
     with postgres_engine.begin() as conn:
-        _prepare_schema(conn, settings)
+        prepare_schema(conn, settings, required_extensions=REQUIRED_EXTENSIONS,
+                       missing_extension_action=_PG_TRGM_ACTION)
         config.attributes["connection"] = conn
         command.upgrade(config, "0020_room_runs")
         schema = conn.dialect.identifier_preparer.quote(settings.schema)

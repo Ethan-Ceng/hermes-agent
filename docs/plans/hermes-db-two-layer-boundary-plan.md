@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`IMPLEMENTING`；阶段：数据源选择与业务资源获取已拆分；下一实施任务：Task6；完成：5 / 20；阻塞：无；日期2026-11-11。
+- 整体状态：`IMPLEMENTING`；阶段：PG迁移执行与业务Schema状态已拆分；下一实施任务：Task7；完成：6 / 20；阻塞：无；日期2026-11-11。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 范围与可判定边界
@@ -131,6 +131,7 @@ function Check-Storage {
 | 2026-11-11 | IMPLEMENTING | Task3完成；下一项Task4 | SQLite机制/应用策略、纯载荷恢复、双主机合同及最新全部静态通过，3/20 |
 | 2026-11-11 | IMPLEMENTING | Task4完成；下一项Task5 | 两端完整Native、105消费者与资源合同exit0，4/20 |
 | 2026-11-11 | IMPLEMENTING | Task5完成；下一项Task6 | 后端/业务/应用获取拆分，两端合同、真实PG及静态exit0，5/20 |
+| 2026-11-11 | IMPLEMENTING | Task6完成；下一项Task7 | PG执行/业务就绪分离，双主机新发行载荷及真实PG前向重开exit0，6/20 |
 
 ## 任务依赖总表
 
@@ -141,7 +142,7 @@ function Check-Storage {
 | 3 | 提取SQLite公共连接与WAL机制 | 2 | completed |
 | 4 | 分离SessionDB连接状态、池与关闭语义 | 3 | completed |
 | 5 | 拆开数据源选择和业务资源获取 | 2,3,4 | completed |
-| 6 | 分离PG迁移执行与业务Schema就绪判断 | 5 | pending |
+| 6 | 分离PG迁移执行与业务Schema就绪判断 | 5 | completed |
 | 7 | 建立SQLite会话显式生命周期和普通打开 | 4,5,6 | pending |
 | 8 | 闭合其他SQLite领域的首次创建与无DDL打开 | 7 | pending |
 | 9 | 迁出Sessions与Runtime应用装配 | 5,6,7,8 | pending |
@@ -497,7 +498,7 @@ Task5完成结算：最终生产hash8dc212d75c7ba425675d3f2e3d6f13f0f07df796ddec
 
 ## Task 6：分离PG迁移执行与业务Schema就绪判断
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -538,11 +539,19 @@ PG迁移执行不内置业务Schema，完整历史链保持。
 
 ### 执行结果
 
-未实施；planning不计完成。
+2026-11-11启动：Task5实际恢复commit为58fb51560a8ea841af30cb4ab996afa1c642e0bf，提交后11个映射分区实际Git blob全部校验；当前5/20。Task6只拆当前PG迁移执行、版本/扩展检查与业务就绪汇总，不改固定61+4或历史31revision。现有旧revision升级测试直接读取_prepare_schema；同步真实infra定义与显式业务资源参数。发行测试的载荷选项必须实际提供；用本Task全新独立源快照及PM载荷，不沿用Task4/5开发环境作为发行验收。
 
 ### 验证证据
 
 未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
+
+Task6红测：归属校验的独立随机PG Schema上，原五项合同5pass，新技术资源/普通获取零DDL合同因infra入口尚不存在而1fail，完整批次exit1。实际表清单读取同时服务就绪汇总和非空未版本库拒绝，统一迁入infra。根业务Schema保留0031/扩展需求和原动作文案，显式执行传固定metadata的SCHEMA token、真实资源路径及目标revision。所有分区写UTF-8/LF并同步hash，真实发行参数/最新业务/静态门禁仍待执行。
+
+Task6实现及初次真实PG复验：技术版本/表清单读取、显式扩展需求、原升级锁与Alembic执行已经分离，业务所需版本/表聚合及公共状态字典保持。SQL扩展名由原固定pg_trgm条件改为同语义绑定参数，公共表清单查询去除重复定义；历史迁移SQL/资源零修改。原_schema.py的_prepare_schema读取点（含实际发行子进程）6处已同步明确需求与原动作提示。真实PG schema/startup/merge-upgrade三文件15pass/0fail，exit0；当前正在准备双主机全新独立Task6发行载荷及其余受影响PG合同。Task6尚未完成，不以环境缺选项skip替代发行验证。
+
+Task6完成结算：最终生产hashe59835f6fbd8b65c1cea1e5c0490ee73afc69949a9f71ad753a75b36899a0359。独立源码tree 8185a76fb71c8080058ff7b3b22b47cdc9e61eaf，tar SHA256 53c4469f61cbdb5502ab9d2e5a27f4560185d75d4fc73a917f99540c2c884136，逐23951项校验；两主机共五个全新PM载荷，每个均在-I下核对真实模块路径、已装/缺失驱动及全部源码hash。Windows发行完整3pass/0fail/1skip（仅Linux Matrix SDK marker）；Linux发行完整4pass/0fail/0skip；PG schema与发行完整2文件8pass/0fail/0skip，均实际exit0。真实PG辅助批次15pass与33pass，涵盖原升级锁、旧revision历史、搜索/媒体/房间、无DDL普通获取及缺扩展拒绝；不自动管理扩展/角色/服务。纯SQLite独立载荷实际读写并由新PID恢复；Linux真实SDK及PG子进程恢复通过，PG拒绝全部SQLite连接。
+
+Linux PG新载荷PM成功后，首次-I探针启动收到WSL 0x8007274c、exit-1；只读枚举确认Ubuntu仍Running后，同一新载荷重试exit0，未重启或管理服务；失败记录不计通过。最新Check-Storage16check/health0、DB10019/0、plugin843/26、生成契约和空白exit0；完成记录只改文档，暂存与已验源码tree代码一致。固定61+4、0031、31revision、29表、root11与实际Git blob一致；DB中间369，最终359尚未验证。活动后端文档已同步；skills/AGENTS无实际旧路径引用；没有删除测试。展开命令、实际解释器/cwd/source、退出码、skip与故障恢复见[Task6证据](../designs/hermes-db-two-layer-task6.json)。本地Task6提交后在Task7启动记录实际hash。
 
 ## Task 7：建立SQLite会话显式生命周期和普通打开
 
@@ -1369,7 +1378,7 @@ Windows独立发行组使用同根Windows实际路径、其PG父解释器及私�
 
 ### 当前执行结果
 
-- 当前实施：Task1–5已验证，5/20；Task5本地提交后立即进入Task6。
+- 当前实施：Task1–6已验证，6/20；Task6本地提交后立即进入Task7。
 - Task1–3证据见各Task；Task4诊断/整改进行中。最终完整冻结批次、SDK及独立审查尚未完成。
 - 规划结构/基准/本地链接及文档静态自检：实际命令与结果写入下方准备记录。
 - 代码审查：本轮尚未执行；旧APPROVED只属于已完成持久层职责精简。

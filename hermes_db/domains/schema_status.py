@@ -4,10 +4,9 @@ from hermes_db.core.catalog import KNOWN_DOMAINS, POSTGRES_DOMAINS, required_tab
 
 
 def domain_status_on_connection(conn, schema, *, revision_ready, extensions_ready):
-    from sqlalchemy import text
+    from hermes_db.infra.backends.postgresql.schema import list_tables
 
-    actual = set(conn.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema=:schema"),
-                              {"schema": schema}).scalars())
+    actual = list_tables(conn, schema)
     result = {}
     for name in KNOWN_DOMAINS:
         spec = POSTGRES_DOMAINS.get(name)

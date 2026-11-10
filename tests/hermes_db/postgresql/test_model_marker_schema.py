@@ -13,7 +13,8 @@ def test_model_marker_revision_backfills_both_stores_and_preserves_raw_json(post
     from alembic import command
     from alembic.config import Config
     from sqlalchemy import text
-    from hermes_db.schema import _prepare_schema, upgrade_schema
+    from hermes_db.infra.backends.postgresql.schema import prepare_schema
+    from hermes_db.schema import REQUIRED_EXTENSIONS, _PG_TRGM_ACTION, upgrade_schema
     import hermes_db.schema as module
 
     settings = replace(postgres_test_config.settings, schema=postgres_schema)
@@ -25,7 +26,8 @@ def test_model_marker_revision_backfills_both_stores_and_preserves_raw_json(post
     raw = json.dumps({'_delegate_from': 'owner\x00bytes', '_branched_from': False,
         'browser_model_lock': {'model_options': {'stop': ['\x00']}}})
     with postgres_engine.begin() as conn:
-        _prepare_schema(conn, settings)
+        prepare_schema(conn, settings, required_extensions=REQUIRED_EXTENSIONS,
+                       missing_extension_action=_PG_TRGM_ACTION)
         config.attributes['connection'] = conn
         command.upgrade(config, '0003_archive_refs')
         for store in ('first', 'second'):

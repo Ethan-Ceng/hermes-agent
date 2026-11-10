@@ -93,3 +93,37 @@ def test_unknown_revision_is_an_explicit_failure(settings, postgres_engine):
         check_schema(settings)
     with pytest.raises(StorageSchemaError, match="not supported"):
         upgrade_schema(settings)
+
+
+def test_technical_inspection_and_missing_extensions_do_not_provision(settings, postgres_engine, tmp_path):
+    from sqlalchemy import event
+    from hermes_cli.db_sessions import acquire_db
+    from hermes_db.errors import StorageSchemaError
+    from hermes_db.infra.backends.postgresql.schema import list_tables, missing_extensions, prepare_schema, read_revision
+    from hermes_db.scope import DatabaseScope
+    from hermes_db.settings import DatabaseSettings
+
+    missing = "hermes_fixture_required_extension"
+    ddl = []
+
+    def observe(_conn, _cursor, statement, _params, _context, _many):
+        command = statement.lstrip().split(None, 1)[0].upper()
+        if command in {"CREATE", "ALTER", "DROP", "TRUNCATE"}:
+            ddl.append(command)
+
+    event.listen(postgres_engine, "before_cursor_execute", observe)
+    try:
+        with pytest.raises(StorageSchemaError, match="incompatible"):
+            acquire_db(DatabaseSettings("postgresql", settings), DatabaseScope(tmp_path, "uninitialized"))
+        with postgres_engine.begin() as conn:
+            assert read_revision(conn, settings.schema) is None
+            assert list_tables(conn, settings.schema) == set()
+            assert missing_extensions(conn, ("pg_trgm", missing)) == [missing]
+            with pytest.raises(StorageSchemaError, match="missing fixture extension"):
+                prepare_schema(conn, settings, required_extensions=(missing,),
+                               missing_extension_action="missing fixture extension")
+            assert read_revision(conn, settings.schema) is None
+            assert list_tables(conn, settings.schema) == set()
+    finally:
+        event.remove(postgres_engine, "before_cursor_execute", observe)
+    assert ddl == []

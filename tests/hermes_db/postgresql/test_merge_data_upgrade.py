@@ -14,7 +14,8 @@ def old_store(postgres_test_config, postgres_schema, tmp_path):
     from alembic import command
     from alembic.config import Config
     from hermes_db.infra.backends.postgresql.engine import get_engine
-    from hermes_db.schema import _prepare_schema
+    from hermes_db.infra.backends.postgresql.schema import prepare_schema
+    from hermes_db.schema import REQUIRED_EXTENSIONS, _PG_TRGM_ACTION
     from hermes_db.infra.backends.postgresql.transactions import Transactions
     from hermes_db.tables.metadata import SCHEMA
     from hermes_db.scope import DatabaseScope
@@ -25,7 +26,8 @@ def old_store(postgres_test_config, postgres_schema, tmp_path):
     config.set_main_option('script_location', str(directory).replace('%', '%%'))
     config.attributes['schema'] = settings.schema
     with get_engine(settings).begin() as conn:
-        _prepare_schema(conn, settings)
+        prepare_schema(conn, settings, required_extensions=REQUIRED_EXTENSIONS,
+                       missing_extension_action=_PG_TRGM_ACTION)
         config.attributes['connection'] = conn
         command.upgrade(config, '0030_room_revoke_debts')
     store = create_session_store(Transactions(get_engine(settings), settings.schema,

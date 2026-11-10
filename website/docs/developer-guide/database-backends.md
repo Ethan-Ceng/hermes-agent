@@ -33,6 +33,11 @@ in SQLite mode.
 | `hermes_db/migrations/` | Explicit forward Alembic revisions and frozen historical schema definitions |
 
 PostgreSQL pools and technical transaction outcomes live under `hermes_db/infra/backends/postgresql/`.
+`hermes_db/infra/backends/postgresql/schema.py` reads versions and extensions, holds the existing
+upgrade lock, and runs Alembic only when an explicit upgrade supplies the migration directory,
+target revision, extension requirements and schema token. `hermes_db/schema.py` and
+`hermes_db/domains/schema_status.py` aggregate business readiness. Ordinary PG acquisition only
+checks the installed schema; it never provisions tables, extensions or roles.
 Transactions receive the business schema translation token explicitly. Lossless query value
 helpers live in `hermes_db/domains/sql/postgresql.py`; worker change observation belongs to
 `hermes_db/domains/runtime/postgres/change_tracking.py`.

@@ -133,7 +133,8 @@ def test_current_pg_revision_backfills_search_and_chunks_atomically(postgres_tes
     from alembic.config import Config
     from sqlalchemy import text
     from hermes_db import migrations
-    from hermes_db.schema import _prepare_schema, upgrade_schema
+    from hermes_db.infra.backends.postgresql.schema import prepare_schema
+    from hermes_db.schema import REQUIRED_EXTENSIONS, _PG_TRGM_ACTION, upgrade_schema
 
     settings = replace(postgres_test_config.settings, schema=postgres_schema)
     directory = Path(migrations.__file__).parent
@@ -142,7 +143,8 @@ def test_current_pg_revision_backfills_search_and_chunks_atomically(postgres_tes
     config.attributes["schema"] = settings.schema
     quoted = postgres_engine.dialect.identifier_preparer.quote(settings.schema)
     with postgres_engine.begin() as conn:
-        _prepare_schema(conn, settings)
+        prepare_schema(conn, settings, required_extensions=REQUIRED_EXTENSIONS,
+                       missing_extension_action=_PG_TRGM_ACTION)
         config.attributes["connection"] = conn
         command.upgrade(config, "0001_session_storage")
         conn.exec_driver_sql(f"INSERT INTO {quoted}.transcript_roots(store_id,root_id) VALUES ('owned','s')")

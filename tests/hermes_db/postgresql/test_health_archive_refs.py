@@ -84,7 +84,8 @@ def test_current_pg_revision_backfills_archive_refs(postgres_test_config, postgr
     from alembic.config import Config
     from sqlalchemy import text
     from hermes_db import migrations
-    from hermes_db.schema import _prepare_schema, upgrade_schema
+    from hermes_db.infra.backends.postgresql.schema import prepare_schema
+    from hermes_db.schema import REQUIRED_EXTENSIONS, _PG_TRGM_ACTION, upgrade_schema
     settings = replace(postgres_test_config.settings, schema=postgres_schema)
     directory = Path(migrations.__file__).parent
     config = Config(str(directory / "alembic.ini"))
@@ -92,7 +93,8 @@ def test_current_pg_revision_backfills_archive_refs(postgres_test_config, postgr
     config.attributes["schema"] = settings.schema
     quoted = postgres_engine.dialect.identifier_preparer.quote(settings.schema)
     with postgres_engine.begin() as conn:
-        _prepare_schema(conn, settings)
+        prepare_schema(conn, settings, required_extensions=REQUIRED_EXTENSIONS,
+                       missing_extension_action=_PG_TRGM_ACTION)
         config.attributes["connection"] = conn
         command.upgrade(config, "0002_search_projection")
         conn.exec_driver_sql(f"INSERT INTO {quoted}.transcript_roots(store_id,root_id) VALUES ('owned','s')")

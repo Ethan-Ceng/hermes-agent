@@ -376,7 +376,7 @@
       "hermes_db/core/catalog.py"
     ],
     "task": 6,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep actual definitions required by frozen tables/migration helpers; never turn into re-export.",
     "symbol_routes": {},
     "baseline_abi_sha256": "0439fbab611b6c396547a403077c25a44578ef97b5697af59940f884d7a9e642",
@@ -439,7 +439,7 @@
       "hermes_db/domains/schema_status.py"
     ],
     "task": 6,
-    "status": "pending",
+    "status": "completed",
     "reason": "Per-domain capabilities and required tables are business Schema readiness.",
     "symbol_routes": {},
     "baseline_abi_sha256": "0eccecad3df1958799a370a761218a04ded39f0fb51902730d5c6cac48e33d3e",
@@ -10187,56 +10187,72 @@
       "hermes_db/infra/backends/postgresql/schema.py"
     ],
     "task": 6,
-    "status": "pending",
+    "status": "completed",
     "reason": "Real root definition/entry, not an old internal re-export shim.",
     "symbol_routes": {
       "_revision": {
         "target": "hermes_db/infra/backends/postgresql/schema.py",
         "task": 6,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "actual_symbol": "read_revision",
+        "status": "completed"
       },
       "_missing_extensions": {
         "target": "hermes_db/infra/backends/postgresql/schema.py",
         "task": 6,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "actual_symbol": "missing_extensions",
+        "status": "completed"
       },
       "_prepare_schema": {
         "target": "hermes_db/infra/backends/postgresql/schema.py",
         "task": 6,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "actual_symbol": "prepare_schema",
+        "status": "completed"
       },
       "status_on_connection": {
         "target": "hermes_db/schema.py",
         "task": 6,
         "action": "edit",
-        "constraint": "Real root definition/entry, not an old internal re-export shim."
+        "constraint": "Real root definition/entry, not an old internal re-export shim.",
+        "status": "completed"
       },
       "schema_status": {
         "target": "hermes_db/schema.py",
         "task": 6,
         "action": "edit",
-        "constraint": "Real root definition/entry, not an old internal re-export shim."
+        "constraint": "Real root definition/entry, not an old internal re-export shim.",
+        "status": "completed"
       },
       "check_schema": {
         "target": "hermes_db/schema.py",
         "task": 6,
         "action": "edit",
-        "constraint": "Real root definition/entry, not an old internal re-export shim."
+        "constraint": "Real root definition/entry, not an old internal re-export shim.",
+        "status": "completed"
       },
       "check_domain_schema": {
         "target": "hermes_db/schema.py",
         "task": 6,
         "action": "edit",
-        "constraint": "Real root definition/entry, not an old internal re-export shim."
+        "constraint": "Real root definition/entry, not an old internal re-export shim.",
+        "status": "completed"
       },
       "upgrade_schema": {
         "target": "hermes_db/schema.py",
         "task": 6,
         "action": "edit",
-        "constraint": "Real root definition/entry, not an old internal re-export shim."
+        "constraint": "Real root definition/entry, not an old internal re-export shim.",
+        "technical_target": "hermes_db/infra/backends/postgresql/schema.py",
+        "actual_symbols": [
+          "run_schema_upgrade",
+          "upgrade_schema"
+        ],
+        "status": "completed"
       }
     },
     "baseline_abi_sha256": "24caf9b92bf80d61fe20f861cef2d30e8d1b9948a6ac569a5e4828578b4c3c03",

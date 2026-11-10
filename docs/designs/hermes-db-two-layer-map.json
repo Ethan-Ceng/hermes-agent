@@ -57,7 +57,7 @@
     {
       "id": 6,
       "title": "分离PG迁移执行与业务Schema就绪判断",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         5
       ]
@@ -1217,7 +1217,7 @@
     "entries": [
       {
         "path": "hermes-db-two-layer-map/sources-db.json",
-        "sha256": "f448b08272f5fefe0a1b1824bff9ebdf1a7a844835abecbdd49f22e228feb878",
+        "sha256": "e07ea243f8fa5da21a73d0f5e2da3ebfb481d6af748e317a56fe3db8c01a231a",
         "items": 359
       }
     ],
@@ -1416,5 +1416,19 @@
   },
   "section_hash_basis": "SHA256 of exact UTF-8/LF bytes stored in Git, matching the repository eol=lf policy; verify working, index and committed blobs.",
   "task4_checksum_repair_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
-  "task5_evidence": "docs/designs/hermes-db-two-layer-task5.json"
+  "task5_evidence": "docs/designs/hermes-db-two-layer-task5.json",
+  "task5_commit": "58fb51560a8ea841af30cb4ab996afa1c642e0bf",
+  "task6_adjustment": {
+    "status": "completed",
+    "technical_functions": {
+      "_revision": "read_revision",
+      "_missing_extensions": "missing_extensions",
+      "_prepare_schema": "prepare_schema",
+      "upgrade_schema": "run_schema_upgrade + root business readiness"
+    },
+    "schema_requirements": "Root business schema passes actual migration directory, revision, pg_trgm requirement, existing action message, and lazy fixed metadata SCHEMA token. The executor applies the supplied token to the explicit migration Connection.",
+    "fixed_resources": "No changes to all61+4, historical versions, Alembic env or metadata identity. Technical table enumeration is reused from both readiness and unversioned-schema refusal.",
+    "payload_gate": "Build new independent Task6 source+PM payloads on both hosts, including pure SQLite and Linux SDK payload, with explicit test options. No payload-dependent skip can substitute for required distribution behavior."
+  },
+  "task6_evidence": "docs/designs/hermes-db-two-layer-task6.json"
 }

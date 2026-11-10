@@ -50,13 +50,15 @@ try:
         phase = 'previous-pg-revision'
         from alembic import command
         from alembic.config import Config
-        from hermes_db.schema import _prepare_schema
+        from hermes_db.infra.backends.postgresql.schema import prepare_schema
+        from hermes_db.schema import REQUIRED_EXTENSIONS, _PG_TRGM_ACTION
         migrations = Path(hermes_db.__file__).parent / 'migrations'
         config = Config(str(migrations / 'alembic.ini'))
         config.set_main_option('script_location', str(migrations).replace('%', '%%'))
         config.attributes['schema'] = settings.schema
         with get_engine(settings).begin() as conn:
-            _prepare_schema(conn, settings)
+            prepare_schema(conn, settings, required_extensions=REQUIRED_EXTENSIONS,
+                           missing_extension_action=_PG_TRGM_ACTION)
             config.attributes['connection'] = conn
             command.upgrade(config, '0004_model_markers')
         # Freeze the valid 0004 wire shape: the current facade requires columns added after 0004.
