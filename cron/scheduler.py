@@ -1848,7 +1848,7 @@ def _open_cron_session_db(job: dict):
         raise WorkerPersistenceError('worker_cron_registration_required')
     _session_db_timeout = _get_session_db_timeout()
     try:
-        from hermes_db.access import acquire_sessions as acquire
+        from hermes_cli.db_sessions import acquire_sessions as acquire
 
         def acquire_store():
             if owner is None:

@@ -512,7 +512,7 @@ def _run_session_usage(job_id: str, execution_id: Optional[str]) -> dict[str, An
 
     from hermes_constants import get_hermes_home
     from agent.runtime_session_store import call_off_event_loop, current_worker_store
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     from hermes_db.errors import StorageError
     # A missing or locked state.db costs the notice its usage line, never the completion.
     try:

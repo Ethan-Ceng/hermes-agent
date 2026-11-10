@@ -73,7 +73,7 @@ def _dispose(path: Path, record: dict) -> bool:
         return True
     home = Path(record["home"]).resolve()
     for_failure = bool(record.get("for_failure"))
-    from hermes_db.access import session_store_exists
+    from hermes_cli.db_sessions import session_store_exists
     if not session_store_exists(home / "state.db"):
         record.update(status="ambiguous", error=f"bot-chat delivery target no longer exists: {home}")
     elif for_failure and not warning_notifications_enabled(

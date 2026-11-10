@@ -147,7 +147,7 @@ def _open_child_session_db(parent_agent) -> Any:
     if parent_session_db is None:
         return None
     with _quiet("subagent: failed to open dedicated SessionDB; child persistence disabled", exc_info=True):
-        from hermes_db.access import acquire_sessions as acquire
+        from hermes_cli.db_sessions import acquire_sessions as acquire
         _parent_db_path = getattr(parent_session_db, "db_path", None)
         return acquire(_parent_db_path) if _parent_db_path is not None else acquire()
     return None

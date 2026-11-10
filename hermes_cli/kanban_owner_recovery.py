@@ -52,7 +52,7 @@ def _admission_row(receipt):
 
 def _native_admission_row(receipt):
     from agent.runtime_session_store import is_worker_process
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     from hermes_db.errors import StorageError
     from hermes_db.health import is_postgresql_store
     from hermes_db.integration.runtime_access import runtime_for_store

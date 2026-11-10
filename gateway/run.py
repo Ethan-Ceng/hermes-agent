@@ -2,7 +2,6 @@
 
 Provides ``start_gateway()`` (start all configured adapters) and ``GatewayRunner`` (lifecycle).
 Run via ``python -m gateway.run`` or ``python cli.py --gateway``."""
-
 # hermes_bootstrap must be the very first import (UTF-8 stdio on Windows; no-op on POSIX).
 try:
     import hermes_bootstrap
@@ -4301,7 +4300,8 @@ def _housekeeping_state_db_maintenance(launch: Optional[tuple[Path, Path]] = Non
     gateway owns (``web_server_sessions``). *launch* carries the launch home's configured transcript
     dir (:func:`_launch_sessions_dir`) so its override still governs its own profile."""
     from hermes_cli.config import load_config as _load_full_config
-    from hermes_db.access import release_session_store as release_or_close, acquire_sessions as acquire
+    from hermes_db.access import release_session_store as release_or_close
+    from hermes_cli.db_sessions import acquire_sessions as acquire
     from hermes_db.maintenance import maintain_profile
     maintain_profile()
     _sess_cfg = (_load_full_config().get("sessions") or {})

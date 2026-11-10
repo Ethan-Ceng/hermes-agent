@@ -28,7 +28,8 @@ def _recall(connection, ref, params):
     # The RPC carries tool options only. Profile resolution stays at the owner;
     # no worker may select a DSN, schema, store_id or local database filename.
     from hermes_db.health import profile_home_for_store
-    from hermes_db.scope import DatabaseScope, bind_profile_home
+    from hermes_db.scope import DatabaseScope
+    from hermes_cli.db_scope import bind_profile_home
     with bind_profile_home(DatabaseScope(profile_home_for_store(connection.authority.db))):
         return session_search(db=connection.authority.db, **params["options"])
 

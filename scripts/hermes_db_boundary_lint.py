@@ -132,6 +132,9 @@ def collect(root):
 
 def domain(name):
     parts = name.split(".")
+    # domains/resource.py holds shared business resources, not a concrete domain package.
+    if name == "hermes_db.domains.resource" or name.startswith("hermes_db.domains.resource."):
+        return None
     return parts[2] if parts[:2] == ["hermes_db", "domains"] and len(parts) > 2 else None
 
 
@@ -157,14 +160,16 @@ def direction_error(edge):
         ("hermes_db.domains.", "hermes_db.integration.", "hermes_db.factory", "hermes_db.access")
     ):
         return "infrastructure cannot select a domain or application composition"
-    if domain(source) and not entry(edge.source) and below(target,
-        ("hermes_db.integration.", "hermes_db.factory", "hermes_db.access")
+    if below(source, ("hermes_db.domains",)) and not entry(edge.source) and below(target,
+        ("hermes_db.integration.", "hermes_db.factory", "hermes_db.access",
+         "hermes_cli.db_sessions", "hermes_cli.db_domains", "hermes_cli.db_scope",
+         "hermes_cli.db_setup", "hermes_cli.db_diagnostics")
     ):
         return "lower domain cannot select application composition"
     native = ("hermes_state.", "hermes_state_runtime.", "hermes_cli.kanban_db", "hermes_cli.projects_db",
               "hermes_cli.observability.shared_metrics.", "gateway.hosted_rooms.", "gateway.delivery_ledger.",
               "gateway.session.", "cron.executions.", "cron.incidents.", "cron.delivery_queue.", "cron.notepad.")
-    if domain(source) and not entry(edge.source) and (target.startswith(native) or target in {n.rstrip(".") for n in native}):
+    if below(source, ("hermes_db.domains",)) and not entry(edge.source) and (target.startswith(native) or target in {n.rstrip(".") for n in native}):
         return "lower domain cannot borrow a Native application facade"
     if below(target, ("hermes_db.operations", "hermes_db.repositories")):
         return "removed global technical namespace has no runtime owner"

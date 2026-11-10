@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 @contextmanager
 def _read_scope(settings, scope):
     from hermes_db.infra.backends.postgresql.engine import read_connection
-    from hermes_db.integration.profile_context import OwnedProfileContext
+    from hermes_cli.db_scope import OwnedProfileContext
     from hermes_db.tables.metadata import SCHEMA
     with OwnedProfileContext(scope).activate(), read_connection(settings) as conn:
         yield conn.execution_options(schema_translate_map={SCHEMA: settings.schema})
@@ -21,7 +21,7 @@ def _write_scope(settings, scope):
     from hermes_db.infra.backends.postgresql.engine import get_engine
     from hermes_db.infra.backends.postgresql.transactions import Transactions
     from hermes_db.tables.metadata import SCHEMA
-    from hermes_db.integration.profile_context import OwnedProfileContext
+    from hermes_cli.db_scope import OwnedProfileContext
     transactions = Transactions(get_engine(settings), settings.schema,
         lock_timeout=settings.write_lock_timeout_seconds, statement_timeout=settings.statement_timeout_seconds, schema_token=SCHEMA)
     with OwnedProfileContext(scope).activate(), transactions.write() as conn:

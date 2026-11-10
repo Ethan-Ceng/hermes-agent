@@ -88,7 +88,7 @@ def test_concurrent_replay_claim_and_derived_cache_rebuild_are_scoped(pg_profile
     from concurrent.futures import ThreadPoolExecutor
     from threading import Barrier
     from sqlalchemy import update
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.tables.room_policy import transcript_state
     with pg_profiles("one"):
         location = rooms.default_db_path()

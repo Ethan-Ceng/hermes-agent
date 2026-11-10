@@ -547,7 +547,7 @@ class GatewayProfileReconcileMixin:
             # home as soon as it goes, so every handle this process holds there must close first.
             try:
                 with _log_suppressed(logging.DEBUG, "profile handle release failed", exc_info=True):
-                    from hermes_db.access import close_session_resources_under
+                    from hermes_cli.db_sessions import close_session_resources_under
                     close_session_resources_under(home)
                 with _log_suppressed(logging.DEBUG, "memory-store release failed", exc_info=True):
                     from plugins.memory import import_provider_module  # catalog plugin since it left core
@@ -708,14 +708,15 @@ def migrate_profile_identity_verb(runner):
             return {"ok": False, "error": "live gateway has no session store"}
         acquired = []
         try:
-            from hermes_db.access import release_session_store as release_or_close, acquire_sessions as acquire
+            from hermes_db.access import release_session_store as release_or_close
+            from hermes_cli.db_sessions import acquire_sessions as acquire
             db_counts: dict[str, dict[str, int]] = {}
             routing_db = getattr(store, "_routing_db", None)
             if routing_db is not None and hasattr(routing_db, "rekey_profile_state"):
                 db_counts["routing"] = routing_db.rekey_profile_state(old, new)
             routing_home = getattr(store, "_routing_home", None)
             profile_path = Path(routing_home) / "profiles" / new / "state.db" if routing_home else None
-            from hermes_db.access import session_store_exists
+            from hermes_cli.db_sessions import session_store_exists
             if profile_path is not None and session_store_exists(profile_path):
                 profile_db = acquire(profile_path)
                 acquired.append(profile_db)

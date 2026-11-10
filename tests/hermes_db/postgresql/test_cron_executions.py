@@ -115,7 +115,7 @@ print(json.dumps({'adopted': result is not None}))
 def test_recovery_snapshot_does_not_overwrite_adoption(cron_profiles, monkeypatch):
     from sqlalchemy import update
     from cron import executions as ex
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.tables.cron import cron_executions as rows
     from hermes_db.core.values import encode_text
 

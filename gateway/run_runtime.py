@@ -87,7 +87,7 @@ def pin_launch_store():
     reference, so the synchronous ``SessionStore`` open inside ``GatewayRunner()`` on the loop is a
     registry hit instead of the schema setup. None when the open fails: the store's own open then
     reports and backs off exactly as before."""
-    from hermes_db.access import acquire_sessions as acquire
+    from hermes_cli.db_sessions import acquire_sessions as acquire
     try:
         return acquire()
     except Exception:

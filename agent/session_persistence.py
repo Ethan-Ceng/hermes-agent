@@ -498,7 +498,7 @@ class SessionPersistenceMixin:
             return self._session_db
         from hermes_db.errors import StorageError
         try:
-            from hermes_db.access import acquire_sessions as acquire
+            from hermes_cli.db_sessions import acquire_sessions as acquire
 
             self._session_db = acquire()
             self._owns_session_db = True  # we opened it, so close() must release it

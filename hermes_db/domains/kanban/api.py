@@ -5,7 +5,7 @@ from functools import wraps
 from dataclasses import dataclass
 from importlib import import_module
 
-from hermes_db.core.resource import DomainResource
+from hermes_db.domains.resource import DomainResource
 from hermes_db.errors import StorageConfigurationError
 
 
@@ -64,8 +64,8 @@ class KanbanCodec:
 
 
 class KanbanResource(DomainResource):
-    def __init__(self, settings, scope, *, transactions, result_values, mutation_guard, policy, processes, observers, files, operation_scope, codec):
-        super().__init__("kanban_tasks", settings, scope, transactions=transactions)
+    def __init__(self, backend, *, result_values, mutation_guard, policy, processes, observers, files, operation_scope, codec):
+        super().__init__("kanban_tasks", backend)
         self.result_values = result_values
         self.mutation_guard = mutation_guard
         self.policy = policy
@@ -78,7 +78,7 @@ class KanbanResource(DomainResource):
 
 class BoardResource(DomainResource):
     def __init__(self, resource, board_id, slug, *, command=None):
-        super().__init__(resource.name, resource.settings, resource.scope, transactions=resource._transactions)
+        super().__init__(resource.name, resource._backend)
         self.result_values = resource.result_values
         self.mutation_guard = resource.mutation_guard
         self.policy = resource.policy
@@ -214,7 +214,7 @@ def profile_operation(sqlite_operation):
         from hermes_cli.db_setup import storage_backend
         if storage_backend() == "postgresql":
             from hermes_db.domains.kanban.postgres import catalog as kanban_boards
-            from hermes_db.factory import acquire_profile_domain
+            from hermes_cli.db_domains import acquire_profile_domain
             with acquire_profile_domain("kanban_tasks") as resource:
                 return getattr(kanban_boards, sqlite_operation.__name__)(resource, *args, **kwargs)
         return sqlite_operation(*args, **kwargs)
@@ -237,7 +237,7 @@ def owner_scoped_operation(file_operation):
 
 def connect(board=None):
     from hermes_cli import kanban_db as kb
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.domains.kanban.postgres.catalog import resolve_board
     slug = kb._explicit_board_slug(board) or kb.get_current_board()
     with acquire_profile_domain("kanban_tasks") as resource:

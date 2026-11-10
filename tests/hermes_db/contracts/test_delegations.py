@@ -10,7 +10,7 @@ from hermes_state_runtime import RuntimeStoreError
 def _ledger(store, runtime):
     import psutil
     from hermes_cli.process_identity import worker_birth
-    from hermes_db.backends.sqlite.acquire import SQLiteRuntime
+    from hermes_db.domains.runtime.sqlite import SQLiteRuntime
 
     store.create_session("s", "cli", session_key="key")
     epoch = runtime.begin_epoch(instance_id="owner")

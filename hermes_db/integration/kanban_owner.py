@@ -32,7 +32,7 @@ def validate_reference(reference):
 @contextmanager
 def open_board_owner(reference, *, command=None):
     from hermes_cli.db_setup import _owning_profile
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.domains.kanban.postgres.catalog import _lookup
     reference = validate_reference(reference)
     with _owning_profile(Path(reference["profile_home"])), acquire_profile_domain(
@@ -137,7 +137,7 @@ def managed_scratch_roots():
     if frame is None and storage_backend() != "postgresql":
         return []
     from sqlalchemy import select
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.tables.kanban import kanban_boards
     with acquire_profile_domain("kanban_tasks", profile_home=frame.home if frame else None) as resource, resource.read() as conn:
         boards = list(conn.execute(select(kanban_boards.c.board_id, kanban_boards.c.slug).where(

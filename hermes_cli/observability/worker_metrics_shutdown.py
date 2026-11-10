@@ -8,7 +8,8 @@ from agent.runtime_session_store import WorkerPersistenceError
 
 
 def quiesce(store):
-    from hermes_db.scope import DatabaseScope, bind_profile_home
+    from hermes_db.scope import DatabaseScope
+    from hermes_cli.db_scope import bind_profile_home
     binding = owner_binding(store)
     if binding['backend'] != 'postgresql':
         return

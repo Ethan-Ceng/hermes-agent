@@ -59,7 +59,7 @@ sys.meta_path.insert(0, NoPG())
 from hermes_cli.config import atomic_config_write
 from hermes_cli.profiles_deletion_storage import capture, ProfileDeletion
 from hermes_cli.db_setup import _owning_profile
-from hermes_db.access import open_session_store
+from hermes_cli.db_sessions import open_session_store
 root=pathlib.Path(sys.argv[1]); target=root/'target'; target.mkdir()
 for home in (root,target): atomic_config_write(home/'config.yaml',{'storage':{'backend':'sqlite'}})
 with _owning_profile(root):
@@ -89,7 +89,7 @@ def test_pg_source_to_sqlite_room_target_uses_only_selected_target(postgres_test
     from hermes_cli import profiles
     from hermes_cli.config import atomic_config_write
     from hermes_cli.db_setup import _owning_profile
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     from hermes_db.schema import upgrade_schema
     pg = replace(postgres_test_config.settings, schema=postgres_schema)
     upgrade_schema(pg)
@@ -170,7 +170,7 @@ def test_confirmed_root_or_target_retarget_refuses_before_identity_effects(delet
 @pytest.mark.allow_network
 def test_root_change_between_check_and_open_cannot_redirect_frozen_identity_write(deletion_stores, monkeypatch):
     from hermes_cli.profiles_deletion_storage import ProfileDeletion
-    from hermes_db import factory
+    from hermes_cli import db_sessions as factory
     root, target, peer = deletion_stores
     plan = ProfileDeletion(target, root)
     original = factory.acquire_db
@@ -190,7 +190,7 @@ def test_root_change_between_check_and_open_cannot_redirect_frozen_identity_writ
 @pytest.mark.allow_network
 def test_target_change_between_check_and_open_cannot_redirect_frozen_store_purge(deletion_stores, monkeypatch):
     from hermes_cli.profiles_deletion_storage import ProfileDeletion
-    from hermes_db import factory
+    from hermes_cli import db_domains as factory
     root, target, peer = deletion_stores
     plan = ProfileDeletion(target, root)
     original = factory.acquire_domain

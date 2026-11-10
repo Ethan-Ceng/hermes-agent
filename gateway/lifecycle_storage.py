@@ -8,7 +8,7 @@ logger = logging.getLogger("gateway.lifecycle_ledger")
 
 def configured_integrity(home):
     from hermes_constants import get_hermes_home
-    from hermes_db.health import configured_probe
+    from hermes_cli.db_diagnostics import configured_probe
     result = configured_probe(Path(home) if home is not None else get_hermes_home())
     if result is None:
         return None

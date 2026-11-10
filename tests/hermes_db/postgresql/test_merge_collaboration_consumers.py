@@ -10,7 +10,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 
 
 def test_poller_reclaims_child_subscription_and_keeps_delivery_cursor(pg_profiles):
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     from hermes_cli import kanban_db as kb, kanban_db_connect as kbc, kanban_db_notify as notify
     from tui_gateway import server
     with pg_profiles('one') as home, closing(open_session_store(home / 'state.db')) as db:
@@ -44,7 +44,7 @@ async def test_discard_closes_real_http_admission_and_blocks_delayed_post_after_
     from gateway.session_authority import initialize_session_authority
     from gateway.session_group_peers import room_link
     from gateway.session_hosted_service import CanonicalHostedRoomService
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     from hermes_db.integration.run_resources import ProfileRunStores
     from gateway.platforms.api_server_run_idempotency import RunIdempotencyStore
     from tests.gateway import test_session_group_peers as peers

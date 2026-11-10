@@ -9,7 +9,7 @@ logger = logging.getLogger("gateway.run")
 
 def close_gateway_session_resources():
     from gateway.delivery_backend import close_delivery_handles
-    from hermes_db.access import close_session_resources
+    from hermes_cli.db_sessions import close_session_resources
     close_delivery_handles()
     return close_session_resources()
 
@@ -33,7 +33,7 @@ class GatewaySessionStorageMixin:
         #88235 broadcast.
         """
         from hermes_state import AsyncSessionDB, _default_db_path
-        from hermes_db.access import acquire_sessions as acquire
+        from hermes_cli.db_sessions import acquire_sessions as acquire
         from hermes_cli.db_setup import storage_backend
         from hermes_db.errors import StorageUnavailableError
         from gateway.session_db_recovery import RecoverableHandleCache

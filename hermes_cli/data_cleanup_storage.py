@@ -28,7 +28,7 @@ def capture_removal(home):
 def purge_store(captured, *, selected=None):
     from hermes_cli.db_setup import _owning_profile
     from hermes_db.errors import StorageConfigurationError
-    from hermes_db.factory import acquire_domain, acquire_profile_domain
+    from hermes_cli.db_domains import acquire_domain, acquire_profile_domain
     from hermes_db.core.values import resource_key
     from hermes_db.tables import load_metadata
     from hermes_db.tables.rooms import rooms

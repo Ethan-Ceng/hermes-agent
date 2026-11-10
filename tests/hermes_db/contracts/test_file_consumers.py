@@ -47,7 +47,7 @@ def test_core_cli_stats_and_physical_maintenance_have_explicit_backend_boundarie
 
 def test_session_resource_releases_only_its_handle_once(core_pair):
     from hermes_db.handle import DatabaseHandle
-    from hermes_db.core.session_resource import SessionResource
+    from hermes_db.domains.sessions.resource import SessionResource
     store = core_pair[0]
     releases = []
     handle = DatabaseHandle(store.scope, store, "runtime", lambda: releases.append(True))
@@ -60,7 +60,7 @@ def test_session_resource_releases_only_its_handle_once(core_pair):
 
 def test_pg_doctor_and_file_backup_report_external_storage_without_sqlite_fix(core_pair, monkeypatch, capsys):
     from hermes_cli import backup_storage, doctor, doctor_state
-    from hermes_db import health
+    from hermes_cli import db_diagnostics as health
     store = core_pair[0]
     _pg(monkeypatch, store)
     monkeypatch.setattr(doctor, "HERMES_HOME", store.scope.profile_home)

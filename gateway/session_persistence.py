@@ -99,7 +99,7 @@ class SessionPersistenceMixin:
         that the multiplexed inbound path already performs actually reach session storage.
         """
         from hermes_state import _default_db_path
-        from hermes_db.access import acquire_sessions
+        from hermes_cli.db_sessions import acquire_sessions
         from hermes_cli.db_setup import storage_backend
 
         path = Path(db_path) if db_path is not None else Path(_default_db_path())

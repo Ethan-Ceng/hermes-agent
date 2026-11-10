@@ -77,7 +77,7 @@ def _owns_result(owner: str, parent: str | None) -> bool:
     worker = current_worker_store()
     if worker is not None:
         return call_off_event_loop(worker.owner_read, 'result.owns', owner=owner, parent=parent)
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
 
     # Pure lineage read on the hot path of every retained-result load; a writable open here
     # was one more writer handle per call inside the gateway (#100896).

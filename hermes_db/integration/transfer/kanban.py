@@ -200,7 +200,7 @@ def _commit_graph(resource, requested, board_id, stage, tables, fields, parked):
 
 def _import(extracted, requested, *, activate):
     from hermes_cli import kanban_db as kb
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     manifest, tables, metadata = read_archive(extracted)
     requested = _storage_shared_1._normalize_board_slug(requested or manifest.get('board') or extracted.name)
     if not requested:

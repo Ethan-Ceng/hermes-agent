@@ -440,7 +440,8 @@ def _side_agent_session_db(parent_db):
     if parent_db is None or path is None:
         yield parent_db
         return
-    from hermes_db.access import release_session_store as release_or_close, acquire_sessions as acquire
+    from hermes_db.access import release_session_store as release_or_close
+    from hermes_cli.db_sessions import acquire_sessions as acquire
     db = acquire(path)
     try:
         yield db

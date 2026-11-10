@@ -341,7 +341,7 @@ class KanbanFiles:
 
 def count_notify_subs(*, board=None, notifier_profiles=None, include_unowned=False, platform=None, chat_id=None, thread_id=None):
     from hermes_cli import kanban_db as kb
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.domains.kanban.postgres.catalog import _lookup
     from hermes_db.domains.kanban.postgres.notify import count_subscriptions
     slug = kb._explicit_board_slug(board) or kb.get_current_board()

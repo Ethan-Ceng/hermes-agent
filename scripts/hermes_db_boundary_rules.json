@@ -1036,9 +1036,9 @@
       ]
     },
     {
-      "target": "hermes_db.access._owner_only",
+      "target": "hermes_cli.db_sessions._owner_only",
       "category": "entry-bridge",
-      "reason": "Existing selected-backend/Worker entry dispatch only; no lower SQL workflow may acquire a resource or select application composition.",
+      "reason": "Existing selected-backend/Worker entry dispatch only; no lower SQL workflow may acquire a resource or select application composition. Task5 moves this same named entry bridge to its real application owner; no consumer is added.",
       "consumers": [
         "hermes_db/domains/plugin_storage/matrix/api.py"
       ]
@@ -2496,18 +2496,18 @@
       ]
     },
     {
-      "target": "hermes_db.factory.acquire_domain",
+      "target": "hermes_cli.db_domains.acquire_domain",
       "category": "entry-bridge",
-      "reason": "Existing selected-backend/Worker entry dispatch only; no lower SQL workflow may acquire a resource or select application composition.",
+      "reason": "Existing selected-backend/Worker entry dispatch only; no lower SQL workflow may acquire a resource or select application composition. Task5 moves this same named entry bridge to its real application owner; no consumer is added.",
       "consumers": [
         "hermes_db/domains/cron/api.py",
         "hermes_db/domains/verification/api.py"
       ]
     },
     {
-      "target": "hermes_db.factory.acquire_profile_domain",
+      "target": "hermes_cli.db_domains.acquire_profile_domain",
       "category": "entry-bridge",
-      "reason": "Existing selected-backend/Worker entry dispatch only; no lower SQL workflow may acquire a resource or select application composition.",
+      "reason": "Existing selected-backend/Worker entry dispatch only; no lower SQL workflow may acquire a resource or select application composition. Task5 moves this same named entry bridge to its real application owner; no consumer is added.",
       "consumers": [
         "hermes_db/domains/kanban/api.py",
         "hermes_db/domains/metrics/api.py",
@@ -2721,30 +2721,6 @@
       "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
       "consumers": [
         "hermes_db/domains/sessions/postgres/operations/mutation_branch.py"
-      ]
-    },
-    {
-      "target": "hermes_state_registry.acquire",
-      "category": "sqlite-bridge",
-      "reason": "Native adapter selected by the SQLite backend only; original SessionDB registry lifetime and bound method semantics.",
-      "consumers": [
-        "hermes_db/backends/sqlite/acquire.py"
-      ]
-    },
-    {
-      "target": "hermes_state_registry.release",
-      "category": "sqlite-bridge",
-      "reason": "Native adapter selected by the SQLite backend only; original SessionDB registry lifetime and bound method semantics.",
-      "consumers": [
-        "hermes_db/backends/sqlite/acquire.py"
-      ]
-    },
-    {
-      "target": "hermes_state_runtime",
-      "category": "sqlite-bridge",
-      "reason": "Native adapter selected by the SQLite backend only; original SessionDB registry lifetime and bound method semantics.",
-      "consumers": [
-        "hermes_db/backends/sqlite/acquire.py"
       ]
     },
     {

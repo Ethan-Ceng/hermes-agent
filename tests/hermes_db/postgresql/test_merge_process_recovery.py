@@ -47,7 +47,7 @@ try:
             debt, = rooms.due_room_grant_revokes(location, limit=10)
             assert debt['room_id'] == 'restart-room' and debt['grant'] == 'test-owned-token'
             assert debt['attempts'] == 0
-        from hermes_db.access import close_session_resources
+        from hermes_cli.db_sessions import close_session_resources
         close_session_resources()
     assert not attempts
     print(json.dumps({'ok': True, 'pid': os.getpid(), 'kind': kind, 'phase': phase}))

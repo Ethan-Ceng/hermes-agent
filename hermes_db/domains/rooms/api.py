@@ -6,7 +6,7 @@ from importlib import import_module
 from pathlib import Path
 from contextlib import contextmanager
 
-from hermes_db.core.resource import DomainResource
+from hermes_db.domains.resource import DomainResource
 from hermes_db.errors import StorageConfigurationError
 
 
@@ -52,7 +52,7 @@ def room_reference(store):
 
 
 def capture_room_store(profile_home=None):
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     with acquire_profile_domain("rooms", profile_home=profile_home) as store:
         if store.settings.backend != "postgresql":
             raise StorageConfigurationError("A PG room reference requires PostgreSQL storage")
@@ -72,7 +72,7 @@ def assert_sqlite_location(location):
 @contextmanager
 def open_room_store(reference):
     from hermes_cli.db_setup import _owning_profile
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     with _owning_profile(reference.profile_home), acquire_profile_domain("rooms", profile_home=reference.profile_home) as store:
         if store.settings.backend != "postgresql" or store.scope.store_id != reference.store_id:
             raise StorageConfigurationError("Captured room storage backend or store_id changed")
@@ -103,6 +103,6 @@ def room_operation(topic):
 
 
 class RoomResource(DomainResource):
-    def __init__(self, settings, scope, *, transactions, local_authority_gateway_id):
-        super().__init__("rooms", settings, scope, transactions=transactions)
+    def __init__(self, backend, *, local_authority_gateway_id):
+        super().__init__("rooms", backend)
         self.local_authority_gateway_id = local_authority_gateway_id

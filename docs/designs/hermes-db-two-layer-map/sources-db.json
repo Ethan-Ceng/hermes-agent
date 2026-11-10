@@ -25,62 +25,71 @@
       "hermes_cli/db_setup.py"
     ],
     "task": 5,
-    "status": "pending",
+    "status": "completed",
     "reason": "Real root definition/entry, not an old internal re-export shim.",
     "symbol_routes": {
       "_path": {
         "target": "hermes_cli/db_sessions.py",
         "task": 5,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       },
       "_owner_only": {
         "target": "hermes_cli/db_sessions.py",
         "task": 5,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       },
       "acquire_sessions": {
         "target": "hermes_cli/db_sessions.py",
         "task": 5,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       },
       "open_session_store": {
         "target": "hermes_cli/db_sessions.py",
         "task": 5,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       },
       "session_store_exists": {
         "target": "hermes_cli/db_sessions.py",
         "task": 5,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       },
       "close_session_resources_under": {
         "target": "hermes_cli/db_sessions.py",
         "task": 5,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       },
       "close_session_resources": {
         "target": "hermes_cli/db_sessions.py",
         "task": 5,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       },
       "release_session_store": {
         "target": "hermes_db/access.py",
         "task": 5,
         "action": "edit",
-        "constraint": "Real root definition/entry, not an old internal re-export shim."
+        "constraint": "Real root definition/entry, not an old internal re-export shim.",
+        "status": "completed"
       },
       "session_store_is_live": {
         "target": "hermes_db/access.py",
         "task": 5,
         "action": "edit",
-        "constraint": "Real root definition/entry, not an old internal re-export shim."
+        "constraint": "Real root definition/entry, not an old internal re-export shim.",
+        "status": "completed"
       }
     },
     "baseline_abi_sha256": "f36e84edf2840a2ebf3498774d22bbf528e95e0aec949c2c63e622f94fd81528",
@@ -264,35 +273,41 @@
     "action": "split",
     "targets": [
       "hermes_db/domains/sessions/sqlite.py",
-      "hermes_db/domains/runtime/sqlite.py"
+      "hermes_db/domains/runtime/sqlite.py",
+      "hermes_cli/db_sessions.py",
+      "hermes_db/domains/resource.py"
     ],
     "task": 5,
-    "status": "pending",
+    "status": "completed",
     "reason": "Existing Native Session/Runtime adapters are business-specific; preserve existing proxies only.",
     "symbol_routes": {
       "SQLiteRuntime": {
         "target": "hermes_db/domains/runtime/sqlite.py",
         "task": 5,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       },
       "SQLiteSessions": {
         "target": "hermes_db/domains/sessions/sqlite.py",
         "task": 5,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       },
       "acquire_sqlite": {
-        "target": "hermes_db/domains/sessions/sqlite.py",
+        "target": "hermes_cli/db_sessions.py",
         "task": 5,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams. Actual Session/Runtime object assembly belongs to the application owner; it consumes the selected BackendResource.",
+        "status": "completed"
       },
       "_bound_method": {
-        "target": "hermes_db/domains/sessions/sqlite.py",
+        "target": "hermes_db/domains/resource.py",
         "task": 5,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       }
     },
     "baseline_abi_sha256": "d570dea1c8fd28d46d8a8300d4b9fbe7a6592a22cb9729af26f168c313e0f98c",
@@ -329,7 +344,7 @@
       "hermes_db/contracts.py"
     ],
     "task": 5,
-    "status": "pending",
+    "status": "completed",
     "reason": "Real root definition/entry, not an old internal re-export shim.",
     "symbol_routes": {},
     "baseline_abi_sha256": "33828c925e95b4a0d86a5aa57fd706452943720a12c63bb11eac6851edc5e69d",
@@ -399,14 +414,15 @@
       "hermes_db/infra/resource.py"
     ],
     "task": 5,
-    "status": "pending",
+    "status": "completed",
     "reason": "Domain name/SQLite path and sessions are business resources; connection lease is technical.",
     "symbol_routes": {
       "DomainResource": {
         "target": "hermes_db/domains/resource.py",
         "task": 5,
         "action": "edit",
-        "constraint": "Domain name/SQLite path and sessions are business resources; connection lease is technical."
+        "constraint": "Domain name/SQLite path and sessions are business resources; connection lease is technical.",
+        "status": "completed"
       }
     },
     "baseline_abi_sha256": "b9385ba79d37bcdb9173d9732906ab1930b7a7ed3ea7b9e684cc7576ee200f6f",
@@ -440,7 +456,7 @@
       "hermes_db/domains/sessions/resource.py"
     ],
     "task": 5,
-    "status": "pending",
+    "status": "completed",
     "reason": "Contains Session/Runtime access and therefore remains business-owned.",
     "symbol_routes": {},
     "baseline_abi_sha256": "bbe0a0ac714bc3ea0919c0b2484bba950e4bb7109aa47d504ece6b5fdd2a9d71",
@@ -8040,26 +8056,29 @@
       "hermes_cli/db_sessions.py"
     ],
     "task": 5,
-    "status": "pending",
+    "status": "completed",
     "reason": "Real root definition/entry, not an old internal re-export shim.",
     "symbol_routes": {
       "acquire_db": {
         "target": "hermes_cli/db_sessions.py",
         "task": 5,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       },
       "acquire_domain": {
         "target": "hermes_cli/db_domains.py",
         "task": 5,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       },
       "acquire_profile_domain": {
         "target": "hermes_cli/db_domains.py",
         "task": 5,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       }
     },
     "baseline_abi_sha256": "3d34cdb85e9e8b170cfed7cd7d756feb57fc09d0ba24b1a5a33859605bd0b3e9",
@@ -8078,7 +8097,7 @@
       "hermes_db/handle.py"
     ],
     "task": 5,
-    "status": "pending",
+    "status": "completed",
     "reason": "Real root definition/entry, not an old internal re-export shim.",
     "symbol_routes": {},
     "baseline_abi_sha256": "2c7994652fa16ec044ce636d2a84650e7a2aef16bdb2324c76ec37a65b1edd52",
@@ -8096,44 +8115,50 @@
       "hermes_cli/db_diagnostics.py"
     ],
     "task": 5,
-    "status": "pending",
+    "status": "completed",
     "reason": "Real root definition/entry, not an old internal re-export shim.",
     "symbol_routes": {
       "configured_probe": {
         "target": "hermes_cli/db_diagnostics.py",
         "task": 5,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       },
       "profile_home_for_store": {
         "target": "hermes_db/health.py",
         "task": 5,
         "action": "edit",
-        "constraint": "Real root definition/entry, not an old internal re-export shim."
+        "constraint": "Real root definition/entry, not an old internal re-export shim.",
+        "status": "completed"
       },
       "is_postgresql_store": {
         "target": "hermes_db/health.py",
         "task": 5,
         "action": "edit",
-        "constraint": "Real root definition/entry, not an old internal re-export shim."
+        "constraint": "Real root definition/entry, not an old internal re-export shim.",
+        "status": "completed"
       },
       "storage_identity": {
         "target": "hermes_db/health.py",
         "task": 5,
         "action": "edit",
-        "constraint": "Real root definition/entry, not an old internal re-export shim."
+        "constraint": "Real root definition/entry, not an old internal re-export shim.",
+        "status": "completed"
       },
       "own_profile_for_store": {
         "target": "hermes_db/health.py",
         "task": 5,
         "action": "edit",
-        "constraint": "Real root definition/entry, not an old internal re-export shim."
+        "constraint": "Real root definition/entry, not an old internal re-export shim.",
+        "status": "completed"
       },
       "persisted_profile_id": {
         "target": "hermes_db/health.py",
         "task": 5,
         "action": "edit",
-        "constraint": "Real root definition/entry, not an old internal re-export shim."
+        "constraint": "Real root definition/entry, not an old internal re-export shim.",
+        "status": "completed"
       }
     },
     "baseline_abi_sha256": "b8157f43d566367db364c3bc216127b7e927f55c53111f6faeb97a263f4a47d6",
@@ -8404,7 +8429,7 @@
       "hermes_cli/db_domains.py"
     ],
     "task": 5,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "2f280251880f7156af75b2fedf514c1d666f124681530ee5aa5e037a67b41f20",
@@ -8845,7 +8870,7 @@
       "hermes_cli/db_scope.py"
     ],
     "task": 5,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "b13f0601d2c517ab36fc642a0c04360cea1582cd4c367c5b8c9d8caa46b3ee63",
@@ -10236,20 +10261,22 @@
       "hermes_cli/db_scope.py"
     ],
     "task": 5,
-    "status": "pending",
+    "status": "completed",
     "reason": "Real root definition/entry, not an old internal re-export shim.",
     "symbol_routes": {
       "bind_profile_home": {
         "target": "hermes_cli/db_scope.py",
         "task": 5,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       },
       "DatabaseScope": {
         "target": "hermes_db/scope.py",
         "task": 5,
         "action": "edit",
-        "constraint": "Real root definition/entry, not an old internal re-export shim."
+        "constraint": "Real root definition/entry, not an old internal re-export shim.",
+        "status": "completed"
       }
     },
     "baseline_abi_sha256": "f8d9f94a25071d413a88b51521893cd67809a19c1608b66d50cb0bb9b34de515",

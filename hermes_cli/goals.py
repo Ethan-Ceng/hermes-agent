@@ -604,7 +604,7 @@ def _acquire_session_db(home: str):
     """The registry's shared handle for ``home/state.db``. A bare ``SessionDB()`` here was a SECOND
     writer per profile beside the gateway's registry handle — its own token-writer thread and
     close-time checkpoint (the #90837 corruption shape), doubled under multiplexing."""
-    from hermes_db.access import acquire_sessions as acquire
+    from hermes_cli.db_sessions import acquire_sessions as acquire
     return acquire(Path(home) / "state.db")
 
 

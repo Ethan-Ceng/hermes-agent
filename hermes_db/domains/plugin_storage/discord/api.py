@@ -15,7 +15,7 @@ class DiscordRef:
 
 
 def capture_discord(profile_home):
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.core.values import resource_key
     with acquire_profile_domain("discord_recovery", profile_home=profile_home) as resource:
         return DiscordRef(resource.scope.profile_home, resource.scope.require_store_id(), resource_key(resource._transactions))
@@ -24,7 +24,7 @@ def capture_discord(profile_home):
 @contextmanager
 def open_discord(reference, *, write=False):
     from hermes_cli.db_setup import _owning_profile
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.core.values import resource_key
     with _owning_profile(reference.profile_home), acquire_profile_domain("discord_recovery", profile_home=reference.profile_home) as resource:
         if resource.settings.backend != "postgresql" or resource.scope.store_id != reference.store_id:

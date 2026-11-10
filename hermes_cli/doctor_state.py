@@ -486,7 +486,7 @@ def _retired_wal_holders(f: Finding, state_db_path: Path, _DHH: str) -> bool:
 def _check_state_db(should_fix: bool, f: Finding) -> None:
     """state.db session count, FTS write health, schema repair, stats snapshot, WAL size."""
     from hermes_cli.doctor import HERMES_HOME, _DHH
-    from hermes_db.health import configured_probe
+    from hermes_cli.db_diagnostics import configured_probe
     if (storage := configured_probe(HERMES_HOME)) is not None:
         if storage["status"] == "ok":
             check_ok("PostgreSQL system database storage is reachable and schema-compatible")

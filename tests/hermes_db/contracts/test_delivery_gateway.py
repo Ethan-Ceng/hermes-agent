@@ -11,7 +11,7 @@ async def test_core_gateway_uses_process_scope_and_retains_claim_across_send(cor
     from gateway import delivery_backend, delivery_ledger as dl
     from gateway.platforms.base import SendResult
     from hermes_cli import db_setup
-    from hermes_db import factory
+    from hermes_cli import db_sessions as factory
     from hermes_db.domains.runtime.postgres.delivery_claim import DeliveryClaim
     from hermes_db.handle import DatabaseHandle
     from hermes_db.settings import DatabaseSettings, PostgresSettings

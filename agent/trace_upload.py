@@ -226,7 +226,8 @@ def _do_upload(
 def load_session_messages(session_id: str, db_path=None) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """``(messages, meta)`` from SQLite; ``meta`` is ``{}`` when the session row is missing (a live, untitled
     session may still have messages)."""
-    from hermes_db.access import release_session_store as release_or_close, acquire_sessions as acquire
+    from hermes_db.access import release_session_store as release_or_close
+    from hermes_cli.db_sessions import acquire_sessions as acquire
     db = acquire(db_path or None)
     try:
         resolved = db.resolve_session_id(session_id) or session_id

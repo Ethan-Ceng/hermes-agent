@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`IMPLEMENTING`；阶段：SessionDB连接资源拆分已完成；下一实施任务：Task5；完成：4 / 20；阻塞：无；日期2026-11-11。
+- 整体状态：`IMPLEMENTING`；阶段：数据源选择与业务资源获取已拆分；下一实施任务：Task6；完成：5 / 20；阻塞：无；日期2026-11-11。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 范围与可判定边界
@@ -130,6 +130,7 @@ function Check-Storage {
 | 2026-11-11 | IMPLEMENTING | Task2完成；下一项Task3 | PG infra/Schema token/消费者及最新双主机合同、真实PG和静态通过，2/20 |
 | 2026-11-11 | IMPLEMENTING | Task3完成；下一项Task4 | SQLite机制/应用策略、纯载荷恢复、双主机合同及最新全部静态通过，3/20 |
 | 2026-11-11 | IMPLEMENTING | Task4完成；下一项Task5 | 两端完整Native、105消费者与资源合同exit0，4/20 |
+| 2026-11-11 | IMPLEMENTING | Task5完成；下一项Task6 | 后端/业务/应用获取拆分，两端合同、真实PG及静态exit0，5/20 |
 
 ## 任务依赖总表
 
@@ -139,7 +140,7 @@ function Check-Storage {
 | 2 | 提纯PostgreSQL连接池与事务基础设施 | 1 | completed |
 | 3 | 提取SQLite公共连接与WAL机制 | 2 | completed |
 | 4 | 分离SessionDB连接状态、池与关闭语义 | 3 | completed |
-| 5 | 拆开数据源选择和业务资源获取 | 2,3,4 | pending |
+| 5 | 拆开数据源选择和业务资源获取 | 2,3,4 | completed |
 | 6 | 分离PG迁移执行与业务Schema就绪判断 | 5 | pending |
 | 7 | 建立SQLite会话显式生命周期和普通打开 | 4,5,6 | pending |
 | 8 | 闭合其他SQLite领域的首次创建与无DDL打开 | 7 | pending |
@@ -416,11 +417,13 @@ SessionDB业务对象不再拥有底层池实现；完整Native state组通过�
 
 Task4完成结算（此前诊断/失败历史全部保留）：生产hash a8996da469633348f8d68a14ef4d7aa9b711ccdbdb997240433a874ca9e78f1b。最新完整Windows Native224文件1757pass/0fail/147skip、Linux224文件1888pass/0fail/16skip；Windows105消费者文件2283pass/0fail/27skip、Linux105文件2309pass/0fail/1skip；三文件资源合同Windows8pass/0fail/1skip、Linux9pass/0fail/0skip，六个批次均实际exit0。最新静态16check/health0、DB10180/0、plugin845/26、生成契约和空白均exit0，提交前再次核对。固定61+4、31revision、29表、root11保持；DB中间368及全项目生产Python3439不是最终预算/净减少声明。无退役测试删除，原四个正常Schema错误测试整类迁移，新增初始化与独立资源行为合同。
 
-完整108条安全命令记录、实际解释器/cwd/source身份、两端SDK版本、退出码、逐文件skip和失败整改见[Task4证据](../designs/hermes-db-two-layer-task4.json)及[诊断账本](../debug/hermes-db-task4-consumers.md)。原始日志仍ignored；最终Task17–20冻结/完整PG/发行/真实SDK/独立审查未执行，不解除原统一Task24、七项非WSL缺证或Windows八项基准问题。本地Task4提交创建后在Task5启动记录实际hash；不推送/合并/部署。
+完整安全命令记录、实际解释器/cwd/source身份、两端SDK版本、退出码、逐文件skip和失败整改见[Task4证据](../designs/hermes-db-two-layer-task4.json)及[诊断账本](../debug/hermes-db-task4-consumers.md)。原始日志仍ignored；最终Task17–20冻结/完整PG/发行/真实SDK/独立审查未执行，不解除原统一Task24、七项非WSL缺证或Windows八项基准问题。本地Task4提交创建后在Task5启动记录实际hash；不推送/合并/部署。
+
+Task4提交后校验补记：本轮额外比较实际Git blob时发现sources-native分区的索引值记录了Windows CRLF字节，工作区校验未覆盖Git的LF归一化。已创建仅改映射索引的独立本地补丁提交0417ac0f3aab60e34cad42fe66c22024bca18a48，并逐项重新验证所有已提交分区。原Task4实现提交11f46b5dc5d6af39f24ab181debfb41771d89e15及生产源码未改。当前Task5字段已完整备份/恢复；所有后续分区写UTF-8/LF，操作审计同时校验working/index/committed三方，记录该验收缺口与修正，不以旧工作区通过掩盖。
 
 ## Task 5：拆开数据源选择和业务资源获取
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -474,11 +477,23 @@ factory只选择技术资源；Profile获取与业务资源装配明确归应用
 
 ### 执行结果
 
-未实施；planning不计完成。
+2026-11-11启动：Task4实际恢复commit为11f46b5dc5d6af39f24ab181debfb41771d89e15。Task4六个完整Native/消费者/资源批次及提交前静态均exit0，4/20；Task5尚未验证。先按索引核对当前路线，建立独立infra资源及owner-only开库前拒绝红测；SQLite适配只接受应用捕获的激活callback，不从业务层读取Profile/秘密。
 
 ### 验证证据
 
 未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
+
+Task5当前核对：原_bound_method同时服务Sessions与Runtime，按真实消费者归公共业务resource模块一次定义；边界检查器需把该共享模块与具体领域包区分，不能通过新增跨层豁免掩盖。SQLite业务适配接收应用捕获的activate及原固定名字分发表解析函数，保留现有必要代理和晚绑定patch行为，不从业务层导入Profile/Native应用facade。BackendResource选择与短事务借还归infra，DomainResource保持每个业务视图独立关闭，进程池不因peer/board close失效。原新红测Windows2文件1pass/3fail（缺新入口、两个Worker配置先读），现有两Profile/线程/peer合同为绿；失败与后续完整证据继续保留。
+
+Task5中期证据：规定的四文件合同组Windows/Linux各24pass，exit0。当前PG三文件完整批次（single_backend、新公开插件历史、Profile删除身份竞态）9pass/0fail，exit0；真实Schema仍由fixture确认归属并随机隔离。边界行为新增两例先11pass/2fail，修正共享模块方向约束后13pass；实际DB依赖10008/0。自动审批曾把增加拒绝规则误判为允许范围扩大并拒绝，未绕过；只读内存比较10092条边保留24个旧拒绝、增加16个拒绝、移除0个拒绝后，精确hash重试获准。该拒绝及证明保留，不新增许可。
+
+插件原Achievements扫描是实际消费者，改用已发布plugins.plugin_storage模块的session_history上下文，保留查询、identity及关闭语义；原业务测试及新SQLite异常关闭合同均通过。私有插件跨界引用从845降843，精确删除两个退役允许项，不自动更新/扩展基线。此消费者闭合提前于Task15，但不能计作Task15完整插件/SDK生命周期成果。Windows完整扩展合同遇到264字符媒体fixture路径失败；独立短D盘TMP下原三例3pass，生产授权、文件名、pin及路径算法未改。双主机扩展批次/最终静态仍在执行，Task5保持in_progress。
+
+Task5最新扩展合同：同一106文件组Linux566pass/0fail/4skip，exit0；Windows初次559pass/3fail/8skip均为264字符文件路径错误，短D盘独立TMP完整重跑562pass/0fail/8skip，exit0，原断言全部保留，两端真实总数均570。规定四文件组Windows最新24pass、Linux最新24pass，均exit0。操作审计生产hash d8bde783dd66ff8b98131c6a013a81dd4675fcd3a2b800a27e76b3efdb407c21，65固定资源/31revision/29表/root11、原固定runtime分发表及190处受影响实际SQL字面量保持；DB中间368，原计数口径全项目Python3443对基准3435（该旧口径含插件内测试，非算法净减少）。暂存源码与映射三方hash门禁及最新Check-Storage仍待完成，Task5尚不计完成。
+
+Task5完成结算：最终生产hash8dc212d75c7ba425675d3f2e3d6f13f0f07df796ddec1d99dd4cd4c431144b6d。规定完整四文件组Windows24pass/0fail、Linux24pass/0fail，真实PG三文件组9pass/0fail，均最新exit0。扩展106文件组Windows562pass/0fail/8skip、Linux566pass/0fail/4skip；扩展组之后仅有已记录的EOF格式修正及基准复现支持的测试事件预算修正，原业务断言未删除。最新Check-Storage16check/health0、DB10008/0、plugin843/26、生成契约和空白均exit0。working与暂存Git分区hash校验通过，提交后还核对全部committed blob。
+
+实际定义、全部消费者/模块别名patch、固定分发表、190处SQL及65资源审计，展开命令/解释器/cwd/source身份、退出码、skip和全部失败整改见[Task5证据](../designs/hermes-db-two-layer-task5.json)及[Task5诊断记录](../debug/hermes-db-task5-resource-acquisition.md)。没有删除正常或退役测试，旧内部路径无shim；公开插件历史API有实际消费者。DB中间368和全项目旧口径3443并非最终359门禁或算法净减少。Task6–20、最终冻结/完整SDK/发行/独立审查及原统一Task24、七项非WSL、Windows Profile8均不在本Task宣称完成。本地Task5提交创建后在Task6启动记录实际hash。
 
 ## Task 6：分离PG迁移执行与业务Schema就绪判断
 
@@ -1354,7 +1369,7 @@ Windows独立发行组使用同根Windows实际路径、其PG父解释器及私�
 
 ### 当前执行结果
 
-- 当前实施：Task1–4已验证，4/20；Task4本地提交后立即进入Task5。
+- 当前实施：Task1–5已验证，5/20；Task5本地提交后立即进入Task6。
 - Task1–3证据见各Task；Task4诊断/整改进行中。最终完整冻结批次、SDK及独立审查尚未完成。
 - 规划结构/基准/本地链接及文档静态自检：实际命令与结果写入下方准备记录。
 - 代码审查：本轮尚未执行；旧APPROVED只属于已完成持久层职责精简。

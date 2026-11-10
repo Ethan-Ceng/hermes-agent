@@ -9,7 +9,7 @@ from hermes_db.tables.kanban import tasks, links
 from hermes_db.core.values import decode_text, encode_text
 import json
 from uuid import uuid4
-from hermes_db.core.resource import DomainResource
+from hermes_db.domains.resource import DomainResource
 from hermes_db.errors import StorageError, StorageBusyError
 from hermes_db.tables.kanban_workspaces import paths, references
 import os

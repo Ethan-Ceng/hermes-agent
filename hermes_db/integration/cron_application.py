@@ -4,7 +4,7 @@ Only callbacks the SQL workflows actually use are composed here; process IDs and
 active-send locks remain the original owners, and observers still run after commit.
 """
 
-from hermes_db.integration.profile_context import OwnedProfileContext
+from hermes_cli.db_scope import OwnedProfileContext
 
 class CronExecutionRuntime:
     def __init__(self, scope):

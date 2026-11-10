@@ -127,7 +127,7 @@ def test_original_import_job_recovers_without_reimporting_graph(pg_profiles, tmp
     from contextlib import contextmanager
     from sqlalchemy import select
     from hermes_db.errors import StorageBusyError, UnknownCommitError
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.domains.kanban.postgres import files
     from hermes_db.integration.transfer import kanban as publication
     from hermes_db.tables.kanban_file_jobs import file_jobs

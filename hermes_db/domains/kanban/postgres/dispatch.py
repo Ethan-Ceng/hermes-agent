@@ -9,7 +9,7 @@ from threading import Event
 import uuid
 from sqlalchemy import BigInteger, cast, delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
-from hermes_db.core.resource import DomainResource
+from hermes_db.domains.resource import DomainResource
 from hermes_db.tables.kanban_dispatch import dispatch_leases as leases
 from dataclasses import dataclass, replace
 import time

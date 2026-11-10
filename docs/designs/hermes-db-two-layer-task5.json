@@ -1,0 +1,2113 @@
+{
+  "task": 5,
+  "status": "completed",
+  "source_audit": {
+    "status": "PASS",
+    "parent_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+    "implementation_parent": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+    "source_hash": "8dc212d75c7ba425675d3f2e3d6f13f0f07df796ddec1d99dd4cd4c431144b6d",
+    "fixed_resources": 65,
+    "revisions": 31,
+    "table_modules": 29,
+    "db_modules": 368,
+    "root_entries": 11,
+    "project_python_excluding_top_level_tests_evals": 3443,
+    "baseline_same_counting_basis": 3435,
+    "counting_note": "Same metric as prior Task evidence; includes embedded plugin tests. Moves are not net algorithm reduction. Final DB<=359 remains required.",
+    "changed_sql_occurrences_unchanged": 190,
+    "runtime_dispatch_unchanged": {
+      "begin_epoch": "begin_runtime_epoch",
+      "admit_input": "admit_session_input",
+      "get_admission": "get_session_admission",
+      "find_admission": "find_session_admission",
+      "list_admissions": "list_session_admissions",
+      "claim_input": "claim_session_input",
+      "settle_input": "settle_session_input",
+      "cancel_input": "cancel_session_input",
+      "steer_input": "steer_session_input",
+      "revert_steer": "revert_steer_input",
+      "rehome_inputs": "rehome_queued_inputs",
+      "retarget_automation": "retarget_local_automation",
+      "recover_inputs": "recover_session_inputs",
+      "mutate_session": "mutate_runtime_session",
+      "resolve_unknown": "resolve_unknown_session_input",
+      "register_worker": "register_worker_execution",
+      "adopt_worker": "adopt_worker_execution",
+      "mutate_worker": "mutate_worker_execution",
+      "apply_worker_receipt": "apply_worker_receipt"
+    },
+    "retired_imports": [],
+    "missing_moved_import_bindings": [],
+    "factory_or_backend_application_business_imports": 0,
+    "deleted_tests": [],
+    "map_working_lf_hashes_verified": true,
+    "task4_checksum_correction": {
+      "task": 4,
+      "kind": "documentation_checksum_correction",
+      "implementation_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "correction_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "changed_paths": [
+        "docs/designs/hermes-db-two-layer-map.json"
+      ],
+      "all_committed_partitions_verified": true,
+      "production_code_changed": false
+    }
+  },
+  "required_latest_batches": [
+    {
+      "group": "native-win-4",
+      "record": "native-win-c70d5db189504718b20c8a4ee5a10927.log.json",
+      "summary": [
+        "=== Summary: 4 files, 24 tests passed, 0 failed (100% complete) in 3.4s (4 workers) ==="
+      ],
+      "reported_file_skips": []
+    },
+    {
+      "group": "native-linux-4",
+      "record": "native-linux-d44abd633e9147cc834fe5d6a0fdcfa7.log.json",
+      "summary": [
+        "=== Summary: 4 files, 24 tests passed, 0 failed (100% complete) in 10.3s (4 workers) ==="
+      ],
+      "reported_file_skips": []
+    },
+    {
+      "group": "pg-linux-3",
+      "record": "pg-linux-75d96000a59b43678a1dd16cb112b95a.log.json",
+      "summary": [
+        "=== Summary: 3 files, 9 tests passed, 0 failed (100% complete) in 53.1s (1 workers) ==="
+      ],
+      "reported_file_skips": []
+    },
+    {
+      "group": "native-win-106",
+      "record": "native-win-55187049621741b5a137a4652c5d4321.log.json",
+      "summary": [
+        "=== Summary: 106 files, 562 tests passed, 0 failed, 8 skipped (100% complete) in 241.9s (4 workers) ==="
+      ],
+      "reported_file_skips": [
+        {
+          "file": "tests/hermes_db/contracts/test_single_backend.py",
+          "skipped": 1
+        },
+        {
+          "file": "tests/hermes_db/contracts/test_domain_resources.py",
+          "skipped": 1
+        },
+        {
+          "file": "tests/hermes_db/contracts/test_matrix_close.py",
+          "skipped": 2
+        },
+        {
+          "file": "tests/hermes_db/test_distribution.py",
+          "skipped": 4
+        }
+      ]
+    },
+    {
+      "group": "native-linux-106",
+      "record": "native-linux-3966694de80f47e6adb1dba1db20540f.log.json",
+      "summary": [
+        "=== Summary: 106 files, 566 tests passed, 0 failed, 4 skipped (100% complete) in 411.5s (4 workers) ==="
+      ],
+      "reported_file_skips": [
+        {
+          "file": "tests/hermes_db/test_distribution.py",
+          "skipped": 4
+        }
+      ]
+    },
+    {
+      "group": "static",
+      "record": "static-a571e8bc365a4c12b8be89821b1eafa4.log.json",
+      "summary": [
+        "scripts/check: 16 checks, ok"
+      ]
+    },
+    {
+      "group": "db-boundary",
+      "record": "db-boundary-4fd58f94054640fc8988f504aa7ff023.log.json",
+      "summary": [
+        "hermes_db boundaries: 10008 resolved imports, 0 violations"
+      ]
+    },
+    {
+      "group": "plugin-boundary",
+      "record": "plugin-boundary-abe07c2c5ff0430eb9ee77ba19379e38.log.json",
+      "summary": [
+        "module_to_core: 843",
+        "core_to_module: 26"
+      ]
+    },
+    {
+      "group": "contracts",
+      "record": "contracts-f33d1c0a64f24a599b54fa13828e8972.log.json",
+      "summary": []
+    },
+    {
+      "group": "whitespace",
+      "record": "whitespace-32b1c02f3b704036a0220d2ee28f1299.log.json",
+      "summary": []
+    },
+    {
+      "group": "task5-audit-staged",
+      "record": "task5-audit-staged-4f43efd36a874c12b03bc5f0c4acf3e5.log.json",
+      "summary": []
+    },
+    {
+      "group": "task5-provenance-win",
+      "record": "task5-provenance-win-cd4fded086224171b968cdd40e878567.log.json",
+      "summary": []
+    },
+    {
+      "group": "task5-provenance-linux",
+      "record": "task5-provenance-linux-6d9e63c7619142169c06db8c8e0cea71.log.json",
+      "summary": []
+    },
+    {
+      "group": "task5-pm-linux-dev",
+      "record": "task5-pm-linux-dev-6de83ba6481048d9affe769b3434ba1c.log.json",
+      "summary": []
+    },
+    {
+      "group": "task5-plugin-api-docs",
+      "record": "task5-plugin-api-docs-61e62df7924a4963ad4cc7bcd7e59096.log.json",
+      "summary": []
+    }
+  ],
+  "consumer_migration": {
+    "changed": [
+      "acp_adapter/catalog.py",
+      "acp_adapter/gateway_session_meta.py",
+      "acp_adapter/session.py",
+      "agent/session_persistence.py",
+      "agent/trace_upload.py",
+      "cron/bot_chat_legacy.py",
+      "cron/scheduler.py",
+      "gateway/channel_directory.py",
+      "gateway/delivery_backend.py",
+      "gateway/lifecycle_storage.py",
+      "gateway/mirror.py",
+      "gateway/platforms/api_server.py",
+      "gateway/readiness.py",
+      "gateway/run.py",
+      "gateway/run_profile_reconcile.py",
+      "gateway/run_runtime.py",
+      "gateway/run_session_storage.py",
+      "gateway/session_db_recovery.py",
+      "gateway/session_persistence.py",
+      "gateway/session_worker_kanban_context.py",
+      "gateway/session_worker_reads.py",
+      "gateway/session_worker_recall.py",
+      "gateway/shutdown_flush.py",
+      "gateway/slash_commands_status.py",
+      "gateway/wake.py",
+      "hermes_cli/cli_commands_mixin.py",
+      "hermes_cli/cli_snapshot.py",
+      "hermes_cli/console_engine.py",
+      "hermes_cli/data_cleanup_storage.py",
+      "hermes_cli/db_diagnostics.py",
+      "hermes_cli/db_domains.py",
+      "hermes_cli/db_sessions.py",
+      "hermes_cli/db_setup.py",
+      "hermes_cli/doctor_state.py",
+      "hermes_cli/gateway_session_store.py",
+      "hermes_cli/goals.py",
+      "hermes_cli/kanban_db_connect.py",
+      "hermes_cli/kanban_db_dispatch.py",
+      "hermes_cli/kanban_db_identity.py",
+      "hermes_cli/kanban_owner_recovery.py",
+      "hermes_cli/main_agent_cmds.py",
+      "hermes_cli/main_session_storage.py",
+      "hermes_cli/main_tui_launch.py",
+      "hermes_cli/observability/worker_metrics_shutdown.py",
+      "hermes_cli/profile_file_moves.py",
+      "hermes_cli/profile_identity.py",
+      "hermes_cli/profiles.py",
+      "hermes_cli/profiles_deletion_storage.py",
+      "hermes_cli/projects_db.py",
+      "hermes_cli/sessions_cmd.py",
+      "hermes_cli/terminal_breadcrumbs.py",
+      "hermes_cli/update_storage.py",
+      "hermes_cli/web_server_sessions.py",
+      "hermes_db/access.py",
+      "hermes_db/domains/cron/api.py",
+      "hermes_db/domains/kanban/api.py",
+      "hermes_db/domains/kanban/postgres/dispatch.py",
+      "hermes_db/domains/kanban/postgres/effects.py",
+      "hermes_db/domains/kanban/postgres/files.py",
+      "hermes_db/domains/kanban/postgres/workspaces.py",
+      "hermes_db/domains/metrics/api.py",
+      "hermes_db/domains/plugin_storage/discord/api.py",
+      "hermes_db/domains/plugin_storage/matrix/api.py",
+      "hermes_db/domains/plugin_storage/records/api.py",
+      "hermes_db/domains/plugin_storage/retain/api.py",
+      "hermes_db/domains/projects/api.py",
+      "hermes_db/domains/rooms/api.py",
+      "hermes_db/domains/verification/api.py",
+      "hermes_db/integration/api_resources.py",
+      "hermes_db/integration/archive_refs.py",
+      "hermes_db/integration/cron_application.py",
+      "hermes_db/integration/kanban_application.py",
+      "hermes_db/integration/kanban_owner.py",
+      "hermes_db/integration/media_retirement.py",
+      "hermes_db/integration/metrics_snapshot.py",
+      "hermes_db/integration/observations.py",
+      "hermes_db/integration/runtime_access.py",
+      "hermes_db/integration/session_composition.py",
+      "hermes_db/integration/transfer/kanban.py",
+      "hermes_db/maintenance.py",
+      "plugins/hermes-achievements/dashboard/plugin_api.py",
+      "plugins/hermes-achievements/tests/test_achievement_engine.py",
+      "tests/hermes_cli/test_sessions_command_boundary.py",
+      "tests/hermes_db/contracts/conftest.py",
+      "tests/hermes_db/contracts/test_acquisition.py",
+      "tests/hermes_db/contracts/test_api_native_http_sessions.py",
+      "tests/hermes_db/contracts/test_api_resource_selection.py",
+      "tests/hermes_db/contracts/test_api_run_resource_selection.py",
+      "tests/hermes_db/contracts/test_dashboard_native_storage.py",
+      "tests/hermes_db/contracts/test_delegations.py",
+      "tests/hermes_db/contracts/test_delivery_gateway.py",
+      "tests/hermes_db/contracts/test_domain_resources.py",
+      "tests/hermes_db/contracts/test_file_consumers.py",
+      "tests/hermes_db/contracts/test_gateway_storage_boundary.py",
+      "tests/hermes_db/contracts/test_kanban_owner_reference.py",
+      "tests/hermes_db/contracts/test_surface_acquisition.py",
+      "tests/hermes_db/dataset_selection_support.py",
+      "tests/hermes_db/postgresql/scenarios/retain_recovery.py",
+      "tests/hermes_db/postgresql/test_cron_bot_delivery.py",
+      "tests/hermes_db/postgresql/test_cron_executions.py",
+      "tests/hermes_db/postgresql/test_distribution_initialization.py",
+      "tests/hermes_db/postgresql/test_domain_maintenance.py",
+      "tests/hermes_db/postgresql/test_domain_schema.py",
+      "tests/hermes_db/postgresql/test_health_archive_refs.py",
+      "tests/hermes_db/postgresql/test_hosted_submission_receipt.py",
+      "tests/hermes_db/postgresql/test_kanban_board_files.py",
+      "tests/hermes_db/postgresql/test_kanban_interactive_worker.py",
+      "tests/hermes_db/postgresql/test_kanban_owner_recovery.py",
+      "tests/hermes_db/postgresql/test_kanban_transfer.py",
+      "tests/hermes_db/postgresql/test_kanban_worker_rpc.py",
+      "tests/hermes_db/postgresql/test_kanban_worker_upload.py",
+      "tests/hermes_db/postgresql/test_merge_collaboration_consumers.py",
+      "tests/hermes_db/postgresql/test_merge_collaboration_contracts.py",
+      "tests/hermes_db/postgresql/test_merge_commit_recovery.py",
+      "tests/hermes_db/postgresql/test_merge_process_recovery.py",
+      "tests/hermes_db/postgresql/test_metrics_consumers.py",
+      "tests/hermes_db/postgresql/test_review_collaboration.py",
+      "tests/hermes_db/postgresql/test_review_foundation_room_routing.py",
+      "tests/hermes_db/postgresql/test_room_attachment_service.py",
+      "tests/hermes_db/postgresql/test_room_coordination.py",
+      "tests/hermes_db/postgresql/test_room_faults.py",
+      "tests/hermes_db/postgresql/test_room_policy.py",
+      "tests/hermes_db/postgresql/test_room_route_fences.py",
+      "tests/hermes_db/postgresql/test_room_work.py",
+      "tests/hermes_db/postgresql/test_rooms_store.py",
+      "tests/hermes_db/postgresql/test_startup_requirements.py",
+      "tests/hermes_db/postgresql/test_surface_flow.py",
+      "tests/hermes_db/postgresql/test_unified_surfaces.py",
+      "tests/hermes_db/postgresql/test_worktree_storage.py",
+      "tests/hermes_db/single_backend_core.py",
+      "tests/hermes_db/test_distribution.py",
+      "tests/hermes_db/test_factory.py",
+      "tests/hermes_db/test_optional_dependencies.py",
+      "tests/hermes_db/test_profile_deletion_storage.py",
+      "tests/hermes_db/test_usage_writer.py",
+      "tests/tools/test_session_owner_reads.py",
+      "tests/tools/test_session_search_worker_store.py",
+      "tools/bot_live_delivery.py",
+      "tools/cronjob_tools.py",
+      "tools/delegate_tool.py",
+      "tools/kanban_tools.py",
+      "tools/process_registry_results.py",
+      "tools/react_to_message_tool.py",
+      "tools/session_search_tool.py",
+      "tui_gateway/agent_callbacks.py",
+      "tui_gateway/compute_host.py",
+      "tui_gateway/methods_profiles.py",
+      "tui_gateway/methods_session.py",
+      "tui_gateway/server.py",
+      "tui_gateway/session_workdir.py"
+    ],
+    "import_nodes": 191,
+    "module_moves": {
+      "hermes_db.core.resource": "hermes_db.domains.resource",
+      "hermes_db.core.session_resource": "hermes_db.domains.sessions.resource",
+      "hermes_db.integration.profile_context": "hermes_cli.db_scope",
+      "hermes_db.integration.domain_composition": "hermes_cli.db_domains"
+    },
+    "symbol_moves": {
+      "hermes_db.factory": {
+        "acquire_db": "hermes_cli.db_sessions",
+        "acquire_domain": "hermes_cli.db_domains",
+        "acquire_profile_domain": "hermes_cli.db_domains"
+      },
+      "hermes_db.access": {
+        "_path": "hermes_cli.db_sessions",
+        "_owner_only": "hermes_cli.db_sessions",
+        "acquire_sessions": "hermes_cli.db_sessions",
+        "open_session_store": "hermes_cli.db_sessions",
+        "session_store_exists": "hermes_cli.db_sessions",
+        "close_session_resources_under": "hermes_cli.db_sessions",
+        "close_session_resources": "hermes_cli.db_sessions"
+      },
+      "hermes_db.scope": {
+        "bind_profile_home": "hermes_cli.db_scope"
+      },
+      "hermes_db.health": {
+        "configured_probe": "hermes_cli.db_diagnostics"
+      },
+      "hermes_db.backends.sqlite.acquire": {
+        "SQLiteRuntime": "hermes_db.domains.runtime.sqlite",
+        "SQLiteSessions": "hermes_db.domains.sessions.sqlite",
+        "acquire_sqlite": "hermes_cli.db_sessions",
+        "_bound_method": "hermes_db.domains.resource"
+      }
+    },
+    "module_alias_patch_consumers": [
+      "plugins/hermes-achievements/tests/test_achievement_engine.py",
+      "tests/hermes_cli/test_sessions_command_boundary.py",
+      "tests/hermes_db/contracts/test_api_native_http_sessions.py",
+      "tests/hermes_db/contracts/test_api_resource_selection.py",
+      "tests/hermes_db/contracts/test_api_run_resource_selection.py",
+      "tests/hermes_db/contracts/test_dashboard_native_storage.py",
+      "tests/hermes_db/contracts/test_delivery_gateway.py",
+      "tests/hermes_db/contracts/test_file_consumers.py",
+      "tests/hermes_db/contracts/test_gateway_storage_boundary.py",
+      "tests/hermes_db/contracts/test_kanban_owner_reference.py",
+      "tests/hermes_db/contracts/test_surface_acquisition.py",
+      "tests/hermes_db/test_profile_deletion_storage.py"
+    ]
+  },
+  "environments": {
+    "win": {
+      "python": "D:\\AI\\hermes-db-packages\\.build\\two-layer-dev\\win\\env-task4-full\\Scripts\\python.exe",
+      "platform": "win32",
+      "source": {
+        "hermes_db.factory": "D:\\AI\\hermes-db-packages\\hermes_db\\factory.py",
+        "hermes_db.infra.resource": "D:\\AI\\hermes-db-packages\\hermes_db\\infra\\resource.py",
+        "hermes_db.domains.resource": "D:\\AI\\hermes-db-packages\\hermes_db\\domains\\resource.py",
+        "hermes_cli.db_sessions": "D:\\AI\\hermes-db-packages\\hermes_cli\\db_sessions.py",
+        "hermes_cli.db_domains": "D:\\AI\\hermes-db-packages\\hermes_cli\\db_domains.py",
+        "hermes_cli.db_scope": "D:\\AI\\hermes-db-packages\\hermes_cli\\db_scope.py",
+        "plugins.plugin_storage": "D:\\AI\\hermes-db-packages\\plugins\\plugin_storage.py"
+      },
+      "versions": {
+        "SQLAlchemy": "2.1.6",
+        "psycopg": "3.3.7",
+        "mautrix": "not installed: declared Linux-only matrix extra",
+        "agent-client-protocol": "0.9.0"
+      },
+      "launch_home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "launch_runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime"
+    },
+    "linux": {
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "platform": "linux",
+      "source": {
+        "hermes_db.factory": "/mnt/d/AI/hermes-db-packages/hermes_db/factory.py",
+        "hermes_db.infra.resource": "/mnt/d/AI/hermes-db-packages/hermes_db/infra/resource.py",
+        "hermes_db.domains.resource": "/mnt/d/AI/hermes-db-packages/hermes_db/domains/resource.py",
+        "hermes_cli.db_sessions": "/mnt/d/AI/hermes-db-packages/hermes_cli/db_sessions.py",
+        "hermes_cli.db_domains": "/mnt/d/AI/hermes-db-packages/hermes_cli/db_domains.py",
+        "hermes_cli.db_scope": "/mnt/d/AI/hermes-db-packages/hermes_cli/db_scope.py",
+        "plugins.plugin_storage": "/mnt/d/AI/hermes-db-packages/plugins/plugin_storage.py"
+      },
+      "versions": {
+        "SQLAlchemy": "2.1.6",
+        "psycopg": "3.3.7",
+        "mautrix": "0.21.1",
+        "agent-client-protocol": "0.9.0"
+      },
+      "launch_home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "launch_runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime"
+    }
+  },
+  "format_only_after_extended_batches": {
+    "path": "hermes_db/scope.py",
+    "kind": "EOF whitespace only",
+    "ast_equal": true,
+    "before_lf_sha256": "675896400bbd64121336e802a3a6b51a23c3db81d132449407b1a6f07c43139a",
+    "after_lf_sha256": "20060a7069a2182875d450c0642be00516654846bcc3bc6607fc75dbdf8a5887"
+  },
+  "test_fixture_timing_adjustment": {
+    "original_test_lf_sha256": "140e7df2665be6b0532a74b316e1337e346b0d7553056573ebbc1941acbc16a6",
+    "updated_test_lf_sha256": "58fda7cc56911b1938935b810cf2f41890aef5fbf65bbe21121b9c12534c5240",
+    "assertions_preserved": true,
+    "change": "Only event synchronization budgets1/2s->10s; production ownership/close code unchanged",
+    "diagnostic_path": "tests/tui_gateway/_task5_resume_gate_diagnostic.py",
+    "diagnostic_sha256": "c393501f0fb998f2195ae30fb2f3a8f4facf28fdbac1165377ae1eb822d32a70"
+  },
+  "baseline_timing_reproduction": {
+    "source": "0d8782ba8adb168a86abb6a8e338591d70d03428",
+    "original_test_lf_sha256": "140e7df2665be6b0532a74b316e1337e346b0d7553056573ebbc1941acbc16a6",
+    "diagnostic_file": ".build/two-layer-dev/base-0d/tests/tui_gateway/_task5_resume_gate_diagnostic.py",
+    "change": "controlled3s response metadata latency; original DB ownership assertions unchanged"
+  },
+  "approval_review": {
+    "initial_action": "tighten lower-domain dependency denial",
+    "initial_decision": "rejected",
+    "stated_reason": "review classified the change as an expansion of allowed application dependencies",
+    "followup": "read-only exact-source in-memory comparison, then identical proven hash retry approved",
+    "proof": {
+      "scope": "read-only in-memory policy comparison; checker and approvals not modified",
+      "current_sha256": "cab4660c10ec3dba981cab1e36c1fe2fc72073622f02c128bbcde346078db008",
+      "proposed_sha256": "d2c109b70a34531a703770d4fdb81019e3a9a563b48cfe504c81583014804dbc",
+      "compared_edges": 10092,
+      "existing_denials_preserved": 24,
+      "additional_denials": 16,
+      "removed_denials": 0,
+      "approved_consumer_pairs_unchanged": true
+    }
+  },
+  "task4_checksum_correction": {
+    "task": 4,
+    "kind": "documentation_checksum_correction",
+    "implementation_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+    "correction_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+    "changed_paths": [
+      "docs/designs/hermes-db-two-layer-map.json"
+    ],
+    "all_committed_partitions_verified": true,
+    "production_code_changed": false
+  },
+  "runs": [
+    {
+      "label": "native-win",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "934e6a29788bca4f763f4b46a0c09476862d22bdbbbca3546fb560036ee10e79",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_infra_resource_ownership.py",
+        "tests/gateway/test_storage_owner_acquisition.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 1,
+      "summary": [
+        "=== Summary: 2 files, 1 tests passed, 3 failed; FAILED: 2 of 2 files (100% complete) in 2.6s (4 workers) ==="
+      ]
+    },
+    {
+      "label": "task5-pm-linux-dev",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "934e6a29788bca4f763f4b46a0c09476862d22bdbbbca3546fb560036ee10e79",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task4-local-v3/env/bin/python",
+        "/var/tmp/hermes-db-two-layer-task4-local-v3/env/bin/python",
+        "-m",
+        "pm.build_env",
+        "--source",
+        "/mnt/d/AI/hermes-db-packages",
+        "--out",
+        "/var/tmp/hermes-db-two-layer-task5-dev/env",
+        "--group",
+        "dev",
+        "--group",
+        "test",
+        "--extra",
+        "postgresql",
+        "--extra",
+        "messaging",
+        "--extra",
+        "matrix",
+        "--extra",
+        "acp"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task4-local-v3/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [],
+      "actual_cwd_from_argv": "/mnt/d/AI/hermes-db-packages",
+      "actual_interpreter_from_argv": "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task4-local-v3/env/bin/python"
+    },
+    {
+      "label": "task5-implementation",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "934e6a29788bca4f763f4b46a0c09476862d22bdbbbca3546fb560036ee10e79",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        ".build/two-layer-dev/implement_task5.py"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 0,
+      "summary": [],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "task5-consumers",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "7d61a74e5f6e2697e98dd90f180860c06a83d550a21f11302c749547f872782b",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        ".build/two-layer-dev/migrate_task5_consumers.py"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 0,
+      "summary": [],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "native-win",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "32f75655a7ecc98cb8289d2299cea53ccf5ad7761f4d6b5434bc5f590827586c",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_infra_resource_ownership.py",
+        "tests/gateway/test_storage_owner_acquisition.py",
+        "tests/hermes_cli/test_db_setup.py",
+        "tests/tui_gateway/test_session_resume_db_ownership.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 4 files, 24 tests passed, 0 failed (100% complete) in 3.0s (4 workers) ==="
+      ]
+    },
+    {
+      "label": "native-linux",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "32f75655a7ecc98cb8289d2299cea53ccf5ad7761f4d6b5434bc5f590827586c",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_infra_resource_ownership.py",
+        "tests/gateway/test_storage_owner_acquisition.py",
+        "tests/hermes_cli/test_db_setup.py",
+        "tests/tui_gateway/test_session_resume_db_ownership.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 4 files, 24 tests passed, 0 failed (100% complete) in 8.9s (4 workers) ==="
+      ],
+      "actual_cwd_from_argv": "/mnt/d/AI/hermes-db-packages",
+      "actual_interpreter_from_argv": "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python"
+    },
+    {
+      "label": "task5-db-boundary",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "32f75655a7ecc98cb8289d2299cea53ccf5ad7761f4d6b5434bc5f590827586c",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/hermes_db_boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 1,
+      "summary": [
+        "hermes_db boundaries: 10016 resolved imports, 34 violations"
+      ],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "pg-linux",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "32f75655a7ecc98cb8289d2299cea53ccf5ad7761f4d6b5434bc5f590827586c",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/postgresql/test_single_backend.py",
+        "-j",
+        "1",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra",
+        "-m",
+        "integration",
+        "--postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 1 files, 1 tests passed, 0 failed (100% complete) in 21.1s (1 workers) ==="
+      ],
+      "actual_cwd_from_argv": "/mnt/d/AI/hermes-db-packages",
+      "actual_interpreter_from_argv": "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python"
+    },
+    {
+      "label": "task5-db-boundary",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "dc471b9e6dd66b1c761545284bdcb8b64b05c833f679400c94fae0a92969d35c",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/hermes_db_boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 0,
+      "summary": [
+        "hermes_db boundaries: 10008 resolved imports, 0 violations"
+      ],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "native-win",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "dc471b9e6dd66b1c761545284bdcb8b64b05c833f679400c94fae0a92969d35c",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_infra_resource_ownership.py",
+        "tests/gateway/test_storage_owner_acquisition.py",
+        "tests/hermes_cli/test_db_setup.py",
+        "tests/tui_gateway/test_session_resume_db_ownership.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 4 files, 24 tests passed, 0 failed (100% complete) in 3.1s (4 workers) ==="
+      ]
+    },
+    {
+      "label": "native-win",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "7d81b1732c304825a36e36b17f64534f3e2a03dde6f9adf89f8db2663226013a",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/scripts/test_hermes_db_boundary_lint.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 1,
+      "summary": [
+        "=== Summary: 1 files, 11 tests passed, 2 failed; FAILED: 1 of 1 file (100% complete) in 1.6s (4 workers) ==="
+      ]
+    },
+    {
+      "label": "native-win",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "8b7740f93b2689c26e01e017c0ba4e9bcedd6bdc9c1b63be5911116cf9fbeebf",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_surface_acquisition.py",
+        "tests/hermes_db/contracts/test_file_consumers.py",
+        "tests/hermes_db/contracts/test_api_resource_selection.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 3 files, 18 tests passed, 0 failed (100% complete) in 9.1s (4 workers) ==="
+      ]
+    },
+    {
+      "label": "task5-plugin-boundary",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "8b7740f93b2689c26e01e017c0ba4e9bcedd6bdc9c1b63be5911116cf9fbeebf",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 1,
+      "summary": [
+        "module_to_core: 845",
+        "core_to_module: 26"
+      ],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "native-win",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "d51a69b79401d7d3b61b64c492e56c90e52618aaf167c23a4512479d2ea345cb",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/scripts/test_hermes_db_boundary_lint.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 1 files, 13 tests passed, 0 failed (100% complete) in 1.5s (4 workers) ==="
+      ]
+    },
+    {
+      "label": "task5-db-boundary",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "d51a69b79401d7d3b61b64c492e56c90e52618aaf167c23a4512479d2ea345cb",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/hermes_db_boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 0,
+      "summary": [
+        "hermes_db boundaries: 10008 resolved imports, 0 violations"
+      ],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "native-win",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "b3dc581c4f331a220b2e84c785c3d4d7e3502e4ab0ab235a7691703da68f6a42",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/plugins/test_session_history_storage.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 1,
+      "summary": [
+        "=== Summary: 1 files, 0 tests passed, 2 failed; FAILED: 1 of 1 file (100% complete) in 1.4s (4 workers) ==="
+      ]
+    },
+    {
+      "label": "native-win",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "afadcce706badeb0945f40440f521d29dcb62ac8c1ca1533daab796b406a0d59",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/plugins/test_session_history_storage.py",
+        "plugins/hermes-achievements/tests/test_achievement_engine.py",
+        "tests/scripts/test_hermes_db_boundary_lint.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 3 files, 28 tests passed, 0 failed (100% complete) in 1.9s (4 workers) ==="
+      ]
+    },
+    {
+      "label": "task5-plugin-boundary",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "afadcce706badeb0945f40440f521d29dcb62ac8c1ca1533daab796b406a0d59",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 0,
+      "summary": [
+        "module_to_core: 843",
+        "core_to_module: 26"
+      ],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "native-win",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "3fb5b5eda5a1b212ac66f3034a93cdbe66278c743e30a33b499c67b084da5a56",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/plugins/test_session_history_storage.py",
+        "plugins/hermes-achievements/tests/test_achievement_engine.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 2 files, 15 tests passed, 0 failed (100% complete) in 2.0s (4 workers) ==="
+      ]
+    },
+    {
+      "label": "task5-plugin-boundary",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "3fb5b5eda5a1b212ac66f3034a93cdbe66278c743e30a33b499c67b084da5a56",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 0,
+      "summary": [
+        "module_to_core: 843",
+        "core_to_module: 26"
+      ],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "pg-linux",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "3fb5b5eda5a1b212ac66f3034a93cdbe66278c743e30a33b499c67b084da5a56",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/postgresql/test_single_backend.py",
+        "tests/hermes_db/postgresql/test_plugin_history_resource.py",
+        "tests/hermes_db/test_profile_deletion_storage.py",
+        "-j",
+        "1",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra",
+        "-m",
+        "integration",
+        "--postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 3 files, 9 tests passed, 0 failed (100% complete) in 50.9s (1 workers) ==="
+      ],
+      "actual_cwd_from_argv": "/mnt/d/AI/hermes-db-packages",
+      "actual_interpreter_from_argv": "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python"
+    },
+    {
+      "label": "task5-plugin-api-docs",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "f0251076dbfa26670b5b93829bb580f36695a44a0934feb0a31ea4a9582ecae3",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/gen_plugin_api_docs.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 0,
+      "summary": [],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "native-win",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "f0251076dbfa26670b5b93829bb580f36695a44a0934feb0a31ea4a9582ecae3",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_retired_files.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 1,
+      "summary": [
+        "=== Summary: 1 files, 2 tests passed, 1 failed; FAILED: 1 of 1 file (100% complete) in 11.7s (4 workers) ==="
+      ]
+    },
+    {
+      "label": "native-win",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "3fb5b5eda5a1b212ac66f3034a93cdbe66278c743e30a33b499c67b084da5a56",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts",
+        "tests/gateway/test_storage_owner_acquisition.py",
+        "tests/hermes_cli/test_db_setup.py",
+        "tests/tui_gateway/test_session_resume_db_ownership.py",
+        "tests/scripts/test_hermes_db_boundary_lint.py",
+        "tests/plugins/test_session_history_storage.py",
+        "plugins/hermes-achievements/tests/test_achievement_engine.py",
+        "tests/hermes_cli/test_sessions_command_boundary.py",
+        "tests/hermes_db/test_distribution.py",
+        "tests/hermes_db/test_factory.py",
+        "tests/hermes_db/test_optional_dependencies.py",
+        "tests/hermes_db/test_profile_deletion_storage.py",
+        "tests/hermes_db/test_usage_writer.py",
+        "tests/tools/test_session_owner_reads.py",
+        "tests/tools/test_session_search_worker_store.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/AI/hermes-db-two-layer-test-temp-4c80f8edbf41497fabc951315d41434a",
+      "exit_code": 1,
+      "summary": [
+        "=== Summary: 106 files, 559 tests passed, 3 failed, 8 skipped; FAILED: 3 of 106 files (100% complete) in 257.4s (4 workers) ==="
+      ]
+    },
+    {
+      "label": "native-win",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "f0251076dbfa26670b5b93829bb580f36695a44a0934feb0a31ea4a9582ecae3",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_retired_files.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 1 files, 3 tests passed, 0 failed (100% complete) in 6.5s (4 workers) ==="
+      ]
+    },
+    {
+      "label": "native-linux",
+      "source_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+      "dirty_diff_sha256": "3fb5b5eda5a1b212ac66f3034a93cdbe66278c743e30a33b499c67b084da5a56",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts",
+        "tests/gateway/test_storage_owner_acquisition.py",
+        "tests/hermes_cli/test_db_setup.py",
+        "tests/tui_gateway/test_session_resume_db_ownership.py",
+        "tests/scripts/test_hermes_db_boundary_lint.py",
+        "tests/plugins/test_session_history_storage.py",
+        "plugins/hermes-achievements/tests/test_achievement_engine.py",
+        "tests/hermes_cli/test_sessions_command_boundary.py",
+        "tests/hermes_db/test_distribution.py",
+        "tests/hermes_db/test_factory.py",
+        "tests/hermes_db/test_optional_dependencies.py",
+        "tests/hermes_db/test_profile_deletion_storage.py",
+        "tests/hermes_db/test_usage_writer.py",
+        "tests/tools/test_session_owner_reads.py",
+        "tests/tools/test_session_search_worker_store.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 106 files, 566 tests passed, 0 failed, 4 skipped (100% complete) in 411.5s (4 workers) ==="
+      ],
+      "actual_cwd_from_argv": "/mnt/d/AI/hermes-db-packages",
+      "actual_interpreter_from_argv": "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python"
+    },
+    {
+      "label": "task5-audit",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "ed28cdcf5c2ade5201594df5bb8a374fc4a8bbd71473c7136b188172525e7af6",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        ".build/two-layer-dev/audit_task5.py"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 1,
+      "summary": [],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "task5-audit",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "ed28cdcf5c2ade5201594df5bb8a374fc4a8bbd71473c7136b188172525e7af6",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        ".build/two-layer-dev/audit_task5.py"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "native-win",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "ed28cdcf5c2ade5201594df5bb8a374fc4a8bbd71473c7136b188172525e7af6",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts",
+        "tests/gateway/test_storage_owner_acquisition.py",
+        "tests/hermes_cli/test_db_setup.py",
+        "tests/tui_gateway/test_session_resume_db_ownership.py",
+        "tests/scripts/test_hermes_db_boundary_lint.py",
+        "tests/plugins/test_session_history_storage.py",
+        "plugins/hermes-achievements/tests/test_achievement_engine.py",
+        "tests/hermes_cli/test_sessions_command_boundary.py",
+        "tests/hermes_db/test_distribution.py",
+        "tests/hermes_db/test_factory.py",
+        "tests/hermes_db/test_optional_dependencies.py",
+        "tests/hermes_db/test_profile_deletion_storage.py",
+        "tests/hermes_db/test_usage_writer.py",
+        "tests/tools/test_session_owner_reads.py",
+        "tests/tools/test_session_search_worker_store.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 106 files, 562 tests passed, 0 failed, 8 skipped (100% complete) in 241.9s (4 workers) ==="
+      ]
+    },
+    {
+      "label": "native-win",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "ed28cdcf5c2ade5201594df5bb8a374fc4a8bbd71473c7136b188172525e7af6",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_infra_resource_ownership.py",
+        "tests/gateway/test_storage_owner_acquisition.py",
+        "tests/hermes_cli/test_db_setup.py",
+        "tests/tui_gateway/test_session_resume_db_ownership.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 4 files, 24 tests passed, 0 failed (100% complete) in 3.0s (4 workers) ==="
+      ]
+    },
+    {
+      "label": "task5-provenance-win",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "ed28cdcf5c2ade5201594df5bb8a374fc4a8bbd71473c7136b188172525e7af6",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "-I",
+        ".build/two-layer-dev/probe_task5_environment.py",
+        "D:/AI/hermes-db-packages",
+        ".build/two-layer-dev/task5-win-env.json"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "task5-provenance-linux",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "ed28cdcf5c2ade5201594df5bb8a374fc4a8bbd71473c7136b188172525e7af6",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "-I",
+        "/mnt/d/AI/hermes-db-packages/.build/two-layer-dev/probe_task5_environment.py",
+        "/mnt/d/AI/hermes-db-packages",
+        "/mnt/d/AI/hermes-db-packages/.build/two-layer-dev/task5-linux-env.json"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [],
+      "actual_cwd_from_argv": "/mnt/d/AI/hermes-db-packages",
+      "actual_interpreter_from_argv": "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python"
+    },
+    {
+      "label": "task5-audit-staged",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "ed28cdcf5c2ade5201594df5bb8a374fc4a8bbd71473c7136b188172525e7af6",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        ".build/two-layer-dev/audit_task5.py",
+        "--stage"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "static",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "1acbf08f2419f3ab68ce4490f9cb23e3291d63a8e79e25bdc3939b8c844b02a7",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/check",
+        "--staged",
+        "--base",
+        "0d8782ba8a"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "scripts/check: 16 checks, ok"
+      ],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "db-boundary",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "1acbf08f2419f3ab68ce4490f9cb23e3291d63a8e79e25bdc3939b8c844b02a7",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/hermes_db_boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "hermes_db boundaries: 10008 resolved imports, 0 violations"
+      ],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "plugin-boundary",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "1acbf08f2419f3ab68ce4490f9cb23e3291d63a8e79e25bdc3939b8c844b02a7",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "module_to_core: 843",
+        "core_to_module: 26"
+      ],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "contracts",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "1acbf08f2419f3ab68ce4490f9cb23e3291d63a8e79e25bdc3939b8c844b02a7",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/gen_gateway_contracts.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "whitespace",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "1acbf08f2419f3ab68ce4490f9cb23e3291d63a8e79e25bdc3939b8c844b02a7",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=D:/AI/hermes-db-packages",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 2,
+      "summary": []
+    },
+    {
+      "label": "native-linux",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "1acbf08f2419f3ab68ce4490f9cb23e3291d63a8e79e25bdc3939b8c844b02a7",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_infra_resource_ownership.py",
+        "tests/gateway/test_storage_owner_acquisition.py",
+        "tests/hermes_cli/test_db_setup.py",
+        "tests/tui_gateway/test_session_resume_db_ownership.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 4 files, 24 tests passed, 0 failed (100% complete) in 24.5s (4 workers) ==="
+      ],
+      "actual_cwd_from_argv": "/mnt/d/AI/hermes-db-packages",
+      "actual_interpreter_from_argv": "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python"
+    },
+    {
+      "label": "native-win",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "6190353ba8177e092692b0a75b5947765a2efaeffb3d12cca4d2a72e696e1a59",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_infra_resource_ownership.py",
+        "tests/gateway/test_storage_owner_acquisition.py",
+        "tests/hermes_cli/test_db_setup.py",
+        "tests/tui_gateway/test_session_resume_db_ownership.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 4 files, 24 tests passed, 0 failed (100% complete) in 3.3s (4 workers) ==="
+      ]
+    },
+    {
+      "label": "task5-audit-staged",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "6190353ba8177e092692b0a75b5947765a2efaeffb3d12cca4d2a72e696e1a59",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        ".build/two-layer-dev/audit_task5.py",
+        "--stage"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 1,
+      "summary": [],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "native-linux",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "6190353ba8177e092692b0a75b5947765a2efaeffb3d12cca4d2a72e696e1a59",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_infra_resource_ownership.py",
+        "tests/gateway/test_storage_owner_acquisition.py",
+        "tests/hermes_cli/test_db_setup.py",
+        "tests/tui_gateway/test_session_resume_db_ownership.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 1,
+      "summary": [
+        "=== Summary: 4 files, 23 tests passed, 1 failed; FAILED: 1 of 4 files (100% complete) in 30.0s (4 workers) ==="
+      ],
+      "actual_cwd_from_argv": "/mnt/d/AI/hermes-db-packages",
+      "actual_interpreter_from_argv": "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python"
+    },
+    {
+      "label": "task5-base-resume-gate",
+      "source_commit": "0d8782ba8adb168a86abb6a8e338591d70d03428",
+      "dirty_diff_sha256": "6190353ba8177e092692b0a75b5947765a2efaeffb3d12cca4d2a72e696e1a59",
+      "cwd": "/mnt/d/AI/hermes-db-packages/.build/two-layer-dev/base-0d",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages/.build/two-layer-dev/base-0d",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/base-profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/tui_gateway/_task5_resume_gate_diagnostic.py",
+        "-j",
+        "1",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-k",
+        "test_resume_hands_profile_db_to_deferred_history_worker"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/base-profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 1,
+      "summary": [
+        "=== Summary: 1 files, 0 tests passed, 1 failed; FAILED: 1 of 1 file (100% complete) in 8.6s (1 workers) ==="
+      ],
+      "actual_cwd_from_argv": "/mnt/d/AI/hermes-db-packages/.build/two-layer-dev/base-0d",
+      "actual_interpreter_from_argv": "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python"
+    },
+    {
+      "label": "task5-current-resume-gate-linux",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "33fbfd29d098d294eb168b891f7fba962ea1aa7f096c199fb706646030af3320",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/tui_gateway/_task5_resume_gate_diagnostic.py",
+        "-j",
+        "1",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-k",
+        "test_resume_hands_profile_db_to_deferred_history_worker"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 1 files, 1 tests passed, 0 failed (100% complete) in 7.3s (1 workers) ==="
+      ],
+      "actual_cwd_from_argv": "/mnt/d/AI/hermes-db-packages",
+      "actual_interpreter_from_argv": "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python"
+    },
+    {
+      "label": "task5-current-resume-gate-win",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "33fbfd29d098d294eb168b891f7fba962ea1aa7f096c199fb706646030af3320",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/tui_gateway/_task5_resume_gate_diagnostic.py",
+        "-j",
+        "1",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-k",
+        "test_resume_hands_profile_db_to_deferred_history_worker"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 1 files, 1 tests passed, 0 failed (100% complete) in 4.9s (1 workers) ==="
+      ]
+    },
+    {
+      "label": "native-win",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "a5b3d9c595590a52b4d656de78e9968ff0acfc55a33a8ade5e36a491b04f733f",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_infra_resource_ownership.py",
+        "tests/gateway/test_storage_owner_acquisition.py",
+        "tests/hermes_cli/test_db_setup.py",
+        "tests/tui_gateway/test_session_resume_db_ownership.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 4 files, 24 tests passed, 0 failed (100% complete) in 3.4s (4 workers) ==="
+      ]
+    },
+    {
+      "label": "native-linux",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "a5b3d9c595590a52b4d656de78e9968ff0acfc55a33a8ade5e36a491b04f733f",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_infra_resource_ownership.py",
+        "tests/gateway/test_storage_owner_acquisition.py",
+        "tests/hermes_cli/test_db_setup.py",
+        "tests/tui_gateway/test_session_resume_db_ownership.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 4 files, 24 tests passed, 0 failed (100% complete) in 10.3s (4 workers) ==="
+      ],
+      "actual_cwd_from_argv": "/mnt/d/AI/hermes-db-packages",
+      "actual_interpreter_from_argv": "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python"
+    },
+    {
+      "label": "task5-audit-staged",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "a5b3d9c595590a52b4d656de78e9968ff0acfc55a33a8ade5e36a491b04f733f",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        ".build/two-layer-dev/audit_task5.py",
+        "--stage"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "pg-linux",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "a5b3d9c595590a52b4d656de78e9968ff0acfc55a33a8ade5e36a491b04f733f",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/postgresql/test_single_backend.py",
+        "tests/hermes_db/postgresql/test_plugin_history_resource.py",
+        "tests/hermes_db/test_profile_deletion_storage.py",
+        "-j",
+        "1",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra",
+        "-m",
+        "integration",
+        "--postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 3 files, 9 tests passed, 0 failed (100% complete) in 53.1s (1 workers) ==="
+      ],
+      "actual_cwd_from_argv": "/mnt/d/AI/hermes-db-packages",
+      "actual_interpreter_from_argv": "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python"
+    },
+    {
+      "label": "static",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "a5b3d9c595590a52b4d656de78e9968ff0acfc55a33a8ade5e36a491b04f733f",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/check",
+        "--staged",
+        "--base",
+        "0d8782ba8a"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "scripts/check: 16 checks, ok"
+      ],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "db-boundary",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "a5b3d9c595590a52b4d656de78e9968ff0acfc55a33a8ade5e36a491b04f733f",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/hermes_db_boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "hermes_db boundaries: 10008 resolved imports, 0 violations"
+      ],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "plugin-boundary",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "a5b3d9c595590a52b4d656de78e9968ff0acfc55a33a8ade5e36a491b04f733f",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "module_to_core: 843",
+        "core_to_module: 26"
+      ],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "contracts",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "a5b3d9c595590a52b4d656de78e9968ff0acfc55a33a8ade5e36a491b04f733f",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/gen_gateway_contracts.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "whitespace",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "a5b3d9c595590a52b4d656de78e9968ff0acfc55a33a8ade5e36a491b04f733f",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=D:/AI/hermes-db-packages",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": []
+    },
+    {
+      "label": "task5-evidence",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "a5b3d9c595590a52b4d656de78e9968ff0acfc55a33a8ade5e36a491b04f733f",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        ".build/two-layer-dev/finish_task5.py"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "task5-audit-staged",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "4baac3aa4be0a7472f14caa766494ff7f79219b8bec2f54d29e6b9e80846406e",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        ".build/two-layer-dev/audit_task5.py",
+        "--stage"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "static",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "f8237036fd7a8e95c1f828d03b426c02a570494d7a3c880504bf35259f8d874f",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/check",
+        "--staged",
+        "--base",
+        "0d8782ba8a"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "scripts/check: 16 checks, ok"
+      ],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "db-boundary",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "f8237036fd7a8e95c1f828d03b426c02a570494d7a3c880504bf35259f8d874f",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/hermes_db_boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "hermes_db boundaries: 10008 resolved imports, 0 violations"
+      ],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "plugin-boundary",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "f8237036fd7a8e95c1f828d03b426c02a570494d7a3c880504bf35259f8d874f",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "module_to_core: 843",
+        "core_to_module: 26"
+      ],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "contracts",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "f8237036fd7a8e95c1f828d03b426c02a570494d7a3c880504bf35259f8d874f",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/gen_gateway_contracts.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [],
+      "actual_interpreter_from_argv": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe"
+    },
+    {
+      "label": "whitespace",
+      "source_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+      "dirty_diff_sha256": "f8237036fd7a8e95c1f828d03b426c02a570494d7a3c880504bf35259f8d874f",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=D:/AI/hermes-db-packages",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": []
+    }
+  ],
+  "deleted_tests": [],
+  "remaining_scope": "Tasks6-20 required; final DB<=359/root11, final frozen environments and full Native/PG/SDK/distribution acceptance and independent review remain unverified. Original unified Task24, seven non-WSL gaps and Windows Profile8 baseline failures remain independent.",
+  "failure_analysis": "docs/debug/hermes-db-task5-resource-acquisition.md"
+}

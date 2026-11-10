@@ -59,7 +59,7 @@ def test_scoped_current_data_contracts(pg_pair, contract):
 def test_configured_readiness_and_archive_refs_without_local_file(pg_store, postgres_test_config, monkeypatch):
     from hermes_cli import db_setup
     from hermes_db.integration import archive_refs
-    from hermes_db.health import configured_probe
+    from hermes_cli.db_diagnostics import configured_probe
     from hermes_db.settings import DatabaseSettings
     from tools import tool_result_storage as tools
     pg = replace(postgres_test_config.settings, schema=pg_store._transactions.schema)

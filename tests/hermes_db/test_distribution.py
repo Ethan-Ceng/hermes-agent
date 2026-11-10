@@ -15,7 +15,7 @@ from pathlib import Path
 import sys
 
 import hermes_db
-from hermes_db.factory import acquire_db
+from hermes_cli.db_sessions import acquire_db
 from hermes_db.scope import DatabaseScope
 from hermes_db.settings import DatabaseSettings
 

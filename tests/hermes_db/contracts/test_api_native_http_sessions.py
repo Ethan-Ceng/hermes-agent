@@ -13,7 +13,7 @@ async def test_native_http_creation_conflicts_retirement_and_unknown_commit(api_
     from gateway.platforms.api_server import APIServerAdapter
     from hermes_db.errors import StorageUnavailableError, UnknownCommitError
     from hermes_db.health import is_postgresql_store
-    from hermes_db import factory
+    from hermes_cli import db_sessions as factory
     registry, _opened = native_registry
     monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope))
     owner, db, _other = api_owner

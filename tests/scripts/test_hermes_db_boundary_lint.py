@@ -39,6 +39,8 @@ def test_reviewed_symbols_do_not_grant_the_rest_of_a_module(checker, tmp_path):
 
 @pytest.mark.parametrize("consumer,target", [
     ("hermes_db/core/units.py", "hermes_db.domains.cron.api"),
+    ("hermes_db/domains/resource.py", "hermes_state"),
+    ("hermes_db/domains/resource.py", "hermes_cli.db_scope"),
     ("hermes_db/core/__init__.py", "hermes_db.domains.cron.api"),
     ("hermes_db/domains/cron/postgres/attempts.py", "gateway.delivery_ledger"),
     ("hermes_db/domains/cron/postgres/attempts.py", "hermes_db.integration"),

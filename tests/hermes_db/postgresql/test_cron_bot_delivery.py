@@ -10,7 +10,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 
 
 def _bot(home, session_id):
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     with closing(open_session_store(home / "state.db")) as store:
         store.create_session(session_id, "gui")
         store.set_session_title(session_id, "Bot Chat")

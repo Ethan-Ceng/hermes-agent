@@ -36,7 +36,7 @@ class WorkerRetainQueueRef(RetainQueueRef):
 
 def capture_queue(profile_home, destination_id):
     from agent.runtime_domain_store import worker_resource
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.core.values import resource_key
     worker = worker_resource('retain_queue', profile_home=profile_home)
     if worker is not None:
@@ -48,7 +48,7 @@ def capture_queue(profile_home, destination_id):
 @contextmanager
 def open_queue(reference, *, write=False):
     from hermes_cli.db_setup import _owning_profile
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.core.values import resource_key
     with _owning_profile(reference.profile_home), acquire_profile_domain("retain_queue", profile_home=reference.profile_home) as resource:
         if resource.settings.backend != "postgresql" or resource.scope.store_id != reference.store_id:

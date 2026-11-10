@@ -55,7 +55,7 @@ def test_install_day_and_setup_opt_out_use_selected_backend(pg_profiles, monkeyp
 
 def test_install_age_queries_real_scoped_sessions_and_ignores_old_sqlite(pg_profiles):
     from hermes_cli.observability.shared_metrics_snapshot import _first_session_started_at
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     with pg_profiles("one") as home:
         (home / "state.db").write_bytes(b"old SQLite data must remain unopened")
         db = open_session_store(home / "state.db")

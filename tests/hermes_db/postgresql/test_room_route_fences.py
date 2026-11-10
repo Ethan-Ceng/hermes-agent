@@ -8,7 +8,7 @@ import pytest
 from gateway import hosted_rooms as rooms, hosted_room_discussion as discussion
 from gateway.hosted_room_context import set_room_context, room_context
 from gateway.session_hosted_service import CanonicalHostedRoomService
-from hermes_db.access import open_session_store
+from hermes_cli.db_sessions import open_session_store
 from hermes_db.integration.runtime_access import runtime_for_store
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
@@ -64,7 +64,7 @@ def test_router_preparation_rechecks_log_before_recording(pg_profiles, interrupt
 
 def test_blocked_model_call_holds_no_pg_connection_and_stop_commits(pg_profiles):
     from threading import Event
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.infra.backends.postgresql.engine import get_engine
     from tests.waiting import wait_until
     with pg_profiles("one") as home, closing(open_session_store(home / "state.db")) as db:

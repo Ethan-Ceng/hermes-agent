@@ -57,7 +57,7 @@ def test_revoke_debts_hold_long_grants_and_survive_room_retirement(pg_profiles):
 def test_attempt_home_is_first_writer_owned_and_disband_clears_evidence(pg_profiles):
     from gateway import hosted_rooms as rooms, hosted_room_driver as driver
     from gateway import session_hosted_member_homes as homes
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     from tests.gateway.test_hosted_room_driver import FakeClock, _admit, _identity, _lease
     with pg_profiles('one') as home, closing(open_session_store(home / 'state.db')) as db:
         location = rooms.default_db_path()
@@ -93,7 +93,7 @@ def test_old_activity_and_continue_cannot_take_new_discussion(pg_profiles):
         last = append(location, 'old-continue', 'room.continued', {'thread_id': 'same', 'discussion_event_id': 'old', 'grant': 1})
         state = HostedRoomPolicyCheckpoint(location).snapshot(room_id='room', latest_seq=last['seq'])
         assert 'new' in {event['event_id'] for event in state.events}
-        from hermes_db.factory import acquire_profile_domain
+        from hermes_cli.db_domains import acquire_profile_domain
         from hermes_db.tables.room_policy import threads, transcript_state
         from sqlalchemy import select
         with acquire_profile_domain('rooms') as store, store.read() as conn:

@@ -22,7 +22,7 @@ def lose_one_commit_ack(monkeypatch, engine):
 
 def test_closed_admission_replays_after_real_commit_ack_loss(pg_profiles, monkeypatch):
     from gateway.platforms.api_server_run_idempotency import RunIdempotencyStore
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     from hermes_db.errors import UnknownCommitError
     from hermes_db.integration.run_resources import ProfileRunStores
     with pg_profiles('one') as home, closing(open_session_store(home / 'state.db')) as db:
@@ -45,7 +45,7 @@ def test_closed_admission_replays_after_real_commit_ack_loss(pg_profiles, monkey
 
 def test_grant_replacement_replay_keeps_exact_long_grant_once(pg_profiles, monkeypatch):
     from gateway import hosted_rooms as rooms
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     from hermes_db.errors import UnknownCommitError
     now = time.time()
     expiries = {'long': now + 1000, 'short': now + 100}

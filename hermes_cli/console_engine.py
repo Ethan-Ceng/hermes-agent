@@ -589,7 +589,7 @@ def _session_db(*, read_only: bool = True):
     reads attach ``read_only`` so they never add a writer connection beside it (#100896).
     Mutating commands pass ``read_only=False``.
     """
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     return closing(open_session_store(read_only=read_only))
 
 

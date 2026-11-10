@@ -29,7 +29,7 @@ from hermes_db.errors import StorageError
 report={'pid':os.getpid(),'sqlite_attempts':0,'optional_dependencies':optional}
 try:
     from hermes_cli.db_setup import resolve_db_configuration
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     settings,scope=resolve_db_configuration(home)
     report['backend']=settings.backend
     assert settings.backend==expected

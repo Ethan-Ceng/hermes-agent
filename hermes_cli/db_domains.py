@@ -1,4 +1,39 @@
-"""Bind concrete domain values at the application/storage composition boundary."""
+"""Application-owned domain selection, capability values and Profile configuration."""
+
+from hermes_db.scope import DatabaseScope
+from hermes_db.settings import DatabaseSettings
+
+
+def acquire_domain(name, settings: DatabaseSettings, scope: DatabaseScope, *, sqlite_path=None):
+    """Select one domain under the explicit owner scope; a native path never selects a Profile."""
+    from hermes_cli.db_sessions import _owner_only
+    from hermes_db.core.catalog import POSTGRES_DOMAINS, require_domain
+    from hermes_db.domains.resource import DomainResource
+    from hermes_db.errors import StorageNotReadyError
+    from hermes_db.factory import acquire_backend
+
+    _owner_only()
+    require_domain(name)
+    if settings.backend == "sqlite":
+        return DomainResource(name, acquire_backend(settings, scope, sqlite_path=sqlite_path))
+    scope.require_store_id()
+    if name not in POSTGRES_DOMAINS:
+        raise StorageNotReadyError(f"PostgreSQL storage domain {name} is not implemented")
+    from hermes_db.schema import check_domain_schema
+    from hermes_db.tables.metadata import SCHEMA
+
+    check_domain_schema(settings.postgresql, name)
+    backend = acquire_backend(settings, scope, schema_token=SCHEMA)
+    return create_domain_resource(name, backend)
+
+
+def acquire_profile_domain(name, *, profile_home=None, sqlite_path=None):
+    from hermes_cli.db_sessions import _owner_only
+    _owner_only()
+    from hermes_cli.db_setup import resolve_db_configuration
+
+    settings, scope = resolve_db_configuration(profile_home)
+    return acquire_domain(name, settings, scope, sqlite_path=sqlite_path)
 
 
 def project_clock():
@@ -6,10 +41,10 @@ def project_clock():
     return _now()
 
 
-def project_resource(settings, scope, transactions):
+def project_resource(backend):
     from hermes_cli.projects_db import Project, ProjectFolder
     from hermes_db.domains.projects.api import ProjectResource
-    return ProjectResource(settings, scope, transactions=transactions,
+    return ProjectResource(backend,
         project_value=Project, folder_value=ProjectFolder, now=project_clock)
 
 
@@ -18,13 +53,14 @@ def room_local_authority():
     return local_authority_gateway_id()
 
 
-def room_resource(settings, scope, transactions):
+def room_resource(backend):
     from hermes_db.domains.rooms.api import RoomResource
-    return RoomResource(settings, scope, transactions=transactions,
+    return RoomResource(backend,
         local_authority_gateway_id=room_local_authority)
 
 
-def kanban_resource(settings, scope, transactions):
+def kanban_resource(backend):
+    scope = backend.scope
     from hermes_cli.kanban_db import (Task, Run, Comment, Attachment, Event, LiveClaimError,
         HallucinatedCardsError, EmptyCompletionError, ArtifactPreservationError, AttachmentTooLarge)
     from hermes_db.domains.kanban.api import KanbanResource, KanbanValues, KanbanCodec
@@ -40,28 +76,29 @@ def kanban_resource(settings, scope, transactions):
     codec = KanbanCodec(pack, unpack, CommandRefusal, board_reference)
     context = KanbanApplicationContext(scope)
     policy = KanbanProfilePolicy(context)
-    return KanbanResource(settings, scope, transactions=transactions,
+    return KanbanResource(backend,
         result_values=values, mutation_guard=policy.assert_not_delegated_child_mutation,
         policy=policy, processes=KanbanProcesses(context), observers=KanbanObservers(context),
         files=KanbanFiles(context), operation_scope=board_operation_scope, codec=codec)
 
 
-def create_domain_resource(name, settings, scope, *, transactions):
+def create_domain_resource(name, backend):
     constructors = {"projects": project_resource, "rooms": room_resource, "kanban_tasks": kanban_resource}
     construct = constructors.get(name)
     if construct is not None:
-        return construct(settings, scope, transactions)
+        return construct(backend)
     if name in {"cron_executions", "cron_deliveries", "cron_notepad"}:
-        return cron_resource(name, settings, scope, transactions=transactions)
-    from hermes_db.core.resource import DomainResource
-    return DomainResource(name, settings, scope, transactions=transactions)
+        return cron_resource(name, backend)
+    from hermes_db.domains.resource import DomainResource
+    return DomainResource(name, backend)
 
 
-def cron_resource(name, settings, scope, *, transactions):
+def cron_resource(name, backend):
+    scope = backend.scope
     from hermes_db.domains.cron.api import CronResource
     from hermes_db.integration.cron_application import (
         CronExecutionRuntime, CronIncidentRuntime, CronDeliveryRuntime, CronNoteRuntime,
     )
-    return CronResource(name, settings, scope, transactions=transactions,
+    return CronResource(name, backend,
         executions=CronExecutionRuntime(scope), incidents=CronIncidentRuntime(scope),
         delivery=CronDeliveryRuntime(scope), notes=CronNoteRuntime(scope))

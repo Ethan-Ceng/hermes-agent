@@ -73,7 +73,7 @@ def test_archive_intent_recovers_interruption_before_allowing_slug_reuse(pg_prof
 def test_hard_delete_preserves_shared_content_and_fences_new_references(pg_profiles, monkeypatch):
     from hermes_cli import kanban_db_workspace as workspace
     from hermes_db.errors import StorageBusyError
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.domains.kanban.postgres import files, files as cleanup
     with pg_profiles("one"):
         kb.create_board("victim")

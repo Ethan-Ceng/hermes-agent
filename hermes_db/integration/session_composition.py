@@ -2,7 +2,7 @@
 
 def create_session_store(transactions, scope):
     from hermes_constants import profile_name_for_home
-    from hermes_db.integration.profile_context import OwnedProfileContext
+    from hermes_cli.db_scope import OwnedProfileContext
     from hermes_db.domains.sessions.postgres.context import SessionContext, TranscriptLimits, HistoryOwnership, SessionEffects
     from hermes_db.domains.sessions.postgres.catalog import SessionCatalog
     from hermes_db.domains.sessions.postgres.messages import SessionMessages
@@ -63,7 +63,7 @@ class SessionMedia:
     def admission_references(self, scope, payload, request_id):
         from gateway.session_contract import admission_media_references
         from gateway.session_ingress_media import hosted_document_references
-        from hermes_db.scope import bind_profile_home
+        from hermes_cli.db_scope import bind_profile_home
         with bind_profile_home(scope):
             return [*admission_media_references(payload), *hosted_document_references(request_id, payload),
                     *payload.get("api_turn_v1", {}).get("media", [])]

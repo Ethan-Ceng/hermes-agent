@@ -349,7 +349,8 @@ def _entries_from_origins(platform_name: str, source: str, origins_fn) -> list[d
 def _build_from_sessions_db(platform_name: str) -> list[dict[str, str]]:
     """Pull channels/contacts from state.db gateway session rows."""
     def _origins() -> Iterable[tuple[dict[str, Any], Any]]:
-        from hermes_db.access import release_session_store as release_or_close, acquire_sessions as acquire
+        from hermes_db.access import release_session_store as release_or_close
+        from hermes_cli.db_sessions import acquire_sessions as acquire
         db = acquire()
         try:
             lister = getattr(db, "list_gateway_sessions", None)

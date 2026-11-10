@@ -5,7 +5,7 @@ from hermes_db.errors import StorageUnavailableError
 
 def test_kanban_native_owner_reads_configured_scope_and_never_inferrs_remote_pid(core_pair, native_registry, monkeypatch):
     from hermes_cli import kanban_owner_recovery as recovery
-    from hermes_db import factory
+    from hermes_cli import db_sessions as factory
     from hermes_db.integration.runtime_composition import create_runtime_store
     db, _other = core_pair
     home = db.scope.profile_home

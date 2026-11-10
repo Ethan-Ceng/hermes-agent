@@ -37,7 +37,8 @@ async def worker_read(connection, ref, params):
 def _read(connection, ref, params, handler):
     from gateway.session_worker_recall import verify_read
     from hermes_db.health import profile_home_for_store
-    from hermes_db.scope import DatabaseScope, bind_profile_home
+    from hermes_db.scope import DatabaseScope
+    from hermes_cli.db_scope import bind_profile_home
     verify_read(connection, ref, params)
     db = connection.authority.db
     with bind_profile_home(DatabaseScope(profile_home_for_store(db))):

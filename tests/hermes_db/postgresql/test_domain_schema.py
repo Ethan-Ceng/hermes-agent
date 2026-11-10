@@ -17,7 +17,7 @@ def test_domain_resource_persistence_isolation_pool_and_lifetime(settings, tmp_p
     from sqlalchemy import select
     from hermes_db.infra.backends.postgresql.engine import get_engine
     from hermes_db.errors import StorageClosedError
-    from hermes_db.factory import acquire_domain
+    from hermes_cli.db_domains import acquire_domain
     from hermes_db.schema import upgrade_schema
     from hermes_db.scope import DatabaseScope
     from hermes_db.settings import DatabaseSettings
@@ -57,7 +57,7 @@ def test_missing_domains_never_initialize_at_open_and_all_capabilities_require_t
     from sqlalchemy import inspect, text
     from hermes_db.infra.backends.postgresql.engine import get_engine
     from hermes_db.errors import StorageSchemaError
-    from hermes_db.factory import acquire_domain
+    from hermes_cli.db_domains import acquire_domain
     from hermes_db.schema import schema_status, upgrade_schema
     from hermes_db.scope import DatabaseScope
     from hermes_db.settings import DatabaseSettings
@@ -114,7 +114,7 @@ def test_permission_failure_propagates_and_returns_connection(settings, tmp_path
     from sqlalchemy import select, text
     from hermes_db.infra.backends.postgresql.engine import get_engine
     from hermes_db.errors import StorageUnavailableError
-    from hermes_db.factory import acquire_domain
+    from hermes_cli.db_domains import acquire_domain
     from hermes_db.schema import upgrade_schema
     from hermes_db.scope import DatabaseScope
     from hermes_db.settings import DatabaseSettings

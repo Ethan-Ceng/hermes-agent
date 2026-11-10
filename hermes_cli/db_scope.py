@@ -1,7 +1,21 @@
-"""Owned Profile binding for deferred writers and post-commit observers."""
+"""Application-owned Profile and secret binding for captured storage operations."""
 
 from contextlib import contextmanager
 from pathlib import Path
+
+from hermes_db.scope import DatabaseScope
+
+
+@contextmanager
+def bind_profile_home(scope: DatabaseScope):
+    """Bind deferred SQLite configuration reads without changing process env."""
+    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+
+    token = set_hermes_home_override(scope.profile_home)
+    try:
+        yield
+    finally:
+        reset_hermes_home_override(token)
 
 
 class OwnedProfileContext:
@@ -18,7 +32,6 @@ class OwnedProfileContext:
             current_secret_scope, current_secret_scope_home, set_secret_scope, reset_secret_scope,
             set_multiplex_context, reset_multiplex_context,
         )
-        from hermes_db.scope import bind_profile_home
 
         home = current_secret_scope_home()
         secrets = current_secret_scope() if home and Path(home).resolve() == self.scope.profile_home else self._secrets

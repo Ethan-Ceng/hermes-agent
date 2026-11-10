@@ -87,8 +87,6 @@
     "plugins/google_meet/cli.py hermes_cli.browser_runtime.chromium_executable": 1,
     "plugins/google_meet/meet_bot.py hermes_cli.browser_runtime.chromium_executable": 1,
     "plugins/google_meet/process_manager.py gateway.status._pid_exists": 1,
-    "plugins/hermes-achievements/dashboard/plugin_api.py hermes_db.access.open_session_store": 1,
-    "plugins/hermes-achievements/dashboard/plugin_api.py hermes_db.health.storage_identity": 1,
     "plugins/image_gen/deepinfra/__init__.py hermes_cli.models._fetch_deepinfra_models_by_tag": 1,
     "plugins/image_gen/deepinfra/__init__.py hermes_cli.models.deepinfra_base_url": 1,
     "plugins/image_gen/deepinfra/__init__.py plugins.image_gen._common.StaticImageGenProvider": 1,

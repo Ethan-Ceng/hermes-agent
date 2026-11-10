@@ -12,7 +12,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network, pytest.mark.us
 def surface_config(postgres_test_config, postgres_schema, tmp_path, monkeypatch):
     import hermes_yaml as yaml
     from hermes_db.schema import upgrade_schema
-    from hermes_db.access import close_session_resources
+    from hermes_cli.db_sessions import close_session_resources
     import hermes_state
     # The root isolation fixture pins this constant; exercise call-time profile resolution.
     monkeypatch.setattr(hermes_state, 'DEFAULT_DB_PATH', hermes_state._IMPORT_DEFAULT_DB_PATH)
@@ -146,7 +146,7 @@ async def test_hosted_coordination_uses_selected_backend_and_preserves_scope_on_
     from gateway.hosted_rooms import create_room, probe_hosted_room, room_state
     from gateway.session_hosted_service import CanonicalHostedRoomService
     from hermes_cli.db_setup import _owning_profile
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     from hermes_db.integration.runtime_access import runtime_for_store
     from hermes_state_runtime import RuntimeStoreError
     home, other_home = surface_config

@@ -211,7 +211,7 @@ def test_unknown_uncommitted_file_generation_is_swept_but_old_dataset_marker_is_
 
 def test_maintenance_prunes_plugin_ttl_without_reusing_revisions_and_replays_room_blob_jobs(pg_profiles, monkeypatch):
     from sqlalchemy import update
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.tables.plugins import records
     from hermes_db.maintenance import maintain_profile
     from plugins.plugin_storage import plugin_store

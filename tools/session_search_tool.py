@@ -439,7 +439,7 @@ def _resolve_profile_db(profile: str):
     if profile is None or not str(profile).strip():
         return None
     from hermes_cli import profiles as profiles_mod
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     canon = profiles_mod.normalize_profile_name(profile)
     profiles_mod.validate_profile_name(canon)
     if not profiles_mod.profile_exists(canon):
@@ -611,7 +611,7 @@ def session_search(query: str = "", role_filter: str | None = None, limit: int |
     new parameters are appended after ``detail``."""
     from hermes_constants import get_hermes_home
     from hermes_state import format_session_db_unavailable
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     from agent.runtime_session_store import RuntimeSessionStore, is_worker_process
     if isinstance(db, RuntimeSessionStore):
         return db.session_recall(query=query, role_filter=role_filter, limit=limit, current_session_id=current_session_id,

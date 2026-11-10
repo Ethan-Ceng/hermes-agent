@@ -37,7 +37,7 @@ def _selection(params):
 def frozen_context(connection, ref, params):
     from hermes_cli import kanban_db as kb
     from hermes_cli.db_setup import _owning_profile
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.health import profile_home_for_store
     from hermes_db.domains.kanban.postgres.catalog import _lookup
     policy = _root_policy(connection.authority, params)

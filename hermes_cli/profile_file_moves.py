@@ -43,7 +43,7 @@ def _identity(resource):
 
 def _capture(home):
     from hermes_cli.db_setup import _owning_profile
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     with _owning_profile(home), acquire_profile_domain("kanban_tasks", profile_home=home) as resource:
         return _identity(resource)
 
@@ -77,7 +77,7 @@ def _gate(journal):
 
 def _reanchor_database(old, new, identity):
     from hermes_cli.db_setup import _owning_profile
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.integration.profile_paths import reanchor
     with _owning_profile(new), acquire_profile_domain("kanban_tasks", profile_home=new) as resource:
         if resource.settings.backend != "postgresql" or _identity(resource) != identity:

@@ -10,7 +10,7 @@ def maintain_profile(profile_home=None):
     with _owning_profile(home):
         if storage_backend(home) == "sqlite":
             return {"backend": "sqlite"}
-        from hermes_db.factory import acquire_profile_domain
+        from hermes_cli.db_domains import acquire_profile_domain
         from hermes_db.domains.kanban.postgres.maintenance import replay_files, terminal_workspaces, pending_workspaces
         with acquire_profile_domain("kanban_tasks", profile_home=home) as resource:
             from hermes_db.domains.kanban.postgres.effects import drain
@@ -28,7 +28,7 @@ def maintain_profile(profile_home=None):
 
 def _plugins(home):
     from sqlalchemy import delete, func, select, tuple_
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.tables.plugins import records
     with acquire_profile_domain("plugins", profile_home=home) as resource, resource.write() as conn:
         expired = (records.c.store_id == resource.scope.require_store_id()) & (records.c.expires_at <= func.extract("epoch", func.clock_timestamp()))
@@ -39,7 +39,7 @@ def _plugins(home):
 
 def _attachments(home):
     from sqlalchemy import select
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.tables.room_attachments import roots
     with acquire_profile_domain("room_attachments", profile_home=home) as resource, resource.read() as conn:
         namespace = conn.scalar(select(roots.c.namespace).where(roots.c.store_id == resource.scope.require_store_id()))

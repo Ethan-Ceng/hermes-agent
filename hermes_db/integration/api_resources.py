@@ -1,6 +1,6 @@
 """API auxiliary stores acquire the same configured session backend and owning scope."""
 
-from hermes_db.core.session_resource import SessionResource
+from hermes_db.domains.sessions.resource import SessionResource
 
 
 class OwnedApiStore:
@@ -26,7 +26,7 @@ class OwnedApiStore:
 
 def open_response_store(home, sqlite_factory, *, launch=False):
     from hermes_cli.db_setup import resolve_db_configuration
-    from hermes_db.factory import acquire_db
+    from hermes_cli.db_sessions import acquire_db
     settings, scope = resolve_db_configuration(home)
     if settings.backend == "sqlite":
         return sqlite_factory() if launch else sqlite_factory(db_path=str(scope.profile_home / "response_store.db"))
@@ -42,7 +42,7 @@ def open_response_store(home, sqlite_factory, *, launch=False):
 
 def open_run_store(home, sqlite_factory, *, launch=False):
     from hermes_cli.db_setup import resolve_db_configuration
-    from hermes_db.factory import acquire_db
+    from hermes_cli.db_sessions import acquire_db
     settings, scope = resolve_db_configuration(home)
     if settings.backend == "sqlite":
         return sqlite_factory() if launch else sqlite_factory(db_path=str(scope.profile_home / "runs_idempotency.db"))

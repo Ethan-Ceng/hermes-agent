@@ -13,7 +13,9 @@ attachment content retain their file formats. See the
 ## Boundaries and ownership
 
 `hermes_cli/db_setup.py` resolves configuration and secrets in the owning profile.
-`hermes_db/factory.py` acquires session handles or a named domain resource.
+`hermes_cli/db_sessions.py` and `hermes_cli/db_domains.py` acquire business resources.
+`hermes_db/factory.py` selects a technical `BackendResource` from the resolved settings,
+explicit native path and business schema token. It does not resolve a Profile or construct stores.
 `hermes_db/core/catalog.py` declares each implemented capability, its minimum
 revision and its current table modules. These imports do not require a PG driver
 in SQLite mode.
@@ -21,8 +23,8 @@ in SQLite mode.
 | Layer | Responsibility |
 | --- | --- |
 | Existing facade and selected domain adapter | Preserve public business inputs, records and errors |
-| `hermes_db/domains/` | Capture the owning profile and expose named domain operations |
-| `hermes_db/core/` | Driver-free values, resource contracts and domain capability catalog |
+| `hermes_db/domains/` | Business resources, captured scope and named persistence operations |
+| `hermes_db/core/` | Driver-free values and the business capability catalog |
 | `hermes_db/integration/` | Store composition, profile binding and cross-domain coordination |
 | `hermes_db/domains/<domain>/postgres/queries/` | Core statements, scoped predicates and lossless row conversion |
 | `hermes_db/domains/<domain>/postgres/operations/` | Locks, quotas, state transitions, receipts and multi-step transactions |

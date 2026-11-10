@@ -20,7 +20,7 @@ class MatrixRef:
 
 def capture_matrix(profile_home, homeserver, account_id, device_id):
     from hermes_cli.db_setup import resolve_db_configuration
-    from hermes_db.access import _owner_only
+    from hermes_cli.db_sessions import _owner_only
     from hermes_db.infra.backends.postgresql.engine import get_engine
     from hermes_db.core.values import resource_key
     from hermes_db.infra.backends.postgresql.transactions import Transactions
@@ -40,7 +40,7 @@ def capture_matrix(profile_home, homeserver, account_id, device_id):
 @contextmanager
 def resource_for(reference):
     from hermes_cli.db_setup import _owning_profile
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.core.values import resource_key
     with _owning_profile(reference.profile_home), acquire_profile_domain("matrix_crypto", profile_home=reference.profile_home) as resource:
         if resource.settings.backend != "postgresql" or resource.scope.store_id != reference.store_id:

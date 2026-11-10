@@ -4,7 +4,7 @@
 def board_storage_identity(kb, slug, *, db_path=None):
     from hermes_cli.db_setup import storage_backend
     if storage_backend() == "postgresql":
-        from hermes_db.factory import acquire_profile_domain
+        from hermes_cli.db_domains import acquire_profile_domain
         from hermes_db.domains.kanban.postgres.catalog import _lookup
         with acquire_profile_domain("kanban_tasks") as resource:
             with resource.read() as conn:

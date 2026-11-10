@@ -10,7 +10,7 @@ def test_explicit_cron_target_writes_only_target_profile(pg_profiles, monkeypatc
     from gateway import hosted_rooms as rooms
     from hermes_cli import profiles
     from hermes_cli.db_setup import _owning_profile
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.domains.runtime.postgres.queries.runtime import set_meta
     monkeypatch.setattr(rooms, 'local_authority_gateway_id', lambda: 'review-gateway')
     references = []

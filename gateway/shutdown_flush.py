@@ -337,7 +337,7 @@ def recover_pending_spool(session_db=None, *, session_resolver=None) -> tuple[in
         return 0, set()
     own_db = session_db is None
     if own_db:
-        from hermes_db.access import acquire_sessions as acquire
+        from hermes_cli.db_sessions import acquire_sessions as acquire
         session_db = acquire()
     recovered = 0
     # Sessions whose spool replay already failed this pass -> files held back for them. Ordering is a

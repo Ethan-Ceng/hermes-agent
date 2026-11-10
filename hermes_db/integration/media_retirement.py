@@ -1,7 +1,7 @@
 """Collect retired local files after deletion commits, under the owning profile."""
 import json
 from sqlalchemy import select
-from hermes_db.scope import bind_profile_home
+from hermes_cli.db_scope import bind_profile_home
 from hermes_db.tables.runtime import session_admissions
 from pathlib import Path
 from hermes_db.domains.sessions.postgres.queries import media, sessions
@@ -44,7 +44,7 @@ def _release_foreign(context):
     from hermes_db.errors import StorageError
     from hermes_db.core.file_scope import owner_id
     from hermes_db.integration.media_grants import release_unused
-    from hermes_db.integration.profile_context import OwnedProfileContext
+    from hermes_cli.db_scope import OwnedProfileContext
     try:
         with context.profile.activate(), context.write() as conn:
             origins = release_unused(conn, context.scope)

@@ -5,7 +5,7 @@ import builtins
 import pytest
 
 from hermes_db.errors import StorageClosedError, StorageDriverError, StorageSchemaError
-from hermes_db.factory import acquire_db
+from hermes_cli.db_sessions import acquire_db
 from hermes_db.scope import DatabaseScope
 from hermes_db.settings import DatabaseSettings, PostgresSettings
 

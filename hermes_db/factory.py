@@ -1,52 +1,24 @@
-"""Select one explicit backend; acquisition failures never fall back."""
+"""Select a resolved technical backend without constructing business resources or running DDL."""
 
-from hermes_db.handle import DatabaseHandle
+from pathlib import Path
+
+from hermes_db.errors import StorageConfigurationError
+from hermes_db.infra.resource import BackendResource
 from hermes_db.scope import DatabaseScope
 from hermes_db.settings import DatabaseSettings
 
 
-def acquire_db(settings: DatabaseSettings, scope: DatabaseScope) -> DatabaseHandle:
+def acquire_backend(settings: DatabaseSettings, scope: DatabaseScope, *, sqlite_path=None, schema_token=None):
     if settings.backend == "sqlite":
-        from hermes_db.backends.sqlite.acquire import acquire_sqlite
-
-        return acquire_sqlite(scope)
+        return BackendResource(settings, scope, sqlite_path=Path(sqlite_path) if sqlite_path is not None else None)
     scope.require_store_id()
-    from hermes_db.infra.backends.postgresql.engine import require_postgresql_driver
-
-    require_postgresql_driver()
-    from hermes_db.integration.registry import acquire
-    return acquire(settings.postgresql, scope)
-
-
-def acquire_domain(name, settings: DatabaseSettings, scope: DatabaseScope, *, sqlite_path=None):
-    """Explicit owner scope; a domain file path never selects the Profile/backend."""
-    from hermes_db.access import _owner_only
-    from hermes_db.core.catalog import POSTGRES_DOMAINS, require_domain
-    from hermes_db.core.resource import DomainResource
-    from hermes_db.errors import StorageNotReadyError
-
-    _owner_only()
-    require_domain(name)
-    if settings.backend == "sqlite":
-        return DomainResource(name, settings, scope, sqlite_path=sqlite_path)
-    scope.require_store_id()
-    if name not in POSTGRES_DOMAINS:
-        raise StorageNotReadyError(f"PostgreSQL storage domain {name} is not implemented")
+    if schema_token is None:
+        raise StorageConfigurationError("PostgreSQL backend acquisition requires an explicit schema token")
     from hermes_db.infra.backends.postgresql.engine import get_engine
-    from hermes_db.schema import check_domain_schema
     from hermes_db.infra.backends.postgresql.transactions import Transactions
-    from hermes_db.tables.metadata import SCHEMA
 
     pg = settings.postgresql
-    check_domain_schema(pg, name)
-    transactions = Transactions(get_engine(pg), pg.schema, lock_timeout=pg.write_lock_timeout_seconds,
-                                statement_timeout=pg.statement_timeout_seconds, schema_token=SCHEMA)
-    from hermes_db.integration.domain_composition import create_domain_resource
-    return create_domain_resource(name, settings, scope, transactions=transactions)
-
-
-def acquire_profile_domain(name, *, profile_home=None, sqlite_path=None):
-    from hermes_cli.db_setup import resolve_db_configuration
-
-    settings, scope = resolve_db_configuration(profile_home)
-    return acquire_domain(name, settings, scope, sqlite_path=sqlite_path)
+    transactions = Transactions(get_engine(pg), pg.schema, schema_token=schema_token,
+                                lock_timeout=pg.write_lock_timeout_seconds,
+                                statement_timeout=pg.statement_timeout_seconds)
+    return BackendResource(settings, scope, transactions=transactions)

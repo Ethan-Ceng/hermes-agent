@@ -1,7 +1,6 @@
 """Server-resolved identities, independent of any database driver."""
 
 from dataclasses import dataclass
-from contextlib import contextmanager
 from pathlib import Path
 import re
 
@@ -25,15 +24,3 @@ class DatabaseScope:
         if self.store_id is None:
             raise StorageConfigurationError("storage.postgresql.store_id is required")
         return self.store_id
-
-
-@contextmanager
-def bind_profile_home(scope: DatabaseScope):
-    """Bind deferred SQLite configuration reads without changing process env."""
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
-
-    token = set_hermes_home_override(scope.profile_home)
-    try:
-        yield
-    finally:
-        reset_hermes_home_override(token)

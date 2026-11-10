@@ -6,7 +6,7 @@ from contextlib import contextmanager
 @contextmanager
 def _read(home, expected_identity=None):
     from hermes_cli.db_setup import _owning_profile
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.errors import StorageConfigurationError
     with _owning_profile(home), acquire_profile_domain("sessions", profile_home=home) as resource:
         if resource.settings.backend != "postgresql":

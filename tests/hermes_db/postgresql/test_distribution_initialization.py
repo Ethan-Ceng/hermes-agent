@@ -27,7 +27,7 @@ try:
     from hermes_yaml import safe_load
     from sqlalchemy import text
     from hermes_db.infra.backends.postgresql.engine import get_engine
-    from hermes_db.factory import acquire_db
+    from hermes_cli.db_sessions import acquire_db
     from hermes_db.schema import REQUIRED_REVISION, upgrade_schema
     from hermes_db.scope import DatabaseScope
     from hermes_db.settings import DatabaseSettings, PostgresSettings

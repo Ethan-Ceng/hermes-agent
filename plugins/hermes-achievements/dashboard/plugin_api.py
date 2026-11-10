@@ -6,6 +6,7 @@ Cold scans run on a background thread; ``/achievements`` serves the last snapsho
 """
 from __future__ import annotations
 
+from contextlib import ExitStack
 import json
 import math
 import re
@@ -558,24 +559,22 @@ def scan_sessions(limit: Optional[int] = None, progress_callback: Optional[Any] 
     total)`` fires every ``progress_every`` sessions so background scans can publish
     intermediate snapshots.
     """
-    try:
-        from hermes_db.access import open_session_store
-        from hermes_db.health import storage_identity
+    with ExitStack() as resources:
+        try:
+            from plugins.plugin_storage import session_history
 
-        # The scan only reads. A writable open here was a second writer connection (schema
-        # init, write lock, close-time checkpoint) beside the dashboard's own store on every
-        # scan, and counted toward the "live SessionDB handles" precursor (#100896).
-        db = open_session_store(db_path=get_hermes_home() / "state.db", read_only=True)
-    except Exception as exc:
-        return {"sessions": [], "aggregate": {}, "error": f"Could not open SessionDB: {exc}", "scan_meta": _scan_meta("failed", 0)}
+            # Analytics borrows a read view; opening another writer would initialize Schema
+            # and add a close-time checkpoint beside the dashboard's store (#100896).
+            db, identity = resources.enter_context(session_history(profile_home=get_hermes_home()))
+        except Exception as exc:
+            return {"sessions": [], "aggregate": {}, "error": f"Could not open SessionDB: {exc}", "scan_meta": _scan_meta("failed", 0)}
 
-    previous_checkpoint = load_checkpoint()
-    previous_sessions = previous_checkpoint["sessions"]  # load_checkpoint guarantees a dict
-    identity = str(storage_identity(db))
-    checkpoint_is_current = _checkpoint_matches(previous_checkpoint, identity)
-    reused = rescanned = 0
-    db_limit = -1 if (limit is None or limit <= 0) else int(limit)
-    try:
+        previous_checkpoint = load_checkpoint()
+        previous_sessions = previous_checkpoint["sessions"]  # load_checkpoint guarantees a dict
+        identity = str(identity)
+        checkpoint_is_current = _checkpoint_matches(previous_checkpoint, identity)
+        reused = rescanned = 0
+        db_limit = -1 if (limit is None or limit <= 0) else int(limit)
         sessions_meta = db.list_sessions_rich(limit=db_limit, include_children=True, project_compression_tips=False)
         total_sessions = len(sessions_meta)
         sessions: list[dict[str, Any]] = []
@@ -617,14 +616,12 @@ def scan_sessions(limit: Optional[int] = None, progress_callback: Optional[Any] 
                 except Exception:
                     pass  # Advisory — a broken publisher must never abort the scan.
         _write_json(CHECKPOINT_FILE, {"schema_version": _CHECKPOINT_SCHEMA_VERSION, "storage_identity": identity, "generated_at": int(time.time()), "sessions": checkpoint_sessions})
-    finally:
-        db.close()
-    return {
-        "sessions": sessions,
-        "aggregate": aggregate_stats(sessions),
-        "scan_meta": _scan_meta(
-            "incremental" if reused > 0 else "full", len(sessions), rescanned=rescanned, reused=reused,
-            scanned_so_far=len(sessions), expected_total=total_sessions)}
+        return {
+            "sessions": sessions,
+            "aggregate": aggregate_stats(sessions),
+            "scan_meta": _scan_meta(
+                "incremental" if reused > 0 else "full", len(sessions), rescanned=rescanned, reused=reused,
+                scanned_so_far=len(sessions), expected_total=total_sessions)}
 
 
 # Per-session bests: aggregate metric -> session stat key (also drives evidence_for).

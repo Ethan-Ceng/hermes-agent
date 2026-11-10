@@ -6,7 +6,7 @@ from datetime import datetime, UTC
 
 
 def conversations(home, label, role, saved):
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     with closing(open_session_store(home / "state.db")) as store:
         if role == "write":
             store.create_session("same", "cli", system_prompt="frozen " + label)

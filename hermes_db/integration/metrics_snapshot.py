@@ -2,7 +2,7 @@
 
 import time
 from sqlalchemy import func, select
-from hermes_db.factory import acquire_profile_domain
+from hermes_cli.db_domains import acquire_profile_domain
 from hermes_db.tables.conversations import sessions
 
 

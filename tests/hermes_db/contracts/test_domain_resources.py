@@ -8,7 +8,7 @@ import pytest
 
 from hermes_cli.config import atomic_config_write
 from hermes_db.errors import StorageClosedError, StorageConfigurationError, StorageNotReadyError
-from hermes_db.factory import acquire_domain, acquire_profile_domain
+from hermes_cli.db_domains import acquire_domain, acquire_profile_domain
 from hermes_db.scope import DatabaseScope
 from hermes_db.settings import DatabaseSettings
 
@@ -55,7 +55,7 @@ class BlockDrivers(importlib.abc.MetaPathFinder):
             raise ImportError('optional PG dependency unavailable')
 sys.meta_path.insert(0, BlockDrivers())
 from hermes_db.core.catalog import KNOWN_DOMAINS
-from hermes_db.factory import acquire_profile_domain
+from hermes_cli.db_domains import acquire_profile_domain
 with acquire_profile_domain('projects', profile_home=sys.argv[1]) as resource:
     assert resource.settings.backend == 'sqlite'
     assert resource.name in KNOWN_DOMAINS

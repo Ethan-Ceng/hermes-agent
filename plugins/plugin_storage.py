@@ -14,7 +14,7 @@ import sqlite3
 from pathlib import Path
 from .plugin_storage_types import PluginRecord, PluginStorageConflict, PluginStorageQuotaError, PluginStore
 
-__all__ = ["PluginRecord", "PluginStorageConflict", "PluginStorageQuotaError", "PluginStore", "configure_plugin_sqlite", "plugin_data_dir", "plugin_db", "plugin_sqlite_transaction", "plugin_store"]
+__all__ = ["PluginRecord", "PluginStorageConflict", "PluginStorageQuotaError", "PluginStore", "configure_plugin_sqlite", "plugin_data_dir", "plugin_db", "plugin_sqlite_transaction", "plugin_store", "session_history"]
 
 # Mirrors the plugin-name shape `hermes plugins install` accepts (no separators/traversal).
 _NAME_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$")
@@ -83,3 +83,18 @@ def configure_plugin_sqlite(conn, *, db_label):
     """Apply the active Profile's WAL safety policy to an existing legacy plugin connection."""
     from hermes_cli.db_sqlite_policy import apply_wal_with_fallback
     return apply_wal_with_fallback(conn, db_label=db_label)
+
+
+@contextmanager
+def session_history(*, profile_home: Path | None = None):
+    """Acquire history and its dataset identity for a plugin scan; release this view on exit."""
+    from hermes_cli.db_sessions import open_session_store
+    from hermes_db.health import storage_identity
+    from hermes_constants import get_hermes_home
+
+    home = Path(profile_home if profile_home is not None else get_hermes_home()).resolve()
+    store = open_session_store(db_path=home / "state.db", read_only=True)
+    try:
+        yield store, storage_identity(store)
+    finally:
+        store.close()

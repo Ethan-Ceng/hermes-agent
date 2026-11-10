@@ -363,7 +363,7 @@ def _open_session_db_at_path(db_path: Path, *, read_only: bool):
     from fastapi import HTTPException
     from hermes_state import SessionDB
     from hermes_state_errors import is_transient_sqlite_error
-    from hermes_db.access import acquire_sessions as acquire
+    from hermes_cli.db_sessions import acquire_sessions as acquire
     from hermes_cli.db_setup import storage_backend
 
     if storage_backend(db_path.resolve().parent) == 'postgresql':

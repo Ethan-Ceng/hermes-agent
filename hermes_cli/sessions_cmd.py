@@ -1440,7 +1440,7 @@ def cmd_sessions(args, sessions_parser=None):
     # A served-profile process has no single default home: pass the store path explicitly.
     path = get_hermes_home() / "state.db"
     try:
-        from hermes_db.access import open_session_store, session_store_exists
+        from hermes_cli.db_sessions import open_session_store, session_store_exists
         db = open_session_store(db_path=path, read_only=observational)
     except Exception as e:
         # mode=ro cannot create the store; a reader on a fresh profile reports empty rather than failing.

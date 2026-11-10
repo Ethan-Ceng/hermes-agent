@@ -39,7 +39,7 @@ def test_real_commit_lost_ack_is_replayed_once(pg_profiles, monkeypatch):
 
 def test_quota_reserves_control_events_and_failed_create_rolls_back_admission(pg_profiles, monkeypatch):
     from sqlalchemy import select
-    from hermes_db.factory import acquire_profile_domain
+    from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
     from hermes_db.tables.conversations import system_prompts
     with pg_profiles("one"):

@@ -4,7 +4,6 @@ Split out of ``hermes_cli.kanban_db``; origin-resident helpers are reached
 late-bound via ``_kb`` (import-cycle breaking) so monkeypatching
 ``kanban_db.<name>`` keeps working.
 """
-
 from __future__ import annotations
 from hermes_db.domains.kanban.rules import TERMINAL_WORKER_REAP_GRACE_SECONDS, UNVERIFIED_WORKER_FINGERPRINT, WORKER_OUTPUT_SEP, _PROTOCOL_VIOLATION_FAILURE_LIMIT, _PROTOCOL_VIOLATION_SCAN_LIMIT, _RESPAWN_GUARD_PR_WINDOW, _RESPAWN_GUARD_SUCCESS_WINDOW, _STALE_HEARTBEAT_GAP_SECONDS, _error_fingerprint
 from hermes_db.domains.kanban.rules import DEFAULT_FAILURE_LIMIT
@@ -2502,7 +2501,8 @@ def _retag_legacy_worker_sessions(workspaces_root_path: str) -> None:
     if workspaces_root_path in _retagged_workspace_roots:
         return
     try:
-        from hermes_db.access import release_session_store as release_or_close, acquire_sessions as acquire
+        from hermes_db.access import release_session_store as release_or_close
+        from hermes_cli.db_sessions import acquire_sessions as acquire
 
         # Inside the gateway the dispatcher shares the process's registry handle; a bare
         # SessionDB() here was one more writer connection on the same state.db (#100896).

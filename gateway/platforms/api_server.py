@@ -1688,7 +1688,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
         if self.gateway_runner is not None:
             from gateway.platforms.api_server_store import selected_session_db
             return selected_session_db(self, home)
-        from hermes_db.access import acquire_sessions as acquire
+        from hermes_cli.db_sessions import acquire_sessions as acquire
         key = str(home)
         with self._session_db_cache_lock:
             if self._session_db_cache_closed:

@@ -1691,7 +1691,7 @@ def delete_profile(name: str, yes: bool = False) -> Path:
         if _released:
             print(f"✓ Released {_released} memory-store connection(s) held by this process")
     with contextlib.suppress(Exception):
-        from hermes_db.access import close_session_resources_under as _close_session_dbs_under
+        from hermes_cli.db_sessions import close_session_resources_under as _close_session_dbs_under
         _closed = _close_session_dbs_under(profile_dir)
         if _closed:
             print(f"✓ Released {_closed} session database connection(s) held by this process")

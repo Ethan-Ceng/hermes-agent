@@ -2,7 +2,7 @@
 import json
 from pathlib import Path
 
-from hermes_db.access import open_session_store, session_store_exists
+from hermes_cli.db_sessions import open_session_store, session_store_exists
 from acp_adapter.session import (
     _normalize_cwd_for_compare, _parse_model_config, _session_info, _updated_at_sort_key,
 )

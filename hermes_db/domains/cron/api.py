@@ -20,7 +20,7 @@ def domain_operation(topic, *, domain="cron_executions"):
             if settings.backend == "sqlite":
                 return sqlite_operation(*args, **kwargs)
             from importlib import import_module
-            from hermes_db.factory import acquire_domain
+            from hermes_cli.db_domains import acquire_domain
             with acquire_domain(domain, settings, scope) as resource:
                 implementation = import_module(_POSTGRES_MODULES[topic])
                 return getattr(implementation, sqlite_operation.__name__)(resource, *args, **kwargs)
@@ -28,12 +28,12 @@ def domain_operation(topic, *, domain="cron_executions"):
     return decorate
 
 
-from hermes_db.core.resource import DomainResource
+from hermes_db.domains.resource import DomainResource
 
 
 class CronResource(DomainResource):
-    def __init__(self, name, settings, scope, *, transactions, executions, incidents, delivery, notes):
-        super().__init__(name, settings, scope, transactions=transactions)
+    def __init__(self, name, backend, *, executions, incidents, delivery, notes):
+        super().__init__(name, backend)
         self.executions = executions
         self.incidents = incidents
         self.delivery = delivery

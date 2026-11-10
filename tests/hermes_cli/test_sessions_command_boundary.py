@@ -17,7 +17,7 @@ def _parser():
 
 @pytest.mark.parametrize("options", [[], ["--apply"], ["--json"], ["--legacy-main", "move"]])
 def test_retired_command_is_rejected_before_storage(tmp_path, monkeypatch, options):
-    from hermes_db import access
+    from hermes_cli import db_sessions as access
 
     home = tmp_path / "profile"
     home.mkdir()

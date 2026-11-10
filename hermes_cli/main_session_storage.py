@@ -18,7 +18,7 @@ def read_session_store():
     from hermes_cli.main import get_hermes_home
     db = None
     try:
-        from hermes_db.access import open_session_store
+        from hermes_cli.db_sessions import open_session_store
 
         db = open_session_store(db_path=get_hermes_home() / "state.db", read_only=True)
     except StorageError:

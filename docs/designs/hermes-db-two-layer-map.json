@@ -47,7 +47,7 @@
     {
       "id": 5,
       "title": "拆开数据源选择和业务资源获取",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         2,
         3,
@@ -1217,7 +1217,7 @@
     "entries": [
       {
         "path": "hermes-db-two-layer-map/sources-db.json",
-        "sha256": "fe819d8856424c2f07333d3801676fc617d3f1d76ac5feedd0796b96cf4ca903",
+        "sha256": "f448b08272f5fefe0a1b1824bff9ebdf1a7a844835abecbdd49f22e228feb878",
         "items": 359
       }
     ],
@@ -1404,5 +1404,17 @@
     "expanded_thread_fixture_consumers": 22
   },
   "task4_evidence": "docs/designs/hermes-db-two-layer-task4.json",
-  "section_hash_basis": "SHA256 of exact UTF-8/LF bytes stored in Git, matching the repository eol=lf policy; verify working, index and committed blobs."
+  "task4_commit": "11f46b5dc5d6af39f24ab181debfb41771d89e15",
+  "task5_adjustment": {
+    "status": "completed",
+    "common_business_helper": "The pre-existing bound-method scope wrapper serves Sessions and Runtime; it moves once to domains/resource.py rather than creating a cross-domain dependency or duplicate wrapper. The lint domain classifier must distinguish this shared business module from concrete domain packages.",
+    "sqlite_native_callbacks": "Application captures activation, registry acquire/release and the existing fixed-name runtime function resolver. The existing proxy and dispatch table are preserved; no generic resolver or registration surface is added.",
+    "resource_lifetime": "BackendResource holds resolved path/transactions and bounds technical units of work. DomainResource retains independent business-view closed state; closing a board/peer cannot invalidate the shared process pool.",
+    "constructor_migration": "Internal concrete domain constructors now take the selected BackendResource; every production and test construction is synchronized, with no dual-form compatibility flag.",
+    "native_aggregate_owner": "Code inspection confirms acquire_sqlite constructs both Session/Runtime and a DatabaseHandle. Its real definition belongs to hermes_cli/db_sessions.py, while only the existing native business adapters stay in domains. This removes a new cross-domain construction edge rather than adding an exception.",
+    "plugin_consumer_closure": "Achievements history scanning is a concrete existing consumer of the moved acquisition. It must use a published generic plugins.plugin_storage.session_history context (read acquisition + stable identity + release), not gain a new private app import or retain a retired path. This consumer closure is brought forward from Task15; full plugin/SDK lifecycle acceptance remains Task15."
+  },
+  "section_hash_basis": "SHA256 of exact UTF-8/LF bytes stored in Git, matching the repository eol=lf policy; verify working, index and committed blobs.",
+  "task4_checksum_repair_commit": "0417ac0f3aab60e34cad42fe66c22024bca18a48",
+  "task5_evidence": "docs/designs/hermes-db-two-layer-task5.json"
 }

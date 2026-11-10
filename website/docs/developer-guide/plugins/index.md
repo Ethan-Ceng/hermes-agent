@@ -1198,6 +1198,22 @@ its owner, pass `profile_home=home` explicitly; a plugin name or namespace does 
 grant access to another Profile. PostgreSQL also isolates plugins and namespaces
 within `store_id`, and schema creation happens only through `hermes db upgrade`.
 
+For analytics over existing conversation history, use the published context. It selects the owning
+Profile's backend and releases only the acquisition used by the scan:
+
+```python
+from plugins.plugin_storage import session_history
+
+with session_history() as (history, dataset_identity):
+    sessions = history.list_sessions_rich(limit=20, include_children=True)
+    messages = history.get_messages(sessions[0]["id"], include_compacted=True) if sessions else []
+```
+
+Use `dataset_identity` when validating cached analytics after selecting another dataset. Pass
+`profile_home=path` when the application has supplied an explicit owner. The Profile's storage must
+already be initialized; this context does not provision or copy a dataset. Hermes Achievements uses
+this context for its compaction-aware history scan.
+
 `plugin_db("my-plugin")` still returns a caller-owned native SQLite connection
 under `plugin-data/my-plugin/data.db` when `storage.backend` is SQLite. It raises
 an explicit configuration error naming the plugin in PostgreSQL mode, before

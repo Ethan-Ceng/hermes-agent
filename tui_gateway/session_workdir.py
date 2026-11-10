@@ -846,7 +846,7 @@ def _workdir_owner_db(session: dict, fail_log: str):
     db, close_db = None, False
     if profile_home := session.get("profile_home"):
         try:
-            from hermes_db.access import acquire_sessions as acquire
+            from hermes_cli.db_sessions import acquire_sessions as acquire
             db, close_db = acquire(Path(profile_home) / "state.db"), True
         except Exception:
             logger.debug(fail_log, exc_info=True)

@@ -98,7 +98,7 @@ def connect(db_path: Optional[Path] = None, *, profile_home: Optional[Path] = No
     idempotent (``CREATE TABLE IF NOT EXISTS`` + additive migrations) and cached per-path per-process.
     """
     from hermes_cli.db_setup import resolve_db_configuration
-    from hermes_db.factory import acquire_domain
+    from hermes_cli.db_domains import acquire_domain
 
     settings, scope = resolve_db_configuration(profile_home)
     if settings.backend == "postgresql":

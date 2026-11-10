@@ -30,7 +30,7 @@ _TERMINAL = frozenset({"settled", "failed", "cancelled", "ambiguous"})
 
 def _bot_chat_tip(home: Path) -> str | None:
     """Current Bot Chat tip id, or None when the profile has no store or no Bot Chat yet."""
-    from hermes_db.access import open_session_store, session_store_exists
+    from hermes_cli.db_sessions import open_session_store, session_store_exists
 
     if not session_store_exists(home / 'state.db'):
         return None
@@ -54,7 +54,7 @@ def find_canonical_live_owner(profile_home: Path | str) -> dict[str, Any] | None
     discovery = discover_gateway_endpoint(home, timeout=5)
     if discovery.state != 'ready' or discovery.endpoint is None:
         raise ValueError('profile authority is not ready')
-    from hermes_db.access import session_store_exists
+    from hermes_cli.db_sessions import session_store_exists
     if not session_store_exists(home / 'state.db'):
         return None
     tip = _bot_chat_tip(home)

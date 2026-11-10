@@ -687,7 +687,7 @@ class GatewayStatusCommandsMixin:
                 days = int(flag) if flag.isdigit() else days
                 i += 1
         try:
-            from hermes_db.access import acquire_sessions as acquire
+            from hermes_cli.db_sessions import acquire_sessions as acquire
             from agent.insights import InsightsEngine
 
             def _run_insights():

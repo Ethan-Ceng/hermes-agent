@@ -341,7 +341,7 @@ class SessionManager:
         acquire, so the ACP server holds ONE writer on state.db instead of two (#100896)."""
         if self._db_instance is None:
             try:
-                from hermes_db.access import acquire_sessions as acquire
+                from hermes_cli.db_sessions import acquire_sessions as acquire
                 self._db_instance = acquire(get_hermes_home() / "state.db")
             except StorageError:
                 raise

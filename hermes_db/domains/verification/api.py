@@ -4,7 +4,7 @@
 def postgres_resource():
     from agent.runtime_domain_store import worker_resource
     from hermes_cli.db_setup import resolve_db_configuration
-    from hermes_db.factory import acquire_domain
+    from hermes_cli.db_domains import acquire_domain
 
     worker = worker_resource('verification')
     if worker is not None:

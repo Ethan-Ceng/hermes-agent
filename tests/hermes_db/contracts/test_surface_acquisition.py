@@ -16,7 +16,8 @@ def _profile(home, store_id):
 @pytest.mark.parametrize("shared", [False, True])
 def test_sqlite_default_redirect_retains_the_live_continuation(tmp_path, monkeypatch, shared):
     import hermes_state
-    from hermes_db.access import acquire_sessions, open_session_store, release_session_store, session_store_exists
+    from hermes_cli.db_sessions import acquire_sessions, open_session_store, session_store_exists
+    from hermes_db.access import release_session_store
 
     target = tmp_path / "redirected" / "state.db"
     with hermes_state.SessionDB(target) as seed:
@@ -35,8 +36,8 @@ def test_sqlite_default_redirect_retains_the_live_continuation(tmp_path, monkeyp
 
 
 def test_ordinary_pg_opens_without_a_local_file_and_retains_scope(native_registry, core_pair, monkeypatch):
-    from hermes_db import factory
-    from hermes_db.access import acquire_sessions, open_session_store, session_store_exists
+    from hermes_cli import db_sessions as factory
+    from hermes_cli.db_sessions import acquire_sessions, open_session_store, session_store_exists
     registry, _ = native_registry
     monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope))
     homes = [db.scope.profile_home for db in core_pair]
@@ -60,7 +61,7 @@ def test_ordinary_pg_opens_without_a_local_file_and_retains_scope(native_registr
 
 
 def test_pg_factory_refusal_never_opens_sqlite(tmp_path, unavailable_native):
-    from hermes_db.access import acquire_sessions, open_session_store
+    from hermes_cli.db_sessions import acquire_sessions, open_session_store
     _profile(tmp_path, "blocked")
     for opener in (acquire_sessions, open_session_store):
         with pytest.raises(StorageError):
@@ -70,7 +71,7 @@ def test_pg_factory_refusal_never_opens_sqlite(tmp_path, unavailable_native):
 
 def test_managed_worker_cannot_open_an_owner_store(tmp_path, monkeypatch):
     from agent import runtime_session_store
-    from hermes_db.access import acquire_sessions, open_session_store
+    from hermes_cli.db_sessions import acquire_sessions, open_session_store
     monkeypatch.setattr(runtime_session_store, "is_worker_process", lambda: True)
     for opener in (acquire_sessions, open_session_store):
         with pytest.raises(runtime_session_store.WorkerPersistenceError, match="owner_store_access_from_worker"):

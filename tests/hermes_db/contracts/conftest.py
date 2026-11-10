@@ -119,9 +119,8 @@ def native_registry(core_pair, monkeypatch):
 def runtime(store, tmp_path):
     from hermes_state import SessionDB
     if isinstance(store, SessionDB):
-        from hermes_db.backends.sqlite.acquire import SQLiteRuntime
-        from hermes_db.scope import DatabaseScope
-        return SQLiteRuntime(store, DatabaseScope(tmp_path))
+        from hermes_db.integration.runtime_access import runtime_for_store
+        return runtime_for_store(store)
     from hermes_db.integration.runtime_composition import create_runtime_store
     return create_runtime_store(store)
 

@@ -42,6 +42,6 @@ def test_post_update_completion_probes_pg_schema_and_never_sqlite_runtime(pg_pro
     with pg_profiles("one"):
         assert _print_verified_update_completion("✓ Update complete!")
         assert "Update complete" in capsys.readouterr().out
-        monkeypatch.setattr("hermes_db.health.configured_probe", lambda _home: {"backend": "postgresql", "status": "degraded"})
+        monkeypatch.setattr("hermes_cli.db_diagnostics.configured_probe", lambda _home: {"backend": "postgresql", "status": "degraded"})
         assert not _print_verified_update_completion("✓ Update complete!")
         assert "not ready" in capsys.readouterr().out

@@ -15,7 +15,7 @@ from tools.registry import registry, tool_error
 def _open_session_db():
     """Open the SessionDB for the profile owning this turn, or ``None``."""
     try:
-        from hermes_db.access import acquire_sessions as acquire
+        from hermes_cli.db_sessions import acquire_sessions as acquire
         return acquire()
     except Exception:
         return None

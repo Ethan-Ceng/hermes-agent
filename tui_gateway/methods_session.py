@@ -87,7 +87,7 @@ def _make_agent_in_context(sid: str, key: str, **kwargs):
 def _profile_session_db(profile_home):
     """``(db, owns)``: a DEDICATED handle on ``profile_home``'s state.db, else the shared launch db."""
     if profile_home:
-        from hermes_db.access import acquire_sessions as acquire
+        from hermes_cli.db_sessions import acquire_sessions as acquire
         return acquire(Path(profile_home) / "state.db"), True
     return _get_db(), False
 
@@ -493,7 +493,7 @@ def _unarchive_recoverable(db, session_id: str) -> bool:
     the rare write escalates to a short-lived registry writer instead of writing on the reader."""
     if not getattr(db, "read_only", False):
         return db.unarchive_recoverable_session(session_id)
-    from hermes_db.access import acquire_sessions as acquire
+    from hermes_cli.db_sessions import acquire_sessions as acquire
     try:
         wdb = acquire(db.db_path)
     except Exception:

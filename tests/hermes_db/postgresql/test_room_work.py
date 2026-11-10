@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import select, update
 
 from gateway import hosted_room_driver as driver, hosted_room_work_records as work, hosted_rooms as rooms
-from hermes_db.factory import acquire_profile_domain
+from hermes_cli.db_domains import acquire_profile_domain
 from hermes_db.tables.room_work import source, publications, pending
 from hermes_db.core.values import encode_text, decode_text
 

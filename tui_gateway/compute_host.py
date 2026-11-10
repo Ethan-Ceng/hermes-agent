@@ -354,7 +354,7 @@ class ComputeHost:
                 from hermes_constants import set_hermes_home_override
                 from agent.secret_scope import build_profile_secret_scope, set_secret_scope
                 from hermes_cli.env_loader import hydrate_profile_secret_sources
-                from hermes_db.access import acquire_sessions as acquire
+                from hermes_cli.db_sessions import acquire_sessions as acquire
                 home_token = set_hermes_home_override(profile_home)
                 # External sources first (1Password / Bitwarden / secrets.command): this isolated
                 # turn process never ran the launch dotenv path for the routed profile, so without

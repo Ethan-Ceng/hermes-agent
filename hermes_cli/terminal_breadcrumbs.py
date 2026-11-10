@@ -112,7 +112,7 @@ def resolve_breadcrumb_session() -> Optional[str]:
     if not session_id:
         return None
     try:
-        from hermes_db.access import open_session_store
+        from hermes_cli.db_sessions import open_session_store
         from hermes_constants import get_hermes_home
 
         db = open_session_store(db_path=get_hermes_home() / "state.db", read_only=True)

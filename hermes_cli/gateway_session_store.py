@@ -86,7 +86,7 @@ class GatewaySessionStore:
         first start, after the CLI's startup maintenance probe) is retried on the next read."""
         if self._reader is None:
             from hermes_constants import get_hermes_home
-            from hermes_db.access import open_session_store, session_store_exists
+            from hermes_cli.db_sessions import open_session_store, session_store_exists
             from hermes_db.errors import StorageError
             path = get_hermes_home() / "state.db"
             if not session_store_exists(path):

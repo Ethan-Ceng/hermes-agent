@@ -102,7 +102,7 @@ def _restore_gateway_snapshot(cli, store, snap_id):
     from hermes_cli.profiles import parked_marker_path
     from hermes_cli.profiles_remove import wait_profile_unowned
     from hermes_constants import get_hermes_home
-    from hermes_db.access import close_session_resources_under
+    from hermes_cli.db_sessions import close_session_resources_under
     home = get_hermes_home().resolve()
     observed = discover_gateway_endpoint(home)
     if observed.state != "ready" or observed.endpoint is None:

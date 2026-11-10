@@ -17,7 +17,7 @@ def owner(pg_profiles, monkeypatch):
     from gateway.config import GatewayConfig
     from gateway.session import SessionStore
     from gateway.session_authority import SessionAuthority
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     from hermes_db.integration.runtime_access import runtime_for_store
     with pg_profiles("one") as home, closing(open_session_store(home / "state.db")) as resource:
         db = resource.session_store

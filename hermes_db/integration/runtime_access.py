@@ -2,7 +2,7 @@
 
 from hermes_db.health import is_postgresql_store, profile_home_for_store
 from hermes_db.scope import DatabaseScope
-from hermes_db.core.session_resource import SessionResource
+from hermes_db.domains.sessions.resource import SessionResource
 
 
 def runtime_for_store(store):
@@ -11,8 +11,12 @@ def runtime_for_store(store):
     if is_postgresql_store(store):
         from hermes_db.integration.runtime_composition import create_runtime_store
         return create_runtime_store(store)
-    from hermes_db.backends.sqlite.acquire import SQLiteRuntime
-    return SQLiteRuntime(store, DatabaseScope(profile_home_for_store(store)))
+    from hermes_db.domains.runtime.sqlite import SQLiteRuntime
+    from functools import partial
+    from hermes_cli.db_scope import bind_profile_home
+    from hermes_cli.db_sessions import _native_runtime_function
+    scope = DatabaseScope(profile_home_for_store(store))
+    return SQLiteRuntime(store, scope, activate=partial(bind_profile_home, scope), resolve=_native_runtime_function)
 
 
 def effect_for_store(store, sqlite_effect, core_effect):

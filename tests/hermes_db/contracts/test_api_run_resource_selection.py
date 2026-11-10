@@ -20,7 +20,7 @@ def _no_sqlite(**kwargs):
 
 def test_run_updates_use_the_authenticated_scope_after_a_profile_context_switch(native_registry, core_pair, monkeypatch):
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
-    from hermes_db import factory
+    from hermes_cli import db_sessions as factory
     from hermes_db.integration.run_resources import ProfileRunStores
     registry, _ = native_registry
     monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope))
@@ -63,7 +63,7 @@ def test_run_pg_factory_refusal_never_uses_memory_or_sqlite(core_pair, unavailab
 
 def test_close_admission_uses_routed_owner_and_survives_resource_reacquisition(native_registry, core_pair, monkeypatch):
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
-    from hermes_db import factory
+    from hermes_cli import db_sessions as factory
     from hermes_db.integration.run_resources import ProfileRunStores
     registry, _ = native_registry
     monkeypatch.setattr(factory, 'acquire_db', lambda settings, scope: registry.acquire(settings.postgresql, scope))
@@ -129,7 +129,7 @@ def test_native_run_poll_uses_epoch_recovery_and_never_local_pid_liveness(native
     from types import SimpleNamespace
     from gateway.platforms import api_server_runs
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
-    from hermes_db import factory
+    from hermes_cli import db_sessions as factory
     from hermes_db.integration.run_resources import ProfileRunStores
     from hermes_db.integration.runtime_composition import create_runtime_store
     db = core_pair[0]

@@ -34,7 +34,7 @@ def test_worker_recall_uses_owner_rpc_without_opening_a_local_store(home, monkey
         return session_search(db=db, **params['options'])
 
     store = RuntimeSessionStore(owner, {"session_id": "worker-s", "epoch": 1}, home / "outbox")
-    monkeypatch.setattr('hermes_db.access.open_session_store', lambda *args, **kwargs: pytest.fail('worker opened a database'))
+    monkeypatch.setattr('hermes_cli.db_sessions.open_session_store', lambda *args, **kwargs: pytest.fail('worker opened a database'))
     try:
         payload = json.loads(session_search(query="zanzibar", db=store))
         assert calls[0][0] == 'worker.recall'

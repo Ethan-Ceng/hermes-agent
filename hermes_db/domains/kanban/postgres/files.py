@@ -12,7 +12,7 @@ from hermes_db.tables.kanban_artifacts import attachments, blobs
 from hermes_db.core.values import encode_text, decode_text
 import json
 import re
-from hermes_db.core.resource import DomainResource
+from hermes_db.domains.resource import DomainResource
 from contextlib import contextmanager
 import os
 from hermes_db.tables.kanban_commands import command_receipts

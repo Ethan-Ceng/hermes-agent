@@ -64,7 +64,7 @@ def test_failed_pg_routing_save_never_becomes_a_successful_file_save(core_pair, 
 def test_pg_open_failure_and_backoff_both_remain_unavailable(tmp_path, monkeypatch):
     from gateway.session import SessionStore
     from gateway.session_db_recovery import RecoverableHandleCache
-    from hermes_db import access
+    from hermes_cli import db_sessions as access
     home = tmp_path / "pg"
     home.mkdir()
     (home / "config.yaml").write_text("storage: {backend: postgresql}\n")

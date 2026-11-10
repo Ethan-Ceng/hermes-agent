@@ -2,7 +2,7 @@
 
 from functools import wraps
 
-from hermes_db.core.resource import DomainResource
+from hermes_db.domains.resource import DomainResource
 from hermes_db.errors import StorageConfigurationError
 
 
@@ -20,8 +20,8 @@ def domain_operation(sqlite_operation):
 
 class ProjectResource(DomainResource):
     """A Projects transaction owner with the existing application's value constructors."""
-    def __init__(self, settings, scope, *, transactions, project_value, folder_value, now):
-        super().__init__("projects", settings, scope, transactions=transactions)
+    def __init__(self, backend, *, project_value, folder_value, now):
+        super().__init__("projects", backend)
         self.project_value = project_value
         self.folder_value = folder_value
         self.now = now

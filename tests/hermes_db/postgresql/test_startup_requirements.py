@@ -47,8 +47,8 @@ def test_upgrade_checks_extension_before_creating_tables(settings, postgres_engi
 def test_current_revision_is_not_ready_when_extension_is_missing(settings, postgres_engine, tmp_path, monkeypatch):
     from hermes_cli import db_setup
     from hermes_db.errors import StorageSchemaError
-    from hermes_db.factory import acquire_db
-    from hermes_db.health import configured_probe
+    from hermes_cli.db_sessions import acquire_db
+    from hermes_cli.db_diagnostics import configured_probe
     from hermes_db.schema import schema_status, upgrade_schema
     from hermes_db.scope import DatabaseScope
     from hermes_db.settings import DatabaseSettings
@@ -84,7 +84,7 @@ def test_cli_reports_extension_remediation_before_ddl(settings, postgres_engine,
 
 
 def test_healthy_factory_startup_checks_capabilities_without_ddl(settings, postgres_engine, tmp_path):
-    from hermes_db.factory import acquire_db
+    from hermes_cli.db_sessions import acquire_db
     from hermes_db.schema import schema_status, upgrade_schema
     from hermes_db.scope import DatabaseScope
     from hermes_db.settings import DatabaseSettings

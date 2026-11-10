@@ -139,7 +139,7 @@ def _resurrect_recoverable_canonical(db, profile_path, session_id):
         tip_id = _try(lambda: db.get_compression_tip(session_id), None) or session_id
         tip = (_try(lambda: db.get_session(tip_id), None) or row) if tip_id != session_id else row
         from hermes_state import SessionDB
-        from hermes_db.access import acquire_sessions as acquire
+        from hermes_cli.db_sessions import acquire_sessions as acquire
         if (tip.get("end_reason") or "") not in SessionDB.RECOVERABLE_END_REASONS:
             return False
         from hermes_db.health import is_postgresql_store

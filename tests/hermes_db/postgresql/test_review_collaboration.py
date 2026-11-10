@@ -95,7 +95,7 @@ async def test_canonical_group_entry_accepts_pg_location(pg_profiles):
     from contextlib import closing
     from types import SimpleNamespace
     from gateway.session_group_controls import dispatch_group_control
-    from hermes_db.access import open_session_store
+    from hermes_cli.db_sessions import open_session_store
     with pg_profiles("review-native-groups") as home, closing(open_session_store(home / "state.db")) as db:
         actor = SimpleNamespace(profile_id=str(home), subject="review", capabilities={"session:read"})
         authority = SimpleNamespace(db=db, profile_id=str(home), runner=object())

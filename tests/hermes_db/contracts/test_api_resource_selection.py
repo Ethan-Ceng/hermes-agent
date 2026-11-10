@@ -26,7 +26,7 @@ def test_routed_responses_share_native_storage_but_close_only_owned_handles(nati
     )
     from hermes_cli.db_setup import resolve_db_configuration
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
-    from hermes_db import factory
+    from hermes_cli import db_sessions as factory
     registry, _ = native_registry
     monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope))
     homes = [_configure(db) for db in core_pair]
@@ -106,8 +106,8 @@ def test_response_resource_reopens_after_a_profile_generation_is_retired(native_
         initialize_response_state, current_response_store, drain_response_stores,
     )
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
-    from hermes_db import factory
-    from hermes_db.access import close_session_resources_under
+    from hermes_cli import db_sessions as factory
+    from hermes_cli.db_sessions import close_session_resources_under
     registry, _ = native_registry
     monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope))
     home = _configure(core_pair[0])

@@ -16,7 +16,7 @@ class SelectedStore:
             raise StorageConfigurationError("Selected database identity changed after the removal plan; preserve all local files")
 
     def open(self):
-        from hermes_db.factory import acquire_db
+        from hermes_cli.db_sessions import acquire_db
         from hermes_db.health import storage_identity
         handle = acquire_db(self.settings, self.scope)
         if storage_identity(handle.sessions) != self.identity:
