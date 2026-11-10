@@ -637,7 +637,7 @@
   "fixed_migration_resources": 4,
   "db_python": 359,
   "root_db_python": 11,
-  "acceptance_status": "passed; Task8 complete, independent Task9 review required",
+  "acceptance_status": "READY_TO_MERGE for persistence-scope reduction only; all 9 batches exit0 and independent review APPROVED",
   "acceptance_batches": [
     {
       "label": "task8-v3-full-native-win",
@@ -1142,5 +1142,19 @@
     "tests": 8239,
     "mismatches": 0,
     "basis": "Git-normalized content; 633 pre-existing CRLF working-copy differences are preserved"
+  },
+  "independent_review": {
+    "status": "APPROVED",
+    "report": "docs/reviews/hermes-db-persistence-scope-review.md",
+    "report_sha256": "4a26a58191998d8a9ed04fb643370f61ea817bab89f9987e4d4098a7cb76559a",
+    "reviewed_head": "972a5ff3956059a1c19e229552f4d303cd5a3be0",
+    "hash_basis": "Git-normalized report bytes"
+  },
+  "final_document_gate": {
+    "status": "passed",
+    "staged_checks": 16,
+    "blocking": 0,
+    "advisory": 0,
+    "boundaries_generated_contracts_anchors_and_git_equivalence_exit_codes": 0
   }
 }

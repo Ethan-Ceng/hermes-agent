@@ -5,7 +5,7 @@
 - 设计：[持久层职责精简](../designs/hermes-db-persistence-scope.md)；映射：[生产文件/接口/测试/锚点](../designs/hermes-db-persistence-scope-map.json)。
 - 实施分支：`refactor/hermes-db-persistence-scope`；隔离检出：`D:/AI/hermes-db-packages`。
 - 源码基准：`90a2987e8c`；与正式启动`9a8093841b`仅部署记录文档不同。首轮准备提交`7f151a3299`不含运行代码。
-- 整体状态：`REVIEWING`；阶段：code-review；当前实施任务：Task9；完成：8 / 9；阻塞：无。
+- 整体状态：`READY_TO_MERGE`（仅本轮精简）；阶段：verification-before-completion + independent code-review completed；当前实施任务：无（Task9已完成）；完成：9 / 9；阻塞：无。
 - 日期：2026-11-10。本轮用户已授权按计划实施并逐Task本地commit；旧分包/规划证据不计为本轮实施。
 - 准备依据：已核对22个生产路径、16项Store方法、22个相关测试文件及正常生命周期共享依赖；精确hash/处置在映射中。
 
@@ -519,11 +519,11 @@ Windows Native的5个skip均有真实Linux当前执行补齐：fork资源1项、
 
 - Task8提交前重新执行同一完整staged检查：exit0，16 checks，0 blocking/0 advisory；task8-completion-check.log；暂存区空白检查exit0。
 
-未验证：独立Task9审查及任何整改后复验；原统一Task24/七项非WSL缺证和Windows Profile8项独立基准缺陷继续保留。恢复点为本Task本地commit；进入Task9，不暂停目标。
+本Task结算时尚未验证Task9独立审查，现由Task9补齐。原统一Task24/七项非WSL缺证和Windows Profile8项独立基准缺陷继续保留。Task8恢复点972a5ff395；后续Task9结果见下。
 
 ## Task 9：独立审查、整改复验与本轮交付
 
-状态：in_progress
+状态：completed
 
 ### 目标
 
@@ -553,11 +553,32 @@ Windows Native的5个skip均有真实Linux当前执行补齐：fork资源1项、
 
 ### 执行结果
 
-未实施。
+独立Reviewer已完成90a2987e8c..972a5ff395完整diff审查，正式[审查报告](../reviews/hermes-db-persistence-scope-review.md)结论APPROVED。主Agent已实际读取报告、独立审计JSON与两批安全测试Summary，未接受仅口头结论。无未处置blocking/major/minor/suggestion；唯一账本minor为test_review_regressions.py处置状态遗留in_progress，现已更正completed且Reviewer复读确认。只改文档元数据，生产/测试保持90a641冻结，不要求重复完整PG批次。
+
+Reviewer独立补验4文件20pass和2文件18pass，两批exit0/0fail/0skip；独立核对65固定资源、归档SHA256、source23911/driver23911项hash、17729生产/测试内容与保留grant/portability AST，均符合合同。633个raw差异全部既有CRLF，其他内容差异0；Store仅16项指定方法删除，正常方法及合同保持。
+
+最终文档staged门禁全部exit0，Task9完成。本轮精简9/9及独立APPROVED，状态READY_TO_MERGE；该状态只覆盖本轮持久层精简。未推送、创建PR、合并、部署或重启正式Hermes。
 
 ### 验证证据
 
-未执行。
+独立复验cwd均为D:/AI/hermes-db-packages，解释器为隔离PM test-env；运行前HERMES_HOME/HERMES_RUNTIME_DIR/HERMES_PYTHON/UTF8按报告显式绑定：
+
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_cli/test_sessions_command_boundary.py tests/tui_gateway/test_session_resume_store_boundary.py tests/hermes_db/contracts/test_existing_media_grants.py tests/hermes_db/contracts/test_review_data_safety.py -j 2 --file-timeout 1200 -- --tb=short -ra -vv`：exit0，4文件20passed/0failed/0skipped；task9-review-focused.log。
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/tui_gateway/test_resume_live_lazy_session.py tests/hermes_db/contracts/test_remaining_read_maintenance.py -j 2 --file-timeout 1200 -- --tb=short -ra -vv`：exit0，2文件18passed/0failed/0skipped；task9-review-retained.log。
+- Reviewer独立审计exit0：task9-independent-review-audit.json；Task8九个完整命令与冻结版本见Task8证据/manifest。
+
+- `D:/AI/hermes-db-packages/.build/package-layout/test-env/Scripts/python.exe scripts/check --staged --base 90a2987e8c`：exit0，16 checks ok，0 blocking/0 advisory；task9-final-check.log。
+- `D:\AI\hermes-db-packages\.build\package-layout\test-env\Scripts\python.exe scripts/hermes_db_boundary_lint.py --check`：exit0；hermes_db boundaries: 10130 resolved imports, 0 violations；task9-final-gates.json。
+- `D:\AI\hermes-db-packages\.build\package-layout\test-env\Scripts\python.exe scripts/boundary_lint.py --check`：exit0；module_to_core: 847；core_to_module: 26；task9-final-gates.json。
+- `D:\AI\hermes-db-packages\.build\package-layout\test-env\Scripts\python.exe scripts/gen_gateway_contracts.py --check`：exit0；；task9-final-gates.json。
+- `D:\AI\hermes-db-packages\.build\package-layout\test-env\Scripts\python.exe .build/persistence-scope/audit_current.py 9`：exit0；{"task": 9, "status": "PASS", "retired_store_methods": 16, "retained_signatures": 279, "db_python": 359, "root_python": 11, "net_reduction": 6, "deleted_db_modules": 6, "deleted_other_production": 3, "anchors": 61, "migration_resources": 4}；task9-final-gates.json。
+- `git -c safe.directory=D:/AI/hermes-db-packages diff --exit-code 90a6412b22 -- . :(exclude)docs/**`：exit0；；task9-final-gates.json。
+- `git -c safe.directory=D:/AI/hermes-db-packages diff --cached --check`：exit0；；task9-final-gates.json。
+- 正式checkout只读核对：`git -C D:/AI/hermes-agent -c safe.directory=D:/AI/hermes-agent rev-parse HEAD`与`status --porcelain`均exit0，HEAD仍90a2987e8c、clean；实施分支仍refactor/hermes-db-persistence-scope。
+- 按用户55432问题只读执行Docker inspect及`docker exec postgres pg_isready -h 127.0.0.1 -p 5432`：exit0，running/restarting=false/restart_count=0、accepting connections；task9-isolation-service-status.json。未执行服务管理。
+- 验证之后仅结算计划/映射/manifest状态及证据，无运行代码/测试变更；最终暂存空白检查在提交前再执行。
+
+本轮必需门禁无未处置失败/阻塞。未验证/未解决范围仅为独立保留的原统一Task24、七项非WSL缺证、Windows Profile8项基准问题，以及本轮未执行/未授权的全仓测试、正式运行切换和部署；不宣称全系统验收完成。恢复点为本Task最终本地commit（git log -1），不推送/PR/合并/部署/重启。
 
 ## 设计覆盖与最终验证
 
@@ -575,17 +596,19 @@ Windows Native的5个skip均有真实Linux当前执行补齐：fork资源1项、
 
 ### 最终执行命令
 
-见前述标准命令协议及Task8 manifest展开记录。未来必须在本节写入最终实际源码/解释器、每个完整命令的退出码、通过/失败/skip与未验证范围；规划检查不占用业务验收计数。
+当前实际完整命令/解释器/cwd已在Task8验证证据及冻结manifest逐一展开；Task9列出独立复验和最终门禁实际命令。运行代码/测试冻结90a6412b22，后续文档结算没有改变该源。全部9个完整批次exit0；不把规划检查或旧分包/旧720 PG等结果占用本轮验收计数。
 
 ### 当前执行结果
 
-- 本轮Tasks1–8 completed，完成8/9；逐Task命令、退出码、skip与恢复点见上文。当前冻结完整验收已通过，Task9独立审查进行中。
+- 本轮Tasks1–9 completed，完成9/9；逐Task命令、退出码、skip与恢复点见上文。当前冻结完整验收、独立APPROVED和最终文档门禁均通过。
+- 当前完整验收：Native Windows563pass/5skip、Linux568pass/0skip；PG709pass/0skip；消费者两端各129pass；纯SQLite两端各3pass；发行Windows4pass/2平台skip、Linux6pass；独立Reviewer另38pass/0skip。所有命令exit0。staged静态16checks、边界/生成契约/资源/源码等价/空白全部exit0。
+- DB365→359、root11，16维护方法退役；31revision/29表/61+4资源保持。无前端可执行/wire改动，未声明全前端构建或全仓测试通过。
 - 规划核对：映射22生产路径、16方法、22测试文件、6个拟新增行为测试文件及61锚点/4迁移资源已静态核对；方案文档/依赖/本地链接/基准hash和本轮staged检查的实际结果在准备记录补入。
 - 正式目录保持90a2987e8c及已启动运行时代码，未停止、重启、改配置/秘密或接触业务数据库。
 
 ### 未通过项目与最终状态
 
-当前`REVIEWING`，完整冻结验收已通过，独立审查尚未通过，不能标READY_TO_MERGE。Windows Profile八项基准问题、原Task24与七项非WSL缺证各自保留，不把Linux通过改写为Windows通过。
+当前`READY_TO_MERGE`，仅指本轮持久层精简；完整冻结验收、独立APPROVED及最终门禁均通过，无未处置blocking/major/minor。Windows Profile八项基准问题、原Task24与七项非WSL缺证各自保留，不把Linux通过改写为Windows通过。
 
 ## 方案准备记录与恢复
 

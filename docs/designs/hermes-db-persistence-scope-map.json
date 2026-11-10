@@ -550,7 +550,7 @@
       "task": 8,
       "disposition": "Task8 audit amendment before deletion: retire only move/adoption wrappers; KEEP prepared compression late-append fence in-place and non-in-place real PG cases",
       "baseline_sha256": "0ecdb3d89607a8996d6bdafef04faeab98d30726fb0964554a8ba5c9e69114b3",
-      "status": "in_progress"
+      "status": "completed"
     }
   ],
   "new_behavior_tests": [
@@ -706,7 +706,7 @@
     ]
   },
   "proposal_status": "User authorized implementation on 2026-11-10; per-task results tracked in plan",
-  "status": "REVIEWING",
+  "status": "READY_TO_MERGE",
   "test_case_dispositions": [
     {
       "path": "tests/hermes_db/contracts/test_profile_repair.py",
@@ -1228,5 +1228,25 @@
     "batch_count": 9,
     "all_exit_zero": true,
     "source_driver_hash_mismatches": 0
+  },
+  "independent_review": {
+    "status": "APPROVED",
+    "report": "docs/reviews/hermes-db-persistence-scope-review.md",
+    "reviewed_head": "972a5ff3956059a1c19e229552f4d303cd5a3be0",
+    "blocking": 0,
+    "unresolved_major": 0,
+    "minor_fixed": 1,
+    "independent_tests_passed": 38,
+    "final_document_gate": "passed"
+  },
+  "task9_completion": {
+    "all_9_tasks_completed": true,
+    "independent_review": "APPROVED",
+    "blocking": 0,
+    "unresolved_major": 0,
+    "unresolved_minor": 0,
+    "static_checks": 16,
+    "all_final_gate_exit_codes": 0,
+    "scope": "persistence-scope reduction only; unified Task24 and seven non-WSL gaps remain independent"
   }
 }
