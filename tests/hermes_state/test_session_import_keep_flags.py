@@ -1,9 +1,8 @@
-"""A restored or adopted session keeps the user's durable flags.
+"""A restored session keeps the user's durable flags.
 
-``import_sessions`` (the dashboard import of a ``hermes sessions export`` backup, and stranded-session
-adoption) restored ``archived`` but not ``pinned`` or ``hidden``. Pinned is the "keep" flag the startup
+``import_sessions`` (the dashboard import of a ``hermes sessions export`` backup) restored ``archived`` but not ``pinned`` or ``hidden``. Pinned is the "keep" flag the startup
 prune and the stale-archive sweep both exempt, so an old pinned session came back unpinned and the next
-startup deleted it; an adopted Bot Mode chat came back visible and no longer canonical; and without
+startup deleted it; an imported Bot Mode chat came back visible and no longer canonical; and without
 auto_archived a chat the idle sweep archived came back as a manual archive that resume never undoes.
 """
 
@@ -60,8 +59,8 @@ def test_restored_sessions_keep_the_pin_and_the_sweeps_archive_provenance(tmp_pa
         target.close()
 
 
-def test_adopted_bot_chat_stays_the_hidden_canonical_chat(tmp_path):
-    """Stranded-session adoption imports the donor's Bot Mode chat into the profile store; Bot Mode
+def test_imported_bot_chat_stays_the_hidden_canonical_chat(tmp_path):
+    """Ordinary import restores a Bot Mode chat into the profile store; Bot Mode
     chats are hidden, and hidden is what keeps the canonical one out of listings and the stale sweep."""
     donor = SessionDB(db_path=tmp_path / "default.db")
     profile = SessionDB(db_path=tmp_path / "profile.db")
@@ -71,7 +70,7 @@ def test_adopted_bot_chat_stays_the_hidden_canonical_chat(tmp_path):
         donor.set_session_hidden(SESSION_ID, True)
         donor.append_message(SESSION_ID, "user", "hi bot")
 
-        assert profile.adopt_session_lineage_from(donor, SESSION_ID)["adopted"]
+        assert profile.import_sessions([donor.export_session(SESSION_ID)])["imported"] == 1
 
         assert profile.get_session(SESSION_ID)["hidden"]
         assert SESSION_ID not in {s["id"] for s in profile.list_sessions_rich(limit=50)}

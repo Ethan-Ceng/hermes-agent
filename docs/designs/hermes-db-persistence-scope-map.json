@@ -13,10 +13,13 @@
       "task": 3,
       "target": null,
       "reason": "TUI stranded-session compatibility only; remove with SQLite equivalent and resume caller",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         3
-      ]
+      ],
+      "implementation_tasks": {
+        "3": "completed"
+      }
     },
     {
       "source": "hermes_db/integration/postgres/operations/profile_move.py",
@@ -188,7 +191,8 @@
         5
       ],
       "implementation_tasks": {
-        "2": "completed"
+        "2": "completed",
+        "3": "completed"
       }
     },
     {
@@ -216,7 +220,10 @@
         3,
         4,
         5
-      ]
+      ],
+      "implementation_tasks": {
+        "3": "completed"
+      }
     },
     {
       "source": "hermes_state.py",
@@ -237,10 +244,13 @@
       "task": 3,
       "target": "hermes_state_portability.py",
       "reason": "remove adopt_session_lineage_from and _retire_donor_segment only; keep ordinary import/export",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         3
-      ]
+      ],
+      "implementation_tasks": {
+        "3": "completed"
+      }
     },
     {
       "source": "tui_gateway/methods_session.py",
@@ -249,10 +259,13 @@
       "task": 3,
       "target": "tui_gateway/methods_session.py",
       "reason": "remove _resume_adopt_stranded definition/call; keep minted/lazy and owned-store resume paths",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         3
-      ]
+      ],
+      "implementation_tasks": {
+        "3": "completed"
+      }
     },
     {
       "source": "hermes_cli/subcommands/sessions.py",
@@ -464,7 +477,8 @@
     {
       "path": "tests/tui_gateway/test_session_resume_store_boundary.py",
       "task": 3,
-      "purpose": "resume cannot adopt from another store; missing non-minted key stays missing; retain normal lazy/minted/owned-store cases"
+      "purpose": "resume cannot adopt from another store; missing non-minted key stays missing; retain normal lazy/minted/owned-store cases",
+      "status": "completed"
     },
     {
       "path": "tests/hermes_cli/test_sessions_command_boundary.py",
@@ -587,5 +601,175 @@
     ]
   },
   "proposal_status": "User authorized implementation on 2026-11-10; per-task results tracked in plan",
-  "status": "IMPLEMENTING"
+  "status": "IMPLEMENTING",
+  "test_case_dispositions": [
+    {
+      "path": "tests/hermes_db/contracts/test_profile_repair.py",
+      "test": "test_core_adoption_keeps_all_generations_resets_runtime_and_archives_donor",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "Automatic cross-store adoption and donor retirement are retired; existing file grant safety is tested separately by Task2 contracts."
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_profile_repair.py",
+      "test": "test_core_adoption_divergence_keeps_donor_accessible_and_retains_file",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "Automatic cross-store adoption and donor retirement are retired; existing file grant safety is tested separately by Task2 contracts."
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_review_data_safety.py",
+      "test": "test_adoption_keeps_donor_after_recipient_same_length_rewrite",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "The adoption business method is retired; normal prepared-compression conflict coverage remains unchanged."
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_review_data_safety.py",
+      "test": "test_adoption_of_missing_donor_returns_a_business_result",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "The adoption business method is retired; normal prepared-compression conflict coverage remains unchanged."
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "test": "test_adoption_moves_session_and_messages",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "Dedicated stranded adoption/donor retirement/partial-copy retry contract retired with product capability; existing-grant safety moved to Task2 normal contracts."
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "test": "test_donor_is_archived_not_deleted",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "Dedicated stranded adoption/donor retirement/partial-copy retry contract retired with product capability; existing-grant safety moved to Task2 normal contracts."
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "test": "test_adoption_archive_is_not_recoverable_resurrectable",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "Dedicated stranded adoption/donor retirement/partial-copy retry contract retired with product capability; existing-grant safety moved to Task2 normal contracts."
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "test": "test_adoption_is_idempotent",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "Dedicated stranded adoption/donor retirement/partial-copy retry contract retired with product capability; existing-grant safety moved to Task2 normal contracts."
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "test": "test_missing_donor_session_is_reported_not_raised",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "Dedicated stranded adoption/donor retirement/partial-copy retry contract retired with product capability; existing-grant safety moved to Task2 normal contracts."
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "test": "test_compression_lineage_adopts_as_a_unit",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "Dedicated stranded adoption/donor retirement/partial-copy retry contract retired with product capability; existing-grant safety moved to Task2 normal contracts."
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "test": "test_adoption_does_not_touch_unrelated_sessions",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "Dedicated stranded adoption/donor retirement/partial-copy retry contract retired with product capability; existing-grant safety moved to Task2 normal contracts."
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "test": "test_profile_resume_adopts_stranded_default_store_session",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "Dedicated stranded adoption/donor retirement/partial-copy retry contract retired with product capability; existing-grant safety moved to Task2 normal contracts."
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "test": "test_profile_resume_of_truly_unknown_session_still_4007s",
+      "task": 3,
+      "disposition": "replaced",
+      "reason": "Normal owned/missing/store-boundary resume behavior retained in test_session_resume_store_boundary.py."
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "test": "test_launch_profile_resume_path_is_untouched",
+      "task": 3,
+      "disposition": "replaced",
+      "reason": "Normal owned/missing/store-boundary resume behavior retained in test_session_resume_store_boundary.py."
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "test": "test_title_lookup_is_never_used_for_adoption",
+      "task": 3,
+      "disposition": "replaced",
+      "reason": "Normal owned/missing/store-boundary resume behavior retained in test_session_resume_store_boundary.py."
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "test": "test_archived_donor_is_not_readopted",
+      "task": 3,
+      "disposition": "replaced",
+      "reason": "Normal owned/missing/store-boundary resume behavior retained in test_session_resume_store_boundary.py."
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "test": "test_launch_profile_resume_never_adopts_even_when_donor_exists",
+      "task": 3,
+      "disposition": "replaced",
+      "reason": "Normal owned/missing/store-boundary resume behavior retained in test_session_resume_store_boundary.py."
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "test": "test_divergent_donor_is_not_retired",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "Dedicated stranded adoption/donor retirement/partial-copy retry contract retired with product capability; existing-grant safety moved to Task2 normal contracts."
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "test": "test_donor_retired_reports_false_on_retirement_failure",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "Dedicated stranded adoption/donor retirement/partial-copy retry contract retired with product capability; existing-grant safety moved to Task2 normal contracts."
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "test": "test_donor_growth_between_export_and_retire_blocks_retirement",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "Dedicated stranded adoption/donor retirement/partial-copy retry contract retired with product capability; existing-grant safety moved to Task2 normal contracts."
+    },
+    {
+      "path": "tests/tui_gateway/test_stranded_session_adoption.py",
+      "test": "test_adoption_keeps_every_row_checkpoint_sidecar",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "Dedicated stranded adoption/donor retirement/partial-copy retry contract retired with product capability; existing-grant safety moved to Task2 normal contracts."
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_health_archive_refs.py",
+      "test": "test_scoped_current_data_contracts[core_adoption_keeps_all_generations_resets_runtime_and_archives_donor]",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "PG wrapper of retired adoption contract; all normal health/retention/archive/purge/concurrency cases remain."
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_health_archive_refs.py",
+      "test": "test_scoped_current_data_contracts[core_adoption_divergence_keeps_donor_accessible_and_retains_file]",
+      "task": 3,
+      "disposition": "retired",
+      "reason": "PG wrapper of retired adoption contract; all normal health/retention/archive/purge/concurrency cases remain."
+    },
+    {
+      "path": "tests/hermes_state/test_session_import_keep_flags.py",
+      "test": "test_adopted_bot_chat_stays_the_hidden_canonical_chat",
+      "task": 3,
+      "disposition": "converted",
+      "reason": "Replaced adoption setup with ordinary export/import; all hidden/canonical/listing/retention/title protection assertions retained as test_imported_bot_chat_stays_the_hidden_canonical_chat."
+    }
+  ]
 }

@@ -846,8 +846,6 @@ class PostgresSessionStore:
     def import_foreign_history(self, origin, messages, *, title, cwd, profile):
         return self._transfer.import_foreign_history(origin, messages, title=title, cwd=cwd, profile=profile)
 
-    def adopt_session_lineage_from(self, donor_db, session_id, *, retire_donor=True):
-        return self._transfer.adopt_session_lineage_from(donor_db, session_id, retire_donor=retire_donor)
 
     def export_session_for_move(self, session_id):
         return self._transfer.export_session_for_move(session_id)

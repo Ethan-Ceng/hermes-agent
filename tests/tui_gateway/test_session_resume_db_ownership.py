@@ -124,11 +124,8 @@ def _resume(**params):
 def test_resume_closes_profile_db_when_session_not_found(profile_dbs, tmp_path):
     """The 'session not found' early return must not leak the handle.
 
-    The stranded-session adoption fallback (#93296 follow-up) may lazily
-    construct the SHARED launch handle via ``_get_db()`` while probing the
-    default store for a donor row; that handle is never closed by design (see
-    module docstring). Only the dedicated profile-scoped open is the caller's
-    to close, so the leak assertion filters to the profile store path.
+    Only the dedicated profile-scoped handle is opened here. It remains
+    the caller's responsibility until a successful transfer to the live session.
     """
     profile_store = tmp_path / "work" / "state.db"
     resp = _resume(session_id="missing", profile="work")

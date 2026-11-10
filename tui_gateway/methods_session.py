@@ -732,33 +732,6 @@ def _resume_live_unpersisted(ctx: _Resume, live_sid: str, live: dict) -> dict:
                  "profile_name": profile_name_for_home(live.get("profile_home")) or _response_profile_name(ctx.profile)}}, live))
 
 
-def _resume_adopt_stranded(ctx: _Resume) -> None:
-    """Adopt a lineage stranded in the DEFAULT store (older builds ran a profile bot's turns on the focused
-    tile's backend; unadopted it 4001s forever). Exact-id ONLY — bot titles collide; never a retired donor."""
-    try:
-        # Stranded-session adoption (#93296 follow-up): before session RPCs routed by their TARGET session,
-        # a profile bot's turns executed on the focused tile's backend — usually default — so its canonical
-        # session accumulated in the DEFAULT profile's state.db. Now that routing is correct, this
-        # profile-scoped resume is the first place the fix and the stranded data collide: the id exists in
-        # the default store but not here, and without adoption the same chat 4001s forever (the fix made it
-        # unreachable instead of misrouted). Adopt the full lineage from the default store into this
-        # profile's db, then retry the lookup. Only profile-scoped resumes reach here (owns_db); unknown ids
-        # in the default store still 4007 exactly as before.
-        default_db = _get_db()
-        donor_row = default_db.get_session(ctx.target) if default_db is not None else None
-        if not donor_row or donor_row.get("archived"):
-            return
-        adoption = ctx.db.adopt_session_lineage_from(default_db, donor_row["id"])
-        if adoption.get("adopted"):
-            logger.info("adopted stranded session %s (lineage of %s segment(s)) from default store into profile %s",
-                        donor_row["id"],
-                        len(adoption.get("imported_ids") or []) + len(adoption.get("skipped_ids") or []),
-                        ctx.profile or "?")
-            ctx.found = ctx.db.get_session(donor_row["id"])
-            if ctx.found:
-                ctx.target = ctx.found["id"]
-    except Exception:
-        logger.exception("stranded-session adoption failed for %s", ctx.target)
 
 
 def _resume_materialize_minted(ctx: _Resume) -> None:
@@ -807,8 +780,6 @@ def _resume_locate(ctx: _Resume) -> dict | None:
     live_sid = _find_live_unpersisted(ctx.target, ctx.profile_home)
     if (live := _sessions.get(live_sid) if live_sid else None) is not None:
         return _resume_live_unpersisted(ctx, live_sid, live)
-    if ctx.owns_db:
-        _resume_adopt_stranded(ctx)
     if not ctx.found and not ctx.lazy and _is_server_minted_key(ctx.target) \
             and not _any_live_session_claims_key(ctx.target):
         _resume_materialize_minted(ctx)

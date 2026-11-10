@@ -1,7 +1,7 @@
 """An import never restores a user-deleted session id: it refuses it by name at import time.
 
 The deletion fence is permanent for a user delete, so a row an import put back beside it would list
-fine and then refuse every turn. ``import_sessions`` (behind ``adopt_session_lineage_from``) and
+fine and then refuse every turn. ``import_sessions`` and
 the runtime ``import`` mutation both refuse such an id when they read the payload, and write
 nothing. An id a housekeeping sweep retired restores once its fence ages out, as before.
 """

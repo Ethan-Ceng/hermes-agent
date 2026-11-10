@@ -25,23 +25,8 @@ def test_move_never_retires_source_after_recipient_snapshot_changes(core_pair, c
     assert source.get_session('s')['system_prompt'] == 'original prompt'
 
 
-def test_adoption_keeps_donor_after_recipient_same_length_rewrite(core_pair):
-    source, target = core_pair
-    source.create_session('s', 'cli')
-    source.append_message('s', 'user', 'original')
-    assert target.adopt_session_lineage_from(source, 's', retire_donor=False)['adopted']
-    target.replace_messages('s', [{'role': 'user', 'content': 'replacement'}])
-    result = target.adopt_session_lineage_from(source, 's')
-    assert result['adopted'] and not result['donor_retired']
-    assert not source.get_session('s')['archived']
-    assert source.get_messages('s')[0]['content'] == 'original'
 
 
-def test_adoption_of_missing_donor_returns_a_business_result(core_pair):
-    source, target = core_pair
-    result = target.adopt_session_lineage_from(source, 'missing')
-    assert not result['ok'] and not result['adopted'] and not result['donor_retired']
-    assert target.get_session('missing') is None
 
 
 def test_move_allows_recipient_append_without_losing_imported_prefix(core_pair):

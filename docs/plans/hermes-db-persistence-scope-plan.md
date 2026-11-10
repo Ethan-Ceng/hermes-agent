@@ -5,7 +5,7 @@
 - 设计：[持久层职责精简](../designs/hermes-db-persistence-scope.md)；映射：[生产文件/接口/测试/锚点](../designs/hermes-db-persistence-scope-map.json)。
 - 实施分支：`refactor/hermes-db-persistence-scope`；隔离检出：`D:/AI/hermes-db-packages`。
 - 源码基准：`90a2987e8c`；与正式启动`9a8093841b`仅部署记录文档不同。首轮准备提交`7f151a3299`不含运行代码。
-- 整体状态：`IMPLEMENTING`；阶段：feature-development；当前实施任务：Task3；完成：2 / 9；阻塞：无。
+- 整体状态：`IMPLEMENTING`；阶段：feature-development；当前实施任务：Task4；完成：3 / 9；阻塞：无。
 - 日期：2026-11-10。本轮用户已授权按计划实施并逐Task本地commit；旧分包/规划证据不计为本轮实施。
 - 准备依据：已核对22个生产路径、16项Store方法、22个相关测试文件及正常生命周期共享依赖；精确hash/处置在映射中。
 
@@ -178,11 +178,11 @@ hermes_db/domains/sessions/postgres/queries/gateway.py、integration/postgres/op
 - `D:/AI/hermes-db-packages/.build/package-layout/test-env/Scripts/python.exe scripts/check --staged --base 90a2987e8c`：exit0，16 checks ok；日志`task2-check.log`。
 - `git -c safe.directory=D:/AI/hermes-db-packages diff --cached --check`：exit0。
 
-未验证：后续Task的完整双后端/发行/最终审查；不把本Task局部通过冒充全系统验收。恢复点为本Task本地commit；下一Task3。
+未验证：后续Task的完整双后端/发行/最终审查；不把本Task局部通过冒充全系统验收。恢复commit：`e0ba7f8ae7`；下一Task3。
 
 ## Task 3：取消恢复时的历史stranded adoption
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -213,15 +213,31 @@ tui_gateway/methods_session.py、hermes_state_portability.py、PG store/SessionT
 
 ### 执行结果
 
-未实施。
+移除TUI自动stranded分支、SQLite adopt_session_lineage_from/_retire_donor_segment、PG同名Store/组件方法及adoption专用模块。CLI仍使用的move_values/profile_move/file_grants.transfer完整保留。普通Profile ID/title、真实minted/lazy、压缩tip、handle释放、正常session/Worker合同不改变；普通import的隐藏/归档/删除fence断言保持。
+
+新6项边界先在Task2源码红：2fail/4pass（活动目标被复制，归档目标被读取）；删除调用链后完整resume组87pass，普通import/隔离19pass，真实PG保留33pass。映射逐项记录17个原TUI用例的取消或边界替换、4个adoption专用合同、2个PG参数包装及1个改用普通import且保留全部断言的Bot Chat用例。prepared-compression、现有修复CLI及正常路由断言均保留。
+
+task3-boundary-red.log首次因本地scratch驱动默认GBK读取失败/测试路径未生成exit2，不计行为证据；改为UTF-8后task3-boundary-red-retry.log取得真正red。task3-native.log因误写不存在的test_imports.py退出2，修正为真实session/message隔离组后完整exit0。以上未删除断言掩盖失败。
+
+Bot Chat完整文件耗时515.9秒，按systematic-debugging做最小3项诊断exit0（84.9秒）且临时目录显示持续推进，完整原批次最终87pass/0fail/0skip，未更改算法或跳过慢测试。该既有测试将模板写入隔离cwd的owned/SOUL.md（本轮创建），结束后只将该生成文件保存在隔离.build并删除空目录，没有删除用户文件。清理了ownership测试中关于已退役分支的陈旧注释。
+
+提交前空白检查首次exit2（删除测试后文件尾空行）；修正格式后复验exit0。空目录清理原PowerShell cmdlet异常，改用经边界核对的非递归Directory.Delete。
+
+结构审计task3-audit.json exit0：295→294个Store方法，唯一取消adoption，其余签名相等；DB365→364/root11，61锚点和4迁移资源工作树规范blob及基准SHA256保持。动态/直接/patch文本核对无生产adoption旧接口引用；活动sessions指南同步。原Task24/七非WSL缺证仍独立。
 
 ### 验证证据
 
-未执行。
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/tui_gateway/test_session_resume_store_boundary.py tests/tui_gateway/test_session_resume_materializes_minted_key.py tests/tui_gateway/test_session_resume_db_ownership.py tests/gateway/test_bot_chat_follows_profile.py tests/gateway/test_legacy_session_route_turn.py tests/gateway/test_session_resume_compression_tip.py -j 2 --file-timeout 1200 -- --tb=short -ra -vv`：exit0；=== Summary: 6 files, 87 tests passed, 0 failed (100% complete) in 515.9s (2 workers) ===；日志`task3-resume.log`。
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts/test_profile_repair.py tests/hermes_db/contracts/test_review_data_safety.py tests/hermes_db/contracts/test_session_isolation.py tests/hermes_db/contracts/test_message_isolation.py tests/hermes_state/test_session_import_keep_flags.py tests/hermes_state/test_import_deleted_session.py -j 2 --file-timeout 1200 -- --tb=short -ra -vv`：exit0；=== Summary: 6 files, 19 tests passed, 0 failed (100% complete) in 104.5s (2 workers) ===；日志`task3-native-final.log`。
+- `wsl.exe -d Ubuntu-26.04 --cd /mnt/d/AI/hermes-db-packages -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/persistence-scope-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime HERMES_PYTHON=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/test-env/bin/python HERMES_TEST_FILE_RETRIES=0 PYTHONDONTWRITEBYTECODE=1 bash scripts/run_tests.sh tests/hermes_db/postgresql/test_health_archive_refs.py -j 2 --file-timeout 1200 -- --tb=short -ra -vv -m integration --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`：exit0；=== Summary: 1 files, 33 tests passed, 0 failed (100% complete) in 139.0s (2 workers) ===；日志`task3-pg.log`。
+- `D:/AI/hermes-db-packages/.build/package-layout/test-env/Scripts/python.exe scripts/check --staged --base 90a2987e8c`：exit0，16 checks ok；日志`task3-check.log`。
+- `git -c safe.directory=D:/AI/hermes-db-packages diff --cached --check`：exit0。
+
+未验证：后续Task的完整双后端/发行/最终审查；不把本Task局部通过冒充全系统验收。恢复点为本Task本地commit；下一Task4。
 
 ## Task 4：整条退役repair-profiles与双后端专用维护方法
 
-状态：pending
+状态：in_progress
 
 ### 目标
 

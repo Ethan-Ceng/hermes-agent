@@ -38,8 +38,6 @@ PAIR = [moves.test_move_roundtrip_keeps_all_generations_prompts_tool_pins_and_us
     moves.test_core_moved_file_lives_until_last_recipient_history_is_deleted,
     moves.test_core_parent_first_retirement_keeps_child_snapshot_valid,
     repair.test_core_repair_rechecks_topic_key_and_never_changes_another_store,
-    repair.test_core_adoption_keeps_all_generations_resets_runtime_and_archives_donor,
-    repair.test_core_adoption_divergence_keeps_donor_accessible_and_retains_file,
     files.test_core_delayed_spillover_candidate_does_not_unlink_a_replacement,
     health.test_core_storage_identity_and_health_do_not_require_a_local_database_file,
     health.test_core_archive_projection_scope_bound_and_inactive_rows,

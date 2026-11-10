@@ -164,19 +164,6 @@ class SessionTransfer:
             portability_queries_sessions.update_session(conn, self._context.scope, sid, {'origin_json': json.dumps({'imported_from': origin}), 'profile_name': profile})
             return {'session_id': sid, 'already_imported': False}
 
-    def adopt_session_lineage_from(self, donor_db, session_id, *, retire_donor=True):
-        from hermes_db.errors import StorageConfigurationError
-        from hermes_db.integration.postgres.operations.adoption import adopt
-        from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
-        from hermes_db.core.session_resource import SessionResource
-        if isinstance(donor_db, SessionResource):
-            donor_db = donor_db.session_store
-        if not isinstance(donor_db, PostgresSessionStore) or donor_db.scope.store_id == self._context.scope.store_id or resource_key(donor_db._transactions) != resource_key(self._context.transactions):
-            raise StorageConfigurationError('Adoption requires distinct current PostgreSQL stores in the same shared schema')
-        donor_db.flush_token_counts()
-        self._flush_token_counts()
-        with self._context.profile.activate(), self._context.write() as conn:
-            return adopt(conn, self._context.scope, donor_db.scope, session_id, retire_donor=retire_donor, ownership=self._context.ownership)
 
     def export_session_for_move(self, session_id):
         self._flush_token_counts()

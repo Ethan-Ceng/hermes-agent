@@ -552,12 +552,14 @@ Pinning sets a durable "keep" flag: pinned sessions are exempt from the
 same flag the Desktop sidebar's Pinned section uses — pin from either surface
 and both see it.
 
-Restoring a session export (the dashboard import, or a profile adopting a
-stranded session) keeps the pinned, archived and hidden flags, and whether an
+Restoring a session export through the dashboard import keeps the pinned, archived and hidden flags, and whether an
 archive came from the `sessions.auto_archive` sweep. A restored pinned session
-stays exempt from retention cleanup, an adopted Bot Mode chat stays hidden, and
+stays exempt from retention cleanup, an imported Bot Mode chat stays hidden, and
 a restored sweep archive still comes back when you resume it. Exports that
 predate these flags restore as ordinary, unpinned, visible sessions.
+
+Resume searches the selected Profile dataset. A session found only in another
+Profile is not copied or archived automatically; a missing target remains not found.
 
 ```bash
 # Pin one or more sessions (unique ID prefixes work)
