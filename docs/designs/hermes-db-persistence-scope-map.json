@@ -361,10 +361,13 @@
       "task": 8,
       "target": "hermes_state_common.py",
       "reason": "Remove obsolete repair-profiles example from active profile-bound deletion-hook documentation; executable body and normal hook semantics unchanged.",
-      "status": "in_progress",
+      "status": "completed",
       "changed_in_tasks": [
         8
-      ]
+      ],
+      "implementation_tasks": {
+        "8": "completed"
+      }
     }
   ],
   "retired_postgres_store_methods": [
@@ -703,7 +706,7 @@
     ]
   },
   "proposal_status": "User authorized implementation on 2026-11-10; per-task results tracked in plan",
-  "status": "IMPLEMENTING",
+  "status": "REVIEWING",
   "test_case_dispositions": [
     {
       "path": "tests/hermes_db/contracts/test_profile_repair.py",
@@ -1219,5 +1222,11 @@
     "new_behavior_test_files": 6,
     "new_test_support_files": 1,
     "production_disposition_paths": 23
+  },
+  "task8_acceptance": {
+    "source_commit": "90a6412b220d4894d5bf030c9d7662207a6de23d",
+    "batch_count": 9,
+    "all_exit_zero": true,
+    "source_driver_hash_mismatches": 0
   }
 }
