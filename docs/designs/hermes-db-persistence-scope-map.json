@@ -353,6 +353,18 @@
       "implementation_tasks": {
         "7": "completed"
       }
+    },
+    {
+      "source": "hermes_state_common.py",
+      "baseline_sha256": "9b3efef94859bdbf82746259853bd74904ffdb48ebd7f1d13a53f7ed3f48ed59",
+      "action": "docstring_only",
+      "task": 8,
+      "target": "hermes_state_common.py",
+      "reason": "Remove obsolete repair-profiles example from active profile-bound deletion-hook documentation; executable body and normal hook semantics unchanged.",
+      "status": "in_progress",
+      "changed_in_tasks": [
+        8
+      ]
     }
   ],
   "retired_postgres_store_methods": [
@@ -529,6 +541,13 @@
       "task": 4,
       "baseline_sha256": "a52eaa6794c83e0a48fb47c25b52fb5df34ff2f64094cd0d0e4bba43ceee2946",
       "status": "disposed"
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_review_regressions.py",
+      "task": 8,
+      "disposition": "Task8 audit amendment before deletion: retire only move/adoption wrappers; KEEP prepared compression late-append fence in-place and non-in-place real PG cases",
+      "baseline_sha256": "0ecdb3d89607a8996d6bdafef04faeab98d30726fb0964554a8ba5c9e69114b3",
+      "status": "in_progress"
     }
   ],
   "new_behavior_tests": [
@@ -1138,6 +1157,41 @@
       "task": 4,
       "disposition": "retired",
       "reason": "Only exercises insert_gateway_routing_rows_if_absent/list_gateway_routing_rows retired repair API. Normal worker change tracker test in same file is retained and run against real PG."
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_review_regressions.py",
+      "test": "test_move_recipient_proof[messages]",
+      "task": 8,
+      "disposition": "retired",
+      "reason": "Indirect safety-module wrapper for explicitly retired move/adoption behavior. Keep both normal prepared compression late-public-append fence cases in this mixed file."
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_review_regressions.py",
+      "test": "test_move_recipient_proof[prompt]",
+      "task": 8,
+      "disposition": "retired",
+      "reason": "Indirect safety-module wrapper for explicitly retired move/adoption behavior. Keep both normal prepared compression late-public-append fence cases in this mixed file."
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_review_regressions.py",
+      "test": "test_move_and_adoption_boundaries[test_adoption_keeps_donor_after_recipient_same_length_rewrite]",
+      "task": 8,
+      "disposition": "retired",
+      "reason": "Indirect safety-module wrapper for explicitly retired move/adoption behavior. Keep both normal prepared compression late-public-append fence cases in this mixed file."
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_review_regressions.py",
+      "test": "test_move_and_adoption_boundaries[test_adoption_of_missing_donor_returns_a_business_result]",
+      "task": 8,
+      "disposition": "retired",
+      "reason": "Indirect safety-module wrapper for explicitly retired move/adoption behavior. Keep both normal prepared compression late-public-append fence cases in this mixed file."
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_review_regressions.py",
+      "test": "test_move_and_adoption_boundaries[test_move_allows_recipient_append_without_losing_imported_prefix]",
+      "task": 8,
+      "disposition": "retired",
+      "reason": "Indirect safety-module wrapper for explicitly retired move/adoption behavior. Keep both normal prepared compression late-public-append fence cases in this mixed file."
     }
   ],
   "new_test_support": [
@@ -1161,8 +1215,9 @@
     "renamed_existing_db_python": 3,
     "retired_store_methods": 16,
     "deleted_other_production_python": 3,
-    "related_test_files": 23,
+    "related_test_files": 24,
     "new_behavior_test_files": 6,
-    "new_test_support_files": 1
+    "new_test_support_files": 1,
+    "production_disposition_paths": 23
   }
 }

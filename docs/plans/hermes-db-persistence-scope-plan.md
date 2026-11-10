@@ -5,7 +5,7 @@
 - 设计：[持久层职责精简](../designs/hermes-db-persistence-scope.md)；映射：[生产文件/接口/测试/锚点](../designs/hermes-db-persistence-scope-map.json)。
 - 实施分支：`refactor/hermes-db-persistence-scope`；隔离检出：`D:/AI/hermes-db-packages`。
 - 源码基准：`90a2987e8c`；与正式启动`9a8093841b`仅部署记录文档不同。首轮准备提交`7f151a3299`不含运行代码。
-- 整体状态：`IMPLEMENTING`；阶段：feature-development；当前实施任务：Task8；完成：7 / 9；阻塞：无。
+- 整体状态：`IMPLEMENTING`；阶段：feature-development；当前实施任务：Task8；完成：7 / 9；阻塞：PG已恢复只读就绪，完整重跑待验；不管理服务。
 - 日期：2026-11-10。本轮用户已授权按计划实施并逐Task本地commit；旧分包/规划证据不计为本轮实施。
 - 准备依据：已核对22个生产路径、16项Store方法、22个相关测试文件及正常生命周期共享依赖；精确hash/处置在映射中。
 
@@ -488,6 +488,26 @@ Task7不改变或掩盖Windows Profile八项独立基准问题、原统一Task24
 
 实施中。冻结前协议核对：旧distribution_support将普通SQLite与SQLite+Matrix共用--hermes-sqlite-python，新dataset合同要求该参数的载荷实际无PG/SDK依赖。先修订测试协议，新增--hermes-sqlite-matrix-python仅供Matrix业务发行合同，普通SQLite继续原参数，不设兼容回落；随后创建明确标为Task8冻结准备的本地检查点，再由该tip导出source/独立driver和全新PM载荷。此准备提交不是Task8完成，完整命令未exit0之前不计验收。
 
+
+
+冻结检查点：`93fb8716cb8c2386f9da35d0c6b85e9cab39b85b`，source tree `872727bae0a71756315660b4dfe57dfd7664816c`，archive SHA256 `994ecec2159829a305148636952e0609b0a16474e93d76fcb8a401a1a9ff35a7`。完整manifest：[当前冻结](../designs/hermes-db-persistence-scope-freeze.json)；本地task8-full-hashes.json保存23911 tracked、9490 production、8239 tests逐文件hash，source/driver分别独立导出且无.git/.env。Windows根`D:\AI\hermes-db-packages\.build\persistence-scope\task8-payload-93fb8716cb`；Linux根`/var/tmp/hermes-db-persistence-scope-task8-93fb8716cb`。固定61+4资源与0031/31revision/29表保持。
+
+PM当前5载荷全部构建exit0：Windows纯SQLite/env-postgresql(postgresql,messaging)，Linux纯SQLite/env-postgresql(postgresql,messaging,matrix)/env-sqlite-matrix(matrix)，均dev/test、Python3.14.9、-I探针确认导入冻结source；普通SQLite实际无PG/SDK依赖，SQLite+Matrix无SQLAlchemy/psycopg/Alembic（asyncpg仅上游SDK类型），PG实际SDK0.21.1。详细实际解释器/extra在两个根的environments.json及task8-pm-win/linux.log；这是环境就绪，不是完整业务通过。
+
+当前完整批次仍在运行，未完成/未计通过：
+- cwd `D:\AI\hermes-db-packages\.build\persistence-scope\task8-payload-93fb8716cb\test-driver`；`D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db -j 4 --file-timeout 1200 -- --tb=short -ra -vv --hermes-distribution-source=D:\AI\hermes-db-packages\.build\persistence-scope\task8-payload-93fb8716cb\source --hermes-sqlite-python=D:\AI\hermes-db-packages\.build\persistence-scope\task8-payload-93fb8716cb\env-sqlite\Scripts\python.exe --hermes-postgresql-python=D:\AI\hermes-db-packages\.build\persistence-scope\task8-payload-93fb8716cb\env-postgresql\Scripts\python.exe`；状态running，退出码待完成。
+- cwd `/var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/test-driver`；`wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/test-driver -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/test-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime HERMES_PYTHON=/var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/env-postgresql/bin/python HERMES_TEST_FILE_RETRIES=0 PYTHONIOENCODING=utf-8 PYTHONUTF8=1 PYTHONPYCACHEPREFIX=/var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/runtime/pycache-tests bash scripts/run_tests.sh tests/hermes_db -j 4 --file-timeout 1200 -- --tb=short -ra -vv --hermes-distribution-source=/var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/source --hermes-sqlite-python=/var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/env-sqlite/bin/python --hermes-postgresql-python=/var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/env-postgresql/bin/python --hermes-sqlite-matrix-python=/var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/env-sqlite-matrix/bin/python`；状态running，退出码待完成。
+- cwd `/var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/test-driver`；`wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/test-driver -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/test-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime HERMES_PYTHON=/var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/env-postgresql/bin/python HERMES_TEST_FILE_RETRIES=0 PYTHONIOENCODING=utf-8 PYTHONUTF8=1 PYTHONPYCACHEPREFIX=/var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/runtime/pycache-tests bash scripts/run_tests.sh tests/hermes_db/postgresql -j 2 --file-timeout 1200 -- --tb=short -ra -vv -m integration --hermes-distribution-source=/var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/source --hermes-sqlite-python=/var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/env-sqlite/bin/python --hermes-postgresql-python=/var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/env-postgresql/bin/python --hermes-sqlite-matrix-python=/var/tmp/hermes-db-persistence-scope-task8-93fb8716cb/env-sqlite-matrix/bin/python --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`；状态running，退出码待完成。
+
+
+
+首轮完整批次未通过：Windows Native235文件563pass/0fail/1collection error/5skip、exit1，因postgresql/test_review_regressions.py在参数表引用Task3/4已退役的safety包装方法。该文件在原映射中漏列，删除前现追加为第24相关混合测试，逐项退役其5个move/adoption参数用例，保留prepared compression的in_place=True/False两个正常PG断言。此为真实遗漏，不用shim补回已退役方法。Linux PG同时出现服务端recovery/OperationalError；未把环境错误计为产品成功。只停止cwd精确属于93fb冻结driver且argv完整匹配标准测试脚本的仍运行本轮开发进程树，不选择服务/正式实例；被中断Linux批次不计完成。将重新冻结源码/测试并完整重跑，不复用首轮局部通过数字。
+
+
+后续只读PG探针仍exit1/StorageUnavailableError，已向用户异步询问是否有外部维护；没有请求或执行服务管理，Task8不计完成。首轮完整PG133文件exit1：228pass/481errors（含包装器collection错误及服务端恢复窗口）；首轮Linux Native因已确认无效源而SIGTERM，不计完整成功。基于退役测试短名称的初次审计出现4个假阳性（其他模块同名adoption测试及保留的aggregate wrapper）；没有删除它们。改用module+function精确身份及getattr读点审计，结果0残留，继续保留正常post-update/orphan routing能力。
+
+
+最后全格式搜索发现hermes_state_common.emit_session_deleted内部说明仍以旧repair-profiles命令举例，现仅更正文档字符串并在映射追加为第23生产处置路径，执行体/签名/SQL不变。包装器混合文件为第24相关测试文件；当前累计65条具名取消/替换/转换记录。复查只读PG探针已恢复exit0，未执行服务管理；后续整PG目录文件级-j1，保留每个用例内部真实并发/故障协议，减少验收并行负载而不声称修复了服务根因。重新冻结版本后完整命令仍须真实exit0。
 ### 验证证据
 
 未执行。

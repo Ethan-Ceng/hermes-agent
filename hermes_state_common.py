@@ -397,7 +397,7 @@ def emit_session_deleted(db, deleted_ids, *, reason, primary=None, sessions_dir=
     the ids it removed or, for ``reason="archive"``, hid. *primary* is the session the caller asked
     for; without it the first id stands in (bulk sweeps). ``deleted_ids`` rides along when more
     than one row went. Dispatch runs under the store's own profile home, so a process touching
-    another profile's store (``sessions repair-profiles``) reaches THAT profile's plugins.
+    another profile's store through normal lifecycle operations reaches that profile's plugins.
     Late-bound and fail-open: never breaks the delete.
     """
     ids = sorted({sid for sid in (deleted_ids or ()) if isinstance(sid, str) and sid})
