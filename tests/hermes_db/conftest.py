@@ -8,7 +8,7 @@ def pytest_addoption(parser):
                      help="Local secret config for an independent PostgreSQL test database")
     parser.addoption("--hermes-distribution-source", default=None, metavar="PATH",
                      help="Independent source-bundle payload to verify outside the development import path")
-    for backend in ("sqlite", "postgresql"):
+    for backend in ("sqlite", "postgresql", "sqlite-matrix"):
         parser.addoption(f"--hermes-{backend}-python", default=None, metavar="PATH",
                          help=f"PM-built interpreter for the {backend} distribution payload")
 

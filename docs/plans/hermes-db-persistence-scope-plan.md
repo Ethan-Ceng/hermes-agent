@@ -72,8 +72,8 @@ git diff --cached --check
 真实Linux/PG由适用主机执行同一标准runner，cwd为Task8冻结的独立test-driver，source与driver不同。以下变量由Task8的payload.json绑定为实际PM路径；执行记录必须展开而非保留变量：
 
 ```bash
-HERMES_PYTHON="$pg_python" bash scripts/run_tests.sh tests/hermes_db/postgresql -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml --hermes-distribution-source="$source" --hermes-postgresql-python="$pg_python" --hermes-sqlite-python="$sqlite_matrix_python"
-HERMES_PYTHON="$pg_python" bash scripts/run_tests.sh tests/hermes_db/test_distribution.py tests/hermes_db/postgresql/test_distribution_initialization.py -j 2 --file-timeout 1200 -- -m 'integration or not integration' --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml --hermes-distribution-source="$source" --hermes-postgresql-python="$pg_python" --hermes-sqlite-python="$sqlite_matrix_python"
+HERMES_PYTHON="$pg_python" bash scripts/run_tests.sh tests/hermes_db/postgresql -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml --hermes-distribution-source="$source" --hermes-postgresql-python="$pg_python" --hermes-sqlite-python="$sqlite_python" --hermes-sqlite-matrix-python="$sqlite_matrix_python"
+HERMES_PYTHON="$pg_python" bash scripts/run_tests.sh tests/hermes_db/test_distribution.py tests/hermes_db/postgresql/test_distribution_initialization.py -j 2 --file-timeout 1200 -- -m 'integration or not integration' --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml --hermes-distribution-source="$source" --hermes-postgresql-python="$pg_python" --hermes-sqlite-python="$sqlite_python" --hermes-sqlite-matrix-python="$sqlite_matrix_python"
 ```
 
 SQLite纯载荷另以不含PG/Matrix的PM环境执行其普通业务与新PID合同；Matrix载荷单独验证实际SDK。上述发行参数须对应当时源码的conftest/协议，Task1核对实际支持；发生差异先更新计划。控制进程可以协调两种子环境，PG业务子进程不能导入/连接SQLite。
@@ -450,7 +450,7 @@ Task7不改变或掩盖Windows Profile八项独立基准问题、原统一Task24
 - 同解释器 `scripts/boundary_lint.py --check`：exit0，847/26（task7-plugin-boundary.log）；`scripts/gen_gateway_contracts.py --check`：exit0，无漂移（task7-contracts.log）。
 - `git -c safe.directory=D:/AI/hermes-db-packages diff --cached --check`：exit0。
 
-未验证：后续Task的完整双后端/发行/最终审查；不把本Task局部通过冒充全系统验收。恢复点为本Task本地commit；下一Task8。
+未验证：后续Task的完整双后端/发行/最终审查；不把本Task局部通过冒充全系统验收。恢复commit：`f9b3cd3a82`；下一Task8。
 
 ## Task 8：冻结当前源码并执行完整双后端/发行/SDK验收
 
@@ -486,7 +486,7 @@ Task7不改变或掩盖Windows Profile八项独立基准问题、原统一Task24
 
 ### 执行结果
 
-未实施。
+实施中。冻结前协议核对：旧distribution_support将普通SQLite与SQLite+Matrix共用--hermes-sqlite-python，新dataset合同要求该参数的载荷实际无PG/SDK依赖。先修订测试协议，新增--hermes-sqlite-matrix-python仅供Matrix业务发行合同，普通SQLite继续原参数，不设兼容回落；随后创建明确标为Task8冻结准备的本地检查点，再由该tip导出source/独立driver和全新PM载荷。此准备提交不是Task8完成，完整命令未exit0之前不计验收。
 
 ### 验证证据
 
@@ -494,7 +494,7 @@ Task7不改变或掩盖Windows Profile八项独立基准问题、原统一Task24
 
 ## Task 9：独立审查、整改复验与本轮交付
 
-状态：pending
+状态：in_progress
 
 ### 目标
 

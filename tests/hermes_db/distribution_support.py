@@ -61,7 +61,8 @@ if backend == 'postgresql':
 
 def business_process(request, root, backend, role, *, matrix=False, schema="", database=""):
     from tests.gateway.fixtures.local_recovery_probe import child_env
-    executable = request.config.getoption(f"--hermes-{backend}-python")
+    payload = "sqlite-matrix" if backend == "sqlite" and matrix else backend
+    executable = request.config.getoption(f"--hermes-{payload}-python")
     source = request.config.getoption("--hermes-distribution-source")
     if not executable or not source:
         pytest.skip("Explicit PM-built independent bundle and interpreters are required")
