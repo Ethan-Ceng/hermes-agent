@@ -1,0 +1,7224 @@
+[
+  {
+    "path": "tests/hermes_db/conftest.py",
+    "tasks": [
+      2
+    ],
+    "providers": [
+      5
+    ],
+    "lines": [
+      25,
+      29,
+      31,
+      33
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/conftest.py",
+    "tasks": [
+      1,
+      2,
+      4,
+      5,
+      9
+    ],
+    "providers": [
+      9,
+      11,
+      250,
+      276,
+      284,
+      285,
+      328,
+      330,
+      332,
+      347,
+      357,
+      365
+    ],
+    "lines": [
+      12,
+      13,
+      15,
+      16,
+      21,
+      22,
+      23,
+      25,
+      36,
+      38,
+      39,
+      40,
+      42,
+      44,
+      45,
+      55,
+      57,
+      61,
+      62,
+      63,
+      64,
+      69,
+      71,
+      81,
+      82,
+      83,
+      84,
+      89,
+      90,
+      91,
+      102,
+      103,
+      107,
+      111,
+      112,
+      113,
+      118,
+      119,
+      120,
+      121,
+      122,
+      123,
+      124,
+      134,
+      144
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_acquisition.py",
+    "tasks": [
+      2,
+      5
+    ],
+    "providers": [
+      1,
+      19,
+      250,
+      251,
+      329
+    ],
+    "lines": [
+      10,
+      11,
+      16,
+      17,
+      18,
+      20,
+      21,
+      22,
+      28,
+      37,
+      48,
+      82,
+      86,
+      89,
+      96,
+      97,
+      104,
+      109,
+      121,
+      122,
+      124,
+      125,
+      127,
+      128
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_api_native_binding.py",
+    "tasks": [
+      9,
+      16
+    ],
+    "providers": [
+      282,
+      411
+    ],
+    "lines": [
+      11,
+      22,
+      33,
+      35,
+      45,
+      47,
+      54,
+      60
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_api_native_http_sessions.py",
+    "tasks": [
+      2,
+      5
+    ],
+    "providers": [250,251,253],
+    "lines": [
+      14,
+      15,
+      16,
+      18,
+      26,
+      42,
+      55,
+      67
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_api_native_media.py",
+    "tasks": [
+      9
+    ],
+    "providers": [
+      282
+    ],
+    "lines": [15,28,29]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_api_resource_selection.py",
+    "tasks": [
+      2,
+      5,
+      7,
+      9,
+      15,
+      16
+    ],
+    "providers": [
+      1,
+      167,
+      250,
+      251,
+      255,
+      284,
+      361,
+      411
+    ],
+    "lines": [
+      7,
+      27,
+      29,
+      31,
+      33,
+      56,
+      69,
+      71,
+      72,
+      78,
+      79,
+      80,
+      83,
+      86,
+      98,
+      109,
+      110,
+      112,
+      120
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_api_responses.py",
+    "tasks": [4,9,15],
+    "providers": [167,365,451],
+    "lines": [
+      8,
+      12,
+      13,
+      14,
+      16,
+      17
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_api_run_idempotency.py",
+    "tasks": [4,9,15],
+    "providers": [126,365,452],
+    "lines": [
+      10,
+      14,
+      15,
+      16,
+      18,
+      19
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_api_run_resource_selection.py",
+    "tasks": [
+      2,
+      5,
+      9,
+      15
+    ],
+    "providers": [
+      167,
+      250,
+      251,
+      281,
+      284,
+      285,
+      328
+    ],
+    "lines": [
+      5,
+      23,
+      24,
+      26,
+      31,
+      39,
+      53,
+      57,
+      58,
+      66,
+      67,
+      69,
+      74,
+      78,
+      85,
+      99,
+      100,
+      101,
+      103,
+      111,
+      132,
+      133,
+      134,
+      137,
+      139,
+      140
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_api_scope_faults.py",
+    "tasks": [2,9,16],
+    "providers": [
+      126,
+      131,
+      167,
+      250,
+      284,
+      411
+    ],
+    "lines": [
+      9,
+      11,
+      12,
+      31,
+      32,
+      47,
+      48,
+      49,
+      57,
+      67,
+      68,
+      70,
+      77,
+      82,
+      93,
+      94,
+      98,
+      102,
+      116,
+      117,
+      118,
+      122,
+      125,
+      137,
+      146,
+      147,
+      150,
+      154,
+      161,
+      162,
+      163,
+      166,
+      170,
+      176,
+      177,
+      178
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_bot_native_storage.py",
+    "tasks": [
+      9,
+      16
+    ],
+    "providers": [265,282,411],
+    "lines": [
+      14,
+      15,
+      25,
+      29,
+      30,
+      48,
+      58,
+      62
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_compression_archive.py",
+    "tasks": [
+      16
+    ],
+    "providers": [
+      374
+    ],
+    "lines": [59,68,72]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_compression_atomicity.py",
+    "tasks": [
+      1,
+      2,
+      9,
+      16
+    ],
+    "providers": [
+      163,
+      170,
+      193,
+      216,
+      250,
+      284,
+      285,
+      337,
+      374,
+      382,
+      411
+    ],
+    "lines": [
+      21,
+      22,
+      28,
+      35,
+      41,
+      50,
+      51,
+      56,
+      67,
+      69,
+      73,
+      94,
+      102,
+      109,
+      110,
+      111,
+      112,
+      113,
+      114,
+      119,
+      125,
+      126,
+      135,
+      142,
+      143
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_compression_leases.py",
+    "tasks": [
+      16
+    ],
+    "providers": [
+      374
+    ],
+    "lines": [
+      76,
+      80
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_compression_publish.py",
+    "tasks": [
+      16
+    ],
+    "providers": [
+      374
+    ],
+    "lines": [
+      50,
+      55
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_cron_delivery_store.py",
+    "tasks": [
+      8
+    ],
+    "providers": [
+      434
+    ],
+    "lines": [22,23,24]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_dashboard_native_storage.py",
+    "tasks": [2,5,9],
+    "providers": [250,251,282],
+    "lines": [
+      11,
+      12,
+      19,
+      29,
+      34,
+      38,
+      49,
+      52,
+      69,
+      74,
+      76
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_deferred_policy.py",
+    "tasks": [
+      9
+    ],
+    "providers": [
+      170
+    ],
+    "lines": [
+      10,
+      18
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_delegation_owner.py",
+    "tasks": [
+      9,
+      16
+    ],
+    "providers": [
+      284,
+      411
+    ],
+    "lines": [
+      5,
+      9,
+      10,
+      47
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_delegations.py",
+    "tasks": [5,9,16],
+    "providers": [11,257,411],
+    "lines": [
+      7,
+      13,
+      21,
+      27,
+      28,
+      65,
+      71
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_delivery_gateway.py",
+    "tasks": [
+      2,
+      5,
+      7,
+      8,
+      9
+    ],
+    "providers": [
+      124,
+      125,
+      160,
+      250,
+      251,
+      252,
+      329,
+      361,
+      439
+    ],
+    "lines": [
+      14,
+      15,
+      16,
+      17,
+      25,
+      35,
+      40,
+      41,
+      42,
+      66,
+      68,
+      75,
+      83,
+      84,
+      87,
+      95,
+      99,
+      101,
+      108,
+      109,
+      110,
+      116
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_delivery_obligations.py",
+    "tasks": [
+      4,
+      5,
+      8,
+      9
+    ],
+    "providers": [
+      125,
+      253,
+      365,
+      439
+    ],
+    "lines": [
+      10,
+      11,
+      13,
+      14,
+      15,
+      16,
+      20,
+      21,
+      29,
+      41,
+      49,
+      54,
+      56,
+      57,
+      58,
+      84,
+      86,
+      87,
+      107,
+      108
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_domain_resources.py",
+    "tasks": [2,5,6],
+    "providers": [
+      15,
+      250,
+      251,
+      328,
+      329
+    ],
+    "lines": [
+      10,
+      11,
+      12,
+      13,
+      17,
+      18,
+      25,
+      26,
+      28,
+      29,
+      33,
+      35,
+      40,
+      44,
+      73,
+      80,
+      92
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_existing_media_grants.py",
+    "tasks": [
+      9,
+      10
+    ],
+    "providers": [16,211,284],
+    "lines": [
+      9,
+      10,
+      17,
+      21,
+      22,
+      54,
+      59,
+      60,
+      77,
+      91,
+      94
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_file_consumers.py",
+    "tasks": [
+      2,
+      5,
+      7,
+      16
+    ],
+    "providers": [
+      19,
+      250,
+      252,
+      253,
+      361,
+      464
+    ],
+    "lines": [
+      8,
+      9,
+      49,
+      50,
+      53,
+      54,
+      63,
+      67,
+      68,
+      72,
+      73,
+      82,
+      85
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_gateway_authority.py",
+    "tasks": [5,9,16],
+    "providers": [
+      170,
+      253,
+      265,
+      285,
+      328,
+      392,
+      411
+    ],
+    "lines": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      48,
+      49,
+      51,
+      52,
+      85,
+      96,
+      112,
+      113,
+      114,
+      135,
+      148,
+      150,
+      164
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_gateway_peers.py",
+    "tasks": [
+      9,
+      16
+    ],
+    "providers": [163,170,382],
+    "lines": [
+      76,
+      77,
+      78,
+      81,
+      92,
+      96
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_gateway_rekey.py",
+    "tasks": [
+      1
+    ],
+    "providers": [
+      337
+    ],
+    "lines": [96,100,107]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_gateway_settlement.py",
+    "tasks": [
+      9,
+      16
+    ],
+    "providers": [
+      282,
+      411
+    ],
+    "lines": [
+      10,
+      19,
+      34,
+      40,
+      46,
+      51
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_gateway_storage_boundary.py",
+    "tasks": [
+      2,
+      5
+    ],
+    "providers": [
+      1,
+      250
+    ],
+    "lines": [
+      7,
+      55,
+      58,
+      67,
+      77,
+      79,
+      81
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_hosted_native_coordination.py",
+    "tasks": [
+      5
+    ],
+    "providers": [
+      328
+    ],
+    "lines": [
+      11,
+      13
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_kanban_owner_reference.py",
+    "tasks": [
+      2,
+      5,
+      9,
+      13
+    ],
+    "providers": [
+      20,
+      250,
+      251,
+      284,
+      474
+    ],
+    "lines": [
+      3,
+      8,
+      9,
+      17,
+      18,
+      24,
+      25,
+      26,
+      27,
+      28,
+      30,
+      31,
+      32,
+      33,
+      36,
+      38,
+      39
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_local_creation.py",
+    "tasks": [
+      2,
+      5,
+      9,
+      16
+    ],
+    "providers": [
+      250,
+      253,
+      265,
+      282,
+      382,
+      411
+    ],
+    "lines": [
+      13,
+      14,
+      15,
+      16,
+      25,
+      26,
+      30,
+      33,
+      34,
+      38,
+      41,
+      42,
+      46,
+      50,
+      52,
+      58,
+      59,
+      60,
+      61,
+      66,
+      67,
+      72,
+      74,
+      77,
+      83,
+      89,
+      90,
+      91,
+      94,
+      114,
+      118,
+      119,
+      121
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_matrix_close.py",
+    "tasks": [
+      15
+    ],
+    "providers": [73,81,492],
+    "lines": [
+      21,
+      22,
+      26,
+      28,
+      37,
+      60,
+      84,
+      103,
+      111
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_message_isolation.py",
+    "tasks": [
+      2
+    ],
+    "providers": [
+      250
+    ],
+    "lines": [27,37,41]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_message_rewrites.py",
+    "tasks": [
+      4
+    ],
+    "providers": [
+      365
+    ],
+    "lines": [
+      80,
+      93
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_messages.py",
+    "tasks": [
+      16
+    ],
+    "providers": [
+      374
+    ],
+    "lines": [
+      93,
+      98
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_mutation_receipts.py",
+    "tasks": [
+      9,
+      16
+    ],
+    "providers": [
+      197,
+      284,
+      374,
+      396,
+      411
+    ],
+    "lines": [
+      5,
+      16,
+      18,
+      28,
+      29,
+      37,
+      39,
+      45,
+      50,
+      51,
+      55,
+      62
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_mutation_transcript.py",
+    "tasks": [
+      16
+    ],
+    "providers": [
+      411
+    ],
+    "lines": [5,75,105]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_native_startup_webhook.py",
+    "tasks": [
+      9
+    ],
+    "providers": [
+      257,
+      282
+    ],
+    "lines": [
+      8,
+      9,
+      11,
+      15,
+      16,
+      20,
+      36,
+      38
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_portability.py",
+    "tasks": [
+      16
+    ],
+    "providers": [
+      382
+    ],
+    "lines": [
+      65,
+      69
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_prepared_mutations.py",
+    "tasks": [4,9,16],
+    "providers": [
+      163,
+      170,
+      365,
+      382,
+      411
+    ],
+    "lines": [
+      8,
+      15,
+      16,
+      17,
+      19,
+      28,
+      29,
+      31,
+      33,
+      67
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_producer_effects.py",
+    "tasks": [
+      9,
+      16
+    ],
+    "providers": [
+      282,
+      411
+    ],
+    "lines": [
+      8,
+      16,
+      31,
+      32,
+      46,
+      47,
+      50
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_prune_rewrites.py",
+    "tasks": [
+      16
+    ],
+    "providers": [
+      374
+    ],
+    "lines": [8,31,44]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_recovery_payloads.py",
+    "tasks": [
+      9
+    ],
+    "providers": [
+      284
+    ],
+    "lines": [
+      7,
+      10,
+      30,
+      31,
+      35,
+      38
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_remaining_read_maintenance.py",
+    "tasks": [
+      1
+    ],
+    "providers": [
+      337
+    ],
+    "lines": [
+      68,
+      74,
+      82,
+      83
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_retired_files.py",
+    "tasks": [
+      9
+    ],
+    "providers": [
+      284
+    ],
+    "lines": [
+      25,
+      36
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_retirement_guards.py",
+    "tasks": [
+      4
+    ],
+    "providers": [
+      365
+    ],
+    "lines": [
+      7,
+      15
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_retirement_housekeeping.py",
+    "tasks": [4,9,16],
+    "providers": [
+      137,
+      284,
+      365,
+      399,
+      411
+    ],
+    "lines": [
+      7,
+      11,
+      12,
+      13,
+      14,
+      33,
+      62,
+      80,
+      89,
+      109,
+      110
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_retirement_rewrites.py",
+    "tasks": [
+      9,
+      16
+    ],
+    "providers": [
+      163,
+      170,
+      199,
+      411
+    ],
+    "lines": [
+      5,
+      22,
+      46,
+      53,
+      55,
+      66,
+      97,
+      98,
+      99,
+      111,
+      117
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_review_data_safety.py",
+    "tasks": [
+      9,
+      16
+    ],
+    "providers": [
+      284,
+      411
+    ],
+    "lines": [
+      5,
+      18,
+      21,
+      32
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_runtime.py",
+    "tasks": [
+      16
+    ],
+    "providers": [
+      411
+    ],
+    "lines": [
+      5,
+      14,
+      23,
+      44,
+      47,
+      53,
+      57,
+      59,
+      64,
+      75
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_runtime_commit.py",
+    "tasks": [
+      2,
+      9
+    ],
+    "providers": [
+      137,
+      163,
+      250,
+      284
+    ],
+    "lines": [
+      9,
+      10,
+      11,
+      12,
+      15,
+      23,
+      29,
+      32,
+      35
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_runtime_isolation.py",
+    "tasks": [1,9,16],
+    "providers": [
+      137,
+      163,
+      170,
+      284,
+      357,
+      382,
+      411
+    ],
+    "lines": [
+      5,
+      9,
+      11,
+      21,
+      27,
+      28,
+      31,
+      38,
+      47,
+      48,
+      49,
+      52,
+      58,
+      59,
+      63,
+      64,
+      67,
+      69,
+      71,
+      73,
+      76,
+      81,
+      82,
+      83,
+      84,
+      87,
+      88,
+      96
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_search.py",
+    "tasks": [
+      1,
+      4,
+      5,
+      9,
+      16
+    ],
+    "providers": [
+      227,
+      238,
+      239,
+      240,
+      328,
+      332,
+      365,
+      367
+    ],
+    "lines": [
+      10,
+      11,
+      24,
+      25,
+      29,
+      30,
+      31,
+      32,
+      36,
+      37,
+      38,
+      39,
+      43,
+      44,
+      45,
+      50,
+      57,
+      58,
+      67,
+      68,
+      69,
+      71,
+      79,
+      80,
+      87,
+      90
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_session_controls.py",
+    "tasks": [
+      4,
+      16
+    ],
+    "providers": [365,394,411],
+    "lines": [
+      5,
+      21,
+      22,
+      28,
+      30,
+      31,
+      40
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_session_isolation.py",
+    "tasks": [
+      1,
+      9
+    ],
+    "providers": [
+      221,
+      332
+    ],
+    "lines": [
+      27,
+      28,
+      31,
+      37,
+      41
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_storage_health_refs.py",
+    "tasks": [
+      1,
+      2,
+      5,
+      7,
+      10,
+      16
+    ],
+    "providers": [
+      5,
+      250,
+      253,
+      256,
+      329,
+      332,
+      361,
+      453,
+      498
+    ],
+    "lines": [
+      11,
+      12,
+      18,
+      19,
+      23,
+      26,
+      32,
+      33,
+      34,
+      40,
+      42,
+      43,
+      50,
+      76,
+      77,
+      78,
+      80,
+      81,
+      86,
+      87,
+      99,
+      102,
+      103,
+      104,
+      105,
+      106,
+      110,
+      126,
+      127,
+      128,
+      134,
+      141,
+      144
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_surface_acquisition.py",
+    "tasks": [2,4,5],
+    "providers": [
+      1,
+      250,
+      251,
+      365
+    ],
+    "lines": [
+      5,
+      19,
+      22,
+      27,
+      28,
+      29,
+      34,
+      38,
+      39,
+      41,
+      45,
+      46,
+      47,
+      63,
+      65,
+      66,
+      73,
+      75,
+      108
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_terminal_retries.py",
+    "tasks": [4,9,16],
+    "providers": [
+      170,
+      365,
+      411,
+      420
+    ],
+    "lines": [
+      5,
+      9,
+      10,
+      12,
+      28,
+      30,
+      31,
+      32,
+      46,
+      50,
+      52,
+      53
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_unified_selection.py",
+    "tasks": [
+      2,
+      7
+    ],
+    "providers": [
+      250,
+      361
+    ],
+    "lines": [
+      10,
+      11,
+      16,
+      18,
+      19,
+      25,
+      38,
+      39
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_viewer_storage.py",
+    "tasks": [
+      9
+    ],
+    "providers": [
+      170
+    ],
+    "lines": [
+      10,
+      27
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_worker_atomicity.py",
+    "tasks": [
+      9,
+      16
+    ],
+    "providers": [
+      142,
+      154,
+      284,
+      411
+    ],
+    "lines": [
+      5,
+      9,
+      11,
+      19,
+      29,
+      39,
+      42,
+      51
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_worker_compression.py",
+    "tasks": [
+      16
+    ],
+    "providers": [
+      411
+    ],
+    "lines": [
+      7,
+      81
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_worker_metadata.py",
+    "tasks": [
+      16
+    ],
+    "providers": [
+      374,
+      411
+    ],
+    "lines": [
+      7,
+      31,
+      35,
+      54,
+      80,
+      88
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_worker_metrics_mixed_root.py",
+    "tasks": [6,7,11],
+    "providers": [
+      51,
+      290,
+      327,
+      361
+    ],
+    "lines": [
+      10,
+      11,
+      20,
+      22,
+      25,
+      44,
+      48,
+      49,
+      50,
+      52,
+      53
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_worker_owner_wiring.py",
+    "tasks": [
+      5,
+      16
+    ],
+    "providers": [
+      253,
+      411
+    ],
+    "lines": [
+      14,
+      15,
+      20,
+      27,
+      50
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_worker_recall.py",
+    "tasks": [
+      5,
+      16
+    ],
+    "providers": [
+      253,
+      411
+    ],
+    "lines": [
+      12,
+      13,
+      22,
+      40,
+      43,
+      47,
+      49
+    ]
+  },
+  {
+    "path": "tests/hermes_db/contracts/test_workers.py",
+    "tasks": [
+      16
+    ],
+    "providers": [
+      411
+    ],
+    "lines": [
+      5,
+      23,
+      34,
+      39,
+      54,
+      57,
+      76
+    ]
+  },
+  {
+    "path": "tests/hermes_db/matrix_support.py",
+    "tasks": [2,7,15],
+    "providers": [5,73,361],
+    "lines": [
+      7,
+      8,
+      49,
+      50,
+      51,
+      52
+    ]
+  },
+  {
+    "path": "tests/hermes_db/pg_support.py",
+    "tasks": [
+      2
+    ],
+    "providers": [
+      329
+    ],
+    "lines": [9,18,37]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/conftest.py",
+    "tasks": [
+      2,
+      5,
+      6,
+      9
+    ],
+    "providers": [
+      5,
+      9,
+      284,
+      285,
+      327,
+      328
+    ],
+    "lines": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      17,
+      18,
+      21,
+      30,
+      31,
+      36,
+      37,
+      38,
+      75,
+      78
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/scenarios/discord_recovery.py",
+    "tasks": [
+      15
+    ],
+    "providers": [
+      491
+    ],
+    "lines": [
+      17,
+      19
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/scenarios/domain_maintenance.py",
+    "tasks": [
+      10
+    ],
+    "providers": [
+      291
+    ],
+    "lines": [
+      14,
+      15
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/scenarios/kanban_full_gateway.py",
+    "tasks": [
+      7,
+      8,
+      12,
+      13
+    ],
+    "providers": [
+      262,
+      361,
+      362,
+      466,
+      468
+    ],
+    "lines": [
+      111,
+      114,
+      121,
+      160,
+      161,
+      162,
+      165,
+      182,
+      183,
+      186,
+      190,
+      193,
+      196,
+      197,
+      199,
+      200,
+      208,
+      210,
+      211,
+      213,
+      214,
+      218,
+      219,
+      220,
+      242,
+      243,
+      244,
+      247,
+      248,
+      249,
+      252
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/scenarios/kanban_interactive_compute.py",
+    "tasks": [8,12,13],
+    "providers": [263,362,466],
+    "lines": [
+      19,
+      36,
+      37,
+      38,
+      47,
+      49,
+      51,
+      57
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/scenarios/matrix_recovery.py",
+    "tasks": [
+      15
+    ],
+    "providers": [
+      492
+    ],
+    "lines": [
+      32,
+      40
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/scenarios/metrics.py",
+    "tasks": [
+      11
+    ],
+    "providers": [
+      53,
+      478
+    ],
+    "lines": [
+      18,
+      19,
+      24,
+      26
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/scenarios/portable_plugins.py",
+    "tasks": [
+      15
+    ],
+    "providers": [
+      494
+    ],
+    "lines": [
+      16,
+      23,
+      24,
+      31,
+      32,
+      37
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/scenarios/retain_recovery.py",
+    "tasks": [
+      5,
+      15
+    ],
+    "providers": [90,251,490],
+    "lines": [
+      18,
+      19,
+      20,
+      23,
+      42,
+      53
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/scenarios/room_attachments.py",
+    "tasks": [
+      8
+    ],
+    "providers": [
+      440,
+      446
+    ],
+    "lines": [
+      18,
+      24,
+      27,
+      32,
+      40
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_api_stores.py",
+    "tasks": [
+      9
+    ],
+    "providers": [
+      126,
+      167
+    ],
+    "lines": [
+      17,
+      21,
+      32,
+      36,
+      94,
+      95,
+      107,
+      108,
+      118,
+      119
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_backup_backend.py",
+    "tasks": [
+      7,
+      16
+    ],
+    "providers": [
+      361,
+      458
+    ],
+    "lines": [
+      23,
+      26,
+      35,
+      41,
+      61,
+      62,
+      67,
+      70,
+      72,
+      74,
+      80,
+      89,
+      101,
+      105,
+      106,
+      112,
+      116,
+      131,
+      148,
+      155
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_collaboration_recovery_edges.py",
+    "tasks": [
+      1,
+      2,
+      8,
+      9,
+      12,
+      13
+    ],
+    "providers": [
+      20,
+      30,
+      34,
+      36,
+      38,
+      42,
+      43,
+      250,
+      262,
+      339,
+      342,
+      362,
+      446,
+      466
+    ],
+    "lines": [
+      11,
+      12,
+      13,
+      14,
+      15,
+      23,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      42,
+      45,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      82,
+      85,
+      86,
+      87,
+      88,
+      89,
+      98,
+      99,
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      111,
+      112,
+      114,
+      115,
+      116,
+      117,
+      120,
+      121,
+      124,
+      125,
+      143,
+      144,
+      145,
+      146,
+      147,
+      148,
+      149,
+      151,
+      152,
+      154,
+      168,
+      170,
+      171,
+      173,
+      174,
+      175,
+      176,
+      178
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_cron_bot_delivery.py",
+    "tasks": [
+      5,
+      7
+    ],
+    "providers": [
+      1,
+      361
+    ],
+    "lines": [
+      13,
+      14,
+      46,
+      53
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_cron_delivery_store.py",
+    "tasks": [
+      2,
+      6,
+      7,
+      8
+    ],
+    "providers": [
+      5,
+      250,
+      327,
+      361,
+      434,
+      438
+    ],
+    "lines": [
+      17,
+      20,
+      21,
+      30,
+      32,
+      58,
+      60,
+      63,
+      64,
+      72,
+      73,
+      76,
+      77,
+      84,
+      87,
+      89,
+      93,
+      95,
+      118,
+      131,
+      132,
+      134,
+      147,
+      148,
+      149,
+      152,
+      153,
+      154,
+      164,
+      165,
+      166,
+      167,
+      174,
+      175,
+      177,
+      178,
+      179,
+      180,
+      181,
+      183,
+      184,
+      185,
+      186
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_cron_executions.py",
+    "tasks": [
+      1,
+      2,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "providers": [
+      5,
+      20,
+      250,
+      251,
+      327,
+      333,
+      361,
+      435,
+      436
+    ],
+    "lines": [
+      18,
+      20,
+      46,
+      48,
+      49,
+      50,
+      52,
+      53,
+      54,
+      55,
+      57,
+      58,
+      59,
+      60,
+      61,
+      64,
+      65,
+      66,
+      67,
+      69,
+      70,
+      92,
+      93,
+      106,
+      107,
+      118,
+      119,
+      120,
+      123,
+      124,
+      125,
+      126,
+      128,
+      131,
+      132,
+      134,
+      135,
+      136,
+      144,
+      145,
+      146,
+      151,
+      152,
+      153,
+      154,
+      155,
+      156,
+      157,
+      158,
+      160,
+      161,
+      165,
+      166,
+      167,
+      191,
+      192,
+      193,
+      194,
+      195,
+      196,
+      197,
+      199,
+      203,
+      204,
+      216,
+      217,
+      219,
+      220,
+      222,
+      223,
+      224,
+      226,
+      227
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_cron_notepad.py",
+    "tasks": [2,7,8],
+    "providers": [
+      5,
+      250,
+      361,
+      437
+    ],
+    "lines": [
+      12,
+      13,
+      14,
+      15,
+      18,
+      19,
+      20,
+      22,
+      39,
+      41,
+      43,
+      52,
+      54,
+      57,
+      65,
+      69,
+      70,
+      71,
+      72,
+      78,
+      79,
+      80,
+      84,
+      85,
+      86,
+      89,
+      90
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_deliveries.py",
+    "tasks": [
+      9
+    ],
+    "providers": [
+      125
+    ],
+    "lines": [
+      19,
+      20,
+      48,
+      50,
+      53,
+      61,
+      63,
+      72,
+      73
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_discord_backfill.py",
+    "tasks": [1,2,15],
+    "providers": [
+      62,
+      67,
+      68,
+      250,
+      336
+    ],
+    "lines": [
+      8,
+      9,
+      10,
+      48,
+      49,
+      58,
+      59,
+      65,
+      67,
+      68,
+      70,
+      72
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_discord_recovery.py",
+    "tasks": [1,2,15],
+    "providers": [
+      62,
+      67,
+      250,
+      336
+    ],
+    "lines": [
+      50,
+      51,
+      52,
+      62,
+      63,
+      72,
+      75,
+      80,
+      81,
+      92,
+      93
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_discord_recovery_faults.py",
+    "tasks": [1,2,15],
+    "providers": [
+      62,
+      67,
+      68,
+      85,
+      250,
+      336,
+      491
+    ],
+    "lines": [
+      11,
+      12,
+      13,
+      14,
+      22,
+      26,
+      29,
+      34,
+      41,
+      46,
+      52,
+      53,
+      54,
+      56,
+      66,
+      74,
+      75,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      88,
+      96,
+      97,
+      99,
+      100,
+      101,
+      102,
+      103
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_distribution_initialization.py",
+    "tasks": [
+      6
+    ],
+    "providers": [
+      327
+    ],
+    "lines": [
+      147,
+      171
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_domain_maintenance.py",
+    "tasks": [
+      1,
+      2,
+      5,
+      8,
+      10,
+      13,
+      15,
+      16
+    ],
+    "providers": [
+      9,
+      38,
+      43,
+      250,
+      251,
+      291,
+      349,
+      362,
+      440,
+      446,
+      466,
+      473,
+      483,
+      494
+    ],
+    "lines": [
+      17,
+      18,
+      19,
+      20,
+      31,
+      33,
+      34,
+      41,
+      42,
+      44,
+      45,
+      46,
+      47,
+      49,
+      51,
+      52,
+      59,
+      60,
+      61,
+      62,
+      63,
+      71,
+      73,
+      74,
+      75,
+      76,
+      77,
+      81,
+      83,
+      87,
+      89,
+      90,
+      92,
+      94,
+      95,
+      96,
+      101,
+      105,
+      106,
+      107,
+      108,
+      114,
+      115,
+      117,
+      118,
+      119,
+      120,
+      121,
+      123,
+      124,
+      125,
+      126,
+      129,
+      130,
+      131,
+      132,
+      137,
+      138,
+      139,
+      140,
+      141,
+      143,
+      145,
+      149,
+      150,
+      151,
+      152,
+      157,
+      158,
+      159,
+      160,
+      161,
+      162,
+      171,
+      173,
+      174,
+      176,
+      183,
+      184,
+      185,
+      186,
+      187,
+      188,
+      196,
+      198,
+      199,
+      200,
+      201,
+      202,
+      207,
+      214,
+      215,
+      216,
+      217,
+      218,
+      222,
+      224,
+      225,
+      226,
+      237,
+      240,
+      242,
+      251,
+      252,
+      254,
+      256,
+      257,
+      258,
+      259,
+      261,
+      263,
+      264,
+      265,
+      266
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_domain_schema.py",
+    "tasks": [
+      1,
+      2,
+      5,
+      6,
+      9
+    ],
+    "providers": [
+      5,
+      20,
+      250,
+      251,
+      327,
+      328,
+      329,
+      332,
+      346
+    ],
+    "lines": [
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      38,
+      39,
+      42,
+      44,
+      47,
+      48,
+      49,
+      51,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      74,
+      76,
+      77,
+      79,
+      80,
+      82,
+      83,
+      84,
+      85,
+      86,
+      89,
+      92,
+      93,
+      100,
+      101,
+      106,
+      109,
+      110,
+      115,
+      116,
+      117,
+      118,
+      119,
+      120,
+      121,
+      123,
+      124,
+      125,
+      131,
+      135
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_health_archive_refs.py",
+    "tasks": [
+      1,
+      2,
+      5,
+      6,
+      7,
+      9,
+      10,
+      16
+    ],
+    "providers": [
+      193,
+      219,
+      229,
+      253,
+      256,
+      292,
+      327,
+      329,
+      361,
+      498
+    ],
+    "lines": [
+      61,
+      62,
+      63,
+      66,
+      67,
+      74,
+      75,
+      76,
+      77,
+      86,
+      87,
+      89,
+      95,
+      102,
+      113,
+      114,
+      115,
+      133,
+      139,
+      141,
+      142,
+      152
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_hosted_submission_receipt.py",
+    "tasks": [
+      2,
+      5,
+      8,
+      9,
+      16
+    ],
+    "providers": [
+      1,
+      163,
+      250,
+      282,
+      411,
+      441,
+      446
+    ],
+    "lines": [
+      20,
+      21,
+      22,
+      29,
+      38,
+      41,
+      42,
+      43,
+      44,
+      55,
+      57,
+      58,
+      60,
+      62,
+      63,
+      71,
+      72,
+      74,
+      76,
+      85,
+      95,
+      99
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_insert_counts.py",
+    "tasks": [
+      1,
+      2
+    ],
+    "providers": [
+      4,
+      357
+    ],
+    "lines": [
+      12,
+      13,
+      14,
+      15,
+      18,
+      21
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_artifacts.py",
+    "tasks": [2,8,13],
+    "providers": [250,362,466],
+    "lines": [
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      25,
+      26,
+      27,
+      28,
+      29,
+      31,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      48,
+      49,
+      56,
+      57,
+      58,
+      66,
+      67,
+      68,
+      70,
+      77,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      95,
+      99,
+      100,
+      101
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_audit_receipts.py",
+    "tasks": [2,8,13],
+    "providers": [
+      30,
+      42,
+      43,
+      250,
+      362,
+      466
+    ],
+    "lines": [
+      10,
+      11,
+      12,
+      19,
+      21,
+      32,
+      40,
+      41,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      52,
+      54,
+      55
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_board_files.py",
+    "tasks": [
+      2,
+      5,
+      8,
+      13
+    ],
+    "providers": [
+      38,
+      48,
+      250,
+      251,
+      362,
+      466,
+      473
+    ],
+    "lines": [
+      2,
+      13,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      28,
+      34,
+      35,
+      37,
+      38,
+      39,
+      40,
+      41,
+      51,
+      54,
+      58,
+      61,
+      62,
+      63,
+      64,
+      65,
+      69,
+      70,
+      75,
+      76,
+      77,
+      79,
+      80,
+      81,
+      82,
+      83,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      92,
+      93,
+      94,
+      95,
+      96,
+      97,
+      102,
+      103,
+      104,
+      105,
+      109,
+      110,
+      111,
+      112,
+      115
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_command_receipts.py",
+    "tasks": [
+      2,
+      8,
+      13,
+      16
+    ],
+    "providers": [
+      30,
+      42,
+      48,
+      250,
+      362,
+      411,
+      466
+    ],
+    "lines": [
+      2,
+      13,
+      14,
+      15,
+      16,
+      22,
+      23,
+      32,
+      35,
+      36,
+      37,
+      40,
+      41,
+      42,
+      44,
+      45,
+      46,
+      47,
+      51,
+      52,
+      53,
+      58,
+      61,
+      62,
+      63,
+      67,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      80,
+      81,
+      86,
+      89,
+      90,
+      97
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_completion.py",
+    "tasks": [2,8,13],
+    "providers": [
+      250,
+      362,
+      466,
+      473
+    ],
+    "lines": [
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      25,
+      26,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      44,
+      45,
+      46,
+      48,
+      49,
+      51,
+      52,
+      53,
+      54,
+      56,
+      58,
+      60,
+      68,
+      69,
+      70,
+      71,
+      73,
+      76,
+      91,
+      92,
+      96,
+      97,
+      104,
+      105,
+      106,
+      115,
+      116,
+      117,
+      118,
+      119,
+      123,
+      124,
+      125,
+      126,
+      127,
+      129,
+      130,
+      131,
+      132,
+      134,
+      135
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_dashboard.py",
+    "tasks": [
+      8,
+      13
+    ],
+    "providers": [
+      32,
+      43,
+      362,
+      466
+    ],
+    "lines": [
+      27,
+      28,
+      29,
+      30,
+      49,
+      50,
+      55,
+      67,
+      68,
+      69,
+      70,
+      71,
+      76,
+      77,
+      78,
+      79,
+      83,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      101,
+      103,
+      104,
+      105,
+      106,
+      123,
+      124,
+      125
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_dispatch.py",
+    "tasks": [
+      1,
+      2,
+      8,
+      13
+    ],
+    "providers": [
+      35,
+      43,
+      250,
+      341,
+      362,
+      466,
+      468
+    ],
+    "lines": [
+      11,
+      12,
+      13,
+      20,
+      21,
+      22,
+      23,
+      27,
+      28,
+      29,
+      31,
+      46,
+      47,
+      48,
+      54,
+      55,
+      58,
+      60,
+      61,
+      62,
+      64,
+      74,
+      75,
+      76,
+      77,
+      82,
+      83,
+      86,
+      90,
+      95,
+      96,
+      98,
+      99,
+      100,
+      101,
+      109,
+      110,
+      112,
+      113,
+      122,
+      129,
+      131,
+      132,
+      133,
+      138,
+      140,
+      142,
+      150,
+      151,
+      152,
+      153,
+      154,
+      186,
+      192,
+      195,
+      204,
+      217
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_failures.py",
+    "tasks": [
+      8,
+      13
+    ],
+    "providers": [
+      362,
+      466
+    ],
+    "lines": [
+      11,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      20,
+      21,
+      23,
+      24,
+      25,
+      26,
+      30,
+      31,
+      32,
+      34,
+      35,
+      37,
+      38,
+      39,
+      40,
+      41,
+      43,
+      44,
+      45
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_integration.py",
+    "tasks": [2,8,13],
+    "providers": [250,362,466],
+    "lines": [
+      14,
+      15,
+      20,
+      24,
+      25,
+      30,
+      31,
+      34,
+      43,
+      44,
+      50,
+      51,
+      52
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_interactive_process.py",
+    "tasks": [
+      8,
+      13
+    ],
+    "providers": [
+      362,
+      466
+    ],
+    "lines": [
+      65,
+      67,
+      68,
+      69,
+      71,
+      73,
+      74
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_interactive_worker.py",
+    "tasks": [
+      5,
+      8,
+      9,
+      12,
+      13,
+      16
+    ],
+    "providers": [
+      1,
+      32,
+      142,
+      251,
+      263,
+      282,
+      362,
+      382,
+      411,
+      466
+    ],
+    "lines": [
+      11,
+      12,
+      13,
+      14,
+      15,
+      22,
+      39,
+      47,
+      52,
+      53,
+      54,
+      55,
+      60,
+      61,
+      72,
+      75,
+      81,
+      83,
+      85,
+      87,
+      88,
+      89,
+      90,
+      91
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_notify.py",
+    "tasks": [
+      8,
+      13
+    ],
+    "providers": [362,466,471],
+    "lines": [
+      12,
+      17,
+      18,
+      19,
+      23,
+      24,
+      25,
+      26,
+      28,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      39,
+      43,
+      44,
+      46,
+      49,
+      54,
+      55,
+      56,
+      57,
+      59,
+      60,
+      61,
+      62,
+      63
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_owner_policy.py",
+    "tasks": [
+      2,
+      6,
+      8,
+      12,
+      13,
+      14,
+      16
+    ],
+    "providers": [
+      41,
+      48,
+      96,
+      250,
+      262,
+      327,
+      362,
+      411,
+      455,
+      456,
+      466
+    ],
+    "lines": [
+      2,
+      10,
+      11,
+      13,
+      14,
+      15,
+      16,
+      22,
+      25,
+      27,
+      29,
+      35,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      62,
+      63,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      76,
+      77,
+      86,
+      88,
+      90,
+      93,
+      94,
+      95,
+      100,
+      101,
+      102,
+      103,
+      105,
+      106,
+      109,
+      110
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_owner_recovery.py",
+    "tasks": [
+      5,
+      6,
+      8,
+      9,
+      13
+    ],
+    "providers": [
+      1,
+      20,
+      37,
+      48,
+      282,
+      327,
+      362,
+      466,
+      474
+    ],
+    "lines": [
+      2,
+      9,
+      10,
+      16,
+      17,
+      18,
+      19,
+      21,
+      26,
+      27,
+      28,
+      29,
+      31,
+      32,
+      33,
+      36,
+      37,
+      38,
+      40,
+      42,
+      43,
+      44,
+      45,
+      46,
+      48,
+      49,
+      53,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      72,
+      73,
+      74,
+      75,
+      77,
+      78,
+      80,
+      81,
+      88,
+      89,
+      92,
+      95,
+      97,
+      101,
+      106,
+      108,
+      113,
+      116,
+      126
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_review.py",
+    "tasks": [
+      1,
+      2,
+      8,
+      13
+    ],
+    "providers": [
+      43,
+      48,
+      250,
+      338,
+      362,
+      466,
+      473
+    ],
+    "lines": [
+      2,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      42,
+      45,
+      46,
+      47,
+      48,
+      49,
+      55,
+      59,
+      60,
+      62,
+      66,
+      67,
+      68,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_routing.py",
+    "tasks": [2,8,13],
+    "providers": [250,362,466],
+    "lines": [
+      11,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      31,
+      32,
+      33,
+      37,
+      38
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_runs.py",
+    "tasks": [
+      8,
+      13
+    ],
+    "providers": [
+      45,
+      362,
+      466,
+      468
+    ],
+    "lines": [
+      17,
+      18,
+      19,
+      21,
+      22,
+      25,
+      26,
+      27,
+      28,
+      32,
+      33,
+      71,
+      72,
+      81,
+      82,
+      83,
+      84,
+      85,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      96,
+      97,
+      98,
+      99,
+      100,
+      101,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110,
+      113,
+      114,
+      116,
+      122,
+      123,
+      124,
+      125,
+      126,
+      128,
+      129,
+      131,
+      132,
+      133,
+      134,
+      135,
+      139,
+      140,
+      141,
+      142,
+      143,
+      144,
+      145,
+      146,
+      147
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_swarm.py",
+    "tasks": [1,8,13],
+    "providers": [
+      43,
+      46,
+      338,
+      362,
+      466,
+      476
+    ],
+    "lines": [
+      13,
+      14,
+      20,
+      21,
+      24,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      34,
+      36,
+      37,
+      38,
+      41,
+      42,
+      46,
+      47,
+      48,
+      54,
+      59,
+      62,
+      63
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_sweeps.py",
+    "tasks": [2,8,13],
+    "providers": [
+      5,
+      43,
+      45,
+      362,
+      466,
+      468
+    ],
+    "lines": [
+      11,
+      17,
+      20,
+      21,
+      26,
+      29,
+      30,
+      31,
+      33,
+      34,
+      36,
+      37,
+      39,
+      40,
+      41,
+      43,
+      47,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      65,
+      66,
+      69,
+      72,
+      73,
+      76,
+      77,
+      78,
+      79,
+      83,
+      84,
+      88,
+      89,
+      91,
+      94,
+      98,
+      100,
+      101,
+      103,
+      111,
+      112,
+      115,
+      120,
+      122,
+      123,
+      125,
+      126,
+      131,
+      135,
+      136,
+      139,
+      140,
+      142,
+      143,
+      144,
+      145,
+      149,
+      153,
+      154,
+      155,
+      157,
+      158,
+      160,
+      161,
+      169,
+      170,
+      172,
+      175,
+      177,
+      178,
+      180,
+      181,
+      183,
+      184,
+      186,
+      187,
+      189,
+      191,
+      192,
+      193,
+      194,
+      195,
+      196
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_tasks.py",
+    "tasks": [2,8,13],
+    "providers": [
+      5,
+      48,
+      250,
+      362,
+      363,
+      466,
+      470
+    ],
+    "lines": [
+      5,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      54,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      78,
+      79,
+      80,
+      81,
+      83,
+      84,
+      85,
+      86,
+      88,
+      90,
+      91,
+      93,
+      94,
+      95,
+      96,
+      97,
+      98,
+      100,
+      101,
+      103,
+      108,
+      109,
+      110,
+      111,
+      114,
+      115,
+      116,
+      118,
+      119,
+      121,
+      122,
+      123,
+      124,
+      125,
+      126,
+      127,
+      128,
+      129,
+      130,
+      131,
+      139,
+      143,
+      147,
+      148,
+      152,
+      161,
+      169,
+      171,
+      172,
+      173,
+      174,
+      175,
+      176,
+      180,
+      181,
+      182,
+      183,
+      184,
+      185,
+      186,
+      187,
+      188,
+      190,
+      191,
+      208,
+      209,
+      216,
+      217,
+      229,
+      231,
+      232,
+      233,
+      236,
+      237,
+      238,
+      239,
+      240,
+      241,
+      246,
+      247,
+      260,
+      261,
+      263,
+      264,
+      266,
+      267
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_transfer.py",
+    "tasks": [
+      1,
+      2,
+      5,
+      8,
+      9,
+      13
+    ],
+    "providers": [
+      20,
+      38,
+      250,
+      251,
+      288,
+      343,
+      362,
+      466,
+      471,
+      473,
+      477
+    ],
+    "lines": [
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      33,
+      35,
+      36,
+      37,
+      56,
+      57,
+      59,
+      61,
+      64,
+      66,
+      67,
+      68,
+      69,
+      70,
+      76,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      85,
+      86,
+      89,
+      90,
+      92,
+      94,
+      95,
+      96,
+      97,
+      98,
+      99,
+      103,
+      106,
+      111,
+      117,
+      119,
+      120,
+      122,
+      129,
+      130,
+      131,
+      132,
+      133,
+      134,
+      136,
+      146,
+      149,
+      153,
+      156,
+      158,
+      159,
+      161,
+      162,
+      164,
+      165,
+      167,
+      168,
+      169,
+      170,
+      172,
+      187,
+      188,
+      204,
+      205
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_watchers.py",
+    "tasks": [2,8,13],
+    "providers": [
+      250,
+      362,
+      466,
+      471
+    ],
+    "lines": [
+      18,
+      20,
+      22,
+      23,
+      26,
+      28,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      61,
+      62,
+      64,
+      65,
+      68
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_worker_rpc.py",
+    "tasks": [
+      5,
+      8,
+      9,
+      12,
+      13,
+      16
+    ],
+    "providers": [
+      1,
+      262,
+      263,
+      282,
+      362,
+      411,
+      466
+    ],
+    "lines": [
+      12,
+      13,
+      14,
+      15,
+      16,
+      23,
+      24,
+      25,
+      26,
+      27,
+      29,
+      43,
+      45,
+      46,
+      47,
+      48,
+      50,
+      51,
+      53,
+      54,
+      57,
+      58,
+      59,
+      62,
+      65,
+      67,
+      68
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_worker_upload.py",
+    "tasks": [
+      2,
+      5,
+      8,
+      10,
+      12,
+      13,
+      16
+    ],
+    "providers": [
+      1,
+      9,
+      250,
+      263,
+      264,
+      291,
+      362,
+      411,
+      466
+    ],
+    "lines": [
+      16,
+      17,
+      18,
+      25,
+      26,
+      27,
+      35,
+      36,
+      37,
+      38,
+      39,
+      48,
+      50,
+      51,
+      52,
+      56,
+      57,
+      60,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      72,
+      76,
+      77,
+      84,
+      91
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_kanban_workspaces.py",
+    "tasks": [2,8,13],
+    "providers": [
+      43,
+      250,
+      362,
+      466,
+      473
+    ],
+    "lines": [
+      13,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      31,
+      32,
+      34,
+      35,
+      41,
+      42,
+      44,
+      47,
+      48,
+      55,
+      56,
+      58,
+      59,
+      60,
+      61,
+      63,
+      64,
+      66,
+      68,
+      74,
+      76,
+      78,
+      82,
+      83,
+      86,
+      87,
+      88,
+      89,
+      93,
+      94,
+      96,
+      97,
+      98,
+      99,
+      101,
+      103,
+      108,
+      109,
+      113,
+      114,
+      116,
+      117,
+      119,
+      120
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_local_inventory_storage.py",
+    "tasks": [2,7,8],
+    "providers": [250,361,363],
+    "lines": [
+      13,
+      14,
+      24,
+      30,
+      31,
+      33,
+      46,
+      47,
+      55,
+      63,
+      69,
+      73,
+      75
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_managed_metrics.py",
+    "tasks": [
+      1,
+      7,
+      9,
+      11
+    ],
+    "providers": [
+      20,
+      53,
+      348,
+      357,
+      361,
+      478
+    ],
+    "lines": [
+      38,
+      39,
+      42,
+      43,
+      44,
+      72,
+      74,
+      78,
+      89,
+      94,
+      95,
+      96,
+      124,
+      128,
+      129,
+      130,
+      137,
+      140,
+      141
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_managed_retain_queue.py",
+    "tasks": [1,7,9],
+    "providers": [
+      20,
+      351,
+      357,
+      361
+    ],
+    "lines": [
+      55,
+      56,
+      57,
+      58,
+      90,
+      95,
+      96,
+      100,
+      101,
+      102,
+      117,
+      141,
+      142,
+      154,
+      155
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_managed_verification.py",
+    "tasks": [1,7,9],
+    "providers": [
+      20,
+      357,
+      358,
+      361
+    ],
+    "lines": [
+      24,
+      25,
+      26,
+      27,
+      66,
+      71,
+      72,
+      73,
+      104,
+      105,
+      106,
+      109,
+      110
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_management_storage.py",
+    "tasks": [
+      2,
+      7,
+      8,
+      13,
+      15,
+      16
+    ],
+    "providers": [
+      9,
+      250,
+      361,
+      362,
+      435,
+      463,
+      464,
+      466,
+      494
+    ],
+    "lines": [
+      10,
+      11,
+      13,
+      16,
+      17,
+      18,
+      23,
+      24,
+      37,
+      39,
+      40,
+      41,
+      42,
+      44,
+      45,
+      51,
+      52,
+      56,
+      61,
+      63,
+      64,
+      73,
+      75,
+      80,
+      81,
+      82,
+      92,
+      101,
+      102,
+      114,
+      119,
+      121
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_matrix_adapter_storage.py",
+    "tasks": [
+      2,
+      15
+    ],
+    "providers": [
+      73,
+      78,
+      250,
+      492
+    ],
+    "lines": [
+      14,
+      20,
+      85,
+      86,
+      88,
+      90,
+      98,
+      101,
+      111,
+      113,
+      114,
+      118,
+      121
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_matrix_close.py",
+    "tasks": [
+      15
+    ],
+    "providers": [77,81,492],
+    "lines": [
+      23,
+      24,
+      25,
+      36,
+      42,
+      63,
+      76
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_matrix_crypto_store.py",
+    "tasks": [
+      15
+    ],
+    "providers": [
+      73
+    ],
+    "lines": [
+      13,
+      16,
+      25,
+      43
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_matrix_devices.py",
+    "tasks": [
+      2
+    ],
+    "providers": [
+      250
+    ],
+    "lines": [57,77,82]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_matrix_faults.py",
+    "tasks": [1,2,15],
+    "providers": [
+      70,
+      77,
+      80,
+      81,
+      250,
+      346
+    ],
+    "lines": [
+      14,
+      20,
+      45,
+      46,
+      50,
+      57,
+      59,
+      60,
+      65,
+      76,
+      77,
+      78,
+      79,
+      86,
+      95,
+      97,
+      98,
+      99,
+      105,
+      135,
+      147
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_matrix_sdk_concurrency.py",
+    "tasks": [
+      2,
+      15
+    ],
+    "providers": [
+      77,
+      250
+    ],
+    "lines": [
+      11,
+      12,
+      21,
+      22,
+      35
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_matrix_sdk_edges.py",
+    "tasks": [
+      2,
+      15
+    ],
+    "providers": [77,81,250],
+    "lines": [
+      15,
+      16,
+      22,
+      26,
+      34,
+      40,
+      60,
+      61,
+      73,
+      80,
+      81,
+      86,
+      88,
+      98,
+      99,
+      117,
+      119,
+      126
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_merge_collaboration_consumers.py",
+    "tasks": [
+      4,
+      5,
+      8,
+      13,
+      15
+    ],
+    "providers": [
+      1,
+      281,
+      362,
+      365,
+      441,
+      446,
+      452,
+      466,
+      471
+    ],
+    "lines": [
+      13,
+      16,
+      19,
+      20,
+      21,
+      22,
+      26,
+      27,
+      47,
+      48,
+      49,
+      59,
+      60,
+      93,
+      96,
+      98,
+      102,
+      103,
+      107,
+      114,
+      125,
+      129,
+      131
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_merge_collaboration_contracts.py",
+    "tasks": [
+      1,
+      2,
+      5,
+      6,
+      8,
+      9,
+      13
+    ],
+    "providers": [
+      1,
+      126,
+      250,
+      251,
+      327,
+      353,
+      362,
+      441,
+      442,
+      446,
+      466,
+      471
+    ],
+    "lines": [
+      12,
+      13,
+      15,
+      16,
+      32,
+      34,
+      35,
+      36,
+      38,
+      39,
+      40,
+      41,
+      42,
+      44,
+      45,
+      47,
+      49,
+      51,
+      52,
+      54,
+      60,
+      62,
+      63,
+      64,
+      69,
+      76,
+      78,
+      85,
+      88,
+      94,
+      96,
+      97,
+      99,
+      100,
+      101,
+      102,
+      103,
+      104,
+      109,
+      110,
+      121,
+      127,
+      128,
+      130,
+      131,
+      132,
+      133,
+      135,
+      136,
+      137,
+      138,
+      139,
+      150,
+      152,
+      154,
+      155,
+      156,
+      157,
+      158,
+      160,
+      176,
+      178,
+      180,
+      181,
+      182
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_merge_commit_recovery.py",
+    "tasks": [
+      2,
+      5,
+      8,
+      15
+    ],
+    "providers": [
+      1,
+      250,
+      281,
+      446,
+      452
+    ],
+    "lines": [
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      33,
+      38,
+      48,
+      49,
+      55,
+      56,
+      57,
+      61,
+      62,
+      64,
+      65,
+      67
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_merge_data_upgrade.py",
+    "tasks": [
+      1,
+      2,
+      5,
+      6,
+      9
+    ],
+    "providers": [
+      5,
+      9,
+      20,
+      229,
+      250,
+      285,
+      327,
+      328,
+      332,
+      337
+    ],
+    "lines": [
+      16,
+      17,
+      18,
+      19,
+      20,
+      26,
+      27,
+      30,
+      32,
+      49,
+      50,
+      51,
+      52,
+      61,
+      62,
+      65,
+      66,
+      67,
+      69,
+      70,
+      77,
+      82,
+      83,
+      84,
+      88,
+      90,
+      91,
+      92,
+      95,
+      96,
+      103,
+      104,
+      111,
+      112,
+      113
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_merge_process_recovery.py",
+    "tasks": [
+      8,
+      15
+    ],
+    "providers": [281,446,452],
+    "lines": [
+      75,
+      76,
+      77,
+      78
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_merge_storage_contracts.py",
+    "tasks": [
+      2,
+      8,
+      9,
+      16
+    ],
+    "providers": [
+      5,
+      9,
+      144,
+      220,
+      285,
+      372,
+      441,
+      446
+    ],
+    "lines": [
+      22,
+      23,
+      47,
+      48,
+      54,
+      55,
+      56,
+      59,
+      67,
+      73,
+      78,
+      79,
+      80,
+      81,
+      82,
+      154,
+      164,
+      177,
+      178,
+      183,
+      184,
+      191,
+      196,
+      197,
+      198,
+      201,
+      202
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_messages.py",
+    "tasks": [
+      5,
+      9
+    ],
+    "providers": [
+      193,
+      219,
+      229,
+      285,
+      328
+    ],
+    "lines": [
+      41,
+      42,
+      43,
+      53,
+      54,
+      75,
+      77,
+      78
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_metrics_consent.py",
+    "tasks": [
+      11
+    ],
+    "providers": [
+      50,
+      53,
+      55,
+      478,
+      479
+    ],
+    "lines": [
+      4,
+      5,
+      7,
+      15,
+      23,
+      33,
+      42,
+      46,
+      53,
+      62,
+      74,
+      75,
+      80,
+      83,
+      84
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_metrics_consumers.py",
+    "tasks": [
+      5,
+      11
+    ],
+    "providers": [
+      1,
+      50,
+      53,
+      56,
+      478,
+      480
+    ],
+    "lines": [
+      7,
+      8,
+      10,
+      11,
+      18,
+      20,
+      24,
+      29,
+      33,
+      35,
+      37,
+      39,
+      40,
+      46,
+      49,
+      57,
+      58,
+      61,
+      65,
+      70
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_metrics_engagement.py",
+    "tasks": [
+      1,
+      7,
+      9,
+      11
+    ],
+    "providers": [
+      20,
+      348,
+      361,
+      478
+    ],
+    "lines": [
+      9,
+      10,
+      11,
+      18,
+      21,
+      24,
+      25,
+      26,
+      29,
+      30
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_metrics_faults.py",
+    "tasks": [1,2,11],
+    "providers": [
+      50,
+      53,
+      55,
+      56,
+      58,
+      250,
+      348,
+      478,
+      479
+    ],
+    "lines": [
+      6,
+      7,
+      8,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      23,
+      24,
+      34,
+      35,
+      37,
+      40,
+      44,
+      45,
+      48,
+      53,
+      54,
+      56,
+      59,
+      63,
+      64,
+      65,
+      71,
+      72,
+      76,
+      77,
+      79,
+      80,
+      87,
+      90,
+      91,
+      93,
+      100,
+      101
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_metrics_http.py",
+    "tasks": [
+      2,
+      11
+    ],
+    "providers": [
+      50,
+      250,
+      478,
+      479
+    ],
+    "lines": [
+      7,
+      8,
+      9,
+      10,
+      33,
+      37,
+      42,
+      43,
+      45,
+      50,
+      62,
+      64,
+      65
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_metrics_process.py",
+    "tasks": [
+      11
+    ],
+    "providers": [53,58,478],
+    "lines": [
+      8,
+      9,
+      10,
+      42,
+      51,
+      52,
+      56
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_metrics_store.py",
+    "tasks": [
+      11
+    ],
+    "providers": [
+      50,
+      53,
+      55,
+      58,
+      478,
+      479
+    ],
+    "lines": [
+      8,
+      9,
+      10,
+      12,
+      21,
+      23,
+      26,
+      32,
+      33,
+      39,
+      43,
+      45,
+      50,
+      53,
+      62,
+      63,
+      65,
+      66,
+      68,
+      69,
+      70,
+      71,
+      75,
+      76,
+      78,
+      79,
+      81,
+      86,
+      87,
+      90,
+      93,
+      98,
+      99
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_model_marker_schema.py",
+    "tasks": [
+      6
+    ],
+    "providers": [
+      327
+    ],
+    "lines": [
+      16,
+      17,
+      20,
+      28,
+      38,
+      39
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_plugin_storage.py",
+    "tasks": [1,2,15],
+    "providers": [
+      83,
+      85,
+      250,
+      349,
+      494
+    ],
+    "lines": [
+      4,
+      10,
+      13,
+      15,
+      23,
+      24,
+      26,
+      30,
+      32,
+      33,
+      38,
+      41,
+      42,
+      47,
+      48,
+      49,
+      50,
+      52,
+      54,
+      55,
+      76,
+      78,
+      79,
+      80,
+      82,
+      87,
+      88,
+      90,
+      91,
+      101,
+      102,
+      103,
+      105,
+      106,
+      112,
+      113,
+      114,
+      116,
+      117,
+      119
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_plugin_storage_process.py",
+    "tasks": [
+      15
+    ],
+    "providers": [
+      494
+    ],
+    "lines": [
+      7,
+      47,
+      52,
+      57,
+      61,
+      62,
+      65
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_profile_file_scope.py",
+    "tasks": [
+      2,
+      7,
+      8,
+      10,
+      13
+    ],
+    "providers": [
+      43,
+      250,
+      291,
+      361,
+      362,
+      466,
+      473
+    ],
+    "lines": [
+      7,
+      37,
+      38,
+      39,
+      42,
+      43,
+      49,
+      51,
+      53,
+      70,
+      79,
+      80,
+      87,
+      101,
+      107,
+      108,
+      115,
+      125,
+      126,
+      127,
+      130,
+      132,
+      134,
+      135,
+      138,
+      139,
+      140,
+      141,
+      143,
+      145,
+      146,
+      154,
+      155,
+      158,
+      159
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_profile_observations.py",
+    "tasks": [7,8,16],
+    "providers": [
+      361,
+      450,
+      453,
+      457,
+      465
+    ],
+    "lines": [
+      10,
+      11,
+      18,
+      19,
+      24,
+      25,
+      26,
+      32,
+      36,
+      38,
+      42,
+      49,
+      53
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_projects_store.py",
+    "tasks": [
+      2,
+      6,
+      7,
+      8
+    ],
+    "providers": [
+      5,
+      250,
+      327,
+      361,
+      363
+    ],
+    "lines": [
+      18,
+      20,
+      48,
+      50,
+      51,
+      53,
+      55,
+      56,
+      57,
+      58,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      101,
+      102,
+      103,
+      114,
+      115,
+      118,
+      119,
+      121,
+      123,
+      124,
+      128,
+      129,
+      132,
+      164,
+      165,
+      166,
+      169,
+      170,
+      171,
+      174,
+      176
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_retain_queue.py",
+    "tasks": [
+      1,
+      15
+    ],
+    "providers": [
+      87,
+      90,
+      351,
+      490
+    ],
+    "lines": [
+      6,
+      7,
+      8,
+      25,
+      27,
+      35,
+      36,
+      43,
+      44,
+      48,
+      66,
+      74
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_retain_queue_process.py",
+    "tasks": [1,2,15],
+    "providers": [
+      87,
+      90,
+      250,
+      351,
+      490
+    ],
+    "lines": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      33,
+      34,
+      35,
+      41,
+      42,
+      43,
+      46,
+      48,
+      53,
+      57,
+      58,
+      60
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_retain_queue_transactions.py",
+    "tasks": [1,2,15],
+    "providers": [
+      87,
+      90,
+      250,
+      351
+    ],
+    "lines": [
+      6,
+      7,
+      8,
+      9,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      23,
+      24,
+      25,
+      26,
+      28,
+      29,
+      30,
+      31,
+      33,
+      35,
+      36,
+      37,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      51,
+      52,
+      53,
+      54
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_retain_queue_worker.py",
+    "tasks": [1,2,15],
+    "providers": [
+      87,
+      90,
+      250,
+      351,
+      490
+    ],
+    "lines": [
+      5,
+      6,
+      7,
+      8,
+      34,
+      40,
+      41,
+      43,
+      44,
+      51,
+      53,
+      67,
+      73,
+      75,
+      85,
+      89,
+      91,
+      94,
+      95,
+      97,
+      100,
+      108,
+      111,
+      115,
+      121,
+      122,
+      128,
+      134,
+      138,
+      140,
+      143,
+      144,
+      149,
+      151,
+      157
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_retirement_rewrites.py",
+    "tasks": [
+      16
+    ],
+    "providers": [
+      374,
+      411
+    ],
+    "lines": [
+      8,
+      9,
+      135,
+      153
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_review_collaboration.py",
+    "tasks": [
+      2,
+      5,
+      8,
+      13
+    ],
+    "providers": [
+      1,
+      30,
+      42,
+      250,
+      362,
+      466,
+      477
+    ],
+    "lines": [
+      11,
+      12,
+      13,
+      14,
+      16,
+      17,
+      24,
+      25,
+      26,
+      33,
+      34,
+      40,
+      42,
+      43,
+      44,
+      45,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      66,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      98,
+      99
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_review_foundation_profile_delete.py",
+    "tasks": [
+      7
+    ],
+    "providers": [
+      361
+    ],
+    "lines": [13,15,33]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_review_foundation_room_routing.py",
+    "tasks": [
+      5,
+      7,
+      8,
+      9
+    ],
+    "providers": [
+      163,
+      251,
+      361,
+      446
+    ],
+    "lines": [
+      12,
+      13,
+      14,
+      15,
+      20,
+      21,
+      23,
+      24,
+      29,
+      31,
+      32
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_attachment_concurrency.py",
+    "tasks": [
+      1,
+      2,
+      8,
+      14
+    ],
+    "providers": [
+      9,
+      96,
+      112,
+      352,
+      440,
+      446
+    ],
+    "lines": [
+      15,
+      24,
+      50,
+      51,
+      52,
+      53,
+      56,
+      62,
+      70,
+      72,
+      73,
+      76,
+      77
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_attachment_faults.py",
+    "tasks": [2,8,14],
+    "providers": [
+      5,
+      96,
+      101,
+      250,
+      440,
+      446
+    ],
+    "lines": [
+      10,
+      30,
+      31,
+      33,
+      35,
+      37,
+      38,
+      48,
+      49,
+      51,
+      52,
+      53,
+      56,
+      58,
+      59,
+      66,
+      70,
+      71,
+      74,
+      77,
+      88,
+      89,
+      93,
+      94,
+      98,
+      99,
+      101,
+      102,
+      103
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_attachment_guards.py",
+    "tasks": [
+      1,
+      2,
+      8,
+      14
+    ],
+    "providers": [
+      96,
+      116,
+      250,
+      352,
+      440,
+      446
+    ],
+    "lines": [
+      6,
+      7,
+      14,
+      15,
+      23,
+      29,
+      30,
+      32,
+      35,
+      36,
+      38,
+      39,
+      40,
+      41,
+      43,
+      49,
+      55,
+      58,
+      64,
+      70,
+      74,
+      81,
+      82,
+      83,
+      85,
+      88,
+      89,
+      91,
+      93,
+      94,
+      101
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_attachment_limits.py",
+    "tasks": [
+      8
+    ],
+    "providers": [
+      440,
+      446
+    ],
+    "lines": [
+      6,
+      18,
+      19,
+      23,
+      25,
+      27,
+      28,
+      36,
+      37,
+      39,
+      41,
+      48,
+      51
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_attachment_service.py",
+    "tasks": [5,8,9],
+    "providers": [1,282,441],
+    "lines": [
+      13,
+      14,
+      20,
+      21,
+      28,
+      36,
+      47
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_attachment_values.py",
+    "tasks": [
+      8
+    ],
+    "providers": [
+      440,
+      446
+    ],
+    "lines": [
+      6,
+      21,
+      24,
+      35,
+      36,
+      38,
+      39,
+      42
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_attachments.py",
+    "tasks": [
+      8
+    ],
+    "providers": [
+      440,
+      446
+    ],
+    "lines": [
+      6,
+      14,
+      15,
+      22,
+      25,
+      29,
+      33,
+      35,
+      36,
+      37,
+      42,
+      44,
+      48
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_coordination.py",
+    "tasks": [
+      5,
+      8,
+      9,
+      14,
+      16
+    ],
+    "providers": [
+      1,
+      109,
+      116,
+      282,
+      411,
+      441,
+      446
+    ],
+    "lines": [
+      9,
+      13,
+      14,
+      15,
+      16,
+      23,
+      28,
+      33,
+      36,
+      37,
+      39,
+      42,
+      44,
+      46,
+      48,
+      53,
+      56,
+      57,
+      58,
+      59,
+      64,
+      66,
+      71,
+      73,
+      79,
+      81,
+      82,
+      84,
+      88,
+      92,
+      93,
+      94,
+      95,
+      99
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_driver_runtime.py",
+    "tasks": [
+      8
+    ],
+    "providers": [
+      446
+    ],
+    "lines": [22,23,30]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_faults.py",
+    "tasks": [
+      1,
+      2,
+      5,
+      8,
+      9,
+      14
+    ],
+    "providers": [
+      9,
+      116,
+      137,
+      250,
+      251,
+      332,
+      443,
+      446
+    ],
+    "lines": [
+      11,
+      18,
+      19,
+      21,
+      23,
+      31,
+      33,
+      34,
+      37,
+      42,
+      43,
+      44,
+      46,
+      48,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      59,
+      61,
+      63,
+      65,
+      71,
+      96,
+      102,
+      103,
+      104,
+      105,
+      106,
+      107,
+      108,
+      110,
+      111,
+      112,
+      118,
+      120,
+      125,
+      126,
+      134,
+      138,
+      140,
+      142,
+      149,
+      150,
+      151,
+      156,
+      161,
+      163,
+      164,
+      165,
+      166,
+      167,
+      168
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_policy.py",
+    "tasks": [
+      1,
+      5,
+      8,
+      16
+    ],
+    "providers": [
+      251,
+      353,
+      442,
+      446,
+      499
+    ],
+    "lines": [
+      6,
+      7,
+      13,
+      18,
+      25,
+      29,
+      37,
+      39,
+      41,
+      46,
+      48,
+      49,
+      53,
+      56,
+      63,
+      68,
+      91,
+      92,
+      94,
+      98,
+      108,
+      109,
+      110,
+      111
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_policy_bounds.py",
+    "tasks": [
+      8
+    ],
+    "providers": [
+      442,
+      446
+    ],
+    "lines": [
+      7,
+      15,
+      17,
+      19,
+      20,
+      21,
+      23,
+      24,
+      29,
+      30,
+      31,
+      38,
+      40,
+      45,
+      48,
+      57
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_policy_process.py",
+    "tasks": [
+      8
+    ],
+    "providers": [
+      442,
+      446
+    ],
+    "lines": [
+      10,
+      19,
+      23,
+      48
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_policy_schema.py",
+    "tasks": [
+      6
+    ],
+    "providers": [
+      327
+    ],
+    "lines": [16,25,38]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_route_fences.py",
+    "tasks": [
+      2,
+      5,
+      8,
+      9
+    ],
+    "providers": [
+      1,
+      5,
+      251,
+      282,
+      446
+    ],
+    "lines": [
+      11,
+      12,
+      18,
+      25,
+      36,
+      38,
+      41,
+      47,
+      50,
+      52,
+      55,
+      59,
+      67,
+      68,
+      70,
+      81,
+      82,
+      83,
+      87
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_run_faults.py",
+    "tasks": [
+      2,
+      8
+    ],
+    "providers": [
+      9,
+      250,
+      441,
+      446
+    ],
+    "lines": [
+      20,
+      23,
+      24,
+      29,
+      31,
+      36,
+      37,
+      43,
+      50,
+      51,
+      53,
+      55,
+      56,
+      64,
+      67,
+      68,
+      69,
+      72,
+      80,
+      83,
+      121,
+      123,
+      124,
+      126,
+      127,
+      128,
+      131,
+      132,
+      138,
+      141,
+      142,
+      143,
+      144,
+      146,
+      147,
+      148,
+      149
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_runs.py",
+    "tasks": [
+      8
+    ],
+    "providers": [
+      446
+    ],
+    "lines": [
+      41,
+      42
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_room_work.py",
+    "tasks": [
+      1,
+      2,
+      5,
+      8,
+      9,
+      14
+    ],
+    "providers": [
+      20,
+      117,
+      250,
+      251,
+      355,
+      441,
+      444,
+      446
+    ],
+    "lines": [
+      2,
+      10,
+      11,
+      12,
+      21,
+      22,
+      24,
+      25,
+      30,
+      31,
+      33,
+      37,
+      43,
+      47,
+      48,
+      49,
+      53,
+      56,
+      57,
+      59,
+      61,
+      67,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      82,
+      85,
+      86,
+      87,
+      93,
+      98,
+      101,
+      107,
+      109,
+      110,
+      111,
+      112,
+      113,
+      115,
+      116,
+      120,
+      122,
+      125,
+      127,
+      129,
+      132,
+      133,
+      134,
+      135,
+      136,
+      137,
+      138,
+      140,
+      141,
+      143,
+      144,
+      145,
+      146,
+      147
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_rooms_store.py",
+    "tasks": [
+      5,
+      8,
+      9,
+      14
+    ],
+    "providers": [
+      1,
+      96,
+      282,
+      443,
+      446,
+      448,
+      449
+    ],
+    "lines": [
+      14,
+      19,
+      25,
+      30,
+      31,
+      34,
+      35,
+      37,
+      38,
+      40,
+      41,
+      46,
+      51,
+      54,
+      56,
+      57,
+      58,
+      59,
+      60,
+      62,
+      68,
+      71,
+      73,
+      74,
+      76,
+      77,
+      78,
+      81,
+      82,
+      84,
+      85,
+      88,
+      95,
+      99,
+      100,
+      101,
+      104,
+      105,
+      106,
+      107,
+      108,
+      111,
+      112,
+      113,
+      114,
+      115,
+      117,
+      118,
+      119,
+      120,
+      121,
+      129,
+      130,
+      131,
+      139,
+      140,
+      141,
+      142,
+      143,
+      145,
+      147
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_runtime.py",
+    "tasks": [5,9,16],
+    "providers": [285,328,411],
+    "lines": [
+      36,
+      37,
+      38,
+      73,
+      77,
+      85,
+      92
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_schema.py",
+    "tasks": [1,2,6],
+    "providers": [
+      250,
+      327,
+      330,
+      332,
+      347
+    ],
+    "lines": [
+      17,
+      18,
+      20,
+      21,
+      23,
+      24,
+      27,
+      41,
+      42,
+      43,
+      45,
+      47,
+      49,
+      50,
+      52,
+      54,
+      55,
+      60,
+      61,
+      66,
+      67,
+      68,
+      73,
+      74,
+      79,
+      80,
+      85,
+      86,
+      88,
+      92,
+      93,
+      94,
+      95
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_search.py",
+    "tasks": [
+      1,
+      6,
+      9,
+      16
+    ],
+    "providers": [
+      219,
+      238,
+      240,
+      292,
+      327,
+      332,
+      367
+    ],
+    "lines": [
+      38,
+      40,
+      77,
+      78,
+      80,
+      87,
+      91,
+      97,
+      98,
+      99,
+      115,
+      119,
+      135,
+      136,
+      139,
+      145,
+      152
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_startup_requirements.py",
+    "tasks": [
+      2,
+      5,
+      6,
+      7
+    ],
+    "providers": [
+      250,
+      251,
+      253,
+      327,
+      328,
+      329,
+      359,
+      361
+    ],
+    "lines": [
+      38,
+      39,
+      41,
+      42,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      60,
+      64,
+      65,
+      66,
+      74,
+      75,
+      76,
+      77,
+      78,
+      80,
+      87,
+      88,
+      89,
+      90,
+      91,
+      93,
+      94
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_surface_flow.py",
+    "tasks": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      16
+    ],
+    "providers": [
+      1,
+      253,
+      282,
+      327,
+      361,
+      365,
+      411,
+      446
+    ],
+    "lines": [
+      14,
+      15,
+      18,
+      21,
+      34,
+      38,
+      43,
+      57,
+      63,
+      91,
+      99,
+      100,
+      120,
+      121,
+      146,
+      148,
+      149,
+      150,
+      151,
+      154,
+      155,
+      160,
+      165,
+      170,
+      172,
+      173,
+      175,
+      177,
+      179
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_transaction_failures.py",
+    "tasks": [
+      2,
+      9
+    ],
+    "providers": [
+      5,
+      9,
+      229,
+      250,
+      284,
+      285
+    ],
+    "lines": [
+      12,
+      25,
+      35,
+      36,
+      37,
+      38,
+      39,
+      41,
+      43,
+      47,
+      48,
+      58,
+      59,
+      61,
+      62,
+      68,
+      69,
+      75,
+      76,
+      77,
+      80,
+      82
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_unified_surfaces.py",
+    "tasks": [
+      3,
+      8,
+      13,
+      16
+    ],
+    "providers": [
+      362,
+      454,
+      466,
+      485,
+      487
+    ],
+    "lines": [
+      10,
+      12,
+      13,
+      14,
+      16,
+      17,
+      18,
+      19,
+      20,
+      28,
+      29,
+      30,
+      31,
+      41
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_verification_store.py",
+    "tasks": [
+      1,
+      2,
+      6,
+      11,
+      16
+    ],
+    "providers": [
+      5,
+      247,
+      250,
+      327,
+      358,
+      433
+    ],
+    "lines": [
+      18,
+      21,
+      37,
+      65,
+      66,
+      96,
+      97,
+      116,
+      117,
+      128,
+      129,
+      142,
+      150
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_worker_domain_receipts.py",
+    "tasks": [
+      1,
+      2,
+      9,
+      11,
+      16
+    ],
+    "providers": [
+      147,
+      154,
+      247,
+      250,
+      282,
+      358,
+      411
+    ],
+    "lines": [
+      9,
+      10,
+      11,
+      12,
+      19,
+      33,
+      38,
+      44,
+      47,
+      49,
+      57,
+      61,
+      67,
+      76,
+      77,
+      83,
+      87,
+      89,
+      93,
+      95,
+      99
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_worker_metrics_barrier.py",
+    "tasks": [2,7,9],
+    "providers": [129,250,361],
+    "lines": [
+      15,
+      16,
+      25,
+      32,
+      49,
+      54
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_worker_metrics_maintenance.py",
+    "tasks": [1,7,9],
+    "providers": [282,357,361],
+    "lines": [
+      24,
+      26,
+      27,
+      39,
+      42,
+      74,
+      79,
+      80,
+      81,
+      82,
+      86,
+      90,
+      91
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_worker_metrics_receipts.py",
+    "tasks": [
+      1,
+      2,
+      9,
+      16
+    ],
+    "providers": [
+      154,
+      250,
+      348,
+      411
+    ],
+    "lines": [
+      9,
+      10,
+      11,
+      23,
+      34,
+      38,
+      45,
+      49,
+      61,
+      64
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_worker_metrics_root.py",
+    "tasks": [
+      2,
+      6,
+      7,
+      9,
+      11
+    ],
+    "providers": [
+      20,
+      50,
+      51,
+      53,
+      56,
+      250,
+      290,
+      327,
+      361,
+      478
+    ],
+    "lines": [
+      10,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      25,
+      26,
+      33,
+      35,
+      47,
+      48,
+      52,
+      53,
+      55,
+      61,
+      72,
+      74,
+      75,
+      76,
+      79,
+      80,
+      81,
+      94,
+      95,
+      96,
+      100,
+      105,
+      111,
+      113,
+      117,
+      118,
+      119,
+      120
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_worker_retain_commands.py",
+    "tasks": [
+      1,
+      2,
+      9,
+      16
+    ],
+    "providers": [
+      154,
+      250,
+      351,
+      411
+    ],
+    "lines": [
+      10,
+      11,
+      12,
+      26,
+      35,
+      39,
+      46,
+      50,
+      60,
+      93,
+      111,
+      115,
+      118,
+      119
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_worker_retain_transport.py",
+    "tasks": [
+      15
+    ],
+    "providers": [87,90,277],
+    "lines": [
+      12,
+      13,
+      14,
+      60,
+      63,
+      71,
+      78,
+      80
+    ]
+  },
+  {
+    "path": "tests/hermes_db/postgresql/test_worktree_storage.py",
+    "tasks": [
+      5,
+      7,
+      9,
+      16
+    ],
+    "providers": [
+      163,
+      251,
+      361,
+      488
+    ],
+    "lines": [
+      10,
+      12,
+      17,
+      18,
+      22,
+      23,
+      27,
+      31,
+      33,
+      34,
+      35,
+      42,
+      45,
+      46,
+      47,
+      48,
+      49,
+      53,
+      54
+    ]
+  },
+  {
+    "path": "tests/hermes_db/single_backend_core.py",
+    "tasks": [
+      5,
+      8,
+      11,
+      13,
+      15,
+      16
+    ],
+    "providers": [
+      1,
+      362,
+      363,
+      433,
+      434,
+      435,
+      436,
+      437,
+      440,
+      446,
+      466,
+      478,
+      491,
+      494
+    ],
+    "lines": [
+      9,
+      10,
+      20,
+      22,
+      23,
+      24,
+      26,
+      33,
+      34,
+      42,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      54,
+      56,
+      58,
+      65,
+      66,
+      68,
+      70,
+      71,
+      72,
+      73,
+      75,
+      76,
+      77,
+      78,
+      80,
+      85,
+      86,
+      87,
+      89,
+      94,
+      95,
+      101,
+      103,
+      111,
+      112,
+      114,
+      118
+    ]
+  },
+  {
+    "path": "tests/hermes_db/single_backend_process.py",
+    "tasks": [
+      7,
+      10
+    ],
+    "providers": [
+      291,
+      361
+    ],
+    "lines": [
+      17,
+      24,
+      32,
+      33
+    ]
+  },
+  {
+    "path": "tests/hermes_db/single_backend_recovery.py",
+    "tasks": [
+      15
+    ],
+    "providers": [
+      490
+    ],
+    "lines": [
+      10,
+      23
+    ]
+  },
+  {
+    "path": "tests/hermes_db/test_engine_lifecycle.py",
+    "tasks": [
+      2
+    ],
+    "providers": [5,250,329],
+    "lines": [
+      10,
+      11,
+      12,
+      19,
+      21,
+      25,
+      30,
+      35,
+      36,
+      37,
+      38,
+      42,
+      43,
+      44,
+      45,
+      47,
+      51,
+      54,
+      55,
+      56,
+      69,
+      70,
+      76,
+      77
+    ]
+  },
+  {
+    "path": "tests/hermes_db/test_factory.py",
+    "tasks": [2,5,9],
+    "providers": [
+      250,
+      251,
+      276,
+      328,
+      329
+    ],
+    "lines": [
+      7,
+      8,
+      9,
+      10,
+      14,
+      15,
+      24,
+      30,
+      36,
+      37,
+      39,
+      40,
+      41,
+      42,
+      54,
+      56,
+      57
+    ]
+  },
+  {
+    "path": "tests/hermes_db/test_json_paths.py",
+    "tasks": [
+      2
+    ],
+    "providers": [
+      7
+    ],
+    "lines": [5,13,19]
+  },
+  {
+    "path": "tests/hermes_db/test_migration_resources.py",
+    "tasks": [1,2,6],
+    "providers": [
+      250,
+      292,
+      327,
+      329
+    ],
+    "lines": [
+      12,
+      13,
+      15,
+      19,
+      27,
+      28,
+      29,
+      33,
+      34,
+      35
+    ]
+  },
+  {
+    "path": "tests/hermes_db/test_profile_deletion_storage.py",
+    "tasks": [
+      2,
+      5,
+      6,
+      7,
+      8
+    ],
+    "providers": [
+      1,
+      250,
+      251,
+      253,
+      327,
+      328,
+      329,
+      361,
+      446
+    ],
+    "lines": [
+      16,
+      21,
+      34,
+      35,
+      36,
+      91,
+      92,
+      93,
+      95,
+      102,
+      105,
+      106,
+      107,
+      109,
+      115,
+      117,
+      118,
+      119,
+      127,
+      129,
+      155,
+      159,
+      161,
+      173,
+      176,
+      181,
+      193,
+      196,
+      201,
+      215,
+      225,
+      227
+    ]
+  },
+  {
+    "path": "tests/hermes_db/test_scope.py",
+    "tasks": [
+      2,
+      5
+    ],
+    "providers": [
+      250,
+      328
+    ],
+    "lines": [
+      7,
+      8,
+      12,
+      13,
+      22,
+      23,
+      27,
+      28
+    ]
+  },
+  {
+    "path": "tests/hermes_db/test_table_contracts.py",
+    "tasks": [
+      1,
+      4
+    ],
+    "providers": [
+      330,
+      332,
+      347,
+      365
+    ],
+    "lines": [
+      7,
+      8,
+      9,
+      13,
+      31,
+      33,
+      34,
+      46,
+      49,
+      50,
+      52,
+      54,
+      56,
+      59,
+      62
+    ]
+  },
+  {
+    "path": "tests/hermes_db/test_transactions.py",
+    "tasks": [
+      2
+    ],
+    "providers": [
+      9,
+      250
+    ],
+    "lines": [
+      10,
+      11,
+      45,
+      47,
+      59,
+      60,
+      67,
+      68,
+      71,
+      72,
+      78,
+      79
+    ]
+  },
+  {
+    "path": "tests/hermes_db/test_usage_writer.py",
+    "tasks": [2,5,9],
+    "providers": [
+      241,
+      242,
+      250,
+      273,
+      328
+    ],
+    "lines": [
+      8,
+      9,
+      10,
+      11,
+      29,
+      55,
+      57,
+      59,
+      61,
+      69,
+      76
+    ]
+  }
+]
