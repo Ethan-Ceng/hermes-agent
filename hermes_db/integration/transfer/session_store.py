@@ -232,7 +232,7 @@ class SessionTransfer:
 
     def delete_gateway_routing_rows(self, rows):
         with self._context.write() as conn:
-            return profile_repair.delete_routes(conn, self._context.scope, rows)
+            return gateway.delete_routes(conn, self._context.scope, rows)
 
     def insert_gateway_routing_rows_if_absent(self, rows):
         with self._context.write() as conn:

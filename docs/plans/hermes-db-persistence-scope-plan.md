@@ -5,7 +5,7 @@
 - 设计：[持久层职责精简](../designs/hermes-db-persistence-scope.md)；映射：[生产文件/接口/测试/锚点](../designs/hermes-db-persistence-scope-map.json)。
 - 实施分支：`refactor/hermes-db-persistence-scope`；隔离检出：`D:/AI/hermes-db-packages`。
 - 源码基准：`90a2987e8c`；与正式启动`9a8093841b`仅部署记录文档不同。首轮准备提交`7f151a3299`不含运行代码。
-- 整体状态：`IMPLEMENTING`；阶段：feature-development；当前实施任务：Task2；完成：1 / 9；阻塞：无。
+- 整体状态：`IMPLEMENTING`；阶段：feature-development；当前实施任务：Task3；完成：2 / 9；阻塞：无。
 - 日期：2026-11-10。本轮用户已授权按计划实施并逐Task本地commit；旧分包/规划证据不计为本轮实施。
 - 准备依据：已核对22个生产路径、16项Store方法、22个相关测试文件及正常生命周期共享依赖；精确hash/处置在映射中。
 
@@ -129,11 +129,11 @@ SQLite纯载荷另以不含PG/Matrix的PM环境执行其普通业务与新PID合
 - `wsl.exe -d Ubuntu-26.04 --cd /mnt/d/AI/hermes-db-packages -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/persistence-scope-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime HERMES_PYTHON=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/test-env/bin/python HERMES_TEST_FILE_RETRIES=0 PYTHONDONTWRITEBYTECODE=1 bash scripts/run_tests.sh tests/hermes_db/postgresql/test_health_archive_refs.py tests/hermes_db/postgresql/test_profile_file_scope.py tests/hermes_db/postgresql/test_review_foundation_profile_delete.py -j 2 --file-timeout 1200 -- --tb=short -ra -m integration --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`：exit0，43passed/0failed/0skip；日志`task1-pg.log`。
 - `wsl.exe -d Ubuntu-26.04 --cd /mnt/d/AI/hermes-db-packages -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/persistence-scope-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime PYTHONDONTWRITEBYTECODE=1 /var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/test-env/bin/python .build/package-layout/linux_probe.py`：exit0；安全事实见task1-linux-probe.json。
 
-未验证：完整双后端/发行/新PID切换/最终SDK行为在后续Task执行；本Task没有生产代码变动，不把SDK协议探针当SDK业务通过。原统一Task24/七项非WSL缺证保持独立。恢复点为本Task本地commit，下一Task2。
+未验证：完整双后端/发行/新PID切换/最终SDK行为在后续Task执行；本Task没有生产代码变动，不把SDK协议探针当SDK业务通过。原统一Task24/七项非WSL缺证保持独立。恢复点为本Task本地commit，Task1恢复commit：`20ec3cad55`；下一Task2。
 
 ## Task 2：先解正常Profile生命周期与既有授权的共享依赖
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -164,11 +164,21 @@ hermes_db/domains/sessions/postgres/queries/gateway.py、integration/postgres/op
 
 ### 执行结果
 
-未实施。
+将delete_routes唯一实现移到既有sessions/postgres/queries/gateway.py；profile_purge与SessionTransfer真实读取点同步，原Connection/scope/store锁/退休墓碑顺序保持，无旧路径re-export。全仓引用审计未发现该helper旧patch/活动指南引用；旧repair CLI及其余实现仍在。
+
+新增5项既有授权合同直接准备临时持久记录，不调用任何mover：普通导出/分支/最后引用、安全pin、token/收件人、文件所有者与媒体释放。Native执行Core离线SQL harness（不是实PG证明），实际PG对应5项在随机所属Schema执行，PG进程拒绝所有SQLite连接。原SQLite SessionDB无此PG跨store授权数据格式，正常文件/删除合同仍由双实现remaining组及现有文件合同保护，未增加虚假skip。
+
+首次Native exit1（24pass/2fail）及PG exit1（46pass/2fail）仅新增测试准备错误：recipient不匹配改在origin权威记录制造；使用实际RuntimeStore.release_media。未改生产校验或弱化正常覆盖。修正后完整原批次复验，初次日志保留；没有退役任何测试。
 
 ### 验证证据
 
-未执行；记录真实行/文件结果，不用函数存在性断言。
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts/test_remaining_read_maintenance.py tests/hermes_db/contracts/test_profile_repair.py tests/hermes_db/contracts/test_retired_files.py tests/hermes_db/contracts/test_existing_media_grants.py -j 2 --file-timeout 1200 -- --tb=short -ra -vv`：exit0；=== Summary: 4 files, 26 tests passed, 0 failed (100% complete) in 29.6s (2 workers) ===；日志`task2-native-final.log`。
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/gateway/test_profile_identity_purge.py tests/hermes_cli/test_profile_identity_purge_cmd.py -j 2 --file-timeout 1200 -- --tb=short -ra -vv`：exit0；=== Summary: 2 files, 5 tests passed, 0 failed (100% complete) in 3.0s (2 workers) ===；日志`task2-profile.log`。
+- `wsl.exe -d Ubuntu-26.04 --cd /mnt/d/AI/hermes-db-packages -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/persistence-scope-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime HERMES_PYTHON=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/test-env/bin/python HERMES_TEST_FILE_RETRIES=0 PYTHONDONTWRITEBYTECODE=1 bash scripts/run_tests.sh tests/hermes_db/postgresql/test_health_archive_refs.py tests/hermes_db/postgresql/test_profile_file_scope.py tests/hermes_db/postgresql/test_review_foundation_profile_delete.py tests/hermes_db/postgresql/test_existing_media_grants.py -j 2 --file-timeout 1200 -- --tb=short -ra -vv -m integration --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`：exit0；=== Summary: 4 files, 48 tests passed, 0 failed (100% complete) in 136.4s (2 workers) ===；日志`task2-pg-final.log`。
+- `D:/AI/hermes-db-packages/.build/package-layout/test-env/Scripts/python.exe scripts/check --staged --base 90a2987e8c`：exit0，16 checks ok；日志`task2-check.log`。
+- `git -c safe.directory=D:/AI/hermes-db-packages diff --cached --check`：exit0。
+
+未验证：后续Task的完整双后端/发行/最终审查；不把本Task局部通过冒充全系统验收。恢复点为本Task本地commit；下一Task3。
 
 ## Task 3：取消恢复时的历史stranded adoption
 

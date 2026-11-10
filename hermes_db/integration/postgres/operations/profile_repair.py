@@ -37,20 +37,6 @@ def repair_sessions(conn, scope, ids, *, sever=False, rekey=None):
     return count
 
 
-def delete_routes(conn, scope, wanted):
-    from hermes_db.domains.runtime.receipts import entry_session_id, route_namespace
-    sessions.lock_store(conn, scope, exclusive=True)
-    requested, count = set(wanted), 0
-    for row in gateway.routing_rows(conn, scope):
-        if (row["scope"], row["session_key"]) not in requested:
-            continue
-        count += conn.execute(routes.delete().where(*gateway.where(scope, row["scope"]),
-            routes.c.session_key == row["session_key"])).rowcount
-        if sid := entry_session_id(row["entry_json"]):
-            gateway.retire_shared(conn, scope, route_namespace(row["session_key"]), [sid], now=time.time())
-    return count
-
-
 def insert_routes(conn, scope, wanted):
     sessions.lock_store(conn, scope, exclusive=True)
     count = 0

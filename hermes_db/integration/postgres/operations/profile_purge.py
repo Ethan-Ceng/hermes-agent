@@ -4,7 +4,6 @@ import time
 
 from sqlalchemy import or_
 
-from hermes_db.integration.postgres.operations.profile_repair import delete_routes
 from hermes_db.domains.sessions.postgres.queries import gateway, sessions
 from hermes_db.tables.gateway import delivery_obligations, gateway_heartbeats
 from hermes_db.tables.gateway import telegram_dm_topic_bindings as bindings, telegram_dm_topic_mode as modes
@@ -18,7 +17,7 @@ def purge(conn, scope, profile):
     sessions.lock_store(conn, scope, exclusive=True)
     prefix = _session_key_namespace(name) + ":"
     routes = [(row["scope"], row["session_key"]) for row in gateway.routing_rows(conn, scope) if row["session_key"].startswith(prefix)]
-    delete_routes(conn, scope, routes)
+    gateway.delete_routes(conn, scope, routes)
     owned = scope.require_store_id()
     counts = {"gateway_routing": len(routes)}
     counts["gateway_heartbeats"] = conn.execute(gateway_heartbeats.delete().where(

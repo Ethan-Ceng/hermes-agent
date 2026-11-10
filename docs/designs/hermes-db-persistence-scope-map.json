@@ -53,7 +53,10 @@
       "changed_in_tasks": [
         2,
         4
-      ]
+      ],
+      "implementation_tasks": {
+        "2": "completed"
+      }
     },
     {
       "source": "hermes_db/integration/postgres/queries/profile_repair.py",
@@ -122,10 +125,13 @@
       "task": 2,
       "target": "hermes_db/domains/sessions/postgres/queries/gateway.py",
       "reason": "single owner of route deletion/retirement SQL; caller retains same Connection/scope",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         2
-      ]
+      ],
+      "implementation_tasks": {
+        "2": "completed"
+      }
     },
     {
       "source": "hermes_db/integration/postgres/operations/profile_purge.py",
@@ -138,7 +144,10 @@
       "changed_in_tasks": [
         2,
         5
-      ]
+      ],
+      "implementation_tasks": {
+        "2": "completed"
+      }
     },
     {
       "source": "hermes_db/integration/postgres/operations/file_grants.py",
@@ -177,7 +186,10 @@
         3,
         4,
         5
-      ]
+      ],
+      "implementation_tasks": {
+        "2": "completed"
+      }
     },
     {
       "source": "hermes_db/integration/session_composition.py",
@@ -430,12 +442,14 @@
     {
       "path": "tests/hermes_db/contracts/test_existing_media_grants.py",
       "task": 2,
-      "purpose": "seed existing grant rows directly in temp scopes; normal reads/pins/release remain safe without calling retired mover"
+      "purpose": "seed existing grant rows directly in temp scopes; normal reads/pins/release remain safe without calling retired mover",
+      "status": "completed"
     },
     {
       "path": "tests/hermes_db/postgresql/test_existing_media_grants.py",
       "task": 2,
-      "purpose": "reuse same grant behavioral contract against owned random PG schemas"
+      "purpose": "reuse same grant behavioral contract against owned random PG schemas",
+      "status": "completed"
     },
     {
       "path": "tests/hermes_db/test_backend_dataset_selection.py",
@@ -572,6 +586,6 @@
       8
     ]
   },
-  "proposal_status": "Design recommendation for implementation planning; no claim that product retirement is implemented or separately approved",
-  "status": "PLAN_READY"
+  "proposal_status": "User authorized implementation on 2026-11-10; per-task results tracked in plan",
+  "status": "IMPLEMENTING"
 }

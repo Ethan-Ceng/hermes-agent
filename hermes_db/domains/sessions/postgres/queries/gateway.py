@@ -1,6 +1,7 @@
 """Scoped routing records and retirement predicates on a held connection."""
 
 import json
+import time
 
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
@@ -91,3 +92,16 @@ def retire_shared(conn, scope, namespace, session_ids, *, expiring=(), now):
     for row in routing_rows(conn, scope):
         if route_namespace(row["session_key"]) in owned.get(entry_session_id(row["entry_json"]), ()):
             conn.execute(routes.delete().where(*where(scope, row["scope"]), routes.c.session_key == row["session_key"]))
+
+
+def delete_routes(conn, scope, wanted):
+    sessions.lock_store(conn, scope, exclusive=True)
+    requested, count = set(wanted), 0
+    for row in routing_rows(conn, scope):
+        if (row["scope"], row["session_key"]) not in requested:
+            continue
+        count += conn.execute(routes.delete().where(*where(scope, row["scope"]),
+            routes.c.session_key == row["session_key"])).rowcount
+        if sid := entry_session_id(row["entry_json"]):
+            retire_shared(conn, scope, route_namespace(row["session_key"]), [sid], now=time.time())
+    return count
