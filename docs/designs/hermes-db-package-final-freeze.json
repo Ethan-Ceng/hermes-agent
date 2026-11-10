@@ -649,7 +649,7 @@
   },
   "previous_archive_sha256": "200a2d8011b9712908bc029e5754f6373955c71041a46fd4d5d9d9b5ee991ba2",
   "task17_validation": {
-    "status": "passed; independent review pending",
+    "status": "passed; final complete command exits and independent approval recorded in Task18",
     "pg_distinct_cases": 720,
     "linux_native_cli_tui_distinct_cases": 633,
     "windows_native_cli_tui_distinct_passed": 628,
@@ -661,5 +661,43 @@
     "schema_anchor_drift": 0,
     "static_checks": 16,
     "limitations": "Scoped refactor acceptance only; original unified Task24 and seven non-WSL platform gaps remain independent. Initial nonzero runs and corrections are recorded in the implementation plan."
+  },
+  "task18_validation": {
+    "status": "READY_TO_MERGE",
+    "scope": "hermes_db packaging/consolidation only",
+    "reviewed_tip": "d6e5f62e75",
+    "review": "docs/reviews/hermes-db-package-layout-review.md",
+    "review_result": "APPROVED",
+    "blocking_open": 0,
+    "major_open": 0,
+    "minor_resolved": "Business module count excludes package initialization, tables and migrations: 328 -> 254; non-namespace count separately remains 389 -> 315",
+    "runtime_or_test_changes_after_review": false,
+    "linux_pg": {
+      "files": 131,
+      "passed": 720,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "seconds": 1630.7
+    },
+    "linux_native": {
+      "files": 234,
+      "passed": 584,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "seconds": 797.6
+    },
+    "windows_native": {
+      "files": 234,
+      "passed": 579,
+      "failed": 0,
+      "platform_skipped": 5,
+      "exit_code": 0,
+      "seconds": 552.9
+    },
+    "cli_tui_passed_each_os": 49,
+    "static_checks": 16,
+    "limitations": "Original unified Task24 and seven non-WSL platform evidence gaps remain independent; no full-repository test run or frontend build claimed; no push, PR, merge, deployment or production restart"
   }
 }

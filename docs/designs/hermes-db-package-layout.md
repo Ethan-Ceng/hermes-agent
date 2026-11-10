@@ -2,10 +2,10 @@
 
 ## 文档状态
 
-- 状态：`IMPLEMENTING`；按既有方案在独立检出持续推进，逐Task状态与实际证据以实施计划为准。
+- 状态：`READY_TO_MERGE`（仅本次分包重构）；2026-11-10在独立检出完成18/18任务，完整验证与独立APPROVED见实施计划及审查报告。
 - 日期：2026-11-09；负责人：Codex / 项目维护者。
 - 源码基准：`cbfc773dd7`；运行实现基准为`0d69702244`，两者仅文档不同。
-- 文档分支：`docs/hermes-db-package-layout`；实施分支建议：`refactor/hermes-db-packages`。
+- 文档分支：`docs/hermes-db-package-layout`；实施分支：`refactor/hermes-db-packages`，隔离检出`D:/AI/hermes-db-packages`。
 - 关联：[统一后端设计](unified-database-backends.md)、[独立实施计划](../plans/hermes-db-package-layout-plan.md)、[全量模块归属清单](hermes-db-package-map.json)。原统一后端24项账本保持独立，不重写其历史或解除Task24门禁。
 
 ## 背景与现有实现分析
@@ -146,7 +146,9 @@ Task14实际归属：52个Kanban操作/查询收敛到17个工作流/共享能�
 
 Task15实际归属：Room的23操作/4查询与附件5metadata模块归为九组，内容I/O保持独立。两个内部读取helper按真实局部遮蔽证据具名调整，184函数/类与常量等价、17-topic/67入口已核对。当前378→351，根11；Native529、Linux附件24、PG109及15静态通过，最终全域/发行验收仍待Task17，详见Task15。
 
-Task16局部实施完成记录（最终验收待Task17）：根保持11个入口/公共定义；398项原始源均有最终归属或删除理由，当前365个Python模块，较原始净减33；非namespace业务模块389→315。两个旧全局技术namespace已删除。跨域时钟、DTO、所有权、事件/媒体、Worker自动化/指标及Cron运行能力由integration注入；真实纯规则由两个后端共用。Retain HTTP/线程协调与PG队列SQL各归实际职责。现有插件边界仅精确迁移一条Retain类路径，公共API不扩张。依赖检查登记到consumer+symbol，并纳入scripts/check；最终发行、Schema恢复、实SDK和全域验证仍由Task17完成，当前数量不等于验收结果。
+Task16局部实施完成记录（最终验收待Task17）：根保持11个入口/公共定义；398项原始源均有最终归属或删除理由，当前365个Python模块，较原始净减33；非namespace模块389→315；再排除tables/与migrations/后，业务模块328→254。两个旧全局技术namespace已删除。跨域时钟、DTO、所有权、事件/媒体、Worker自动化/指标及Cron运行能力由integration注入；真实纯规则由两个后端共用。Retain HTTP/线程协调与PG队列SQL各归实际职责。现有插件边界仅精确迁移一条Retain类路径，公共API不扩张。依赖检查登记到consumer+symbol，并纳入scripts/check；最终发行、Schema恢复、实SDK和全域验证仍由Task17完成，当前数量不等于验收结果。
+
+Task17–18最终验收完成：完整PG720、Linux Native584、Windows Native579/5平台skip及两端CLI/TUI各49通过；静态16项、契约、独立载荷/SDK/迁移恢复通过，独立审查APPROVED。统计口径minor已修正，代码未因审查改变；原统一后端Task24及七项非WSL缺证仍独立保留。前述各Task“待Task17”为历史实施检查点，最终状态以本段和计划末节为准。
 
 Session/Runtime最终使用少量明确组件和显式门面方法委托，去除36/10基类组合。组件共享一个带scope、事务、snapshot pin及关闭状态的上下文；不各自创建连接池，不互相保存整个Facade作为万能self，也不使用万能`__getattr__`/运行时反射自动导出全部方法。
 上下文的缓存/pin身份沿用原Store实例及完整资源身份，不能只按store_id合并不同目标。共享上下文不意味着所有read自动切换活动Profile；原活动绑定的生命周期点须逐项保持。导入/组件初始化不新增配置、秘密、模型或数据库I/O，既有按需行为仍在原操作位置执行。
@@ -195,17 +197,19 @@ Session/Runtime最终使用少量明确组件和显式门面方法委托，去�
 
 ## 验收标准
 
-- [ ] 398项基准各有唯一处置，新增模块也有归属；根目录只剩列出的11个实际入口/定义。
-- [ ] 阶段二后文件总数与业务模块数净减少；给出合并/保留理由，不遗留全局operations/repositories及临时Mixin碎片作为最终结果。
-- [ ] Session/Runtime的36/10 Mixin组合已收敛为显式组件，公共业务能力无缺失，无万能动态转发。
-- [ ] 依赖方向明确，运行时私有门面反向依赖关闭，纯共享模块/Native桥接/历史迁移例外逐项可审议；插件API和边界baseline不扩大。
-- [ ] SQLite无PG extra能真实工作；PG完整业务进程拒绝全部SQLite连接，证明业务、持久化、scope隔离和新进程恢复。
-- [ ] 当前Matrix SDK真实加密对象和PG读写/重开/并发通过；不是仅类名或导入检查。
-- [ ] 0001–0031 revision哈希/图不变；现有0031数据可重开，旧版本真实前向/重复升级及独立发行资源通过。
-- [ ] 每项使用标准runner完成适用消费者验证；最终verification-before-completion、独立code-review及整改后复验有最新证据。
-- [ ] 正式Profile、PG数据、SQLite数据、运行进程未被开发测试或工作区改动影响；部署另行记录。
+以下仅为本次分包范围，最新完整批次与限制见[实施计划](../plans/hermes-db-package-layout-plan.md)，独立结论见[审查报告](../reviews/hermes-db-package-layout-review.md)。
+
+- [x] 398项基准各有唯一处置，新增模块也有归属；根目录只剩列出的11个实际入口/定义。
+- [x] 阶段二后文件总数与业务模块数净减少；给出合并/保留理由，不遗留全局operations/repositories及临时Mixin碎片作为最终结果。
+- [x] Session/Runtime的36/10 Mixin组合已收敛为显式组件，公共业务能力无缺失，无万能动态转发。
+- [x] 依赖方向明确，运行时私有门面反向依赖关闭，纯共享模块/Native桥接/历史迁移例外逐项可审议；插件API和边界baseline不扩大。
+- [x] SQLite无PG extra能真实工作；PG完整业务进程拒绝全部SQLite连接，证明业务、持久化、scope隔离和新进程恢复。
+- [x] 当前Matrix SDK真实加密对象和PG读写/重开/并发通过；不是仅类名或导入检查。
+- [x] 0001–0031 revision哈希/图不变；现有0031数据可重开，旧版本真实前向/重复升级及独立发行资源通过。
+- [x] 每项使用标准runner完成适用消费者验证；最终verification-before-completion、独立code-review及整改后复验有最新证据。
+- [x] 正式Profile、PG数据、SQLite数据、运行进程未被开发测试或工作区改动影响；部署另行记录。
 
 ## 重要假设与待决策项
 
-用户已认可按域分包方向，本次准备设计与实施计划，没有授权在正在验收的目录立即改业务实现。内部模块路径可更新，真实公共存储能力需保持。使用现有技术栈和Schema，故无新数据库选型或核心设计待决策。
+用户已认可按域分包方向并授权实施；18项已在不被正式进程引用的独立检出完成，正式源码与运行实例保持原状。内部模块路径可更新，真实公共存储能力需保持。使用现有技术栈和Schema，故无新数据库选型或核心设计待决策。
 原统一后端Task24七项非WSL平台缺证及当前未重跑的全仓/前端范围继续独立记录；新分包验证不能倒写其完成。任何新增外部兼容需求或持久模块名发现，先记录影响并修订设计。

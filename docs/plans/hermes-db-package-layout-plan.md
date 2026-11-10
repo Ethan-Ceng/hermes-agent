@@ -6,10 +6,10 @@
 - 全量归属：[398项基准映射](../designs/hermes-db-package-map.json)。
 - 文档分支：`docs/hermes-db-package-layout`；实施分支：`refactor/hermes-db-packages`。
 - 源码基准：`cbfc773dd7`，运行实现等价`0d69702244`。
-- 整体状态：`REVIEWING`；当前阶段：最终验证已通过，待独立审查；当前任务：Task18（pending）；完成：17 / 18。
-- 本轮已建立独立实施检出并完成Task1–17；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
+- 整体状态：`READY_TO_MERGE`（仅本次分包重构）；当前阶段：最终验证与独立审查完成；当前任务：无；完成：18 / 18。
+- 本轮已在独立实施检出完成Task1–18并逐Task本地提交；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
 - 核心设计待决策：无；Task1隔离PM与PG基线已通过，Matrix实际SDK已由Task6新环境核对并实测。原统一后端Task24及七项非WSL缺证独立保留。
-- 更新时间：2026-11-10（Asia/Shanghai）。恢复位置：`D:/AI/hermes-db-packages`；从首个in_progress任务继续，不重跑整轮数据库选型。
+- 更新时间：2026-11-10（Asia/Shanghai）。交付位置：`D:/AI/hermes-db-packages`；全部任务已完成，恢复点见Task18最终完成记录，不重跑整轮数据库选型。
 
 ## 任务依赖与全局约束
 
@@ -77,6 +77,7 @@ PG选项只用于tests/hermes_db下已注册该选项的文件；其他目录Nat
 | 2026-11-10 | IMPLEMENTING | Task15 Room/附件32→九组，15/18；378→351；Native529+Linux附件24、PG109及15静态通过 |
 | 2026-11-10 | IMPLEMENTING | Task16依赖/归属闭合，16/18；365模块、根11，Native618+Linux11、PG45、16项静态与插件边界通过；最终冻结验证待Task17 |
 | 2026-11-10 | REVIEWING | Task17冻结源码/独立发行/完整Native与PG/实际SDK/升级恢复完成，17/18；所有初次失败已具名复验闭环，待独立审查 |
+| 2026-11-10 | READY_TO_MERGE | Task18完整批次PG720、Linux Native584、Windows Native579/5平台skip均exit0；独立APPROVED、文档minor闭环，18/18，仅本次分包重构 |
 
 ## 方案准备自检
 
@@ -1213,7 +1214,7 @@ Windows 绑定 HERMES_HOME=.build/package-layout/profile、HERMES_RUNTIME_DIR=.b
 - Gateway delivery_rules 保存实际纯重试/限额/可见标记和死目标分类定义；Native与PG消费同一实现，SDK错误分类仍按原时机调用。VerificationEvidence、时钟及保留限额为实际共享值，DTO的原 __module__ 身份不变；Worker/PG选择移至已存在 verification/api，域内SQL不再导入完整Worker服务。自动退役source闭集共享，Native真实class读取点保留。
 - Cron execution/incident/delivery/notepad只消费四类实际能力；原进程ID、活跃投递set+lock、限额、时钟、liveness和post-commit observer保持原拥有者/时序，回调绑定resource拥有的Profile。Retain HTTP/client/thread/profile协调整文件移至integration/retain_transport，PG队列SQL不动。插件baseline仅将既有Retain类目标精确改名，计数仍1，不运行--update、不扩充plugin_api.json。
 - 新增 scripts/hermes_db_boundary_lint.py 与逐consumer+symbol审议表，接入scripts/check的db-boundaries；基础设施禁止选择域/组合、下层域禁止选择factory/integration或完整Native门面。325项实际符号登记共享值/纯规则、Agent语义、基础设施、入口或SQLite桥接理由，无模块前缀通配权限；历史迁移不获得运行时许可。独立小型package合同证明批准LIMIT不能批准同模块SECRET，显式批准也不能绕过依赖方向。
-- 两处旧operations/repositories namespace经AST确认只有历史docstring后删除；398源处置与新增owner精确等于365实际模块，根11、总量净减33、业务模块389→315。61固定锚点无偏移：31revision、versions初始化与28表定义原Git字节保持；tables初始化仍只有Task2 catalog导入调整。REQUIRED_REVISION保持0031_merge_data_repair；未执行数据迁移。
+- 两处旧operations/repositories namespace经AST确认只有历史docstring后删除；398源处置与新增owner精确等于365实际模块，根11、总量净减33、非namespace模块389→315。61固定锚点无偏移：31revision、versions初始化与28表定义原Git字节保持；tables初始化仍只有Task2 catalog导入调整。REQUIRED_REVISION保持0031_merge_data_repair；未执行数据迁移。
 - 活跃文档指向真实域/组合及lint入口；历史布局文档明确标为旧设计快照，保留旧路径证据。website/docs、skills、optional-skills与所有AGENTS对已删除模块的扫描仅命中已明确标记的历史快照，不将旧命令改写成新执行证据。
 
 实际验证（原始日志仅在忽略目录，以下没有最终Task17验收含义）：
@@ -1222,7 +1223,7 @@ Windows 绑定 HERMES_HOME=.build/package-layout/profile、HERMES_RUNTIME_DIR=.b
 2. task16-media-delivery-native.log：标准Windows runner，13文件（retirement_housekeeping、retirement_rewrites、retention_selection、profile_moves、prepared_mutations、api_native_media、api_settled_row_retention、delivery_ledger、delivery_ledger_single_connection、delivery_ledger_process_home、retired_media_ownership、verification_evidence及retention），exit0，166通过/0skip，75.9s。
 3. task16-media-delivery-pg.log：标准Linux PG runner，6文件（retirement_rewrites、health_archive_refs、messages、deliveries、managed_verification、verification_store），exit1，119通过/1失败，325.5s。唯一失败为共享合同仍patch Native gateway.delivery_ledger._MAX_ROWS，PG读取点已为delivery_rules；已按实际后端选择patch owner，未改业务断言。task16-cron-delivery-pg.log：标准Linux PG runner，deliveries与Cron四文件复验，exit0，29通过/0skip，74.4s，覆盖修正后的完整deliveries文件及Cron实际协议。
 4. task16-media-delivery-check.log：scripts/check --only ruff,health --base cbfc773dd7，exit0，734文件、0blocking/0advisory，118.4s，早于最新Cron/依赖门禁改动。新lint合同最初3项失败暴露namespace package解析遗漏；实现补认无__init__的实际namespace后，task16-boundary-fixed-native.log标准runner，exit0，4通过/0skip，3.2s。最新方向/Native禁止规则及全仓边界仍需最终复验。
-5. PM Python task16_ownership_anchors.py：398原始处置=365实际，根11，业务模块389→315，61锚点0偏移；audit_session_public.py：原36Mixin的288公开/兼容方法签名0差异；audit_runtime_probe.py：原10Mixin的85签名相同，共享Context/关闭状态有效、构造0事务。无PG业务数据读取或SQL改写。
+5. PM Python task16_ownership_anchors.py：398原始处置=365实际，根11，非namespace模块389→315，61锚点0偏移；audit_session_public.py：原36Mixin的288公开/兼容方法签名0差异；audit_runtime_probe.py：原10Mixin的85签名相同，共享Context/关闭状态有效、构造0事务。无PG业务数据读取或SQL改写。
 
 最新验证补充：
 
@@ -1235,7 +1236,7 @@ Windows 绑定 HERMES_HOME=.build/package-layout/profile、HERMES_RUNTIME_DIR=.b
 
 ### Task16最终完成记录
 
-- 状态completed。398原始源及所有新增模块归属闭合，365实际Python模块、根精确11，总模块净减33，非namespace业务模块389→315；不再保留旧operations/repositories技术namespace或旧内部路径空壳。
+- 状态completed。398原始源及所有新增模块归属闭合，365实际Python模块、根精确11，总模块净减33，非namespace模块389→315；不再保留旧operations/repositories技术namespace或旧内部路径空壳。
 - PG的Native类继承、CLI/Gateway私有门面helper与应用协调已改为实际共享纯定义或integration注入的具体能力；Agent转录语义精确登记，仍归Agent。Session/Runtime共用原scope/Connection/pin/close；公开签名与DTO/错误身份保持。没有通用CRUD、反射代理、双写、数据迁移或新增配置环境变量。
 - 最后验证：Windows 95文件618通过/0失败/4平台skip（432.1s）；真实Linux补验Windows跳过的single_backend、domain_resources、matrix_close三文件，11通过/0skip（23.7s），task16-platform-native-linux.log。四个Windows skip为Linux full SQLite+Matrix业务、POSIX fork、两个Linux Matrix close协议；Linux证据不宣称Windows获得其平台能力。
 - Linux PG必需四流程与最新受影响用例8文件45通过/0skip（214.8s）；Cron/投递另5文件29通过。完整命令/环境与先前失败整改记录见上述检查点，未重用旧686/36/32结果。
@@ -1360,7 +1361,7 @@ HERMES_PYTHON=/var/tmp/hermes-db-task17-16c4a1931a33/env-business/bin/python bas
 
 ## Task 18：独立审查、整改复验与交付判定
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -1395,11 +1396,58 @@ HERMES_PYTHON=/var/tmp/hermes-db-task17-16c4a1931a33/env-business/bin/python bas
 
 ### 执行结果
 
-未执行。
+已完成。Task17恢复提交`d6e5f62e75`；verification-before-completion核对最新完整命令、载荷与验收证据，独立code-review结论APPROVED，无遗留blocking/major。唯一统计口径minor已修正文档并获复核；审查后没有运行时代码、测试或依赖修改。本次重构状态READY_TO_MERGE，不合并、不发布。
 
 ### 验证证据
 
-未执行；实施时记录实际解释器/源码commit、展开命令、退出状态、计数、日志、未验证项和恢复commit。
+审查启动记录（历史检查点）：verification-before-completion已按Task17完整命令、原始安全Summary和冻结hash逐项核对；当前分支refactor/hermes-db-packages，审查tip为d6e5f62e75，开始审查后Python/TS/测试/依赖清单未改。正式checkout git status为空。独立Reviewer正审查完整范围cbfc773dd7..d6e5f62e75，尚未作最终APPROVED/CHANGES_REQUIRED，报告目标为docs/reviews/hermes-db-package-layout-review.md。该段为审查启动检查点；最终结论、完整命令exit0与恢复点见下方Task18最终完成记录。
+
+### Task18完整命令退出状态补验（启动记录）
+
+最终门禁复核发现，Task17虽已逐用例纠正环境/驱动调用并验证全部不同用例，但计划还字面要求完整批次命令本身exit0。为避免用局部修正掩盖完整命令状态，Task18在源码/测试不变的前提补做：
+
+- task18-full-pg-linux.log：同一冻结test-driver，HERMES_PYTHON改为已具完整postgresql+messaging+matrix的env-business，完整postgresql目录-j2，发行source仍为独立source。
+- task18-full-native-linux.log、task18-full-native-win.log：完整DB目录-j4，分别使用上述Linux/Windows env-business，DB option只传DB组；CLI/TUI的三文件49通过证据继续单独保留。
+- 运行结果尚待收集，Task18保持in_progress/REVIEWING。独立Reviewer继续审查固定tip d6e5f62e75；不会修改已冻结源码。只有全批次exit0与独立APPROVED齐全后才完成最后任务。
+
+### Task18已完成的最终门禁
+
+- task18-full-pg-linux.log：完整postgresql目录131文件720通过/0失败/0skip，1630.7s，主进程真实exit0；真实随机Schema、全部SQLite拒绝、SDK及故障恢复覆盖与Task17冻结源码一致。
+- task18-full-native-win.log完整DB：exit0，234文件579通过/0失败/5平台skip，552.9s；加此前同源码CLI/TUI 49通过，Windows所选合计628通过/5skip。
+- task18-full-native-linux.log完整DB：exit0，234文件584通过/0失败/0skip，797.6s；加CLI/TUI 49通过，Linux所选合计633通过。234文件包含integration deselected文件，不把它们计作执行了PG用例。
+- task18-final-check.log：exit0，全16项通过，health738文件0blocking/0advisory（169.2s）。task18-final-plugin-boundary.log exit0，module_to_core847/core_to_module26无新增；task18-gateway-contracts.log exit0。均在minor文档修正后执行。
+- 独立Reviewer在完整PG exit0后核对最终日志并出具[独立审查报告](../reviews/hermes-db-package-layout-review.md)：APPROVED；无blocking/major，统计口径minor已复核关闭。
+
+### 独立审查 minor 口径更正
+
+Reviewer独立指出原final_counts.business_modules的389→315只排除__init__.py，未按设计排除表/迁移。已复核原398项和当前365项：非namespace为389→315；排除hermes_db/tables/、hermes_db/migrations/后的业务模块为328→254，净减74。映射同时保存两套命名明确的数值，当前设计/计划改正术语；历史工具审计打印的business标签为旧口径，原hash/数字不改写。这是文档/统计minor，不改Python、测试、SDK、Schema、事务或受验载荷代码；后续完整命令补验已全部exit0。
+
+### Task18最终完成记录与实际命令
+
+2026-11-10，独立审查范围为cbfc773dd7..d6e5f62e75及统计minor文档修正；最终受验运行时/测试仍为bd82697cb4加冻结记录明确列出的两份生成描述覆盖层。Task18没有Python、TypeScript可执行代码、测试、依赖清单或历史迁移修改；冻结载荷的17735项hash证据继续适用。全量命令失败的初轮记录保留，不能以旧686/36/32或重复复验累加充数。
+
+下列最终命令均已真实执行并exit0；HERMES_HOME/HERMES_RUNTIME_DIR和缓存预先绑定Task17隔离root，所有解释器由项目PM建立，HERMES_TEST_FILE_RETRIES=0。Linux cwd是同归档独立test-driver，安装源是同root/source，两者不同；Windows cwd为独立实施检出。PG仅从既有私有配置路径读取秘密，并使用fixture核对所属的随机Schema。
+
+```powershell
+$root='D:/AI/hermes-db-task17-16c4a1931a33'
+$env:HERMES_PYTHON="$root/env-business/Scripts/python.exe"
+& D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db -j 4 --file-timeout 1200 -- --tb=short "--hermes-distribution-source=$root/source" "--hermes-postgresql-python=$root/env-business/Scripts/python.exe" "--hermes-sqlite-python=$root/env-sqlite/Scripts/python.exe"
+# exit0: 234 files, 579 passed, 0 failed, 5 platform skips, 552.9s
+```
+
+```bash
+root=/var/tmp/hermes-db-task17-16c4a1931a33
+HERMES_PYTHON=$root/env-business/bin/python bash scripts/run_tests.sh tests/hermes_db -j 4 --file-timeout 1200 -- --tb=short --hermes-distribution-source=$root/source --hermes-postgresql-python=$root/env-business/bin/python --hermes-sqlite-python=$root/env-sqlite-matrix/bin/python
+# exit0: 234 files, 584 passed, 0 failed, 0 skips, 797.6s
+HERMES_PYTHON=$root/env-business/bin/python bash scripts/run_tests.sh tests/hermes_db/postgresql -j 2 --file-timeout 1200 -- -m integration --tb=short --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml --hermes-distribution-source=$root/source --hermes-postgresql-python=$root/env-business/bin/python --hermes-sqlite-python=$root/env-sqlite-matrix/bin/python
+# exit0: 131 files, 720 passed, 0 failed, 0 skips, 1630.7s
+```
+
+CLI/TUI标准runner三文件两端各49通过的实际命令见Task17；不向其传DB专属option。原初轮非零日志和环境/调用修正均已具名保留。最终静态为PM解释器执行`scripts/check --staged --base cbfc773dd7`（16项通过，health738文件0blocking/0advisory，169.2s）、`scripts/boundary_lint.py --check`（847/26，无新增穿越）和`scripts/gen_gateway_contracts.py --check`（无漂移），均exit0。最终文档/映射/冻结元数据及审查报告再经一致性检查和`git diff --cached --check d6e5f62e75`，不以该检查替代业务测试。
+
+最终交付文档检查：`PM Python .build/package-layout/task18_final_audit.py` exit0（task18-final-doc-audit.log），18项completed、398→365、业务328→254、root11、61锚点及唯一预期tables初始化import调整、10个本地链接均通过；审查后运行时代码变化为false。最终文档更新不影响已验代码或载荷，不重复全PG/全静态，以本次一致性及暂存区空白检查收口。首次`git diff --cached --check d6e5f62e75`指出审查报告EOF多一个空行；已仅去除该多余空行，后续同命令exit0，报告内容及APPROVED不变。
+
+恢复点：Task18父commit为d6e5f62e75，最终Task18本地commit可由本节所在提交和`git log -1`直接定位；18个Task各有独立本地commit。代码恢复只针对隔离分支，不回迁数据、不降级Schema、不覆盖正式或用户修改。正式checkout仍在原规划分支且clean；本次交付不包含任何发布、合并、服务或Profile切换。
 
 ## 设计覆盖与最终验证
 
@@ -1427,26 +1475,27 @@ git diff --check
 
 ### 执行结果
 
-- 单元/Native/PG/实际SDK/并发/故障/关闭：Task1–17已执行并逐项记录；最终独立审查待Task18。
-- Schema：设计要求零变化；旧数据前向/重复升级和0031重开仍须Task17实测。
-- 静态/类型/共享契约/发行：已完成Task的15项静态检查均有证据；最终共享契约/独立发行等仍待Task17。
-- 手工检查：独立checkout内已核对模块、路由、root11和固定锚点；未触碰正式Profile/源码/进程；不替代最终运行验证。
-- 独立代码审查：未执行重构审查。
+- 单元/Native/消费者：Task17冻结匹配的所选DB/Projects CLI/Kanban CLI/TUI groups在Linux633通过；Windows628通过/5已说明的平台skip。不是全仓8237个测试文件均已执行，hash冻结只证明身份。
+- 集成/实际SDK/并发/故障/关闭：Task18完整131文件PG命令exit0，720通过/0失败/0skip；Matrix十文件31项真实SDK/PG用例通过，实际双PID恢复和真实COMMIT后丢ACK有独立证据。
+- Schema：31个revision、版本初始化及28表定义保持，tables初始化仅Task2必要catalog导入；0004/0030真实旧行前向/重复升级、0031重开及拒绝活跃租约回滚通过。未操作正式业务数据。
+- 静态/共享契约/发行：Task1–15的15项静态与Task16/17的新增边界门禁后全16项均有证据；最终契约检查及Windows/Linux独立source payload、实际无PG依赖SQLite均通过。两处生成差异只为描述，TS代码token/JSON结构不变，不声称执行了前端构建。
+- 手工/身份检查：398源处置、365模块/root11、非namespace389→315（业务328→254）、288/85方法签名、61锚点、回调和旧动态路径核验闭合；两端17735生产/测试条目与覆盖层hash0差异。Profile/池/pin/close/回执以实际合同补充，静态不能替代运行证据。
+- 独立审查：[最终报告](../reviews/hermes-db-package-layout-review.md)为APPROVED；完整diff、AST行为差异、288/85公共方法签名、实际消费者/SDK/事务/回执/迁移及最终完整日志已独立复核。唯一minor为统计术语，已关闭；审查后仅交付文档与元数据变化，适用最终空白/文档一致性检查，不重复全PG。
 
 ### 验收标准检查
 
-- [ ] 398项及新增模块归属闭合，根11、文件数净减少。
-- [ ] 36/10 Mixin改显式组件，方法/DTO/回执/作用域与事务语义保持。
-- [ ] driver-free、无内部shim、无新增插件穿越及未审议依赖例外。
-- [ ] 当前源码SQLite独立安装、PG零SQLite完整业务、实际Matrix及双PID持久恢复通过。
-- [ ] 31个revision和29表模块锚点保持，旧PG升级/0031重开和独立载荷通过。
-- [ ] 最新verification-before-completion及独立APPROVED，整改后复验闭合。
-- [ ] 正式运行/数据未被开发步骤影响；原统一后端全局缺口仍如实单列。
+- [x] 398项及新增模块归属闭合，根11、文件数净减少。
+- [x] 36/10 Mixin改显式组件，方法/DTO/回执/作用域与事务语义保持。
+- [x] driver-free、无内部shim、无新增插件穿越及未审议依赖例外。
+- [x] 当前源码SQLite独立安装、PG零SQLite完整业务、实际Matrix及双PID持久恢复通过。
+- [x] 31个revision和29表模块锚点保持，旧PG升级/0031重开和独立载荷通过。
+- [x] 最新verification-before-completion及独立APPROVED，整改后复验闭合。
+- [x] 正式运行/数据未被开发步骤影响；原统一后端全局缺口仍如实单列。
 
 ### 未通过项目与最终状态
 
-实施推进中，当前17/18；完整重构验证已完成，等待Task18独立审查与最终交付判定；原Task24非WSL七项没有新增实机证据。准备方案阶段为`PLAN_READY`，不得标为READY_TO_MERGE。
-实施后仅可根据真实终态填写本次重构`READY_TO_MERGE / BLOCKED / FAILED`，并与原系统统一后端整体验收状态分别报告。
+本次分包重构18/18 completed，最终状态`READY_TO_MERGE`，没有遗留必需失败、环境阻塞或未处理blocking/major。Windows Native五项平台skip及Windows发行组两项Linux SDK skip已逐项记录；适用行为有真实Linux证据。未执行全仓8237个测试文件或前端构建，不把hash核对当作运行验证。
+原统一后端Task24及七项非WSL平台缺证继续独立保留，本次没有新增其完整实机验收证据，不宣称全系统验收完成。不推送、不发布、不创建PR、不合并或部署，不重启正式Hermes。
 
 ### Task5锚点计数说明更正
 

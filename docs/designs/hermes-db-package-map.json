@@ -1,7 +1,7 @@
 {
   "baseline": "cbfc773dd79241752697e647067c63338fc01680",
   "baseline_runtime": "0d69702244d623a31be149a9bac6a2658e0322ae",
-  "stage": "Stage2 Task16 completed: ownership and dependency closure verified; final frozen-code distribution/business/SDK acceptance and independent review remain Tasks17-18",
+  "stage": "Tasks1-18 completed: domain packaging and consolidation accepted; final full PG/Native gates passed and independent review APPROVED; READY_TO_MERGE for this refactor only, original unified Task24 and seven non-WSL gaps remain independent",
   "hash_basis": "SHA256 of Git blob bytes at baseline; independent of checkout line endings",
   "counts": {
     "keep": 76,
@@ -6395,7 +6395,10 @@
     "actual_modules": 365,
     "root_modules": 11,
     "net_reduction": 33,
-    "original_business_modules": 389,
-    "actual_business_modules": 315
+    "original_business_modules": 328,
+    "actual_business_modules": 254,
+    "original_non_namespace_modules": 389,
+    "actual_non_namespace_modules": 315,
+    "business_definition": "Exclude package __init__.py, all tables/ and migrations/ modules; non_namespace excludes only __init__.py"
   }
 }
