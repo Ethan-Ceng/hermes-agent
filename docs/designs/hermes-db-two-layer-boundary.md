@@ -2,7 +2,7 @@
 
 ## 文档状态
 
-- 状态：`DESIGN_READY`；用户已确认infra命名并要求准备实施方案。配套20项计划均pending，生产实现尚未开始。
+- 状态：`IMPLEMENTING`；2026-11-11用户授权按既有20项计划实施。Task1新鲜基准已通过，1/20；后续生产分层与最终验证/独立审查尚未完成。
 - 日期：2026-11-10；设计基准：`0d8782ba8adb168a86abb6a8e338591d70d03428`。
 - 隔离目录：D:/AI/hermes-db-packages；当前分支refactor/hermes-db-persistence-scope。正式D:/AI/hermes-agent仍在90a2987e8c，未切换。
 - 依据：[持久层精简设计](hermes-db-persistence-scope.md)、[已完成实施账本](../plans/hermes-db-persistence-scope-plan.md)、[逐项映射及固定锚点](hermes-db-persistence-scope-map.json)、[统一后端设计](unified-database-backends.md)。本设计不改写这些工作的历史验收。

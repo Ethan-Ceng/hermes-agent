@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "status": "PLAN_READY",
+  "status": "IMPLEMENTING",
   "design": "docs/designs/hermes-db-two-layer-boundary.md",
   "plan": "docs/plans/hermes-db-two-layer-boundary-plan.md",
   "baseline": "0d8782ba8adb168a86abb6a8e338591d70d03428",
@@ -8,7 +8,7 @@
   "runtime_equivalent": "9a8093841b",
   "planned_branch": "refactor/hermes-db-two-layer-boundary",
   "planning_branch": "refactor/hermes-db-persistence-scope",
-  "planning_commit": "not created; planning only",
+  "planning_commit": "f735660e8db182ca2b9fb8c139815a5bed2caf06",
   "db_baseline_count": 359,
   "root_entry_count": 11,
   "projected_db_path_budget": 350,
@@ -17,7 +17,7 @@
     {
       "id": 1,
       "title": "冻结隔离源码、合同和完整调用点",
-      "status": "pending",
+      "status": "completed",
       "dependencies": []
     },
     {
@@ -1277,5 +1277,9 @@
     "final_static_exit_code": 0,
     "final_static_checks": 16,
     "runtime_tests_run": false
+  },
+  "implementation_evidence": {
+    "task1": "docs/designs/hermes-db-two-layer-baseline.json",
+    "planning_metrics_note": "Planning metrics/status snapshots are historical baseline; tasks[] contains current execution status."
   }
 }

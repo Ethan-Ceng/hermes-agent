@@ -5,9 +5,9 @@
 - 设计：[两层边界设计](../designs/hermes-db-two-layer-boundary.md)；逐项映射：[模块、符号、消费者和固定资源](../designs/hermes-db-two-layer-map.json)。
 - 源码基准：`0d8782ba8adb168a86abb6a8e338591d70d03428`。上轮精简已完成，本轮Task全部重新从pending开始；旧测试/旧审查只作参考。
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
-- 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，尚未创建。
-- 规划提交：未创建；本轮仅准备设计、计划及索引化映射。授权实施后，Task1在隔离目标分支建立规划检查点并写入实际hash，不把它计为实现完成。
-- 整体状态：`PLAN_READY`；阶段：planning completed；当前实施任务：无，下一项Task1；完成：0 / 20；阻塞：无；日期2026-11-10。
+- 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
+- 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
+- 整体状态：`IMPLEMENTING`；阶段：Task1已验证；当前实施任务：Task1完成，下一项Task2；完成：1 / 20；阻塞：无；日期2026-11-11。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 范围与可判定边界
@@ -126,12 +126,13 @@ function Check-Storage {
 | 日期 | 状态 | 当前任务 | 原因 |
 | --- | --- | --- | --- |
 | 2026-11-10 | PLAN_READY | 无；下一项Task1 | 用户要求准备infra两层实施方案，全部20项pending；生产实现未开始 |
+| 2026-11-11 | IMPLEMENTING | Task1完成；下一项Task2 | fresh双主机PM、基准Native/PG及结构/静态门禁通过，1/20 |
 
 ## 任务依赖总表
 
 | Task | 目标 | 前置 | 状态 |
 | --- | --- | --- | --- |
-| 1 | 冻结隔离源码、合同和完整调用点 | 无 | pending |
+| 1 | 冻结隔离源码、合同和完整调用点 | 无 | completed |
 | 2 | 提纯PostgreSQL连接池与事务基础设施 | 1 | pending |
 | 3 | 提取SQLite公共连接与WAL机制 | 2 | pending |
 | 4 | 分离SessionDB连接状态、池与关闭语义 | 3 | pending |
@@ -154,7 +155,7 @@ function Check-Storage {
 
 ## Task 1：冻结隔离源码、合同和完整调用点
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -192,11 +193,19 @@ function Check-Storage {
 
 ### 执行结果
 
-未实施；planning不计完成。
+2026-11-11：完成隔离身份核对，目标分支refactor/hermes-db-two-layer-boundary，规划检查点f735660e8db182ca2b9fb8c139815a5bed2caf06。正式目录HEAD90a2987e8c且clean，CIM未发现引用隔离目录的应用进程。两个全新PM开发环境exit0；-I核对Python3.14.9、包来自当前隔离checkout、SQLAlchemy2.1.6/psycopg3.3.7/Alembic1.20.1。未改生产/测试/历史Schema，未删除测试。
+
+从0d基准重新核对500源码/ABI hash、全部359DB模块、191/134混合符号路由、61+4固定资源、31编号revision/29表模块、根11。重建3033文件/45160读取点，2317路径更新候选、18445接口核对候选、24398保留；29 Native patch均交所属连接拆分Task核对。分类是逐符号实施输入，不把候选数当必改数量。1934个SessionDB调用分为1902测试准备、22评估、8生产普通打开、2显式恢复/repair；10个生产调用逐项列于证据。原审计误把versions/__init__.py计入revision，修正工具后完整重跑exit0，资源无差异。
 
 ### 验证证据
 
-未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
+所有实际展开命令、解释器、cwd、隔离HOME/RUNTIME、源码commit、exitcode及安全Summary见[Task1基准与批次记录](../designs/hermes-db-two-layer-baseline.json)。完整原始日志仅ignored .build/two-layer-evidence；重建AST/逐读取点分类及其hash在.build/two-layer-dev/audit，摘要及hash已版本化。
+
+- Windows新PM + Linux新PM：各exit0。两端-I来源/依赖探针：各exit0。
+- Windows scripts/run_tests.sh三个计划文件：exit0，15 passed/0 failed/2平台skip（fork POSIX、实际Matrix SDK Linux）；同组Linux exit0，17 passed/0 failed/0 skipped。
+- Linux真实PG test_schema.py + test_existing_media_grants.py：exit0，10 passed/0 failed/0 skipped。保留fixture随机Schema归属与全SQLite guard。
+- 新Windows解释器scripts/check --staged --base 0d8782ba8a：exit0，16 checks ok；DB边界10130 imports/0 violations；插件边界、生成契约和git diff --cached --check均exit0。
+- 规划检查点不计实现；本Task完成提交以本次紧随计划更新的本地commit为恢复点，实际hash在下一Task启动记录。Tasks2-20、最终冻结/完整验收和独立审查尚未完成；原Task24、七非WSL与Windows八项基准独立保留。
 
 ## Task 2：提纯PostgreSQL连接池与事务基础设施
 
