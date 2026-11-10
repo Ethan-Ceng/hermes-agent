@@ -28,10 +28,13 @@
       "task": 4,
       "target": null,
       "reason": "repair-profiles only after adoption removed",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         4
-      ]
+      ],
+      "implementation_tasks": {
+        "4": "completed"
+      }
     },
     {
       "source": "hermes_db/integration/postgres/queries/profile_move.py",
@@ -40,10 +43,13 @@
       "task": 4,
       "target": null,
       "reason": "snapshot/unledgered helpers have no remaining business consumer after Tasks3-4",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         4
-      ]
+      ],
+      "implementation_tasks": {
+        "4": "completed"
+      }
     },
     {
       "source": "hermes_db/integration/postgres/operations/profile_repair.py",
@@ -52,13 +58,14 @@
       "task": 4,
       "target": null,
       "reason": "normal delete_routes ownership first separated in Task2",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         2,
         4
       ],
       "implementation_tasks": {
-        "2": "completed"
+        "2": "completed",
+        "4": "completed"
       }
     },
     {
@@ -68,10 +75,13 @@
       "task": 4,
       "target": null,
       "reason": "repair-only label/parent queries",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         4
-      ]
+      ],
+      "implementation_tasks": {
+        "4": "completed"
+      }
     },
     {
       "source": "hermes_db/integration/transfer/move_values.py",
@@ -80,10 +90,13 @@
       "task": 4,
       "target": null,
       "reason": "prepared/imported ticket keys and digests serve retired move/adoption only",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         4
-      ]
+      ],
+      "implementation_tasks": {
+        "4": "completed"
+      }
     },
     {
       "source": "hermes_state_profile_repair.py",
@@ -92,10 +105,13 @@
       "task": 4,
       "target": null,
       "reason": "remove SessionProfileRepairMixin and maintenance-only helpers/errors after full consumer audit",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         4
-      ]
+      ],
+      "implementation_tasks": {
+        "4": "completed"
+      }
     },
     {
       "source": "hermes_cli/sessions_repair_profiles.py",
@@ -104,10 +120,13 @@
       "task": 4,
       "target": null,
       "reason": "retire repair-profiles orchestration; no replacement tool",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         4
-      ]
+      ],
+      "implementation_tasks": {
+        "4": "completed"
+      }
     },
     {
       "source": "hermes_cli/sessions_cmd_repair_profiles.py",
@@ -116,10 +135,13 @@
       "task": 4,
       "target": null,
       "reason": "retire repair-profiles command handler",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         4
-      ]
+      ],
+      "implementation_tasks": {
+        "4": "completed"
+      }
     },
     {
       "source": "hermes_db/domains/sessions/postgres/queries/gateway.py",
@@ -192,7 +214,8 @@
       ],
       "implementation_tasks": {
         "2": "completed",
-        "3": "completed"
+        "3": "completed",
+        "4": "completed"
       }
     },
     {
@@ -206,7 +229,10 @@
       "changed_in_tasks": [
         4,
         5
-      ]
+      ],
+      "implementation_tasks": {
+        "4": "completed"
+      }
     },
     {
       "source": "hermes_db/domains/sessions/postgres/store.py",
@@ -215,14 +241,15 @@
       "task": 4,
       "target": "hermes_db/domains/sessions/postgres/store.py",
       "reason": "remove sixteen maintenance/stranded-adoption delegates; retain all other behavior",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         3,
         4,
         5
       ],
       "implementation_tasks": {
-        "3": "completed"
+        "3": "completed",
+        "4": "completed"
       }
     },
     {
@@ -232,10 +259,13 @@
       "task": 4,
       "target": "hermes_state.py",
       "reason": "remove SQLite repair mixin import/base only; preserve normal facade and siblings",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         4
-      ]
+      ],
+      "implementation_tasks": {
+        "4": "completed"
+      }
     },
     {
       "source": "hermes_state_portability.py",
@@ -274,10 +304,13 @@
       "task": 4,
       "target": "hermes_cli/subcommands/sessions.py",
       "reason": "remove repair-profiles parser branch, not unrelated sessions commands",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         4
-      ]
+      ],
+      "implementation_tasks": {
+        "4": "completed"
+      }
     },
     {
       "source": "hermes_cli/sessions_cmd.py",
@@ -286,10 +319,13 @@
       "task": 4,
       "target": "hermes_cli/sessions_cmd.py",
       "reason": "remove repair handler import and dispatch entry",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         4
-      ]
+      ],
+      "implementation_tasks": {
+        "4": "completed"
+      }
     },
     {
       "source": "scripts/hermes_db_boundary_rules.json",
@@ -449,6 +485,13 @@
       "path": "tests/hermes_db/postgresql/test_merge_data_upgrade.py",
       "disposition": "KEEP deployed Schema upgrade compatibility",
       "task": 8
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_insert_counts.py",
+      "disposition": "Task4 audit amendment: retire route repair count only; KEEP real worker change tracker no-op/new-row assertions",
+      "task": 4,
+      "baseline_sha256": "a52eaa6794c83e0a48fb47c25b52fb5df34ff2f64094cd0d0e4bba43ceee2946",
+      "status": "in_progress"
     }
   ],
   "new_behavior_tests": [
@@ -483,7 +526,8 @@
     {
       "path": "tests/hermes_cli/test_sessions_command_boundary.py",
       "task": 4,
-      "purpose": "retired repair-profiles invocation is refused before any storage write/open, while supported sessions commands still dispatch"
+      "purpose": "retired repair-profiles invocation is refused before any storage write/open, while supported sessions commands still dispatch",
+      "status": "completed"
     }
   ],
   "fixed_anchors": {
@@ -770,6 +814,291 @@
       "task": 3,
       "disposition": "converted",
       "reason": "Replaced adoption setup with ordinary export/import; all hidden/canonical/listing/retention/title protection assertions retained as test_imported_bot_chat_stays_the_hidden_canonical_chat."
+    },
+    {
+      "path": "tests/hermes_cli/test_sessions_repair_profiles.py",
+      "test": "test_dry_run_names_every_crossing_and_changes_nothing",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired repair-profiles orchestration, scan/apply/idempotency and backups; normal lifecycle is covered by retained Profile purge/rename contracts.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_cli/test_sessions_repair_profiles.py",
+      "test": "test_apply_settles_every_repairable_crossing_and_is_idempotent",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired repair-profiles orchestration, scan/apply/idempotency and backups; normal lifecycle is covered by retained Profile purge/rename contracts.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_cli/test_sessions_repair_profiles.py",
+      "test": "test_apply_refuses_while_a_gateway_owns_a_store",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired repair-profiles orchestration, scan/apply/idempotency and backups; normal lifecycle is covered by retained Profile purge/rename contracts.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_cli/test_sessions_repair_profiles.py",
+      "test": "test_legacy_main_rekey_adopts_a_standalone_gateways_history",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired repair-profiles orchestration, scan/apply/idempotency and backups; normal lifecycle is covered by retained Profile purge/rename contracts.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_cli/test_sessions_repair_profiles.py",
+      "test": "test_move_into_a_store_that_already_holds_the_title",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired repair-profiles orchestration, scan/apply/idempotency and backups; normal lifecycle is covered by retained Profile purge/rename contracts.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_cli/test_sessions_repair_profiles.py",
+      "test": "test_a_failing_row_moves_alone_and_its_lineage_waits_with_it",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired repair-profiles orchestration, scan/apply/idempotency and backups; normal lifecycle is covered by retained Profile purge/rename contracts.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_cli/test_sessions_repair_profiles.py",
+      "test": "test_a_ledgered_stray_is_reported_never_copied",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired repair-profiles orchestration, scan/apply/idempotency and backups; normal lifecycle is covered by retained Profile purge/rename contracts.",
+      "parameters": [
+        "pytest.mark.parametrize('status', ['terminal', 'queued'])"
+      ]
+    },
+    {
+      "path": "tests/hermes_cli/test_sessions_repair_profiles.py",
+      "test": "test_ledger_rows_that_appear_after_the_scan_still_block_the_copy",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired repair-profiles orchestration, scan/apply/idempotency and backups; normal lifecycle is covered by retained Profile purge/rename contracts.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_profile_moves.py",
+      "test": "test_move_roundtrip_keeps_all_generations_prompts_tool_pins_and_usage",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired explicit historical cross-store move/copy/donor retirement and grant creation; normal export/import remains, and existing grant read/pin/release is preserved by Task2 contracts.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_profile_moves.py",
+      "test": "test_core_move_refuses_unrelated_resident_id_and_stale_source_snapshot",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired explicit historical cross-store move/copy/donor retirement and grant creation; normal export/import remains, and existing grant read/pin/release is preserved by Task2 contracts.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_profile_moves.py",
+      "test": "test_core_move_keeps_source_owned_spillover_after_donor_retirement",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired explicit historical cross-store move/copy/donor retirement and grant creation; normal export/import remains, and existing grant read/pin/release is preserved by Task2 contracts.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_profile_moves.py",
+      "test": "test_core_pg_move_rejects_sqlite_snapshot_and_ledgered_source",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired explicit historical cross-store move/copy/donor retirement and grant creation; normal export/import remains, and existing grant read/pin/release is preserved by Task2 contracts.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_profile_moves.py",
+      "test": "test_core_moved_file_lives_until_last_recipient_history_is_deleted",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired explicit historical cross-store move/copy/donor retirement and grant creation; normal export/import remains, and existing grant read/pin/release is preserved by Task2 contracts.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_profile_moves.py",
+      "test": "test_core_file_grant_follows_a_second_move_without_moving_file_bytes",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired explicit historical cross-store move/copy/donor retirement and grant creation; normal export/import remains, and existing grant read/pin/release is preserved by Task2 contracts.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_profile_moves.py",
+      "test": "test_core_parent_first_retirement_keeps_child_snapshot_valid",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired explicit historical cross-store move/copy/donor retirement and grant creation; normal export/import remains, and existing grant read/pin/release is preserved by Task2 contracts.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_profile_moves.py",
+      "test": "test_core_grant_creation_rolls_back_with_target_copy_and_unknown_ack_replays_receipt",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired explicit historical cross-store move/copy/donor retirement and grant creation; normal export/import remains, and existing grant read/pin/release is preserved by Task2 contracts.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_profile_repair.py",
+      "test": "test_profile_repair_relabels_keys_severs_crossed_parents_and_rekeys_main",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired label/parent/topic repair and repair-only routing helpers; normal Profile route purge remains covered by remaining_read_maintenance and real PG health groups.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_profile_repair.py",
+      "test": "test_routing_repair_is_idempotent_and_preserves_resident_entry",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired label/parent/topic repair and repair-only routing helpers; normal Profile route purge remains covered by remaining_read_maintenance and real PG health groups.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_profile_repair.py",
+      "test": "test_core_repair_rechecks_topic_key_and_never_changes_another_store",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired label/parent/topic repair and repair-only routing helpers; normal Profile route purge remains covered by remaining_read_maintenance and real PG health groups.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/test_move_fingerprints.py",
+      "test": "test_model_marker_backfill_keeps_move_content_fingerprint",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Digest helpers only serve retired cross-store move receipts; no normal business consumer remains.",
+      "parameters": [
+        "pytest.mark.parametrize('recipient', [False, True])"
+      ]
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_file_consumers.py",
+      "test": "test_core_profile_repair_scan_and_move_batch_work_without_database_files",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired repair scan/move orchestration; roster/stats/resource-release/backup/doctor tests remain unchanged.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_review_data_safety.py",
+      "test": "test_move_never_retires_source_after_recipient_snapshot_changes",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired cross-store move receipt validation; prepared-compression late-public-append conflict assertions remain.",
+      "parameters": [
+        "pytest.mark.parametrize('change', ['messages', 'prompt'])"
+      ]
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_review_data_safety.py",
+      "test": "test_move_allows_recipient_append_without_losing_imported_prefix",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Retired cross-store move receipt validation; prepared-compression late-public-append conflict assertions remain.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_health_archive_refs.py",
+      "test": "test_scoped_current_data_contracts[move_roundtrip_keeps_all_generations_prompts_tool_pins_and_usage]",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "PG parameter wrapper for retired moves contract; all normal health/retention/archive/purge/concurrency elements remain."
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_health_archive_refs.py",
+      "test": "test_scoped_current_data_contracts[core_move_refuses_unrelated_resident_id_and_stale_source_snapshot]",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "PG parameter wrapper for retired moves contract; all normal health/retention/archive/purge/concurrency elements remain."
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_health_archive_refs.py",
+      "test": "test_scoped_current_data_contracts[core_move_keeps_source_owned_spillover_after_donor_retirement]",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "PG parameter wrapper for retired moves contract; all normal health/retention/archive/purge/concurrency elements remain."
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_health_archive_refs.py",
+      "test": "test_scoped_current_data_contracts[core_moved_file_lives_until_last_recipient_history_is_deleted]",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "PG parameter wrapper for retired moves contract; all normal health/retention/archive/purge/concurrency elements remain."
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_health_archive_refs.py",
+      "test": "test_scoped_current_data_contracts[core_parent_first_retirement_keeps_child_snapshot_valid]",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "PG parameter wrapper for retired moves contract; all normal health/retention/archive/purge/concurrency elements remain."
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_health_archive_refs.py",
+      "test": "test_scoped_current_data_contracts[core_repair_rechecks_topic_key_and_never_changes_another_store]",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "PG parameter wrapper for retired repair contract; all normal health/retention/archive/purge/concurrency elements remain."
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_health_archive_refs.py",
+      "test": "test_current_store_contracts[profile_repair_relabels_keys_severs_crossed_parents_and_rekeys_main]",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "PG parameter wrapper for retired repair contract; all normal health/retention/archive/purge/concurrency elements remain."
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_health_archive_refs.py",
+      "test": "test_current_store_contracts[routing_repair_is_idempotent_and_preserves_resident_entry]",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "PG parameter wrapper for retired repair contract; all normal health/retention/archive/purge/concurrency elements remain."
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_health_archive_refs.py",
+      "test": "test_file_grants_rollback_and_unknown_commit_ack",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Dedicated historical move/grant-creation race or acknowledgement contract is retired; archive sweep/publication concurrency and real business COMMIT-loss recovery remain independently covered.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_health_archive_refs.py",
+      "test": "test_second_move_preserves_origin_files",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Dedicated historical move/grant-creation race or acknowledgement contract is retired; archive sweep/publication concurrency and real business COMMIT-loss recovery remain independently covered.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_health_archive_refs.py",
+      "test": "test_sqlite_payload_and_ledgered_source_are_refused",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Dedicated historical move/grant-creation race or acknowledgement contract is retired; archive sweep/publication concurrency and real business COMMIT-loss recovery remain independently covered.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_health_archive_refs.py",
+      "test": "test_move_append_race_never_erases_new_source_work",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Dedicated historical move/grant-creation race or acknowledgement contract is retired; archive sweep/publication concurrency and real business COMMIT-loss recovery remain independently covered.",
+      "parameters": []
+    },
+    {
+      "path": "tests/hermes_db/postgresql/test_insert_counts.py",
+      "test": "test_route_repair_counts_only_new_rows_in_the_owning_store",
+      "task": 4,
+      "disposition": "retired",
+      "reason": "Only exercises insert_gateway_routing_rows_if_absent/list_gateway_routing_rows retired repair API. Normal worker change tracker test in same file is retained and run against real PG."
     }
   ]
 }

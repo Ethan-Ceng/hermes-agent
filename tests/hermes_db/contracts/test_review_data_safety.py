@@ -1,44 +1,16 @@
-"""Review regressions for recipient proofs and prepared transcript publication."""
+"""Prepared transcript publication preserves late-append conflict detection."""
 
 import pytest
 
 from hermes_state_runtime import RuntimeStoreError
 
 
-@pytest.mark.parametrize('change', ['messages', 'prompt'])
-def test_move_never_retires_source_after_recipient_snapshot_changes(core_pair, change):
-    source, target = core_pair
-    source.create_session('s', 'cli', system_prompt='original prompt')
-    source.append_message('s', 'user', 'original body')
-    payload = source.export_session_for_move('s')
-    target.import_moved_session(payload, profile_name='target')
-    mutations = {
-        'messages': lambda: target.replace_messages('s', [{'role': 'user', 'content': 'other body'}]),
-        'prompt': lambda: target.update_system_prompt('s', 'other prompt'),
-    }
-    mutations[change]()
-    with pytest.raises(RuntimeStoreError, match='move_not_confirmed'):
-        source.delete_moved_session('s')
-    with pytest.raises(RuntimeStoreError, match='session_exists'):
-        target.import_moved_session(payload, profile_name='target')
-    assert source.get_messages('s')[0]['content'] == 'original body'
-    assert source.get_session('s')['system_prompt'] == 'original prompt'
 
 
 
 
 
 
-def test_move_allows_recipient_append_without_losing_imported_prefix(core_pair):
-    source, target = core_pair
-    source.create_session('s', 'cli')
-    source.append_message('s', 'user', 'original')
-    payload = source.export_session_for_move('s')
-    target.import_moved_session(payload, profile_name='target')
-    target.append_message('s', 'assistant', 'new recipient work')
-    assert target.import_moved_session(payload, profile_name='target') == 'present'
-    assert source.delete_moved_session('s')
-    assert [row['content'] for row in target.get_messages('s')] == ['original', 'new recipient work']
 
 
 @pytest.mark.parametrize('in_place', [True, False])

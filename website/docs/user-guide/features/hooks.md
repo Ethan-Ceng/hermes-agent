@@ -1141,7 +1141,7 @@ def my_callback(session_id: str, reason: str, profile: str | None, **kwargs):
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `session_id` | `str` | The session the operation targeted. Always present. |
-| `reason` | `str` | `"delete"`, `"archive"`, `"empty_sweep"`, `"prune"`, `"ghost_prune"` or `"profile_repair"`. |
+| `reason` | `str` | `"delete"`, `"archive"`, `"empty_sweep"`, `"prune"` or `"ghost_prune"`. |
 | `profile` | `str \| None` | Profile that owns the session store (`"default"` for the root home), `None` for a store outside any profile home. |
 | `deleted_ids` | `list[str]`, optional | Every row removed, including cascade-deleted delegate children, compression-chain links and each row of a bulk delete. Present when more than one row went. |
 | `sessions_dir` | `str`, optional | The profile's `sessions/` dir when the caller passed one. |

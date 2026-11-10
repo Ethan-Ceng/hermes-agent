@@ -47,7 +47,7 @@ def build_sessions_parser(subparsers, *, cmd_sessions: Callable) -> None:
     """Attach the ``sessions`` subcommand to ``subparsers``."""
     sessions_parser = subparsers.add_parser(
         "sessions", help="Manage session history (list, rename, export, prune, delete)",
-        description="View and manage the SQLite session store")
+        description="View and manage the selected Profile session store")
     sessions_subparsers = sessions_parser.add_subparsers(dest="sessions_action")
 
     sessions_list = sessions_subparsers.add_parser("list", help="List recent sessions")
@@ -235,26 +235,6 @@ def build_sessions_parser(subparsers, *, cmd_sessions: Callable) -> None:
         help="Window between a keyed predecessor's last activity and an "
             "orphan's start for them to count as the same conversation "
             "(default: 900)")
-
-    sessions_repair_profiles = sessions_subparsers.add_parser(
-        "repair-profiles", help="Settle session/routing state that landed under the wrong profile",
-        description="Scan every profile's state.db (and the gateway's voice-mode / sessions.json "
-            "files) for durable state crossed between profiles: rows whose profile_name "
-            "disagrees with their session key, rows sitting in another profile's store, "
-            "parent links crossing namespaces, routing rows outside the default store or for a "
-            "profile that no longer exists, and Telegram topic / voice-mode entries missing "
-            "their bot's profile. Reports without touching anything unless --apply is given; "
-            "--apply refuses while a gateway is running, snapshots every store first, and is "
-            "safe to re-run.")
-    _flag(sessions_repair_profiles, "--apply", help="Perform the repairs (default: report only)")
-    _flag(sessions_repair_profiles, "--json", help="Machine-readable report")
-    _flag(sessions_repair_profiles, "--yes", "-y", default=False, help="Skip the confirmation prompt")
-    sessions_repair_profiles.add_argument(
-        "--legacy-main", choices=("report", "rekey", "move"), default="report",
-        help="What to do with agent:main rows found inside a named profile's store: 'rekey' them "
-            "to that profile (a standalone gateway's own history, e.g. after multiplexing was "
-            "switched on), 'move' them to the default store (a default chat that leaked in), or "
-            "'report' (default) — the rows themselves cannot tell the two cases apart")
 
     sessions_repair_prompts = sessions_subparsers.add_parser(
         "repair-prompts", help="Report or clear stored system prompts degraded to a reduced-toolset build",

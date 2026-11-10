@@ -847,50 +847,20 @@ class PostgresSessionStore:
         return self._transfer.import_foreign_history(origin, messages, title=title, cwd=cwd, profile=profile)
 
 
-    def export_session_for_move(self, session_id):
-        return self._transfer.export_session_for_move(session_id)
 
-    def import_moved_session(self, payload, *, profile_name):
-        return self._transfer.import_moved_session(payload, profile_name=profile_name)
 
-    def delete_moved_session(self, session_id):
-        return self._transfer.delete_moved_session(session_id)
 
-    def find_crossed_profile_sessions(self, owner):
-        return self._transfer.find_crossed_profile_sessions(owner)
 
-    def _ledgered_session_ids(self):
-        return self._transfer._ledgered_session_ids()
 
-    def list_gateway_routing_rows(self):
-        return self._transfer.list_gateway_routing_rows()
 
-    def find_profile_less_telegram_topic_rows(self):
-        return self._transfer.find_profile_less_telegram_topic_rows()
 
-    def count_messages_all(self, session_id):
-        return self._transfer.count_messages_all(session_id)
 
-    def relabel_sessions_to_key_profile(self, ids):
-        return self._transfer.relabel_sessions_to_key_profile(ids)
 
-    def sever_crossed_parents(self, ids):
-        return self._transfer.sever_crossed_parents(ids)
 
-    def rekey_legacy_main_sessions(self, ids, profile):
-        return self._transfer.rekey_legacy_main_sessions(ids, profile)
 
-    def delete_gateway_routing_rows(self, rows):
-        return self._transfer.delete_gateway_routing_rows(rows)
 
-    def insert_gateway_routing_rows_if_absent(self, rows):
-        return self._transfer.insert_gateway_routing_rows_if_absent(rows)
 
-    def relabel_telegram_topic_rows(self, rows):
-        return self._transfer.relabel_telegram_topic_rows(rows)
 
-    def key_profiles_for_chat(self, platform, chat_id):
-        return self._transfer.key_profiles_for_chat(platform, chat_id)
 
     def create_session(self, session_id, source, **kwargs):
         return self._catalog.create_session(session_id, source, **kwargs)

@@ -43,27 +43,6 @@ def test_core_cli_stats_and_physical_maintenance_have_explicit_backend_boundarie
         assert "operator-managed" in capsys.readouterr().out
 
 
-def test_core_profile_repair_scan_and_move_batch_work_without_database_files(core_pair, monkeypatch):
-    from hermes_cli import db_setup
-    from hermes_cli.sessions_repair_profiles import Store, _MoveBatch, _Session
-    source, target = core_pair
-    homes = {db.scope.profile_home: db for db in core_pair}
-    monkeypatch.setattr(db_setup, "storage_backend", lambda home: "postgresql")
-    monkeypatch.setattr(db_setup, "open_profile_sessions", lambda home, **kwargs: homes[home])
-    for db in core_pair:
-        monkeypatch.setattr(db, "close", lambda: None)
-    source.create_session("s", "cli", session_key="agent:target:cli:chat")
-    source.append_message("s", "user", "current data")
-    first, second = Store("source", source.scope.profile_home), Store("target", target.scope.profile_home)
-    session = _Session(read_only=True)
-    try:
-        assert session.db(first).find_crossed_profile_sessions("source")["foreign"][0]["id"] == "s"
-        batch = _MoveBatch(first, second)
-        fix = batch.fix_for("s")
-        assert fix(session) == {"imported": 1, "moved": 1}
-        assert source.get_session("s") is None and target.get_messages("s")[0]["content"] == "current data"
-    finally:
-        session.close()
 
 
 def test_session_resource_releases_only_its_handle_once(core_pair):

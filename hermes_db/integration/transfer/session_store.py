@@ -3,10 +3,9 @@ from copy import deepcopy
 from sqlalchemy import select, func
 from hermes_db.domains.sessions.postgres.support.message_codec import codec, content_from_bytes
 from hermes_db.domains.sessions.postgres.operations import imports as portability
-from hermes_db.integration.postgres.operations import profile_move, profile_repair
 from hermes_db.domains.sessions.import_rules import values
-from hermes_db.domains.sessions.postgres.queries import messages as portability_messages, session_queries, sessions as portability_sessions, sessions as portability_queries_sessions, gateway
-from hermes_db.tables.conversations import sessions as table, messages as portability_queries_messages, messages as profile_repair_messages, sessions as profile_repair_sessions
+from hermes_db.domains.sessions.postgres.queries import messages as portability_messages, session_queries, sessions as portability_sessions, sessions as portability_queries_sessions
+from hermes_db.tables.conversations import sessions as table, messages as portability_queries_messages
 from hermes_state_portability import _export_timings
 import json
 from hermes_db.domains.runtime.postgres.queries import runtime
@@ -14,10 +13,6 @@ from hermes_db.tables.runtime import session_admissions
 from hermes_db.core.values import decode_text
 from hermes_state_keys import CRON_PRINCIPAL_ID, cron_run_from_request
 from hermes_db.domains.runtime.receipts import POLICY_PREFIX
-from hermes_db.core.values import resource_key
-from hermes_db.integration.postgres.queries import profile_repair as repo
-from hermes_db.tables.gateway import telegram_dm_topic_bindings as bindings
-from hermes_state_profile_repair import session_key_profile
 
 def _export(conn, scope, session, include_compacted=False, include_inactive=False):
     from hermes_db.domains.sessions.postgres.messages import _display_page
@@ -54,11 +49,9 @@ def find_foreign(conn, scope, origin):
 
 class SessionTransfer:
 
-    def __init__(self, context, _after_session_delete, flush_for_read, flush_token_counts):
+    def __init__(self, context, flush_for_read):
         self._context = context
-        self.__after_session_delete = _after_session_delete
         self._flush_for_read = flush_for_read
-        self._flush_token_counts = flush_token_counts
 
     def export_session(self, session_id, include_compacted=False, include_inactive=False):
         self._flush_for_read()
@@ -163,73 +156,3 @@ class SessionTransfer:
             portability.import_row(conn, self._context.scope, normalized[0]['session'], normalized[0]['messages'])
             portability_queries_sessions.update_session(conn, self._context.scope, sid, {'origin_json': json.dumps({'imported_from': origin}), 'profile_name': profile})
             return {'session_id': sid, 'already_imported': False}
-
-
-    def export_session_for_move(self, session_id):
-        self._flush_token_counts()
-        with self._context.profile.activate(), self._context.write() as conn:
-            return profile_move.prepare(conn, self._context.scope, session_id, resource_key(self._context.transactions))
-
-    def import_moved_session(self, payload, *, profile_name):
-        payload = deepcopy(payload)
-        binding = resource_key(self._context.transactions)
-        profile_move.validate(payload, self._context.scope, binding)
-        with self._context.profile.activate(), self._context.write() as conn:
-            return profile_move.import_snapshot(conn, self._context.scope, payload, profile_name, binding)
-
-    def delete_moved_session(self, session_id):
-        with self._context.write() as conn:
-            deleted = profile_move.retire_source(conn, self._context.scope, session_id)
-        if deleted:
-            self.__after_session_delete([session_id], reason='profile_repair')
-        return deleted
-
-    def find_crossed_profile_sessions(self, owner):
-        with self._context.read() as conn:
-            return repo.crossed(conn, self._context.scope, owner)
-
-    def _ledgered_session_ids(self):
-        with self._context.read() as conn:
-            return repo.ledgered_ids(conn, self._context.scope)
-
-    def list_gateway_routing_rows(self):
-        with self._context.read() as conn:
-            return [{key: value for key, value in row.items() if key != 'store_id'} for row in sorted(gateway.routing_rows(conn, self._context.scope), key=lambda row: (row['scope'], row['session_key']))]
-
-    def find_profile_less_telegram_topic_rows(self):
-        with self._context.read() as conn:
-            rows = conn.execute(select(bindings.c.chat_id, bindings.c.thread_id, bindings.c.session_key).where(bindings.c.store_id == self._context.scope.require_store_id(), bindings.c.profile_name == 'default').order_by(bindings.c.chat_id, bindings.c.thread_id)).mappings()
-            return [{**row, 'key_profile': target} for row in rows if (target := session_key_profile(row['session_key'])) not in (None, 'default')]
-
-    def count_messages_all(self, session_id):
-        with self._context.read() as conn:
-            return conn.scalar(select(func.count()).select_from(profile_repair_messages).where(profile_repair_messages.c.store_id == self._context.scope.require_store_id(), profile_repair_messages.c.session_id == session_id))
-
-    def relabel_sessions_to_key_profile(self, ids):
-        with self._context.write() as conn:
-            return profile_repair.repair_sessions(conn, self._context.scope, ids)
-
-    def sever_crossed_parents(self, ids):
-        with self._context.write() as conn:
-            return profile_repair.repair_sessions(conn, self._context.scope, ids, sever=True)
-
-    def rekey_legacy_main_sessions(self, ids, profile):
-        with self._context.write() as conn:
-            return profile_repair.repair_sessions(conn, self._context.scope, ids, rekey=profile)
-
-    def delete_gateway_routing_rows(self, rows):
-        with self._context.write() as conn:
-            return gateway.delete_routes(conn, self._context.scope, rows)
-
-    def insert_gateway_routing_rows_if_absent(self, rows):
-        with self._context.write() as conn:
-            return profile_repair.insert_routes(conn, self._context.scope, rows)
-
-    def relabel_telegram_topic_rows(self, rows):
-        with self._context.write() as conn:
-            return profile_repair.repair_topics(conn, self._context.scope, rows)
-
-    def key_profiles_for_chat(self, platform, chat_id):
-        with self._context.read() as conn:
-            keys = conn.execute(select(profile_repair_sessions.c.session_key).where(profile_repair_sessions.c.store_id == self._context.scope.require_store_id(), profile_repair_sessions.c.source == platform, profile_repair_sessions.c.chat_id == str(chat_id))).scalars()
-            return {profile for key in keys if (profile := session_key_profile(key)) is not None}

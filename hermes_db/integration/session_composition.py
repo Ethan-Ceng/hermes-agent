@@ -33,7 +33,7 @@ def create_session_store(transactions, scope):
     messages = SessionMessages(context, get_session=catalog.get_session)
     history = SessionHistory(context, get_active_message_ids=messages.get_active_message_ids, get_messages_as_conversation=messages.get_messages_as_conversation, list_sessions_rich=catalog.list_sessions_rich, rewind_to_message=messages.rewind_to_message)
     lifecycle = SessionLifecycle(context, flush_for_read=usage.flush_for_read)
-    transfer = SessionTransfer(context, _after_session_delete=lifecycle._after_session_delete, flush_for_read=usage.flush_for_read, flush_token_counts=usage.flush_token_counts)
+    transfer = SessionTransfer(context, flush_for_read=usage.flush_for_read)
     return PostgresSessionStore(context, catalog, messages, history, lifecycle, usage, transfer)
 
 
