@@ -6,8 +6,8 @@
 - 全量归属：[398项基准映射](../designs/hermes-db-package-map.json)。
 - 文档分支：`docs/hermes-db-package-layout`；实施分支：`refactor/hermes-db-packages`。
 - 源码基准：`cbfc773dd7`，运行实现等价`0d69702244`。
-- 整体状态：`READY_TO_MERGE`（仅本次分包重构）；当前阶段：最终验证与独立审查完成；当前任务：无；完成：18 / 18。
-- 本轮已在独立实施检出完成Task1–18并逐Task本地提交；未改正式源码/Profile/Schema/数据，未停止正式Hermes。
+- 整体状态：`MERGED_AND_RUNNING`（本次分包）；开发门禁READY_TO_MERGE已通过，2026-11-10经用户追加授权合并并重启；用户业务验收待进行；完成：18 / 18。
+- 开发阶段在独立实施检出完成Task1–18并逐Task本地提交，未影响正式实例；后续用户明确授权停机/合并/重启，最新实际部署见文末独立记录。
 - 核心设计待决策：无；Task1隔离PM与PG基线已通过，Matrix实际SDK已由Task6新环境核对并实测。原统一后端Task24及七项非WSL缺证独立保留。
 - 更新时间：2026-11-10（Asia/Shanghai）。交付位置：`D:/AI/hermes-db-packages`；全部任务已完成，恢复点见Task18最终完成记录，不重跑整轮数据库选型。
 
@@ -1500,3 +1500,26 @@ git diff --check
 ### Task5锚点计数说明更正
 
 固定61项为31个revision + versions/__init__ + 29个表模块；29个表模块包括tables/__init__，其余28个为定义模块。Task1–4账本中“29个表定义”口径已更正；历史审计日志的同名字样为打印标签错误，源hash清单始终完整。31 revisions、版本初始化及28表定义内容不变；tables初始化仅有Task2必要catalog导入调整，29模块路径及metadata/表身份保持。没有新增迁移或Schema变更。
+
+
+## 2026-11-10：用户授权合并与正式运行验收
+
+本节属于18项开发验收后的独立部署记录。用户追加要求“暂停hermes，合并代码到当前分支或者切换到refactor/hermes-db-packages……再启动hermes给我验收”，覆盖此前不合并/不重启限制；仍未授权推送、发布PR或正式业务测试数据写入。
+
+### 实际命令、过程与结果
+
+1. 两checkout均clean；当前docs/hermes-db-package-layout的7f5f1e74ed是refactor/hermes-db-packages的9a8093841b祖先，pyproject.toml/uv.lock与31个revision无差异，因此选择保留当前分支并快进，保留全部18个Task提交，不搬文件或重写提交。
+2. 用gateway.status.looks_like_gateway_command_line核对正式PID37296、启动时间、源码PYTHONPATH及Profile归属。首次把launcher cwd误预期为源码目录而拒绝；实际cwd为PM运行根，随后以真实安装/PYTHONPATH和运行状态完成核对，拒绝时尚未停机或合并。停机前active_agents=0；两个正式Profile均PG0031/16域ready，Schema归属只读核对，配置/.env及保留SQLite只存hash。
+3. 建立Git恢复引用，名称存于.build/hermes-db-package-rollout/recovery-ref.txt，指向7f5f1e74ed。正式Profile通过捕获的HERMES_HOME绑定，保留原PM解释器/依赖环境；依赖清单不变，无raw pip/uv、PM重装或数据库升级。
+4. 官方`hermes gateway stop` exit0，旧PID37296实际退出。随后`git merge --ff-only refactor/hermes-db-packages` exit0，当前分支快进至9a8093841b；正式hermes_db根目录现为11个Python入口。
+5. 官方`hermes gateway start` exit0，新PID41132。使用正式PM解释器运行`.build/hermes-db-package-rollout/verify.py` exit0：code_sha=9a8093841b4142cdee3e7ba25ab9669d0c24e93e、gateway_state=running、session_store.status=ok、心跳新鲜；新PG组件实际来自D:/AI/hermes-agent，PYTHONPATH及原PM环境正确。served_profiles与停机前完全一致，默认与股票大师均16域ready、0031不变、无parked Profile。
+6. 逐Profile只读核对同一store_id/Schema与归属，并使用只读事务查询既有持久行；配置及秘密hash、保留SQLite主文件hash与停机前相同，未观察到新网关打开这些根部SQLite文件。没有写测试会话、外发测试消息、数据迁移/双写/回迁、DDL或数据库服务/扩展/角色操作；句柄检查不是对全业务进程SQLite尝试的审计证明。
+7. 官方`hermes webapp --skip-build` exit0，复用既有构建并请求打开用户私有启动页面，不输出凭据链接。官方控制通道webapp-status=serving，关闭代理后直连http://127.0.0.1:9120/为HTTP200/HTML，socket归属新PID已核对。未重建或声称执行前端构建，浏览器内实际业务操作留给用户验收。
+
+### 证据、当前状态与恢复边界
+
+忽略目录.build/hermes-db-package-rollout/保存preflight.json、process-before.json、verified.json、各官方命令日志/退出码及恢复引用；只提交本计划的脱敏部署记录，不提交原始日志、秘密或配置。verified.json包含只读持久行计数及文件hash，最终工具仅输出安全摘要。
+
+正式源已合并并运行，状态MERGED_AND_RUNNING；运行启动code_sha为9a8093841b。本部署记录后续本地commit只修改计划文档，不改变受验运行时代码，不为文档哈希再重启服务。当前分支保持docs/hermes-db-package-layout，隔离实施分支及worktree保留作为已验检查点，不擅自删除。
+
+用户业务验收尚待进行；本轮运行就绪不替代业务验收，也不解除原统一后端Task24及七项非WSL平台缺证。若需要代码恢复，先按官方流程停止网关，在clean且目标明确的前提恢复Git引用对应源码，再使用原正式Profile/PM环境启动；Schema仍保持0031，不回迁、降级或恢复旧SQLite数据。
