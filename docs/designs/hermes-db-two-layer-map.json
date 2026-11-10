@@ -1224,7 +1224,7 @@
     "external_sources": [
       {
         "path": "hermes-db-two-layer-map/sources-native.json",
-        "sha256": "135b2030010c751d3c33a16a9dc7804778bdcce6a820105fe33d912772f88400",
+        "sha256": "b546974ee3eff4d9e8b4f825594ad95b314a19b44d482695f7a8345f6d4e10e7",
         "items": 141
       }
     ],
@@ -1403,5 +1403,6 @@
     "late_import_audit": "Standalone module-scope binding audit includes conditional imports; all actual moved-symbol imports resolved, including the forensic header parser.",
     "expanded_thread_fixture_consumers": 22
   },
-  "task4_evidence": "docs/designs/hermes-db-two-layer-task4.json"
+  "task4_evidence": "docs/designs/hermes-db-two-layer-task4.json",
+  "section_hash_basis": "SHA256 of exact UTF-8/LF bytes stored in Git, matching the repository eol=lf policy; verify working, index and committed blobs."
 }
