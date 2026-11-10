@@ -65,7 +65,7 @@ def test_router_preparation_rechecks_log_before_recording(pg_profiles, interrupt
 def test_blocked_model_call_holds_no_pg_connection_and_stop_commits(pg_profiles):
     from threading import Event
     from hermes_db.factory import acquire_profile_domain
-    from hermes_db.backends.postgresql.engine import get_engine
+    from hermes_db.infra.backends.postgresql.engine import get_engine
     from tests.waiting import wait_until
     with pg_profiles("one") as home, closing(open_session_store(home / "state.db")) as db:
         service, binding, asked = prepared(db, home)

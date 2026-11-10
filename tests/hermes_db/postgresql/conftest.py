@@ -7,17 +7,18 @@ import pytest
 
 @pytest.fixture
 def pg_store(postgres_test_config, postgres_schema, tmp_path):
-    from hermes_db.backends.postgresql.engine import get_engine
+    from hermes_db.infra.backends.postgresql.engine import get_engine
     from hermes_db.schema import upgrade_schema
     from hermes_db.scope import DatabaseScope
     from hermes_db.integration.session_composition import create_session_store
-    from hermes_db.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.tables.metadata import SCHEMA
 
     settings = replace(postgres_test_config.settings, schema=postgres_schema)
     upgrade_schema(settings)
     transactions = Transactions(get_engine(settings), settings.schema,
                                  lock_timeout=settings.write_lock_timeout_seconds,
-                                 statement_timeout=settings.statement_timeout_seconds)
+                                 statement_timeout=settings.statement_timeout_seconds, schema_token=SCHEMA)
     store = create_session_store(transactions, DatabaseScope(tmp_path, "contract-store"))
     try:
         yield store

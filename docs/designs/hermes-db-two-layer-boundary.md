@@ -2,7 +2,7 @@
 
 ## 文档状态
 
-- 状态：`IMPLEMENTING`；2026-11-11用户授权按既有20项计划实施。Task1新鲜基准已通过，1/20；后续生产分层与最终验证/独立审查尚未完成。
+- 状态：`IMPLEMENTING`；2026-11-11用户授权按既有20项计划实施。Task1新鲜基准、Task2 PG基础设施已通过，2/20；后续分层与最终验证/独立审查尚未完成。
 - 日期：2026-11-10；设计基准：`0d8782ba8adb168a86abb6a8e338591d70d03428`。
 - 隔离目录：D:/AI/hermes-db-packages；当前分支refactor/hermes-db-persistence-scope。正式D:/AI/hermes-agent仍在90a2987e8c，未切换。
 - 依据：[持久层精简设计](hermes-db-persistence-scope.md)、[已完成实施账本](../plans/hermes-db-persistence-scope-plan.md)、[逐项映射及固定锚点](hermes-db-persistence-scope-map.json)、[统一后端设计](unified-database-backends.md)。本设计不改写这些工作的历史验收。
@@ -194,3 +194,5 @@ SQLite保留各原生存储的真实版本演进。实施必须将连接获取�
 实施回滚只恢复代码检查点，不回迁/降级数据。历史资源、SQL和算法保持，应用外移分步验证；每个实施Task实际证据和本地提交由后续计划记录。
 
 本次准备此设计、20项实施计划及逐项映射，没有修改生产/测试、旧计划/映射/审查记录或正式实例。设计自检核对本地链接、基准HEAD、现有路径和固定资源直接导入；业务测试未运行，本设计的验收复选框均保持未完成；规划结构/资源/接口自检结果见实施计划准备记录。
+
+2026-11-11 Task2预算核算修订：同职责PG查询路径/投影助手合并为domains/sql/postgresql.py，原空expressions包移除，抵消infra与domains/sql两个新初始化文件；中间Task也遵守359上限，规划路径并集350→348，不宣称移动或合并减少业务算法。

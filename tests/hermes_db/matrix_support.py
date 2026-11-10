@@ -47,6 +47,6 @@ async def sdk_machine(store, *, device_id=None):
 
 def current_engine():
     from hermes_cli.db_setup import resolve_db_configuration
-    from hermes_db.backends.postgresql.engine import get_engine
+    from hermes_db.infra.backends.postgresql.engine import get_engine
     settings, _ = resolve_db_configuration()
     return get_engine(settings.postgresql)

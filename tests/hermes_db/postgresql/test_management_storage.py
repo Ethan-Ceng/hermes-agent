@@ -49,7 +49,7 @@ def test_unknown_purge_commit_preserves_local_recovery_files(pg_profiles, monkey
     from contextlib import contextmanager
     from hermes_cli.data_cleanup import plan_data_removal, remove_data
     from hermes_db.errors import UnknownCommitError
-    from hermes_db.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.backends.postgresql.transactions import Transactions
     with pg_profiles("one") as home:
         seed(home)
         plan = plan_data_removal(home, Path(__file__).resolve().parents[3])

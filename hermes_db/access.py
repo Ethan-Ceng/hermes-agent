@@ -74,7 +74,7 @@ def close_session_resources_under(home):
 
 def close_session_resources():
     """The gateway calls this only after all producer/worker quiesce checks pass."""
-    from hermes_db.backends.postgresql.engine import close_engines
+    from hermes_db.infra.backends.postgresql.engine import close_engines
     from hermes_db.integration.registry import close_all as close_native
     from hermes_state_registry import close_all
     count = close_all() + close_native()

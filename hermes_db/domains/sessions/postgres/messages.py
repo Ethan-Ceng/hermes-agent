@@ -4,7 +4,7 @@ from sqlalchemy import Text, cast, func, select
 from hermes_db.domains.sessions.postgres.support.message_codec import codec
 from hermes_db.domains.sessions.postgres.queries import messages as repo, sessions as session_repo, lineage_reads
 from hermes_db.tables.conversations import messages, sessions
-from hermes_db.backends.postgresql.expressions.projections import display_value, query_token
+from hermes_db.domains.sql.postgresql import display_value, query_token
 import time
 import json
 from hermes_state_identity import _uid_list
@@ -23,7 +23,7 @@ def _resume_count(conn, scope, session_id, tip_only, limit=None):
     return conn.scalar(select(func.count()).select_from(statement.subquery()))
 
 def display_ids(conn, scope, session_id, limit=None, offset=0, latest=False, after=None):
-    from hermes_db.backends.postgresql.expressions.projections import display_value, query_token
+    from hermes_db.domains.sql.postgresql import display_value, query_token
     from agent.context_compressor import MODEL_ONLY_DISPLAY_METADATA_KEY
     original = messages.alias('original')
     model_only = tuple(query_token(value) for value in (True, 1, 'true', '1'))

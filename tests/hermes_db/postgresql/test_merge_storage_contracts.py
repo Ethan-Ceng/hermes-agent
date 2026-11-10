@@ -193,13 +193,14 @@ def test_worker_tool_root_and_marked_delegate_reads(pg_store):
 
 def test_refusal_fallback_releases_checkout_for_one_connection_pool(pg_store, postgres_test_config):
     from dataclasses import replace
-    from hermes_db.backends.postgresql.engine import get_engine
-    from hermes_db.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.backends.postgresql.engine import get_engine
+    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.tables.metadata import SCHEMA
     from hermes_db.integration.session_composition import create_session_store
     settings = replace(postgres_test_config.settings, pool_size=1, max_overflow=0,
                        connection_budget=1, pool_timeout_seconds=1)
     engine = get_engine(settings)
-    store = create_session_store(Transactions(engine, pg_store._transactions.schema), pg_store.scope)
+    store = create_session_store(Transactions(engine, pg_store._transactions.schema, schema_token=SCHEMA), pg_store.scope)
     try:
         store.create_session('fallback', 'cli')
         store.append_message('fallback', 'user', 'no boundary available')

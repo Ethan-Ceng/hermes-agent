@@ -96,7 +96,7 @@ def test_cleanup_failure_is_persistent_and_new_process_replays_exact_blob_job(pg
 
 def test_content_io_never_holds_a_pg_connection(pg_profiles, monkeypatch):
     from hermes_db.domains.rooms.api import open_room_store
-    from hermes_db.backends.postgresql.engine import get_engine
+    from hermes_db.infra.backends.postgresql.engine import get_engine
     with pg_profiles("one"):
         store = HostedRoomAttachmentStore(rooms.default_db_path())
         with open_room_store(store.db_path) as resource:

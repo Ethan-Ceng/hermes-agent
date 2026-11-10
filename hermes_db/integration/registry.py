@@ -30,13 +30,14 @@ _entries = {}
 
 
 def _construct_store(settings, scope):
-    from hermes_db.backends.postgresql.engine import get_engine
-    from hermes_db.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.backends.postgresql.engine import get_engine
+    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.tables.metadata import SCHEMA
     from hermes_db.schema import check_schema
     from hermes_db.integration.session_composition import create_session_store
     check_schema(settings)
     transactions = Transactions(get_engine(settings), settings.schema, lock_timeout=settings.write_lock_timeout_seconds,
-        statement_timeout=settings.statement_timeout_seconds)
+        statement_timeout=settings.statement_timeout_seconds, schema_token=SCHEMA)
     return create_session_store(transactions, scope)
 
 

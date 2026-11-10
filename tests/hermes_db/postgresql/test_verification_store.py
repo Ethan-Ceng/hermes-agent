@@ -62,7 +62,7 @@ def test_actual_record_edit_status_reopen_and_profile_isolation(evidence_profile
     with owner("two") as (ve, workspace, _home):
         assert ve.verification_status(session_id="same", cwd=workspace)["status"] == "unverified"
         ve.record_verify_run(root=workspace, session_id="same", ok=False)
-    from hermes_db.backends.postgresql.engine import close_engines
+    from hermes_db.infra.backends.postgresql.engine import close_engines
     close_engines()
     with owner("one") as (ve, workspace, _home):
         assert ve.verification_status(session_id="same", cwd=workspace)["status"] == "passed"
@@ -125,7 +125,7 @@ def test_concurrent_edits_merge_and_retention_preserves_references(evidence_prof
 def test_terminal_stop_edit_consumers_and_failure_is_explicit(evidence_profiles, caplog):
     from sqlalchemy import text
     from agent.verification_stop import _verification_snapshot
-    from hermes_db.backends.postgresql.engine import get_engine
+    from hermes_db.infra.backends.postgresql.engine import get_engine
     from hermes_db.errors import StorageSchemaError
     from tools.file_tools_read_tracking import _mark_verification_stale
     from tools.terminal_tool_result import _verification_evidence

@@ -105,11 +105,12 @@
       "hermes_db/infra/backends/__init__.py"
     ],
     "task": 2,
-    "status": "pending",
+    "status": "completed",
     "reason": "Driver/pool/transaction implementation; schema translation token is injected, no business table import.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included"
   },
   {
     "source": "hermes_db/backends/postgresql/__init__.py",
@@ -120,11 +121,12 @@
       "hermes_db/infra/backends/postgresql/__init__.py"
     ],
     "task": 2,
-    "status": "pending",
+    "status": "completed",
     "reason": "Driver/pool/transaction implementation; schema translation token is injected, no business table import.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included"
   },
   {
     "source": "hermes_db/backends/postgresql/changes.py",
@@ -135,13 +137,14 @@
       "hermes_db/domains/runtime/postgres/change_tracking.py"
     ],
     "task": 2,
-    "status": "pending",
+    "status": "completed",
     "reason": "Worker journal/effect change observation is business persistence.",
     "symbol_routes": {},
     "baseline_abi_sha256": "0f66f08c3eb70eb0c205a1b46c0a1ae4d2547f25746144c8806f210bbbcc19e1",
     "symbol_names": [
       "track_changes"
-    ]
+    ],
+    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included"
   },
   {
     "source": "hermes_db/backends/postgresql/engine.py",
@@ -152,7 +155,7 @@
       "hermes_db/infra/backends/postgresql/engine.py"
     ],
     "task": 2,
-    "status": "pending",
+    "status": "completed",
     "reason": "Driver/pool/transaction implementation; schema translation token is injected, no business table import.",
     "symbol_routes": {},
     "baseline_abi_sha256": "2ddc929a6b1916c7b21fae2af8d84373e71bc623331bae60ef2af4b4c2221250",
@@ -163,52 +166,53 @@
       "get_engine",
       "read_connection",
       "close_engines"
-    ]
+    ],
+    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included"
   },
   {
     "source": "hermes_db/backends/postgresql/expressions/__init__.py",
     "baseline_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "layer": "business",
-    "action": "move",
-    "targets": [
-      "hermes_db/domains/sql/postgresql/__init__.py"
-    ],
+    "action": "delete_empty",
+    "targets": [],
     "task": 2,
-    "status": "pending",
-    "reason": "Existing business query projections/expressions, not engine/driver responsibilities.",
+    "status": "completed",
+    "reason": "Empty former namespace; actual query helpers consolidate in domains/sql/postgresql.py to offset two new package initializers.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included"
   },
   {
     "source": "hermes_db/backends/postgresql/expressions/json_paths.py",
     "baseline_sha256": "74e2981efce61747a63ea6130747826cef90d3df4e145952bc777269c98653be",
     "layer": "business",
-    "action": "move",
+    "action": "merge",
     "targets": [
-      "hermes_db/domains/sql/postgresql/json_paths.py"
+      "hermes_db/domains/sql/postgresql.py"
     ],
     "task": 2,
-    "status": "pending",
-    "reason": "Existing business query projections/expressions, not engine/driver responsibilities.",
+    "status": "completed",
+    "reason": "Consolidate small same-responsibility query value helpers without SQL/algorithm changes; keep intermediate DB module budget <=359.",
     "symbol_routes": {},
     "baseline_abi_sha256": "d63f4fa5564b6f00438a3223e6091a1bae329d2149346ca23bb28987d7742de3",
     "symbol_names": [
       "_parts",
       "path_value"
-    ]
+    ],
+    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included"
   },
   {
     "source": "hermes_db/backends/postgresql/expressions/projections.py",
     "baseline_sha256": "7aa4b3668643a3253a60bc0f39b911b930bf18eb4500b991a3870f82d5e5389c",
     "layer": "business",
-    "action": "move",
+    "action": "merge",
     "targets": [
-      "hermes_db/domains/sql/postgresql/projections.py"
+      "hermes_db/domains/sql/postgresql.py"
     ],
     "task": 2,
-    "status": "pending",
-    "reason": "Existing business query projections/expressions, not engine/driver responsibilities.",
+    "status": "completed",
+    "reason": "Consolidate small same-responsibility query value helpers without SQL/algorithm changes; keep intermediate DB module budget <=359.",
     "symbol_routes": {},
     "baseline_abi_sha256": "8e2a739561c57745c5503ffb3882f97183633d72e8b3dfb5f83722e4267fec31",
     "symbol_names": [
@@ -216,7 +220,8 @@
       "query_key",
       "display_projection",
       "display_value"
-    ]
+    ],
+    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included"
   },
   {
     "source": "hermes_db/backends/postgresql/transactions.py",
@@ -227,13 +232,14 @@
       "hermes_db/infra/backends/postgresql/transactions.py"
     ],
     "task": 2,
-    "status": "pending",
+    "status": "completed",
     "reason": "Driver/pool/transaction implementation; schema translation token is injected, no business table import.",
     "symbol_routes": {},
     "baseline_abi_sha256": "c055733aec03f8f5928e485952b871a163a0a67fcd751a4442e0f9cac458a616",
     "symbol_names": [
       "Transactions"
-    ]
+    ],
+    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included"
   },
   {
     "source": "hermes_db/backends/sqlite/__init__.py",
@@ -8001,7 +8007,7 @@
       "hermes_db/errors.py"
     ],
     "task": 2,
-    "status": "pending",
+    "status": "completed",
     "reason": "Real root definition/entry, not an old internal re-export shim.",
     "symbol_routes": {},
     "baseline_abi_sha256": "f27e89ed3d33c50b158bccdd5b62ab576cdd0e846e327a53716ee4043098062f",
@@ -8019,7 +8025,8 @@
       "RetryableStorageError",
       "StorageBusyError",
       "UnknownCommitError"
-    ]
+    ],
+    "implementation_note": "Unchanged technical definition reviewed"
   },
   {
     "source": "hermes_db/factory.py",
@@ -10259,7 +10266,7 @@
       "hermes_db/settings.py"
     ],
     "task": 2,
-    "status": "pending",
+    "status": "completed",
     "reason": "Real root definition/entry, not an old internal re-export shim.",
     "symbol_routes": {},
     "baseline_abi_sha256": "f602a14f15c65a2dd55d036171ce7dac5f0bdcd8bedfb9f8e5bb576fefc16df3",
@@ -10267,7 +10274,8 @@
       "PostgresSettings",
       "_positive_seconds",
       "DatabaseSettings"
-    ]
+    ],
+    "implementation_note": "Unchanged technical definition reviewed"
   },
   {
     "source": "hermes_db/tables/__init__.py",

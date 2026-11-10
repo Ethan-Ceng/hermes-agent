@@ -61,14 +61,15 @@ def store(request, tmp_path):
     from hermes_db.integration.session_composition import create_session_store
     from hermes_db.scope import DatabaseScope
     from hermes_db.tables import load_metadata
-    from hermes_db.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.tables.metadata import SCHEMA
 
     engine = _offline_engine(sa, tmp_path, "core.db")
     with engine.begin() as conn:
         conn.exec_driver_sql("PRAGMA foreign_keys=ON")
         load_metadata().create_all(conn)
     try:
-        store = create_session_store(Transactions(engine, schema=None), DatabaseScope(tmp_path, "contract-store"))
+        store = create_session_store(Transactions(engine, schema=None, schema_token=SCHEMA), DatabaseScope(tmp_path, "contract-store"))
         yield store
         store.close()
     finally:
@@ -81,13 +82,14 @@ def core_pair(tmp_path):
     from hermes_db.integration.session_composition import create_session_store
     from hermes_db.scope import DatabaseScope
     from hermes_db.tables import load_metadata
-    from hermes_db.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.tables.metadata import SCHEMA
 
     engine = _offline_engine(sa, tmp_path, "isolated.db")
     with engine.begin() as conn:
         conn.exec_driver_sql("PRAGMA foreign_keys=ON")
         load_metadata().create_all(conn)
-    transactions = Transactions(engine, schema=None)
+    transactions = Transactions(engine, schema=None, schema_token=SCHEMA)
     stores = [create_session_store(transactions, DatabaseScope(tmp_path / store, store)) for store in ("one", "two")]
     try:
         yield stores

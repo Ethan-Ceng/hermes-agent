@@ -47,9 +47,9 @@ else:
     sys.addaudithook(reject_sqlite)
     from alembic.config import Config
     from alembic.script import ScriptDirectory
-    from hermes_db.backends.postgresql.engine import require_postgresql_driver
+    from hermes_db.infra.backends.postgresql.engine import require_postgresql_driver
     from hermes_db.schema import REQUIRED_REVISION
-    from hermes_db.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.backends.postgresql.transactions import Transactions
     from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
     require_postgresql_driver()
     migrations = package.parent / 'migrations'

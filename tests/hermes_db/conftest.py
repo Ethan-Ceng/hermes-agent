@@ -22,7 +22,7 @@ def postgres_test_config(request):
 
 @pytest.fixture(scope="session")
 def postgres_engine(postgres_test_config):
-    from hermes_db.backends.postgresql.engine import close_engines, get_engine, read_connection
+    from hermes_db.infra.backends.postgresql.engine import close_engines, get_engine, read_connection
     from tests.hermes_db.pg_support import probe_environment
 
     try:

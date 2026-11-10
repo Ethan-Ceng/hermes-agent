@@ -27,8 +27,13 @@ in SQLite mode.
 | `hermes_db/domains/<domain>/postgres/queries/` | Core statements, scoped predicates and lossless row conversion |
 | `hermes_db/domains/<domain>/postgres/operations/` | Locks, quotas, state transitions, receipts and multi-step transactions |
 | `hermes_db/tables/` | Shared current Core metadata, composite keys and scope-preserving foreign keys |
-| `hermes_db/backends/postgresql/transactions.py` | Bounded connections, transaction outcomes and sanitized failures |
+| `hermes_db/infra/backends/postgresql/transactions.py` | Bounded connections, transaction outcomes and sanitized failures |
 | `hermes_db/migrations/` | Explicit forward Alembic revisions and frozen historical schema definitions |
+
+PostgreSQL pools and technical transaction outcomes live under `hermes_db/infra/backends/postgresql/`.
+Transactions receive the business schema translation token explicitly. Lossless query value
+helpers live in `hermes_db/domains/sql/postgresql.py`; worker change observation belongs to
+`hermes_db/domains/runtime/postgres/change_tracking.py`.
 
 Small domains keep scoped statements and their operations together: Projects and
 verification use a single `postgres.py`; Cron separates execution history, durable

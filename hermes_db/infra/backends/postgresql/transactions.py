@@ -9,13 +9,13 @@ from hermes_db.errors import (
     RetryableStorageError, StorageBusyError, StorageConflictError, StorageQueryTimeoutError, StorageUnavailableError,
     StorageWriteError, UnknownCommitError,
 )
-from hermes_db.tables.metadata import SCHEMA
 
 
 class Transactions:
-    def __init__(self, engine, schema, *, lock_timeout=10, statement_timeout=60):
+    def __init__(self, engine, schema, *, schema_token, lock_timeout=10, statement_timeout=60):
         self.engine = engine
         self.schema = schema
+        self.schema_token = schema_token
         self.lock_timeout = lock_timeout
         self.statement_timeout = statement_timeout
 
@@ -34,7 +34,7 @@ class Transactions:
                 if conn.dialect.name == "postgresql":
                     conn = conn.execution_options(isolation_level="REPEATABLE READ")
                 self._timeouts(conn)
-                yield conn.execution_options(schema_translate_map={SCHEMA: self.schema})
+                yield conn.execution_options(schema_translate_map={self.schema_token: self.schema})
         except DBAPIError as error:
             if getattr(error.orig, "sqlstate", None) == "57014":
                 raise StorageQueryTimeoutError("Session database query deadline exceeded") from None
@@ -50,7 +50,7 @@ class Transactions:
                 phase = "body"
                 self._timeouts(conn, lock_timeout=lock_timeout)
                 # INSERT counts feed repair totals and worker no-op tracking.
-                yield conn.execution_options(schema_translate_map={SCHEMA: self.schema}, preserve_rowcount=True)
+                yield conn.execution_options(schema_translate_map={self.schema_token: self.schema}, preserve_rowcount=True)
                 phase = "commit"
         except IntegrityError:
             raise StorageConflictError("Session storage constraint conflict") from None

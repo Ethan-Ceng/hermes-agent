@@ -2,7 +2,7 @@
 
 import pytest
 
-from hermes_db.backends.postgresql.expressions.json_paths import path_value
+from hermes_db.domains.sql.postgresql import path_value
 
 
 @pytest.mark.parametrize('path,expected', [('nested.value', 0), ('array[0]', False),

@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`IMPLEMENTING`；阶段：Task1已验证；当前实施任务：Task1完成，下一项Task2；完成：1 / 20；阻塞：无；日期2026-11-11。
+- 整体状态：`IMPLEMENTING`；阶段：PG基础设施提纯已验证；当前实施任务：Task2完成，下一项Task3；完成：2 / 20；阻塞：无；日期2026-11-11。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 范围与可判定边界
@@ -127,13 +127,14 @@ function Check-Storage {
 | --- | --- | --- | --- |
 | 2026-11-10 | PLAN_READY | 无；下一项Task1 | 用户要求准备infra两层实施方案，全部20项pending；生产实现未开始 |
 | 2026-11-11 | IMPLEMENTING | Task1完成；下一项Task2 | fresh双主机PM、基准Native/PG及结构/静态门禁通过，1/20 |
+| 2026-11-11 | IMPLEMENTING | Task2完成；下一项Task3 | PG infra/Schema token/消费者及最新双主机合同、真实PG和静态通过，2/20 |
 
 ## 任务依赖总表
 
 | Task | 目标 | 前置 | 状态 |
 | --- | --- | --- | --- |
 | 1 | 冻结隔离源码、合同和完整调用点 | 无 | completed |
-| 2 | 提纯PostgreSQL连接池与事务基础设施 | 1 | pending |
+| 2 | 提纯PostgreSQL连接池与事务基础设施 | 1 | completed |
 | 3 | 提取SQLite公共连接与WAL机制 | 2 | pending |
 | 4 | 分离SessionDB连接状态、池与关闭语义 | 3 | pending |
 | 5 | 拆开数据源选择和业务资源获取 | 2,3,4 | pending |
@@ -209,7 +210,7 @@ function Check-Storage {
 
 ## Task 2：提纯PostgreSQL连接池与事务基础设施
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -227,7 +228,7 @@ PG驱动/池/事务独立于业务表、Store和应用模块。
 - `hermes_db/backends/postgresql/transactions.py`。
 - `hermes_db/errors.py`。
 - `hermes_db/settings.py`。
-- 新落位：`hermes_db/domains/runtime/postgres/change_tracking.py`, `hermes_db/domains/sql/postgresql/__init__.py`, `hermes_db/domains/sql/postgresql/json_paths.py`, `hermes_db/domains/sql/postgresql/projections.py`, `hermes_db/infra/backends/__init__.py`, `hermes_db/infra/backends/postgresql/__init__.py`, `hermes_db/infra/backends/postgresql/engine.py`, `hermes_db/infra/backends/postgresql/transactions.py`。
+- 新落位：`hermes_db/domains/runtime/postgres/change_tracking.py`, `hermes_db/domains/sql/postgresql.py`, `hermes_db/infra/backends/__init__.py`, `hermes_db/infra/backends/postgresql/__init__.py`, `hermes_db/infra/backends/postgresql/engine.py`, `hermes_db/infra/backends/postgresql/transactions.py`。
 - 新建：`hermes_db/infra/__init__.py`。
 - 新建：`hermes_db/domains/sql/__init__.py`。
 - 新建：`tests/hermes_db/contracts/test_infra_independence.py`。
@@ -260,11 +261,20 @@ PG驱动/池/事务独立于业务表、Store和应用模块。
 
 ### 执行结果
 
-未实施；planning不计完成。
+2026-11-11启动：Task1恢复commit为a936df0ec1af7e627b6043e363dd9d598693e24f。实施前预算核算：原Task2机械落位新增infra/__init__与domains/sql/__init__会使359→361；将同职责的两个小型PG查询值助手收敛为domains/sql/postgresql.py，删除原空expressions初始化文件，抵消2个新增初始化文件，Task2保持359。SQL/算法/异常身份不变；这属于同职责模块合并，不宣称算法净删除。目标路径投影同步350→348，359上限不变。先加入Native及真实PG独立性合同并取得红证据。
+
+实现结果：engine/transactions已归infra/backends/postgresql；Transactions要求显式schema_token，20个AST实际构造已同步，普通业务仍传固定metadata.SCHEMA。池/关闭实现、6个查询助手函数体与Worker change tracking经AST等价审计保持。所有旧PG内部Python路径清零，生产消费者、测试patch/string、发行探针及活动website文档同步，无shim。新infra方向守卫拒绝业务表/catalog/Store/应用依赖；22个现有查询值边缘按4个精确符号和原消费者审查，不放宽方向。DB实际359/root11、61+4 hash、31revision/29表保持，未删除业务测试。
 
 ### 验证证据
 
-未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
+实际展开命令、解释器/cwd/HOME/RUNTIME、源码父commit、exitcodes、安全Summary和全部失败/整改记录见[Task2记录](../designs/hermes-db-two-layer-task2.json)。源码父a936df0ec1；当前生产源码审计hash b90dc3d9de62b029c02c285af2618d14e864dcf583bafac2d75c8922b10353f2，算法见记录。原始日志仅ignored .build/two-layer-evidence。
+
+- 新Native/PG独立性合同在基准均exit1（缺少infra路径），取得红证据后实现。
+- 最新Windows六文件完整组exit0：50 passed/0 failed/1 POSIX fork skip；Linux同组exit0：51 passed/0 failed/0 skipped。包含计划两文件及直接受影响的transactions/engine_lifecycle/json_paths/boundary_lint。
+- Linux真实PG test_infra_independence.py + test_transaction_failures.py最新完整组exit0：6 passed/0 failed/0 skipped，包含真实do_commit之后丢ACK、锁/语句/池超时；test_insert_counts.py额外exit0，1 passed。
+- Check-Storage最新全部exit0：scripts/check 16 checks ok（health 0 blocking/0 advisory）；DB边界10135 imports/0 violations；插件边界module_to_core847/core_to_module26；生成契约和空白检查exit0。
+- 审计工具exit0：固定资源、预算、6函数体/池/变更观察AST、20构造token、运行Python旧路径0。失败记录包括工具非空缓存/最后摘要NameError、提前Linux组3 collection errors、22待审边缘和ruff两处check参数；已整改且完整组重跑，不抹除原失败。
+- 最终冻结/完整发行、全量消费者及独立审查仍待Tasks17-20；本Task提交为本次记录后紧接的本地commit，实际hash记入Task3恢复点。
 
 ## Task 3：提取SQLite公共连接与WAL机制
 

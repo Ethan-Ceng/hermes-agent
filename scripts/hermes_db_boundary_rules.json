@@ -2924,6 +2924,40 @@
       "consumers": [
         "hermes_db/domains/sessions/postgres/operations/imports.py"
       ]
+    },
+    {
+      "target": "hermes_db.domains.sql.postgresql.display_value",
+      "category": "shared-query-value",
+      "reason": "Existing display metadata SQL projection over caller-provided Core columns; pure query expression, no resource or application selection.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/catalog.py",
+        "hermes_db/domains/sessions/postgres/messages.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sql.postgresql.query_token",
+      "category": "shared-query-value",
+      "reason": "Existing lossless ASCII JSON comparison token; pure business encoding with unchanged values.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/catalog.py",
+        "hermes_db/domains/sessions/postgres/messages.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sql.postgresql.path_value",
+      "category": "shared-query-value",
+      "reason": "Existing dotted/quoted-key and array-index lookup over a provided config value; no config reads or I/O.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/catalog.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sql.postgresql.display_projection",
+      "category": "shared-query-value",
+      "reason": "Existing lossless display metadata projection for persisted message rows; no connection, Profile or external effect.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/queries/messages.py"
+      ]
     }
   ]
 }

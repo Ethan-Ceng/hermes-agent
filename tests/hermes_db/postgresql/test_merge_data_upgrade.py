@@ -13,9 +13,10 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 def old_store(postgres_test_config, postgres_schema, tmp_path):
     from alembic import command
     from alembic.config import Config
-    from hermes_db.backends.postgresql.engine import get_engine
+    from hermes_db.infra.backends.postgresql.engine import get_engine
     from hermes_db.schema import _prepare_schema
-    from hermes_db.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.tables.metadata import SCHEMA
     from hermes_db.scope import DatabaseScope
     from hermes_db.integration.session_composition import create_session_store
     settings = replace(postgres_test_config.settings, schema=postgres_schema)
@@ -28,7 +29,7 @@ def old_store(postgres_test_config, postgres_schema, tmp_path):
         config.attributes['connection'] = conn
         command.upgrade(config, '0030_room_revoke_debts')
     store = create_session_store(Transactions(get_engine(settings), settings.schema,
-        lock_timeout=settings.write_lock_timeout_seconds, statement_timeout=settings.statement_timeout_seconds),
+        lock_timeout=settings.write_lock_timeout_seconds, statement_timeout=settings.statement_timeout_seconds, schema_token=SCHEMA),
         DatabaseScope(tmp_path, 'upgrade-owner'))
     try:
         yield store, settings

@@ -28,12 +28,13 @@ def capture_worktree_store(profile_home=None):
     home = Path(profile_home if profile_home is not None else get_hermes_home()).resolve()
     if storage_backend(home) == "sqlite":
         return home / "state.db"
-    from hermes_db.backends.postgresql.engine import get_engine
+    from hermes_db.infra.backends.postgresql.engine import get_engine
     from hermes_db.core.values import resource_key
-    from hermes_db.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.tables.metadata import SCHEMA
     settings, scope = resolve_db_configuration(home)
     pg = settings.postgresql
-    return ProfileStore(home, scope.require_store_id(), resource_key(Transactions(get_engine(pg), pg.schema)))
+    return ProfileStore(home, scope.require_store_id(), resource_key(Transactions(get_engine(pg), pg.schema, schema_token=SCHEMA)))
 
 
 def decode_store(token):

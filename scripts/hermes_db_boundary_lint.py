@@ -146,6 +146,13 @@ def below(name, roots):
 def direction_error(edge):
     source = module_name(Path(edge.source))
     target = edge.target
+    if below(source, ("hermes_db.infra",)) and below(target, (
+        "hermes_db.domains", "hermes_db.tables", "hermes_db.core.catalog", "hermes_db.integration",
+        "hermes_db.factory", "hermes_db.access", "hermes_db.handle", "hermes_db.contracts",
+        "hermes_db.schema", "hermes_db.health", "hermes_db.maintenance",
+        "hermes_cli", "gateway", "agent", "cron", "plugins", "hermes_state",
+    )):
+        return "infrastructure cannot select business persistence or application composition"
     if below(source, ("hermes_db.core", "hermes_db.backends")) and below(target,
         ("hermes_db.domains.", "hermes_db.integration.", "hermes_db.factory", "hermes_db.access")
     ):
@@ -169,7 +176,7 @@ def direction_error(edge):
 def needs_review(edge):
     source = module_name(Path(edge.source))
     target = edge.target
-    lower = below(source, ("hermes_db.core", "hermes_db.backends", "hermes_db.domains"))
+    lower = below(source, ("hermes_db.infra", "hermes_db.core", "hermes_db.backends", "hermes_db.domains"))
     if not lower:
         return False
     if not target.startswith("hermes_db."):

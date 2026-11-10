@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from hermes_db.backends.postgresql.engine import get_engine, read_connection, require_postgresql_driver
+from hermes_db.infra.backends.postgresql.engine import get_engine, read_connection, require_postgresql_driver
 from hermes_db.errors import StorageSchemaError, StorageUnavailableError
 from hermes_db.settings import PostgresSettings
 

@@ -11,7 +11,7 @@
   "planning_commit": "f735660e8db182ca2b9fb8c139815a5bed2caf06",
   "db_baseline_count": 359,
   "root_entry_count": 11,
-  "projected_db_path_budget": 350,
+  "projected_db_path_budget": 348,
   "budget_note": "Conservative target path union including required package initializers; implementation count is measured separately. Moves to application are not net code deletion.",
   "tasks": [
     {
@@ -23,7 +23,7 @@
     {
       "id": 2,
       "title": "提纯PostgreSQL连接池与事务基础设施",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         1
       ]
@@ -261,7 +261,11 @@
       "path": "tests/hermes_db/contracts/test_infra_independence.py",
       "task": 2,
       "contract": "Separate process rejects imports of domains/tables/core.catalog/agent/CLI/Gateway while using real selected backend resources; no source-reading assertions.",
-      "status": "pending"
+      "status": "completed",
+      "actual_files": [
+        "tests/hermes_db/contracts/test_infra_independence.py",
+        "tests/hermes_db/postgresql/test_infra_independence.py"
+      ]
     },
     {
       "path": "tests/hermes_db/contracts/test_infra_resource_ownership.py",
@@ -303,7 +307,11 @@
       "path": "tests/hermes_db/postgresql/test_infra_independence.py",
       "task": 2,
       "contract": "Real random owned schema, no SQLite connection of any form, technical transaction resource works with caller-supplied schema token.",
-      "status": "pending"
+      "status": "completed",
+      "actual_files": [
+        "tests/hermes_db/contracts/test_infra_independence.py",
+        "tests/hermes_db/postgresql/test_infra_independence.py"
+      ]
     },
     {
       "path": "tests/hermes_db/postgresql/test_application_effect_fences.py",
@@ -1168,7 +1176,7 @@
     "domain_boundary_files": 67,
     "capability_functions": 63,
     "domain_io_candidates": 69,
-    "projected_db_paths": 350
+    "projected_db_paths": 348
   },
   "existing_symbol_review_registry": {
     "path": "scripts/hermes_db_boundary_rules.json",
@@ -1179,7 +1187,7 @@
     "entries": [
       {
         "path": "hermes-db-two-layer-map/sources-db.json",
-        "sha256": "78c9b78a50324dfbf18d0ce977a19d3c99875edd3478bee70968849cf9c94648",
+        "sha256": "eb5d3d9c135114188a588d0c2db3311d09588d4ce2ddee49401b7c336b89508a",
         "items": 359
       }
     ],
@@ -1280,6 +1288,15 @@
   },
   "implementation_evidence": {
     "task1": "docs/designs/hermes-db-two-layer-baseline.json",
-    "planning_metrics_note": "Planning metrics/status snapshots are historical baseline; tasks[] contains current execution status."
-  }
+    "planning_metrics_note": "Planning metrics/status snapshots are historical baseline; tasks[] contains current execution status.",
+    "task2": "docs/designs/hermes-db-two-layer-task2.json"
+  },
+  "task1_commit": "a936df0ec1af7e627b6043e363dd9d598693e24f",
+  "implementation_adjustments": [
+    {
+      "task": 2,
+      "reason": "Intermediate original plan count 361 exceeds cap 359",
+      "resolution": "Merge two small business query helper modules; remove empty original namespace; target projection 348; hard cap unchanged"
+    }
+  ]
 }

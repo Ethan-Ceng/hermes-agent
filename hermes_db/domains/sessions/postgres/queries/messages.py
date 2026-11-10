@@ -6,7 +6,7 @@ from hermes_db.domains.sessions.postgres.support.message_codec import codec, dec
 from hermes_db.domains.sessions.postgres.support.message_preview import preview_text, roster_preview
 from hermes_db.domains.sessions.postgres.support.search_projection import content_text, projection
 from hermes_db.domains.sessions.postgres.support.archive_projection import spillover_names
-from hermes_db.backends.postgresql.expressions.projections import display_projection
+from hermes_db.domains.sql.postgresql import display_projection
 from hermes_db.domains.sessions.postgres.queries import sessions as session_repo
 from hermes_db.tables.conversations import messages, sessions
 

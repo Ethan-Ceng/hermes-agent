@@ -26,7 +26,7 @@ def _row(value):
 
 def _replies(conn, scope, segment):
     from agent.context_compressor import MODEL_ONLY_DISPLAY_METADATA_KEY
-    from hermes_db.backends.postgresql.expressions.projections import display_value, query_token
+    from hermes_db.domains.sql.postgresql import display_value, query_token
     from hermes_db.domains.sessions.postgres.support.message_codec import codec
     from hermes_db.domains.sessions.postgres.queries.messages import where, visible
     model_only = tuple(query_token(value) for value in (True, 1, 'true', '1'))
@@ -101,7 +101,7 @@ class SessionCatalog:
             return tip
 
     def session_ids_with_model_config_key(self, key):
-        from hermes_db.backends.postgresql.expressions.json_paths import path_value
+        from hermes_db.domains.sql.postgresql import path_value
         found, cursor = ([], None)
         with self._context.read() as conn:
             statement = select(metadata_sessions.c.id, metadata_sessions.c.started_at, metadata_sessions.c.model_config).where(metadata_sessions.c.store_id == self._context.scope.require_store_id()).order_by(metadata_sessions.c.id).limit(128)

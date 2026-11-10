@@ -30,11 +30,12 @@ def capture(home):
     settings, scope = resolve_db_configuration(home)
     identity = (scope.profile_home / "state.db").resolve()
     if settings.backend == "postgresql":
-        from hermes_db.backends.postgresql.engine import get_engine
+        from hermes_db.infra.backends.postgresql.engine import get_engine
         from hermes_db.core.values import resource_key
-        from hermes_db.backends.postgresql.transactions import Transactions
+        from hermes_db.infra.backends.postgresql.transactions import Transactions
+        from hermes_db.tables.metadata import SCHEMA
         pg = settings.postgresql
-        identity = ("postgresql", resource_key(Transactions(get_engine(pg), pg.schema)), scope.require_store_id())
+        identity = ("postgresql", resource_key(Transactions(get_engine(pg), pg.schema, schema_token=SCHEMA)), scope.require_store_id())
     return SelectedStore(settings, scope, identity)
 
 

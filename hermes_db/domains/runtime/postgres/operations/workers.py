@@ -6,7 +6,7 @@ import json
 from sqlalchemy import select
 
 from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
-from hermes_db.backends.postgresql.changes import track_changes
+from hermes_db.domains.runtime.postgres.change_tracking import track_changes
 from hermes_db.domains.runtime.postgres.queries import runtime, workers as repo
 from hermes_db.domains.sessions.postgres.queries import sessions
 from hermes_db.domains.sessions.postgres.queries.lineage import runtime_targets

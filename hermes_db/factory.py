@@ -11,7 +11,7 @@ def acquire_db(settings: DatabaseSettings, scope: DatabaseScope) -> DatabaseHand
 
         return acquire_sqlite(scope)
     scope.require_store_id()
-    from hermes_db.backends.postgresql.engine import require_postgresql_driver
+    from hermes_db.infra.backends.postgresql.engine import require_postgresql_driver
 
     require_postgresql_driver()
     from hermes_db.integration.registry import acquire
@@ -32,14 +32,15 @@ def acquire_domain(name, settings: DatabaseSettings, scope: DatabaseScope, *, sq
     scope.require_store_id()
     if name not in POSTGRES_DOMAINS:
         raise StorageNotReadyError(f"PostgreSQL storage domain {name} is not implemented")
-    from hermes_db.backends.postgresql.engine import get_engine
+    from hermes_db.infra.backends.postgresql.engine import get_engine
     from hermes_db.schema import check_domain_schema
-    from hermes_db.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.tables.metadata import SCHEMA
 
     pg = settings.postgresql
     check_domain_schema(pg, name)
     transactions = Transactions(get_engine(pg), pg.schema, lock_timeout=pg.write_lock_timeout_seconds,
-                                statement_timeout=pg.statement_timeout_seconds)
+                                statement_timeout=pg.statement_timeout_seconds, schema_token=SCHEMA)
     from hermes_db.integration.domain_composition import create_domain_resource
     return create_domain_resource(name, settings, scope, transactions=transactions)
 
