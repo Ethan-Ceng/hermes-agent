@@ -8,14 +8,14 @@ from hermes_db.domains.sessions.postgres.history import SessionHistory
 
 class PostgresSessionStore:
 
-    def __init__(self, context, catalog, messages, history, lifecycle, usage, transfer):
+    def __init__(self, context, catalog, messages, history, lifecycle, usage, portability):
         self._context = context
         self._catalog = catalog
         self._messages = messages
         self._history = history
         self._lifecycle = lifecycle
         self._usage = usage
-        self._transfer = transfer
+        self._portability = portability
 
     @property
     def _transactions(self):
@@ -817,34 +817,34 @@ class PostgresSessionStore:
         return self._usage.is_kanban_owned_session(session_id)
 
     def export_session(self, session_id, include_compacted=False, include_inactive=False):
-        return self._transfer.export_session(session_id, include_compacted, include_inactive)
+        return self._portability.export_session(session_id, include_compacted, include_inactive)
 
     def export_session_lineage(self, session_id, include_compacted=False, include_inactive=False):
-        return self._transfer.export_session_lineage(session_id, include_compacted, include_inactive)
+        return self._portability.export_session_lineage(session_id, include_compacted, include_inactive)
 
     def export_all(self, source=None, include_compacted=False, include_inactive=False):
-        return self._transfer.export_all(source, include_compacted, include_inactive)
+        return self._portability.export_all(source, include_compacted, include_inactive)
 
     def import_sessions(self, payload):
-        return self._transfer.import_sessions(payload)
+        return self._portability.import_sessions(payload)
 
     def distinct_session_cwds(self, include_archived=False):
-        return self._transfer.distinct_session_cwds(include_archived)
+        return self._portability.distinct_session_cwds(include_archived)
 
     def cron_run_identity(self, session_id):
-        return self._transfer.cron_run_identity(session_id)
+        return self._portability.cron_run_identity(session_id)
 
     def list_cron_job_runs(self, job_id, limit=20, offset=0):
-        return self._transfer.list_cron_job_runs(job_id, limit, offset)
+        return self._portability.list_cron_job_runs(job_id, limit, offset)
 
     def list_skill_scaffolded_sessions(self, limit=200):
-        return self._transfer.list_skill_scaffolded_sessions(limit)
+        return self._portability.list_skill_scaffolded_sessions(limit)
 
     def find_foreign_import(self, origin):
-        return self._transfer.find_foreign_import(origin)
+        return self._portability.find_foreign_import(origin)
 
     def import_foreign_history(self, origin, messages, *, title, cwd, profile):
-        return self._transfer.import_foreign_history(origin, messages, title=title, cwd=cwd, profile=profile)
+        return self._portability.import_foreign_history(origin, messages, title=title, cwd=cwd, profile=profile)
 
 
 

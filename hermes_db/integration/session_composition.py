@@ -9,7 +9,7 @@ def create_session_store(transactions, scope):
     from hermes_db.domains.sessions.postgres.history import SessionHistory
     from hermes_db.domains.sessions.postgres.lifecycle import SessionLifecycle
     from hermes_db.domains.sessions.postgres.usage import SessionUsage
-    from hermes_db.integration.transfer.session_store import SessionTransfer
+    from hermes_db.integration.session_portability import SessionPortability
     from hermes_db.domains.sessions.postgres.support.usage_writer import UsageWriter
     from hermes_db.domains.sessions.postgres.store import PostgresSessionStore
 
@@ -22,7 +22,7 @@ def create_session_store(transactions, scope):
     from gateway.owner_identity import same_owner, owners_agree
     from hermes_state_mutation_binding import _history_row, _owner_user
     from hermes_db.integration.events import emit_deleted
-    from hermes_db.integration.postgres.operations.profile_purge import purge
+    from hermes_db.integration.profile_lifecycle import purge
     from hermes_db.integration.media_retirement import collect, release
     ownership = HistoryOwnership(_history_row, _owner_user, same_owner, owners_agree)
     effects = SessionEffects(partial(emit_deleted, profile), purge, collect, release)
@@ -33,8 +33,8 @@ def create_session_store(transactions, scope):
     messages = SessionMessages(context, get_session=catalog.get_session)
     history = SessionHistory(context, get_active_message_ids=messages.get_active_message_ids, get_messages_as_conversation=messages.get_messages_as_conversation, list_sessions_rich=catalog.list_sessions_rich, rewind_to_message=messages.rewind_to_message)
     lifecycle = SessionLifecycle(context, flush_for_read=usage.flush_for_read)
-    transfer = SessionTransfer(context, flush_for_read=usage.flush_for_read)
-    return PostgresSessionStore(context, catalog, messages, history, lifecycle, usage, transfer)
+    portability = SessionPortability(context, flush_for_read=usage.flush_for_read)
+    return PostgresSessionStore(context, catalog, messages, history, lifecycle, usage, portability)
 
 
 def is_context_summary(content):

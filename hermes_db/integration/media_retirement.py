@@ -43,7 +43,7 @@ def collect_scope(transactions, scope, profile):
 def _release_foreign(context):
     from hermes_db.errors import StorageError
     from hermes_db.core.file_scope import owner_id
-    from hermes_db.integration.postgres.operations.file_grants import release_unused
+    from hermes_db.integration.media_grants import release_unused
     from hermes_db.integration.profile_context import OwnedProfileContext
     try:
         with context.profile.activate(), context.write() as conn:

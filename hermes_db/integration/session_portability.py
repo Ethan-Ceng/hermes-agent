@@ -1,4 +1,4 @@
-"""SessionTransfer: explicit scoped session transfer operations sharing one resource context."""
+"""SessionPortability: normal scoped session import, export and business reads."""
 from copy import deepcopy
 from sqlalchemy import select, func
 from hermes_db.domains.sessions.postgres.support.message_codec import codec, content_from_bytes
@@ -47,7 +47,7 @@ def find_foreign(conn, scope, origin):
             return sid
     return None
 
-class SessionTransfer:
+class SessionPortability:
 
     def __init__(self, context, flush_for_read):
         self._context = context

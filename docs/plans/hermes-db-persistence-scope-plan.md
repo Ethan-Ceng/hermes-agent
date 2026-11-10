@@ -5,7 +5,7 @@
 - 设计：[持久层职责精简](../designs/hermes-db-persistence-scope.md)；映射：[生产文件/接口/测试/锚点](../designs/hermes-db-persistence-scope-map.json)。
 - 实施分支：`refactor/hermes-db-persistence-scope`；隔离检出：`D:/AI/hermes-db-packages`。
 - 源码基准：`90a2987e8c`；与正式启动`9a8093841b`仅部署记录文档不同。首轮准备提交`7f151a3299`不含运行代码。
-- 整体状态：`IMPLEMENTING`；阶段：feature-development；当前实施任务：Task5；完成：4 / 9；阻塞：无。
+- 整体状态：`IMPLEMENTING`；阶段：feature-development；当前实施任务：Task6；完成：5 / 9；阻塞：无。
 - 日期：2026-11-10。本轮用户已授权按计划实施并逐Task本地commit；旧分包/规划证据不计为本轮实施。
 - 准备依据：已核对22个生产路径、16项Store方法、22个相关测试文件及正常生命周期共享依赖；精确hash/处置在映射中。
 
@@ -275,7 +275,7 @@ CLI parser/dispatch与2个repair文件；hermes_state.py及hermes_state_profile_
 
 CLI新5项行为合同先在Task3源码4fail/1pass（旧parser接受四种旧调用；正常list真实读写通过），退役后全部通过：未知命令在存储打开之前拒绝，正常list仍分发。活动CLI指南删除操作指引并说明功能退役/独立数据集，hooks删除已不存在的专用reason；无兼容flag、空入口或外置工具。
 
-本Task主CLI验收在真实Linux运行同一完整7文件批次exit0：135pass/0fail/3skip。3项skip均为tests/hermes_cli/test_profiles.py的Windows宿主合同：TestCreateProfile.test_clone_keeps_real_ntfs_junction、TestFindAliasForProfile.test_windows_checks_bat_extension、TestRemoveWrapperScript.test_remove_finds_bat_on_windows（具体类名以源定义/日志为准）；它们已在本轮Windows原组实际执行通过，不能将Linux skip计为通过。
+本Task主CLI验收在真实Linux运行同一完整7文件批次exit0：135pass/0fail/3skip。3项skip均为tests/hermes_cli/test_profiles.py的Windows宿主合同：TestCreateProfile.test_clone_keeps_real_ntfs_junction、TestAliasCollision.test_windows_checks_bat_extension、TestWrapperScript.test_remove_finds_bat_on_windows；它们已在本轮Windows原组实际执行通过，不能将Linux skip计为通过。
 
 Windows原7文件批次task4-cli.log为exit1：126pass/8fail/4skip。已从90a2987e8c全量导出无.git独立源码D:/AI/hermes-db-packages/.build/persistence-scope/task4-profile-base，用同PM解释器和标准runner重新执行完整test_profiles.py，exit1：99pass/同8fail/同4skip；基准manifest task4-profile-base.json（archive SHA256 968bf2261eb80e9a342c389e4ccfd8d12c669327a6d0422f3337e72978773382）。profiles.py及test_profiles.py对90a无diff。8项为：TestCreateProfile.test_seeds_placeholder_env_file、test_clone_recreates_skill_junctions_and_skips_dangling_ones[clone_kwargs0/1]；TestBackfillProfileEnvs.test_seeds_placeholder_never_the_default_env；TestWrapperScript.test_creates_sh_on_posix；TestFindAliasForProfile.test_list_profiles_surfaces_custom_alias；TestExportImport.test_export_default_handles_broken_symlinks；TestWriteProfileMetaDurability.test_symlinked_profile_yaml_survives_the_write。包括真实symlink权限1314、Windowsmode位/脚本扩展预期差异，均未改断言或系统权限。这8项既有Windows基准问题仍未解决/未验收，与原统一Task24、七非WSL缺证分别保留；不声称Windows Profile全绿。Task4正常生命周期/新行为在完整Linux组和真实PG组实际验证，不以局部补跑冒充Windows完整命令exit0。
 
@@ -289,11 +289,11 @@ Windows4skip：test_profiles.py:425 Linux宿主、:465 POSIX特殊文件、:1862
 - `D:/AI/hermes-db-packages/.build/package-layout/test-env/Scripts/python.exe scripts/check --staged --base 90a2987e8c`：exit0，16 checks ok；日志`task4-check.log`。
 - `git -c safe.directory=D:/AI/hermes-db-packages diff --cached --check`：exit0。
 
-未验证：后续Task的完整双后端/发行/最终审查；不把本Task局部通过冒充全系统验收。恢复点为本Task本地commit；下一Task5。
+未验证：后续Task的完整双后端/发行/最终审查；不把本Task局部通过冒充全系统验收。恢复commit：`6eacb21055`；下一Task5。
 
 ## Task 5：移除跨store授权生成并收敛剩余组件
 
-状态：in_progress
+状态：completed
 
 ### 目标
 
@@ -324,15 +324,29 @@ file_grants.py→integration/media_grants.py；profile_purge.py→integration/pr
 
 ### 执行结果
 
-未实施。
+删除跨store授权生成transfer/_grant/_texts/_mentioned/_known_media/_subset（6个helper），未增加其他生成入口；将剩余3模块按映射迁到integration/media_grants.py、profile_lifecycle.py、session_portability.py，SessionTransfer改为SessionPortability并同步实际构造/全部委托字段。无旧内部路径shim、反射代理或通用服务。读侧received/origin/lock/_remaining/release保持；旧授权数据、pin、token/owner/最后引用/替换文件保护均由真实合同执行。
+
+函数AST操作审计证明保留的media grant函数、正常Profile purge、正常会话导入导出及业务读取与Task4完全相同，不改SQL或算法。Store仍279项，正常业务签名保持；仅内部构造参数transfer改名portability，基线审计显式允许这一项，不将其算业务合同变化。365→359/root11与16方法/6DB+3其他专用文件退役符合；3模块改名不计净减少，61+4固定资源保持。直接/动态字符串/patch/活动文档核对无旧路径实际消费者，未引入Facade反向依赖。
+
+最新完整Native5文件32pass、外目录消费者6文件16pass、真实PG4文件34pass，均exit0/0fail/0skip。PG首次task5-pg.log exit1（27pass/1fail/8errors）期间服务端明确返回database system is in recovery mode；安全提取异常仅StorageUnavailableError/OperationalError，未改生产错误传播/回落或管理服务。随后只读独立DB归属/SDK就绪探针exit0，原同4文件/j2完整批次task5-pg-final.log重跑exit0。服务端为何进入恢复未作无证据推断，首次失败与清理不确定性留在本地日志，不冒称最初通过；所有操作只涉及fixture所属随机Schema。
+
+本地scratch审计驱动首次插入if时因语法组合错误exit1；修正驱动后audit_current.py 5 exit0，非生产代码错误。正常函数语义审计Task5已通过，空行清理后最新16项静态再次exit0、0blocking/0advisory；空白检查通过。普通import/foreign import/导出、Profile rename/purge/路径重绑定与文件安全回收的正常断言没有删除。
+
+原Task24、七项非WSL缺证、Windows Profile八项已独立基准复现的问题仍未解决/未计通过，Task5不宣称全系统验收。恢复点为本Task本地commit，下一Task6顶层配置与独立数据集多进程合同。
 
 ### 验证证据
 
-未执行。
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts/test_existing_media_grants.py tests/hermes_db/contracts/test_retired_files.py tests/hermes_db/contracts/test_native_file_boundaries.py tests/hermes_db/contracts/test_portability.py tests/hermes_db/contracts/test_remaining_read_maintenance.py -j 2 --file-timeout 1200 -- --tb=short -ra -vv`：exit0；=== Summary: 5 files, 32 tests passed, 0 failed (100% complete) in 210.2s (2 workers) ===；日志`task5-native.log`。
+- `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/gateway/test_retired_media_ownership.py tests/hermes_state/test_session_import_keep_flags.py tests/hermes_state/test_import_deleted_session.py tests/hermes_cli/test_sessions_export_backup_round_trip.py tests/hermes_cli/test_profile_identity_purge_cmd.py tests/gateway/test_profile_identity_purge.py -j 2 --file-timeout 1200 -- --tb=short -ra -vv`：exit0；=== Summary: 6 files, 16 tests passed, 0 failed (100% complete) in 59.7s (2 workers) ===；日志`task5-consumers.log`。
+- `wsl.exe -d Ubuntu-26.04 --cd /mnt/d/AI/hermes-db-packages -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/persistence-scope-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime HERMES_PYTHON=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/test-env/bin/python HERMES_TEST_FILE_RETRIES=0 PYTHONDONTWRITEBYTECODE=1 bash scripts/run_tests.sh tests/hermes_db/postgresql/test_existing_media_grants.py tests/hermes_db/postgresql/test_profile_file_scope.py tests/hermes_db/postgresql/test_health_archive_refs.py tests/hermes_db/postgresql/test_review_foundation_profile_delete.py -j 2 --file-timeout 1200 -- --tb=short -ra -vv -m integration --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml`：exit0；=== Summary: 4 files, 34 tests passed, 0 failed (100% complete) in 79.8s (2 workers) ===；日志`task5-pg-final.log`。
+- `D:/AI/hermes-db-packages/.build/package-layout/test-env/Scripts/python.exe scripts/check --staged --base 90a2987e8c`：exit0，16 checks ok；日志`task5-check.log`。
+- `git -c safe.directory=D:/AI/hermes-db-packages diff --cached --check`：exit0。
+
+未验证：后续Task的完整双后端/发行/最终审查；不把本Task局部通过冒充全系统验收。恢复点为本Task本地commit；下一Task6。
 
 ## Task 6：验证顶层后端选择与独立数据集语义
 
-状态：pending
+状态：in_progress
 
 ### 目标
 

@@ -165,13 +165,14 @@
       "task": 5,
       "target": "hermes_db/integration/profile_lifecycle.py",
       "reason": "Task2 update delete_routes read point; Task5 move normal Profile lifecycle helper, preserve behavior",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         2,
         5
       ],
       "implementation_tasks": {
-        "2": "completed"
+        "2": "completed",
+        "5": "completed"
       }
     },
     {
@@ -181,10 +182,13 @@
       "task": 5,
       "target": "hermes_db/integration/media_grants.py",
       "reason": "remove transfer producers; preserve received/origin/locking/release of already persisted grants",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         5
-      ]
+      ],
+      "implementation_tasks": {
+        "5": "completed"
+      }
     },
     {
       "source": "hermes_db/integration/media_retirement.py",
@@ -193,10 +197,13 @@
       "task": 5,
       "target": "hermes_db/integration/media_retirement.py",
       "reason": "read retained grant cleanup from its actual new owner",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         5
-      ]
+      ],
+      "implementation_tasks": {
+        "5": "completed"
+      }
     },
     {
       "source": "hermes_db/integration/transfer/session_store.py",
@@ -205,7 +212,7 @@
       "task": 5,
       "target": "hermes_db/integration/session_portability.py",
       "reason": "Tasks3-4 remove historical methods; Task5 rename SessionTransfer to SessionPortability, retain business export/import and reads",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         2,
         3,
@@ -215,7 +222,8 @@
       "implementation_tasks": {
         "2": "completed",
         "3": "completed",
-        "4": "completed"
+        "4": "completed",
+        "5": "completed"
       }
     },
     {
@@ -225,13 +233,14 @@
       "task": 5,
       "target": "hermes_db/integration/session_composition.py",
       "reason": "update explicit component and normal Profile effects owners; no facade proxy",
-      "status": "pending",
+      "status": "completed",
       "changed_in_tasks": [
         4,
         5
       ],
       "implementation_tasks": {
-        "4": "completed"
+        "4": "completed",
+        "5": "completed"
       }
     },
     {
@@ -249,7 +258,8 @@
       ],
       "implementation_tasks": {
         "3": "completed",
-        "4": "completed"
+        "4": "completed",
+        "5": "completed"
       }
     },
     {
