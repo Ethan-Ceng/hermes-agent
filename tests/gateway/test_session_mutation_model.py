@@ -284,7 +284,7 @@ async def test_input_queued_while_a_model_receipt_commits_still_runs(tmp_path, m
                                                             model='frozen', toolsets=[]))
     # A contended receipt transaction: the commit thread holds it open while the loop runs.
     entered, release = threading.Event(), threading.Event()
-    db._conn.create_function('hold_receipt', 1, lambda s: (entered.set(), release.wait(s))[1] and 0)
+    db._connections._conn.create_function('hold_receipt', 1, lambda s: (entered.set(), release.wait(s))[1] and 0)
     db._execute_write(lambda c: c.execute("CREATE TRIGGER hold_receipt AFTER INSERT ON state_meta "
                                           "WHEN NEW.key LIKE 'gateway.mutation.v1.%' BEGIN SELECT hold_receipt(30); END"))
     snap = db.get_session(ref.session_id)

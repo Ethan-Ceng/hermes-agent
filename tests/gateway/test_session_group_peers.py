@@ -369,9 +369,9 @@ async def test_reregistered_route_replays_accepted_work_as_the_same_target_run(g
     first, client = await register()
     accepted = await asyncio.to_thread(client.dispatch, dispatch=dispatch(first), grant=first.grant)
     # The acceptance reply is lost before the home records it.
-    with gateway.db._lock:
-        gateway.db._conn.execute('DELETE FROM hosted_room_remote_runs')
-        gateway.db._conn.commit()
+    with gateway.db._connections._lock:
+        gateway.db._connections._conn.execute('DELETE FROM hosted_room_remote_runs')
+        gateway.db._connections._conn.commit()
     second, client = await register()
     assert second.grant != first.grant
     assert (second.trace_id, second.cancellation_scope_id) == (first.trace_id, first.cancellation_scope_id)
@@ -661,9 +661,9 @@ async def _deferred_unreceipted_peer_turn(gateway, monkeypatch, linked_peer):
         binding=binding, route=route, room_id='linked', task_id=identity.task_id, target_profile='default',
         execution_generation=1, source_event_seq=task['payload']['source_event_seq'],
         prompt=task['payload']['prompt'], trace_id=route.trace_id).as_mapping())
-    with gateway.db._lock:  # the reply is lost and the home restarts before it saves the receipt
-        gateway.db._conn.execute('DELETE FROM hosted_room_remote_runs')
-        gateway.db._conn.commit()
+    with gateway.db._connections._lock:  # the reply is lost and the home restarts before it saves the receipt
+        gateway.db._connections._conn.execute('DELETE FROM hosted_room_remote_runs')
+        gateway.db._connections._conn.commit()
     service = gateway.authority.hosted_room_service = CanonicalHostedRoomService(gateway.authority, None)
     idle = service.runtime.status
     service.runtime.status = lambda: {**idle(), 'running': True, 'stopping': False}

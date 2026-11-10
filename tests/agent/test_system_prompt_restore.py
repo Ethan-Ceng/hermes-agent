@@ -318,8 +318,8 @@ class TestStoredPromptReuse:
         with SessionDB(db_path=tmp_path / "state.db") as db:
             db.create_session("test-session-id", source="tui")
             db.update_system_prompt("test-session-id", "BUILT_PROMPT")
-            db._conn.execute("UPDATE sessions SET tool_names = ? WHERE id = 'test-session-id'", ("ab" * 32,))
-            db._conn.commit()
+            db._connections._conn.execute("UPDATE sessions SET tool_names = ? WHERE id = 'test-session-id'", ("ab" * 32,))
+            db._connections._conn.commit()
             agent = _make_agent(session_db=db)
             agent._persist_disabled = False
             agent.tools = list(tools)

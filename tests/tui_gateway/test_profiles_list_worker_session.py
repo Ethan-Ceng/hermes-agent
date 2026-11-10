@@ -36,8 +36,8 @@ def _db(profile_dir):
 def _add_session(db, sid, *, source="cli", title="", ts, text):
     db.create_session(sid, source)
     db.append_message(sid, "user", text, timestamp=ts)
-    with db._lock:
-        db._conn.execute("UPDATE sessions SET title = ? WHERE id = ?", (title, sid))
+    with db._connections._lock:
+        db._connections._conn.execute("UPDATE sessions SET title = ? WHERE id = ?", (title, sid))
 
 def _profiles(params):
     envelope = srv._methods["profiles.list"](1, params)

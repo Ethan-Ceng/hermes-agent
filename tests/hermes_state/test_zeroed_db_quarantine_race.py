@@ -5,6 +5,7 @@ with ``is_file()``, the other opener's quarantine renames it aside, and ``os.acc
 fails with ENOENT. That used to be reported as "state.db is not writable ... read-only for
 this user" (flaky ``test_concurrent_quarantine_no_clobber`` on CI). Event-driven, no sleeps.
 """
+import hermes_cli.db_session_schema as session_schema
 
 import os
 import threading
@@ -21,8 +22,8 @@ def test_preflight_cannot_observe_db_mid_quarantine(tmp_path, monkeypatch):
     late_reached = threading.Event()   # worker 1 hit its preflight check OR the quarantine lock
     quarantined = threading.Event()    # worker 0 finished moving the zeroed file aside
     real_access = os.access
-    real_lock = hs.quarantine_cross_process_lock
-    real_quarantine = hs.quarantine_invalid_state_db
+    real_lock = session_schema.quarantine_cross_process_lock
+    real_quarantine = session_schema.quarantine_invalid_state_db
     errors: list = [None, None]
 
     def is_late() -> bool:
@@ -59,8 +60,8 @@ def test_preflight_cannot_observe_db_mid_quarantine(tmp_path, monkeypatch):
             quarantined.set()
 
     monkeypatch.setattr(hermes_state_repair.os, "access", gated_access)
-    monkeypatch.setattr(hs, "quarantine_cross_process_lock", signalling_lock)
-    monkeypatch.setattr(hs, "quarantine_invalid_state_db", quarantine_then_release)
+    monkeypatch.setattr(session_schema, "quarantine_cross_process_lock", signalling_lock)
+    monkeypatch.setattr(session_schema, "quarantine_invalid_state_db", quarantine_then_release)
 
     first = threading.Thread(target=worker, args=(0,), name="first-opener")
     first.start()

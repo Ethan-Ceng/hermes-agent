@@ -36,12 +36,12 @@ def analytics(monkeypatch, db):
 
 def _session(db, session_id, model, provider):
     db.create_session(session_id, source="cli", model=model)
-    with db._lock:
-        db._conn.execute(
+    with db._connections._lock:
+        db._connections._conn.execute(
             "UPDATE sessions SET billing_provider = ?, started_at = ? WHERE id = ?",
             (provider, time.time(), session_id),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
 
 def test_aux_tasks_do_not_duplicate_the_model_card(db, analytics):

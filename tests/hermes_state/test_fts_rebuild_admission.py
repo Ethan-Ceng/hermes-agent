@@ -648,8 +648,8 @@ class TestDeferredFtsRetryInProcess:
             gw = SessionDB(db_path=db_path)
         try:
             assert gw._fts_stale is True
-            gw._db_corrupt = True
-            gw._db_corrupt_reason = "database disk image is malformed"
+            gw._connections._db_corrupt = True
+            gw._connections._db_corrupt_reason = "database disk image is malformed"
             # A retry that is DUE (backoff already elapsed) on a handle that
             # had been backing off before it tripped quarantine. Seeding the
             # deadline in the past matters: a future deadline would make the

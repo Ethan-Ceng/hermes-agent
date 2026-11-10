@@ -103,8 +103,8 @@ async def test_a_closed_unviewed_local_session_still_leaves_the_live_feed(owner)
     for sid, target in ((closed, 'target-closed'), (open_, 'target-open')):
         owner.db.set_meta(POLICY_PREFIX + sid, json.dumps({'entry': {'session_id': target}}))
     owner.db.set_meta(POLICY_PREFIX + owner.sids[2], '{not json')
-    with owner.db._lock:  # newest, so session.list's 200-row window holds all three
-        owner.db._conn.execute('UPDATE sessions SET started_at = 9e9 WHERE id IN (?,?,?)', owner.sids[:3])
+    with owner.db._connections._lock:  # newest, so session.list's 200-row window holds all three
+        owner.db._connections._conn.execute('UPDATE sessions SET started_at = 9e9 WHERE id IN (?,?,?)', owner.sids[:3])
     for method in ('session.list', 'session.active_list'):
         ids = {row['id'] for row in await owner.listing(method)}
         assert closed not in ids and open_ in ids and owner.sids[2] in ids, method

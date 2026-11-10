@@ -1427,8 +1427,8 @@ class SessionMessagesMixin(SessionDetachedResultsMixin, SessionTodoResultMixin, 
             import datetime
             stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_path = str(self.db_path.with_name(f"{self.db_path.name}.pre-clean-markers-backup-{stamp}"))
-            with self._lock:
-                self._conn.execute("VACUUM INTO ?", (backup_path,))
+            with self._connections._lock:
+                self._connections._conn.execute("VACUUM INTO ?", (backup_path,))
             logger.info("Backed up state.db to %s before clean-markers write", backup_path)
         def _do(conn):
             ids = _find_affected(conn)

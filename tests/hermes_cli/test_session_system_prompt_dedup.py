@@ -21,7 +21,7 @@ def db(tmp_path):
 
 def _prompt_count(db: SessionDB) -> int:
     return int(
-        db._conn.execute("SELECT COUNT(*) FROM system_prompts").fetchone()[0]
+        db._connections._conn.execute("SELECT COUNT(*) FROM system_prompts").fetchone()[0]
     )
 
 
@@ -38,12 +38,12 @@ def test_prompt_snapshots_are_deduplicated_and_hydrated_for_readers(db):
     db.create_session("s2", "cli", system_prompt=prompt)
     db.request_handoff("s1", "telegram")
 
-    stored = db._conn.execute(
+    stored = db._connections._conn.execute(
         "SELECT hash, prompt FROM system_prompts"
     ).fetchall()
     assert len(stored) == 1
     assert stored[0]["prompt"] == prompt
-    raw_sessions = db._conn.execute(
+    raw_sessions = db._connections._conn.execute(
         "SELECT system_prompt, system_prompt_hash FROM sessions ORDER BY id"
     ).fetchall()
     assert [row["system_prompt"] for row in raw_sessions] == [None, None]
@@ -107,7 +107,7 @@ def test_existing_session_enrichment_does_not_leak_unused_prompt(db):
 
     prompts = [
         row["prompt"]
-        for row in db._conn.execute("SELECT prompt FROM system_prompts")
+        for row in db._connections._conn.execute("SELECT prompt FROM system_prompts")
     ]
     assert prompts == ["original prompt"]
     assert db.get_session("s1")["system_prompt"] == "original prompt"
@@ -145,8 +145,8 @@ def test_every_session_deletion_path_reclaims_final_prompt_reference(db):
 
     seed("ghost", source="tui")
     db.end_session("ghost", "user_exit")
-    db._conn.execute("UPDATE sessions SET started_at = 0 WHERE id = 'ghost'")
-    db._conn.commit()
+    db._connections._conn.execute("UPDATE sessions SET started_at = 0 WHERE id = 'ghost'")
+    db._connections._conn.commit()
     assert db.prune_empty_ghost_sessions() == 1
     assert _prompt_count(db) == 0
 
@@ -179,7 +179,7 @@ def test_compression_child_uses_content_addressed_prompt(db):
         compression_lock_holder="holder",
     )
 
-    raw = db._conn.execute(
+    raw = db._connections._conn.execute(
         "SELECT system_prompt, system_prompt_hash FROM sessions WHERE id = 'child'"
     ).fetchone()
     assert raw["system_prompt"] is None
@@ -210,10 +210,10 @@ def test_recovery_cleanup_keeps_tool_pins_and_drops_dangling_pin_refs(tmp_path):
         db.create_session("pinned", "tui")
         db.update_session_tool_names("pinned", pin)
         db.create_session("dangling", "tui")
-        db._conn.execute("UPDATE sessions SET tool_names = ? WHERE id = 'dangling'", ("ab" * 32,))
+        db._connections._conn.execute("UPDATE sessions SET tool_names = ? WHERE id = 'dangling'", ("ab" * 32,))
         db.create_session("legacy", "tui")
-        db._conn.execute("UPDATE sessions SET tool_names = ? WHERE id = 'legacy'", ('["read_file"]',))
-        db._conn.commit()
+        db._connections._conn.execute("UPDATE sessions SET tool_names = ? WHERE id = 'legacy'", ('["read_file"]',))
+        db._connections._conn.commit()
     conn = sqlite3.connect(str(tmp_path / "state.db"), isolation_level=None)
     conn.row_factory = sqlite3.Row
     _cleanup_partial_orphans(conn)
@@ -241,7 +241,7 @@ def test_imported_prompts_are_deduplicated(tmp_path):
         assert result["ok"] is True
         assert result["imported"] == 2
         assert _prompt_count(target) == 1
-        raw = target._conn.execute(
+        raw = target._connections._conn.execute(
             "SELECT system_prompt, system_prompt_hash FROM sessions ORDER BY id"
         ).fetchall()
         assert [row["system_prompt"] for row in raw] == [None, None]
@@ -259,12 +259,12 @@ def test_v24_inline_prompts_migrate_once_to_content_addressed_storage(tmp_path):
     db = SessionDB(db_path=db_path)
     db.create_session("s1", "cli")
     db.create_session("s2", "telegram")
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE sessions SET system_prompt = ?, system_prompt_hash = NULL",
         (legacy_prompt,),
     )
-    db._conn.execute("UPDATE schema_version SET version = 24")
-    db._conn.commit()
+    db._connections._conn.execute("UPDATE schema_version SET version = 24")
+    db._connections._conn.commit()
     db.close()
 
     migrated = SessionDB(db_path=db_path)
@@ -272,12 +272,12 @@ def test_v24_inline_prompts_migrate_once_to_content_addressed_storage(tmp_path):
         assert migrated.get_session("s1")["system_prompt"] == legacy_prompt
         assert migrated.get_session("s2")["system_prompt"] == legacy_prompt
         assert _prompt_count(migrated) == 1
-        raw_sessions = migrated._conn.execute(
+        raw_sessions = migrated._connections._conn.execute(
             "SELECT system_prompt, system_prompt_hash FROM sessions ORDER BY id"
         ).fetchall()
         assert [row["system_prompt"] for row in raw_sessions] == [None, None]
         assert len({row["system_prompt_hash"] for row in raw_sessions}) == 1
-        assert migrated._conn.execute(
+        assert migrated._connections._conn.execute(
             "SELECT version FROM schema_version LIMIT 1"
         ).fetchone()[0] == SCHEMA_VERSION
     finally:
@@ -292,7 +292,7 @@ def test_compact_rows_omit_hash_and_never_read_prompt_blob(db):
             return sqlite3.SQLITE_DENY
         return sqlite3.SQLITE_OK
 
-    db._conn.set_authorizer(deny_prompt_reads)
+    db._connections._conn.set_authorizer(deny_prompt_reads)
     try:
         rows = db.list_sessions_rich(
             compact_rows=True,
@@ -300,7 +300,7 @@ def test_compact_rows_omit_hash_and_never_read_prompt_blob(db):
         )
         rich = db._get_session_rich_row("s1", compact_rows=True)
     finally:
-        db._conn.set_authorizer(None)
+        db._connections._conn.set_authorizer(None)
 
     assert rows[0]["id"] == "s1"
     assert rich["id"] == "s1"

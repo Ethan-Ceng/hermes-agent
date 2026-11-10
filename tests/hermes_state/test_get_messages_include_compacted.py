@@ -224,7 +224,7 @@ class TestDisplayDedupe:
         writer.append_message("snapshot", "assistant", "visible-at-scan")
         writer._execute_write(lambda conn: conn.execute(
             "UPDATE messages SET display_order = NULL, display_identity = NULL"))
-        writer._conn.execute("PRAGMA busy_timeout = 0")
+        writer._connections._conn.execute("PRAGMA busy_timeout = 0")
         reader = SessionDB(path, read_only=True)
         identity = reader._display_identity
 
@@ -247,8 +247,8 @@ class TestDisplayDedupe:
         try:
             page = reader.get_messages("snapshot", include_compacted=True, latest=True, limit=1)
             assert [(row["active"], row["content"]) for row in page] == [(1, "visible-at-scan")]
-            assert reader._conn is not None
-            assert not reader._conn.in_transaction
+            assert reader._connections._conn is not None
+            assert not reader._connections._conn.in_transaction
             monkeypatch.setattr(reader, "_display_identity", identity)
             if journal_mode == "delete":
                 rewind()
@@ -267,7 +267,7 @@ class TestDisplayDedupe:
         writer.close()
         reader = SessionDB(path, read_only=True)
         identity = reader._display_identity
-        connection = reader._conn
+        connection = reader._connections._conn
         assert connection is not None
 
         def abort_then_fail(key):
@@ -295,7 +295,7 @@ class TestDisplayDedupe:
                 chunk_rows=500,
             )
 
-        db._wal_active = False
+        db._connections._wal_active = False
 
         def progress_steps(sid):
             callbacks = 0
@@ -305,12 +305,12 @@ class TestDisplayDedupe:
                 callbacks += 1
                 return 0
 
-            db._conn.set_progress_handler(progress, 100)
+            db._connections._conn.set_progress_handler(progress, 100)
             try:
                 page = db.get_messages(
                     sid, include_compacted=True, latest=True, limit=120)
             finally:
-                db._conn.set_progress_handler(None, 0)
+                db._connections._conn.set_progress_handler(None, 0)
             assert len(page) == 120
             return callbacks
 
@@ -328,7 +328,7 @@ class TestDisplayDedupe:
 
         seed("write-small", 2_000)
         seed("write-large", 20_000)
-        db._wal_active = False
+        db._connections._wal_active = False
 
         def append_steps(sid):
             callbacks = 0
@@ -338,11 +338,11 @@ class TestDisplayDedupe:
                 callbacks += 1
                 return 0
 
-            db._conn.set_progress_handler(progress, 10)
+            db._connections._conn.set_progress_handler(progress, 10)
             try:
                 db.append_message(sid, role="user", content="fresh", timestamp=100_000.0)
             finally:
-                db._conn.set_progress_handler(None, 0)
+                db._connections._conn.set_progress_handler(None, 0)
             return callbacks
 
         small_steps = append_steps("write-small")
@@ -404,7 +404,7 @@ class TestDisplayDedupe:
         conn.commit()
         conn.close()
         db = SessionDB(path)
-        trigger_sql = db._conn.execute(
+        trigger_sql = db._connections._conn.execute(
             "SELECT sql FROM sqlite_master WHERE name = 'messages_display_identity_update'").fetchone()[0]
         assert "display_metadata" not in trigger_sql and "display_kind" in trigger_sql
 
@@ -414,23 +414,23 @@ class TestDisplayDedupe:
             db.append_message(sid, role="assistant", content=f"row-{index}", timestamp=100.0)
             for index in range(3)
         ]
-        before = db._conn.execute(
+        before = db._connections._conn.execute(
             "SELECT id, display_order, display_identity FROM messages WHERE session_id = ? ORDER BY id",
             (sid,),
         ).fetchall()
 
-        changes = db._conn.total_changes
+        changes = db._connections._conn.total_changes
         db.set_message_reaction(sid, row_ids[1], "👍", author="user")
         # The reacted row and its session's transcript_revision (a transcript poller's cursor keys on it).
-        assert db._conn.total_changes - changes == 2
-        assert db._conn.execute(
+        assert db._connections._conn.total_changes - changes == 2
+        assert db._connections._conn.execute(
             "SELECT id, display_order, display_identity FROM messages WHERE session_id = ? ORDER BY id",
             (sid,),
         ).fetchall() == before
 
-        changes = db._conn.total_changes
+        changes = db._connections._conn.total_changes
         db.get_messages(sid, include_compacted=True)
-        assert db._conn.total_changes == changes
+        assert db._connections._conn.total_changes == changes
 
     def test_display_backfill_rewrites_only_changed_identity_group(self, db):
         sid = "identity-update"
@@ -438,21 +438,21 @@ class TestDisplayDedupe:
         first = db.append_message(sid, role="assistant", content="same", timestamp=100.0)
         db.append_message(sid, role="assistant", content="same", timestamp=100.0)
         unaffected = db.append_message(sid, role="assistant", content="other", timestamp=100.0)
-        unaffected_before = db._conn.execute(
+        unaffected_before = db._connections._conn.execute(
             "SELECT display_order, display_identity FROM messages WHERE id = ?", (unaffected,)
         ).fetchone()
         db._execute_write(lambda conn: conn.execute(
             "UPDATE messages SET content = ? WHERE id = ?", ('"changed"', first)))
 
-        changes = db._conn.total_changes
+        changes = db._connections._conn.total_changes
         db.get_messages(sid, include_compacted=True)
-        assert db._conn.total_changes - changes == 2
-        assert db._conn.execute(
+        assert db._connections._conn.total_changes - changes == 2
+        assert db._connections._conn.execute(
             "SELECT COUNT(*) FROM messages WHERE session_id = ? "
             "AND (display_order IS NULL OR display_identity IS NULL)",
             (sid,),
         ).fetchone()[0] == 0
-        assert db._conn.execute(
+        assert db._connections._conn.execute(
             "SELECT display_order, display_identity FROM messages WHERE id = ?", (unaffected,)
         ).fetchone() == unaffected_before
 
@@ -490,16 +490,16 @@ class TestDisplayDedupe:
             assert len(legacy_messages) == 1
             json.dumps(legacy_messages)
             assert "display_order" not in {
-                row[1] for row in reader._conn.execute("PRAGMA table_info(messages)")}
+                row[1] for row in reader._connections._conn.execute("PRAGMA table_info(messages)")}
         finally:
             reader.close()
 
         migrated = SessionDB(path)
         try:
             assert len(migrated.get_messages("legacy", include_compacted=True)) == 1
-            columns = {row[1] for row in migrated._conn.execute("PRAGMA table_info(messages)")}
+            columns = {row[1] for row in migrated._connections._conn.execute("PRAGMA table_info(messages)")}
             assert {"display_order", "display_identity"} <= columns
-            assert migrated._conn.execute(
+            assert migrated._connections._conn.execute(
                 "SELECT COUNT(*) FROM messages "
                 "WHERE display_order IS NULL OR display_identity IS NULL").fetchone()[0] == 0
         finally:

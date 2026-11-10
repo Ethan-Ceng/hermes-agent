@@ -10,15 +10,15 @@ def test_export_candidates_via_prune_filters_ended_old_sessions(tmp_path, monkey
     try:
         db.create_session("old_cli", source="cli")
         db.end_session("old_cli", "done")
-        db._conn.execute("UPDATE sessions SET started_at=?, ended_at=? WHERE id=?", (1_000_000.0, 1_000_010.0, "old_cli"))
+        db._connections._conn.execute("UPDATE sessions SET started_at=?, ended_at=? WHERE id=?", (1_000_000.0, 1_000_010.0, "old_cli"))
 
         db.create_session("new_cli", source="cli")
         db.end_session("new_cli", "done")
-        db._conn.execute("UPDATE sessions SET started_at=?, ended_at=? WHERE id=?", (1_990_000.0, 1_990_010.0, "new_cli"))
+        db._connections._conn.execute("UPDATE sessions SET started_at=?, ended_at=? WHERE id=?", (1_990_000.0, 1_990_010.0, "new_cli"))
 
         db.create_session("old_active", source="cli")
-        db._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (1_000_000.0, "old_active"))
-        db._conn.commit()
+        db._connections._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (1_000_000.0, "old_active"))
+        db._connections._conn.commit()
 
         # Export uses the shared prune/archive candidate selection.
         candidates = db.list_prune_candidates(

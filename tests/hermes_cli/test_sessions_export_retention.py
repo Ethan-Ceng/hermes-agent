@@ -27,8 +27,8 @@ def store(tmp_path, monkeypatch):
             db.end_session(session_id, "done")
         db.set_session_pinned("pinned", True)
         db.set_session_archived("archived", True)
-        db._conn.execute("UPDATE sessions SET started_at=1")
-        db._conn.commit()
+        db._connections._conn.execute("UPDATE sessions SET started_at=1")
+        db._connections._conn.commit()
     return home
 
 

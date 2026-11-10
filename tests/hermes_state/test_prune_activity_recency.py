@@ -15,22 +15,22 @@ def test_prune_sessions_respects_touch_session_activity(tmp_path):
         db.create_session("active_by_heartbeat", source="cli")
         db.append_message("active_by_heartbeat", "user", "hello", timestamp=old_time)
         db.end_session("active_by_heartbeat", "done")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at = ?, ended_at = ? WHERE id = ?",
             (old_time, old_time, "active_by_heartbeat"),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
         db.touch_session_activity("active_by_heartbeat", ts=recent_time)
 
         # Truly old session
         db.create_session("truly_old", source="cli")
         db.append_message("truly_old", "user", "old message", timestamp=old_time)
         db.end_session("truly_old", "done")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at = ?, ended_at = ? WHERE id = ?",
             (old_time, old_time, "truly_old"),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
         # Check dry-run candidates
         candidates = db.list_prune_candidates(older_than_days=10)
@@ -58,30 +58,30 @@ def test_prune_keeps_the_compressed_segments_of_a_chat_still_in_use(tmp_path, ca
             db.publish_compression_child(parent_session_id=parent, child_session_id=child, source="cli",
                                          messages=[{"role": "user", "content": "[summary]", "timestamp": at}],
                                          require_compression_lease=False)
-            db._conn.execute("UPDATE sessions SET ended_at = ? WHERE id = ?", (at, parent))
-            db._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?", (at, child))
-            db._conn.commit()
+            db._connections._conn.execute("UPDATE sessions SET ended_at = ? WHERE id = ?", (at, parent))
+            db._connections._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?", (at, child))
+            db._connections._conn.commit()
 
         for chat in ("live", "idle"):
             db.create_session(chat, source="cli")
             db.append_message(chat, "user", f"{chat} early detail", timestamp=old)
-            db._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?", (old, chat))
-            db._conn.commit()
+            db._connections._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?", (old, chat))
+            db._connections._conn.commit()
             rotate(chat, f"{chat}-2", old + 60)
             rotate(f"{chat}-2", f"{chat}-3", old + 120)
         db.append_message("live-3", "user", "still talking today")
         db.end_session("idle-3", "done")
-        db._conn.execute("UPDATE sessions SET ended_at = ? WHERE id = 'idle-3'", (old + 180,))
-        db._conn.commit()
+        db._connections._conn.execute("UPDATE sessions SET ended_at = ? WHERE id = 'idle-3'", (old + 180,))
+        db._connections._conn.commit()
 
         idle = {"idle", "idle-2", "idle-3"}
         # The CLI pinned-skip note counts pinned rows, not the unpinned ancestors a pinned tip spares.
-        db._conn.execute("UPDATE sessions SET pinned = 1 WHERE id = 'idle-3'")
-        db._conn.commit()
+        db._connections._conn.execute("UPDATE sessions SET pinned = 1 WHERE id = 'idle-3'")
+        db._connections._conn.commit()
         _note_pinned_skipped(db, {"older_than_days": 90, "lineage_tips_only": False}, "prune")
         assert "Note: 1 pinned session also match" in capsys.readouterr().out
-        db._conn.execute("UPDATE sessions SET pinned = 0 WHERE id = 'idle-3'")
-        db._conn.commit()
+        db._connections._conn.execute("UPDATE sessions SET pinned = 0 WHERE id = 'idle-3'")
+        db._connections._conn.commit()
         assert {c["id"] for c in db.list_prune_candidates(older_than_days=90, whole_lineages=True)} == idle
         assert db.prune_sessions(older_than_days=90) == len(idle)
         assert db.get_compression_lineage("live-3") == ["live", "live-2", "live-3"]

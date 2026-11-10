@@ -274,10 +274,10 @@ async def test_an_old_compressed_transcript_reads_across_its_lineage_without_ado
     try:
         listed = await _call(native, 'session.list', scope='stored')
         [row] = listed['result']['sessions']
-        before = db._conn.total_changes
+        before = db._connections._conn.total_changes
         assert _flat(await _pages(native, row['session_id'], 3)) == [
             'before compression', 'old answer', 'after compression', 'new answer']
-        assert db._conn.total_changes == before  # nothing adopted, nothing written
+        assert db._connections._conn.total_changes == before  # nothing adopted, nothing written
         assert authority.sessions == {}
         # Past the resume's guard a rotated lineage pages its current segment only.
         monkeypatch.setattr(hermes_state, 'resolved_max_resume_messages', lambda: 2)

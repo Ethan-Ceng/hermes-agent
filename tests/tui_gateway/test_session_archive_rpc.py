@@ -35,8 +35,8 @@ def _call(method: str, params: dict) -> dict:
 
 def _seed(db, sid: str) -> None:
     db.create_session(sid, source="desktop")
-    db._conn.execute("UPDATE sessions SET message_count = 1 WHERE id = ?", (sid,))
-    db._conn.commit()
+    db._connections._conn.execute("UPDATE sessions SET message_count = 1 WHERE id = ?", (sid,))
+    db._connections._conn.commit()
 
 
 def test_archive_resolves_stored_id_without_live_session(db):

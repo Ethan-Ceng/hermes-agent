@@ -31,7 +31,7 @@ def db(tmp_path):
 
 
 def _session_counts(db: SessionDB, session_id: str) -> tuple[int, int, int]:
-    row = db._conn.execute(
+    row = db._connections._conn.execute(
         "SELECT message_count, tool_call_count, rewind_count "
         "FROM sessions WHERE id = ?",
         (session_id,),
@@ -42,7 +42,7 @@ def _session_counts(db: SessionDB, session_id: str) -> tuple[int, int, int]:
 def _row_state(db: SessionDB, session_id: str) -> list[tuple]:
     return [
         tuple(row)
-        for row in db._conn.execute(
+        for row in db._connections._conn.execute(
             "SELECT id, role, content, active, display_kind "
             "FROM messages WHERE session_id = ? ORDER BY id",
             (session_id,),
@@ -90,7 +90,7 @@ def test_composite_rewind_archives_tail_and_inserts_its_hidden_scaffold(db):
     assert active[-1]["display_kind"] == "hidden"
     assert SUMMARY_PREFIX in active[-1]["content"]
     assert "REAL ASK" not in active[-1]["content"]
-    archived = db._conn.execute(
+    archived = db._connections._conn.execute(
         "SELECT active FROM messages WHERE id IN (?, ?) ORDER BY id",
         (target_id, target_id + 1),
     ).fetchall()

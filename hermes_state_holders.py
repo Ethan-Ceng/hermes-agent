@@ -6,6 +6,7 @@ SQLite connection factory needed by the final lock probe.
 """
 
 from __future__ import annotations
+from hermes_db.infra.backends.sqlite.generation import canonical_sqlite_path
 
 import errno
 import functools
@@ -16,7 +17,7 @@ import sys
 from pathlib import Path
 from typing import Callable, List, Optional, Sequence, Set, Tuple
 
-from hermes_state_errors import is_sqlite_lock_error
+from hermes_db.infra.backends.sqlite.runtime import is_sqlite_lock_error
 
 try:  # Hard dependency, but tolerate scaffold-phase imports before pip install.
     import psutil
@@ -141,9 +142,6 @@ def _looks_like_hermes(argv: Sequence[str]) -> bool:
     )
 
 
-def canonical_sqlite_path(path: str) -> str:
-    """Normalize a /proc fd target, stripping the Linux `` (deleted)`` suffix."""
-    return os.path.normcase(os.path.abspath(path.removesuffix(" (deleted)")))
 
 
 _HOME_FLAGS = ("--hermes-home",)

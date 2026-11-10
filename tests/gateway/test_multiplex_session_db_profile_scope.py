@@ -414,12 +414,12 @@ def test_close_all_db_handles_sweeps_every_profile_handle(multiplex_homes):
 
     # Both handles are closed (connection released) and the cache is empty,
     # so the next access opens a fresh handle rather than a dead one.
-    assert root_db._conn is None
-    assert profile_db._conn is None
+    assert root_db._connections._conn is None
+    assert profile_db._connections._conn is None
     assert store._db_handles == {}
     fresh = store._db
     assert fresh is not root_db
-    assert fresh._conn is not None
+    assert fresh._connections._conn is not None
     fresh.close()
 
 
@@ -467,8 +467,8 @@ def test_runner_session_db_follows_the_active_profile_scope(multiplex_homes):
 
     runner.close_all_session_db_handles()
     assert runner._session_db_handles == {}
-    assert root_db._db._conn is None
-    assert profile_db._db._conn is None
+    assert root_db._db._connections._conn is None
+    assert profile_db._db._connections._conn is None
 
 
 # ---------------------------------------------------------------------------

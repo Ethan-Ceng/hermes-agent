@@ -120,8 +120,8 @@ class SessionStoredReadsMixin:
         """What any committed or pending write moves: the writer connection (a reopen is a new one), its
         ``total_changes`` (this process's writes, all on it) and its ``PRAGMA data_version`` (every
         other connection's commits). A closed store has none: an object equal to nothing."""
-        with self._lock:
-            conn = self._conn
+        with self._connections._lock:
+            conn = self._connections._conn
             if conn is None:
                 return object()
             return conn, conn.total_changes, conn.execute('PRAGMA main.data_version').fetchone()[0]

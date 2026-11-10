@@ -101,7 +101,7 @@ class TestPeerWritesAfterLatch:
             with pytest.raises(StateDbCorruptError) as excinfo:
                 peer.append_message(session_id="s000", role="user", content="after the latch")
             assert classify_persistence_error(excinfo.value) == "corrupt"
-            assert peer._db_corrupt is True
+            assert peer._connections._db_corrupt is True
         finally:
             peer.close()
 
@@ -115,7 +115,7 @@ class TestPeerWritesAfterLatch:
     def test_quarantine_on_one_handle_publishes_the_latch(self, tmp_path):
         path = tmp_path / "state.db"
         db = SessionDB(db_path=path)
-        real = db._conn
+        real = db._connections._conn
 
         class _Malformed:
             def execute(self, *a, **k):
@@ -126,11 +126,11 @@ class TestPeerWritesAfterLatch:
 
         try:
             db.create_session("s1", source="cli")
-            db._conn = _Malformed()
+            db._connections._conn = _Malformed()
             with pytest.raises(StateDbCorruptError):
                 db.create_session("s2", source="cli")
         finally:
-            db._conn = real
+            db._connections._conn = real
             db.close()
         assert storage_state(path) == "corrupt"
 

@@ -34,7 +34,7 @@ def _seed_modpack_sessions(db):
     now = int(time.time())
     # Older session — modpack origin
     db.create_session("s_oldest", source="cli")
-    db._conn.execute("UPDATE sessions SET started_at = ?, title = ? WHERE id = ?",
+    db._connections._conn.execute("UPDATE sessions SET started_at = ?, title = ? WHERE id = ?",
                      (now - 30000, "Building the Modpack", "s_oldest"))
     db.append_message("s_oldest", role="user", content="Let's build a Minecraft modpack")
     db.append_message("s_oldest", role="assistant", content="Great. Let me scaffold the modpack repo.")
@@ -44,7 +44,7 @@ def _seed_modpack_sessions(db):
 
     # Middle session — modpack quest coverage
     db.create_session("s_middle", source="cli")
-    db._conn.execute("UPDATE sessions SET started_at = ?, title = ? WHERE id = ?",
+    db._connections._conn.execute("UPDATE sessions SET started_at = ?, title = ? WHERE id = ?",
                      (now - 15000, "Modpack Quest Coverage", "s_middle"))
     db.append_message("s_middle", role="user", content="Deep-dive every modpack reference quest guide")
     db.append_message("s_middle", role="assistant", content="Surveying ATM10 questbook for modpack inspiration.")
@@ -53,12 +53,12 @@ def _seed_modpack_sessions(db):
 
     # Newest session — modpack mob spawn fix
     db.create_session("s_newest", source="cli")
-    db._conn.execute("UPDATE sessions SET started_at = ?, title = ? WHERE id = ?",
+    db._connections._conn.execute("UPDATE sessions SET started_at = ?, title = ? WHERE id = ?",
                      (now - 1000, "Modpack Mob Spawn Fix", "s_newest"))
     db.append_message("s_newest", role="user", content="Fix the modpack mob spawning")
     db.append_message("s_newest", role="assistant", content="Investigating elite mob gating in the modpack KubeJS.")
     db.append_message("s_newest", role="assistant", content="Shipped commit b850442. Modpack alternator nerfed too.")
-    db._conn.commit()
+    db._connections._conn.commit()
 
 
 # =========================================================================
@@ -219,7 +219,7 @@ class TestDiscoveryShape:
         for session_index in range(3):
             session_id = f"payload_{session_index}"
             db.create_session(session_id, source="cli")
-            db._conn.execute(
+            db._connections._conn.execute(
                 "UPDATE sessions SET started_at = ? WHERE id = ?",
                 (now - session_index, session_id),
             )
@@ -240,7 +240,7 @@ class TestDiscoveryShape:
                     role="assistant" if message_index % 2 == 0 else "user",
                     content=f"closing {session_index}-{message_index} " + "c" * 2500,
                 )
-        db._conn.commit()
+        db._connections._conn.commit()
 
         adaptive_json = session_search(query="payloadneedle", limit=3, db=db)
         full_json = session_search(
@@ -407,7 +407,7 @@ class TestReadShape:
         db.append_message(
             "s_ansi", role="assistant", content="\u001b[31mred text\u001b[0m and more"
         )
-        db._conn.commit()
+        db._connections._conn.commit()
         result = json.loads(session_search(session_id="s_ansi", db=db))
         assert result["success"] is True
         rendered = [m["content"] for m in result["messages"] if m.get("content")]
@@ -418,7 +418,7 @@ class TestReadShape:
         db.create_session("s_big", source="cli")
         for i in range(50):
             db.append_message("s_big", role="user" if i % 2 == 0 else "assistant", content=f"m{i}")
-        db._conn.commit()
+        db._connections._conn.commit()
         result = json.loads(session_search(session_id="s_big", db=db))
         assert result["mode"] == "read"
         assert result["message_count"] == 50
@@ -432,7 +432,7 @@ class TestReadShape:
         db.append_message("s_huge", role="user", content="run it")
         db.append_message("s_huge", role="assistant", content="x" * 80_000)
         db.append_message("s_huge", role="user", content="thanks")
-        db._conn.commit()
+        db._connections._conn.commit()
         result = json.loads(session_search(session_id="s_huge", db=db))
         assert result["mode"] == "read"
         assert result["truncated"] is False  # 3 messages, count-wise it all fits
@@ -501,7 +501,7 @@ class TestCrossProfileRead:
         other = SessionDB(other_home / "state.db")
         other.create_session("s_far", source="cli")
         other.append_message("s_far", role="user", content="secret")
-        other._conn.commit()
+        other._connections._conn.commit()
 
         from collections import namedtuple
         from hermes_cli import profiles as profiles_mod
@@ -526,7 +526,7 @@ class TestCrossProfileRead:
         other = SessionDB(other_home / "state.db")
         other.create_session("s_other", source="cli")
         other.append_message("s_other", role="user", content="hi")
-        other._conn.commit()
+        other._connections._conn.commit()
 
         self._patch_profiles(monkeypatch, other_home)
 
@@ -556,7 +556,7 @@ class TestCronDemotion:
         now = int(time.time())
         # Interactive user session — older, so it loses on bare recency too.
         db.create_session("s_user", source="telegram")
-        db._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?",
+        db._connections._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?",
                          (now - 90000, "s_user"))
         db.append_message("s_user", role="user", content="how is the venom project going")
         db.append_message("s_user", role="assistant", content="The venom project shipped its first milestone.")
@@ -564,11 +564,11 @@ class TestCronDemotion:
         for i in range(8):
             sid = f"cron_{i}"
             db.create_session(sid, source="cron")
-            db._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?",
+            db._connections._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?",
                              (now - 1000 - i, sid))
             db.append_message(sid, role="user", content="venom project daily status")
             db.append_message(sid, role="assistant", content="venom project venom project venom summary")
-        db._conn.commit()
+        db._connections._conn.commit()
 
     def test_interactive_session_surfaces_above_cron(self, db):
         self._seed_cron_and_interactive(db)
@@ -585,11 +585,11 @@ class TestCronDemotion:
         comes back."""
         now = int(time.time())
         db.create_session("cron_only", source="cron")
-        db._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?",
+        db._connections._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?",
                          (now - 500, "cron_only"))
         db.append_message("cron_only", role="user", content="quarterly archive sweep")
         db.append_message("cron_only", role="assistant", content="Archive sweep complete.")
-        db._conn.commit()
+        db._connections._conn.commit()
         result = json.loads(session_search(query="archive sweep", db=db))
         assert result["success"] is True
         assert result["count"] == 1
@@ -631,7 +631,7 @@ class TestCompactionSummaryFiltering:
         for i in range(5):
             db.append_message("s_compact", role="user", content=f"tail {i}")
             db.append_message("s_compact", role="assistant", content=f"done tail {i}")
-        db._conn.commit()
+        db._connections._conn.commit()
 
         result = json.loads(session_search(query="frobnitz mob spawning", db=db, limit=1))
         assert result["success"] is True
@@ -827,7 +827,7 @@ class TestCompactionDiscoveryBothLayers:
                         "Earlier turns were compacted into this summary. " + "s" * 50000},
             {"role": "assistant", "content": "Continuing after compaction."},
         ])
-        db._conn.commit()
+        db._connections._conn.commit()
 
     def test_archived_hit_surfaces_with_bounded_summary_free_bookends(self, db):
         self._seed_compacted_session(db)
@@ -880,11 +880,11 @@ class TestRewindExclusion:
         # Now add a post-compaction message and rewind it
         mid2 = db.append_message("s_mixed", role="user",
                                  content="rewound content gamma")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE messages SET active = 0, compacted = 0 WHERE id = ?",
             (mid2,),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
         # Compacted content should be discoverable
         result_compact = json.loads(session_search(
@@ -973,7 +973,7 @@ def _seed_gateway_new_reset_chain(db, *, needle="ibuprofen night-dose protocol")
         session_key="tg:user:1",
         model_config={"_reset_from": "s_aug12"},
     )
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE sessions SET title = ? WHERE id = ?",
         ("Night ibuprofen plan", "s_night"),
     )
@@ -989,7 +989,7 @@ def _seed_gateway_new_reset_chain(db, *, needle="ibuprofen night-dose protocol")
         session_key="tg:user:1",
         model_config={"_reset_from": "s_night"},
     )
-    db._conn.commit()
+    db._connections._conn.commit()
     return needle
 
 
@@ -1125,8 +1125,8 @@ def _unix(year, month, day):
 
 def _set_started(db, **started_at_by_sid):
     for sid, ts in started_at_by_sid.items():
-        db._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?", (ts, sid))
-    db._conn.commit()
+        db._connections._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?", (ts, sid))
+    db._connections._conn.commit()
 
 
 class TestDiscoveryTemporalNarrowing:

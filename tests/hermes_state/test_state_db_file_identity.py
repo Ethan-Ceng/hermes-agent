@@ -31,7 +31,7 @@ def _make_db(path: Path, session_id: str, content: str) -> SessionDB:
 
 
 def _require_identity(db: SessionDB) -> None:
-    if db._db_file_identity is None:
+    if db._connections._db_file_identity is None:
         pytest.skip("filesystem does not expose st_dev/st_ino for identity checks")
 
 
@@ -44,7 +44,7 @@ def test_replace_with_new_inode_fails_loudly_without_fts_repair(tmp_path):
     alt = _make_db(other, "other-sess", "replacement")
     alt.close()
 
-    recorded = db._db_file_identity
+    recorded = db._connections._db_file_identity
     assert recorded is not None
     os.replace(other, live)
     assert _stat_changed(live, recorded)
@@ -52,7 +52,7 @@ def test_replace_with_new_inode_fails_loudly_without_fts_repair(tmp_path):
     with pytest.raises(StateDbReplacedError, match="replaced underneath"):
         db.append_message("live-sess", role="user", content="after-replace")
 
-    assert db._db_replaced is True
+    assert db._connections._db_replaced is True
     # No FTS surgery ran: fail-open never detached the indexes.
     assert db._fts_enabled is True
     assert db._fts_stale is False
@@ -86,7 +86,7 @@ def test_same_file_fts_corruption_still_fails_open(tmp_path):
     """
     db = _make_db(tmp_path / "state.db", "s1", "hello world")
     _require_identity(db)
-    identity = db._db_file_identity
+    identity = db._connections._db_file_identity
     raw = sqlite3.connect(str(tmp_path / "state.db"))
     raw.execute(
         "UPDATE messages_fts_data SET block = X'DEADBEEFDEADBEEFDEADBEEFDEADBEEF'"
@@ -94,8 +94,8 @@ def test_same_file_fts_corruption_still_fails_open(tmp_path):
     raw.commit()
     raw.close()
     db.append_message("s1", role="user", content="healed append")
-    assert db._db_file_identity == identity
-    assert db._db_replaced is False
+    assert db._connections._db_file_identity == identity
+    assert db._connections._db_replaced is False
     # Fail-open detach ran: canonical write landed, FTS marked stale.
     assert db._fts_stale is True
     assert db._fts_enabled is False
@@ -114,7 +114,7 @@ def test_new_sessiondb_on_replaced_path_records_new_identity(tmp_path):
     live = tmp_path / "state.db"
     other = tmp_path / "other.db"
     db = _make_db(live, "s", "a")
-    old_id = db._db_file_identity
+    old_id = db._connections._db_file_identity
     _require_identity(db)
     db.close()
     alt = _make_db(other, "t", "b")
@@ -122,9 +122,9 @@ def test_new_sessiondb_on_replaced_path_records_new_identity(tmp_path):
     os.replace(other, live)
     reopened = SessionDB(db_path=live)
     try:
-        assert reopened._db_file_identity != old_id
+        assert reopened._connections._db_file_identity != old_id
         reopened.append_message("t", role="user", content="adopted after reopen")
-        assert reopened._db_replaced is False
+        assert reopened._connections._db_replaced is False
     finally:
         reopened.close()
 
@@ -159,14 +159,14 @@ def test_copyfile_same_inode_fails_loudly_without_fts_repair(tmp_path):
     other = tmp_path / "other.db"
     db = _make_db(live, "live-sess", "original")
     alt = _make_db(other, "other-sess", "replacement")
-    live_app = db._db_file_application_id
-    other_app = alt._db_file_application_id
+    live_app = db._connections._db_file_application_id
+    other_app = alt._connections._db_file_application_id
     if not live_app or not other_app:
         alt.close()
         db.close()
         pytest.skip("generation stamp not recorded on this filesystem")
     assert live_app != other_app
-    recorded = db._db_file_identity
+    recorded = db._connections._db_file_identity
     alt.close()
     shutil.copyfile(other, live)
     if recorded is not None:
@@ -174,7 +174,7 @@ def test_copyfile_same_inode_fails_loudly_without_fts_repair(tmp_path):
         assert (st.st_dev, st.st_ino) == recorded
     with pytest.raises(StateDbReplacedError, match="replaced underneath"):
         db.append_message("live-sess", role="user", content="after-cp")
-    assert db._db_replaced is True
+    assert db._connections._db_replaced is True
     assert db._fts_enabled is True
     assert db._fts_stale is False
     db.close()
@@ -211,7 +211,7 @@ def _stat_changed(path: Path, recorded) -> bool:
 @pytest.mark.platforms("linux")
 def test_identity_probe_does_not_cancel_live_posix_locks(tmp_path):
     """The on-write header probe must not drop the writer's DMS lock."""
-    from hermes_state import _read_sqlite_application_id
+    from hermes_db.infra.backends.sqlite.generation import _read_sqlite_application_id
 
     live = tmp_path / "state.db"
     db = _make_db(live, "probe-sess", "seed")
@@ -220,8 +220,8 @@ def test_identity_probe_does_not_cancel_live_posix_locks(tmp_path):
         # POSIX range locks on the main db file, and exactly the state a
         # concurrent _raise_if_db_replaced probe (another thread, same
         # process) can destroy.
-        db._conn.execute("BEGIN IMMEDIATE")
-        db._conn.execute(
+        db._connections._conn.execute("BEGIN IMMEDIATE")
+        db._connections._conn.execute(
             "UPDATE sessions SET source = source WHERE id = 'probe-sess'"
         )
         before = own_posix_locks(live)
@@ -231,7 +231,7 @@ def test_identity_probe_does_not_cancel_live_posix_locks(tmp_path):
             _read_sqlite_application_id(live)
 
         after = own_posix_locks(live)
-        db._conn.rollback()
+        db._connections._conn.rollback()
         # Only locks on the main file prove the header probe safe. WAL-index
         # read-lock slots on -shm may legitimately move while SQLite runs, and
         # sampling those unrelated locks made this test timing-sensitive. With
@@ -249,7 +249,7 @@ def test_identity_probe_does_not_cancel_live_posix_locks(tmp_path):
 
 def test_identity_probe_still_detects_replacement_after_fd_cache(tmp_path):
     """The cached-fd probe rebinds when the path names a new inode."""
-    from hermes_state import _read_sqlite_application_id
+    from hermes_db.infra.backends.sqlite.generation import _read_sqlite_application_id
 
     live = tmp_path / "state.db"
     other = tmp_path / "other.db"

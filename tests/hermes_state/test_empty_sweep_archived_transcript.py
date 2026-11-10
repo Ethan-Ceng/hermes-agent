@@ -57,11 +57,11 @@ def _seed(db, session_id, turns=4):
 
 def _row_counts(db, session_id):
     """(message_count column, real rows on disk) for *session_id*."""
-    with db._lock:
-        counter = db._conn.execute(
+    with db._connections._lock:
+        counter = db._connections._conn.execute(
             "SELECT message_count FROM sessions WHERE id = ?", (session_id,)
         ).fetchone()["message_count"]
-        rows = db._conn.execute(
+        rows = db._connections._conn.execute(
             "SELECT COUNT(*) AS n FROM messages WHERE session_id = ?", (session_id,)
         ).fetchone()["n"]
     return counter, rows

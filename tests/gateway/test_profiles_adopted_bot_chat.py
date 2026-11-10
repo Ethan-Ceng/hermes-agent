@@ -19,17 +19,17 @@ def test_adopted_hidden_bot_chat_is_canonical_but_not_recent(tmp_path, monkeypat
         receipt = {'session_id': sid, 'legacy_session_id': sid, 'profile_id': str(tmp_path),
                    'principal_id': actor.subject, 'route': 'agent:main:local:dm:' + sid,
                    'entry': {'origin': {'platform': 'local', 'chat_id': sid, 'user_id': actor.subject}}}
-        with db._lock:
-            bind_legacy_target(db, db._conn, receipt)
-            db._conn.commit()
+        with db._connections._lock:
+            bind_legacy_target(db, db._connections._conn, receipt)
+            db._connections._conn.commit()
         authority = SimpleNamespace(db=db, profile_id=str(tmp_path))
-        before = db._conn.total_changes
+        before = db._connections._conn.total_changes
         row = _profiles(authority, actor, tmp_path, {})['profiles'][0]
         assert row['canonical_session'] is not None, 'adopted Bot Chat disappeared from roster'
         assert row['canonical_session']['resolved_id'] == sid
         assert row['canonical_session']['preview'] == 'The retained bot reply'
         assert row['last_session'] is None, 'a hidden Bot Chat is never the newest listed conversation'
-        assert db._conn.total_changes == before, 'discovery must remain read-only'
+        assert db._connections._conn.total_changes == before, 'discovery must remain read-only'
         assert db.get_session(sid)['chat_id'] == sid
 
         foreign = SessionActor('other-owner', str(tmp_path), actor.capabilities, 'other')

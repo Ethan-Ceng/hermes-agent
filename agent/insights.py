@@ -166,7 +166,7 @@ class InsightsEngine:
         from hermes_db.health import is_postgresql_store
         if is_postgresql_store(db):
             return
-        self._conn = db._conn
+        self._conn = db._connections._conn
         try:
             self._has_assistant_calls_index = bool(self._conn.execute(
                 "SELECT 1 FROM sqlite_master WHERE type='index' AND name=?", (self._MESSAGES_ASSISTANT_CALLS_INDEX,)).fetchone())

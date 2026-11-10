@@ -67,12 +67,12 @@ def _mk_session(
         db.append_message(
             session_id, "user" if i % 2 == 0 else "assistant", f"m{i}"
         )
-    with db._lock:
+    with db._connections._lock:
         if keyed:
             # ``create_session`` on main does not carry presentation/origin
             # metadata into the INSERT — set it the way the gateway's
             # per-turn peer refresh does, so the donor row is realistic.
-            db._conn.execute(
+            db._connections._conn.execute(
                 "UPDATE sessions SET origin_json = ?, display_name = ? "
                 "WHERE id = ?",
                 (
@@ -82,23 +82,23 @@ def _mk_session(
                 ),
             )
         if started_at is not None:
-            db._conn.execute(
+            db._connections._conn.execute(
                 "UPDATE sessions SET started_at = ? WHERE id = ?",
                 (started_at, session_id),
             )
         if messages:
             # Message timestamps feed the recency expression; pin them to the
             # session window so tests control contiguity deterministically.
-            db._conn.execute(
+            db._connections._conn.execute(
                 "UPDATE messages SET timestamp = ? WHERE session_id = ?",
                 (last_activity_at or started_at, session_id),
             )
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET last_activity_at = ?, ended_at = ?, "
             "end_reason = ? WHERE id = ?",
             (last_activity_at, ended_at, end_reason, session_id),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
 
 def _incident(db, *, parent_link=False):
@@ -129,8 +129,8 @@ def _incident(db, *, parent_link=False):
 
 
 def _last_activity(db, session_id):
-    with db._lock:
-        row = db._conn.execute(
+    with db._connections._lock:
+        row = db._connections._conn.execute(
             "SELECT last_activity_at FROM sessions WHERE id = ?", (session_id,)
         ).fetchone()
     return row["last_activity_at"]
@@ -154,16 +154,16 @@ class TestDetection:
         # Push the predecessor far outside the contiguity window: a recorded
         # lineage is a fact, not a guess, so it must still resolve.
         long_ago = time.time() - 400 * 86400
-        with db._lock:
-            db._conn.execute(
+        with db._connections._lock:
+            db._connections._conn.execute(
                 "UPDATE sessions SET last_activity_at = ? WHERE id = ?",
                 (long_ago, stale),
             )
-            db._conn.execute(
+            db._connections._conn.execute(
                 "UPDATE messages SET timestamp = ? WHERE session_id = ?",
                 (long_ago, stale),
             )
-            db._conn.commit()
+            db._connections._conn.commit()
         record = db.find_orphaned_gateway_sessions()[0]
         assert record["orphan_id"] == orphan
         assert record["donor_id"] == stale
@@ -188,12 +188,12 @@ class TestDetection:
             end_reason="agent_close",
             messages=2,
         )
-        with db._lock:
-            db._conn.execute(
+        with db._connections._lock:
+            db._connections._conn.execute(
                 "UPDATE sessions SET session_key = ? WHERE id = ?",
                 ("agent:main:telegram:dm:999", "20260803_120104_other"),
             )
-            db._conn.commit()
+            db._connections._conn.commit()
         record = db.find_orphaned_gateway_sessions()[0]
         assert record["adoptable"] is False
         assert "ambiguous" in record["reason"]
@@ -215,12 +215,12 @@ class TestDetection:
 
     def test_delegate_children_are_not_orphans(self, db):
         stale, orphan = _incident(db)
-        with db._lock:
-            db._conn.execute(
+        with db._connections._lock:
+            db._connections._conn.execute(
                 "DELETE FROM messages WHERE session_id = ?", (orphan,)
             )
-            db._conn.execute("DELETE FROM sessions WHERE id = ?", (orphan,))
-            db._conn.commit()
+            db._connections._conn.execute("DELETE FROM sessions WHERE id = ?", (orphan,))
+            db._connections._conn.commit()
         _mk_session(
             db,
             "20260806_161836_delegate",
@@ -234,11 +234,11 @@ class TestDetection:
 
     def test_a_predecessor_of_another_platform_is_not_a_donor(self, db):
         stale, _ = _incident(db)
-        with db._lock:
-            db._conn.execute(
+        with db._connections._lock:
+            db._connections._conn.execute(
                 "UPDATE sessions SET source = 'discord' WHERE id = ?", (stale,)
             )
-            db._conn.commit()
+            db._connections._conn.commit()
         record = db.find_orphaned_gateway_sessions()[0]
         assert record["adoptable"] is False
         assert record["donor_id"] is None
@@ -283,22 +283,22 @@ class TestAdoption:
 
     def test_existing_columns_are_never_overwritten(self, db):
         stale, orphan = _incident(db)
-        with db._lock:
-            db._conn.execute(
+        with db._connections._lock:
+            db._connections._conn.execute(
                 "UPDATE sessions SET display_name = ? WHERE id = ?",
                 ("Renamed", orphan),
             )
-            db._conn.commit()
+            db._connections._conn.commit()
         db.adopt_orphaned_gateway_session(orphan, stale)
         assert db.get_session(orphan)["display_name"] == "Renamed"
 
     def test_cross_source_adoption_is_refused(self, db):
         stale, orphan = _incident(db)
-        with db._lock:
-            db._conn.execute(
+        with db._connections._lock:
+            db._connections._conn.execute(
                 "UPDATE sessions SET source = 'discord' WHERE id = ?", (orphan,)
             )
-            db._conn.commit()
+            db._connections._conn.commit()
         assert db.adopt_orphaned_gateway_session(orphan, stale) is False
         assert db.get_session(orphan)["session_key"] is None
 
@@ -311,12 +311,12 @@ class TestAdoption:
 
 
 def _stamp_profile(db, session_id, profile_name):
-    with db._lock:
-        db._conn.execute(
+    with db._connections._lock:
+        db._connections._conn.execute(
             "UPDATE sessions SET profile_name = ? WHERE id = ?",
             (profile_name, session_id),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
 
 def test_donor_must_share_the_orphans_profile(tmp_path, monkeypatch):
@@ -343,9 +343,9 @@ def test_donor_must_share_the_orphans_profile(tmp_path, monkeypatch):
         record = store.find_orphaned_gateway_sessions()[0]
         assert record["adoptable"] is True and record["donor_id"] == stale
 
-        with store._lock:  # same fence on the lineage path
-            store._conn.execute("UPDATE sessions SET parent_session_id = ? WHERE id = ?", (stale, orphan))
-            store._conn.commit()
+        with store._connections._lock:  # same fence on the lineage path
+            store._connections._conn.execute("UPDATE sessions SET parent_session_id = ? WHERE id = ?", (stale, orphan))
+            store._connections._conn.commit()
         _stamp_profile(store, stale, "bot2")
         record = store.find_orphaned_gateway_sessions()[0]
         assert record["adoptable"] is False and record["donor_id"] is None

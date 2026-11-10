@@ -138,7 +138,7 @@ def test_repair_restores_missing_indexed_column(tmp_path, monkeypatch):
     assert sessions_cmd._cmd_repair(SimpleNamespace(check_only=False, no_backup=False)) in (None, 0)
     with _open_session_db_at_path(path, read_only=True) as db:
         assert [row['content'] for row in db.get_messages('retained')] == ['history survives']
-        assert db._conn.execute("SELECT name FROM sqlite_master WHERE name='idx_async_delegations_delivery'").fetchone()
+        assert db._connections._conn.execute("SELECT name FROM sqlite_master WHERE name='idx_async_delegations_delivery'").fetchone()
 
 
 @pytest.mark.parametrize('backup', [True, False])
@@ -150,5 +150,5 @@ def test_explicit_repair_restores_readonly_history(tmp_path, monkeypatch, backup
     with _open_session_db_at_path(path, read_only=True) as db:
         assert [row['content'] for row in db.get_messages('retained')] == ['history survives']
         assert db.session_count() == 1
-        assert db._conn.execute('SELECT version FROM schema_version').fetchone()[0] == SCHEMA_VERSION
+        assert db._connections._conn.execute('SELECT version FROM schema_version').fetchone()[0] == SCHEMA_VERSION
     assert sessions_cmd._cmd_repair(SimpleNamespace(check_only=True)) in (None, 0)

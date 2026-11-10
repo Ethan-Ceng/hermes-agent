@@ -31,8 +31,8 @@ async def test_unified_runs_are_listed_with_legacy_runs_and_only_for_their_job(o
     beta = jobs.create_job(prompt='beta report', schedule='every 1h', deliver='local')['id']
     legacy = f'cron_{alpha}_20261011_120000'
     db.create_session(legacy, source='cron')  # a run from before the unified runtime
-    db._conn.execute('UPDATE sessions SET started_at = started_at - 86400 WHERE id = ?', (legacy,))
-    db._conn.commit()
+    db._connections._conn.execute('UPDATE sessions SET started_at = started_at - 86400 WHERE id = ?', (legacy,))
+    db._connections._conn.commit()
     alpha_run, alpha_fire = await admit_fire(owner, alpha)
     beta_run, beta_fire = await admit_fire(owner, beta)
     assert alpha_run.startswith('local-') and beta_run.startswith('local-')
@@ -80,7 +80,7 @@ async def test_an_execution_id_admitted_with_a_colon_before_the_upgrade_keeps_it
         owner, 'submit', dict(params, request_id=_PreUpgradeRequestId('fire:1')))
 
     def admissions():
-        return owner.db._conn.execute('SELECT admission_id, request_id FROM session_admissions').fetchall()
+        return owner.db._connections._conn.execute('SELECT admission_id, request_id FROM session_admissions').fetchall()
     before = [tuple(r) for r in admissions()]
 
     assert await session_cron.operation(owner, 'submit', params) == receipt

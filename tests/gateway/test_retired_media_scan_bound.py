@@ -23,16 +23,17 @@ def _trace_messages_scans(db):
             finally:
                 conn.set_trace_callback(None)
     db._read_ctx = traced
-    db._conn.set_trace_callback(trace)
+    db._connections._conn.set_trace_callback(trace)
     return seen
 
 
-def test_candidates_share_one_messages_pass(owner, tmp_path, monkeypatch):
-    from gateway.session_ingress_media import _media_root
+def test_candidates_share_one_messages_pass(owner, tmp_path, tmp_path_factory, monkeypatch):
     from hermes_db.domains.runtime.receipts import RETIRED_MEDIA_PREFIX as PREFIX
     from hermes_state_media import collect_retired_media
     monkeypatch.setenv('HERMES_HOME', str(tmp_path))
-    db, root = owner.db, _media_root()
+    root = tmp_path_factory.mktemp("media")
+    monkeypatch.setattr("gateway.session_ingress_media._media_root", lambda: root)
+    db = owner.db
     db.create_session('keep', source='api_server')
     references = []
     for index in range(6):

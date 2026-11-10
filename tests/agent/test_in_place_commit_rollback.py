@@ -88,10 +88,10 @@ def _seed(db, sid, n=8):
 
 
 def _counts(db, sid):
-    total = db._conn.execute(
+    total = db._connections._conn.execute(
         "SELECT COUNT(*) FROM messages WHERE session_id = ?", (sid,)
     ).fetchone()[0]
-    active = db._conn.execute(
+    active = db._connections._conn.execute(
         "SELECT COUNT(*) FROM messages WHERE session_id = ? AND active = 1", (sid,)
     ).fetchone()[0]
     return total, active

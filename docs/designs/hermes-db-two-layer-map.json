@@ -39,7 +39,7 @@
     {
       "id": 4,
       "title": "分离SessionDB连接状态、池与关闭语义",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         3
       ]
@@ -236,8 +236,10 @@
     },
     {
       "path": "hermes_cli/db_session_schema.py",
-      "task": 7,
-      "layer": "application"
+      "task": 4,
+      "layer": "application",
+      "follow_up_task": 7,
+      "reason": "Application quarantine/capture and writer configuration moved with connection ownership now; explicit schema lifecycle follows in Task7."
     },
     {
       "path": "hermes_cli/db_domains.py",
@@ -254,6 +256,22 @@
       "task": 16,
       "layer": "documentation",
       "reason": "Thin local ownership/routing rules for real infra/business/application boundaries; root-to-area chain limits remain enforced."
+    },
+    {
+      "path": "tests/hermes_state/test_schema_reconcile_error_handling.py",
+      "task": 4,
+      "layer": "test-relocation",
+      "reason": "All four original normal schema reconciliation tests and their helper class moved intact; no test retired."
+    },
+    {
+      "path": "tests/tui_gateway/threading_stubs.py",
+      "task": 4,
+      "layer": "test-support"
+    },
+    {
+      "path": "tests/tui_gateway/test_remote_cwd_shape.py",
+      "task": 4,
+      "layer": "test"
     }
   ],
   "new_behavior_tests": [
@@ -318,6 +336,18 @@
       "task": 10,
       "contract": "Real PG concurrent reference publication, original locks and commit-ACK loss preserve safety with effects in application owner.",
       "status": "pending"
+    },
+    {
+      "path": "tests/hermes_state/test_session_resource_initialization.py",
+      "task": 4,
+      "contract": "Driver preparation failure is recorded through the public initialization diagnostic before any profile file creation; demonstrated red then green on this refactor.",
+      "status": "in_progress"
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_session_connection_pool.py",
+      "task": 4,
+      "contract": "Separate process rejects application/PG imports, reads real SQLite data through the concrete resource and closes in-flight readers on return after shutdown.",
+      "status": "in_progress"
     }
   ],
   "fixed_anchors": {
@@ -1194,7 +1224,7 @@
     "external_sources": [
       {
         "path": "hermes-db-two-layer-map/sources-native.json",
-        "sha256": "8c2998bdf3a159e5f8e0a67f8de1bee4139864f77bf2152bb02f7ef710af6790",
+        "sha256": "135b2030010c751d3c33a16a9dc7804778bdcce6a820105fe33d912772f88400",
         "items": 141
       }
     ],
@@ -1308,6 +1338,11 @@
         "db_sqlite_policy.initialize_profile_sqlite: explicit business Schema lifecycle",
         "infra.schema.initialize_database: explicit callback execution and failure-close"
       ]
+    },
+    {
+      "task": 4,
+      "reason": "Actual method bodies mix business compression/FTS/snapshot/Schema with driver mechanisms; readpool helper was listed as Task16 consumer only",
+      "resolution": "Keep real business decisions in session/application owners; extract concrete state/pool/transaction mechanisms without passing SessionDB self; move readpool implementation with Task4."
     }
   ],
   "task2_commit": "124302809fe656ee33c3cfedecef7de8ed61cc0e",
@@ -1319,5 +1354,54 @@
     "response": "Proceeding with existing dependency plan under continuation allowing temporary states; <=359/root11 remain final blocking gates. No intermediate count is presented as final acceptance.",
     "code_changed": false
   },
-  "task3_intermediate_db_modules": 366
+  "task3_intermediate_db_modules": 366,
+  "task3_commit": "a3fb7f4b5644c3dbb5a5225996099af4a107567e",
+  "task4_adjustment": {
+    "status": "completed",
+    "intermediate_db_modules": 368,
+    "final_hard_cap": 359,
+    "forensic_file_owner": "hermes_cli/db_session_schema.py",
+    "resource_owns": [
+      "writer connection",
+      "writer lock",
+      "read pool",
+      "per-path and per-process FD budget",
+      "generation identity",
+      "unsafe-close retirement"
+    ],
+    "business_retained": [
+      "compression/FTS/health transaction decisions",
+      "state_meta stamp",
+      "snapshot pin",
+      "token drain and shared registry release"
+    ],
+    "driver_transaction": "SQLiteConnections.write_transaction; no application object retained",
+    "test_relocation": "TestReconcileColumnsErrorHandling moves intact from giant test_hermes_state.py into test_schema_reconcile_error_handling.py; no test deletion",
+    "environment_correction": "Windows C temp had <1GiB vs unchanged 10GiB headroom. Final dev batches use an independently owned random D temporary root outside the installation tree; no production workspace rule changed.",
+    "baseline_host_proofs": [
+      "two Linux flock/proc-lock tests fail on exact 0d Windows source",
+      "two live-file replacement teardown tests fail WinError32 on exact 0d Windows source",
+      "interrupted snapshot test has global clock teardown error on exact 0d source; clock restored before cleanup",
+      "Both unchanged TUI workspace tests reproduced on exact0d with temp inside its install tree; both pass with independent outside-tree D temp"
+    ],
+    "freeze_source_hash": "a8996da469633348f8d68a14ef4d7aa9b711ccdbdb997240433a874ca9e78f1b",
+    "native_external_test_files": 105,
+    "technical_error_classifier": "Actual pure predicates now reside in existing SQLite runtime module; stable primary codes5/6 verified against linked SQLite without making import-safe interpreter diagnostics import _sqlite3.",
+    "structural_damage_owner": "SQLiteConnections holds the only physical flag/cause; SessionDB retains provenance and profile health workflow",
+    "metadata_probe": "Original transient read IOERR retry and final application health publication preserved",
+    "baseline_consumer_fixes": [
+      "Explicitly close caller-owned compaction DB before TemporaryDirectory cleanup",
+      "Keep application synchronous Thread fixture while preserving subprocess native Thread/Lock at its own dependency seam",
+      "Use a short owned media fixture root while retaining API filename/hash, bounded scans and collection assertions",
+      "Escape a literal Windows profile path in regex assertion",
+      "Original dangling file-symlink assertion preserved for POSIX; native Windows lacks file-symlink privilege, not counted as tested and does not clear the original Profile8 defects",
+      "SSH target absolute paths recognized independently of control-host Windows path rules; exact0d reproduction and history a0fe806c46e729894c60e5dd25154400d179b231 checked"
+    ],
+    "expanded_windows_python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+    "original_windows_python_retained": true,
+    "native_external_fixture_files": 1,
+    "late_import_audit": "Standalone module-scope binding audit includes conditional imports; all actual moved-symbol imports resolved, including the forensic header parser.",
+    "expanded_thread_fixture_consumers": 22
+  },
+  "task4_evidence": "docs/designs/hermes-db-two-layer-task4.json"
 }

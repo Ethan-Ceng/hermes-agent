@@ -12,67 +12,52 @@ import hashlib
 import json
 import logging
 import os
-import queue
 import random
 import re
 import sqlite3
-import stat
 import sys
 import threading
 import time
 import uuid
 from collections import deque
-from contextlib import contextmanager, suppress
+from contextlib import contextmanager
 from pathlib import Path
 from hermes_dir_acl import make_user_dir
 
 from hermes_constants import get_hermes_home, mkdir_under_hermes_home
-from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, TypeVar, cast
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, TypeVar
 
-from hermes_state_common import (
-    TITLE_SOURCE_DERIVED as _TITLE_SOURCE_DERIVED, TITLE_SOURCE_LLM as _TITLE_SOURCE_LLM,
-    TITLE_SOURCE_USER as _TITLE_SOURCE_USER,
-    escape_like as _escape_like, _placeholders,
-    stat_db_file_identity as _stat_db_file_identity,
-)
+from hermes_state_common import TITLE_SOURCE_DERIVED as _TITLE_SOURCE_DERIVED, TITLE_SOURCE_LLM as _TITLE_SOURCE_LLM, TITLE_SOURCE_USER as _TITLE_SOURCE_USER, escape_like as _escape_like, _placeholders
 from hermes_state_holders import read_only_db_uri
 from hermes_state_pidns import holder_pid_checkable
 from hermes_state_health import (
     STORAGE_CORRUPT, mark_storage_corrupt, note_storage_error, storage_corrupt_reason, storage_state,
 )
-from hermes_state_errors import (
-    _DELETED_WAL_GENERATION_MSG, _DISK_IO_ERROR_MARKER, _STATE_DB_CORRUPT_MSG, _STATE_DB_GENERATION_KEY,
-    _STATE_DB_REPLACED_MSG, DeletedWalGenerationError, SessionCompressionInProgressError, StateDbCorruptError,
-    StateDbReplacedError, _is_no_more_rows, classify_persistence_error, is_malformed_db_error,
-    is_malformed_schema_error, is_sqlite_lock_error,
-)
+from hermes_state_errors import _DELETED_WAL_GENERATION_MSG, _DISK_IO_ERROR_MARKER, _STATE_DB_CORRUPT_MSG, _STATE_DB_GENERATION_KEY, _STATE_DB_REPLACED_MSG, SessionCompressionInProgressError, StateDbCorruptError, _is_no_more_rows, classify_persistence_error, is_malformed_db_error, is_malformed_schema_error
+from hermes_db.infra.backends.sqlite.runtime import is_sqlite_lock_error
+from hermes_db.infra.backends.sqlite.generation import DeletedWalGenerationError, StateDbReplacedError
 from hermes_state_guard import (
     _STATE_DB_GUARD_BYPASS_ENV, _in_test_context, _is_production_state_db, _real_platform_state_root,
     _register_test_instance, _set_last_init_error, get_last_init_error,
 )
-from hermes_state_readpool import _READ_POOL_MAX, _proc_fd_targets, _read_budget_for
+from hermes_db.infra.backends.sqlite.session_connections import SQLiteConnections
 from hermes_state_sessions import SessionSessionsMixin
 from hermes_state_fts import SessionFtsSetupMixin
 from hermes_state_portability import SessionPortabilityMixin
 from hermes_state_telegram import SessionTelegramTopicsMixin
 from hermes_state_schema import SessionSchemaMixin
 import hermes_state_holders as _state_holders
-import hermes_db.infra.backends.sqlite.lockguard as _lockguard
 from hermes_state_lockowners import log_write_lock_holders
-from hermes_state_dbfile import (
-    _connect_tracked_db, _fd_is_truly_unlinked, _prepare_connection_retirement,
-    _read_sqlite_application_id, _stat_sqlite_sidecar_identity,
-    _watched_sqlite_sidecar_paths, has_invalid_sqlite_header_preopen, is_zeroed_state_db, quarantine_cross_process_lock,
-    quarantine_invalid_state_db,
-    RetiredGenerationCaptureError, capture_retired_wal_generation, refuse_deleted_wal_generation,
-)
+from hermes_db.infra.backends.sqlite.generation import refuse_deleted_wal_generation
+from hermes_cli import db_session_schema
+from hermes_cli.db_session_schema import _secure_state_db_files
 from hermes_state_messages import SessionMessagesMixin
 from hermes_state_prune_rewrite import SessionPruneRewriteMixin
 from hermes_state_api_content import SessionApiContentMixin
 from hermes_state_coverage import SessionCoverageMixin
 from hermes_state_rewind import SessionRewindMixin
-from hermes_db.infra.backends.sqlite.wal import _WAL_INCOMPAT_MARKERS, _on_disk_journal_mode
-from hermes_cli.db_sqlite_policy import apply_database_pragmas, apply_wal_with_fallback
+from hermes_db.infra.backends.sqlite.wal import _WAL_INCOMPAT_MARKERS
+from hermes_cli.db_sqlite_policy import apply_database_pragmas, capture_database_pragmas
 from hermes_state_repair import _claim_repair_attempt, preflight_db_writability, repair_state_db_schema
 from hermes_state_titles import SessionTitlesMixin
 from hermes_state_prompt_refresh import SessionPromptRefreshMixin
@@ -181,7 +166,6 @@ DEFAULT_DB_PATH = _IMPORT_DEFAULT_DB_PATH = get_hermes_home() / "state.db"
 
 # Back off from read-only opens after one fails: not per query, but short enough that
 # transient fd pressure doesn't strand the read pool.
-_READ_OPEN_RETRY_SECONDS = 60.0
 # Transient SQLITE_IOERR retry budget for READ-ONLY opens (#100436): a WAL writer's checkpoint/
 # reset/frame flush surfaces "disk I/O error" to a concurrent mode=ro reader for a millisecond-
 # wide window — the ro connection cannot perform WAL recovery because recovery writes the -shm
@@ -243,63 +227,6 @@ def _ensure_test_isolation(db_path: Path) -> None:
             )
 
 
-def _secure_state_db_files(db_path: Path, *, create_main: bool = False) -> None:
-    """Create/tighten a writable state database and its sidecars to 0600.
-
-    SQLite otherwise creates ``state.db``, ``-wal``, and ``-shm`` according to
-    the process umask (commonly 0644 under 0022). Read-only SessionDB
-    attachments never call this helper and remain observational.
-
-    Existing files are tightened with ``chmod(2)`` on the path: opening the
-    file and closing that descriptor would drop every POSIX ``fcntl`` lock the
-    process holds on its inode — including the locks of an already-open SQLite
-    connection to the same database. A lock-losing close in one process lets a
-    sibling's connection take the shared-memory DMS exclusively at its own
-    close, checkpoint, and unlink the sidecars while long-lived holders
-    (gateway, desktop ``hermes serve``) keep using the deleted inodes.
-    """
-    if os.name == "nt":
-        return
-
-    main_path = db_path
-    if create_main:
-        # O_EXCL: only a brand-new inode gets a descriptor. Opening an existing
-        # file here and closing it would drop this process's POSIX locks on it.
-        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
-        if hasattr(os, "O_NOFOLLOW"):
-            flags |= os.O_NOFOLLOW
-        if hasattr(os, "O_CLOEXEC"):
-            flags |= os.O_CLOEXEC
-        try:
-            fd = os.open(main_path, flags, 0o600)
-        except FileExistsError:
-            pass
-        except IsADirectoryError:
-            # Not a database file at all; sqlite3.connect() raises the
-            # canonical error for this, and a directory leaks no row data.
-            return
-        else:
-            os.close(fd)
-
-    for path in (
-        main_path,
-        db_path.with_name(db_path.name + "-wal"),
-        db_path.with_name(db_path.name + "-shm"),
-    ):
-        # fchmod on an fd of a pre-existing file cannot be used here: close(fd)
-        # would release this process's POSIX locks on that inode, stripping the
-        # locks of any live SQLite connection to the same database. chmod(2)
-        # never opens the file, so it leaves the lock state untouched.
-        try:
-            st = os.lstat(path)
-        except FileNotFoundError:
-            continue
-        if stat.S_ISLNK(st.st_mode):
-            # Refuse a planted symlink exactly like O_NOFOLLOW would.
-            continue
-        if not stat.S_ISREG(st.st_mode):
-            continue
-        os.chmod(path, 0o600)
 
 
 # Openings of the background-review harness prompts (agent/background_review.py).
@@ -371,10 +298,6 @@ _REPAIR_LOCK_TIMEOUT_SECONDS = 120.0
 _IS_WINDOWS = sys.platform == "win32"
 
 
-def _close_time_checkpoint_configurable() -> bool:
-    """Whether this runtime can switch off SQLite's close-time checkpoint (Python 3.12+ ``setconfig``)."""
-    return (getattr(sqlite3, "SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE", None) is not None
-            and hasattr(sqlite3.Connection, "setconfig"))
 
 
 def divert_session_transcript_jsonl(session_id: str, messages) -> Optional[Path]:
@@ -508,22 +431,7 @@ class SessionDB(
                         data["_branched_from"] = value.strip()
         return data
 
-    @staticmethod
-    def _close_connection_quietly(conn: Optional[sqlite3.Connection]) -> None:
-        """Close a partially initialized connection without masking its error."""
-        if conn is None:
-            return
-        try:
-            conn.close()
-        except Exception:
-            logger.debug("Could not close a SessionDB connection", exc_info=True)
 
-    def _close_conn_logged(self, conn, label: str) -> None:
-        """Close *conn*; a failing close leaks a tracked fd: logged at WARNING, never swallowed."""
-        try:
-            conn.close()
-        except Exception as exc:
-            logger.warning("%s close failed for %s: %s", label, self.db_path, exc)
 
     def __init__(self, db_path: Path | None = None, read_only: bool = False):
         self.db_path = db_path or _default_db_path()
@@ -541,47 +449,17 @@ class SessionDB(
             pass  # Diagnostic metadata must not prevent opening the database.
         finally:
             del caller
-        self._lock = threading.Lock()
-        # Read-path split (WAL only): reads borrow from a BOUNDED read-only pool so they
-        # never queue behind writer flushes on self._lock (see _read_ctx); unbounded
-        # per-thread connections pinned fds for the process lifetime and hit EMFILE.
-        self._read_pool: queue.LifoQueue[sqlite3.Connection] = queue.LifoQueue(maxsize=_READ_POOL_MAX)
-        # Permits bound PEAK descriptors (the pool bounds only the idle set), shared per
-        # DATABASE PATH; acquired non-blocking so a permitless reader degrades to the writer lock.
-        # One permit per live read connection, held from before the open in _get_read_conn() until after the
-        # close in _close_read_conn(). See _READ_POOL_MAX. Acquired non-blocking on purpose: a reader that
-        # cannot get a permit must degrade to the writer lock, not queue here — blocking would convert fd
-        # exhaustion into a stall, which is the same outage with a different stack trace. Permits are shared
-        # per DATABASE PATH, not per instance: the descriptors they ration belong to the file, and one
-        # process holds several SessionDB objects on the same state.db (#98573). See _PathReadBudget.
-        self._read_budget = _read_budget_for(self.db_path)
-        self._read_permits = self._read_budget.permits
-        self._read_conns_lock = threading.Lock()
-        # Set when close() begins; an in-flight reader then closes its own connection
-        # instead of re-populating a pool nobody will drain again.
-        self._read_conns_closed = False
-        # Read-open failure backoff is a TIMESTAMP, not a sticky bool: the likeliest trigger
-        # is transient EMFILE, and a permanent flag would demote every reader forever.
-        self._read_open_failed_at = 0.0
-        self._wal_active, self._write_count = False, 0
-        # File identity of the opened state.db, compared on every write so an out-of-band
-        # replace cannot limp through in-place surgery (inode: mv/new-file; application_id: cp).
-        self._db_file_identity: Optional[tuple] = None
-        self._db_file_application_id: int = 0
-        self._db_sidecar_identity: dict[str, tuple] = {}
-        self._db_replaced = self._db_wal_generation_lost = False
-        # Durable capture of a lost WAL generation (see _capture_retired_generation): once per handle.
-        self._retired_generation_capture: Optional[Path] = None
-        self._retired_capture_lock = threading.Lock()
-        self._retire_connection: Optional[Callable[[Any], None]] = None
-        self._connection_pinned = False  # one unmatched C reference taken at most once per handle
-        self._wal_lock_guard: dict = {}  # hermes_state_lockguard.hold() record, see _open_writer
-        self._db_corrupt, self._db_corrupt_reason = False, ""  # sticky quarantine (StateDbCorruptError)
+        self._connections = SQLiteConnections(
+            self.db_path, read_only=read_only, read_uri=read_only_db_uri(self.db_path),
+            pragmas=capture_database_pragmas(), creation_site=self._creation_site,
+            capture_retired=db_session_schema.capture_retired_wal_generation,
+            replaced_message=_STATE_DB_REPLACED_MSG, deleted_message=_DELETED_WAL_GENERATION_MSG,
+        )
+        self._write_count = 0
         self._fts_usermerge_floor_applied = False  # one-shot usermerge-floor write guard
         self._fts_enabled = self._fts_stale = self._trigram_available = False
         self._fts_unavailable_warned = False
-        self._conn = None
-        # Async token accounting; distinct from self._lock so enqueue/flush never contends with writes.
+        # Async token accounting; distinct from self._connections._lock so enqueue/flush never contends with writes.
         self._token_queue: deque = deque()
         self._token_queue_cond = threading.Condition(threading.Lock())
         self._token_writer_thread: Optional[threading.Thread] = None
@@ -596,13 +474,14 @@ class SessionDB(
             if read_only:
                 self._open_read_only()
             else:
-                # Where SQLite's close-time checkpoint cannot be switched off, a lost-generation handle
-                # is retired unclosed (see close()). Resolve that capability before opening a writer:
-                # late cleanup must not import ctypes or look up it in a cleared module dictionary.
-                if not _close_time_checkpoint_configurable():
-                    self._retire_connection = _prepare_connection_retirement()
+                self._connections.prepare_writer()
                 self._open_writer()
-            self._record_db_file_identity()
+            identity_error = self._connections._record_db_file_identity(
+                read_attempts=_READ_ONLY_IOERR_RETRY_ATTEMPTS,
+                read_backoff=_READ_ONLY_IOERR_RETRY_BACKOFF_S,
+            )
+            if identity_error is not None:
+                note_storage_error(self.db_path, identity_error)
             initialization_complete = True
         except Exception as exc:
             # Surface WHY via /resume and friends; callers keep their ``_session_db = None`` path.
@@ -610,12 +489,12 @@ class SessionDB(
             raise
         finally:
             if not initialization_complete:
-                conn, self._conn = self._conn, None
-                self._close_connection_quietly(conn)
+                conn, self._connections._conn = self._connections._conn, None
+                self._connections._close_connection_quietly(conn)
             else:
                 # Only a successfully opened handle owns a writer connection. Failed
                 # construction must not leave a diagnostic member behind.
-                self._read_budget.register(self)
+                self._connections.attach_writer(self._connections._conn, wal_active=self._connections._wal_active)
                 # Test-isolation runs only (gated inside the helper): register
                 # for the suite-level leak sweep in tests/conftest.py.
                 _register_test_instance(self)
@@ -629,11 +508,11 @@ class SessionDB(
         try:
             # Serialize zero-byte check, quarantine, connect and schema commit so concurrent
             # openers don't race the absent-path -> schema-commit window.
-            if not self.db_path.exists() or has_invalid_sqlite_header_preopen(self.db_path):
+            if not self.db_path.exists() or db_session_schema.has_invalid_sqlite_header_preopen(self.db_path):
                 # The directory must be writable before the lock file can be created in it; the
                 # directory never vanishes mid-quarantine, so checking it unlocked is race-free.
                 preflight_db_writability(self.db_path, db_label="state.db", directory_only=True)
-                with quarantine_cross_process_lock(self.db_path) as lock_acquired:
+                with db_session_schema.quarantine_cross_process_lock(self.db_path) as lock_acquired:
                     if not lock_acquired:
                         logger.warning(
                             "startup quarantine lock for %s not acquired within 5s; proceeding",
@@ -660,17 +539,13 @@ class SessionDB(
                 "state.db schema is malformed (%s) — attempting automatic "
                 "repair (a backup copy is made first).", exc,
             )
-            self._close_connection_quietly(self._conn)
+            self._connections._close_connection_quietly(self._connections._conn)
             if not repair_state_db_schema(self.db_path).get("repaired"):
                 raise
             self._connect_and_init_with_lock_patience()
         # FTS optimization is OPT-IN (`hermes db optimize`); no background worker races session lifecycle.
         self._ensure_db_file_generation()
-        if self._wal_active:
-            # OFD copies of the two POSIX locks that keep a sibling's close from unlinking this WAL
-            # generation: any in-process open()/close() of state.db or -shm cancels SQLite's own
-            # (howtocorrupt §2.2); these survive it. Lifted in close().
-            self._wal_lock_guard = _lockguard.hold(self.db_path)
+        self._connections.hold_wal_guard()
 
     def _open_read_only(self) -> None:
         """Read-only attach for cross-profile aggregation: no schema init, NO write
@@ -680,7 +555,7 @@ class SessionDB(
         leaked tracked connection cannot block the forensic backup the writable heal takes next."""
         for attempt in range(_READ_ONLY_IOERR_RETRY_ATTEMPTS + 1):
             try:
-                self._conn = conn = self._connect_read_only(timeout=_READ_BUSY_TIMEOUT_S)
+                self._connections._conn = conn = self._connections._connect_read_only(timeout=_READ_BUSY_TIMEOUT_S)
                 try:
                     apply_database_pragmas(conn, db_label="state.db")
                     cursor = conn.cursor()
@@ -690,8 +565,8 @@ class SessionDB(
                             self._fts_table_probe(cursor, "messages_fts_trigram") is True
                         )
                 except BaseException:
-                    self._conn = None
-                    self._close_connection_quietly(conn)
+                    self._connections._conn = None
+                    self._connections._close_connection_quietly(conn)
                     raise
                 return
             except sqlite3.OperationalError as ioerr:
@@ -706,26 +581,17 @@ class SessionDB(
                     raise
                 time.sleep(_READ_ONLY_IOERR_RETRY_BACKOFF_S)
 
-    def _connect_read_only(self, timeout: float) -> sqlite3.Connection:
-        """``mode=ro`` tracked connection with Row factory. check_same_thread=False: pooled connections
-        are borrowed by whichever thread reads next; exclusive ownership is enforced by pool checkout."""
-        conn = _connect_tracked_db(
-            read_only_db_uri(self.db_path), tracking_path=self.db_path, uri=True,
-            check_same_thread=False, timeout=timeout, isolation_level=None,
-        )
-        conn.row_factory = sqlite3.Row
-        return conn
 
     def _handle_quarantine_if_invalid(self, already_locked: bool = False) -> None:
         """Quarantine a zero-byte/headerless state.db so a fresh one can open; if quarantine failed,
         raise the clear message instead of opening the zeroed file."""
-        if not (self.db_path.exists() and has_invalid_sqlite_header_preopen(self.db_path)):
+        if not (self.db_path.exists() and db_session_schema.has_invalid_sqlite_header_preopen(self.db_path)):
             return
         try:
             zsize = self.db_path.stat().st_size
         except OSError:
             zsize = -1
-        qpath = quarantine_invalid_state_db(self.db_path, already_locked=already_locked)
+        qpath = db_session_schema.quarantine_invalid_state_db(self.db_path, already_locked=already_locked)
         where = f"moved aside to {qpath}" if qpath else "left in place (it could not be moved aside)"
         msg = (
             f"state.db was empty or damaged ({zsize} bytes) and has been {where}; Hermes started with a "
@@ -735,42 +601,18 @@ class SessionDB(
         )
         logger.error(msg)
         _set_last_init_error(msg)
-        if qpath is None and self.db_path.exists() and has_invalid_sqlite_header_preopen(self.db_path):
+        if qpath is None and self.db_path.exists() and db_session_schema.has_invalid_sqlite_header_preopen(self.db_path):
             raise sqlite3.DatabaseError(msg)
 
-    def _open_writer_conn(self) -> sqlite3.Connection:
-        """Connect + WAL/pragma setup for a writer connection (no schema init). Short timeout:
-        jittered application-level retry handles contention, not SQLite's busy handler;
-        isolation_level=None: explicit BEGIN IMMEDIATE."""
-        conn = _connect_tracked_db(
-            str(self.db_path), check_same_thread=False, timeout=1.0, isolation_level=None,
-        )
-        try:
-            conn.row_factory = sqlite3.Row
-            mode = apply_wal_with_fallback(conn, db_label="state.db")
-            # "wal" is also the *assumed* mode when the on-disk probe was blocked by a concurrent opener
-            # (#86515): the lock-free mode=ro read pool needs a confirmed WAL header, so confirm it here.
-            # Unknown -> reads queue on the writer lock (slow but correct) instead of racing SQLITE_BUSY
-            # on a file that may really be in rollback-journal mode.
-            self._wal_active = mode == "wal" and _on_disk_journal_mode(conn) == "wal"
-            # Existing WAL/SHM files may predate the main-file hardening;
-            # normalize any sidecars that became visible during WAL setup.
-            _secure_state_db_files(self.db_path)
-            apply_database_pragmas(conn, db_label="state.db")
-            conn.execute("PRAGMA foreign_keys=ON")
-        except BaseException:
-            self._close_connection_quietly(conn)
-            raise
-        return conn
 
     def _connect_and_init(self) -> None:
         # Refuse before sqlite3.connect (under the startup lock) so we cannot mint
         # a replacement WAL while a live writer still holds a deleted sidecar inode.
-        refuse_deleted_wal_generation(self.db_path)
+        refuse_deleted_wal_generation(self.db_path, message=_DELETED_WAL_GENERATION_MSG)
         # Create/tighten the main database before sqlite3.connect() so a
         # permissive process umask can never expose a fresh profile store.
         _secure_state_db_files(self.db_path, create_main=True)
-        self._conn = self._open_writer_conn()
+        self._connections._conn = db_session_schema.open_session_writer(self._connections)
         self._init_schema()
 
     def _connect_and_init_with_lock_patience(self) -> None:
@@ -792,7 +634,7 @@ class SessionDB(
             except sqlite3.OperationalError as exc:
                 if not is_sqlite_lock_error(exc):
                     raise
-                self._close_connection_quietly(self._conn)
+                self._connections._close_connection_quietly(self._connections._conn)
                 now = time.monotonic()
                 if now >= deadline:
                     log_write_lock_holders(self.db_path, self._WRITE_PATIENCE_S)
@@ -802,77 +644,15 @@ class SessionDB(
 
     # ── Read-path split ──
 
-    def _get_read_conn(self) -> Optional[sqlite3.Connection]:
-        """Open a fresh read-only connection, or None when unavailable (callers
-        return it to self._read_pool). WAL only: WAL readers never block on the
-        writer, so reads skip self._lock; under DELETE journal mode (NFS fallback)
-        readers hit SQLITE_BUSY storms, so the legacy locked path stays. Autocommit
-        reads see everything committed so far (read-your-writes for flush-then-search)."""
-        if not self._wal_active or self.read_only:
-            return None
-        with self._read_conns_lock:
-            failed_at = self._read_open_failed_at
-            backing_off = failed_at and time.monotonic() - failed_at < _READ_OPEN_RETRY_SECONDS
-            if self._read_conns_closed or backing_off:
-                return None
-        # Permit BEFORE the open: openers race for permits, not descriptors.
-        if not self._read_budget.acquire(self):
-            logger.debug(
-                "read pool at capacity (%d) for %s; serving this read from the "
-                "locked writer connection", _READ_POOL_MAX, self.db_path,
-            )
-            return None
-        conn = None  # bound before the try so the handlers can close a half-open one
-        try:
-            conn = self._connect_read_only(timeout=_READ_BUSY_TIMEOUT_S)
-            apply_database_pragmas(conn, db_label="state.db")
-        except BaseException as exc:
-            # A half-open connection (open ok, pragmas failed) is a live tracked descriptor,
-            # the leak shape this pool exists to fix; a stranded permit would shrink the read
-            # path by one slot forever. (Not _close_read_conn: callers release their own permit.)
-            if conn is not None:
-                self._close_conn_logged(conn, "partially-opened read conn")
-            self._read_budget.release()
-            if not isinstance(exc, sqlite3.Error):
-                raise
-            with self._read_conns_lock:
-                self._read_open_failed_at = time.monotonic()
-            logger.debug("read-only connection open failed for %s", self.db_path, exc_info=True)
-            return None
-        return conn
 
-    def _evict_one_idle_read_conn(self) -> bool:
-        """Close one idle pooled connection (a peer on the same file wants its permit); never a live one."""
-        try:
-            conn = self._read_pool.get_nowait()
-        except queue.Empty:
-            return False
-        self._close_read_conn(conn)
-        return True
 
-    def _close_read_conn(self, conn) -> None:
-        """Close a pooled read connection and release its permit even when the close fails (withholding
-        it would narrow the read path forever). Over-releasing the BoundedSemaphore raises ValueError."""
-        try:
-            self._close_conn_logged(conn, "read-conn")
-        finally:
-            self._read_budget.release()
 
-    def _checkout_read_conn(self) -> Optional[sqlite3.Connection]:
-        """Borrow a read connection, opening on a miss; None when the read path is unavailable.
-        A pool hit costs no permit (the connection already holds one)."""
-        if not self._wal_active or self.read_only:
-            return None
-        try:
-            return self._read_pool.get_nowait()
-        except queue.Empty:
-            return self._get_read_conn()
 
     @contextmanager
     def _read_ctx(self, *, reopen: bool = True, pooled_only: bool = False) -> Iterator[sqlite3.Connection]:
         """Yield a connection for read-only statements: a pooled read-only
         connection with NO lock under WAL; otherwise (non-WAL, open failure,
-        ceiling reached) the writer connection under self._lock — deliberate
+        ceiling reached) the writer connection under self._connections._lock — deliberate
         degradation: slower beats EMFILE, which the supervisor cannot see.
         ``reopen=False``: a read after ``close()`` raises instead of reopening the
         writer (an optional reader must not hold a home that is being deleted). Inside this thread's
@@ -882,50 +662,26 @@ class SessionDB(
         if pinned is not None:
             yield pinned
             return
-        conn = self._checkout_read_conn()
-        if conn is not None:
-            try:
+        with self._connections.pooled_read() as conn:
+            if conn is not None:
                 yield conn
-            finally:
-                returned = False
-                with self._read_conns_lock:
-                    if not self._read_conns_closed:
-                        try:
-                            self._read_pool.put_nowait(conn)
-                            returned = True
-                        except queue.Full:
-                            pass
-                if not returned:
-                    # close() drained the pool (or queue.Full: unreachable while
-                    # permits == maxsize, load-bearing if they drift): surplus.
-                    self._close_read_conn(conn)
-            return
+                return
         if pooled_only:
             yield None
             return
-        with self._lock:
-            if self._conn is None:  # close() raced a still-unwinding reader
+        with self._connections._lock:
+            if self._connections._conn is None:  # close() raced a still-unwinding reader
                 if not reopen:
                     raise sqlite3.ProgrammingError(f"SessionDB for {self.db_path} is closed")
                 self._reopen_after_close_locked(context="read")
-            conn = cast(sqlite3.Connection, self._conn)
-            if self._wal_active or self.read_only:  # WAL: no SHARED-lock wait; ro: opened with the read budget
+            with self._connections.read_locked_writer() as conn:
                 yield conn
-                return
-            # DELETE-mode writer connection: wait out a sibling's commit like a pooled reader would.
-            previous_ms = conn.execute("PRAGMA busy_timeout").fetchone()[0]
-            conn.execute(f"PRAGMA busy_timeout={int(_READ_BUSY_TIMEOUT_S * 1000)}")
-            try:
-                yield conn
-            finally:
-                with suppress(sqlite3.Error):
-                    conn.execute(f"PRAGMA busy_timeout={int(previous_ms)}")
 
     def _reopen_after_close_locked(self, context: str = "write") -> None:
         """Reopen the writer after ``close()`` raced a live caller (a teardown owner
         set ``_conn = None`` while a worker still had a transcript flush to land).
         Loud (WARNING) and bounded (only after an explicit close()). Caller holds
-        ``self._lock``. No _init_schema: no DDL races with siblings during teardown."""
+        ``self._connections._lock``. No _init_schema: no DDL races with siblings during teardown."""
         if self.read_only:
             raise sqlite3.ProgrammingError(
                 f"SessionDB for {self.db_path} was closed (read-only handle); "
@@ -933,27 +689,26 @@ class SessionDB(
             )
         # A reopen resolves the PATH again: a replaced file would be written through stale WAL/shm
         # assumptions; a quarantined handle must never hand a fresh connection to a damaged file.
-        if self._db_corrupt and not (self._db_replaced or self._db_file_was_replaced()):
+        if self._connections._db_corrupt and not (self._connections._db_replaced or self._connections._db_file_was_replaced()):
             raise self._corrupt_error(
                 f"state.db connection for {self.db_path} is quarantined after "
                 f"structural corruption; refusing to reopen for a {context} "
                 "after close(). "
             )
-        self._halt_if_db_generation_changed()
+        self._connections._halt_if_db_generation_changed()
         logger.warning(
             "state.db connection for %s was closed while a %s was still in "
             "flight — reopening (teardown/worker race, #94736)", self.db_path, context,
         )
         try:
-            self._conn = self._open_writer_conn()
+            self._connections._conn = db_session_schema.open_session_writer(self._connections)
         except Exception as exc:
             raise sqlite3.OperationalError(
                 f"state.db connection was closed while a {context} was still "
                 f"in flight (a session-teardown path called close() before "
                 f"this worker finished — #94736) and the automatic reopen failed: {exc}"
             ) from exc
-        if self._wal_active:  # a reopened writer is a live generation holder like the first open
-            self._wal_lock_guard = _lockguard.hold(self.db_path)
+        self._connections.hold_wal_guard()
 
     def _execute_write(
         self, fn: Callable[[sqlite3.Connection], T], patience_s: Optional[float] = None,
@@ -988,25 +743,17 @@ class SessionDB(
             # stable post-close state (identity cleared → adopt / reopen path).
             fn_started = False
             try:
-                with self._lock:
-                    self._raise_if_db_replaced()
-                    if self._conn is None:  # close() raced this writer
+                with self._connections._lock:
+                    self._connections._raise_if_db_replaced()
+                    if self._connections._conn is None:  # close() raced this writer
                         self._reopen_after_close_locked(context="write")
-                    self._conn.execute("BEGIN IMMEDIATE")
-                    try:
+                    with self._connections.write_transaction() as conn:
                         fn_started = True
-                        result = fn(self._conn)
-                        self._conn.commit()
-                    except BaseException:
-                        try:
-                            self._conn.rollback()
-                        except Exception:
-                            pass
-                        raise
+                        result = fn(conn)
                 # Success — periodic best-effort checkpoint + FTS merge.
                 self._write_count += 1
                 if self._write_count % self._CHECKPOINT_EVERY_N_WRITES == 0:
-                    self._try_wal_checkpoint()
+                    self._connections._try_wal_checkpoint()
                 if self._write_count % self._FTS_MERGE_EVERY_N_WRITES == 0:
                     self._try_incremental_merge_fts()
                 return result
@@ -1063,8 +810,8 @@ class SessionDB(
                         "not a database" in err_msg or is_malformed_db_error(exc)
                         or self._is_fts_write_corruption_error(exc)
                     ):
-                        with self._lock:
-                            self._raise_if_db_replaced()
+                        with self._connections._lock:
+                            self._connections._raise_if_db_replaced()
                     # Corrupt FTS shadow tables fail every write via the sync triggers while canonical
                     # rows are intact: detach the derived indexes atomically and retry (never rebuild here).
                     if self._enter_fts_fail_open(exc, deadline=deadline, patience_s=patience_s):
@@ -1131,151 +878,47 @@ class SessionDB(
 
         See #45383.
         """
-        if self.read_only or self._conn is None:
+        if self.read_only or self._connections._conn is None:
             return
         token = uuid.uuid4().hex
         try:
-            with self._lock:
+            with self._connections._lock:
                 # Read first: the stamp is minted once per file, and a no-op INSERT OR IGNORE
                 # still takes the write lock — under a sibling's transaction it blocked for the
                 # busy timeout and the except below then dropped the token entirely. First
                 # opener still wins via INSERT OR IGNORE; racers converge on the re-read.
-                row = self._conn.execute(
+                row = self._connections._conn.execute(
                     "SELECT value FROM state_meta WHERE key = ?", (_STATE_DB_GENERATION_KEY,),
                 ).fetchone()
                 if not (row and row[0]):
-                    self._conn.execute(
+                    self._connections._conn.execute(
                         "INSERT OR IGNORE INTO state_meta (key, value) VALUES (?, ?)",
                         (_STATE_DB_GENERATION_KEY, token),
                     )
-                    row = self._conn.execute(
+                    row = self._connections._conn.execute(
                         "SELECT value FROM state_meta WHERE key = ?",
                         (_STATE_DB_GENERATION_KEY,),
                     ).fetchone()
                 if row and row[0]:
                     token = str(row[0])
-                pragma_row = self._conn.execute("PRAGMA application_id").fetchone()
+                pragma_row = self._connections._conn.execute("PRAGMA application_id").fetchone()
                 current = int(pragma_row[0] or 0) if pragma_row else 0
                 if current == 0:
                     current = (int(token[:8], 16) & 0x7FFFFFFF) or 1
-                    self._conn.execute(f"PRAGMA application_id={current}")
-                self._db_file_application_id = current
+                    self._connections._conn.execute(f"PRAGMA application_id={current}")
+                self._connections._db_file_application_id = current
                 try:
-                    self._conn.execute("PRAGMA wal_checkpoint(PASSIVE)")
+                    self._connections._conn.execute("PRAGMA wal_checkpoint(PASSIVE)")
                 except sqlite3.Error:
                     pass
         except sqlite3.Error as exc:
             logger.debug("state.db generation stamp skipped: %s", exc)
 
-    def _record_db_file_identity(self) -> None:
-        """Snapshot inode plus the on-disk generation header when present."""
-        self._db_file_identity = _stat_db_file_identity(self.db_path)
-        self._db_sidecar_identity = _stat_sqlite_sidecar_identity(self.db_path)
-        disk_id = _read_sqlite_application_id(self.db_path)
-        if disk_id:
-            self._db_file_application_id = disk_id
-        elif self._conn is not None and not self._db_file_application_id:
-            try:
-                pragma_row = self._read_one("PRAGMA application_id")
-            except sqlite3.Error:
-                pragma_row = None
-            if pragma_row and pragma_row[0]:
-                self._db_file_application_id = int(pragma_row[0])
 
-    def _db_file_was_replaced(self) -> bool:
-        """True when the path no longer names the file this instance opened."""
-        recorded = self._db_file_identity
-        if recorded is not None and _stat_db_file_identity(self.db_path) != recorded:
-            return True
-        recorded_app = int(self._db_file_application_id or 0)
-        if not recorded_app:
-            return False
-        # Header 0 = WAL not yet checkpointed, not a replace; a real replacement is nonzero.
-        disk_app = _read_sqlite_application_id(self.db_path)
-        return bool(disk_app and disk_app != recorded_app)
 
-    def _wal_generation_was_lost(self) -> bool:
-        """True when the WAL/SHM generation this handle opened is gone. Recorded
-        generation: pure stat (no /proc walk on healthy writes). Empty identity
-        (WAL appeared after open, or cleared by a clean close()): probe
-        /proc/self/fd for deleted sidecars and adopt the current ones once clean."""
-        recorded = self._db_sidecar_identity or {}
-        base = os.fspath(self.db_path)
-        if recorded:
-            return any(
-                _stat_db_file_identity(Path(base + suffix)) != ident for suffix, ident in recorded.items()
-            )
-        if not self._wal_active:  # no sidecar generation to lose; keep /proc off the hot path
-            return False
-        if sys.platform.startswith("linux"):
-            watched = _watched_sqlite_sidecar_paths(self.db_path)
-            try:
-                for target, fd_path in _proc_fd_targets(os.getpid()):
-                    canonical = _state_holders.canonical_sqlite_path(target)
-                    if (" (deleted)" in target and canonical in watched
-                            and _fd_is_truly_unlinked(fd_path, watched[canonical])):
-                        return True
-            except OSError:
-                return False
-        # Probe clean (or unavailable): adopt the current sidecar generation.
-        current_identity = _stat_sqlite_sidecar_identity(self.db_path)
-        if current_identity:
-            self._db_sidecar_identity = current_identity
-        return False
 
-    def _halt_if_db_generation_changed(self) -> None:
-        """Stop writes (logging once) when the file was replaced or its WAL/SHM generation
-        is gone: never run in-file repair on a new generation, never keep committing on a
-        split WAL. Both flags are sticky."""
-        # A reopen resolves the PATH again — if the file at that path is no longer the one this instance
-        # originally opened (out-of-band restore/cp/mv), reconnecting would write into the new generation
-        # through stale WAL/shm assumptions (#89332). Refuse instead.
-        if self._db_replaced or self._db_file_was_replaced():
-            self._db_replaced = True
-            self._disable_close_time_checkpoint()
-            logger.error(_STATE_DB_REPLACED_MSG)
-            raise StateDbReplacedError(_STATE_DB_REPLACED_MSG)
-        if self._db_wal_generation_lost or self._wal_generation_was_lost():
-            self._db_wal_generation_lost = True
-            self._disable_close_time_checkpoint()
-            try:
-                self._capture_retired_generation("halt")
-            except RetiredGenerationCaptureError as exc:
-                logger.error(
-                    "Could not capture the retired WAL generation of %s at halt: %s. close() retries "
-                    "the capture and refuses to settle without it.", self.db_path, exc,
-                )
-            logger.error(_DELETED_WAL_GENERATION_MSG)
-            raise DeletedWalGenerationError(_DELETED_WAL_GENERATION_MSG)
 
-    def _capture_retired_generation(self, trigger: str) -> Path:
-        """Durably capture the lost WAL generation this handle still holds open, once per handle.
 
-        The quarantine keeps the retired frames from being checkpointed under wrong page numbers,
-        but they live only in an unlinked inode that dies with this process's last descriptor, and
-        the canonical DeletedWalGenerationError remediation is to stop the writers. Capturing at the
-        first halt (or at close(), whichever sees the loss first) makes "preserve" outlive the
-        process. Raises RetiredGenerationCaptureError; nothing is mutated on failure."""
-        with self._retired_capture_lock:
-            if self._retired_generation_capture is not None:
-                return self._retired_generation_capture
-            artifact = capture_retired_wal_generation(
-                self.db_path, sidecar_identity=dict(self._db_sidecar_identity or {}), trigger=trigger,
-            )
-            self._retired_generation_capture = artifact
-        logger.warning(
-            "Captured the retired WAL generation of %s at %s to %s; read its manifest.json before deciding "
-            "whether those frames belong on top of the file now at the path.", self.db_path, trigger, artifact,
-        )
-        return artifact
-
-    def _raise_if_db_replaced(self) -> None:
-        """Sticky-flag fast path (no log spam on every write), then the live probe."""
-        if self._db_replaced:
-            raise StateDbReplacedError(_STATE_DB_REPLACED_MSG)
-        if self._db_wal_generation_lost:
-            raise DeletedWalGenerationError(_DELETED_WAL_GENERATION_MSG)
-        self._halt_if_db_generation_changed()
 
     @classmethod
     def _is_structural_corruption_error(cls, exc: BaseException) -> bool:
@@ -1290,16 +933,16 @@ class SessionDB(
 
     def _corrupt_error(self, prefix: str = "") -> StateDbCorruptError:
         """Build the quarantine error for this handle (message assembled once)."""
-        return StateDbCorruptError(f"{prefix}{_STATE_DB_CORRUPT_MSG} (cause: {self._db_corrupt_reason})")
+        return StateDbCorruptError(f"{prefix}{_STATE_DB_CORRUPT_MSG} (cause: {self._connections._db_corrupt_reason})")
 
     def _halt_db_corrupt(self, exc: BaseException) -> None:
         """Quarantine this handle and raise; never run in-file repair here."""
-        self._db_corrupt = True
-        self._db_corrupt_reason = str(exc)
+        self._connections._db_corrupt = True
+        self._connections._db_corrupt_reason = str(exc)
         # Publish the profile-level state first: readiness, /api/status and the session list
         # endpoints read it, and every other handle in this process refuses writes on it.
         mark_storage_corrupt(self.db_path, exc)
-        self._disable_close_time_checkpoint()
+        self._connections._disable_close_time_checkpoint()
         logger.error(
             "state.db %s reported structural corruption outside the FTS "
             "indexes (%s); quarantining this handle: no further writes, no "
@@ -1313,81 +956,11 @@ class SessionDB(
                 setattr(err, attr, getattr(exc, attr))
         raise err from exc
 
-    def _disable_close_time_checkpoint(self) -> bool:
-        """Best-effort SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE (Python 3.12+): sqlite3's
-        close() otherwise runs the internal last-connection checkpoint that wrote
-        the incident's pages under wrong page numbers (see StateDbCorruptError and
-        the generation-loss halts).
-        <3.12 has no setconfig, so a lost-generation handle is retired unclosed
-        instead (see close()): closing its last descriptor could both run that
-        checkpoint and discard committed data present only in an unlinked WAL."""
-        flag = getattr(sqlite3, "SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE", None)
-        conn = self._conn
-        setconfig = getattr(conn, "setconfig", None)
-        if flag is None or setconfig is None:
-            # Same predicate as _close_time_checkpoint_configurable() plus the per-instance
-            # getattr: __init__ binds no retirement capability when either half is missing,
-            # and close() must agree with that decision or the lost handle would neither
-            # setconfig nor pin.
-            return False
-        try:
-            setconfig(flag, True)
-        except Exception:
-            # No retention capability is bound on this runtime, so close() will let SQLite run the
-            # checkpoint over the newer generation: say so where an operator can see it.
-            logger.error(
-                "Could not disable SQLite's close-time checkpoint on the quarantined handle for %s; "
-                "closing it may checkpoint retired frames over the newer generation.",
-                self.db_path, exc_info=True,
-            )
-            return False
-        return True
 
-    def _pin_connection(self, conn) -> None:
-        """Retain the exact quarantined connection past GC and interpreter teardown (once per handle).
 
-        Takes the connection as a parameter: callers are lock-held close paths, and the
-        writer-conn thread-safety audit flags self._conn in functions outside `with self._lock`."""
-        if not self._connection_pinned:
-            self._retire_connection(conn)
-            self._connection_pinned = True
-
-    def _settle_lost_generation_locked(self) -> bool:
-        """Capture the retired generation; return whether the handle must be retired unclosed.
-
-        Where SQLite's close-time checkpoint cannot be switched off (no setconfig, Python < 3.12),
-        sqlite3_close would write the retired frames over the newer generation, so the exact
-        connection is retired unclosed instead. A failed capture leaves the handle open for a retry
-        -- but the pin is taken FIRST on such a runtime: every production caller reaches close()
-        through hermes_state_registry.release_or_close, which swallows the error, so an interpreter
-        exit before the retry must not be able to checkpoint the stale frames either."""
-        self._db_wal_generation_lost = True
-        retire_without_close = not self._disable_close_time_checkpoint() and self._retire_connection is not None
-        try:
-            artifact = self._capture_retired_generation("close")
-        except RetiredGenerationCaptureError as exc:
-            if retire_without_close:
-                self._pin_connection(self._conn)
-            logger.error(
-                "Could not capture the retired WAL generation of %s at close: %s. The handle stays open "
-                "and close() retries the capture; those frames are NOT yet preserved.", self.db_path, exc,
-            )
-            raise
-        logger.warning(
-            "Skipping the close-time WAL checkpoint for %s: this handle's WAL/SHM generation "
-            "was deleted or replaced; the retired generation is captured at %s. Stop the other "
-            "writers before reopening and inspect the capture before deciding its disposition.",
-            self.db_path, artifact,
-        )
-        if retire_without_close:
-            logger.warning(
-                "Retaining the quarantined connection for %s unclosed: this runtime cannot "
-                "switch off SQLite's close-time checkpoint.", self.db_path,
-            )
-        return retire_without_close
 
     def _raise_if_db_corrupt(self, *, storage: bool = False) -> None:
-        if self._db_corrupt:
+        if self._connections._db_corrupt:
             raise self._corrupt_error()
         if storage and storage_state(self.db_path) == STORAGE_CORRUPT:
             # Another handle in this process already saw structural damage on this file.
@@ -1415,41 +988,7 @@ class SessionDB(
         """Foreign processes holding this DB or its WAL sidecars (see hermes_state_holders)."""
         return _foreign_state_db_holders(self.db_path)
 
-    def _quarantine_reason(self) -> Optional[str]:
-        """Why this handle must not checkpoint or run in-file repair, or None. A corrupted image has
-        torn B-trees; a replaced file or a deleted/replaced WAL generation would checkpoint under
-        wrong page numbers into the main DB -- the shutdown-time cause of #105670. Precedence note:
-        close() evaluates generation loss BEFORE calling this (and skips it entirely when lost —
-        a lost generation settles through the capture path, not the quarantine advisory), while
-        the halt path checks replaced first."""
-        if self._db_corrupt:
-            return f"structural corruption ({self._db_corrupt_reason})"
-        if self._db_replaced:
-            return "a replaced state.db file"
-        if self._db_wal_generation_lost:
-            return "a deleted WAL generation (split-brain)"
-        return None
 
-    def _try_wal_checkpoint(self) -> None:
-        """Best-effort PASSIVE WAL checkpoint; never raises. PASSIVE never blocks writers;
-        TRUNCATE corrupted B-trees on 65K+ page databases under exclusive-lock I/O pressure.
-
-        Previous TRUNCATE strategy caused B-tree corruption on large databases (65K+ pages) due to the
-        exclusive-lock I/O pressure from checkpointing thousands of frames at once (issue #45383).
-        """
-        if self._quarantine_reason() is not None:
-            return
-        try:
-            with self._lock:
-                if self._conn is None:
-                    return  # closed underneath the timer: nothing to checkpoint, nothing to re-guard
-                if self._wal_lock_guard:
-                    _lockguard.hold(self.db_path, self._wal_lock_guard)  # a -shm minted after open
-                result = self._conn.execute("PRAGMA wal_checkpoint(PASSIVE)").fetchone()
-                if result and result[1] > 0:
-                    logger.debug("WAL checkpoint: %d/%d pages checkpointed", result[2], result[1])
-        except Exception as exc:
-            logger.warning("WAL checkpoint (PASSIVE) failed: %s", exc)
 
     def __enter__(self) -> "SessionDB":
         """``with SessionDB(path) as db:`` closes on exit; owners must release deterministically.
@@ -1489,54 +1028,12 @@ class SessionDB(
         hook, self._token_atexit_hook = self._token_atexit_hook, None
         if hook is not None:
             atexit.unregister(hook)
-        # Closed flag first: an in-flight reader then closes its own connection.
-        with self._read_conns_lock:
-            self._read_conns_closed = True
-        while self._evict_one_idle_read_conn():
-            pass
-        with self._lock:
-            if self._conn:
-                generation_lost = not self.read_only and (
-                    self._db_wal_generation_lost
-                    or (bool(self._db_sidecar_identity) and self._wal_generation_was_lost())
-                )
-                # Loss is settled here, not at exit: the unlinked WAL inode dies with this process's
-                # last descriptor (the capture raises and the handle stays open when it fails).
-                retire_without_close = generation_lost and self._settle_lost_generation_locked()
-                quarantine_reason = None if generation_lost else self._quarantine_reason()
-                if quarantine_reason is not None:
-                    logger.warning(
-                        "Skipping the close-time WAL checkpoint for %s: this "
-                        "handle observed %s. Take a snapshot of state.db, -wal and -shm "
-                        "before restarting, then run `hermes sessions recover --source %s --inspect-only`.",
-                        self.db_path, quarantine_reason, self.db_path,
-                    )
-                elif not self.read_only and not generation_lost:  # PASSIVE, not TRUNCATE (see docstring)
-                    try:
-                        # Every cron run_agent opens+closes a transient SessionDB, so a TRUNCATE here fires
-                        # a full WAL reset many times/hour, racing the gateway's long-lived writer on large
-                        # WAL databases and tearing hot B-tree pages -- the #45383 corruption this class's
-                        # own periodic checkpoint was already made PASSIVE to avoid. TRUNCATE belongs only
-                        # on a sole-opener/quiescent connection.
-                        self._conn.execute("PRAGMA wal_checkpoint(PASSIVE)")
-                    except Exception as exc:
-                        logger.debug("WAL checkpoint (PASSIVE) at close failed: %s", exc)
-                _lockguard.release(self._wal_lock_guard)  # before the close: see release()
-                if retire_without_close:
-                    self._pin_connection(self._conn)
-                    self._conn = None
-                else:
-                    conn, self._conn = self._conn, None
-                    self._close_connection_quietly(conn)
-                    # Only a clean close ends the generation; retain the recorded
-                    # identity when retiring an unsafe handle.
-                    self._db_sidecar_identity = {}
-        self._read_budget.unregister(self)  # idempotent: a never-registered (failed-init) handle is a no-op
+        self._connections.close()
 
     def __del__(self) -> None:
         """Safety net: close() if the caller forgot. Attribute access stays
         guarded: module teardown order is undefined."""
-        if self.__dict__.get("_conn") is not None:
+        if (resource := self.__dict__.get("_connections")) is not None and resource._conn is not None:
             try:
                 self.close()
             except Exception:
@@ -1592,10 +1089,10 @@ class SessionDB(
     # ── Meta key/value (scheduler bookkeeping) ──
 
     def get_meta(self, key: str) -> Optional[str]:
-        """Read state_meta[key] on self._lock (not _read_ctx): fts_rebuild_step reads progress before its
+        """Read state_meta[key] on self._connections._lock (not _read_ctx): fts_rebuild_step reads progress before its
         write transaction and a WAL reader would not see it."""
-        with self._lock:
-            row = self._conn.execute("SELECT value FROM state_meta WHERE key = ?", (key,)).fetchone()
+        with self._connections._lock:
+            row = self._connections._conn.execute("SELECT value FROM state_meta WHERE key = ?", (key,)).fetchone()
         return None if row is None else row[0]
 
     def set_meta(self, key: str, value: str, *, cursor: Optional[sqlite3.Cursor] = None) -> None:

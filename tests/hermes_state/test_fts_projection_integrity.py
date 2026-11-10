@@ -27,7 +27,7 @@ LONG_TOOL_ROW = "prefix " + ("padding " * ((FTS_TOOL_CONTENT_PREFIX_CHARS // 8) 
 def _strict_integrity_probe(db) -> None:
     """FTS5's strict check: re-reads the content source and compares it with the
     stored token stream. Raises ``sqlite3.DatabaseError`` when they disagree."""
-    db._conn.execute(
+    db._connections._conn.execute(
         "INSERT INTO messages_fts(messages_fts, rank) VALUES('integrity-check', 1)"
     )
 
@@ -95,20 +95,20 @@ def test_index_reading_raw_messages_realigns_once_on_open(tmp_path):
     # and its tokens were written from the bounded projection the triggers used
     # for tool rows. That mixture IS the drift: the checker re-reads the full
     # body and disagrees with the stored prefix.
-    first._conn.execute("DROP TABLE messages_fts")
-    first._conn.execute(
+    first._connections._conn.execute("DROP TABLE messages_fts")
+    first._connections._conn.execute(
         "CREATE VIRTUAL TABLE messages_fts USING fts5("
         "content, tool_name, tool_calls, content='messages', content_rowid='id')"
     )
-    first._conn.execute(
+    first._connections._conn.execute(
         "INSERT INTO messages_fts(rowid, content, tool_name, tool_calls) VALUES(?, ?, ?, ?)",
         (row_id, LONG_TOOL_ROW[:FTS_TOOL_CONTENT_PREFIX_CHARS], "terminal", None),
     )
-    first._conn.execute(
+    first._connections._conn.execute(
         "INSERT INTO state_meta(key, value) VALUES('fts_storage_version', '2') "
         "ON CONFLICT(key) DO UPDATE SET value = '2'"
     )
-    first._conn.execute(
+    first._connections._conn.execute(
         "INSERT OR REPLACE INTO state_meta(key, value) VALUES('fts_tool_full_content_high_water', ?)",
         (str(row_id),),
     )
@@ -121,7 +121,7 @@ def test_index_reading_raw_messages_realigns_once_on_open(tmp_path):
         assert migrated.get_meta("fts_storage_version") == str(FTS_STORAGE_VERSION)
         assert migrated.get_meta("fts_tool_full_content_high_water") is None
         _strict_integrity_probe(migrated)
-        index_sql = migrated._conn.execute(
+        index_sql = migrated._connections._conn.execute(
             "SELECT sql FROM sqlite_master WHERE name = 'messages_fts'"
         ).fetchone()[0]
         assert "messages_fts_src" in index_sql

@@ -1,10 +1,12 @@
 """Exception types and error-classification predicates for the state store.
 Shared by hermes_state and its mixins; string predicates match wrapped RPC
 strings as well as live sqlite3 exceptions."""
+from hermes_db.infra.backends.sqlite.generation import DeletedWalGenerationError, StateDbReplacedError
 
 import errno
 import re
 import sqlite3
+from hermes_db.infra.backends.sqlite.runtime import _sqlite_primary_code, _SQLITE_LOCK_CODES, is_sqlite_lock_error
 
 # Malformed schema: ``sqlite_master`` itself is inconsistent (typically a DUPLICATE
 # ``CREATE VIRTUAL TABLE messages_fts`` row). SQLite parses the whole schema while
@@ -37,23 +39,10 @@ _TRANSIENT_SQLITE_MARKERS = (
 # Lock contention by result code. SQLite keeps SQLITE_BUSY when FTS5's xConnect loses the race
 # on its %_config read but replaces the text with "vtable constructor failed: messages_fts",
 # so a phrase match read a busy store as a hard failure.
-_SQLITE_LOCK_CODES = (sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED)
 
 
-def _sqlite_primary_code(exc_or_str) -> int | None:
-    """Primary result code (extended codes keep it in the low byte); None when unknown."""
-    code = getattr(exc_or_str, "sqlite_errorcode", None)
-    return code & 0xFF if isinstance(code, int) else None
 
 
-def is_sqlite_lock_error(exc_or_str) -> bool:
-    """SQLITE_BUSY / SQLITE_LOCKED: wait and retry, never treat as damage. A known result code
-    decides; only without one (our own re-raised messages, RPC-wrapped strings) does the text."""
-    code = _sqlite_primary_code(exc_or_str)
-    if code is not None:
-        return code in _SQLITE_LOCK_CODES
-    text = str(exc_or_str).lower()
-    return "locked" in text or "busy" in text
 
 
 def _is_no_more_rows(exc: sqlite3.Error) -> bool:
@@ -197,23 +186,10 @@ class SessionActiveWriteGuardError(RuntimeError):
     """Raised when an active turn lease or compression lock rejects session deletion."""
 
 
-class StateDbReplacedError(RuntimeError):
-    """The state.db path no longer names the file this SessionDB opened
-    (out-of-band cp/mv/restore). In-place FTS repair and fail-open trigger
-    dropping cannot fix a generation mismatch; they amplify it."""
 
 
-class DeletedWalGenerationError(StateDbReplacedError):
-    """A live process holds a deleted state.db-wal / -shm generation. Opening or
-    writing through this handle would mint a second WAL inode (split-brain ->
-    intermittent SQLITE_CORRUPT / IOERR). Stop the writers; never unlink the WAL
-    yourself. Subclasses StateDbReplacedError so every consumer that diverts
-    transcripts on a replaced store handles this identically."""
 
 
-# SQLite header application_id (offset 68). Distinct from inode: ``cp`` onto the
-# same path keeps st_ino and truncates+rewrites.
-_STATE_DB_APPLICATION_ID_OFFSET = 68
 _STATE_DB_GENERATION_KEY = "db_file_generation"
 _STATE_DB_REPLACED_MSG = (
     "FATAL: state.db was replaced underneath the gateway; refusing further "

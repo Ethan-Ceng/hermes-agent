@@ -28,7 +28,7 @@ def _require_trigram(db: SessionDB) -> None:
 
 def _install_v1_trigram(db: SessionDB) -> None:
     """The trigram layout `optimize-storage` produced between #65798 and #101729 (projects ``tool_calls``)."""
-    db._conn.executescript(
+    db._connections._conn.executescript(
         """
         DROP TRIGGER messages_fts_trigram_insert;
         DROP TRIGGER messages_fts_trigram_delete;
@@ -48,10 +48,10 @@ def _install_v1_trigram(db: SessionDB) -> None:
 
 def _install_raw_messages_base(db: SessionDB) -> None:
     """The pre-v3 base index: external-content over raw ``messages`` (realigned on the next open)."""
-    names = [r[0] for r in db._conn.execute(
+    names = [r[0] for r in db._connections._conn.execute(
         "SELECT name FROM sqlite_master WHERE type='trigger' AND name IN "
         "('messages_fts_insert','messages_fts_delete','messages_fts_update')")]
-    db._conn.executescript(
+    db._connections._conn.executescript(
         "".join(f"DROP TRIGGER {n};" for n in names)
         + """
         DROP TABLE messages_fts;
@@ -90,8 +90,8 @@ def v1_trigram_db(tmp_path):
     _seed(db)
     _install_v1_trigram(db)
     _install_raw_messages_base(db)
-    db._conn.execute("UPDATE state_meta SET value = '1' WHERE key = 'fts_storage_version'")
-    db._conn.commit()
+    db._connections._conn.execute("UPDATE state_meta SET value = '1' WHERE key = 'fts_storage_version'")
+    db._connections._conn.commit()
     db.close()
     SessionDB(db_path=db_path).close()  # the gateway/CLI open that realigns only the base index
     return db_path
@@ -103,7 +103,7 @@ def test_realign_does_not_stamp_current_while_the_trigram_is_stale(v1_trigram_db
 
 def test_doctor_offers_optimize_storage_for_a_stale_trigram(v1_trigram_db, monkeypatch):
     from hermes_cli import doctor_state
-    from hermes_state_dbfile import collect_state_db_stats
+    from hermes_cli.db_session_schema import collect_state_db_stats
 
     stats = collect_state_db_stats(v1_trigram_db)
     monkeypatch.setattr(doctor_state, "STATE_DB_SIZE_WARN_BYTES", 0)
@@ -113,7 +113,7 @@ def test_doctor_offers_optimize_storage_for_a_stale_trigram(v1_trigram_db, monke
 
 def test_fresh_store_is_stamped_on_creation_and_doctor_stays_quiet(tmp_path, monkeypatch):
     from hermes_cli import doctor_state
-    from hermes_state_dbfile import collect_state_db_stats
+    from hermes_cli.db_session_schema import collect_state_db_stats
 
     db_path = tmp_path / "state.db"
     db = SessionDB(db_path=db_path)
@@ -159,15 +159,15 @@ def test_notice_for_a_legacy_inline_store_keeps_the_reclaim_estimate(tmp_path, m
     db_path = tmp_path / "state.db"
     db = SessionDB(db_path=db_path)
     _seed(db)
-    names = [r[0] for r in db._conn.execute(
+    names = [r[0] for r in db._connections._conn.execute(
         "SELECT name FROM sqlite_master WHERE type='trigger' AND name LIKE 'messages_fts%'")]
-    db._conn.executescript(
+    db._connections._conn.executescript(
         "".join(f"DROP TRIGGER {n};" for n in names)
         + "DROP TABLE IF EXISTS messages_fts_trigram;"
         + "DROP VIEW IF EXISTS messages_fts_trigram_src; DROP TABLE messages_fts;"
         + LEGACY_FTS_SQL
     )
-    db._conn.commit()
+    db._connections._conn.commit()
     db.close()
     assert "60%" in _notice_for(db_path, monkeypatch)
 
@@ -182,8 +182,8 @@ def test_a_base_index_the_next_open_realigns_is_not_offered_as_opt_in_work(tmp_p
     _require_trigram(db)
     _seed(db)
     _install_raw_messages_base(db)
-    db._conn.execute("UPDATE state_meta SET value = '2' WHERE key = 'fts_storage_version'")
-    db._conn.commit()
+    db._connections._conn.execute("UPDATE state_meta SET value = '2' WHERE key = 'fts_storage_version'")
+    db._connections._conn.commit()
     db.close()
 
     conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
@@ -239,16 +239,16 @@ def _install_newer_base_layout(db: SessionDB) -> str:
     """A base-index definition this code does not recognise (a newer release's), stamped with a newer version."""
     from hermes_state_common import FTS_SQL, FTS_STORAGE_VERSION
 
-    sql = db._conn.execute("SELECT sql FROM sqlite_master WHERE name = 'messages_fts'").fetchone()[0]
-    db._conn.executescript(
+    sql = db._connections._conn.execute("SELECT sql FROM sqlite_master WHERE name = 'messages_fts'").fetchone()[0]
+    db._connections._conn.executescript(
         "DROP TRIGGER messages_fts_insert; DROP TRIGGER messages_fts_delete; DROP TRIGGER messages_fts_update;"
         "DROP TABLE messages_fts;")
     newer = sql.replace("content_rowid='id'", "content_rowid='id', tokenize='porter unicode61'")
-    db._conn.execute(newer)
-    db._conn.executescript(FTS_SQL)
-    db._conn.execute("INSERT INTO messages_fts(messages_fts) VALUES('rebuild')")
-    db._conn.execute("UPDATE state_meta SET value = ? WHERE key = 'fts_storage_version'", (str(FTS_STORAGE_VERSION + 1),))
-    db._conn.commit()
+    db._connections._conn.execute(newer)
+    db._connections._conn.executescript(FTS_SQL)
+    db._connections._conn.execute("INSERT INTO messages_fts(messages_fts) VALUES('rebuild')")
+    db._connections._conn.execute("UPDATE state_meta SET value = ? WHERE key = 'fts_storage_version'", (str(FTS_STORAGE_VERSION + 1),))
+    db._connections._conn.commit()
     return newer
 
 
@@ -284,12 +284,12 @@ def test_a_quoted_table_name_in_the_stored_definition_is_still_current(tmp_path,
     db = SessionDB(db_path=db_path)
     _require_trigram(db)
     _seed(db)
-    db._conn.execute("ALTER TABLE messages_fts_trigram RENAME TO renamed_trigram")
-    db._conn.execute("ALTER TABLE renamed_trigram RENAME TO messages_fts_trigram")
-    stored = db._conn.execute("SELECT sql FROM sqlite_master WHERE name = 'messages_fts_trigram'").fetchone()[0]
+    db._connections._conn.execute("ALTER TABLE messages_fts_trigram RENAME TO renamed_trigram")
+    db._connections._conn.execute("ALTER TABLE renamed_trigram RENAME TO messages_fts_trigram")
+    stored = db._connections._conn.execute("SELECT sql FROM sqlite_master WHERE name = 'messages_fts_trigram'").fetchone()[0]
     assert '"messages_fts_trigram"' in stored
-    db._conn.execute("DELETE FROM state_meta WHERE key = 'fts_storage_version'")
-    db._conn.commit()
+    db._connections._conn.execute("DELETE FROM state_meta WHERE key = 'fts_storage_version'")
+    db._connections._conn.commit()
     db.close()
 
     db = SessionDB(db_path=db_path)
@@ -308,8 +308,8 @@ def test_optimize_settle_refuses_pending_backfill(tmp_path):
         db.create_session(session_id="s1", source="cli")
         db.append_message("s1", role="user", content="settle guard needle")
         # A fresh store is stamped on creation; clear it so the assertion reads settle's own write.
-        db._conn.execute("DELETE FROM state_meta WHERE key = 'fts_storage_version'")
-        db._conn.commit()
+        db._connections._conn.execute("DELETE FROM state_meta WHERE key = 'fts_storage_version'")
+        db._connections._conn.commit()
         # Plant markers without going through demote.
         db.set_meta("fts_rebuild_high_water", "1")
         db.set_meta("fts_rebuild_progress", "0")
@@ -333,20 +333,20 @@ def test_a_stale_base_source_view_is_replaced_before_the_store_is_stamped(tmp_pa
     db = SessionDB(db_path=db_path)
     _seed(db)
     db.append_message("cli", role="tool", content="x" * FTS_TOOL_CONTENT_PREFIX_CHARS + " trailingneedle")
-    current_view = db._conn.execute("SELECT sql FROM sqlite_master WHERE name = 'messages_fts_src'").fetchone()[0]
-    db._conn.execute("DROP VIEW messages_fts_src")
-    db._conn.execute("CREATE VIEW messages_fts_src AS SELECT id, content, tool_name, tool_calls FROM messages")
-    db._conn.execute("INSERT INTO messages_fts(messages_fts) VALUES('rebuild')")
-    db._conn.execute("DELETE FROM state_meta WHERE key = 'fts_storage_version'")
-    db._conn.commit()
+    current_view = db._connections._conn.execute("SELECT sql FROM sqlite_master WHERE name = 'messages_fts_src'").fetchone()[0]
+    db._connections._conn.execute("DROP VIEW messages_fts_src")
+    db._connections._conn.execute("CREATE VIEW messages_fts_src AS SELECT id, content, tool_name, tool_calls FROM messages")
+    db._connections._conn.execute("INSERT INTO messages_fts(messages_fts) VALUES('rebuild')")
+    db._connections._conn.execute("DELETE FROM state_meta WHERE key = 'fts_storage_version'")
+    db._connections._conn.commit()
     db.close()
 
     db = SessionDB(db_path=db_path)
     try:
-        view = db._conn.execute("SELECT sql FROM sqlite_master WHERE name = 'messages_fts_src'").fetchone()[0]
+        view = db._connections._conn.execute("SELECT sql FROM sqlite_master WHERE name = 'messages_fts_src'").fetchone()[0]
         assert " ".join(view.split()) == " ".join(current_view.split())
         assert db.search_messages("trailingneedle") == []
-        db._conn.execute("INSERT INTO messages_fts(messages_fts, rank) VALUES('integrity-check', 1)")
+        db._connections._conn.execute("INSERT INTO messages_fts(messages_fts, rank) VALUES('integrity-check', 1)")
     finally:
         db.close()
     assert _stamp(db_path) == str(FTS_STORAGE_VERSION)
@@ -360,19 +360,19 @@ def _interrupted_raw_base_backfill(db_path: pathlib.Path) -> int:
     db.create_session("s1", source="cli")
     first_id = db.append_message("s1", role="user", content="already indexed")
     last_id = db.append_message("s1", role="user", content="大别山项目 deployment")
-    db._reset_fts_index_to_empty(db._conn)
+    db._reset_fts_index_to_empty(db._connections._conn)
     _install_raw_messages_base(db)
-    db._conn.execute("DELETE FROM messages_fts")
-    db._conn.execute(
+    db._connections._conn.execute("DELETE FROM messages_fts")
+    db._connections._conn.execute(
         "INSERT INTO messages_fts(rowid, content, tool_name, tool_calls) "
         "SELECT id, content, tool_name, tool_calls FROM messages WHERE id = ?", (first_id,))
-    db._conn.execute(
+    db._connections._conn.execute(
         "INSERT INTO messages_fts_trigram(rowid, content, tool_name) "
         "SELECT id, content, tool_name FROM messages WHERE id = ?", (first_id,))
     db.set_meta("fts_storage_version", "2")
     db.set_meta("fts_rebuild_high_water", str(last_id))
     db.set_meta("fts_rebuild_progress", str(first_id))
-    db._conn.commit()
+    db._connections._conn.commit()
     db.close()
     return last_id
 
@@ -443,9 +443,9 @@ def test_a_stale_source_view_does_not_replace_a_newer_base_index(tmp_path):
     db = SessionDB(db_path=db_path)
     _seed(db)
     newer = _install_newer_base_layout(db)
-    db._conn.execute("DROP VIEW messages_fts_src")
-    db._conn.execute("CREATE VIEW messages_fts_src AS SELECT id, content, tool_name, tool_calls FROM messages")
-    db._conn.commit()
+    db._connections._conn.execute("DROP VIEW messages_fts_src")
+    db._connections._conn.execute("CREATE VIEW messages_fts_src AS SELECT id, content, tool_name, tool_calls FROM messages")
+    db._connections._conn.commit()
     db.close()
 
     SessionDB(db_path=db_path).close()
@@ -465,15 +465,15 @@ def test_optimize_storage_on_a_newer_layout_finishes_its_work_without_restamping
     db = SessionDB(db_path=db_path)
     _seed(db)
     _install_newer_base_layout(db)
-    db._conn.execute("CREATE TABLE fts_v22_trash_messages_fts_data (docid INTEGER PRIMARY KEY, block BLOB)")
-    db._conn.commit()
+    db._connections._conn.execute("CREATE TABLE fts_v22_trash_messages_fts_data (docid INTEGER PRIMARY KEY, block BLOB)")
+    db._connections._conn.commit()
     db.close()
 
     db = SessionDB(db_path=db_path)
     try:
         result = db.optimize_fts_storage(vacuum=False)
         assert result["ok"] is True, result
-        assert not db._has_fts_trash(db._conn)
+        assert not db._has_fts_trash(db._connections._conn)
     finally:
         db.close()
     assert _stamp(db_path) == str(FTS_STORAGE_VERSION + 1)
@@ -482,7 +482,7 @@ def test_optimize_storage_on_a_newer_layout_finishes_its_work_without_restamping
 def test_doctor_offers_the_resume_after_backfill_before_teardown(tmp_path, monkeypatch):
     """optimize-storage interrupted after backfill but before trash teardown: doctor agrees with the update notice."""
     from hermes_cli import doctor_state
-    from hermes_state_dbfile import collect_state_db_stats
+    from hermes_cli.db_session_schema import collect_state_db_stats
 
     db_path = tmp_path / "state.db"
     db = SessionDB(db_path=db_path)
@@ -491,7 +491,7 @@ def test_doctor_offers_the_resume_after_backfill_before_teardown(tmp_path, monke
     db._demote_legacy_fts_to_trash()
     while db.fts_rebuild_step():
         pass
-    assert db.get_meta("fts_rebuild_high_water") is None and db._has_fts_trash(db._conn)
+    assert db.get_meta("fts_rebuild_high_water") is None and db._has_fts_trash(db._connections._conn)
     db.close()
 
     assert "optimize-storage" in _notice_for(db_path, monkeypatch)

@@ -37,20 +37,20 @@ class TestFailClosedAfterNotADb:
     ):
         """One connection cannot safely heal a shared DB identity change."""
         db = SessionDB(db_path=tmp_path / "state.db")
-        real_conn = db._conn
+        real_conn = db._connections._conn
         try:
             db.create_session(session_id="s1", source="cli", model="test")
             reopen = MagicMock()
-            monkeypatch.setattr("hermes_state._connect_tracked_db", reopen)
-            db._conn = _NotADbOnce(real_conn)
+            monkeypatch.setattr('hermes_db.infra.backends.sqlite.generation._connect_tracked_db', reopen)
+            db._connections._conn = _NotADbOnce(real_conn)
             with pytest.raises(sqlite3.DatabaseError, match="not a database") as excinfo:
                 db.create_session(session_id="s2", source="cli", model="test")
             reopen.assert_not_called()
             # NOTADB on a live write is structural: the handle is quarantined.
             assert isinstance(excinfo.value, StateDbCorruptError)
-            assert db._db_corrupt is True
+            assert db._connections._db_corrupt is True
         finally:
-            db._conn = real_conn
+            db._connections._conn = real_conn
             db.close()
 
 
@@ -66,7 +66,7 @@ class TestWriteIoerrRetryBoundary:
 
     def test_ioerr_on_begin_retries_because_the_callback_never_ran(self, tmp_path):
         db = SessionDB(db_path=tmp_path / "state.db")
-        real_conn = db._conn
+        real_conn = db._connections._conn
         try:
 
             class _BeginIoerrOnce:
@@ -84,11 +84,11 @@ class TestWriteIoerrRetryBoundary:
                     return getattr(self._real, name)
 
             proxy = _BeginIoerrOnce(real_conn)
-            db._conn = proxy
+            db._connections._conn = proxy
             db.create_session(session_id="s1", source="cli", model="test")
             assert proxy.begins == 1
         finally:
-            db._conn = real_conn
+            db._connections._conn = real_conn
 
         rows = db.list_sessions_rich(limit=10, compact_rows=True)
         assert [row["id"] for row in rows] == ["s1"]
@@ -122,7 +122,7 @@ class TestWriteIoerrRetryBoundary:
         try:
             closed = []
             monkeypatch.setattr(
-                type(db._conn), "close", lambda self: closed.append(1), raising=False
+                type(db._connections._conn), "close", lambda self: closed.append(1), raising=False
             )
 
             def always_ioerr(conn):
@@ -132,7 +132,7 @@ class TestWriteIoerrRetryBoundary:
                 db._execute_write(always_ioerr)
 
             assert closed == []
-            assert db._conn is not None
+            assert db._connections._conn is not None
         finally:
             db.close()
 

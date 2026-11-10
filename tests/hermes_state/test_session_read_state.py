@@ -15,7 +15,7 @@ def db(tmp_path):
 
 
 def _last_read(db, sid):
-    row = db._conn.execute(
+    row = db._connections._conn.execute(
         "SELECT last_read_at FROM sessions WHERE id = ?", (sid,)
     ).fetchone()
     return row["last_read_at"] if row is not None else None
@@ -68,15 +68,15 @@ def _compression_pair(db: SessionDB):
     base = time.time() - 100
     db.create_session("root", source="cli")
     db.create_session("tip", source="cli", parent_session_id="root")
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE sessions SET started_at = ?, ended_at = ?, end_reason = 'compression', message_count = 1 WHERE id = 'root'",
         (base, base + 10),
     )
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE sessions SET started_at = ?, message_count = 1 WHERE id = 'tip'",
         (base + 20,),
     )
-    db._conn.commit()
+    db._connections._conn.commit()
 
 
 def test_reading_compression_tip_stamps_whole_lineage(db):

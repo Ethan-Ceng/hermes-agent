@@ -87,8 +87,8 @@ def _add_session(db, sid, *, title="", ts=1000, source="cli", hidden=False, text
     db.create_session(sid, source)
     db.append_message(sid, "user", text, timestamp=ts)
     if title:
-        with db._lock:
-            db._conn.execute(
+        with db._connections._lock:
+            db._connections._conn.execute(
                 "UPDATE sessions SET title = ?, title_source = 'user' WHERE id = ?",
                 (title, sid),
             )

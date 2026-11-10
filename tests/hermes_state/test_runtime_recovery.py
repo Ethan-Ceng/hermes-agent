@@ -75,7 +75,7 @@ def test_legacy_import_failure_rolls_back_rows_and_marker(tmp_path):
         with pytest.raises(rt.RuntimeStoreError, match='not_found'):
             rt.import_legacy_session_admissions(db, **args)
         assert rt.list_session_admissions(db, session_id='s') == []
-        assert db._conn.execute("SELECT value FROM state_meta WHERE key='gateway.prompt_admissions_import.v1'").fetchone() is None
+        assert db._connections._conn.execute("SELECT value FROM state_meta WHERE key='gateway.prompt_admissions_import.v1'").fetchone() is None
         db.create_session('missing', source='test')
         assert rt.import_legacy_session_admissions(db, **args) == 2
     finally:

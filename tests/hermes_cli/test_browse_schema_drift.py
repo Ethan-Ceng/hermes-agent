@@ -135,8 +135,8 @@ def test_version_bump_migration_is_additive_and_idempotent(tmp_path):
 
     for _ in range(2):
         with SessionDB(db_path=path) as db:
-            assert db._conn.execute("SELECT version FROM schema_version").fetchone()[0] == SCHEMA_VERSION
-            assert db._conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0] == 1
+            assert db._connections._conn.execute("SELECT version FROM schema_version").fetchone()[0] == SCHEMA_VERSION
+            assert db._connections._conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0] == 1
     assert set(_ADDED_TABLES) <= _tables(path)
     with closing(sqlite3.connect(path)) as conn:
         for table, column in _ADDED_COLUMNS:
@@ -146,7 +146,7 @@ def test_version_bump_migration_is_additive_and_idempotent(tmp_path):
     other = _pre_merge_store(tmp_path / "other.db")
     _open_session_db_at_path(other, read_only=True).close()
     with SessionDB(db_path=other) as db:
-        assert db._conn.execute("SELECT version FROM schema_version").fetchone()[0] == SCHEMA_VERSION
+        assert db._connections._conn.execute("SELECT version FROM schema_version").fetchone()[0] == SCHEMA_VERSION
 
 
 def test_messages_route_for_lagging_profile(monkeypatch, tmp_path):

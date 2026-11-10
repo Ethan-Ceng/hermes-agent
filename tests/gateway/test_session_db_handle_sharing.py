@@ -121,7 +121,7 @@ def test_runner_shutdown_sweep_leaves_the_borrowed_handle_open(store):
     runner.close_all_session_db_handles()
 
     assert _live_count(path) >= 1, "the runner closed the handle the store owns"
-    assert store_db._conn is not None, "borrowed writer connection was closed"
+    assert store_db._connections._conn is not None, "borrowed writer connection was closed"
     # The wrapper cache is still drained -- not closing is not the same as not
     # forgetting.
     assert runner._session_db_handles == {}
@@ -180,7 +180,7 @@ def test_a_handle_the_registry_tore_down_is_reopened_through_the_registry(store,
 
     assert second is not first
     second.create_session("after-unserve", source="telegram")
-    assert first._conn is None, "the torn-down handle was revived outside the registry"
+    assert first._connections._conn is None, "the torn-down handle was revived outside the registry"
     acquired = registry.acquire(path)
     try:
         assert acquired is second, "one file, one writer: the agent must share the store's handle"

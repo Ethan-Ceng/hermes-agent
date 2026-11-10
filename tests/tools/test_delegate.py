@@ -244,7 +244,7 @@ class TestDelegateTask(unittest.TestCase):
             # Parent teardown (cron run_job finally, gateway session end)
             # must not break the child's handle — the #81267 crash mechanism.
             parent_db.close()
-            self.assertIsNotNone(child_db._conn)
+            self.assertIsNotNone(child_db._connections._conn)
             child_db.create_session(
                 session_id="child-session-81267",
                 source="subagent",

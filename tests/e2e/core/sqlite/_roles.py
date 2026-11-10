@@ -103,7 +103,7 @@ def role_writer(a: dict, out: Out) -> int:
     for sid in a["sessions"]:
         if db.get_session(sid) is None:
             db.create_session(sid, a.get("source", "cli"))
-    out.report(event="ready", wal=bool(getattr(db, "_wal_active", False)), fds=_fd_count())
+    out.report(event="ready", wal=bool(db._connections._wal_active), fds=_fd_count())
     i = 0
     max_appends = int(a.get("max_appends", 10**9))
     try:
@@ -151,7 +151,7 @@ def role_reader(a: dict, out: Out) -> int:
 
     db_path, stop_file = Path(a["db"]), Path(a["stop"])
     db = _patient(a, out, "open", lambda: SessionDB(db_path=db_path))
-    out.report(event="ready", wal=bool(getattr(db, "_wal_active", False)), fds=_fd_count())
+    out.report(event="ready", wal=bool(db._connections._wal_active), fds=_fd_count())
     seen: dict[str, int] = {}
     passes = 0
 
@@ -307,7 +307,7 @@ def role_agent(a: dict, out: Out) -> int:
                     session_db=db, session_id=a["session_id"], skip_context_files=True, skip_memory=True)
     history = db.get_messages_as_conversation(a["session_id"]) if a.get("resume") else None
     out.report(event="ready", micro=bool(getattr(agent.context_compressor, "_micro_compact_enabled", False)),
-               resumed=len(history or []), wal=bool(getattr(db, "_wal_active", False)))
+               resumed=len(history or []), wal=bool(db._connections._wal_active))
     bases: list[str] = []
     try:
         for i in range(int(a["turns"])):

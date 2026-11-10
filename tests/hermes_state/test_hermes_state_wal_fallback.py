@@ -641,7 +641,7 @@ class TestSessionDbUsesWalFallback:
                 db = SessionDB(db_path=target)
 
         try:
-            assert db._conn.execute("PRAGMA journal_mode").fetchone()[0].lower() == "delete"
+            assert db._connections._conn.execute("PRAGMA journal_mode").fetchone()[0].lower() == "delete"
             db.create_session(session_id="s2", source="cli", model="test")
             sess = db.get_session("s2")
             assert sess is not None

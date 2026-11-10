@@ -2952,11 +2952,11 @@
       ]
     },
     {
-      "target": "hermes_state_errors.is_sqlite_lock_error",
-      "category": "technical-error-classification",
-      "reason": "Existing pure SQLITE_BUSY/SQLITE_LOCKED code/string classifier shared with native consumers; no SessionDB, Profile, application state or I/O. Canonical predicate remains one actual definition.",
+      "target": "hermes_platform.host.facts.os_family",
+      "category": "machine-fact",
+      "reason": "Pure cached control-host OS family for native SQLite descriptor/header safety; no Profile, application service, secrets or dataset selection.",
       "consumers": [
-        "hermes_db/infra/backends/sqlite/wal.py"
+        "hermes_db/infra/backends/sqlite/generation.py"
       ]
     }
   ]

@@ -120,10 +120,10 @@ def test_bulk_delete_and_prune_stay_below_sqlite_variable_limit(tmp_path):
                              [(sid, old) for sid in ids])
 
         db._execute_write(seed)
-        db._conn.setlimit(sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER, 999)  # the legacy ceiling, deterministic
+        db._connections._conn.setlimit(sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER, 999)  # the legacy ceiling, deterministic
         assert db.prune_sessions(older_than_days=14, source="cron") == 1200
         db._execute_write(seed)
-        db._conn.setlimit(sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER, 999)
+        db._connections._conn.setlimit(sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER, 999)
         assert db.delete_sessions(ids) == 1200
         assert db._read_one("SELECT COUNT(*) FROM messages WHERE session_id NOT IN (SELECT id FROM sessions)")[0] == 0
     finally:

@@ -53,10 +53,10 @@ def test_worker_receipts_require_exact_sequence_assignment_and_adoption(tmp_path
         finished = finish(db, epoch=new_epoch, **assignment, sequence=3)
         db.close()
         db = SessionDB(db_path=tmp_path / 'state.db')
-        before = db._conn.total_changes
+        before = db._connections._conn.total_changes
         assert finish(db, epoch=new_epoch, **assignment, sequence=3) == finished
         assert append(db, **(args | {'epoch': new_epoch})) == result
-        assert db._conn.total_changes == before
+        assert db._connections._conn.total_changes == before
         assert finished == {'status': 'terminal'}
         with pytest.raises(rt.RuntimeStoreError, match='admission_conflict'):
             append(db, **(args | {'epoch': new_epoch, 'content': 'changed'}))
@@ -79,7 +79,7 @@ def test_worker_receipts_require_exact_sequence_assignment_and_adoption(tmp_path
 def test_worker_mutation_and_receipt_roll_back_together(tmp_path, content):
     db, epoch, assignment = setup_worker(tmp_path)
     try:
-        db._conn.execute("CREATE TRIGGER reject_receipt BEFORE INSERT ON worker_receipts BEGIN SELECT RAISE(ABORT, 'receipt fixture'); END")
+        db._connections._conn.execute("CREATE TRIGGER reject_receipt BEFORE INSERT ON worker_receipts BEGIN SELECT RAISE(ABORT, 'receipt fixture'); END")
         db.create_session('direct', source='test')
         db.append_message('direct', 'assistant', content)
         expected_content = db.get_messages('direct')[0]['content']
@@ -88,8 +88,8 @@ def test_worker_mutation_and_receipt_roll_back_together(tmp_path, content):
             append(db, **args)
         assert db.get_messages('s') == []
         assert db.get_session('s')['message_count'] == 0
-        assert db._conn.execute("SELECT last_sequence FROM worker_executions WHERE execution_id='worker'").fetchone()[0] == 0
-        db._conn.execute('DROP TRIGGER reject_receipt')
+        assert db._connections._conn.execute("SELECT last_sequence FROM worker_executions WHERE execution_id='worker'").fetchone()[0] == 0
+        db._connections._conn.execute('DROP TRIGGER reject_receipt')
         receipt = append(db, **args)
         db.close()
         db = SessionDB(db_path=tmp_path / 'state.db')
@@ -125,8 +125,8 @@ def test_worker_append_preserves_compression_write_guards(tmp_path, closed):
                 append(db, **next_args)
             assert db.get_session('s') == before
             assert db.get_messages('s') == messages
-            assert db._conn.execute('SELECT COUNT(*) FROM worker_receipts').fetchone()[0] == 1
-            assert db._conn.execute('SELECT last_sequence FROM worker_executions').fetchone()[0] == 1
+            assert db._connections._conn.execute('SELECT COUNT(*) FROM worker_receipts').fetchone()[0] == 1
+            assert db._connections._conn.execute('SELECT last_sequence FROM worker_executions').fetchone()[0] == 1
         else:
             db.append_message('s', 'assistant', 'ordinary')
             append(db, **next_args)

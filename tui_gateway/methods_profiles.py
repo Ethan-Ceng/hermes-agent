@@ -113,8 +113,8 @@ def _latest_message_preview(db, session_id):
     if is_postgresql_store(db):
         return db.latest_message_preview(session_id)
     try:
-        with db._lock:
-            row = db._conn.execute(
+        with db._connections._lock:
+            row = db._connections._conn.execute(
                 "SELECT content FROM messages"
                 " WHERE session_id = ? AND role IN ('user', 'assistant')"
                 " AND active = 1 AND content IS NOT NULL AND TRIM(content) != ''"

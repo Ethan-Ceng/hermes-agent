@@ -12,6 +12,7 @@ journal_mode in apply_wal_with_fallback), before _init_schema runs — so it
 cannot be handled at the FTS-rebuild layer. These tests verify the
 sqlite_master surgery path recovers the canonical data and self-heals on open.
 """
+import hermes_db.infra.backends.sqlite.generation as sqlite_generation
 
 from hermes_cli import db_sqlite_policy as sqlite_policy
 import contextlib
@@ -25,6 +26,7 @@ from pathlib import Path
 import pytest
 
 import hermes_state
+from hermes_cli import db_session_schema as session_schema
 import hermes_state_repair
 from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
 from hermes_state import SessionDB, is_malformed_db_error
@@ -81,7 +83,7 @@ def test_generic_malformed_open_does_not_attempt_schema_surgery(
     def _generic_corruption(*_args, **_kwargs):
         raise sqlite3.DatabaseError("database disk image is malformed")
 
-    monkeypatch.setattr(hermes_state, "apply_wal_with_fallback", _generic_corruption)  # SessionDB open path
+    monkeypatch.setattr(session_schema, "apply_wal_with_fallback", _generic_corruption)  # SessionDB open path
     monkeypatch.setattr(
         hermes_state, "repair_state_db_schema",
         lambda *args, **kwargs: repair_calls.append((args, kwargs)),
@@ -102,11 +104,11 @@ def test_repaired_db_search_works(tmp_path):
     # Reopen and confirm the FTS index is usable (rebuilt or preserved).
     db = SessionDB(db_path=db_path)
     try:
-        hits = db._conn.execute(
+        hits = db._connections._conn.execute(
             "SELECT COUNT(*) FROM messages_fts WHERE messages_fts MATCH 'pizza'"
         ).fetchone()[0]
         assert hits == 5
-        msg_count = db._conn.execute("SELECT COUNT(*) FROM messages_fts").fetchone()[0]
+        msg_count = db._connections._conn.execute("SELECT COUNT(*) FROM messages_fts").fetchone()[0]
         assert msg_count == 10
     finally:
         db.close()
@@ -203,7 +205,7 @@ def test_fts_read_corruption_repaired_in_place(tmp_path):
     # Search back online.
     db = SessionDB(db_path=db_path)
     try:
-        hits = db._conn.execute(
+        hits = db._connections._conn.execute(
             "SELECT COUNT(*) FROM messages_fts WHERE messages_fts MATCH 'pizza'"
         ).fetchone()[0]
         assert hits >= 5
@@ -310,11 +312,11 @@ def test_fts_write_corruption_repaired_in_place(tmp_path):
     # Canonical rows preserved AND new writes go through the triggers again.
     db = SessionDB(db_path=db_path)
     try:
-        assert db._conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0] == 10
-        sid = db._conn.execute("SELECT id FROM sessions LIMIT 1").fetchone()[0]
+        assert db._connections._conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0] == 10
+        sid = db._connections._conn.execute("SELECT id FROM sessions LIMIT 1").fetchone()[0]
         db.append_message(sid, role="user", content="post repair pizza message")
-        assert db._conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0] == 11
-        hits = db._conn.execute(
+        assert db._connections._conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0] == 11
+        hits = db._connections._conn.execute(
             "SELECT COUNT(*) FROM messages_fts WHERE messages_fts MATCH 'pizza'"
         ).fetchone()[0]
         assert hits >= 5
@@ -512,11 +514,11 @@ def _release_header_probe_fds() -> None:
     """Close this process's cached header-probe fds (no SQLite connection is live, so no lock is at risk)."""
     import os
 
-    import hermes_state_dbfile
-    with hermes_state_dbfile._HEADER_PROBE_LOCK:
-        for fd, _dev, _ino in hermes_state_dbfile._HEADER_PROBE_FDS.values():
+    import hermes_db.infra.backends.sqlite.generation as hermes_state_dbfile
+    with sqlite_generation._HEADER_PROBE_LOCK:
+        for fd, _dev, _ino in sqlite_generation._HEADER_PROBE_FDS.values():
             os.close(fd)
-        hermes_state_dbfile._HEADER_PROBE_FDS.clear()
+        sqlite_generation._HEADER_PROBE_FDS.clear()
 
 
 @pytest.mark.platforms("posix")  # POSIX flock test
@@ -837,7 +839,7 @@ def test_fts_recovery_includes_vtables_that_raise_decode_errors(tmp_path):
     db = SessionDB(db_path=db_path)
     sid = db.create_session(session_id=str(uuid.uuid4()), source="cli")
     db.append_message(sid, role="user", content="searchable needle")
-    cursor = db._conn.cursor()
+    cursor = db._connections._conn.cursor()
 
     original_probe = db._fts_table_probe
 

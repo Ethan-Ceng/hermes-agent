@@ -14,11 +14,11 @@ def db(tmp_path):
 
 
 def _set_activity(db, session_id, when):
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE sessions SET last_activity_at = ? WHERE id = ?",
         (when, session_id),
     )
-    db._conn.commit()
+    db._connections._conn.commit()
 
 
 
@@ -40,11 +40,11 @@ def test_writable_startup_reconciles_legacy_activity_column_before_index(tmp_pat
     healed = SessionDB(path)
     try:
         columns = {
-            row[1] for row in healed._conn.execute("PRAGMA table_info(sessions)")
+            row[1] for row in healed._connections._conn.execute("PRAGMA table_info(sessions)")
         }
         indexes = {
             row[0]
-            for row in healed._conn.execute(
+            for row in healed._connections._conn.execute(
                 "SELECT name FROM sqlite_master WHERE type = 'index'"
             )
         }
@@ -196,7 +196,7 @@ def test_bounded_recent_cycle_is_deduplicated_and_omitted(db):
     db.create_session("cycle-b", source="cli", parent_session_id="cycle-a")
     db.end_session("cycle-a", "compression")
     db.end_session("cycle-b", "compression")
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE sessions SET parent_session_id = ? WHERE id = ?",
         ("cycle-b", "cycle-a"),
     )

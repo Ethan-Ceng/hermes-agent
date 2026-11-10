@@ -45,8 +45,8 @@ def test_startup_sweep_collects_a_legacy_unknown_phantom(tmp_path):
     db.update_token_counts(ORPHAN_SID, input_tokens=10, output_tokens=5, model="claude-sonnet-5")
     db.append_message(ORPHAN_SID, role="assistant", content="review table, cut mid-stream")
     stale = time.time() - 8 * 3600
-    db._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?", (stale, ORPHAN_SID))
-    db._conn.execute("UPDATE messages SET timestamp = ? WHERE session_id = ?", (stale, ORPHAN_SID))
-    db._conn.commit()
+    db._connections._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?", (stale, ORPHAN_SID))
+    db._connections._conn.execute("UPDATE messages SET timestamp = ? WHERE session_id = ?", (stale, ORPHAN_SID))
+    db._connections._conn.commit()
 
     assert db.sweep_orphaned_sessions(max_idle_seconds=IDLE_S, sources=_ORPHAN_SWEEP_SOURCES) == [ORPHAN_SID]

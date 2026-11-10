@@ -72,16 +72,22 @@ def apply_wal_with_fallback(conn, *, db_label="state.db", require_wal=False):
                                       journal_mode=configured, repair_hint=_repair_hint(db_label))
 
 
-def apply_database_pragmas(conn, *, db_label="state.db"):
-    """Capture the current Profile's optional connection settings for the technical executor."""
+def capture_database_pragmas():
+    """Capture the current Profile's optional connection settings as explicit technical values."""
     try:
         from hermes_cli.config import cfg_get, load_config_readonly
         cfg = load_config_readonly()
     except Exception:  # health: allow BLE001 -- Preserve optional tuning best-effort boundary; DB open, DDL and transactions are outside this catch.
-        return
+        return {}
     names = ("cache_size", "mmap_size", "temp_store", "wal_autocheckpoint", "journal_size_limit", "synchronous")
     pragmas = {name: cfg_get(cfg, "database", name, default=None) for name in names}
-    wal.apply_database_pragmas(conn, pragmas=pragmas, db_label=db_label)
+    return pragmas
+
+
+
+def apply_database_pragmas(conn, *, db_label="state.db"):
+    """Apply optional connection tuning captured in the current owning Profile."""
+    wal.apply_database_pragmas(conn, pragmas=capture_database_pragmas(), db_label=db_label)
 
 
 def open_profile_sqlite(path, *, db_label, busy_timeout_ms=5000, wal=True, foreign_keys=False,

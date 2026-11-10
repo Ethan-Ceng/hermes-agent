@@ -31,7 +31,7 @@ from hermes_state_fts import (_drop_orphan_fts_shadow_tables, base_index_recogni
                               drop_retired_cjk_index, fts_layout_current)
 from hermes_state_holders import _read_proc_argv
 from hermes_state_search import _delete_meta, _meta_row
-from hermes_state_errors import is_sqlite_lock_error
+from hermes_db.infra.backends.sqlite.runtime import is_sqlite_lock_error
 from hermes_state_titles import next_title_in_lineage
 
 # Pre-split logger identity so log filtering/capture is unchanged.
@@ -569,14 +569,14 @@ class SessionSchemaMixin:
         """
         if not self._fts_stale:
             return False
-        if self._quarantine_reason() is not None:
+        if self._connections._quarantine_reason() is not None:
             # Quarantined: never run FTS DDL/DML against a damaged image or a stale/replaced generation
             # (mirrors _try_wal_checkpoint / close). Reset the backoff so a future un-quarantine starts
             # from the default interval.
             self._fts_stale_retry_after = 0.0
             self._fts_stale_retry_interval = 0.0
             return False
-        if self.read_only or self._conn is None:
+        if self.read_only or self._connections._conn is None:
             return False
         now = time.monotonic()
         deferred_pids = getattr(self, "_fts_deferred_holder_pids", None)
@@ -596,16 +596,16 @@ class SessionSchemaMixin:
             max(interval, _FTS_STALE_RETRY_SECONDS, 1.0) * 2.0, _FTS_STALE_RETRY_MAX_SECONDS,
         )
         try:
-            with self._lock:
-                if self._conn is None or not self._fts_stale:
+            with self._connections._lock:
+                if self._connections._conn is None or not self._fts_stale:
                     return False
-                cursor = self._conn.cursor()
+                cursor = self._connections._conn.cursor()
                 legacy = self._db_has_legacy_inline_fts(cursor)
                 recovered = self._recover_stale_fts(cursor, legacy=legacy, timeout_seconds=0.0)
                 if recovered:
                     self._fts_stale_retry_interval = 0.0
                 with contextlib.suppress(sqlite3.Error):
-                    self._conn.commit()
+                    self._connections._conn.commit()
                 return recovered
         except Exception:
             logger.warning(
@@ -647,10 +647,10 @@ class SessionSchemaMixin:
             cursor.executescript(recovery_sql)
         except sqlite3.DatabaseError as exc:
             with contextlib.suppress(sqlite3.Error):
-                self._conn.rollback()
+                self._connections._conn.rollback()
             # Stale indexes must stay detached even on builds whose DDL transaction behavior differs.
             self._drop_all_fts_triggers(cursor)
-            self._conn.commit()
+            self._connections._conn.commit()
             logger.error(
                 "Automatic rebuild of stale FTS indexes failed (%s); "
                 "canonical writes remain enabled with FTS detached.", exc,
@@ -911,7 +911,7 @@ class SessionSchemaMixin:
         # the lease duration. Per-chunk renewal would shrink that, but adds complexity to the migration
         # loops for a rare failure mode.
         report_startup_progress(600.0, phase="state_db_init_schema")
-        cursor = self._conn.cursor()
+        cursor = self._connections._conn.cursor()
         cursor.executescript(SCHEMA_SQL)
         # Before the table rebuilds below: renaming a table re-parses every trigger, and the retired
         # index's triggers name a tokenizer this process cannot load.
@@ -989,9 +989,9 @@ class SessionSchemaMixin:
         if fts5_available:
             self._init_fts(cursor)
             self._stamp_settled_fts_layout(cursor)
-        self._conn.commit()
+        self._connections._conn.commit()
         # After the commit: the repair takes its own write transaction, and only once per store.
-        advance_legacy_refusal_repair(self, self._conn)
+        advance_legacy_refusal_repair(self, self._connections._conn)
 
     def _stamp_settled_fts_layout(self, cursor: sqlite3.Cursor) -> None:
         """Write ``fts_storage_version`` once the stored layout is exactly current and nothing is in flight.

@@ -102,9 +102,9 @@ async def test_auxiliary_usage_cannot_replace_the_insert_stamp(tmp_path, monkeyp
 
 
 def _set_created(db, sid, value):
-    with db._lock:
-        db._conn.execute("UPDATE sessions SET created_source=? WHERE id=?", (value, sid))
-        db._conn.commit()
+    with db._connections._lock:
+        db._connections._conn.execute("UPDATE sessions SET created_source=? WHERE id=?", (value, sid))
+        db._connections._conn.commit()
 
 
 def _reset(authority, store, sid, child):
@@ -244,14 +244,14 @@ async def test_latest_skips_a_newer_empty_launch_stub(tmp_path, monkeypatch, adm
             store._record_gateway_session_peer(sid, live.route, live.source)
         real, stub = ids
         authority.db.append_message(real, 'user', 'hello')
-        with authority.db._lock:
-            authority.db._conn.execute("UPDATE sessions SET started_at = started_at + 60 WHERE id = ?", (stub,))
+        with authority.db._connections._lock:
+            authority.db._connections._conn.execute("UPDATE sessions SET started_at = started_at + 60 WHERE id = ?", (stub,))
             if admission:
-                authority.db._conn.execute(
+                authority.db._connections._conn.execute(
                     "INSERT INTO session_admissions(admission_id,request_id,principal_id,target_session_id,"
                     "lineage_json,payload_json,payload_digest,intent,status) "
                     "VALUES('adm','req','human',?,'[]','{}','d','queue',?)", (stub, admission))
-            authority.db._conn.commit()
+            authority.db._connections._conn.commit()
         authority.sessions.clear()
         expected = stub if admission else real
 

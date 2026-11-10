@@ -1,4 +1,6 @@
 """Tests for hermes_state.py — SessionDB SQLite CRUD, FTS5 search, export."""
+import hermes_db.infra.backends.sqlite.generation as sqlite_generation
+from hermes_db.infra.backends.sqlite.session_connections import SQLiteConnections
 
 import contextlib
 import re
@@ -161,7 +163,7 @@ class TestConnectionLifecycle:
         import subprocess
         import sys
 
-        from hermes_state_dbfile import iter_deleted_sqlite_sidecar_holders
+        from hermes_db.infra.backends.sqlite.generation import iter_deleted_sqlite_sidecar_holders
 
         db_path = tmp_path / "state.db"
         first = SessionDB(db_path=db_path)
@@ -191,14 +193,14 @@ class TestConnectionLifecycle:
 
         db_path = tmp_path / "state.db"
         opened = []
-        real_connect = hermes_state._connect_tracked_db
+        real_connect = sqlite_generation._connect_tracked_db
 
         def capture_connect(*args, **kwargs):
             conn = real_connect(*args, **kwargs)
             opened.append(conn)
             return conn
 
-        monkeypatch.setattr(hermes_state, "_connect_tracked_db", capture_connect)
+        monkeypatch.setattr(sqlite_generation, "_connect_tracked_db", capture_connect)
         monkeypatch.setattr(
             SessionDB,
             "_init_schema",
@@ -220,13 +222,13 @@ class TestConnectionLifecycle:
         self, tmp_path, monkeypatch
     ):
         """A post-open read setup failure must close its unregistered conn."""
-        from hermes_db.infra.backends.sqlite import safe_read as sqlite_safe_read
+        from hermes_db.infra.backends.sqlite import safe_read as sqlite_safe_read, wal as sqlite_wal
 
         db_path = tmp_path / "state.db"
         db = SessionDB(db_path=db_path)
         opened = []
-        real_connect = hermes_state._connect_tracked_db
-        real_pragmas = hermes_state.apply_database_pragmas
+        real_connect = sqlite_generation._connect_tracked_db
+        real_pragmas = sqlite_wal.apply_database_pragmas
 
         def capture_connect(*args, **kwargs):
             conn = real_connect(*args, **kwargs)
@@ -236,18 +238,18 @@ class TestConnectionLifecycle:
         def fail_pragmas(*args, **kwargs):
             raise RuntimeError("read setup failed")
 
-        monkeypatch.setattr(hermes_state, "_connect_tracked_db", capture_connect)
-        monkeypatch.setattr(hermes_state, "apply_database_pragmas", fail_pragmas)
+        monkeypatch.setattr(sqlite_generation, "_connect_tracked_db", capture_connect)
+        monkeypatch.setattr(sqlite_wal, "apply_database_pragmas", fail_pragmas)
         before = dict(sqlite_safe_read._live_connections)
-        db._wal_active = True
+        db._connections._wal_active = True
 
         try:
             with pytest.raises(RuntimeError, match="read setup failed"):
-                db._get_read_conn()
+                db._connections._get_read_conn()
             assert sqlite_safe_read._live_connections == before
         finally:
             monkeypatch.setattr(
-                hermes_state, "apply_database_pragmas", real_pragmas
+                sqlite_wal, "apply_database_pragmas", real_pragmas
             )
             for conn in opened:
                 try:
@@ -264,7 +266,7 @@ class TestConnectionLifecycle:
 
         executed = []
         read_only = SessionDB(db_path=db_path, read_only=True)
-        read_only._conn.set_trace_callback(executed.append)
+        read_only._connections._conn.set_trace_callback(executed.append)
         read_only.close()
 
         assert not any("wal_checkpoint" in sql.lower() for sql in executed)
@@ -273,7 +275,7 @@ class TestConnectionLifecycle:
         db_path = tmp_path / "state.db"
         writable = SessionDB(db_path=db_path)
         executed = []
-        writable._conn.set_trace_callback(executed.append)
+        writable._connections._conn.set_trace_callback(executed.append)
 
         writable.close()
 
@@ -380,7 +382,7 @@ class TestConnectionLifecycle:
         writable.create_session("wal-race", source="cli")
         writable.close()
 
-        real_connect = hermes_state._connect_tracked_db
+        real_connect = sqlite_generation._connect_tracked_db
         attempts = []
 
         def flaky_connect(*args, **kwargs):
@@ -390,7 +392,7 @@ class TestConnectionLifecycle:
                 raise sqlite3.OperationalError("disk I/O error")
             return real_connect(*args, **kwargs)
 
-        monkeypatch.setattr(hermes_state, "_connect_tracked_db", flaky_connect)
+        monkeypatch.setattr(sqlite_generation, "_connect_tracked_db", flaky_connect)
         # Keep the test fast: one backoff tick is enough; the retry budget
         # itself is exercised by the attempt count below.
         monkeypatch.setattr(hermes_state, "_READ_ONLY_IOERR_RETRY_BACKOFF_S", 0.0)
@@ -427,7 +429,7 @@ class TestConnectionLifecycle:
             attempts.append(1)
             raise sqlite3.OperationalError("disk I/O error")
 
-        monkeypatch.setattr(hermes_state, "_connect_tracked_db", bad_connect)
+        monkeypatch.setattr(sqlite_generation, "_connect_tracked_db", bad_connect)
         monkeypatch.setattr(hermes_state, "_READ_ONLY_IOERR_RETRY_BACKOFF_S", 0.0)
         budget = hermes_state._READ_ONLY_IOERR_RETRY_ATTEMPTS
 
@@ -526,10 +528,10 @@ class TestSessionLifecycle:
         import threading
 
         db.create_session(session_id="s1", source="cron")
-        db._conn.execute(
+        db._connections._conn.execute(
             "CREATE TABLE session_end_audit (reason TEXT NOT NULL)"
         )
-        db._conn.execute(
+        db._connections._conn.execute(
             """
             CREATE TRIGGER audit_session_end
             AFTER UPDATE OF ended_at ON sessions
@@ -563,7 +565,7 @@ class TestSessionLifecycle:
 
             assert all(not thread.is_alive() for thread in threads)
             assert errors == []
-            audit_rows = db._conn.execute(
+            audit_rows = db._connections._conn.execute(
                 "SELECT reason FROM session_end_audit"
             ).fetchall()
             assert len(audit_rows) == 1
@@ -782,7 +784,7 @@ class TestMessageStorage:
 
         session_db = SessionDB(db_path=db_path)
         try:
-            active = session_db._conn.execute(
+            active = session_db._connections._conn.execute(
                 "SELECT active FROM messages WHERE content = 'old hidden turn'"
             ).fetchone()[0]
             assert active == 1
@@ -898,7 +900,7 @@ class TestTimestampPreservation:
 
     def _raw_timestamps(self, db, session_id):
         """Query timestamp column directly from SQLite for verification."""
-        rows = db._conn.execute(
+        rows = db._connections._conn.execute(
             "SELECT timestamp FROM messages WHERE session_id = ? ORDER BY id",
             (session_id,),
         ).fetchall()
@@ -1267,11 +1269,11 @@ class TestPruneSessions:
         db.create_session(session_id="old", source="cli")
         db.end_session("old", end_reason="done")
         # Manually backdate started_at
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at = ? WHERE id = ?",
             (time.time() - 100 * 86400, "old"),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
         # Create a recent session
         db.create_session(session_id="new", source="cli")
@@ -1287,11 +1289,11 @@ class TestPruneSessions:
     def test_prune_skips_active_sessions(self, db):
         db.create_session(session_id="active", source="cli")
         # Backdate but don't end
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at = ? WHERE id = ?",
             (time.time() - 200 * 86400, "active"),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
         pruned = db.prune_sessions(older_than_days=90)
         assert pruned == 0
@@ -1304,11 +1306,11 @@ class TestPruneSessions:
         db.create_session(session_id="ended", source="cron")
         db.end_session("ended", "completed")
         old = time.time() - 200 * 86400
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at = ? WHERE id IN (?, ?, ?)",
             (old, "matching-open", "other-source", "ended"),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
         assert db.count_open_prune_matches(
             older_than_days=90, source="cron", archived=False
@@ -1340,12 +1342,12 @@ class TestPruneSessionFilters:
             end_reason="done", message_count=0, cwd=None):
         db.create_session(session_id=sid, source=source, cwd=cwd)
         db.end_session(sid, end_reason=end_reason)
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at = ?, message_count = ?, title = ? "
             "WHERE id = ?",
             (time.time() - age_seconds, message_count, title, sid),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
     def test_started_after_window_prunes_only_recent(self, db):
         self._mk(db, "recent1", age_seconds=3600)       # 1h ago
@@ -1390,10 +1392,10 @@ class TestPruneSessionFilters:
         db.end_session(sid, end_reason=cols.pop("end_reason", "done"))
         cols.setdefault("started_at", time.time() - 60)
         sets = ", ".join(f"{k} = ?" for k in cols)
-        db._conn.execute(
+        db._connections._conn.execute(
             f"UPDATE sessions SET {sets} WHERE id = ?", (*cols.values(), sid)
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
 
 
@@ -1752,7 +1754,7 @@ class TestSessionTitleIndexRepair:
 
         reopened = SessionDB(db_path=db_path)
         try:
-            conn = reopened._conn
+            conn = reopened._connections._conn
             assert conn is not None
             rows = {
                 row["id"]: row
@@ -1800,11 +1802,11 @@ class TestSessionTitleIndexRepair:
             monkeypatch.setattr(hermes_state_schema, "next_title_in_lineage", lambda conn, title: title)
         reopened = SessionDB(db_path=db_path)
         try:
-            titles = dict(reopened._conn.execute("SELECT id, title FROM sessions").fetchall())
+            titles = dict(reopened._connections._conn.execute("SELECT id, title FROM sessions").fetchall())
             expected = ({sid: row[0] for sid, row in seed.items()} if broken_rename else
                         {"a": "Trip", "b": None, "c": "Note", "d": None, "e": "Trip #2"})
             assert titles == expected
-            assert bool(reopened._conn.execute(
+            assert bool(reopened._connections._conn.execute(
                 "SELECT 1 FROM sqlite_master WHERE name = 'idx_sessions_title_unique'"
             ).fetchone()) is not broken_rename
         finally:
@@ -1826,14 +1828,14 @@ class TestSessionTitleLineage:
 
     def _make_compression_chain(self, db, t0, *, root="root", tip="tip"):
         db.create_session(root, "cli")
-        db._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0, root))
-        db._conn.execute(
+        db._connections._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0, root))
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at=?, end_reason='compression' WHERE id=?",
             (t0 + 100, root),
         )
         db.create_session(tip, "cli", parent_session_id=root)
-        db._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 200, tip))
-        db._conn.commit()
+        db._connections._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 200, tip))
+        db._connections._conn.commit()
 
     def test_rename_continuation_back_to_base_transfers_title(self, db):
         import time as _time
@@ -1914,7 +1916,7 @@ class TestSchemaInit:
         """Prefer WAL on fixed SQLite; DELETE on WAL-reset-vulnerable builds (#69784)."""
         from hermes_db.infra.backends.sqlite.wal import is_sqlite_wal_reset_vulnerable
 
-        cursor = db._conn.execute("PRAGMA journal_mode")
+        cursor = db._connections._conn.execute("PRAGMA journal_mode")
         mode = cursor.fetchone()[0].lower()
         if is_sqlite_wal_reset_vulnerable():
             assert mode == "delete"
@@ -1973,7 +1975,7 @@ class TestSchemaInit:
         for table_name, declared_cols in expected.items():
             live_cols = {
                 r[1]
-                for r in db._conn.execute(
+                for r in db._connections._conn.execute(
                     f'PRAGMA table_info("{table_name}")'
                 ).fetchall()
             }
@@ -2087,7 +2089,7 @@ class TestAsyncDelegationsSchemaAgreement:
 
         db = SessionDB(db_path=db_path)
         try:
-            self._assert_canonical(db._conn)
+            self._assert_canonical(db._connections._conn)
         finally:
             db.close()
 
@@ -2108,156 +2110,11 @@ class TestAsyncDelegationsSchemaAgreement:
 
         db = SessionDB(db_path=db_path)
         try:
-            self._assert_canonical(db._conn)
+            self._assert_canonical(db._connections._conn)
         finally:
             db.close()
 
 
-class TestReconcileColumnsErrorHandling:
-    """_reconcile_columns must not bury migration failures (#79531/#80037).
-
-    A locked ALTER used to be swallowed at DEBUG: startup "succeeded" with a
-    half-reconciled schema and every session-list read then 500ed with
-    "no such column" until an unrelated writable open. The contract now:
-    duplicate-column races stay quiet, lock/busy propagates (so the open-time
-    lock patience retries the whole init), everything else warns.
-    """
-
-    class _FailingAlterCursor:
-        """Pass through to a real cursor, failing ALTER TABLE with ``exc``."""
-
-        def __init__(self, real_cursor, exc):
-            self._real = real_cursor
-            self._exc = exc
-
-        def execute(self, sql, *args, **kwargs):
-            if sql.lstrip().upper().startswith("ALTER TABLE"):
-                raise self._exc
-            return self._real.execute(sql, *args, **kwargs)
-
-        def __getattr__(self, name):
-            return getattr(self._real, name)
-
-    def _db_missing_column(self, tmp_path):
-        """A store whose sessions table lacks last_read_at."""
-        db_path = tmp_path / "state.db"
-        seed = SessionDB(db_path=db_path)
-        seed.close()
-        conn = sqlite3.connect(str(db_path))
-        try:
-            conn.execute("ALTER TABLE sessions DROP COLUMN last_read_at")
-            conn.commit()
-        finally:
-            conn.close()
-        return db_path
-
-    def test_locked_alter_propagates(self, tmp_path):
-        """database-is-locked must escape _reconcile_columns, not vanish.
-
-        Propagation is what lets _connect_and_init_with_lock_patience retry
-        the whole init with jittered backoff instead of serving a store
-        that is silently behind SCHEMA_SQL.
-        """
-        db_path = self._db_missing_column(tmp_path)
-        conn = sqlite3.connect(str(db_path))
-        try:
-            stale = SessionDB.__new__(SessionDB)
-            stale._conn = conn
-            cursor = self._FailingAlterCursor(
-                conn.cursor(),
-                sqlite3.OperationalError("database is locked"),
-            )
-            with pytest.raises(sqlite3.OperationalError, match="locked"):
-                stale._reconcile_columns(cursor)
-        finally:
-            conn.close()
-
-    def test_duplicate_column_race_stays_quiet(self, tmp_path, caplog):
-        """A duplicate-column race is expected and must not warn or raise."""
-        import logging
-
-        db_path = self._db_missing_column(tmp_path)
-        conn = sqlite3.connect(str(db_path))
-        try:
-            stale = SessionDB.__new__(SessionDB)
-            stale._conn = conn
-            cursor = self._FailingAlterCursor(
-                conn.cursor(),
-                sqlite3.OperationalError(
-                    "duplicate column name: last_read_at"
-                ),
-            )
-            with caplog.at_level(logging.WARNING, logger="hermes_state"):
-                stale._reconcile_columns(cursor)
-        finally:
-            conn.close()
-        assert not [
-            r for r in caplog.records if "reconcile" in r.getMessage()
-        ]
-
-    def test_other_alter_failures_warn(self, tmp_path, caplog):
-        """Schema mistakes (e.g. un-ADDable NOT NULL) log at WARNING."""
-        import logging
-
-        db_path = self._db_missing_column(tmp_path)
-        conn = sqlite3.connect(str(db_path))
-        try:
-            stale = SessionDB.__new__(SessionDB)
-            stale._conn = conn
-            cursor = self._FailingAlterCursor(
-                conn.cursor(),
-                sqlite3.OperationalError(
-                    "Cannot add a NOT NULL column with default value NULL"
-                ),
-            )
-            with caplog.at_level(logging.WARNING, logger="hermes_state"):
-                stale._reconcile_columns(cursor)
-        finally:
-            conn.close()
-        warnings = [
-            r
-            for r in caplog.records
-            if r.levelno >= logging.WARNING
-            and "reconcile" in r.getMessage()
-        ]
-        assert warnings, "un-ADDable column failure must be logged at WARNING+"
-
-    def test_locked_alter_is_retried_by_open_lock_patience(self, tmp_path, monkeypatch):
-        """End-to-end: a transiently locked ALTER heals on open retry.
-
-        The lock-patience wrapper retries on OperationalError raised out of
-        _connect_and_init; before this fix _reconcile_columns caught the
-        error internally so the retry never saw it and the store stayed
-        stale forever.
-        """
-        db_path = self._db_missing_column(tmp_path)
-
-        original = SessionDB._reconcile_columns
-        calls = {"n": 0}
-
-        def flaky_reconcile(self, cursor):
-            calls["n"] += 1
-            if calls["n"] == 1:
-                raise sqlite3.OperationalError("database is locked")
-            return original(self, cursor)
-
-        monkeypatch.setattr(SessionDB, "_reconcile_columns", flaky_reconcile)
-        # Keep the retry fast — patience budget is 20s by default.
-        monkeypatch.setattr(SessionDB, "_WRITE_RETRY_SLOW_MIN_S", 0.001)
-        monkeypatch.setattr(SessionDB, "_WRITE_RETRY_SLOW_MAX_S", 0.005)
-
-        healed = SessionDB(db_path=db_path)
-        try:
-            cols = {
-                r[1]
-                for r in healed._conn.execute(
-                    'PRAGMA table_info("sessions")'
-                ).fetchall()
-            }
-        finally:
-            healed.close()
-        assert calls["n"] >= 2, "lock patience must retry the init"
-        assert "last_read_at" in cols
 
 
 class TestFtsRebuildLoopWithoutTrigram:
@@ -2452,7 +2309,7 @@ class TestFtsRebuildLoopWithoutTrigram:
             statements.clear()
             db = SessionDB(db_path=db_path)
             try:
-                assert db._db_has_legacy_inline_fts(db._conn.cursor()) is True
+                assert db._db_has_legacy_inline_fts(db._connections._conn.cursor()) is True
                 assert db._trigram_available is False
                 assert self._legacy_wipes(statements) == []
                 assert len(db.search_messages("zebra")) == 5
@@ -2481,12 +2338,12 @@ class TestFtsRebuildLoopWithoutTrigram:
                 ("fts_rebuild_high_water", "30"),
                 ("fts_rebuild_progress", "10"),
             ):
-                db._conn.execute(
+                db._connections._conn.execute(
                     "INSERT INTO state_meta (key, value) VALUES (?, ?) "
                     "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
                     (key, value),
                 )
-            db._conn.commit()
+            db._connections._conn.commit()
         finally:
             db.close()
 
@@ -2512,8 +2369,8 @@ class TestFtsRebuildLoopWithoutTrigram:
 
         db = SessionDB(db_path=db_path)
         try:
-            db._conn.execute("DROP TRIGGER messages_fts_insert")
-            db._conn.commit()
+            db._connections._conn.execute("DROP TRIGGER messages_fts_insert")
+            db._connections._conn.commit()
         finally:
             db.close()
 
@@ -2521,7 +2378,7 @@ class TestFtsRebuildLoopWithoutTrigram:
         db = SessionDB(db_path=db_path)
         try:
             assert len(self._rebuilds(statements)) == 1
-            assert db._conn.execute(
+            assert db._connections._conn.execute(
                 "SELECT COUNT(*) FROM sqlite_master "
                 "WHERE type = 'trigger' AND name = 'messages_fts_insert'"
             ).fetchone()[0] == 1
@@ -2556,8 +2413,8 @@ class TestFtsRebuildLoopWithoutTrigram:
         try:
             if not trigram_available:
                 pytest.skip("this SQLite build has no trigram tokenizer")
-            db._conn.execute("DROP TRIGGER messages_fts_trigram_insert")
-            db._conn.commit()
+            db._connections._conn.execute("DROP TRIGGER messages_fts_trigram_insert")
+            db._connections._conn.commit()
         finally:
             db.close()
 
@@ -2641,12 +2498,12 @@ class TestListSessionsRich:
         db.append_message("compression-child", "user", "child message")
         db.create_session("routing-orphan", "telegram")
         db.append_message("routing-orphan", "user", "orphan message")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET model_config = ? "
             "WHERE id IN (?, ?, ?)",
             (unsafe_model_config, "root", "compression-child", "routing-orphan"),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
         listed = db.list_sessions_rich(source="telegram")
         ordered = db.list_sessions_rich(
@@ -2707,12 +2564,12 @@ class TestListSessionsRich:
         """Mid-turn agent heartbeats must advance last_active without new messages (#72016)."""
         db.create_session("s1", "cli")
         db.append_message("s1", "user", "hello")
-        with db._lock:
-            db._conn.execute(
+        with db._connections._lock:
+            db._connections._conn.execute(
                 "UPDATE messages SET timestamp=? WHERE session_id=? AND role=?",
                 (1_700_000_000.0, "s1", "user"),
             )
-            db._conn.commit()
+            db._connections._conn.commit()
 
         before = db.list_sessions_rich()[0]["last_active"]
         heartbeat = 1_700_000_500.0
@@ -2770,12 +2627,12 @@ class TestListSessionsRich:
         """Rate-limited heartbeats can lag message writes; last_active must take max."""
         db.create_session("s1", "cli")
         db.append_message("s1", "user", "hello")
-        with db._lock:
-            db._conn.execute(
+        with db._connections._lock:
+            db._connections._conn.execute(
                 "UPDATE messages SET timestamp=? WHERE session_id=?",
                 (1_700_000_800.0, "s1"),
             )
-            db._conn.commit()
+            db._connections._conn.commit()
         db.touch_session_activity("s1", 1_700_000_500.0, description="api")  # older than message
         assert db.list_sessions_rich()[0]["last_active"] == 1_700_000_800.0
 
@@ -2788,12 +2645,12 @@ class TestListSessionsRich:
             chat_type="dm",
         )
         db.append_message("gw-1", "user", "ping")
-        with db._lock:
-            db._conn.execute(
+        with db._connections._lock:
+            db._connections._conn.execute(
                 "UPDATE messages SET timestamp=? WHERE session_id=?",
                 (1_700_000_000.0, "gw-1"),
             )
-            db._conn.commit()
+            db._connections._conn.commit()
 
         heartbeat = 1_700_000_900.0
         db.touch_session_activity(
@@ -2906,7 +2763,7 @@ class TestListSessionsRich:
         assert {parent_id, child_id}.issubset(listed)
         assert db.session_count(source="telegram", exclude_children=True) == 2
         assert db.session_count_by_source(exclude_children=True)["telegram"] == 2
-        ephemeral = db._conn.execute(
+        ephemeral = db._connections._conn.execute(
             f"SELECT s.id FROM sessions s WHERE {_ephemeral_child_sql('s')}"
         ).fetchall()
         assert child_id not in {row["id"] for row in ephemeral}
@@ -2941,17 +2798,17 @@ class TestListSessionsRich:
             session_key=lane_key,
             parent_session_id="legacy_branch_parent",
         )
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at = ? WHERE id = ?", (100.0, "legacy_branch_child")
         )
-        db._conn.commit()
+        db._connections._conn.commit()
         db.end_session("legacy_branch_parent", "branched")
         db.reopen_session("legacy_branch_parent")
         db.end_session("legacy_branch_parent", "session_switch")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at = ? WHERE id = ?", (200.0, "legacy_branch_parent")
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
         db.reopen_session("legacy_branch_parent")
 
@@ -2968,15 +2825,15 @@ class TestListSessionsRich:
         db.create_session(
             "cycled_reset_child", "telegram", session_key=lane_key, parent_session_id="cycled_parent"
         )
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at = NULL, end_reason = NULL WHERE id = ?", ("cycled_parent",)
         )
-        db._conn.commit()
+        db._connections._conn.commit()
         db.end_session("cycled_parent", "session_switch")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at = ended_at + 100 WHERE id = ?", ("cycled_parent",)
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
         db.reopen_session("cycled_parent")
 
@@ -3054,10 +2911,10 @@ class TestListSessionsRich:
 
         assert "delegate" not in [s["id"] for s in db.list_sessions_rich()]
 
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET parent_session_id = NULL WHERE id = ?", ("delegate",)
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
         assert "delegate" not in [s["id"] for s in db.list_sessions_rich()]
 
@@ -3148,12 +3005,12 @@ class TestCompressionChainProjection:
         """
         # Root that gets compressed
         db.create_session("root1", "cli")
-        db._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0, "root1"))
+        db._connections._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0, "root1"))
         db.append_message("root1", "user", "help me refactor auth")
 
         # Delegate subagent spawned while root1 was live (before it ended)
         db.create_session("delegate1", "cli", parent_session_id="root1")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at=?, ended_at=? WHERE id=?",
             (t0 + 600, t0 + 650, "delegate1"),
         )
@@ -3161,14 +3018,14 @@ class TestCompressionChainProjection:
 
         # root1 compressed at t0+1800
         t_compress_root = t0 + 1800
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at=?, end_reason=? WHERE id=?",
             (t_compress_root, "compression", "root1"),
         )
 
         # Continuation mid created 1s after parent ended
         db.create_session("mid1", "cli", parent_session_id="root1")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at=? WHERE id=?",
             (t_compress_root + 1, "mid1"),
         )
@@ -3176,20 +3033,20 @@ class TestCompressionChainProjection:
 
         # mid1 also compressed
         t_compress_mid = t_compress_root + 1800
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at=?, end_reason=? WHERE id=?",
             (t_compress_mid, "compression", "mid1"),
         )
 
         # Tip — latest continuation
         db.create_session("tip1", "cli", parent_session_id="mid1")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at=? WHERE id=?",
             (t_compress_mid + 1, "tip1"),
         )
         db.append_message("tip1", "user", "latest message")
 
-        db._conn.commit()
+        db._connections._conn.commit()
         return ("root1", "delegate1", "mid1", "tip1")
 
     def test_get_compression_tip_walks_full_chain(self, db):
@@ -3209,21 +3066,21 @@ class TestCompressionChainProjection:
         t0 = _time.time() - 3600
 
         db.create_session("root1", "cli")
-        db._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0, "root1"))
+        db._connections._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0, "root1"))
         db.append_message("root1", "user", "help me refactor auth")
         t_compress_root = t0 + 1800
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at=?, end_reason=? WHERE id=?",
             (t_compress_root, "compression", "root1"),
         )
 
         db.create_session("mid1", "cli", parent_session_id="root1")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at=? WHERE id=?", (t_compress_root + 1, "mid1"),
         )
         db.append_message("mid1", "user", "continuing")
         t_compress_mid = t_compress_root + 1800
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at=?, end_reason=? WHERE id=?",
             (t_compress_mid, "compression", "mid1"),
         )
@@ -3231,7 +3088,7 @@ class TestCompressionChainProjection:
         # Real tip: closed by the startup orphan reap, LAST ACTIVE EARLIER than
         # the reset fork, so the old tiebreak (last_active DESC) preferred the fork.
         db.create_session("tip1", "cli", parent_session_id="mid1")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at=?, ended_at=?, end_reason=?, last_activity_at=? WHERE id=?",
             (t_compress_mid + 1, t_compress_mid + 600, "startup_orphan_reap",
              t_compress_mid + 600, "tip1"),
@@ -3242,13 +3099,13 @@ class TestCompressionChainProjection:
         db.create_session(
             "reset1", "cli", parent_session_id="mid1", model_config={"_reset_from": "mid1"},
         )
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at=?, ended_at=?, end_reason=?, last_activity_at=? WHERE id=?",
             (t_compress_mid + 2, t_compress_mid + 900, "session_reset",
              t_compress_mid + 900, "reset1"),
         )
         db.append_message("reset1", "user", "post reset talk")
-        db._conn.commit()
+        db._connections._conn.commit()
 
         # The chain/tip follow the real continuation, never the reset fork.
         assert db.get_compression_tip("root1") == "tip1"
@@ -3269,12 +3126,12 @@ class TestCompressionChainProjection:
         # later activity into the lineage either: a standalone session active
         # between the tip and the fork still outranks the projected lineage row.
         db.create_session("solo", "cli")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at=?, last_activity_at=? WHERE id=?",
             (t_compress_mid + 300, t_compress_mid + 700, "solo"),
         )
         db.append_message("solo", "user", "standalone")
-        db._conn.commit()
+        db._connections._conn.commit()
         ordered = db.list_sessions_rich(source="cli", limit=20, order_by_last_active=True)
         ordered_ids = [s["id"] for s in ordered]
         assert ordered_ids.count("reset1") == 1
@@ -3288,12 +3145,12 @@ class TestCompressionChainProjection:
         import time as _time
         t0 = _time.time() - 3600
         db.create_session("root1", "cli")
-        db._conn.execute("UPDATE sessions SET ended_at=?, end_reason='compression' WHERE id=?", (t0 + 10, "root1"))
+        db._connections._conn.execute("UPDATE sessions SET ended_at=?, end_reason='compression' WHERE id=?", (t0 + 10, "root1"))
         db.create_session("reset1", "cli", parent_session_id="root1", model_config={"_reset_from": "root1"})
-        db._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 11, "reset1"))
+        db._connections._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 11, "reset1"))
         db.create_session("tip1", "cli", parent_session_id="root1")
-        db._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 20, "tip1"))
-        db._conn.commit()
+        db._connections._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 20, "tip1"))
+        db._connections._conn.commit()
 
         assert db._is_compression_child_row(db.get_session("reset1")) is False
         assert db.get_compression_lineage("root1") == ["root1", "tip1"]
@@ -3309,14 +3166,14 @@ class TestCompressionChainProjection:
 
         t0 = time.time() - 3600
         db.create_session("root", "cli")
-        db._conn.execute("UPDATE sessions SET ended_at=?, end_reason='compression' WHERE id=?", (t0 + 10, "root"))
+        db._connections._conn.execute("UPDATE sessions SET ended_at=?, end_reason='compression' WHERE id=?", (t0 + 10, "root"))
         db.create_session("mid1", "cli", parent_session_id="root")
-        db._conn.execute("UPDATE sessions SET ended_at=?, end_reason='compression' WHERE id=?", (t0 + 20, "mid1"))
+        db._connections._conn.execute("UPDATE sessions SET ended_at=?, end_reason='compression' WHERE id=?", (t0 + 20, "mid1"))
         db.create_session("mid2", "cli", parent_session_id="mid1")
-        db._conn.execute("UPDATE sessions SET ended_at=?, end_reason='compression' WHERE id=?", (t0 + 30, "mid2"))
+        db._connections._conn.execute("UPDATE sessions SET ended_at=?, end_reason='compression' WHERE id=?", (t0 + 30, "mid2"))
         db.create_session("tip", "cli", parent_session_id="mid2")
         db.create_session("reset", "cli", parent_session_id="mid2", model_config={"_reset_from": "mid2"})
-        db._conn.commit()
+        db._connections._conn.commit()
 
         sql = gateway_mod._COMPRESSION_LINEAGE_CTE + " SELECT id FROM compression_lineage"
         with db._read_ctx() as conn:
@@ -3339,7 +3196,7 @@ class TestCompressionChainProjection:
         self._build_compression_chain(db, _time.time() - 3600)
         db.create_session("solo", "cli")
         db.append_message("solo", "user", "standalone")
-        db._conn.commit()
+        db._connections._conn.commit()
 
         sessions = db.list_sessions_rich(source="cli", limit=20)
         tip_row = next(s for s in sessions if s["id"] == "tip1")
@@ -3357,7 +3214,7 @@ class TestCompressionChainProjection:
         db.append_message("solo", "user", "standalone")
         db.create_session("branchy", "cli", parent_session_id="root1",
                           model_config={"_branched_from": "root1"})
-        db._conn.commit()
+        db._connections._conn.commit()
 
         sessions = db.list_sessions_rich(source="cli", limit=20)
         tip_row = next(s for s in sessions if s["id"] == "tip1")
@@ -3376,16 +3233,16 @@ class TestCompressionChainProjection:
         # A three-link chain: seg-a → seg-prev → live-tip. Only the tip is live.
         db.create_session("seg-a", "cli")
         db.append_message("seg-a", "user", "earlier days")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at=?, end_reason='compression' WHERE id=?", (t0 + 10, "seg-a"))
         # A restored previous segment the user re-linked the live tip to.
         db.create_session("seg-prev", "cli", parent_session_id="seg-a")
         db.append_message("seg-prev", "user", "restored segment")
-        db._conn.execute("UPDATE sessions SET ended_at=?, end_reason='compression' WHERE id=?",
+        db._connections._conn.execute("UPDATE sessions SET ended_at=?, end_reason='compression' WHERE id=?",
                          (t0 + 20, "seg-prev"))
         db.create_session("live-tip", "cli", parent_session_id="seg-prev")
         db.append_message("live-tip", "user", "still talking here")
-        db._conn.commit()
+        db._connections._conn.commit()
 
         sessions = db.list_sessions_rich(source="cli", limit=20)
         listed_ids = {s["id"] for s in sessions}
@@ -3408,7 +3265,7 @@ class TestCompressionChainProjection:
         # Add an uncompressed root for comparison.
         db.create_session("solo", "cli")
         db.append_message("solo", "user", "standalone")
-        db._conn.commit()
+        db._connections._conn.commit()
 
         sessions = db.list_sessions_rich(source="cli", limit=20)
         ids = [s["id"] for s in sessions]
@@ -3441,17 +3298,17 @@ class TestCompressionChainProjection:
 
         # Second, independent chain — same shape, different ids/content.
         db.create_session("root2", "cli")
-        db._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 100, "root2"))
+        db._connections._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 100, "root2"))
         db.append_message("root2", "user", "second conversation start")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at=?, end_reason=? WHERE id=?",
             (t0 + 200, "compression", "root2"),
         )
         db.create_session("tip2", "cli", parent_session_id="root2")
-        db._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 201, "tip2"))
+        db._connections._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 201, "tip2"))
         db.append_message("tip2", "user", "second conversation continuation")
         db.update_session_cwd("tip2", "/tmp/workspaces/second")
-        db._conn.commit()
+        db._connections._conn.commit()
 
         sessions = db.list_sessions_rich(source="cli", limit=20)
         ids = [s["id"] for s in sessions]
@@ -3474,16 +3331,16 @@ class TestCompressionChainProjection:
         t0 = _time.time() - 7200
         self._build_compression_chain(db, t0)
         db.create_session("root2", "cli")
-        db._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 100, "root2"))
+        db._connections._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 100, "root2"))
         db.append_message("root2", "user", "second conversation start")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at=?, end_reason=? WHERE id=?",
             (t0 + 200, "compression", "root2"),
         )
         db.create_session("tip2", "cli", parent_session_id="root2")
-        db._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 201, "tip2"))
+        db._connections._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 201, "tip2"))
         db.append_message("tip2", "user", "second continuation")
-        db._conn.commit()
+        db._connections._conn.commit()
 
         batch_calls = []
         single_calls = []
@@ -3522,12 +3379,12 @@ class TestCompressionChainProjection:
         import time as _time
         t0 = _time.time() - 100
         db.create_session("orphan", "cli")
-        db._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0, "orphan"))
-        db._conn.execute(
+        db._connections._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0, "orphan"))
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at=?, end_reason=? WHERE id=?",
             (t0 + 10, "compression", "orphan"),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
         sessions = db.list_sessions_rich(source="cli", limit=10)
         ids = [s["id"] for s in sessions]
@@ -3765,13 +3622,13 @@ class TestVacuum:
             db.create_session(session_id=sid, source="cli")
             for _ in range(20):
                 db.append_message(session_id=sid, role="assistant", content="z" * 4000)
-        db._conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        db._connections._conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
         dense = db._freelist_ratio()
         assert dense is not None and dense < AUTO_VACUUM_MIN_FREELIST_RATIO
 
         for i in range(6):
             db.delete_session(f"bulk{i}")
-        db._conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        db._connections._conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
         sparse = db._freelist_ratio()
         assert sparse is not None and sparse > AUTO_VACUUM_MIN_FREELIST_RATIO
 
@@ -3782,10 +3639,10 @@ class TestVacuum:
         truncated back at checkpoints) rather than pinning the exact byte
         count, which is a tunable.
         """
-        mode = db._conn.execute("PRAGMA journal_mode").fetchone()[0]
+        mode = db._connections._conn.execute("PRAGMA journal_mode").fetchone()[0]
         if str(mode).lower() != "wal":
             pytest.skip("WAL unavailable on this filesystem")
-        limit = db._conn.execute("PRAGMA journal_size_limit").fetchone()[0]
+        limit = db._connections._conn.execute("PRAGMA journal_size_limit").fetchone()[0]
         assert limit > 0, "unbounded WAL: state.db-wal never returns disk to the OS"
 
     def test_vacuum_leaves_wal_truncated(self, db, tmp_path):
@@ -3796,7 +3653,7 @@ class TestVacuum:
         behind — `sessions optimize` then consumes far more disk than it
         frees, which is the opposite of its purpose.
         """
-        mode = db._conn.execute("PRAGMA journal_mode").fetchone()[0]
+        mode = db._connections._conn.execute("PRAGMA journal_mode").fetchone()[0]
         if str(mode).lower() != "wal":
             pytest.skip("WAL unavailable on this filesystem")
 
@@ -3809,7 +3666,7 @@ class TestVacuum:
 
         wal = Path(str(db.db_path) + "-wal")
         if wal.exists():
-            limit = db._conn.execute("PRAGMA journal_size_limit").fetchone()[0]
+            limit = db._connections._conn.execute("PRAGMA journal_size_limit").fetchone()[0]
             assert wal.stat().st_size <= max(limit, 0) or wal.stat().st_size == 0, (
                 f"WAL left at {wal.stat().st_size} bytes after VACUUM"
             )
@@ -3825,11 +3682,11 @@ class TestOptimizeFts:
         db.create_session(session_id="s1", source="cli")
         db.append_message(session_id="s1", role="user", content="bounded merge")
         statements = []
-        db._conn.set_trace_callback(statements.append)
+        db._connections._conn.set_trace_callback(statements.append)
         try:
             executed = db._merge_fts_incrementally(max_pages=37)
         finally:
-            db._conn.set_trace_callback(None)
+            db._connections._conn.set_trace_callback(None)
 
         # At least one merge command per present FTS index, and never more
         # than the per-pass command cap per index.
@@ -3886,11 +3743,11 @@ class TestAutoMaintenance:
         """Create a session that is ended and was started `days_old` days ago."""
         db.create_session(session_id=sid, source="cli")
         db.end_session(sid, end_reason="done")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at = ? WHERE id = ?",
             (time.time() - days_old * 86400, sid),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
     def test_first_run_prunes_and_skips_vacuum_when_little_reclaimable(self, db):
         """Pruning two empty sessions frees almost nothing → prune yes, VACUUM no."""
@@ -3920,11 +3777,11 @@ class TestAutoMaintenance:
                 db.append_message(session_id=sid, role="assistant", content="z" * 4000)
             # Keep the row aged: append_message bumps activity, prune ages by
             # latest message, so push the message timestamps back too.
-            db._conn.execute(
+            db._connections._conn.execute(
                 "UPDATE messages SET timestamp = ? WHERE session_id = ?",
                 (time.time() - 100 * 86400, sid),
             )
-        db._conn.commit()
+        db._connections._conn.commit()
 
         result = db.maybe_auto_prune_and_vacuum(retention_days=90)
         assert result["skipped"] is False
@@ -4125,7 +3982,7 @@ class TestFTS5ToolCallMigration:
                 "v23 optimize must index tool_calls JSON into FTS"
             # schema_version bumped once the FTS layer is v23
             from hermes_state_common import SCHEMA_VERSION
-            row = session_db._conn.execute(
+            row = session_db._connections._conn.execute(
                 "SELECT version FROM schema_version LIMIT 1"
             ).fetchone()
             version = row["version"] if hasattr(row, "keys") else row[0]
@@ -4205,7 +4062,7 @@ class TestFTSExternalContentMigration:
             # DECOUPLED: the main schema_version advances to current even though
             # the FTS layout stays legacy — future migrations must not be gated
             # behind the FTS opt-in.
-            version = db._conn.execute(
+            version = db._connections._conn.execute(
                 "SELECT version FROM schema_version"
             ).fetchone()[0]
             assert version == SCHEMA_VERSION, "main schema version must advance"
@@ -4215,7 +4072,7 @@ class TestFTSExternalContentMigration:
             assert db.get_meta("fts_optimize_available") == "1"
 
             # Legacy inline shape is intact (content shadow table still there).
-            assert db._conn.execute(
+            assert db._connections._conn.execute(
                 "SELECT name FROM sqlite_master WHERE name = 'messages_fts_content'"
             ).fetchone() is not None
 
@@ -4332,7 +4189,7 @@ class TestFTSExternalContentMigration:
 
         db = SessionDB(db_path=db_path)
         try:
-            assert db._conn is not None
+            assert db._connections._conn is not None
             assert db.fts_optimize_available() is True
             assert db.get_meta("fts_storage_version") == "1"
 
@@ -4349,14 +4206,14 @@ class TestFTSExternalContentMigration:
 
             db.close()
             db = SessionDB(db_path=db_path)
-            assert db._conn is not None
+            assert db._connections._conn is not None
             assert db.get_meta("fts_rebuild_high_water") is None
             assert db.get_meta("fts_rebuild_progress") is None
-            assert db._has_fts_trash(db._conn) is True
+            assert db._has_fts_trash(db._connections._conn) is True
             assert db.fts_optimize_available() is True
             assert db.get_meta("fts_storage_version") == "1"
             if with_message:
-                assert db._conn.execute(
+                assert db._connections._conn.execute(
                     "SELECT 1 FROM messages_fts_trigram "
                     "WHERE messages_fts_trigram MATCH '部署完成' LIMIT 1"
                 ).fetchone()
@@ -4368,14 +4225,14 @@ class TestFTSExternalContentMigration:
                 # messages_fts stays in the tool-calls search path.
                 assert len(db.search_messages("UNIQUE_TOOLCALL_TOKEN_43701")) == 1
                 # New trigram schema excludes tool_calls from trigram projection.
-                assert not db._conn.execute(
+                assert not db._connections._conn.execute(
                     "SELECT 1 FROM messages_fts_trigram WHERE messages_fts_trigram MATCH 'UNIQUE_TOOLCALL_TOKEN_43701' LIMIT 1"
                 ).fetchone()
-                assert db._conn.execute(
+                assert db._connections._conn.execute(
                     "SELECT 1 FROM messages_fts_trigram "
                     "WHERE messages_fts_trigram MATCH '部署完成' LIMIT 1"
                 ).fetchone()
-            trigger_sql = db._conn.execute(
+            trigger_sql = db._connections._conn.execute(
                 "SELECT sql FROM sqlite_master "
                 "WHERE type = 'trigger' AND name = 'messages_fts_trigram_update'"
             ).fetchone()[0]
@@ -4398,7 +4255,7 @@ class TestFTSExternalContentMigration:
         """
         from hermes_state_common import FTS_SQL, FTS_TRIGRAM_SQL
 
-        conn = db._conn
+        conn = db._connections._conn
         db._drop_fts_triggers(conn)
         conn.execute("DROP VIEW IF EXISTS messages_fts_trigram_src")
         had = bool(conn.execute(
@@ -4447,8 +4304,8 @@ class TestFTSExternalContentMigration:
             # Crash window shape: no markers, trash present, empty index.
             assert db.get_meta("fts_rebuild_high_water") is None
             assert db.get_meta("fts_rebuild_progress") is None
-            assert db._has_fts_trash(db._conn) is True
-            assert db._conn.execute(
+            assert db._has_fts_trash(db._connections._conn) is True
+            assert db._connections._conn.execute(
                 "SELECT COUNT(*) FROM messages_fts_docsize"
             ).fetchone()[0] == 0
             assert len(db.search_messages("deployment")) == 0
@@ -4463,18 +4320,18 @@ class TestFTSExternalContentMigration:
             assert db.get_meta("fts_storage_version") == str(
                 hermes_state_common.FTS_STORAGE_VERSION
             )
-            assert db._conn.execute(
+            assert db._connections._conn.execute(
                 "SELECT name FROM sqlite_master WHERE name LIKE '%_v22_trash%'"
             ).fetchall() == []
             # Historical rows searchable again; index fully populated.
             assert len(db.search_messages("deployment")) == 1
             assert len(db.search_messages("TOOLBLOB")) == 1
-            n_msg = db._conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
-            n_fts = db._conn.execute(
+            n_msg = db._connections._conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
+            n_fts = db._connections._conn.execute(
                 "SELECT COUNT(*) FROM messages_fts_docsize"
             ).fetchone()[0]
             assert n_fts == n_msg
-            db._conn.execute(
+            db._connections._conn.execute(
                 "INSERT INTO messages_fts(messages_fts, rank) VALUES('integrity-check', 1)"
             )
         finally:
@@ -4492,24 +4349,24 @@ class TestFTSExternalContentMigration:
             self._simulate_pre_fix_demote_crash_window(db)
             # Simulate the bad resume: trash already gone, empty index stamped.
             trash = [
-                r[0] for r in db._conn.execute(
+                r[0] for r in db._connections._conn.execute(
                     "SELECT name FROM sqlite_master WHERE type = 'table' "
                     "AND name LIKE 'fts\\_v22\\_trash\\_%' ESCAPE '\\'"
                 ).fetchall()
             ]
             for tbl in trash:
-                db._conn.execute(f"DROP TABLE IF EXISTS {tbl}")
-            db._conn.execute(
+                db._connections._conn.execute(f"DROP TABLE IF EXISTS {tbl}")
+            db._connections._conn.execute(
                 "INSERT INTO state_meta (key, value) VALUES "
                 "('fts_storage_version', ?) "
                 "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
                 (str(hermes_state_common.FTS_STORAGE_VERSION),),
             )
-            db._conn.commit()
+            db._connections._conn.commit()
 
             assert db.get_meta("fts_rebuild_high_water") is None
-            assert db._has_fts_trash(db._conn) is False
-            assert db._fts_external_index_empty_with_messages(db._conn) is True
+            assert db._has_fts_trash(db._connections._conn) is False
+            assert db._fts_external_index_empty_with_messages(db._connections._conn) is True
             # Must still be offered despite the premature stamp.
             assert db.fts_optimize_available() is True
             assert len(db.search_messages("deployment")) == 0
@@ -4534,20 +4391,20 @@ class TestFTSExternalContentMigration:
         db = SessionDB(db_path=db_path)
         try:
             self._simulate_pre_fix_demote_crash_window(db)
-            hw = db._conn.execute(
+            hw = db._connections._conn.execute(
                 "SELECT COALESCE(MAX(id), 0) FROM messages"
             ).fetchone()[0]
             # Orphan shape: high_water alone on an empty external index.
             db.set_meta("fts_rebuild_high_water", str(hw))
-            db._conn.execute(
+            db._connections._conn.execute(
                 "DELETE FROM state_meta WHERE key = ?", ("fts_rebuild_progress",)
             )
-            db._conn.commit()
+            db._connections._conn.commit()
             assert db.get_meta("fts_rebuild_progress") is None
             assert db.fts_optimize_available() is True
             # Empty index: base FTS MATCH finds nothing (gap LIKE may still
             # supplement when high_water is set — that is intentional).
-            assert db._conn.execute(
+            assert db._connections._conn.execute(
                 "SELECT COUNT(*) FROM messages_fts_docsize"
             ).fetchone()[0] == 0
 
@@ -4555,8 +4412,8 @@ class TestFTSExternalContentMigration:
             assert result["ok"] is True
             assert db.get_meta("fts_rebuild_high_water") is None
             assert db.get_meta("fts_rebuild_progress") is None
-            n_msg = db._conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
-            n_fts = db._conn.execute(
+            n_msg = db._connections._conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
+            n_fts = db._connections._conn.execute(
                 "SELECT COUNT(*) FROM messages_fts_docsize"
             ).fetchone()[0]
             assert n_fts == n_msg
@@ -4576,34 +4433,34 @@ class TestFTSExternalContentMigration:
         db = SessionDB(db_path=db_path)
         try:
             self._simulate_pre_fix_demote_crash_window(db)
-            hw = db._conn.execute(
+            hw = db._connections._conn.execute(
                 "SELECT COALESCE(MAX(id), 0) FROM messages"
             ).fetchone()[0]
             db.set_meta("fts_rebuild_high_water", str(hw))
-            db._conn.execute(
+            db._connections._conn.execute(
                 "DELETE FROM state_meta WHERE key = ?", ("fts_rebuild_progress",)
             )
             # Partial index: one row survived from an interrupted backfill.
-            db._conn.execute(
+            db._connections._conn.execute(
                 "INSERT INTO messages_fts(rowid, content, tool_name, tool_calls) "
                 "SELECT id, content, tool_name, tool_calls FROM messages "
                 "WHERE id = 1"
             )
-            db._conn.commit()
-            assert db._conn.execute(
+            db._connections._conn.commit()
+            assert db._connections._conn.execute(
                 "SELECT COUNT(*) FROM messages_fts_docsize"
             ).fetchone()[0] == 1
 
             result = db.optimize_fts_storage(vacuum=False)
             assert result["ok"] is True
-            n_msg = db._conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
-            n_fts = db._conn.execute(
+            n_msg = db._connections._conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
+            n_fts = db._connections._conn.execute(
                 "SELECT COUNT(*) FROM messages_fts_docsize"
             ).fetchone()[0]
             # Exactly one index entry per message: no replay duplicates.
             assert n_fts == n_msg
             assert len(db.search_messages("deployment")) == 1
-            db._conn.execute(
+            db._connections._conn.execute(
                 "INSERT INTO messages_fts(messages_fts, rank) VALUES('integrity-check', 1)"
             )
         finally:
@@ -4617,10 +4474,10 @@ class TestFTSExternalContentMigration:
             db.create_session(session_id="s1", source="cli")
             db.append_message("s1", role="user", content="bookkeeping needle")
             db.set_meta("fts_rebuild_high_water", "42")
-            db._conn.execute(
+            db._connections._conn.execute(
                 "DELETE FROM state_meta WHERE key = ?", ("fts_rebuild_progress",)
             )
-            db._conn.commit()
+            db._connections._conn.commit()
             db._repair_optimize_bookkeeping()
             assert db.get_meta("fts_rebuild_high_water") == "42"
             assert db.get_meta("fts_rebuild_progress") == "0"
@@ -4644,14 +4501,14 @@ class TestFTSExternalContentMigration:
                 calls["n"] += 1
                 if table_name == "messages_fts":
                     # Markers must already be on disk from the staged write.
-                    row = db._conn.execute(
+                    row = db._connections._conn.execute(
                         "SELECT value FROM state_meta "
                         "WHERE key = 'fts_rebuild_high_water'"
                     ).fetchone()
                     assert row is not None, (
                         "markers must be committed before empty v23 schema create"
                     )
-                    progress = db._conn.execute(
+                    progress = db._connections._conn.execute(
                         "SELECT value FROM state_meta "
                         "WHERE key = 'fts_rebuild_progress'"
                     ).fetchone()
@@ -4669,7 +4526,7 @@ class TestFTSExternalContentMigration:
             # Staged demote survived: markers + trash, no successful stamp.
             assert db.get_meta("fts_rebuild_high_water") is not None
             assert db.get_meta("fts_rebuild_progress") == "0"
-            assert db._has_fts_trash(db._conn) is True
+            assert db._has_fts_trash(db._connections._conn) is True
             assert db.get_meta("fts_storage_version") is None
 
             # Restore ensure and resume — full optimize completes.
@@ -4690,7 +4547,7 @@ class TestFTSExternalContentMigration:
             assert db.fts_rebuild_status() is None
             assert db.get_meta("fts_optimize_available") is None
             # Already external-content: no shadow copy tables.
-            assert db._conn.execute(
+            assert db._connections._conn.execute(
                 "SELECT name FROM sqlite_master WHERE name = 'messages_fts_content'"
             ).fetchone() is None
             db.create_session(session_id="s1", source="cli")
@@ -4725,7 +4582,7 @@ class TestFTSExternalContentMigration:
         """
         db = SessionDB(db_path=tmp_path / "trash.db")
         try:
-            conn = db._conn
+            conn = db._connections._conn
             # A plain trash table shaped like a demoted FTS shadow table
             # (single integer PK — the common, large-table shape).
             conn.execute(
@@ -4763,7 +4620,7 @@ class TestFTSExternalContentMigration:
         so the next call resumes from the marker instead of the table start."""
         db = SessionDB(db_path=tmp_path / "trash.db")
         try:
-            conn = db._conn
+            conn = db._connections._conn
             conn.execute(
                 "CREATE TABLE fts_v22_trash_messages_fts_data "
                 "(docid INTEGER PRIMARY KEY, block BLOB)"
@@ -4802,7 +4659,7 @@ class TestFTSExternalContentMigration:
         single-column keys."""
         db = SessionDB(db_path=tmp_path / "trash.db")
         try:
-            conn = db._conn
+            conn = db._connections._conn
             conn.execute(
                 "CREATE TABLE fts_v22_trash_messages_fts_idx "
                 "(segid INTEGER, term TEXT, pgno INTEGER, "
@@ -4959,7 +4816,7 @@ class TestSessionPinAndStaleArchive:
     """Pin as a durable keep flag + last-activity-based stale auto-archive."""
 
     def _pinned(self, db, sid):
-        row = db._conn.execute(
+        row = db._connections._conn.execute(
             "SELECT pinned FROM sessions WHERE id = ?", (sid,)
         ).fetchone()
         return row["pinned"] if row is not None else None
@@ -4969,11 +4826,11 @@ class TestSessionPinAndStaleArchive:
         db.create_session(session_id=sid, source=source)
         db.append_message(session_id=sid, role="user", content=f"msg {sid}")
         old = time.time() - days_idle * 86400
-        db._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?", (old, sid))
-        db._conn.execute(
+        db._connections._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?", (old, sid))
+        db._connections._conn.execute(
             "UPDATE messages SET timestamp = ? WHERE session_id = ?", (old, sid)
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
     # ── pin flag ──────────────────────────────────────────────────────────
     def test_set_session_pinned_roundtrip(self, db):
@@ -5097,10 +4954,10 @@ class TestListCronJobRuns:
         db.append_message(sid, role="user", content=f"run {idx} for {job_id}")
         db.append_message(sid, role="assistant", content="done")
         db.end_session(sid, "completed")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at = ? WHERE id = ?", (started_at, sid)
         )
-        db._conn.commit()
+        db._connections._conn.commit()
         return sid
 
     def test_scopes_to_job_newest_first_and_enriched(self, db):
@@ -5374,14 +5231,14 @@ def test_refresh_compression_lock_requires_holder_and_preserves_reclaimability(d
     monkeypatch.setattr(hermes_state.time, "time", lambda: 1000.0)
     assert db.try_acquire_compression_lock("s1", "holder-a", ttl_seconds=10.0) is True
 
-    original_expires = db._conn.execute(
+    original_expires = db._connections._conn.execute(
         "SELECT expires_at FROM compression_locks WHERE session_id = ?",
         ("s1",),
     ).fetchone()[0]
 
     monkeypatch.setattr(hermes_state.time, "time", lambda: 1005.0)
     assert db.refresh_compression_lock("s1", "holder-a", ttl_seconds=10.0) is True
-    refreshed_expires = db._conn.execute(
+    refreshed_expires = db._connections._conn.execute(
         "SELECT expires_at FROM compression_locks WHERE session_id = ?",
         ("s1",),
     ).fetchone()[0]
@@ -5412,7 +5269,7 @@ def test_refresh_cannot_resurrect_a_lock_already_reclaimed(db, monkeypatch):
 
     # holder-a coming back late must NOT steal it back.
     assert db.refresh_compression_lock("s1", "holder-a", ttl_seconds=10.0) is False
-    current = db._conn.execute(
+    current = db._connections._conn.execute(
         "SELECT holder FROM compression_locks WHERE session_id = ?",
         ("s1",),
     ).fetchone()[0]
@@ -5464,18 +5321,18 @@ class TestCompactRows:
 
         t0 = _time.time() - 3600
         db.create_session("rootc", "cli")
-        db._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0, "rootc"))
+        db._connections._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0, "rootc"))
         db.append_message("rootc", "user", "start")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at=?, end_reason=? WHERE id=?",
             (t0 + 100, "compression", "rootc"),
         )
         db.create_session("tipc", "cli", parent_session_id="rootc")
-        db._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 101, "tipc"))
+        db._connections._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 101, "tipc"))
         db.append_message("tipc", "user", "continuation")
         db.update_system_prompt("tipc", "big blob " * 500)
         db.update_session_cwd("tipc", "/tmp/w2", git_branch="dev", git_repo_root="/tmp/w2")
-        db._conn.commit()
+        db._connections._conn.commit()
 
         rows = db.list_sessions_rich(source="cli", compact_rows=True)
         tip = next(s for s in rows if s["id"] == "tipc")
@@ -5536,11 +5393,11 @@ class TestGetMessagesPagination:
             steps[0] += 1
             return 0
 
-        db._conn.set_progress_handler(progress, 100)
+        db._connections._conn.set_progress_handler(progress, 100)
         try:
             db.get_messages_around("s1", mid, window=20)
         finally:
-            db._conn.set_progress_handler(None, 0)
+            db._connections._conn.set_progress_handler(None, 0)
         assert steps[0] < 300, (
             f"get_messages_around executed {steps[0]}x100 VM steps — the "
             "session-history scan is back (idx_messages_session_id missing "
@@ -5555,7 +5412,7 @@ class TestGetMessagesPagination:
         probes = (ids[0], ids[len(ids) // 2], ids[-1])
         with_index = [db.get_messages_around("s1", mid, window=5)
                       for mid in probes]
-        db._conn.execute("DROP INDEX idx_messages_session_id")
+        db._connections._conn.execute("DROP INDEX idx_messages_session_id")
         without_index = [db.get_messages_around("s1", mid, window=5)
                          for mid in probes]
         assert with_index == without_index
@@ -5977,7 +5834,7 @@ class TestGatewayRoutingPkHeal:
         return db_path
 
     def _pk_cols(self, db):
-        rows = db._conn.execute('PRAGMA table_info("gateway_routing")').fetchall()
+        rows = db._connections._conn.execute('PRAGMA table_info("gateway_routing")').fetchall()
         cols = sorted(
             ((r["pk"], r["name"]) for r in rows if r["pk"]),
         )
@@ -6003,7 +5860,7 @@ class TestGatewayRoutingPkHeal:
         db.save_gateway_routing_entry("k1", "{}", scope="s")
         assert self._pk_cols(db) == ["scope", "session_key"]
         # Re-running the heal is a no-op.
-        cur = db._conn.cursor()
+        cur = db._connections._conn.cursor()
         db._heal_gateway_routing_pk(cur)
         assert db.load_gateway_routing_entries(scope="s") == {"k1": "{}"}
 
@@ -6147,14 +6004,14 @@ class TestInsightsToolCallIndex:
         db_path = tmp_path / "legacy.db"
         db = SessionDB(db_path=db_path)
         # Simulate a database created before the index shipped.
-        db._conn.execute(f"DROP INDEX IF EXISTS {self._INDEX}")
-        db._conn.commit()
-        assert self._index_defn(db._conn) is None
+        db._connections._conn.execute(f"DROP INDEX IF EXISTS {self._INDEX}")
+        db._connections._conn.commit()
+        assert self._index_defn(db._connections._conn) is None
         db.close()
 
         db2 = SessionDB(db_path=db_path)
         try:
-            assert self._index_defn(db2._conn) is not None, (
+            assert self._index_defn(db2._connections._conn) is not None, (
                 "index not recreated when reopening an existing database"
             )
         finally:
@@ -6182,7 +6039,7 @@ class TestFtsRebuildFinishWithoutTrigram:
                           else "assistant" if i % 3 == 1 else "tool"),
                     content=f"sentinel payload {i} zebra",
                 )
-            high_water = seeded._conn.execute(
+            high_water = seeded._connections._conn.execute(
                 "SELECT COALESCE(MAX(id), 0) FROM messages"
             ).fetchone()[0]
         finally:
@@ -6217,8 +6074,8 @@ class TestFtsRebuildFinishWithoutTrigram:
         try:
             assert db._trigram_available is False
             # A trigram-less runtime leaves no trigram index on disk.
-            db._conn.execute("DROP TABLE IF EXISTS messages_fts_trigram")
-            db._conn.commit()
+            db._connections._conn.execute("DROP TABLE IF EXISTS messages_fts_trigram")
+            db._connections._conn.commit()
             assert db._fts_table_exists("messages_fts_trigram") is False
 
             # Put the DB in the pending-deferred-rebuild state.
@@ -6226,12 +6083,12 @@ class TestFtsRebuildFinishWithoutTrigram:
                 ("fts_rebuild_high_water", str(high_water)),
                 ("fts_rebuild_progress", str(high_water)),
             ):
-                db._conn.execute(
+                db._connections._conn.execute(
                     "INSERT INTO state_meta (key, value) VALUES (?, ?) "
                     "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
                     (key, value),
                 )
-            db._conn.commit()
+            db._connections._conn.commit()
 
             # Pre-fix this raised OperationalError("no such table: ...").
             db._fts_rebuild_finish()
@@ -6263,19 +6120,19 @@ class TestFtsRebuildFinishWithoutTrigram:
         )
         db = SessionDB(db_path=db_path)
         try:
-            db._conn.execute("DROP TABLE IF EXISTS messages_fts_trigram")
-            db._conn.commit()
+            db._connections._conn.execute("DROP TABLE IF EXISTS messages_fts_trigram")
+            db._connections._conn.commit()
             assert db._trigram_available is False
             for key, value in (
                 ("fts_rebuild_high_water", str(high_water)),
                 ("fts_rebuild_progress", "0"),
             ):
-                db._conn.execute(
+                db._connections._conn.execute(
                     "INSERT INTO state_meta (key, value) VALUES (?, ?) "
                     "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
                     (key, value),
                 )
-            db._conn.commit()
+            db._connections._conn.commit()
 
             result = db.optimize_fts_storage(vacuum=False)
             assert result["ok"] is True
@@ -6355,9 +6212,9 @@ class TestPerformancePragmasEndToEnd:
         db = SessionDB(db_path=db_path)
         try:
             # Writer connection.
-            assert self._read(db._conn) == self.CONFIGURED
+            assert self._read(db._connections._conn) == self.CONFIGURED
             # WAL per-thread reader.
-            rconn = db._get_read_conn()
+            rconn = db._connections._get_read_conn()
             assert rconn is not None, "WAL reader expected on local filesystem"
             assert self._read(rconn) == self.CONFIGURED
         finally:
@@ -6366,7 +6223,7 @@ class TestPerformancePragmasEndToEnd:
         # Read-only cross-profile attach.
         ro = SessionDB(db_path=db_path, read_only=True)
         try:
-            assert self._read(ro._conn) == self.CONFIGURED
+            assert self._read(ro._connections._conn) == self.CONFIGURED
         finally:
             ro.close()
 
@@ -6379,8 +6236,8 @@ class TestPerformancePragmasEndToEnd:
         db_path = home / "state.db"
         db = SessionDB(db_path=db_path)
         try:
-            assert self._read(db._conn) == defaults
-            rconn = db._get_read_conn()
+            assert self._read(db._connections._conn) == defaults
+            rconn = db._connections._get_read_conn()
             if rconn is not None:
                 assert self._read(rconn) == defaults
         finally:
@@ -6388,7 +6245,7 @@ class TestPerformancePragmasEndToEnd:
 
         ro = SessionDB(db_path=db_path, read_only=True)
         try:
-            assert self._read(ro._conn) == defaults
+            assert self._read(ro._connections._conn) == defaults
         finally:
             ro.close()
 

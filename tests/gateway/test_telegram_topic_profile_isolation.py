@@ -72,7 +72,7 @@ def test_legacy_rows_migrate_only_to_default(tmp_path: Path):
     assert db.get_telegram_topic_binding(
         chat_id=CHAT, thread_id="99", profile_name="coder",
     ) is None
-    fk = db._conn.execute("PRAGMA foreign_key_list('telegram_dm_topic_bindings')").fetchall()
+    fk = db._connections._conn.execute("PRAGMA foreign_key_list('telegram_dm_topic_bindings')").fetchall()
     assert any(row[2] == "sessions" and row[6] == "CASCADE" for row in fk)
     db.close()
 

@@ -21,7 +21,7 @@ from hermes_constants import (
     LOCAL_RUNTIME_ROOT_DIRS, _get_platform_default_hermes_home, get_default_hermes_root, get_hermes_home,
     display_hermes_home,
 )
-from hermes_state_dbfile import RETIRED_GENERATION_DIR_SUFFIX
+from hermes_cli.db_session_schema import RETIRED_GENERATION_DIR_SUFFIX
 from hermes_state_holders import read_only_db_uri
 
 from agent.provider_media import GENERATED_SUBDIR

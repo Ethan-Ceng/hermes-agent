@@ -30,7 +30,8 @@ from hermes_cli.web_routers._common import (
     CORRUPT_STORE_DETAIL, corrupt_store_as_status, log as _log, destructive_profile, http_failure,
 )
 from hermes_state import is_malformed_db_error
-from hermes_state_errors import SessionActiveWriteGuardError, StateDbReplacedError, is_transient_sqlite_error
+from hermes_state_errors import SessionActiveWriteGuardError, is_transient_sqlite_error
+from hermes_db.infra.backends.sqlite.generation import StateDbReplacedError
 from hermes_state_health import STORAGE_CORRUPT, note_storage_error, storage_state
 
 list_router = APIRouter()

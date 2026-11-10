@@ -1595,7 +1595,7 @@ class SessionSessionsMixin:
             from hermes_state_local import exclude_superseded_segments
             exclude_superseded_segments(self, where_clauses, params)
         with self._read_ctx() as conn:
-            if self._conn is None:
+            if self._connections._conn is None:
                 raise RuntimeError("SessionDB connection is closed")
             rows = conn.execute(
                 "SELECT COALESCE(NULLIF(s.source, ''), 'cli') AS source, COUNT(*) AS count "
@@ -1646,8 +1646,8 @@ class SessionSessionsMixin:
         with self._read_ctx() as conn:
             if not conn.execute("SELECT 1 FROM sessions WHERE id = ? LIMIT 1", (session_id,)).fetchone():
                 return []
-            # Use the borrowed read connection, never self._conn: handing the shared writer connection to a
-            # helper here executes on it without self._lock — the same unsynchronized-read class as
+            # Use the borrowed read connection, never self._connections._conn: handing the shared writer connection to a
+            # helper here executes on it without self._connections._lock — the same unsynchronized-read class as
             # #99349/#90734.
             from hermes_state_local import owned_lineage_ids
             scope = owned_lineage_ids(conn, session_id)

@@ -18,15 +18,15 @@ def _compression_pair(db: SessionDB):
     base = time.time() - 100
     db.create_session("root", source="cli")
     db.create_session("tip", source="cli", parent_session_id="root")
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE sessions SET started_at = ?, ended_at = ?, end_reason = 'compression', message_count = 1 WHERE id = 'root'",
         (base, base + 10),
     )
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE sessions SET started_at = ?, message_count = 1 WHERE id = 'tip'",
         (base + 20,),
     )
-    db._conn.commit()
+    db._connections._conn.commit()
 
 
 def test_archiving_compression_tip_archives_projected_root(db):
@@ -72,10 +72,10 @@ def _stale_lineage(db: SessionDB, prefix: str) -> tuple[str, str]:
     db.create_session(root, source="feishu")
     db.create_session(tip, source="feishu", parent_session_id=root)
     base = time.time() - 40 * 86400
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE sessions SET started_at = ?, ended_at = ?, end_reason = 'compression', last_activity_at = ? WHERE id = ?",
         (base, base + 10, base + 10, root))
-    db._conn.commit()
+    db._connections._conn.commit()
     return root, tip
 
 
@@ -87,9 +87,9 @@ def test_bulk_archive_matches_a_lineage_through_its_tip_only(db):
     db.append_message(live_tip, "user", "still chatting")
     stale_root, stale_tip = _stale_lineage(db, "stale")
     stale = time.time() - 35 * 86400
-    db._conn.execute("UPDATE sessions SET started_at = ?, ended_at = ?, end_reason = 'cli_close', last_activity_at = ? "
+    db._connections._conn.execute("UPDATE sessions SET started_at = ?, ended_at = ?, end_reason = 'cli_close', last_activity_at = ? "
                      "WHERE id = ?", (stale, stale + 10, stale + 10, stale_tip))
-    db._conn.commit()
+    db._connections._conn.commit()
 
     assert [r["id"] for r in db.list_prune_candidates(older_than_days=30, archived=False, lineage_tips_only=True)] == [stale_tip]
     assert db.archive_sessions(older_than_days=30) == 1

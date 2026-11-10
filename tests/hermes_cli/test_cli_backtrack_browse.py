@@ -152,7 +152,7 @@ def test_enter_prefills_the_prompt_and_cuts_nothing(cli):
     assert cli._backtrack_state is None
     cli._prefill_input_buffer.assert_called_once_with("BETA")
     assert cli._backtrack_edit["ordinal"] == 1
-    rows = cli._session_db._conn.execute("SELECT active FROM messages WHERE session_id = ?", (sid,)).fetchall()
+    rows = cli._session_db._connections._conn.execute("SELECT active FROM messages WHERE session_id = ?", (sid,)).fetchall()
     assert [a for (a,) in rows] == [1] * 6
     assert len(cli.conversation_history) == 6
 

@@ -16,9 +16,9 @@ def _pinned_then_rotated(db):
                                  messages=[{"role": "user", "content": "[summary]", "timestamp": old + 60}],
                                  require_compression_lease=False)
     db.end_session("keep-2", "done")
-    db._conn.execute("UPDATE sessions SET started_at = ?, ended_at = ? WHERE id IN ('keep', 'keep-2')",
+    db._connections._conn.execute("UPDATE sessions SET started_at = ?, ended_at = ? WHERE id IN ('keep', 'keep-2')",
                      (old, old + 120))
-    db._conn.commit()
+    db._connections._conn.commit()
 
 
 def test_a_pin_follows_the_chat_through_compression_and_bulk_cleanup_spares_it(tmp_path, capsys):
@@ -28,8 +28,8 @@ def test_a_pin_follows_the_chat_through_compression_and_bulk_cleanup_spares_it(t
         _pinned_then_rotated(db)
         assert db.get_session("keep-2")["pinned"] == db.get_session("keep")["pinned"] == 1
 
-        db._conn.execute("UPDATE sessions SET pinned = 0 WHERE id = 'keep-2'")
-        db._conn.commit()
+        db._connections._conn.execute("UPDATE sessions SET pinned = 0 WHERE id = 'keep-2'")
+        db._connections._conn.commit()
 
         assert db.list_prune_candidates(older_than_days=90, whole_lineages=True) == []
         _note_pinned_skipped(db, {"older_than_days": 90}, "prune")
@@ -44,9 +44,9 @@ def test_a_pin_follows_the_chat_through_compression_and_bulk_cleanup_spares_it(t
 def test_orphan_sweep_spares_the_open_tip_of_a_chat_pinned_before_it_rotated(tmp_path):
     with closing(SessionDB(tmp_path / "state.db")) as db:
         _pinned_then_rotated(db)
-        db._conn.execute("UPDATE sessions SET pinned = 0, ended_at = NULL, end_reason = NULL,"
+        db._connections._conn.execute("UPDATE sessions SET pinned = 0, ended_at = NULL, end_reason = NULL,"
                          " last_activity_at = started_at WHERE id = 'keep-2'")
-        db._conn.commit()
+        db._connections._conn.commit()
         sweep = dict(max_idle_seconds=90 * 86400, sources=("cli",), respect_gateway_heartbeats=False)
 
         assert db.sweep_orphaned_sessions(exclude_pinned=True, **sweep) == []

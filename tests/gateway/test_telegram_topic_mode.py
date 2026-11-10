@@ -916,7 +916,7 @@ async def test_topic_refuses_unauthorized_user(tmp_path, monkeypatch):
     # Tables must not be created for an unauthorized caller.
     tables = {
         row[0]
-        for row in db._conn.execute(
+        for row in db._connections._conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'telegram_dm%'"
         ).fetchall()
     }
@@ -980,7 +980,7 @@ def test_list_telegram_topic_bindings_for_chat_no_table(tmp_path):
     assert db.list_telegram_topic_bindings_for_chat(chat_id="208214988") == []
     tables = {
         row[0]
-        for row in db._conn.execute(
+        for row in db._connections._conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'telegram_dm%'"
         ).fetchall()
     }

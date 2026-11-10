@@ -8,7 +8,8 @@ import time
 from typing import Sequence
 
 from hermes_state_common import FTS_SQL, FTS_STALE_KEY, FTS_TRIGRAM_SQL, _FTS_TRIGGERS
-from hermes_state_errors import is_fts_scoped_corruption_error, is_sqlite_lock_error
+from hermes_state_errors import is_fts_scoped_corruption_error
+from hermes_db.infra.backends.sqlite.runtime import is_sqlite_lock_error
 
 # caplog tests pin the "hermes_state" logger name.
 logger = logging.getLogger("hermes_state")
@@ -351,21 +352,21 @@ class SessionFtsSetupMixin:
             # lock, and nothing may be committed on a quarantined handle.
             self._raise_if_db_corrupt(storage=True)
             try:
-                with self._lock:
-                    self._raise_if_db_replaced()
-                    if self._conn is None:
+                with self._connections._lock:
+                    self._connections._raise_if_db_replaced()
+                    if self._connections._conn is None:
                         self._reopen_after_close_locked(context="write")
-                    self._conn.execute("BEGIN IMMEDIATE")
+                    self._connections._conn.execute("BEGIN IMMEDIATE")
                     try:
-                        self._conn.execute(
+                        self._connections._conn.execute(
                             "INSERT INTO state_meta (key, value) VALUES (?, '1') "
                             "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
                             (FTS_STALE_KEY,),
                         )
-                        self._drop_all_fts_triggers(self._conn.cursor())
-                        self._conn.commit()
+                        self._drop_all_fts_triggers(self._connections._conn.cursor())
+                        self._connections._conn.commit()
                     except BaseException:
-                        self._conn.rollback()
+                        self._connections._conn.rollback()
                         raise
                 break
             except sqlite3.Error as detach_exc:
@@ -427,7 +428,7 @@ class SessionFtsSetupMixin:
 
     def _has_fts_trash(self, conn) -> bool:
         """True when demoted v22 shadow tables are still awaiting teardown.
-        Caller must hold ``self._lock`` (or pass a migration-time cursor)."""
+        Caller must hold ``self._connections._lock`` (or pass a migration-time cursor)."""
         return bool(conn.execute(
             "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name LIKE ? ESCAPE '\\' LIMIT 1",
             (self._FTS_TRASH_PREFIX.replace("_", "\\_") + "%",),

@@ -103,7 +103,7 @@ def test_reopen_keeps_bounded_rows_consistent_without_a_marker(tmp_path):
         )
         reopened.append_message("session", role="assistant", content="fts-still-healthy")
         assert reopened.search_messages("fts-still-healthy")
-        reopened._conn.execute(
+        reopened._connections._conn.execute(
             "INSERT INTO messages_fts(messages_fts, rank) VALUES('integrity-check', 1)"
         )
     finally:
@@ -134,17 +134,17 @@ def test_full_rebuild_keeps_every_tool_row_bounded(db):
         for row in db.search_messages("after-tail-token", role_filter=["tool"])
     ] == [after_id]
 
-    db._conn.execute(
+    db._connections._conn.execute(
         "INSERT INTO messages_fts(messages_fts, rank) VALUES('integrity-check', 1)"
     )
 
     # The deferred chunked backfill + boundary sweep must feed the index through the
     # same truncated tool projection; an untruncated write path leaves the
     # external-content index disagreeing with the triggers and fails the strict probe.
-    with db._lock:
-        db._reset_fts_index_to_empty(db._conn)
-        db._seed_fts_rebuild_markers(db._conn, force=True)
-        db._conn.commit()
+    with db._connections._lock:
+        db._reset_fts_index_to_empty(db._connections._conn)
+        db._seed_fts_rebuild_markers(db._connections._conn, force=True)
+        db._connections._conn.commit()
     while db.fts_rebuild_step():
         pass
     assert db.get_meta("fts_rebuild_high_water") is None
@@ -152,7 +152,7 @@ def test_full_rebuild_keeps_every_tool_row_bounded(db):
     assert {
         row["id"] for row in db.search_messages("prefix-token", role_filter=["tool"])
     } == {before_id, after_id}
-    db._conn.execute(
+    db._connections._conn.execute(
         "INSERT INTO messages_fts(messages_fts, rank) VALUES('integrity-check', 1)"
     )
 
@@ -187,12 +187,12 @@ def test_legacy_inline_fts_also_bounds_new_tool_rows(tmp_path):
     initial = SessionDB(db_path=path)
     initial.create_session("session", source="cli")
     for trigger in _FTS_TRIGGERS:
-        initial._conn.execute(f"DROP TRIGGER IF EXISTS {trigger}")
-    initial._conn.execute("DROP TABLE IF EXISTS messages_fts_trigram")
-    initial._conn.execute("DROP VIEW IF EXISTS messages_fts_trigram_src")
-    initial._conn.execute("DROP TABLE IF EXISTS messages_fts")
-    initial._conn.executescript(LEGACY_FTS_SQL)
-    initial._conn.execute(
+        initial._connections._conn.execute(f"DROP TRIGGER IF EXISTS {trigger}")
+    initial._connections._conn.execute("DROP TABLE IF EXISTS messages_fts_trigram")
+    initial._connections._conn.execute("DROP VIEW IF EXISTS messages_fts_trigram_src")
+    initial._connections._conn.execute("DROP TABLE IF EXISTS messages_fts")
+    initial._connections._conn.executescript(LEGACY_FTS_SQL)
+    initial._connections._conn.execute(
         "DELETE FROM state_meta WHERE key IN (?, 'fts_storage_version')",
         ("fts_tool_full_content_high_water",),
     )
@@ -200,7 +200,7 @@ def test_legacy_inline_fts_also_bounds_new_tool_rows(tmp_path):
 
     legacy = SessionDB(db_path=path)
     try:
-        assert legacy._db_has_legacy_inline_fts(legacy._conn.cursor()) is True
+        assert legacy._db_has_legacy_inline_fts(legacy._connections._conn.cursor()) is True
         message_id = legacy.append_message(
             "session",
             role="tool",

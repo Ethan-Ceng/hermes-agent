@@ -244,14 +244,14 @@ def test_side_call_never_reaches_the_parents_ui_callbacks(provider, issued):
 
 
 def _message_rows(db: SessionDB, session_id: str) -> list:
-    with db._lock:
-        return [tuple(r) for r in db._conn.execute(
+    with db._connections._lock:
+        return [tuple(r) for r in db._connections._conn.execute(
             "SELECT * FROM messages WHERE session_id = ? ORDER BY id", (session_id,)).fetchall()]
 
 
 def _usage_rows(db: SessionDB, session_id: str) -> list[dict]:
-    with db._lock:
-        return [dict(r) for r in db._conn.execute(
+    with db._connections._lock:
+        return [dict(r) for r in db._connections._conn.execute(
             "SELECT * FROM session_model_usage WHERE session_id = ?", (session_id,)).fetchall()]
 
 

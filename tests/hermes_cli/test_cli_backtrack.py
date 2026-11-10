@@ -11,7 +11,7 @@ from tests.hermes_cli.test_cli_init import _make_cli
 
 
 def _active(db, session_id):
-    return [(role, content, active) for role, content, active in db._conn.execute(
+    return [(role, content, active) for role, content, active in db._connections._conn.execute(
         "SELECT role, content, active FROM messages WHERE session_id = ? ORDER BY id", (session_id,))]
 
 

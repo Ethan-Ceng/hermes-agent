@@ -24,8 +24,8 @@ def _session(db: SessionDB, sid: str, started: float, message_at=None, **kwargs)
     db.create_session(sid, source="cli", **kwargs)
     if message_at is not None:
         db.append_message(session_id=sid, role="user", content=f"hello from {sid}")
-        db._conn.execute("UPDATE messages SET timestamp = ? WHERE session_id = ?", (message_at, sid))
-    db._conn.execute(
+        db._connections._conn.execute("UPDATE messages SET timestamp = ? WHERE session_id = ?", (message_at, sid))
+    db._connections._conn.execute(
         "UPDATE sessions SET started_at = ?, last_activity_at = NULL, message_count = 1 WHERE id = ?",
         (started, sid),
     )
@@ -35,14 +35,14 @@ def test_chained_and_childless_sessions_share_one_recency_order(db):
     base = time.time() - 1000
     # A compression chain whose tip holds the newest message of all.
     _session(db, "root", base)
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE sessions SET ended_at = ?, end_reason = 'compression' WHERE id = 'root'", (base + 10,)
     )
     _session(db, "tip", base + 20, message_at=base + 90, parent_session_id="root")
     # Childless: "fresh" started first but was active later than "stale" started.
     _session(db, "fresh", base + 5, message_at=base + 60)
     _session(db, "stale", base + 30)
-    db._conn.commit()
+    db._connections._conn.commit()
 
     rows = db.list_sessions_rich(order_by_last_active=True)
 

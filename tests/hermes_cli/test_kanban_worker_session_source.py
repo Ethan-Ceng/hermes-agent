@@ -88,7 +88,7 @@ def test_retag_reclaims_legacy_worker_rows(db, tmp_path):
 
     assert db.retag_kanban_worker_sessions(str(workspaces)) == 2
 
-    sources = {row[0]: row[1] for row in db._conn.execute("SELECT id, source FROM sessions")}
+    sources = {row[0]: row[1] for row in db._connections._conn.execute("SELECT id, source FROM sessions")}
     assert sources == {"legacy": "kanban", "legacy2": "kanban", "mine": "cli"}
 
 
@@ -103,7 +103,7 @@ def test_retag_runs_once_per_workspaces_root(db, tmp_path):
     db.create_session(session_id="later", source="cli", cwd=str(workspaces / "t_b"))
 
     assert db.retag_kanban_worker_sessions(str(workspaces)) == 0
-    row = db._conn.execute("SELECT source FROM sessions WHERE id = 'later'").fetchone()
+    row = db._connections._conn.execute("SELECT source FROM sessions WHERE id = 'later'").fetchone()
     assert row[0] == "cli"
 
 

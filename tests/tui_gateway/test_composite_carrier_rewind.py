@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from tests.tui_gateway.threading_stubs import patch_server_thread
 import threading
 from types import SimpleNamespace
 
@@ -128,12 +129,12 @@ def test_rewind_matches_cold_sanitized_carrier_to_unchanged_warm_ask(
     sid, session_key, session = install(
         [carrier, {"role": "assistant", "content": "failed"}]
     )
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE messages SET api_content = ? "
         "WHERE session_id = ? AND role = 'user'",
         (carrier["content"], session_key),
     )
-    db._conn.commit()
+    db._connections._conn.commit()
     # A live agent still has the raw wire form while a cold DB projection has
     # already applied the role-aware sanitize_context(...).strip() rule and
     # retained the raw provider wire in api_content.
@@ -168,7 +169,7 @@ def test_retry_fails_closed_when_transcript_changes_after_snapshot(
     assert response["error"]["code"] == 5008
     assert "active transcript changed" in response["error"]["message"]
     assert session["history"] == before_history
-    rows = db._conn.execute(
+    rows = db._connections._conn.execute(
         "SELECT content, active, display_kind FROM messages "
         "WHERE session_id = ? ORDER BY id",
         (session_key,),
@@ -486,7 +487,7 @@ def test_prompt_row_id_rewind_preserves_scaffold_before_regeneration(
             self._target()
 
     session["agent"] = _Agent()
-    monkeypatch.setattr(server.threading, "Thread", _ImmediateThread)
+    patch_server_thread(monkeypatch, server, _ImmediateThread)
     monkeypatch.setattr(server, "_get_usage", lambda _agent: {})
     monkeypatch.setattr(server, "render_message", lambda *_args: "")
     monkeypatch.setattr(server, "_emit", lambda *_args: None)

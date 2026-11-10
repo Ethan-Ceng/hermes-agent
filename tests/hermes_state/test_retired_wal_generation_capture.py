@@ -7,6 +7,7 @@ database at the first halt (or at ``close()``), located by inode rather than by 
 transaction committed only in the retired WAL is recoverable from the capture alone, including after
 the writer process has exited.
 """
+import hermes_cli.db_session_schema as session_schema
 
 import hashlib
 import json
@@ -20,9 +21,8 @@ import pytest
 
 import hermes_state
 from hermes_state import DeletedWalGenerationError, SessionDB
-from hermes_state_dbfile import (
-    RETIRED_GENERATION_MANIFEST, RetiredGenerationCaptureError, capture_retired_wal_generation,
-)
+from hermes_cli.db_session_schema import RETIRED_GENERATION_MANIFEST, capture_retired_wal_generation
+from hermes_db.infra.backends.sqlite.generation import RetiredGenerationCaptureError
 from tests.hermes_state._wal_generation_harness import (
     gateway_writer, integrity_ok_conn, lose_sidecars, make_db, pin_wal, require_wal, write_second_generation,
 )
@@ -54,8 +54,8 @@ def _descriptor_contents(fd: int) -> bytes:
 
 def _wal_only_sentinel(db: SessionDB, session_id: str) -> str:
     """Checkpoint history, then commit one row that lives only in the WAL."""
-    db._conn.execute("PRAGMA wal_autocheckpoint=0")
-    db._try_wal_checkpoint()
+    db._connections._conn.execute("PRAGMA wal_autocheckpoint=0")
+    db._connections._try_wal_checkpoint()
     sentinel = "committed only in the retired WAL " + "x" * 3000
     db.append_message(session_id, role="assistant", content=sentinel)
     return sentinel
@@ -87,14 +87,14 @@ def test_halt_captures_the_exact_retired_generation(tmp_path, force_wal, rename)
     db = make_db(path, "gw-0", "seed")
     require_wal(db)
     sentinel = _wal_only_sentinel(db, "gw-0")
-    identity = db._db_sidecar_identity["-wal"]
+    identity = db._connections._db_sidecar_identity["-wal"]
     lose_sidecars(path, rename=rename)
     original = _descriptor_contents(_descriptor_for(identity))
 
     with pytest.raises(DeletedWalGenerationError):
         db.append_message("gw-0", role="user", content="after the loss")
 
-    artifact = db._retired_generation_capture
+    artifact = db._connections._retired_generation_capture
     assert artifact is not None and artifact.is_dir() and artifact.parent == tmp_path
     manifest = _manifest(artifact)
     assert manifest["trigger"] == "halt"
@@ -113,8 +113,8 @@ def test_halt_captures_the_exact_retired_generation(tmp_path, force_wal, rename)
         recovered.close()
 
     db.close()
-    assert db._conn is None
-    assert db._retired_generation_capture == artifact  # captured once, not again at close
+    assert db._connections._conn is None
+    assert db._connections._retired_generation_capture == artifact  # captured once, not again at close
 
 
 @not_windows
@@ -127,9 +127,9 @@ def test_close_captures_when_the_loss_is_first_seen_at_close(tmp_path, force_wal
 
     db.close()  # no write in between: close() itself must notice the loss and capture
 
-    artifact = db._retired_generation_capture
+    artifact = db._connections._retired_generation_capture
     assert artifact is not None and _manifest(artifact)["trigger"] == "close"
-    assert db._conn is None
+    assert db._connections._conn is None
     recovered = _recover(artifact, "state.db", tmp_path / "recovered")
     try:
         assert _count(recovered, sentinel) == 1
@@ -148,16 +148,16 @@ def test_close_refuses_to_settle_without_a_capture(tmp_path, force_wal, monkeypa
     def refuse(*args, **kwargs):
         raise RetiredGenerationCaptureError("no space left on device")
 
-    monkeypatch.setattr(hermes_state, "capture_retired_wal_generation", refuse)
+    monkeypatch.setattr(db._connections, "capture_retired", refuse)
     with pytest.raises(RetiredGenerationCaptureError, match="no space left"):
         db.close()
-    assert db._conn is not None, "shutdown must not settle while the retired generation is uncaptured"
-    assert db._retired_generation_capture is None
+    assert db._connections._conn is not None, "shutdown must not settle while the retired generation is uncaptured"
+    assert db._connections._retired_generation_capture is None
 
     monkeypatch.undo()
     db.close()
-    artifact = db._retired_generation_capture
-    assert artifact is not None and db._conn is None
+    artifact = db._connections._retired_generation_capture
+    assert artifact is not None and db._connections._conn is None
     recovered = _recover(artifact, "state.db", tmp_path / "recovered")
     try:
         assert _count(recovered, sentinel) == 1
@@ -178,27 +178,27 @@ def test_failed_capture_still_pins_the_handle_and_surfaces_through_the_registry(
     _wal_only_sentinel(db, "gw-0")
     lose_sidecars(path, rename=False)
     pins = []
-    if db._retire_connection is not None:
-        monkeypatch.setattr(db, "_retire_connection", pins.append)
+    if db._connections._retire_connection is not None:
+        monkeypatch.setattr(db._connections, "_retire_connection", pins.append)
 
     def refuse(*args, **kwargs):
         raise RetiredGenerationCaptureError("no space left on device")
 
-    monkeypatch.setattr(hermes_state, "capture_retired_wal_generation", refuse)
+    monkeypatch.setattr(db._connections, "capture_retired", refuse)
     with caplog.at_level("ERROR"):
         release_or_close(db)  # must not raise
-    assert db._conn is not None
+    assert db._connections._conn is not None
     assert "no space left on device" in caplog.text
-    if db._retire_connection is not None:  # no setconfig: the pin must already be taken
-        assert pins == [db._conn]
+    if db._connections._retire_connection is not None:  # no setconfig: the pin must already be taken
+        assert pins == [db._connections._conn]
         monkeypatch.undo()
-        monkeypatch.setattr(db, "_retire_connection", pins.append)
+        monkeypatch.setattr(db._connections, "_retire_connection", pins.append)
         db.close()  # retry succeeds and must not pin a second time
         assert pins == [pins[0]]
     else:
         monkeypatch.undo()
         db.close()
-    assert db._conn is None and db._retired_generation_capture is not None
+    assert db._connections._conn is None and db._connections._retired_generation_capture is not None
 
 
 @not_windows
@@ -209,7 +209,7 @@ def test_capture_selects_the_recorded_inode_not_the_pathname(tmp_path, force_wal
     db = make_db(path, "gw-0", "seed")
     wal = require_wal(db)
     sentinel = _wal_only_sentinel(db, "gw-0")
-    identity = db._db_sidecar_identity["-wal"]
+    identity = db._connections._db_sidecar_identity["-wal"]
     lose_sidecars(path, rename=False)
     original = _descriptor_contents(_descriptor_for(identity))
 
@@ -228,7 +228,7 @@ def test_capture_selects_the_recorded_inode_not_the_pathname(tmp_path, force_wal
         with pytest.raises(DeletedWalGenerationError):
             db.append_message("gw-0", role="user", content="after the loss")
 
-        artifact = db._retired_generation_capture
+        artifact = db._connections._retired_generation_capture
         assert (artifact / "state.db-wal").read_bytes() == original
         assert tuple(_manifest(artifact)["wal"]["identity"]) == identity
         assert _descriptor_contents(_descriptor_for(other_identity)) == other_before

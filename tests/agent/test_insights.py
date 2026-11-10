@@ -34,9 +34,9 @@ def populated_db(db):
         model="anthropic/claude-sonnet-4-20250514", user_id="user1",
     )
     # Backdate the started_at
-    db._conn.execute("UPDATE sessions SET started_at = ? WHERE id = 's1'", (now - 2 * day,))
+    db._connections._conn.execute("UPDATE sessions SET started_at = ? WHERE id = 's1'", (now - 2 * day,))
     db.end_session("s1", end_reason="user_exit")
-    db._conn.execute("UPDATE sessions SET ended_at = ? WHERE id = 's1'", (now - 2 * day + 3600,))
+    db._connections._conn.execute("UPDATE sessions SET ended_at = ? WHERE id = 's1'", (now - 2 * day + 3600,))
     db.update_token_counts("s1", input_tokens=50000, output_tokens=15000)
     db.append_message("s1", role="user", content="Hello, help me fix a bug")
     db.append_message("s1", role="assistant", content="Sure, let me look into that.")
@@ -63,9 +63,9 @@ def populated_db(db):
         session_id="s2", source="telegram",
         model="gpt-4o", user_id="user1",
     )
-    db._conn.execute("UPDATE sessions SET started_at = ? WHERE id = 's2'", (now - 5 * day,))
+    db._connections._conn.execute("UPDATE sessions SET started_at = ? WHERE id = 's2'", (now - 5 * day,))
     db.end_session("s2", end_reason="timeout")
-    db._conn.execute("UPDATE sessions SET ended_at = ? WHERE id = 's2'", (now - 5 * day + 1800,))
+    db._connections._conn.execute("UPDATE sessions SET ended_at = ? WHERE id = 's2'", (now - 5 * day + 1800,))
     db.update_token_counts("s2", input_tokens=20000, output_tokens=8000)
     db.append_message("s2", role="user", content="Search the web for something")
     db.append_message("s2", role="assistant", content="Searching...",
@@ -78,9 +78,9 @@ def populated_db(db):
         session_id="s3", source="cli",
         model="deepseek-chat", user_id="user1",
     )
-    db._conn.execute("UPDATE sessions SET started_at = ? WHERE id = 's3'", (now - 10 * day,))
+    db._connections._conn.execute("UPDATE sessions SET started_at = ? WHERE id = 's3'", (now - 10 * day,))
     db.end_session("s3", end_reason="user_exit")
-    db._conn.execute("UPDATE sessions SET ended_at = ? WHERE id = 's3'", (now - 10 * day + 7200,))
+    db._connections._conn.execute("UPDATE sessions SET ended_at = ? WHERE id = 's3'", (now - 10 * day + 7200,))
     db.update_token_counts("s3", input_tokens=100000, output_tokens=40000)
     db.append_message("s3", role="user", content="Run this terminal command")
     db.append_message("s3", role="assistant", content="Running...",
@@ -104,9 +104,9 @@ def populated_db(db):
         session_id="s4", source="discord",
         model="anthropic/claude-sonnet-4-20250514", user_id="user2",
     )
-    db._conn.execute("UPDATE sessions SET started_at = ? WHERE id = 's4'", (now - 1 * day,))
+    db._connections._conn.execute("UPDATE sessions SET started_at = ? WHERE id = 's4'", (now - 1 * day,))
     db.end_session("s4", end_reason="user_exit")
-    db._conn.execute("UPDATE sessions SET ended_at = ? WHERE id = 's4'", (now - 1 * day + 900,))
+    db._connections._conn.execute("UPDATE sessions SET ended_at = ? WHERE id = 's4'", (now - 1 * day + 900,))
     db.update_token_counts("s4", input_tokens=10000, output_tokens=5000)
     db.append_message("s4", role="user", content="Quick question")
     db.append_message("s4", role="assistant", content="Sure, go ahead")
@@ -125,14 +125,14 @@ def populated_db(db):
         session_id="s_old", source="cli",
         model="gpt-4o-mini", user_id="user1",
     )
-    db._conn.execute("UPDATE sessions SET started_at = ? WHERE id = 's_old'", (now - 45 * day,))
+    db._connections._conn.execute("UPDATE sessions SET started_at = ? WHERE id = 's_old'", (now - 45 * day,))
     db.end_session("s_old", end_reason="user_exit")
-    db._conn.execute("UPDATE sessions SET ended_at = ? WHERE id = 's_old'", (now - 45 * day + 600,))
+    db._connections._conn.execute("UPDATE sessions SET ended_at = ? WHERE id = 's_old'", (now - 45 * day + 600,))
     db.update_token_counts("s_old", input_tokens=5000, output_tokens=2000)
     db.append_message("s_old", role="user", content="old message")
     db.append_message("s_old", role="assistant", content="old reply")
 
-    db._conn.commit()
+    db._connections._conn.commit()
     return db
 
 class TestHasKnownPricing:
@@ -232,7 +232,7 @@ class TestInsightsPopulated:
         db.update_token_counts("sw", input_tokens=50000, output_tokens=4000,
                                model="anthropic/claude-opus-4.8",
                                billing_provider="openrouter", api_call_count=3)
-        db._conn.commit()
+        db._connections._conn.commit()
 
         report = InsightsEngine(db).generate(days=30)
         models = {m["model"]: m for m in report["models"]}
@@ -278,7 +278,7 @@ class TestInsightsPopulated:
         db.append_message("both", role="assistant", content="x",
                           tool_calls=[{"function": {"name": "search_files", "arguments": "{}"}}])
         db.append_message("both", role="tool", content="r", tool_name="search_files")
-        db._conn.commit()
+        db._connections._conn.commit()
 
         tools = InsightsEngine(db).generate(days=30)["tools"]
         assert next(t["count"] for t in tools if t["tool"] == "search_files") == 3
@@ -347,7 +347,7 @@ class TestInsightsPopulated:
         # idx_messages_session_active.
         assert "ANALYZE" not in "".join(
             r["sql"] or ""
-            for r in populated_db._conn.execute(
+            for r in populated_db._connections._conn.execute(
                 "SELECT sql FROM sqlite_master WHERE type = 'index'"
             )
         )
@@ -355,7 +355,7 @@ class TestInsightsPopulated:
             sql = getattr(InsightsEngine, attr)
             plan = "\n".join(
                 row["detail"]
-                for row in populated_db._conn.execute(
+                for row in populated_db._connections._conn.execute(
                     "EXPLAIN QUERY PLAN " + sql, params
                 ).fetchall()
             )
@@ -369,7 +369,7 @@ class TestInsightsPopulated:
         the index is a pure optimization — for both the unfiltered and
         source-filtered scopes.
         """
-        assert populated_db._conn.execute(
+        assert populated_db._connections._conn.execute(
             "SELECT 1 FROM sqlite_master WHERE type = 'index' AND name = ?",
             (self._INDEX,),
         ).fetchone() is not None
@@ -379,11 +379,11 @@ class TestInsightsPopulated:
             unpinned_sql = pinned_sql.replace(f" INDEXED BY {self._INDEX}", "")
             pinned = [
                 tuple(r) for r in
-                populated_db._conn.execute(pinned_sql, params).fetchall()
+                populated_db._connections._conn.execute(pinned_sql, params).fetchall()
             ]
             unpinned = [
                 tuple(r) for r in
-                populated_db._conn.execute(unpinned_sql, params).fetchall()
+                populated_db._connections._conn.execute(unpinned_sql, params).fetchall()
             ]
             assert sorted(pinned) == sorted(unpinned), attr
 
@@ -395,8 +395,8 @@ class TestInsightsPopulated:
         engine_pinned = InsightsEngine(populated_db)
         tools_before = engine_pinned._get_tool_usage(0.0)
 
-        populated_db._conn.execute(f"DROP INDEX IF EXISTS {self._INDEX}")
-        populated_db._conn.commit()
+        populated_db._connections._conn.execute(f"DROP INDEX IF EXISTS {self._INDEX}")
+        populated_db._connections._conn.commit()
 
         engine = InsightsEngine(populated_db)
         assert engine._has_assistant_calls_index is False
@@ -435,7 +435,7 @@ class TestInsightsPopulated:
             content="Just using read_file.",
             tool_calls=[{"function": {"name": "read_file", "arguments": '{"path":"/tmp/x"}'}}],
         )
-        db._conn.commit()
+        db._connections._conn.commit()
         focused = InsightsEngine(db).get_usage_breakdown(days=30)["skills"]
         assert focused["summary"]["total_skill_actions"] == 0
         assert focused["top_skills"] == []
@@ -450,7 +450,7 @@ class TestTerminalFormatting:
         """Custom models with no pricing surface as the Unknown bucket (#77223)."""
         db.create_session(session_id="s1", source="cli", model="my-custom-model")
         db.update_token_counts("s1", input_tokens=1000, output_tokens=500)
-        db._conn.commit()
+        db._connections._conn.commit()
 
         engine = InsightsEngine(db)
         report = engine.generate(days=30)
@@ -480,7 +480,7 @@ class TestEdgeCases:
         """Sessions with NULL model should not crash."""
         db.create_session(session_id="s1", source="cli")
         db.update_token_counts("s1", input_tokens=1000, output_tokens=500)
-        db._conn.commit()
+        db._connections._conn.commit()
 
         engine = InsightsEngine(db)
         report = engine.generate(days=30)
@@ -502,7 +502,7 @@ class TestEdgeCases:
         )
         db.create_session(session_id="s2", source="cli", model="my-local-llama")
         db.update_token_counts("s2", input_tokens=10000, output_tokens=5000)
-        db._conn.commit()
+        db._connections._conn.commit()
 
         engine = InsightsEngine(db)
         report = engine.generate(days=30)
@@ -525,7 +525,7 @@ class TestEdgeCases:
     def test_only_one_platform(self, db):
         """Single-platform usage should still work."""
         db.create_session(session_id="s1", source="cli", model="test")
-        db._conn.commit()
+        db._connections._conn.commit()
 
         engine = InsightsEngine(db)
         report = engine.generate(days=30)
@@ -594,8 +594,8 @@ class TestEdgeCases:
 def _label(db, session_id, source, created_source):
     db.create_session(session_id=session_id, source=source, model="model-a")
     db.append_message(session_id, role="user", content="hi")
-    db._conn.execute("UPDATE sessions SET created_source = ? WHERE id = ?", (created_source, session_id))
-    db._conn.commit()
+    db._connections._conn.execute("UPDATE sessions SET created_source = ? WHERE id = ?", (created_source, session_id))
+    db._connections._conn.commit()
 
 
 def test_source_filter_includes_gateway_local_rows_that_surface_created(db):
@@ -615,7 +615,7 @@ def test_source_filter_on_a_db_without_created_source(db):
     """A DB an older writer left behind (read-only opens skip migrations) still filters by label."""
     _label(db, "legacy-cli", "cli", "cli")
     # SQLite refuses DROP COLUMN while an index references the column.
-    db._conn.execute("DROP INDEX IF EXISTS idx_sessions_local_created_started")
-    db._conn.execute("ALTER TABLE sessions DROP COLUMN created_source")
-    db._conn.commit()
+    db._connections._conn.execute("DROP INDEX IF EXISTS idx_sessions_local_created_started")
+    db._connections._conn.execute("ALTER TABLE sessions DROP COLUMN created_source")
+    db._connections._conn.commit()
     assert InsightsEngine(db).generate(days=30, source="cli")["overview"]["total_sessions"] == 1

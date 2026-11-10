@@ -1648,7 +1648,7 @@ def test_repair_decode_of_durable_sentinel_row_does_not_reappend(tmp_path):
     db.append_message(session_id=sid, role="assistant", content="ok")
 
     def _active_rows():
-        return db._conn.execute(
+        return db._connections._conn.execute(
             "SELECT role FROM messages WHERE session_id = ? AND active = 1 ORDER BY id",
             (sid,),
         ).fetchall()

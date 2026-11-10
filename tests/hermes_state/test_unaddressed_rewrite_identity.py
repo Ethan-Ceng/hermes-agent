@@ -27,7 +27,7 @@ def db(tmp_path):
 def _active_rows(store, sid):
     return [
         dict(row)
-        for row in store._conn.execute(
+        for row in store._connections._conn.execute(
             "SELECT id, role, content, timestamp, token_count, message_uid, tool_calls "
             "FROM messages WHERE session_id = ? AND active = 1 ORDER BY id",
             (sid,),

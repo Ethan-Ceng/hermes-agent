@@ -115,14 +115,14 @@ def test_heal_rebuild_rolls_back_atomically(tmp_path: Path):
             return sqlite3.SQLITE_DENY
         return sqlite3.SQLITE_OK
 
-    db._conn.set_authorizer(deny_topic_rebuild_copy)
+    db._connections._conn.set_authorizer(deny_topic_rebuild_copy)
     try:
         # The guarded read degrades to "off" instead of raising...
         assert not db.is_telegram_topic_mode_enabled(
             chat_id=CHAT, user_id=CHAT, profile_name="default",
         )
     finally:
-        db._conn.set_authorizer(None)
+        db._connections._conn.set_authorizer(None)
 
     # ...and the interrupted rebuild rolled back completely: the renamed-away original is back
     # (otherwise the retry below finds no legacy table, builds an empty v3 one and reads as off).

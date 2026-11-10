@@ -13,6 +13,7 @@ these run on every platform.
 """
 
 from __future__ import annotations
+import hermes_db.infra.backends.sqlite.generation as sqlite_generation
 
 import ctypes
 import logging
@@ -21,14 +22,8 @@ import struct
 import threading
 import time
 
-import hermes_state_dbfile as dbfile
-from hermes_state_dbfile import (
-    _DARWIN_FD_INO_OFFSET,
-    _DARWIN_FD_PATH_OFFSET,
-    _DARWIN_FD_DEV_OFFSET,
-    _DARWIN_FD_RECORD_SIZE,
-    _iter_darwin_sidecar_holders,
-)
+import hermes_db.infra.backends.sqlite.generation as dbfile
+from hermes_db.infra.backends.sqlite.generation import _DARWIN_FD_INO_OFFSET, _DARWIN_FD_PATH_OFFSET, _DARWIN_FD_DEV_OFFSET, _DARWIN_FD_RECORD_SIZE, _iter_darwin_sidecar_holders
 
 # Far below the 5s production budget so the suite stays fast; far above zero
 # so scheduling jitter cannot flake it.
@@ -83,10 +78,10 @@ def _run_guarded(func, *args):
 
 
 def test_hung_vnode_scan_fails_open_within_budget(monkeypatch, tmp_path, caplog):
-    monkeypatch.setattr(dbfile, "_darwin_libproc", lambda: _HungLibproc())
-    monkeypatch.setattr(dbfile, "_darwin_all_pids", lambda _lib: [4242])
-    if hasattr(dbfile, "_DARWIN_FD_SCAN_TIMEOUT_SECONDS"):
-        monkeypatch.setattr(dbfile, "_DARWIN_FD_SCAN_TIMEOUT_SECONDS", BUDGET)
+    monkeypatch.setattr(sqlite_generation, "_darwin_libproc", lambda: _HungLibproc())
+    monkeypatch.setattr(sqlite_generation, "_darwin_all_pids", lambda _lib: [4242])
+    if hasattr(sqlite_generation, "_DARWIN_FD_SCAN_TIMEOUT_SECONDS"):
+        monkeypatch.setattr(sqlite_generation, "_DARWIN_FD_SCAN_TIMEOUT_SECONDS", BUDGET)
     with caplog.at_level(logging.WARNING, logger="hermes_state"):
         worker, elapsed, outcome = _run_guarded(
             _iter_darwin_sidecar_holders, tmp_path / "state.db"
@@ -105,10 +100,10 @@ def test_healthy_scan_still_reports_holder(monkeypatch, tmp_path, caplog):
     # The watched path names nothing: stat fails, so the fd's identity is
     # judged a retired generation and the holder is reported.
     lib = _HealthyLibproc(watched, (0xDEAD, 0xBEEF))
-    monkeypatch.setattr(dbfile, "_darwin_libproc", lambda: lib)
-    monkeypatch.setattr(dbfile, "_darwin_all_pids", lambda _lib: [4242])
-    if hasattr(dbfile, "_DARWIN_FD_SCAN_TIMEOUT_SECONDS"):
-        monkeypatch.setattr(dbfile, "_DARWIN_FD_SCAN_TIMEOUT_SECONDS", BUDGET)
+    monkeypatch.setattr(sqlite_generation, "_darwin_libproc", lambda: lib)
+    monkeypatch.setattr(sqlite_generation, "_darwin_all_pids", lambda _lib: [4242])
+    if hasattr(sqlite_generation, "_DARWIN_FD_SCAN_TIMEOUT_SECONDS"):
+        monkeypatch.setattr(sqlite_generation, "_DARWIN_FD_SCAN_TIMEOUT_SECONDS", BUDGET)
     with caplog.at_level(logging.WARNING, logger="hermes_state"):
         worker, elapsed, outcome = _run_guarded(
             _iter_darwin_sidecar_holders, tmp_path / "state.db"

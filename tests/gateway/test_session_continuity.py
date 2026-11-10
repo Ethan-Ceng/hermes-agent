@@ -59,17 +59,17 @@ def _mk_session(db, session_id, *, key=True, started_at=None, last_activity_at=N
     db.create_session(session_id, "telegram", **kwargs)
     for i in range(msgs):
         db.append_message(session_id, "user" if i % 2 == 0 else "assistant", f"m{i}")
-    with db._lock:
+    with db._connections._lock:
         if started_at is not None:
-            db._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (started_at, session_id))
+            db._connections._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (started_at, session_id))
         if last_activity_at is not None:
-            db._conn.execute("UPDATE sessions SET last_activity_at=? WHERE id=?", (last_activity_at, session_id))
+            db._connections._conn.execute("UPDATE sessions SET last_activity_at=? WHERE id=?", (last_activity_at, session_id))
         if ended_at is not None:
-            db._conn.execute(
+            db._connections._conn.execute(
                 "UPDATE sessions SET ended_at=?, end_reason=? WHERE id=?",
                 (ended_at, end_reason, session_id),
             )
-        db._conn.commit()
+        db._connections._conn.commit()
 
 
 class TestIdentityAtInsert:

@@ -77,7 +77,7 @@ def _make_stale_v22_db(tmp_path, usage_rows=(), sessions=("s1",)):
 
 
 def _pk_cols(db):
-    rows = db._conn.execute(
+    rows = db._connections._conn.execute(
         'PRAGMA table_info("session_model_usage")'
     ).fetchall()
     return sorted(r["name"] for r in rows if r["pk"])
@@ -94,7 +94,7 @@ class TestSessionModelUsagePkHeal:
         try:
             assert "task" in _pk_cols(db)
             # Existing rows survive the rebuild (task backfilled to '').
-            row = db._conn.execute(
+            row = db._connections._conn.execute(
                 "SELECT task, input_tokens FROM session_model_usage "
                 "WHERE session_id='s1' AND model='m-old'"
             ).fetchone()
@@ -107,7 +107,7 @@ class TestSessionModelUsagePkHeal:
                 "s1", input_tokens=5, output_tokens=7,
                 model="m-new", billing_provider="p", api_call_count=1,
             )
-            row = db._conn.execute(
+            row = db._connections._conn.execute(
                 "SELECT input_tokens FROM session_model_usage "
                 "WHERE session_id='s1' AND model='m-new'"
             ).fetchone()
@@ -126,12 +126,12 @@ class TestSessionModelUsagePkHeal:
         db = SessionDB(db_path=db_path)
         try:
             assert "task" in _pk_cols(db)
-            rows = db._conn.execute(
+            rows = db._connections._conn.execute(
                 "SELECT session_id FROM session_model_usage ORDER BY session_id"
             ).fetchall()
             assert [r["session_id"] for r in rows] == ["ghost-session", "s1"]
             # FK enforcement is restored after the heal window.
-            assert db._conn.execute("PRAGMA foreign_keys").fetchone()[0] == 1
+            assert db._connections._conn.execute("PRAGMA foreign_keys").fetchone()[0] == 1
         finally:
             db.close()
 
@@ -146,9 +146,9 @@ class TestSessionModelUsagePkHeal:
             )
             assert "task" in _pk_cols(db)
             # Re-running the heal directly is a no-op.
-            cur = db._conn.cursor()
+            cur = db._connections._conn.cursor()
             db._heal_session_model_usage_pk(cur)
-            row = db._conn.execute(
+            row = db._connections._conn.execute(
                 "SELECT input_tokens FROM session_model_usage "
                 "WHERE session_id='s1'"
             ).fetchone()
@@ -161,7 +161,7 @@ class TestSessionModelUsagePkHeal:
         db_path = _make_stale_v22_db(tmp_path, usage_rows=[("s1", "m1", 1, 1)])
         db = SessionDB(db_path=db_path)
         try:
-            left = db._conn.execute(
+            left = db._connections._conn.execute(
                 "SELECT name FROM sqlite_master WHERE type='table' "
                 "AND name='session_model_usage_legacy_pk'"
             ).fetchone()

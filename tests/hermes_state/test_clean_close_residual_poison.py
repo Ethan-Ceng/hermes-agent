@@ -19,9 +19,9 @@ def test_clean_close_never_causes_false_sticky_loss(tmp_path, monkeypatch, entry
     path = tmp_path / "synthetic.db"
     db = SessionDB(db_path=path)
     db.create_session("synthetic", "cli")
-    conn = db._conn
-    assert db._db_sidecar_identity and path.with_name(path.name + "-wal").exists()
-    lock, close, guard = db._lock, db._close_connection_quietly, db._raise_if_db_replaced
+    conn = db._connections._conn
+    assert db._connections._db_sidecar_identity and path.with_name(path.name + "-wal").exists()
+    lock, close, guard = db._connections._lock, db._connections._close_connection_quietly, db._connections._raise_if_db_replaced
     closed, progress, second = threading.Event(), threading.Event(), threading.Event()
     calls = 0
     errors = []
@@ -60,9 +60,9 @@ def test_clean_close_never_causes_false_sticky_loss(tmp_path, monkeypatch, entry
             closed.set()
             assert progress.wait(10), "writer reached neither guard nor lock"
 
-    monkeypatch.setattr(db, "_lock", ObservedLock())
-    monkeypatch.setattr(db, "_close_connection_quietly", paused_close)
-    monkeypatch.setattr(db, "_raise_if_db_replaced", observed_guard)
+    monkeypatch.setattr(db._connections, "_lock", ObservedLock())
+    monkeypatch.setattr(db._connections, "_close_connection_quietly", paused_close)
+    monkeypatch.setattr(db._connections, "_raise_if_db_replaced", observed_guard)
 
     def closer():
         try:
@@ -106,7 +106,7 @@ def test_clean_close_never_causes_false_sticky_loss(tmp_path, monkeypatch, entry
         assert not tw.is_alive() and not tc.is_alive(), "barrier deadlock is not a safety pass"
         assert not close_errors, close_errors
         assert not any("AssertionError" in x for x in errors), errors
-        sticky = bool(db._db_wal_generation_lost)
+        sticky = bool(db._connections._db_wal_generation_lost)
         try:
             db.append_message("synthetic", "tool", content="after-legitimate-close")
         except Exception as e:

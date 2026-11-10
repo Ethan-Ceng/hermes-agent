@@ -383,7 +383,7 @@ def _aux_usage_rows(db, cutoff: float) -> list[dict[str, Any]]:
     if is_postgresql_store(db):
         return db.analytics_rows("auxiliary", cutoff)
     try:
-        cur = db._conn.execute("""
+        cur = db._connections._conn.execute("""
             SELECT u.model,
                    u.task,
                    u.billing_provider,

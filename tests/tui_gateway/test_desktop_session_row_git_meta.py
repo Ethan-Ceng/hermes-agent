@@ -7,6 +7,7 @@ and their sidebar lane fell back to a fake ``main`` label (#108694).
 
 from __future__ import annotations
 
+from tests.tui_gateway.threading_stubs import patch_server_thread
 import subprocess
 
 from hermes_state import SessionDB
@@ -36,7 +37,7 @@ def _desktop_session(monkeypatch, tmp_path, cwd):
     })
     sid = resp["result"]["session_id"]
     # Patched only after create: session.create starts real Timers (Thread subclasses).
-    monkeypatch.setattr(server.threading, "Thread", _ImmediateThread)
+    patch_server_thread(monkeypatch, server, _ImmediateThread)
     return db, sid, server._sessions[sid], resp["result"]["stored_session_id"]
 
 

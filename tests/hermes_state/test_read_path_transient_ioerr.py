@@ -1,5 +1,6 @@
 """#100871: a transient SQLITE_IOERR on a warm pooled read connection is retried on the same
 connection, then surfaced -- never quarantined, never a close+reopen."""
+import hermes_db.infra.backends.sqlite.generation as sqlite_generation
 import sqlite3
 
 import pytest
@@ -28,18 +29,18 @@ def db(tmp_path, monkeypatch):
     monkeypatch.setattr(hermes_state, "_READ_ONLY_IOERR_RETRY_BACKOFF_S", 0.0)
     db = SessionDB(db_path=tmp_path / "state.db")
     db.create_session("s", "cli")
-    if not db._wal_active:
+    if not db._connections._wal_active:
         db.close()
         pytest.skip("read pool needs WAL")
-    real_connect = hermes_state._connect_tracked_db
+    real_connect = sqlite_generation._connect_tracked_db
 
     def flaky_connect(path, *args, **kwargs):
         if str(path).startswith("file:"):
             kwargs["factory"] = _FlakyReads
         return real_connect(path, *args, **kwargs)
 
-    monkeypatch.setattr(hermes_state, "_connect_tracked_db", flaky_connect)
-    while db._evict_one_idle_read_conn():  # the next read opens through the flaky factory
+    monkeypatch.setattr(sqlite_generation, "_connect_tracked_db", flaky_connect)
+    while db._connections._evict_one_idle_read_conn():  # the next read opens through the flaky factory
         pass
     _STATE.update(failures_left=0, attempts=0, fail_prefix="SELECT")
     yield db
@@ -51,7 +52,7 @@ def test_transient_ioerr_on_pooled_read_is_retried_on_the_same_connection(db):
     row = db.get_session("s")
     assert row is not None and row["id"] == "s"
     assert _STATE["attempts"] == 2  # one failure, one replay
-    assert db._db_corrupt is False and db._db_wal_generation_lost is False
+    assert db._connections._db_corrupt is False and db._connections._db_wal_generation_lost is False
 
 
 def test_persistent_ioerr_propagates_after_the_budget(db):
@@ -59,7 +60,7 @@ def test_persistent_ioerr_propagates_after_the_budget(db):
     with pytest.raises(sqlite3.OperationalError, match="disk I/O error"):
         db.get_session("s")
     assert _STATE["attempts"] == hermes_state._READ_ONLY_IOERR_RETRY_ATTEMPTS + 1
-    assert db._db_corrupt is False  # busy/EIO is not corruption: no quarantine
+    assert db._connections._db_corrupt is False  # busy/EIO is not corruption: no quarantine
 
 
 @pytest.mark.parametrize("include_compacted, fail_prefix", [(False, "SELECT"), (True, "WITH page AS")])
@@ -72,4 +73,4 @@ def test_transient_ioerr_on_get_messages_is_retried(db, include_compacted, fail_
     rows = db.get_messages("s", include_compacted=include_compacted)
     assert [r["content"] for r in rows] == ["hi"]
     assert _STATE["failures_left"] == 0 and _STATE["attempts"] == 2  # one failure, one replay
-    assert db._db_corrupt is False and db._db_wal_generation_lost is False
+    assert db._connections._db_corrupt is False and db._connections._db_wal_generation_lost is False

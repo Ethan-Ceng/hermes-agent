@@ -48,11 +48,11 @@ def _seed(db_path, rows):
         # on create_session's own COALESCE behavior.
         for session_id, profile_name in rows:
             if profile_name is None:
-                db._conn.execute(
+                db._connections._conn.execute(
                     "UPDATE sessions SET profile_name = NULL WHERE id = ?",
                     (session_id,),
                 )
-        db._conn.commit()
+        db._connections._conn.commit()
     finally:
         db.close()
 

@@ -10,12 +10,12 @@ from gateway.session_authority import backfill_legacy_session_owners
 
 def _legacy(db, session_id, profile_name=None):
     db.create_session(session_id, source='cli')
-    db._conn.execute('UPDATE sessions SET profile_name = ? WHERE id = ?', (profile_name, session_id))
-    db._conn.commit()
+    db._connections._conn.execute('UPDATE sessions SET profile_name = ? WHERE id = ?', (profile_name, session_id))
+    db._connections._conn.commit()
 
 
 def _owners(db):
-    return dict(db._conn.execute('SELECT id, profile_name FROM sessions ORDER BY id').fetchall())
+    return dict(db._connections._conn.execute('SELECT id, profile_name FROM sessions ORDER BY id').fetchall())
 
 
 def test_default_store_stamps_only_unowned_rows(_isolate_hermes_home):

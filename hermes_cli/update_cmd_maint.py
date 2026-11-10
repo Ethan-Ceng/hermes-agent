@@ -143,16 +143,16 @@ def _print_fts_optimize_available_notice() -> None:
         db = SessionDB(db_path=db_path, read_only=True)
         # read_only opens skip schema init; probe the stored layout directly.
         from hermes_state_fts import fts_layout_drift
-        drift = fts_layout_drift(db._conn)
-        legacy_inline = db._db_has_legacy_inline_fts(db._conn)
+        drift = fts_layout_drift(db._connections._conn)
+        legacy_inline = db._db_has_legacy_inline_fts(db._connections._conn)
         # Interrupted optimize-storage: v23 table shape but backfill markers / trash
         # tables remain. Re-running resumes it, so offer the command again.
         interrupted = bool(
-            db._conn.execute(
+            db._connections._conn.execute(
                 "SELECT 1 FROM state_meta "
                 "WHERE key = 'fts_rebuild_high_water' LIMIT 1"
             ).fetchone()
-            or db._conn.execute(
+            or db._connections._conn.execute(
                 "SELECT 1 FROM sqlite_master WHERE type = 'table' "
                 "AND name LIKE 'fts\\_v22\\_trash\\_%' ESCAPE '\\' LIMIT 1"
             ).fetchone()

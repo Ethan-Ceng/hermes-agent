@@ -388,7 +388,7 @@ async def test_closed_tip_lookup_defers_only_a_failed_read():
     from typing import Any
     from gateway.config import Platform
     from gateway.run_notifications_ownership import GatewayNotificationOwnershipMixin
-    from hermes_state_errors import StateDbReplacedError
+    from hermes_db.infra.backends.sqlite.generation import StateDbReplacedError
     entry: Any = SimpleNamespace(platform=Platform.LOCAL, session_id='lc7-tip')
 
     def db(error):

@@ -48,7 +48,7 @@ class TestTryWalCheckpointPassive:
     def test_checkpoint_uses_passive_mode(self, db):
         """PASSIVE checkpoint does not require exclusive lock — safe for large DBs."""
         # Capture the real connection's execute before mocking
-        real_conn = db._conn
+        real_conn = db._connections._conn
         execute_calls = []
 
         def tracking_execute(sql, *args, **kwargs):
@@ -59,9 +59,9 @@ class TestTryWalCheckpointPassive:
         mock_conn = MagicMock()
         mock_conn.execute.side_effect = tracking_execute
         mock_conn.fetchone.return_value = None
-        db._conn = mock_conn
+        db._connections._conn = mock_conn
 
-        db._try_wal_checkpoint()
+        db._connections._try_wal_checkpoint()
 
         passive_calls = [c for c in execute_calls if "wal_checkpoint(PASSIVE)" in c]
         truncate_calls = [c for c in execute_calls if "wal_checkpoint(TRUNCATE)" in c]
@@ -75,15 +75,15 @@ class TestTryWalCheckpointPassive:
     def test_failed_checkpoint_never_raises_and_is_not_silent(self, db, caplog):
         """The periodic checkpoint runs from the write path: a failing PASSIVE
         checkpoint must not raise into the caller, and must leave a WARNING."""
-        real_conn = db._conn
+        real_conn = db._connections._conn
         mock_conn = MagicMock()
         mock_conn.execute.side_effect = sqlite3.OperationalError("disk I/O error")
-        db._conn = mock_conn
+        db._connections._conn = mock_conn
         try:
             with caplog.at_level(logging.WARNING, logger="hermes_state"):
-                db._try_wal_checkpoint()
+                db._connections._try_wal_checkpoint()
         finally:
-            db._conn = real_conn
+            db._connections._conn = real_conn
         assert any(r.levelno >= logging.WARNING for r in caplog.records)
 
 
@@ -96,7 +96,7 @@ class TestCloseUsesPassive:
 
     def test_close_uses_passive_mode(self, db):
         """close() checkpoints PASSIVE, never TRUNCATE."""
-        real_conn = db._conn
+        real_conn = db._connections._conn
         execute_calls = []
 
         def tracking_execute(sql, *args, **kwargs):
@@ -105,7 +105,7 @@ class TestCloseUsesPassive:
 
         mock_conn = MagicMock()
         mock_conn.execute.side_effect = tracking_execute
-        db._conn = mock_conn
+        db._connections._conn = mock_conn
 
         db.close()
 
@@ -121,16 +121,16 @@ class TestCloseUsesPassive:
     def test_failed_checkpoint_at_close_still_releases_the_handle(self, db):
         """close() is best-effort about the checkpoint: a failing PASSIVE at
         close must neither raise nor leave the handle open."""
-        real_conn = db._conn
+        real_conn = db._connections._conn
         mock_conn = MagicMock()
         mock_conn.execute.side_effect = sqlite3.OperationalError("database is locked")
-        db._conn = mock_conn
+        db._connections._conn = mock_conn
         try:
             db.close()
         finally:
             real_conn.close()
 
-        assert db._conn is None
+        assert db._connections._conn is None
         mock_conn.close.assert_called()
 
 
@@ -149,9 +149,9 @@ class TestVacuumUsesPassive:
         for that reason; the post-VACUUM truncate runs under the same
         exclusive-lock window the VACUUM itself required.
         """
-        real_conn = db._conn
+        real_conn = db._connections._conn
         tracking_conn = TrackingConnection(real_conn)
-        db._conn = tracking_conn
+        db._connections._conn = tracking_conn
 
         db.vacuum()
 
@@ -173,9 +173,9 @@ class TestVacuumUsesPassive:
 
     def test_optimize_storage_uses_passive_after_vacuum(self, db):
         """optimize_fts_storage() checkpoints PASSIVE after its VACUUM."""
-        real_conn = db._conn
+        real_conn = db._connections._conn
         tracking_conn = TrackingConnection(real_conn)
-        db._conn = tracking_conn
+        db._connections._conn = tracking_conn
 
         result = db.optimize_fts_storage(vacuum=True)
 
@@ -203,13 +203,13 @@ class TestCheckpointFrequency:
     def test_checkpoint_triggers_at_interval(self, db):
         """_try_wal_checkpoint is called every _CHECKPOINT_EVERY_N_WRITES writes."""
         call_count = [0]
-        original = db._try_wal_checkpoint
+        original = db._connections._try_wal_checkpoint
 
         def counting_checkpoint():
             call_count[0] += 1
             original()
 
-        db._try_wal_checkpoint = counting_checkpoint
+        db._connections._try_wal_checkpoint = counting_checkpoint
 
         # Write exactly _CHECKPOINT_EVERY_N_WRITES sessions to trigger one checkpoint
         n = db._CHECKPOINT_EVERY_N_WRITES

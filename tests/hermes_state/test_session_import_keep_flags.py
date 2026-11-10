@@ -30,9 +30,9 @@ def test_restored_sessions_keep_the_pin_and_the_sweeps_archive_provenance(tmp_pa
             source.append_message(sid, "user", "keep this one")
             source.end_session(sid, "user_exit")
             old = time.time() - age_days * 86400
-            source._conn.execute("UPDATE sessions SET started_at = ?, ended_at = ? WHERE id = ?", (old, old, sid))
-            source._conn.execute("UPDATE messages SET timestamp = ? WHERE session_id = ?", (old, sid))
-        source._conn.commit()
+            source._connections._conn.execute("UPDATE sessions SET started_at = ?, ended_at = ? WHERE id = ?", (old, old, sid))
+            source._connections._conn.execute("UPDATE messages SET timestamp = ? WHERE session_id = ?", (old, sid))
+        source._connections._conn.commit()
         source.set_session_pinned(SESSION_ID, True)
         assert source.archive_stale_sessions(7) == 1
         payload = json.loads(json.dumps(source.export_all(include_inactive=True)))

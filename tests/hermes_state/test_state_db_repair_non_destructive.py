@@ -744,6 +744,7 @@ def test_interrupted_snapshot_rolls_back_destination(tmp_path, monkeypatch):
 
     with pytest.raises(TimeoutError):
         hermes_state_repair._copy_database_snapshot(source, destination)
+    monkeypatch.undo()  # restore the shared clock before fixture/connection cleanup
 
     with sqlite3.connect(str(destination)) as conn:
         assert conn.execute("SELECT value FROM marker").fetchall() == [("original",)]

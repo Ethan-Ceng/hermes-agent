@@ -90,7 +90,7 @@ def test_deferred_resume_preserves_model_history_and_db_ownership(tmp_path, monk
         assert ("session.resume_progress", {"message_count": count, "phase": "history", "status": "complete"}) in events
         if profile:
             assert closed.wait(5)
-            assert db._conn is None
+            assert db._connections._conn is None
         else:
             assert not closed.is_set()
             assert db.get_session("tip") is not None
@@ -137,7 +137,7 @@ def test_model_hydration_discards_stale_results_and_closes_owned_db(tmp_path, mo
             server._sessions["hydrating"] = replacement
         release.set()
         assert closed.wait(5)
-        assert db._conn is None
+        assert db._connections._conn is None
         assert builds == []
         if outcome == "replaced":
             assert server._sessions["hydrating"] is replacement

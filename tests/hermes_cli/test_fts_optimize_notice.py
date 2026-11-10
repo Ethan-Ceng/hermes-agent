@@ -25,7 +25,7 @@ def test_update_notice_offers_v1_trigram_tool_calls_rebuild(tmp_path, monkeypatc
 
     class FakeSessionDB:
         def __init__(self, **_kwargs):
-            self._conn = conn
+            self._connections = SimpleNamespace(_conn=conn)
 
         def close(self):
             pass
@@ -64,7 +64,7 @@ def test_doctor_collects_structural_fts_upgrade_status(
 ):
     """Real read-only collection must ignore forged or lagging version markers."""
     from hermes_cli import doctor_state
-    from hermes_state_dbfile import collect_state_db_stats
+    from hermes_cli.db_session_schema import collect_state_db_stats
     from hermes_state_fts import _expected_vtable_sql
     from hermes_state_common import FTS_SQL, FTS_TRIGRAM_SQL
 
@@ -104,7 +104,7 @@ def test_doctor_collects_structural_fts_upgrade_status(
 @pytest.mark.parametrize("progress, pending", [(0, True), (10, False)])
 def test_doctor_collects_pending_rebuild_with_settled_layout(tmp_path, monkeypatch, progress, pending):
     from hermes_cli import doctor_state
-    from hermes_state_dbfile import collect_state_db_stats
+    from hermes_cli.db_session_schema import collect_state_db_stats
     from hermes_state_fts import _expected_vtable_sql
     from hermes_state_common import FTS_SQL, FTS_TRIGRAM_SQL
 

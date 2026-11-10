@@ -320,7 +320,7 @@ def test_real_db_openers_honor_configured_delete(monkeypatch, tmp_path):
 
     session_db = SessionDB(db_path=tmp_path / "state.db")
     try:
-        observed["session_db"] = session_db._conn.execute(
+        observed["session_db"] = session_db._connections._conn.execute(
             "PRAGMA journal_mode"
         ).fetchone()[0].lower()
     finally:

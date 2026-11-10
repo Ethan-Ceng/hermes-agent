@@ -68,7 +68,7 @@ class TestIdentityFlush:
 
                 agent._flush_messages_to_session_db(messages, [])
 
-                rows = db._conn.execute(
+                rows = db._connections._conn.execute(
                     "SELECT content, display_kind FROM messages "
                     "WHERE session_id = ? ORDER BY id",
                     (SESSION_ID,),

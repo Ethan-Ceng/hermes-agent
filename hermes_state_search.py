@@ -296,7 +296,7 @@ class SessionSearchMixin(SearchRules):
 
     def fts_rebuild_status(self) -> Optional[dict[str, Any]]:
         """Deferred-rebuild progress ``{"pending", "total", "indexed", "percent"}`` or None. Reads
-        via the pooled reader (not get_meta/self._lock) so search never blocks on the writer."""
+        via the pooled reader (not get_meta/self._connections._lock) so search never blocks on the writer."""
         rows = self._read_all("SELECT key, value FROM state_meta WHERE key IN (?, ?)",
                               ("fts_rebuild_high_water", "fts_rebuild_progress"))
         meta = {r["key"]: r["value"] for r in rows}
@@ -492,7 +492,7 @@ class SessionSearchMixin(SearchRules):
 
     def _fts_external_index_empty_with_messages(self, conn) -> bool:
         """True when the base FTS table indexes nothing while ``messages`` has rows (post-demote
-        empty-index shape). Caller holds ``self._lock``. docsize is the authoritative "is this
+        empty-index shape). Caller holds ``self._connections._lock``. docsize is the authoritative "is this
         rowid indexed" surface; EXISTS not COUNT(*) because this runs on every writable open."""
         try:
             if not conn.execute("SELECT EXISTS(SELECT 1 FROM messages)").fetchone()[0]:
@@ -614,13 +614,13 @@ class SessionSearchMixin(SearchRules):
     def _ensure_v23_fts_tables(self, failure_message: str) -> None:
         """Ensure the v23 base + trigram tables under the lock (IF NOT EXISTS, cheap); raise
         *failure_message* without the base table (the backfill loop would retry forever)."""
-        with self._lock:
-            base_ok = self._ensure_fts_schema(self._conn, "messages_fts", FTS_SQL)
-            trigram_ok = self._ensure_fts_schema(self._conn, "messages_fts_trigram", FTS_TRIGRAM_SQL)
+        with self._connections._lock:
+            base_ok = self._ensure_fts_schema(self._connections._conn, "messages_fts", FTS_SQL)
+            trigram_ok = self._ensure_fts_schema(self._connections._conn, "messages_fts_trigram", FTS_TRIGRAM_SQL)
             self._trigram_available = bool(trigram_ok)
             if not base_ok:
                 raise sqlite3.OperationalError(failure_message)
-            self._conn.commit()
+            self._connections._conn.commit()
 
     def _backfill_progress(self, phase: str) -> Optional[_BackfillProgress]:
         """Messages at or below the rebuild high water, and how many of them the resume marker already
@@ -694,8 +694,8 @@ class SessionSearchMixin(SearchRules):
                                       name="optimize-vacuum-ticker", daemon=True)
             ticker.start()
         try:
-            with self._lock:
-                self._conn.execute("VACUUM")
+            with self._connections._lock:
+                self._connections._conn.execute("VACUUM")
             vacuum_ok = True
         except sqlite3.OperationalError as exc:
             logger.warning("VACUUM after FTS optimize failed: %s", exc)
@@ -708,12 +708,12 @@ class SessionSearchMixin(SearchRules):
         # read-mark (callers size via logical_size_bytes, not stat()). PASSIVE, never TRUNCATE:
         # a TRUNCATE reset from a transient CLI would race a live writer.
         try:
-            with self._lock:
+            with self._connections._lock:
                 # Best-effort: fold the WAL back into the main file so the on-disk size settles now rather
                 # than at close(). Callers must therefore NOT size the result by stat()ing the file; use
                 # :meth:`logical_size_bytes`, which is truthful immediately regardless of readers. See
                 # #45383.
-                self._conn.execute("PRAGMA wal_checkpoint(PASSIVE)")
+                self._connections._conn.execute("PRAGMA wal_checkpoint(PASSIVE)")
         except Exception as exc:
             logger.debug("WAL checkpoint (PASSIVE) after optimize VACUUM failed: %s", exc)
         return vacuum_ok
@@ -759,8 +759,8 @@ class SessionSearchMixin(SearchRules):
 
         # Heal bookkeeping BEFORE deciding whether to demote again.
         self._repair_optimize_bookkeeping()
-        with self._lock:
-            needs_storage_upgrade = self._db_needs_fts_storage_upgrade(self._conn)
+        with self._connections._lock:
+            needs_storage_upgrade = self._db_needs_fts_storage_upgrade(self._connections._conn)
         pending = self.get_meta("fts_rebuild_high_water") is not None
         if needs_storage_upgrade and not pending:
             self._demote_legacy_fts_to_trash()
@@ -1238,13 +1238,13 @@ class SessionSearchMixin(SearchRules):
         """True if an FTS5 virtual table is queryable ("no such table" and "vtable
         constructor failed" — missing tokenizer / mid-teardown — both count as not)."""
         try:
-            self._conn.execute(f"SELECT 1 FROM {name} LIMIT 0")
+            self._connections._conn.execute(f"SELECT 1 FROM {name} LIMIT 0")
             return True
         except sqlite3.DatabaseError:
             return False
 
     def _present_fts_tables(self) -> list[str]:
-        """Queryable FTS tables (caller holds ``self._lock``)."""
+        """Queryable FTS tables (caller holds ``self._connections._lock``)."""
         return [tbl for tbl in self._FTS_TABLES if self._fts_table_exists(tbl)]
 
     def optimize_fts(self) -> int:
@@ -1255,13 +1255,13 @@ class SessionSearchMixin(SearchRules):
         structural damage (or a split WAL generation) instead of leaving it diagnosable."""
         self._raise_if_db_corrupt()
         optimized = 0
-        with self._lock:
-            self._raise_if_db_replaced()
-            if self._conn is None:
+        with self._connections._lock:
+            self._connections._raise_if_db_replaced()
+            if self._connections._conn is None:
                 self._reopen_after_close_locked(context="write")
             for tbl in self._present_fts_tables():
                 try:
-                    self._conn.execute(f"INSERT INTO {tbl}({tbl}) VALUES('optimize')")
+                    self._connections._conn.execute(f"INSERT INTO {tbl}({tbl}) VALUES('optimize')")
                     optimized += 1
                 except sqlite3.DatabaseError as exc:  # SQLITE_CORRUPT is not an OperationalError
                     logger.warning("FTS optimize failed for %s: %s", tbl, exc)
@@ -1293,17 +1293,17 @@ class SessionSearchMixin(SearchRules):
                 logger.warning(
                     "Deferred in-place FTS rebuild: another process holds the rebuild authority for this state.db.")
                 return 0
-            with self._lock:
-                self._raise_if_db_replaced()
-                if self._conn is None:
+            with self._connections._lock:
+                self._connections._raise_if_db_replaced()
+                if self._connections._conn is None:
                     self._reopen_after_close_locked(context="write")
                 for tbl in self._present_fts_tables():
                     try:
-                        self._conn.execute(f"INSERT INTO {tbl}({tbl}) VALUES('rebuild')")
-                        self._conn.commit()
+                        self._connections._conn.execute(f"INSERT INTO {tbl}({tbl}) VALUES('rebuild')")
+                        self._connections._conn.commit()
                         rebuilt += 1
                     except sqlite3.DatabaseError as exc:  # SQLITE_CORRUPT is not an OperationalError (#133375)
-                        self._conn.rollback()
+                        self._connections._conn.rollback()
                         if is_malformed_db_error(exc):
                             logger.error(
                                 "FTS rebuild failed with a corruption-class error for %s: %s; "
@@ -1329,15 +1329,15 @@ class SessionSearchMixin(SearchRules):
             max_commands = self._FTS_MERGE_COMMANDS_PER_PASS
         _positive_int("max_commands", max_commands)
         executed = 0
-        with self._lock:
+        with self._connections._lock:
             for tbl in self._present_fts_tables():
                 if not self._fts_usermerge_floor_applied:
-                    self._conn.execute(f"INSERT INTO {tbl}({tbl}, rank) VALUES('usermerge', 2)")
+                    self._connections._conn.execute(f"INSERT INTO {tbl}({tbl}, rank) VALUES('usermerge', 2)")
                 for _ in range(max_commands):
-                    before = self._conn.total_changes
-                    self._conn.execute(f"INSERT INTO {tbl}({tbl}, rank) VALUES('merge', ?)", (max_pages,))
+                    before = self._connections._conn.total_changes
+                    self._connections._conn.execute(f"INSERT INTO {tbl}({tbl}, rank) VALUES('merge', ?)", (max_pages,))
                     executed += 1
-                    if self._conn.total_changes - before < 2:
+                    if self._connections._conn.total_changes - before < 2:
                         break
             self._fts_usermerge_floor_applied = True
         return executed

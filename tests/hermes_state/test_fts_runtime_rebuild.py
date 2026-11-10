@@ -26,7 +26,7 @@ import hermes_state_holders
 import hermes_state_schema
 from hermes_state import SessionDB
 from hermes_state_common import FTS_REBUILD_DEFERRAL_KEY, FTS_STALE_KEY, LEGACY_FTS_SQL, LEGACY_FTS_TRIGRAM_SQL, SCHEMA_SQL, _FTS_TRIGGERS
-from hermes_state_dbfile import _concrete_state_db_holder_pids, _is_inactive_orphan_desktop_holder
+from hermes_cli.db_session_schema import _concrete_state_db_holder_pids, _is_inactive_orphan_desktop_holder
 
 
 @pytest.fixture
@@ -353,7 +353,7 @@ class TestRuntimeFtsRebuild:
         assert isinstance(caught.value, StateDbCorruptError)
         assert caught.value.__cause__ is structural
         assert caught.value.sqlite_errorcode == sqlite3.SQLITE_CORRUPT
-        assert db._db_corrupt is True
+        assert db._connections._db_corrupt is True
         assert rebuild_called is False
         assert db._fts_stale is False
         assert _meta_value(tmp_path / "state.db", FTS_STALE_KEY) is None
@@ -764,7 +764,7 @@ class TestRuntimeFtsRebuild:
         monkeypatch.setattr(hermes_state_schema.time, "time", lambda: clock[0])
 
         from hermes_cli.doctor_state import _render_state_db_stats
-        from hermes_state_dbfile import collect_state_db_stats
+        from hermes_cli.db_session_schema import collect_state_db_stats
 
         def doctor_blob():
             return " ".join(" ".join(row) for row in _render_state_db_stats(collect_state_db_stats(db_path))).lower()
@@ -774,13 +774,13 @@ class TestRuntimeFtsRebuild:
         futile_seconds = getattr(hermes_state_schema, "_FTS_HOLDER_FUTILE_SECONDS", 1800.0)
         reopened = SessionDB(db_path=db_path)
         try:
-            cursor = reopened._conn.cursor()
+            cursor = reopened._connections._conn.cursor()
             # One deferral short of the futile window: still the generic escalation.
             for _ in range(futile_attempts - 2):
                 clock[0] += futile_seconds
                 caplog.clear()
                 assert reopened._recover_stale_fts(cursor, legacy=False, timeout_seconds=0.0) is False
-            reopened._conn.commit()
+            reopened._connections._conn.commit()
             assert not json.loads(_meta_value(db_path, FTS_REBUILD_DEFERRAL_KEY)).get("futile")
             assert "waiting is futile" not in caplog.text
             assert "futile" not in doctor_blob()
@@ -788,7 +788,7 @@ class TestRuntimeFtsRebuild:
             clock[0] += futile_seconds
             caplog.clear()
             assert reopened._recover_stale_fts(cursor, legacy=False, timeout_seconds=0.0) is False
-            reopened._conn.commit()
+            reopened._connections._conn.commit()
             record = json.loads(_meta_value(db_path, FTS_REBUILD_DEFERRAL_KEY))
             assert record.get("futile") is True and record["holder_pids"] == [4242]
             futile_lines = [r for r in caplog.records if "waiting is futile" in r.getMessage()]
@@ -852,7 +852,7 @@ class TestRuntimeFtsRebuild:
 
         legacy = SessionDB(db_path=db_path)
         try:
-            assert legacy._db_has_legacy_inline_fts(legacy._conn.cursor())
+            assert legacy._db_has_legacy_inline_fts(legacy._connections._conn.cursor())
             legacy.create_session("s1", source="test")
             legacy.append_message("s1", "user", "legacy seed")
             _corrupt_fts(db_path)
@@ -967,7 +967,7 @@ class TestPhysicalCorruptionAcceptance:
             from hermes_state import StateDbCorruptError
 
             assert isinstance(caught.value, StateDbCorruptError)
-            assert db._db_corrupt is True
+            assert db._connections._db_corrupt is True
             with pytest.raises(StateDbCorruptError):
                 db.append_message("s1", "user", "second write after corruption")
             caplog.clear()

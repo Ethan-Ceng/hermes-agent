@@ -138,7 +138,7 @@ class TestAutoMigration:
         try:
             cols = {
                 row[1]
-                for row in db._conn.execute('PRAGMA table_info("messages")').fetchall()
+                for row in db._connections._conn.execute('PRAGMA table_info("messages")').fetchall()
             }
             assert "api_content" in cols
             # Old rows read back NULL (no key); new writes round-trip.

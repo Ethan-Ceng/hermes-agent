@@ -117,11 +117,11 @@ def test_open_finishes_an_interrupted_removal_once(cjk_db, caplog):
 def test_open_stages_the_index_for_chunked_teardown(cjk_db):
     db = SessionDB(db_path=cjk_db)
     try:
-        staged = [r[0] for r in db._conn.execute(
+        staged = [r[0] for r in db._connections._conn.execute(
             "SELECT name FROM sqlite_master WHERE name LIKE 'fts\\_v22\\_trash\\_messages\\_fts\\_cjk\\_%' ESCAPE '\\'")]
         assert "fts_v22_trash_messages_fts_cjk_data" in staged
         assert db.fts_optimize_available()
         assert db.optimize_fts_storage(vacuum=False)["ok"]
-        assert not db._has_fts_trash(db._conn)
+        assert not db._has_fts_trash(db._connections._conn)
     finally:
         db.close()

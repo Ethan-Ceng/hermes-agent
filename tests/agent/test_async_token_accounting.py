@@ -31,8 +31,8 @@ def db(tmp_path):
 def _totals(db, session_id):
     """Read token totals via raw SQL — bypasses get_session's flush so the
     read observes only what the writer has actually persisted."""
-    with db._lock:
-        row = db._conn.execute(
+    with db._connections._lock:
+        row = db._connections._conn.execute(
             "SELECT input_tokens, output_tokens, cache_read_tokens,"
             " cache_write_tokens, reasoning_tokens, api_call_count,"
             " estimated_cost_usd, actual_cost_usd, model, cost_status"
@@ -43,8 +43,8 @@ def _totals(db, session_id):
 
 
 def _model_usage(db, session_id):
-    with db._lock:
-        rows = db._conn.execute(
+    with db._connections._lock:
+        rows = db._connections._conn.execute(
             "SELECT model, input_tokens, output_tokens, api_call_count,"
             " estimated_cost_usd FROM session_model_usage"
             " WHERE session_id = ? ORDER BY model",
@@ -324,8 +324,8 @@ class TestRouteSwitchBarrier:
         # The switch wins on the session row…
         assert totals["model"] == "m2"
         assert _model_usage(db, "s-sw")[0]["model"] == "m1"
-        with db._lock:
-            row = db._conn.execute(
+        with db._connections._lock:
+            row = db._connections._conn.execute(
                 "SELECT billing_provider FROM sessions WHERE id = ?",
                 ("s-sw",),
             ).fetchone()

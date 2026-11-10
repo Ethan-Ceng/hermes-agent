@@ -26,12 +26,12 @@ def _mk(db, sid, title, pinned=False):
     db.create_session(sid, source="cli")
     db.set_session_title(sid, title)
     # mark ended + old so it is prune-eligible
-    with db._lock:
-        db._conn.execute(
+    with db._connections._lock:
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at=?, started_at=?, message_count=1 WHERE id=?",
             (time.time() - 100 * 86400, time.time() - 100 * 86400, sid),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
     if pinned:
         db.set_session_pinned(sid, True)
 

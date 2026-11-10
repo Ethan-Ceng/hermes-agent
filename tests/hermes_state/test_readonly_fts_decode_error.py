@@ -68,7 +68,7 @@ class TestReadOnlyFTSDecodeError:
         read_only = SessionDB(db_path=db_path, read_only=True)
         try:
             # Verify the connection opened — _fts_table_probe didn't kill init.
-            assert read_only._conn is not None
+            assert read_only._connections._conn is not None
         finally:
             read_only.close()
         
@@ -77,7 +77,7 @@ class TestReadOnlyFTSDecodeError:
         read_only2 = SessionDB(db_path=db_path, read_only=True)
         try:
             # The index is broken; the store itself must stay accessible.
-            assert read_only2._conn is not None
+            assert read_only2._connections._conn is not None
         finally:
             read_only2.close()
 
@@ -133,6 +133,6 @@ class TestSchemaBytesDecodeError:
 
         read_only = SessionDB(db_path=db_path, read_only=True)
         try:
-            assert read_only._conn is not None
+            assert read_only._connections._conn is not None
         finally:
             read_only.close()

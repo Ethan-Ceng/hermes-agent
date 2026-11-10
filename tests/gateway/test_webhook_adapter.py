@@ -913,16 +913,16 @@ class TestCrossPlatformDeliveryMirror:
         from hermes_state import SessionDB
         db = SessionDB(db_path=home / "state.db")
         db.create_session(sid, source="telegram")
-        db._conn.execute("UPDATE sessions SET session_key=?, chat_id=?, user_id=? WHERE id=?",
+        db._connections._conn.execute("UPDATE sessions SET session_key=?, chat_id=?, user_id=? WHERE id=?",
                          (f"agent:main:telegram:dm:{chat}", chat, chat, sid))
-        db._conn.commit()
+        db._connections._conn.commit()
         db.close()
 
     @staticmethod
     def _transcript(home, sid):
         from hermes_state import SessionDB
         db = SessionDB(db_path=home / "state.db")
-        rows = db._conn.execute("SELECT role, content FROM messages WHERE session_id=? ORDER BY id", (sid,)).fetchall()
+        rows = db._connections._conn.execute("SELECT role, content FROM messages WHERE session_id=? ORDER BY id", (sid,)).fetchall()
         db.close()
         return [(r[0], r[1]) for r in rows]
 

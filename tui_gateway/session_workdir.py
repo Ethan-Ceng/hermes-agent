@@ -126,7 +126,8 @@ def _is_remote_cwd_shape(raw: str) -> bool:
     stored and git-probed relative to the gateway's own cwd)."""
     from hermes_cli.config import _is_ssh_remote_tilde_cwd
 
-    return _is_ssh_remote_tilde_cwd("ssh", raw) or os.path.isabs(raw)
+    # The target shell can name a POSIX root even when its control host is Windows.
+    return _is_ssh_remote_tilde_cwd("ssh", raw) or raw.startswith("/") or os.path.isabs(raw)
 
 
 def _is_container_path(raw: str) -> bool:

@@ -111,7 +111,7 @@ def test_background_side_agent_holds_its_own_registry_reference(launch_db_env, t
         assert side_db.db_path == parent_db.db_path
         registry.release_or_close(parent_db)  # parent closes mid-turn
         assert registry.stats()["live_generations"] == 1
-        assert side_db._conn is not None
+        assert side_db._connections._conn is not None
         side_db.create_session("bg_1", source="tui", model="m")
     assert registry.stats()["live_generations"] == 0  # side agent's reference released on exit
 
@@ -136,7 +136,7 @@ def test_prompt_background_turn_survives_parent_close(launch_db_env, tmp_path, m
             registry.release_or_close(parent_db)  # parent closes / resets mid-turn
             # Still registry-owned and open: the side agent's own reference kept the generation alive
             # (no #94736 emergency reopen of a torn-down connection).
-            seen["still_shared"] = seen["db"]._shared_registry_owned and seen["db"]._conn is not None
+            seen["still_shared"] = seen["db"]._shared_registry_owned and seen["db"]._connections._conn is not None
             seen["db"].create_session("bg_1", source="tui", model="m")
             return {"final_response": "ok"}
 

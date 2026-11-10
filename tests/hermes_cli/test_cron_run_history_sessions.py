@@ -180,9 +180,9 @@ async def test_a_same_second_output_doc_is_not_pinned_on_the_earlier_execution(
     at(60.75)
     jobs.save_job_output(job, '# Cron Job: report\n\nreport done')  # filed as second 60
     executions.finish_execution(fire, success=True)
-    owner.db._conn.execute('UPDATE sessions SET started_at = ?, ended_at = ? WHERE id = ?',
+    owner.db._connections._conn.execute('UPDATE sessions SET started_at = ?, ended_at = ? WHERE id = ?',
                            (start.timestamp() + 60.6, start.timestamp() + 60.9, session_id))
-    owner.db._conn.commit()
+    owner.db._connections._conn.commit()
 
     runs = _runs(job)
 

@@ -79,7 +79,7 @@ class TestResumeQuietStderr:
             {"role": "user", "content": "hi"},
             {"role": "assistant", "content": "hey"},
         ]
-        db._conn = MagicMock()  # for the reopen execute() call
+        db._connections._conn = MagicMock()  # for the reopen execute() call
 
         cli = _make_cli(quiet=True, db=db)
         # Stop _init_agent right after the resume banner: prevent it from
@@ -104,7 +104,7 @@ class TestResumeQuietStderr:
         db.get_session.return_value = {"id": "20260524_111111_xyz"}
         db.resolve_resume_session_id.return_value = "20260524_111111_xyz"
         db.get_messages_as_conversation.return_value = []
-        db._conn = MagicMock()
+        db._connections._conn = MagicMock()
 
         cli = _make_cli(quiet=True, db=db)
         try:

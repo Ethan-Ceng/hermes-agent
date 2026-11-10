@@ -16,11 +16,11 @@ def db(tmp_path):
     database = SessionDB(db_path=tmp_path / 'state.db')
     database.create_session('owner', source='cli')
     database.create_session('head', source='cli')
-    assert database._conn is not None
-    database._conn.execute("UPDATE sessions SET end_reason='session_reset' WHERE id='owner'")
-    database._conn.execute('INSERT INTO state_meta(key,value) VALUES(?,?)', (
+    assert database._connections._conn is not None
+    database._connections._conn.execute("UPDATE sessions SET end_reason='session_reset' WHERE id='owner'")
+    database._connections._conn.execute('INSERT INTO state_meta(key,value) VALUES(?,?)', (
         POLICY_PREFIX + 'owner', json.dumps({'session_id': 'owner', 'lineage': ['owner', 'head']})))
-    database._conn.commit()
+    database._connections._conn.commit()
     yield database
     database.close()
 
@@ -45,30 +45,30 @@ def test_unchanged_session_lists_and_counts_scan_receipts_once(db):
 @pytest.mark.parametrize('mutation', ['extend', 'retire', 'end_reason', 'delete_head'])
 def test_committed_writer_changes_refresh_the_pooled_reader(db, mutation):
     assert [row['id'] for row in db.list_sessions_rich()] == ['head']
-    assert db._conn is not None
+    assert db._connections._conn is not None
     if mutation == 'extend':
         db.create_session('tail', source='cli')
-        db._conn.execute("UPDATE sessions SET end_reason='session_reset' WHERE id='head'")
-        db._conn.execute('UPDATE state_meta SET value=? WHERE key=?', (
+        db._connections._conn.execute("UPDATE sessions SET end_reason='session_reset' WHERE id='head'")
+        db._connections._conn.execute('UPDATE state_meta SET value=? WHERE key=?', (
             json.dumps({'session_id': 'owner', 'lineage': ['owner', 'head', 'tail']}), POLICY_PREFIX + 'owner'))
         expected = {'tail'}
     elif mutation == 'retire':
-        db._conn.execute('DELETE FROM state_meta WHERE key=?', (POLICY_PREFIX + 'owner',))
+        db._connections._conn.execute('DELETE FROM state_meta WHERE key=?', (POLICY_PREFIX + 'owner',))
         expected = {'owner', 'head'}
     elif mutation == 'end_reason':
-        db._conn.execute("UPDATE sessions SET end_reason='compression' WHERE id='owner'")
+        db._connections._conn.execute("UPDATE sessions SET end_reason='compression' WHERE id='owner'")
         expected = {'owner', 'head'}
     else:
-        db._conn.execute("DELETE FROM sessions WHERE id='head'")
+        db._connections._conn.execute("DELETE FROM sessions WHERE id='head'")
         expected = set()
-    db._conn.commit()
+    db._connections._conn.commit()
     assert {row['id'] for row in db.list_sessions_rich()} == expected
     assert db.session_count(exclude_children=True) == len(expected)
 
 
 @pytest.mark.parametrize('finish', ['commit', 'rollback'])
 def test_same_connection_transactions_do_not_publish_intermediate_results(db, finish):
-    conn = db._conn
+    conn = db._connections._conn
     assert conn is not None
     before = _cached_local_lineage_index(db, conn)
     conn.execute('BEGIN')
@@ -89,9 +89,9 @@ def test_read_snapshot_does_not_outlive_its_transaction(db):
         before = _cached_local_lineage_index(db, reader)
         reader.execute('BEGIN')
         assert _cached_local_lineage_index(db, reader) == before
-        assert db._conn is not None
-        db._conn.execute('DELETE FROM state_meta WHERE key=?', (POLICY_PREFIX + 'owner',))
-        db._conn.commit()
+        assert db._connections._conn is not None
+        db._connections._conn.execute('DELETE FROM state_meta WHERE key=?', (POLICY_PREFIX + 'owner',))
+        db._connections._conn.commit()
         assert _cached_local_lineage_index(db, reader) == before
         reader.rollback()
         assert _cached_local_lineage_index(db, reader) == (set(), {})
@@ -106,9 +106,9 @@ def test_commit_during_projection_is_not_cached_as_a_stable_result(db):
             statements.append(sql)
             if not changed and 'SELECT id,end_reason' in sql:
                 changed = True
-                assert db._conn is not None
-                db._conn.execute('DELETE FROM state_meta WHERE key=?', (POLICY_PREFIX + 'owner',))
-                db._conn.commit()
+                assert db._connections._conn is not None
+                db._connections._conn.execute('DELETE FROM state_meta WHERE key=?', (POLICY_PREFIX + 'owner',))
+                db._connections._conn.commit()
         reader.set_trace_callback(trace)
         try:
             _cached_local_lineage_index(db, reader)

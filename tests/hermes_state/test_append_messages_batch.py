@@ -69,10 +69,10 @@ class TestAppendMessagesBatch:
                 "role, content, tool_call_id, tool_calls, tool_name, "
                 "finish_reason, reasoning_content, observed, active"
             )
-            rows_a = db._conn.execute(
+            rows_a = db._connections._conn.execute(
                 f"SELECT {cols} FROM messages ORDER BY id"
             ).fetchall()
-            rows_b = db2._conn.execute(
+            rows_b = db2._connections._conn.execute(
                 f"SELECT {cols} FROM messages ORDER BY id"
             ).fetchall()
             assert [tuple(r) for r in rows_a] == [tuple(r) for r in rows_b]
@@ -94,14 +94,14 @@ class TestAppendMessagesBatch:
                 }
             ],
         )
-        row = db._conn.execute(
+        row = db._connections._conn.execute(
             "SELECT reasoning_content FROM messages"
         ).fetchone()
         assert row[0] is None
 
     def test_counters_aggregate_once(self, db):
         db.append_messages_batch("sess-batch", _turn_messages())
-        row = db._conn.execute(
+        row = db._connections._conn.execute(
             "SELECT message_count, tool_call_count FROM sessions WHERE id = ?",
             ("sess-batch",),
         ).fetchone()
@@ -113,7 +113,7 @@ class TestAppendMessagesBatch:
 
     def test_empty_batch_is_noop(self, db):
         assert db.append_messages_batch("sess-batch", []) == 0
-        row = db._conn.execute(
+        row = db._connections._conn.execute(
             "SELECT message_count FROM sessions WHERE id = ?", ("sess-batch",)
         ).fetchone()
         assert row["message_count"] == 0
@@ -144,9 +144,9 @@ class TestAppendMessagesBatch:
             db.append_messages_batch("sess-batch", _turn_messages())
         monkeypatch.undo()
 
-        count = db._conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
+        count = db._connections._conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
         assert count == 0
-        row = db._conn.execute(
+        row = db._connections._conn.execute(
             "SELECT message_count, tool_call_count FROM sessions WHERE id = ?",
             ("sess-batch",),
         ).fetchone()
@@ -154,12 +154,12 @@ class TestAppendMessagesBatch:
         assert row["tool_call_count"] == 0
 
     def test_compression_closed_session_rejected(self, db):
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at = 1.0, end_reason = 'compression' "
             "WHERE id = ?",
             ("sess-batch",),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
         with pytest.raises(CompressionSessionClosedError):
             db.append_messages_batch("sess-batch", _turn_messages())
 
@@ -174,7 +174,7 @@ class TestAppendMessagesBatch:
             }
         ]
         db.append_messages_batch("sess-batch", msgs)
-        raw = db._conn.execute("SELECT content FROM messages").fetchone()[0]
+        raw = db._connections._conn.execute("SELECT content FROM messages").fetchone()[0]
         # encoded via _encode_content — same sentinel prefix as append_message
         loaded = db.get_messages("sess-batch")
         assert loaded, raw
@@ -188,7 +188,7 @@ class TestAppendMessagesBatch:
             }
         ]
         db.append_messages_batch("sess-batch", msgs)
-        raw = db._conn.execute("SELECT tool_calls FROM messages").fetchone()[0]
+        raw = db._connections._conn.execute("SELECT tool_calls FROM messages").fetchone()[0]
         assert json.loads(raw) == [{"name": "t", "arguments": "{}"}]
 
 
@@ -221,7 +221,7 @@ class TestShadowedCheckpointRowsArePruned:
     def _durable_items(self, db):
         return [
             (row["id"], json.loads(row["codex_reasoning_items"]) if row["codex_reasoning_items"] else None)
-            for row in db._conn.execute(
+            for row in db._connections._conn.execute(
                 "SELECT id, codex_reasoning_items FROM messages WHERE session_id = ? AND role = 'assistant' "
                 "AND active = 1 ORDER BY id", ("sess-batch",)).fetchall()
         ]

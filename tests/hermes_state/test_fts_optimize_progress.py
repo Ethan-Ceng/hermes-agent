@@ -53,7 +53,7 @@ def test_progress_reports_teardown_rows_and_vacuum_liveness(legacy_db, monkeypat
 
     # Hold the VACUUM statement (SQLite's own progress hook) until a tick arrives while it runs.
     vacuum_started = []
-    legacy_db._conn.set_trace_callback(lambda sql: vacuum_started.append(sql) if sql.strip() == "VACUUM" else None)
+    legacy_db._connections._conn.set_trace_callback(lambda sql: vacuum_started.append(sql) if sql.strip() == "VACUUM" else None)
 
     def hold_vacuum():
         if not vacuum_started or in_vacuum.is_set():
@@ -62,7 +62,7 @@ def test_progress_reports_teardown_rows_and_vacuum_liveness(legacy_db, monkeypat
         ticked_in_vacuum.wait(10)
         return 1 if vacuum_fails else 0  # non-zero interrupts the VACUUM
 
-    legacy_db._conn.set_progress_handler(hold_vacuum, 100)
+    legacy_db._connections._conn.set_progress_handler(hold_vacuum, 100)
     result = legacy_db.optimize_fts_storage(progress_cb=progress, vacuum=True)
 
     assert result == {"ok": True, "vacuumed": not vacuum_fails}
@@ -117,8 +117,8 @@ def test_chunk_that_keeps_failing_ends_the_run_and_a_rerun_resumes(legacy_db, mo
 
     def disk_fills_during_backfill(*args):
         if not calls:
-            pages = legacy_db._conn.execute("PRAGMA page_count").fetchone()[0]
-            legacy_db._conn.execute(f"PRAGMA max_page_count = {pages + 5}")
+            pages = legacy_db._connections._conn.execute("PRAGMA page_count").fetchone()[0]
+            legacy_db._connections._conn.execute(f"PRAGMA max_page_count = {pages + 5}")
         calls.append(1)
         assert len(calls) < 50, "optimize kept retrying a chunk that can never succeed"
         return real_step(*args)
@@ -130,7 +130,7 @@ def test_chunk_that_keeps_failing_ends_the_run_and_a_rerun_resumes(legacy_db, mo
     calls.clear()
     assert _cmd_optimize_storage(legacy_db, Namespace(yes=True, no_vacuum=True, force=False)) == 1
     assert "Error: optimization failed: database or disk is full" in capsys.readouterr().out
-    legacy_db._conn.execute("PRAGMA max_page_count = 1073741823")
+    legacy_db._connections._conn.execute("PRAGMA max_page_count = 1073741823")
     assert legacy_db.optimize_fts_storage(vacuum=False)["ok"] is True
     assert len(legacy_db.search_messages("quokka", limit=2000)) == 1200
 

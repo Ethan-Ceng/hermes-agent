@@ -40,7 +40,7 @@ def test_constructed_sessiondb_is_registered(tmp_path):
     finally:
         db.close()
     # close() must fully release the writer connection…
-    assert db._conn is None
+    assert db._connections._conn is None
     # …and be idempotent: a second close (the suite sweep will call it
     # again at teardown) must not raise.
     db.close()
@@ -50,7 +50,7 @@ def test_leaked_instance_stays_open_within_the_test(tmp_path):
     db = SessionDB(db_path=tmp_path / "state.db")
     db.create_session(session_id="leak-probe", source="cli", model="m")
     # Intentionally NOT closed — the suite-level sweep owns cleanup.
-    assert db._conn is not None
+    assert db._connections._conn is not None
     _leaked.append(db)
 
 
@@ -60,7 +60,7 @@ def test_previously_leaked_instance_was_closed_by_the_sweep():
     # The autouse _close_leaked_session_dbs teardown between the two tests
     # must have closed the leaked instance (writer conn released), which is
     # what bounds fd/RSS growth in single-process runs.
-    assert db._conn is None
+    assert db._connections._conn is None
 
 
 # Same handoff shape for the auto-title upgrade thread a turn leaves behind: it holds the

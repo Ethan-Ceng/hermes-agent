@@ -37,7 +37,7 @@ def _seed(db: SessionDB, sid: str, turns: int = 3, rich: bool = False) -> None:
 
 
 def _active_rows(db: SessionDB, sid: str):
-    return [tuple(r) for r in db._conn.execute(
+    return [tuple(r) for r in db._connections._conn.execute(
         "SELECT id, role, content, active FROM messages WHERE session_id = ? ORDER BY id", (sid,)).fetchall()]
 
 

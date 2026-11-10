@@ -22,12 +22,12 @@ from hermes_state import SessionDB
 def _populate(db: SessionDB, rows: list[tuple[str, str, str, float]]) -> None:
     for sid, source, _created, _started in rows:
         db.create_session(sid, source=source)
-    with db._lock:
-        db._conn.executemany(
+    with db._connections._lock:
+        db._connections._conn.executemany(
             "UPDATE sessions SET created_source=?, started_at=?, message_count=1 WHERE id=?",
             [(created, started, sid) for sid, _source, created, started in rows],
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
 
 def _newer_locals(count: int, *, start: float, prefix: str) -> list[tuple[str, str, str, float]]:
@@ -111,12 +111,12 @@ def test_startup_adds_the_local_created_source_index_to_an_older_store(tmp_path)
     reopens. Query plans are left to the planner; pages are pinned above."""
     path = tmp_path / "state.db"
     db = SessionDB(db_path=path)
-    db._conn.execute("DROP INDEX idx_sessions_local_created_started")
-    db._conn.commit()
+    db._connections._conn.execute("DROP INDEX idx_sessions_local_created_started")
+    db._connections._conn.commit()
     db.close()
 
     db = SessionDB(db_path=path)
-    sql = db._conn.execute(
+    sql = db._connections._conn.execute(
         "SELECT sql FROM sqlite_master WHERE type='index' AND name='idx_sessions_local_created_started'"
     ).fetchone()
     db.close()
@@ -128,17 +128,17 @@ def _pre_column_readonly(tmp_path) -> SessionDB:
     path = tmp_path / "state.db"
     writer = SessionDB(db_path=path)
     writer.create_session("legacy-cli", source="cli")
-    with writer._lock:
-        writer._conn.execute("UPDATE sessions SET message_count=1 WHERE id='legacy-cli'")
-        writer._conn.execute("DROP INDEX IF EXISTS idx_sessions_local_created_started")
-        writer._conn.execute("ALTER TABLE sessions DROP COLUMN created_source")
-        writer._conn.commit()
+    with writer._connections._lock:
+        writer._connections._conn.execute("UPDATE sessions SET message_count=1 WHERE id='legacy-cli'")
+        writer._connections._conn.execute("DROP INDEX IF EXISTS idx_sessions_local_created_started")
+        writer._connections._conn.execute("ALTER TABLE sessions DROP COLUMN created_source")
+        writer._connections._conn.commit()
     writer.close()
     return SessionDB(db_path=path, read_only=True)
 
 
 def _columns(db: SessionDB) -> set[str]:
-    return {row[1] for row in db._conn.execute("PRAGMA table_info(sessions)")}
+    return {row[1] for row in db._connections._conn.execute("PRAGMA table_info(sessions)")}
 
 
 def test_readonly_pre_column_store_finds_legacy_cli_session(tmp_path, monkeypatch):

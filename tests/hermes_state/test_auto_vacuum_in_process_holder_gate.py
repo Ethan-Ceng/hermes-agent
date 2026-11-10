@@ -17,6 +17,7 @@ condition.
 from __future__ import annotations
 
 import shutil
+import pytest
 
 import hermes_state_registry as registry
 
@@ -75,6 +76,7 @@ def test_auto_vacuum_skips_while_a_live_sibling_holds_the_same_store(tmp_path):
         quiet.close()
 
 
+@pytest.mark.platforms("linux", "macos")
 def test_auto_vacuum_is_not_starved_by_a_retired_write_fenced_generation(tmp_path):
     """RED on base: one inode replacement stopped auto-VACUUM for the process lifetime.
 

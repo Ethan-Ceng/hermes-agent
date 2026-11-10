@@ -93,48 +93,7 @@ def test_mailbox_lock_survives_a_dir_whose_acl_denies_write_attributes(tmp_path)
         subprocess.run(["icacls", str(root), "/remove:d", "*S-1-1-0"], check=False, capture_output=True)
 
 
-_UNUSABLE_CHILD = _DROP_PRIVILEGES + textwrap.dedent(r"""
-    import asyncio, logging, os
-    from types import SimpleNamespace
-
-    home = Path(sys.argv[1])
-    root = home / "runtime" / "bot_live_delivery"
-    try:
-        os.close(os.open(root / ".lock", os.O_CREAT | os.O_WRONLY, 0o600))
-        denied = False
-    except PermissionError:
-        denied = True
-    if not denied:
-        priv = subprocess.run(["whoami", "/user", "/groups", "/priv"], capture_output=True, text=True,
-                              check=False).stdout
-        acl = subprocess.run(["icacls", str(root)], capture_output=True, text=True, check=False).stdout
-        print(json.dumps({"denied": False, "priv": priv + "\n" + acl}))
-        sys.exit(0)
-
-    records = []
-    handler = logging.Handler()
-    handler.emit = lambda record: records.append((record.levelname, record.getMessage()))
-    logging.getLogger().addHandler(handler)
-    logging.getLogger().setLevel(logging.DEBUG)
-
-    from gateway import run_api, run_runtime
-    from hermes_state import SessionDB
-
-    async def api(_runner):
-        return SimpleNamespace(api_origin="http://127.0.0.1:1")
-
-    run_api.start_gateway_api = api
-    db = SessionDB(home / "state.db")
-    try:
-        runner = SimpleNamespace(session_authority=SimpleNamespace(db=db, waiters={}),
-                                 session_runtime_descriptor={})
-        # The step start_gateway runs per authority; on main it raised and aborted the gateway.
-        asyncio.run(run_runtime.start_gateway_runtime_api(runner))
-    finally:
-        db.close()
-    print(json.dumps({"denied": True, "api_origin": runner.session_runtime_descriptor.get("api_origin"),
-                      "logs": [r for r in records if "bot" in r[1].lower()]}))
-""")
+_UNUSABLE_CHILD = _DROP_PRIVILEGES + textwrap.dedent('\nimport asyncio, logging, os\nfrom types import SimpleNamespace\n\nhome = Path(sys.argv[1])\nroot = home / "runtime" / "bot_live_delivery"\ntry:\n    os.close(os.open(root / ".lock", os.O_CREAT | os.O_WRONLY, 0o600))\n    denied = False\nexcept PermissionError:\n    denied = True\nif not denied:\n    priv = subprocess.run(["whoami", "/user", "/groups", "/priv"], capture_output=True, text=True,\n                          check=False).stdout\n    acl = subprocess.run(["icacls", str(root)], capture_output=True, text=True, check=False).stdout\n    print(json.dumps({"denied": False, "priv": priv + "\\n" + acl}))\n    sys.exit(0)\n\nrecords = []\nhandler = logging.Handler()\nhandler.emit = lambda record: records.append((record.levelname, record.getMessage()))\nlogging.getLogger().addHandler(handler)\nlogging.getLogger().setLevel(logging.DEBUG)\n\nfrom gateway import run_api, run_runtime\nfrom hermes_state import SessionDB\n\nasync def api(_runner):\n    return SimpleNamespace(api_origin="http://127.0.0.1:1")\n\nrun_api.start_gateway_api = api\ndb = SessionDB(home / "state.db")\ntry:\n    runner = SimpleNamespace(session_authority=SimpleNamespace(db=db, waiters={}),\n                             session_runtime_descriptor={})\n    # The step start_gateway runs per authority; on main it raised and aborted the gateway.\n    asyncio.run(run_runtime.start_gateway_runtime_api(runner))\nfinally:\n    db.close()\nprint(json.dumps({"denied": True, "api_origin": runner.session_runtime_descriptor.get("api_origin"),\n                  "logs": [r for r in records if "bot" in r[1].lower()]}))\n')
 
 
 def test_startup_skips_bot_recovery_on_the_reporters_mailbox_acl(tmp_path):

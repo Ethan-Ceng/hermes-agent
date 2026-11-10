@@ -103,7 +103,7 @@ def _build_agent_with_db(
 
 def _count_children(db: SessionDB, parent_sid: str) -> int:
     """Count rows in state.db whose parent_session_id == parent_sid."""
-    rows = db._conn.execute(
+    rows = db._connections._conn.execute(
         "SELECT id FROM sessions WHERE parent_session_id = ?",
         (parent_sid,),
     ).fetchall()
@@ -116,7 +116,7 @@ def _live_child_id(db: SessionDB, parent_sid: str) -> str | None:
     converged on the winner's session, so a multi-child state is a fork and
     must not be silently reduced to 'the first row'.
     """
-    rows = db._conn.execute(
+    rows = db._connections._conn.execute(
         "SELECT id FROM sessions WHERE parent_session_id = ?",
         (parent_sid,),
     ).fetchall()
@@ -1183,7 +1183,7 @@ def test_review_fork_compacts_oversized_snapshot_in_memory(tmp_path: Path) -> No
     db.append_message(parent_sid, role="user", content="durable parent turn")
     durable_before = db.get_messages(parent_sid)
     session_row_before = tuple(
-        db._conn.execute(
+        db._connections._conn.execute(
             "SELECT id, parent_session_id, ended_at, end_reason FROM sessions WHERE id = ?",
             (parent_sid,),
         ).fetchone()
@@ -1396,7 +1396,7 @@ def test_review_fork_compacts_oversized_snapshot_in_memory(tmp_path: Path) -> No
         assert parent.session_id == parent_sid
         assert db.get_messages(parent_sid) == durable_before
         session_row_after = tuple(
-            db._conn.execute(
+            db._connections._conn.execute(
                 "SELECT id, parent_session_id, ended_at, end_reason FROM sessions WHERE id = ?",
                 (parent_sid,),
             ).fetchone()
@@ -1701,7 +1701,7 @@ def test_force_cancel_restores_newer_durable_cooldown_captured_under_lease(
 
     writer._record_compression_failure_cooldown(120.0, "newer durable failure")
     durable_before = tuple(
-        db._conn.execute(
+        db._connections._conn.execute(
             "SELECT compression_failure_cooldown_until, compression_failure_error "
             "FROM sessions WHERE id = ?",
             (session_id,),
@@ -1736,7 +1736,7 @@ def test_force_cancel_restores_newer_durable_cooldown_captured_under_lease(
 
     assert compressed is messages
     durable_after = tuple(
-        db._conn.execute(
+        db._connections._conn.execute(
             "SELECT compression_failure_cooldown_until, compression_failure_error "
             "FROM sessions WHERE id = ?",
             (session_id,),

@@ -32,21 +32,21 @@ def db(tmp_path):
 
 
 def _backdate_session(db: SessionDB, session_id: str, ts: float) -> None:
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE sessions SET started_at = ? WHERE id = ?", (ts, session_id)
     )
-    db._conn.commit()
+    db._connections._conn.commit()
 
 
 def _set_message_timestamps(db: SessionDB, session_id: str, ts: float) -> None:
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE messages SET timestamp = ? WHERE session_id = ?", (ts, session_id)
     )
-    db._conn.commit()
+    db._connections._conn.commit()
 
 
 def _set_last_activity(db: SessionDB, session_id: str, ts: float) -> None:
-    conn = db._conn
+    conn = db._connections._conn
     assert conn is not None
     conn.execute(
         "UPDATE sessions SET last_activity_at = ? WHERE id = ?", (ts, session_id)
@@ -249,7 +249,7 @@ class TestSweepOrphanedSessions:
             max_idle_seconds=IDLE_S, sources=("cli",)
         ) == []
 
-        conn = db._conn
+        conn = db._connections._conn
         assert conn is not None
         conn.execute(
             "UPDATE compression_locks SET expires_at = ? WHERE session_id = ?",
@@ -271,11 +271,11 @@ class TestSweepOrphanedSessions:
         assert db.try_acquire_session_turn_lease(
             "expired", "expired-turn", ttl_seconds=300
         )
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE session_turn_leases SET expires_at = ? WHERE conversation_id = ?",
             (time.time() - 1, "expired"),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
         assert db.sweep_orphaned_sessions(
             max_idle_seconds=IDLE_S, sources=("cli",)
@@ -344,11 +344,11 @@ class TestSweepOrphanedSessions:
         assert db.get_session("orphan") is not None
         assert db.get_session("stale-cron") is not None
 
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at = ? WHERE id IN (?, ?)",
             (stale, "orphan", "stale-cron"),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
         third = db.maybe_auto_prune_and_vacuum(
             retention_days=90,
             min_interval_hours=0,
@@ -563,17 +563,17 @@ class TestSweepOrphanedSessions:
         assert db.get_session("telegram-3")["ended_at"] is None
 
         # Simulate the next maintenance pass after another retention window.
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at = ended_at - 91 * 86400 "
             "WHERE end_reason = 'startup_orphan_reap'"
         )
-        db._conn.commit()
+        db._connections._conn.commit()
         second = db.maybe_auto_prune_and_vacuum(
             retention_days=90, min_interval_hours=0, vacuum=False
         )
         assert second["closed"] == 0
         assert second["pruned"] == 3
-        remaining = [r["id"] for r in db._conn.execute("SELECT id FROM sessions")]
+        remaining = [r["id"] for r in db._connections._conn.execute("SELECT id FROM sessions")]
         assert remaining == ["telegram-3"]
 
     def test_auto_prune_closes_and_later_deletes_recovered_placeholders(self, db):
@@ -591,10 +591,10 @@ class TestSweepOrphanedSessions:
         assert first["closed"] == 1
         assert db.get_session("recovered-0")["end_reason"] == "startup_orphan_reap"
 
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET ended_at = ended_at - 91 * 86400 WHERE id = 'recovered-0'"
         )
-        db._conn.commit()
+        db._connections._conn.commit()
         second = db.maybe_auto_prune_and_vacuum(
             retention_days=90, min_interval_hours=0, vacuum=False
         )
@@ -628,8 +628,8 @@ class TestSweepOrphanedSessions:
         assert db.get_session("lost-old")["end_reason"] == "startup_orphan_reap"
         assert db.get_session("lost-fresh")["ended_at"] is None
 
-        db._conn.execute("UPDATE sessions SET ended_at = ended_at - 91 * 86400 WHERE id = 'lost-old'")
-        db._conn.commit()
+        db._connections._conn.execute("UPDATE sessions SET ended_at = ended_at - 91 * 86400 WHERE id = 'lost-old'")
+        db._connections._conn.commit()
         second = db.maybe_auto_prune_and_vacuum(retention_days=90, min_interval_hours=0, vacuum=False)
         assert second["pruned"] == 1
         assert db.get_session("lost-old") is None

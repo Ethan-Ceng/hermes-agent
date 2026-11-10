@@ -15,9 +15,9 @@ def test_list_includes_a_compression_tip_whose_root_has_no_created_source(tmp_pa
 
     db = SessionDB(db_path=tmp_path / "state.db")
     db.create_session("chain-root", source="local")
-    with db._lock:
-        db._conn.execute("UPDATE sessions SET created_source=NULL WHERE id=?", ("chain-root",))
-        db._conn.commit()
+    with db._connections._lock:
+        db._connections._conn.execute("UPDATE sessions SET created_source=NULL WHERE id=?", ("chain-root",))
+        db._connections._conn.commit()
     db.append_message("chain-root", role="user", content="hi")
     # A subagent child is not a continuation: its own surface must not stamp the root.
     db.create_session("delegate-run", source="subagent", parent_session_id="chain-root")
@@ -52,12 +52,12 @@ def test_reader_on_a_read_only_store_from_before_the_column_and_the_runtime_tabl
     writer.create_session("legacy-cli", source="cli")
     writer.append_message("legacy-cli", role="user", content="hi")
     writer.create_session("legacy-stub", source="cli")
-    with writer._lock:
-        writer._conn.execute("UPDATE sessions SET started_at = started_at + 60 WHERE id = 'legacy-stub'")
-        writer._conn.execute("DROP INDEX IF EXISTS idx_sessions_local_created_started")
-        writer._conn.execute("ALTER TABLE sessions DROP COLUMN created_source")
-        writer._conn.execute("DROP TABLE session_admissions")
-        writer._conn.commit()
+    with writer._connections._lock:
+        writer._connections._conn.execute("UPDATE sessions SET started_at = started_at + 60 WHERE id = 'legacy-stub'")
+        writer._connections._conn.execute("DROP INDEX IF EXISTS idx_sessions_local_created_started")
+        writer._connections._conn.execute("ALTER TABLE sessions DROP COLUMN created_source")
+        writer._connections._conn.execute("DROP TABLE session_admissions")
+        writer._connections._conn.commit()
     writer.close()
     ro = SessionDB(db_path=path, read_only=True)
     try:
@@ -65,8 +65,8 @@ def test_reader_on_a_read_only_store_from_before_the_column_and_the_runtime_tabl
         assert reader.session_count(source="cli") == 2
         assert [row["id"] for row in reader.search_sessions(source="cli", limit=1, skip_launch_stubs=True)] == [
             "legacy-cli"]
-        tables = {row[0] for row in ro._conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-        columns = {row[1] for row in ro._conn.execute("PRAGMA table_info(sessions)")}
+        tables = {row[0] for row in ro._connections._conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        columns = {row[1] for row in ro._connections._conn.execute("PRAGMA table_info(sessions)")}
         assert "created_source" not in columns and "session_admissions" not in tables
     finally:
         ro.close()

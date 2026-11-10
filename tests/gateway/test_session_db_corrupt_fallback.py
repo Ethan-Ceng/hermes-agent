@@ -52,13 +52,13 @@ def test_corrupt_state_db_diverts_pending_without_fts_rebuild(tmp_path, monkeypa
     store.append_to_transcript(
         sid, {"role": "user", "content": "before", "timestamp": 1.0}
     )
-    real_conn = store._db._conn
-    store._db._conn = _MalformedConn(real_conn)
+    real_conn = store._db._connections._conn
+    store._db._connections._conn = _MalformedConn(real_conn)
     try:
         store.append_to_transcript(
             sid, {"role": "user", "content": "after-corrupt", "timestamp": 2.0}
         )
-        assert store._db._db_corrupt is True
+        assert store._db._connections._db_corrupt is True
         # No FTS surgery ran on either layer.
         assert store._db._fts_enabled is True
         assert store._db._fts_stale is False
@@ -66,5 +66,5 @@ def test_corrupt_state_db_diverts_pending_without_fts_rebuild(tmp_path, monkeypa
         assert sid not in store._dirty_transcripts
         _assert_diverted(tmp_path, sid, "after-corrupt")
     finally:
-        store._db._conn = real_conn
+        store._db._connections._conn = real_conn
         store.close_all_db_handles()

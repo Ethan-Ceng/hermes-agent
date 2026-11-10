@@ -220,7 +220,7 @@
       "hermes_cli/db_session_schema.py"
     ],
     "task": 4,
-    "status": "pending",
+    "status": "completed",
     "reason": "Extract actual connection/pool/generation state; keep session SQL and public creation behavior. Separate ordinary service open from explicit schema creation/upgrade.",
     "symbol_routes": {
       "SessionDB._store_system_prompt": {
@@ -228,77 +228,92 @@
         "target": "hermes_state.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._delete_unreferenced_system_prompts": {
         "layer": "business",
         "target": "hermes_state.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._session_row_dict": {
         "layer": "business",
         "target": "hermes_state.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._close_connection_quietly": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._close_conn_logged": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB.__init__": {
         "layer": "split",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._open_writer": {
         "layer": "split",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._open_read_only": {
         "layer": "split",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._connect_read_only": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._handle_quarantine_if_invalid": {
         "layer": "split",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._open_writer_conn": {
-        "layer": "infra",
+        "layer": "split",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
-        "application_target": null,
+        "application_target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "actual_symbols": [
+          "SQLiteConnections.connect_writer",
+          "hermes_cli.db_session_schema.open_session_writer"
+        ],
+        "status": "completed"
       },
       "SessionDB._connect_and_init": {
         "layer": "split",
@@ -319,363 +334,425 @@
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._evict_one_idle_read_conn": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._close_read_conn": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._checkout_read_conn": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._read_ctx": {
-        "layer": "infra",
+        "layer": "split",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths. Business transcript snapshot pin stays in the session owner; concrete pool borrowing/return, fallback lock and close races belong to resource.",
+        "business_target": "hermes_state.py",
+        "status": "completed"
       },
       "SessionDB._reopen_after_close_locked": {
-        "layer": "infra",
+        "layer": "split",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
-        "application_target": null,
+        "application_target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths. Root retains business health/registry/token-drain ordering; resource owns writer/lock/generation/physical close. Reopen config and file protection are application policy over a concrete resource.",
+        "business_target": "hermes_state.py",
+        "status": "completed"
       },
       "SessionDB._execute_write": {
-        "layer": "infra",
+        "layer": "split",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths. Business compression/FTS retry decisions and post-commit FTS work remain actual business behavior; pure BEGIN/commit/rollback and connection ownership move to resource.",
+        "business_target": "hermes_state.py",
+        "status": "completed"
       },
       "SessionDB._write_sql": {
-        "layer": "infra",
-        "target": "hermes_db/infra/backends/sqlite/session_connections.py",
+        "layer": "business",
+        "target": "hermes_state.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths. Actual guarded business orchestration: callbacks use the compression lease/FTS/health/pinned snapshot contract and caller-specific patience. Driver BEGIN/commit/rollback and physical resource state live in infra; these methods do real business work, not a re-export shim.",
+        "status": "completed"
       },
       "SessionDB._write_rowcount": {
-        "layer": "infra",
-        "target": "hermes_db/infra/backends/sqlite/session_connections.py",
+        "layer": "business",
+        "target": "hermes_state.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths. Actual guarded business orchestration: callbacks use the compression lease/FTS/health/pinned snapshot contract and caller-specific patience. Driver BEGIN/commit/rollback and physical resource state live in infra; these methods do real business work, not a re-export shim.",
+        "status": "completed"
       },
       "SessionDB._read_one": {
-        "layer": "infra",
-        "target": "hermes_db/infra/backends/sqlite/session_connections.py",
+        "layer": "business",
+        "target": "hermes_state.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths. Actual guarded business orchestration: callbacks use the compression lease/FTS/health/pinned snapshot contract and caller-specific patience. Driver BEGIN/commit/rollback and physical resource state live in infra; these methods do real business work, not a re-export shim.",
+        "status": "completed"
       },
       "SessionDB._read_all": {
-        "layer": "infra",
-        "target": "hermes_db/infra/backends/sqlite/session_connections.py",
+        "layer": "business",
+        "target": "hermes_state.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths. Actual guarded business orchestration: callbacks use the compression lease/FTS/health/pinned snapshot contract and caller-specific patience. Driver BEGIN/commit/rollback and physical resource state live in infra; these methods do real business work, not a re-export shim.",
+        "status": "completed"
       },
       "SessionDB._read_retrying_ioerr": {
-        "layer": "infra",
-        "target": "hermes_db/infra/backends/sqlite/session_connections.py",
+        "layer": "business",
+        "target": "hermes_state.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths. Actual guarded business orchestration: callbacks use the compression lease/FTS/health/pinned snapshot contract and caller-specific patience. Driver BEGIN/commit/rollback and physical resource state live in infra; these methods do real business work, not a re-export shim.",
+        "status": "completed"
       },
       "SessionDB._ensure_db_file_generation": {
-        "layer": "infra",
+        "layer": "split",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths. state_meta Schema/data generation stamp is business lifecycle, not infra SQL; physical inode/header identity detection belongs to resource.",
+        "business_target": "hermes_state.py",
+        "status": "completed"
       },
       "SessionDB._record_db_file_identity": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths. Preserve transient driver IOERR retries and return a final technical database error to application initialization for the existing health publication; no SessionDB callback is retained.",
+        "status": "completed"
       },
       "SessionDB._db_file_was_replaced": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._wal_generation_was_lost": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._halt_if_db_generation_changed": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._capture_retired_generation": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._raise_if_db_replaced": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._is_structural_corruption_error": {
-        "layer": "infra",
+        "layer": "split",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths. Actual FTS provenance and compression policy remain business rules; resource receives only physical halt state.",
+        "business_target": "hermes_state.py",
+        "status": "completed"
       },
       "SessionDB._corrupt_error": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._halt_db_corrupt": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths. Task4 final ownership: physical structural-damage flag/cause live once in SQLiteConnections; FTS provenance, public error creation and profile-health publication remain here. This preserves the original close/checkpoint linearization without a mirrored flag.",
+        "status": "completed"
       },
       "SessionDB._disable_close_time_checkpoint": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._pin_connection": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._settle_lost_generation_locked": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._raise_if_db_corrupt": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._sleep_before_write_retry": {
-        "layer": "infra",
-        "target": "hermes_db/infra/backends/sqlite/session_connections.py",
+        "layer": "business",
+        "target": "hermes_state.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths. Actual guarded business orchestration: callbacks use the compression lease/FTS/health/pinned snapshot contract and caller-specific patience. Driver BEGIN/commit/rollback and physical resource state live in infra; these methods do real business work, not a re-export shim.",
+        "status": "completed"
       },
       "SessionDB._foreign_state_db_holders": {
         "layer": "split",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._quarantine_reason": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB._try_wal_checkpoint": {
         "layer": "infra",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB.__enter__": {
         "layer": "split",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB.__exit__": {
         "layer": "split",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB.close": {
         "layer": "split",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths. Root retains business health/registry/token-drain ordering; resource owns writer/lock/generation/physical close. Reopen config and file protection are application policy over a concrete resource.",
+        "business_target": "hermes_state.py",
+        "status": "completed"
       },
       "SessionDB.__del__": {
         "layer": "split",
         "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "application_target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB.get_meta": {
         "layer": "business",
         "target": "hermes_state.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB.set_meta": {
         "layer": "business",
         "target": "hermes_state.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB.retag_kanban_worker_sessions": {
         "layer": "business",
         "target": "hermes_state.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB.is_kanban_owned_session": {
         "layer": "business",
         "target": "hermes_state.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "SessionDB.list_meta_prefix": {
         "layer": "business",
         "target": "hermes_state.py",
         "application_target": null,
         "task": 4,
-        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths."
+        "constraint": "Keep SQL, writer/read-pool fallback, FD budgets, generation retirement, public exceptions and closure; explicit lifecycle and ordinary open are separate real paths.",
+        "status": "completed"
       },
       "_configured_transcript_limit": {
         "target": "hermes_state.py",
         "task": 4,
         "action": "preserve_or_split_in_place",
-        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim."
+        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim.",
+        "status": "completed"
       },
       "resolved_max_resume_messages": {
         "target": "hermes_state.py",
         "task": 4,
         "action": "preserve_or_split_in_place",
-        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim."
+        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim.",
+        "status": "completed"
       },
       "resolved_max_export_messages": {
         "target": "hermes_state.py",
         "task": 4,
         "action": "preserve_or_split_in_place",
-        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim."
+        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim.",
+        "status": "completed"
       },
       "SessionResumeTooLargeError": {
         "target": "hermes_state.py",
         "task": 4,
         "action": "preserve_or_split_in_place",
-        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim."
+        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim.",
+        "status": "completed"
       },
       "SessionExportTooLargeError": {
         "target": "hermes_state.py",
         "task": 4,
         "action": "preserve_or_split_in_place",
-        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim."
+        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim.",
+        "status": "completed"
       },
       "_compression_lock_holder_process_is_dead": {
         "target": "hermes_state.py",
         "task": 4,
         "action": "preserve_or_split_in_place",
-        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim."
+        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim.",
+        "status": "completed"
       },
       "_default_db_path": {
         "target": "hermes_state.py",
         "task": 4,
         "action": "preserve_or_split_in_place",
-        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim."
+        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim.",
+        "status": "completed"
       },
       "_ensure_test_isolation": {
         "target": "hermes_state.py",
         "task": 4,
         "action": "preserve_or_split_in_place",
-        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim."
+        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim.",
+        "status": "completed"
       },
       "_secure_state_db_files": {
-        "target": "hermes_state.py",
+        "target": "hermes_cli/db_session_schema.py",
         "task": 4,
         "action": "preserve_or_split_in_place",
-        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim."
+        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim.",
+        "layer": "application",
+        "status": "completed"
       },
       "format_session_db_unavailable": {
         "target": "hermes_state.py",
         "task": 4,
         "action": "preserve_or_split_in_place",
-        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim."
+        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim.",
+        "status": "completed"
       },
       "_close_time_checkpoint_configurable": {
-        "target": "hermes_state.py",
+        "target": "hermes_db/infra/backends/sqlite/session_connections.py",
         "task": 4,
         "action": "preserve_or_split_in_place",
-        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim."
+        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim.",
+        "layer": "infra",
+        "status": "completed"
       },
       "divert_session_transcript_jsonl": {
         "target": "hermes_state.py",
         "task": 4,
         "action": "preserve_or_split_in_place",
-        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim."
+        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim.",
+        "status": "completed"
       },
       "_foreign_state_db_holders": {
         "target": "hermes_state.py",
         "task": 4,
         "action": "preserve_or_split_in_place",
-        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim."
+        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim.",
+        "status": "completed"
       },
       "SessionDB": {
         "target": "hermes_state.py",
         "task": 4,
         "action": "preserve_or_split_in_place",
-        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim."
+        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim.",
+        "status": "completed"
       },
       "AsyncSessionDB": {
         "target": "hermes_state.py",
         "task": 4,
         "action": "preserve_or_split_in_place",
-        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim."
+        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim.",
+        "status": "completed"
       }
     },
     "baseline_abi_sha256": "a2edd87da416a3488637619227f0150e221d8dcc66b547f2f75be93cc77c2829",
@@ -725,7 +802,15 @@
     "task": 16,
     "status": "pending",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
-    "symbol_routes": {},
+    "symbol_routes": {
+      "stat_db_file_identity": {
+        "task": 4,
+        "layer": "infra",
+        "target": "hermes_db/infra/backends/sqlite/generation.py",
+        "constraint": "Actual pure physical identity/error definition moved with every real consumer; no old internal re-export. Existing public hermes_state exception identity stays exported by its facade.",
+        "status": "completed"
+      }
+    },
     "baseline_abi_sha256": "f39fa2ce94a2276b969aa73f0a1469f8791a5aec28bf487f8e500ea33e7c3fa3",
     "symbol_names": [
       "routed_sessions_setting",
@@ -764,7 +849,8 @@
       "_describe_lock_holder",
       "_acquire_msvcrt_lock",
       "fts_rebuild_admission"
-    ]
+    ],
+    "task4_adjustment": "Pure physical helpers/types migrate now; unrelated business/application functions stay with their owner and original task."
   },
   {
     "source": "hermes_state_compaction_display.py",
@@ -833,173 +919,213 @@
       "hermes_state_dbfile.py"
     ],
     "task": 4,
-    "status": "pending",
+    "status": "completed",
     "reason": "Separate generic FD/generation mechanics from SessionDB/FTS/quarantine policy; preserve errors and retirement guarantees.",
     "symbol_routes": {
       "_prepare_connection_retirement": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "_pread_db_range": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "_pread_db_header": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "_read_sqlite_application_id": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "_stat_sqlite_sidecar_identity": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "_watched_sqlite_sidecar_paths": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "_identity_is_truly_unlinked": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "_fd_is_truly_unlinked": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "_iter_proc_fd_targets": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "_darwin_libproc": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "_darwin_all_pids": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "_iter_darwin_fd_targets": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "_iter_darwin_sidecar_holders": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "iter_deleted_sqlite_sidecar_holders": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "refuse_deleted_wal_generation": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "RetiredGenerationCaptureError": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "_fsync_path": {
-        "target": "hermes_db/infra/backends/sqlite/generation.py",
+        "target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra. Task4 code audit: forensic artifact creation/copy/fsync/manifest and cleanup stay with the existing application file owner; physical byte/fd probes are imported from infra and the resource receives this actual callable, never SessionDB self.",
+        "layer": "application",
+        "status": "completed"
       },
       "_own_descriptor_for_identity": {
-        "target": "hermes_db/infra/backends/sqlite/generation.py",
+        "target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra. Task4 code audit: forensic artifact creation/copy/fsync/manifest and cleanup stay with the existing application file owner; physical byte/fd probes are imported from infra and the resource receives this actual callable, never SessionDB self.",
+        "layer": "application",
+        "status": "completed"
       },
       "_copy_range": {
-        "target": "hermes_db/infra/backends/sqlite/generation.py",
+        "target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra. Task4 code audit: forensic artifact creation/copy/fsync/manifest and cleanup stay with the existing application file owner; physical byte/fd probes are imported from infra and the resource receives this actual callable, never SessionDB self.",
+        "layer": "application",
+        "status": "completed"
       },
       "_copy_descriptor": {
-        "target": "hermes_db/infra/backends/sqlite/generation.py",
+        "target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra. Task4 code audit: forensic artifact creation/copy/fsync/manifest and cleanup stay with the existing application file owner; physical byte/fd probes are imported from infra and the resource receives this actual callable, never SessionDB self.",
+        "layer": "application",
+        "status": "completed"
       },
       "_copy_main_image": {
-        "target": "hermes_db/infra/backends/sqlite/generation.py",
+        "target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra. Task4 code audit: forensic artifact creation/copy/fsync/manifest and cleanup stay with the existing application file owner; physical byte/fd probes are imported from infra and the resource receives this actual callable, never SessionDB self.",
+        "layer": "application",
+        "status": "completed"
       },
       "_parse_sqlite_header": {
-        "target": "hermes_db/infra/backends/sqlite/generation.py",
+        "target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra. Task4 code audit: forensic artifact creation/copy/fsync/manifest and cleanup stay with the existing application file owner; physical byte/fd probes are imported from infra and the resource receives this actual callable, never SessionDB self.",
+        "layer": "application",
+        "status": "completed"
       },
       "capture_retired_wal_generation": {
-        "target": "hermes_db/infra/backends/sqlite/generation.py",
+        "target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra. Task4 code audit: forensic artifact creation/copy/fsync/manifest and cleanup stay with the existing application file owner; physical byte/fd probes are imported from infra and the resource receives this actual callable, never SessionDB self.",
+        "layer": "application",
+        "status": "completed"
       },
       "_connect_tracked_db": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "_preopen_header": {
         "target": "hermes_db/infra/backends/sqlite/generation.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "is_zeroed_state_db": {
         "target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "has_invalid_sqlite_header_preopen": {
         "target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "quarantine_cross_process_lock": {
         "target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "quarantine_invalid_state_db": {
         "target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "collect_state_db_stats": {
         "target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "count_db_holders": {
         "target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "_is_inactive_orphan_desktop_holder": {
         "target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       },
       "_concrete_state_db_holder_pids": {
         "target": "hermes_cli/db_session_schema.py",
         "task": 4,
-        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra."
+        "constraint": "Keep original file/generation algorithm; application holder/FTS/error policy is supplied explicitly, not imported by infra.",
+        "status": "completed"
       }
     },
     "baseline_abi_sha256": "2c06f18845354e65feb44d56284080b78428d4ad77d9475666fbfeeff0ffdcb1",
@@ -1084,7 +1210,50 @@
     "task": 16,
     "status": "pending",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
-    "symbol_routes": {},
+    "symbol_routes": {
+      "StateDbReplacedError": {
+        "task": 4,
+        "layer": "infra",
+        "target": "hermes_db/infra/backends/sqlite/generation.py",
+        "constraint": "Actual pure physical identity/error definition moved with every real consumer; no old internal re-export. Existing public hermes_state exception identity stays exported by its facade.",
+        "status": "completed"
+      },
+      "DeletedWalGenerationError": {
+        "task": 4,
+        "layer": "infra",
+        "target": "hermes_db/infra/backends/sqlite/generation.py",
+        "constraint": "Actual pure physical identity/error definition moved with every real consumer; no old internal re-export. Existing public hermes_state exception identity stays exported by its facade.",
+        "status": "completed"
+      },
+      "_SQLITE_LOCK_CODES": {
+        "task": 4,
+        "layer": "infra",
+        "target": "hermes_db/infra/backends/sqlite/runtime.py",
+        "constraint": "Move actual pure primary-code/lock classifier unchanged; all real internal imports updated. The business error classifier consumes the real technical definitions rather than supplying infra imports.",
+        "status": "completed"
+      },
+      "is_sqlite_lock_error": {
+        "task": 4,
+        "layer": "infra",
+        "target": "hermes_db/infra/backends/sqlite/runtime.py",
+        "constraint": "Move actual pure primary-code/lock classifier unchanged; all real internal imports updated. The business error classifier consumes the real technical definitions rather than supplying infra imports.",
+        "status": "completed"
+      },
+      "_sqlite_primary_code": {
+        "task": 4,
+        "layer": "infra",
+        "target": "hermes_db/infra/backends/sqlite/runtime.py",
+        "constraint": "Move actual pure primary-code/lock classifier unchanged; all real internal imports updated. The business error classifier consumes the real technical definitions rather than supplying infra imports.",
+        "status": "completed"
+      },
+      "_STATE_DB_APPLICATION_ID_OFFSET": {
+        "task": 4,
+        "layer": "infra",
+        "target": "hermes_db/infra/backends/sqlite/generation.py",
+        "constraint": "Actual physical header offset definition; obsolete unused application copy removed.",
+        "status": "completed"
+      }
+    },
     "baseline_abi_sha256": "b70ffdd754a755fbfe5808c9fc4ec634d70e4f040d0affbce79279fe2e578da8",
     "symbol_names": [
       "is_malformed_db_error",
@@ -1107,7 +1276,8 @@
       "DeletedWalGenerationError",
       "StateDbCorruptError",
       "classify_persistence_error"
-    ]
+    ],
+    "task4_adjustment": "Pure physical helpers/types migrate now; unrelated business/application functions stay with their owner and original task."
   },
   {
     "source": "hermes_state_fts.py",
@@ -1217,7 +1387,15 @@
     "task": 16,
     "status": "pending",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
-    "symbol_routes": {},
+    "symbol_routes": {
+      "canonical_sqlite_path": {
+        "task": 4,
+        "layer": "infra",
+        "target": "hermes_db/infra/backends/sqlite/generation.py",
+        "constraint": "Actual pure physical identity/error definition moved with every real consumer; no old internal re-export. Existing public hermes_state exception identity stays exported by its facade.",
+        "status": "completed"
+      }
+    },
     "baseline_abi_sha256": "740f16cf536f1db3017a5eeb801762e3aff894737b8978e35c814700bef9cd60",
     "symbol_names": [
       "read_only_db_uri",
@@ -1242,7 +1420,8 @@
       "in_process_state_db_holders",
       "held_store_refusal",
       "live_writer_holds_db"
-    ]
+    ],
+    "task4_adjustment": "Pure physical helpers/types migrate now; unrelated business/application functions stay with their owner and original task."
   },
   {
     "source": "hermes_state_identity.py",
@@ -1846,14 +2025,14 @@
   {
     "source": "hermes_state_readpool.py",
     "baseline_sha256": "f2568b8fdddf3953029ef13e1e578ac90ff2359a0cae7973d3970aff9030be28",
-    "layer": "application",
-    "action": "consumer_review",
+    "layer": "infra",
+    "action": "merge",
     "targets": [
-      "hermes_state_readpool.py"
+      "hermes_db/infra/backends/sqlite/session_connections.py"
     ],
-    "task": 16,
-    "status": "pending",
-    "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
+    "task": 4,
+    "status": "completed",
+    "reason": "Actual per-path/process read permits and descriptor-headroom gate are part of the connection resource; move real implementation and consumers, no old-path re-export.",
     "symbol_routes": {},
     "baseline_abi_sha256": "e6dcf330903fa6c6f94abd44ee6d1b8884e36b29314146224b3dd530c2d03fce",
     "symbol_names": [

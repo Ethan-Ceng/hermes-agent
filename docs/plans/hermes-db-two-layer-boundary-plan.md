@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`IMPLEMENTING`；阶段：SQLite公共基础设施已验证；当前实施任务：Task3完成，下一项Task4；完成：3 / 20；阻塞：无；日期2026-11-11。
+- 整体状态：`IMPLEMENTING`；阶段：SessionDB连接资源拆分已完成；下一实施任务：Task5；完成：4 / 20；阻塞：无；日期2026-11-11。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 范围与可判定边界
@@ -129,6 +129,7 @@ function Check-Storage {
 | 2026-11-11 | IMPLEMENTING | Task1完成；下一项Task2 | fresh双主机PM、基准Native/PG及结构/静态门禁通过，1/20 |
 | 2026-11-11 | IMPLEMENTING | Task2完成；下一项Task3 | PG infra/Schema token/消费者及最新双主机合同、真实PG和静态通过，2/20 |
 | 2026-11-11 | IMPLEMENTING | Task3完成；下一项Task4 | SQLite机制/应用策略、纯载荷恢复、双主机合同及最新全部静态通过，3/20 |
+| 2026-11-11 | IMPLEMENTING | Task4完成；下一项Task5 | 两端完整Native、105消费者与资源合同exit0，4/20 |
 
 ## 任务依赖总表
 
@@ -137,7 +138,7 @@ function Check-Storage {
 | 1 | 冻结隔离源码、合同和完整调用点 | 无 | completed |
 | 2 | 提纯PostgreSQL连接池与事务基础设施 | 1 | completed |
 | 3 | 提取SQLite公共连接与WAL机制 | 2 | completed |
-| 4 | 分离SessionDB连接状态、池与关闭语义 | 3 | pending |
+| 4 | 分离SessionDB连接状态、池与关闭语义 | 3 | completed |
 | 5 | 拆开数据源选择和业务资源获取 | 2,3,4 | pending |
 | 6 | 分离PG迁移执行与业务Schema就绪判断 | 5 | pending |
 | 7 | 建立SQLite会话显式生命周期和普通打开 | 4,5,6 | pending |
@@ -350,7 +351,7 @@ Discord两个原私有SQLite helper跨界已移除，真实消费者通过原已
 
 ## Task 4：分离SessionDB连接状态、池与关闭语义
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -360,6 +361,8 @@ SessionDB与底层连接池、FD预算和代次保护的所有权分离。
 
 - `hermes_state.py`。
 - `hermes_state_dbfile.py`。
+- `hermes_state_readpool.py`：实际FD预算实现随本Task归infra，不留旧路径shim。
+- `tests/hermes_db/contracts/test_session_connection_pool.py`：真实无应用导入的池借还、关闭与数据读取合同。
 - 新落位：`hermes_cli/db_session_schema.py`, `hermes_db/infra/backends/sqlite/generation.py`, `hermes_db/infra/backends/sqlite/session_connections.py`。
 - 同Task同步映射consumer_files中实际读取点、动态字符串和测试patch；主责Task之外的依赖导入变化也必须当场完成。
 
@@ -390,11 +393,30 @@ SessionDB业务对象不再拥有底层池实现；完整Native state组通过�
 
 ### 执行结果
 
-未实施；planning不计完成。
+2026-11-11启动：Task3实际恢复commit为a3fb7f4b5644c3dbb5a5225996099af4a107567e。当前先核对SessionDB所有连接状态、纯技术方法与业务Schema边界，所有资源读点与patch须同步，禁止传整个SessionDB self或增加旧私有字段反射/兼容层；完整Native state两端exit0为必需。
+
+当前Task核对修订：_execute_write含压缩租约/FTS fail-open和提交后merge；_read_ctx含业务快照pin；_ensure_db_file_generation访问state_meta。它们必须按真实子职责拆开，不能整段搬进infra，也不把有业务行为的会话方法伪装为旧路径兼容壳。读取/事务机制只接收捕获参数或明确连接，资源不持有整个SessionDB。原映射Task16的hermes_state_readpool实际属于Task4机制，已重新映射。先为独立具体连接资源建立红测，再接入生产SessionDB和全部读取点。
 
 ### 验证证据
 
-未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
+实施诊断中，尚未完成。首轮完整Windows目录222文件真实exit1：1676 passed、79 failed、7 errors、141 skipped；环境C盘可用仅0.70GiB，许多repair合同被既有10GiB余量保护阻断。后续控制器在同一隔离checkout的D盘（可用1159.70GiB）绑定独立TMP/TEMP；不改余量门槛，不删测试，不计首轮通过。定点修正动态读取点、真实patch seam及原测试清理后，最终仍须两端完整目录exit0。
+
+精确0d导出+本轮新Windows解释器已复现：Linux flock/proc-lock两个测试失败（独立2文件1passed/2failed/2skipped），live-file replacement两个测试WinError32和interrupted snapshot共享clock teardown错误（2文件1passed/2failed/1error）。前四个保留原断言并加真实Linux marker；snapshot按原断言触发Timeout后恢复共享clock。它们在Linux实跑，不能把Windows skip计为验证，也不解除原Windows八项/非WSL缺证。
+
+实际writer/锁/代际状态、预算与物理关闭已迁入具体资源；应用取证文件操作及writer策略保留在db_session_schema。业务压缩/FTS/健康/快照与token drain由SessionDB执行，未传完整SessionDB给infra。新DB模块中间数368、root11，最终硬359门禁保持。所有失败与后续完整结果将写入Task4证据及恢复commit。
+
+
+2026-11-11继续整改/冻结：完整接收者审计同步85个Native目录外测试文件及所有具名patch；ACP编辑器连接、独立ResponseStore和测试自身连接包装器保留原所有者。迁出的纯锁错误判据最初缺失sqlite3绑定，导致一次完整Windows223文件32pass/32fail/215error/11skip、Linux223文件33pass/41fail/215error/1skip，以及外部84文件162pass/223fail/304error/7skip，均exit1且不计验收。已保持runtime导入安全性并核对SQLite主结果码5/6，修正旧_lock和截断展示接收者清单。代表组最新Windows126pass/0fail、Linux134pass/0fail；初始化准备失败诊断/创建前无副作用红测先失败，再两端各2pass。旧内部无用技术导出已移除，公开异常仍由原公开facade提供。
+
+冻结生产源码hash为62dbb6098df2967b4d8bbe64f96cbee63e2e2c565c534bf953bd5158aafbfc88（操作审计task4-audit.json；3439生产Python，原基准3435，净+4，不把迁移算净减少）。固定65资源、31revision、29表、root11，703种/992处审计SQL字面量对Task3父提交完全相同；infra应用导入及退役实际导入0。完整Check-Storage已对该候选实际exit0：16check、health无新增豁免/债务、DB10180/0、plugin845/26、生成契约及空白均0。Native完整目录现为224文件（新增初始化行为合同；原4个DDL错误方法完整迁出巨型测试文件），双主机最新完整批次正在执行。Task4仍in_progress、未提交；不能用此前任何失败/局部通过替代该完整门禁。
+
+2026-11-11后续完整失败及整改：source-local Linux224文件1871pass/17fail/16skip，均由取证文件头解析的单个旧延迟导入引起，已改向实际infra定义并加入独立符号绑定审计，不恢复shim。Windows85消费者文件2073pass/3fail/27skip；其中同类Thread替身污染已统一使用窄helper，其余两个TUI工作区断言在精确0d+安装树内TMP复现0pass/2fail，在独立D盘随机TMP原断言2pass。外部复验范围扩大为105测试文件（另1fixture），所有原断言保留。第三版Linux开发快照tree e74def9bde9ac85fb44dc1a9ee63e8ef368affac，tar SHA256 a8177a01bf6407b97ae8555aea13f928b6cb6f4182c4ea787833bdd3240d414b，逐23939项校验后fresh PM构建并再次校验真实导入来源；它是Task4开发证据，不代替Task17最终冻结。最新生产hash a8996da469633348f8d68a14ef4d7aa9b711ccdbdb997240433a874ca9e78f1b；最新完整批次尚在执行，Task4保持未完成。
+
+最新完整Native state门禁：Windows224文件1757pass/0fail/147skip，exit0，343.8秒；Linux第三版隔离源码224文件1888pass/0fail/16skip，exit0，339.0秒。两端真实用例总数均1904，skip按原生能力与OS marker保留，不计平台验证。当前105消费者双主机完整批次及3文件资源合同仍待结束，保持Task4 in_progress。
+
+Task4完成结算（此前诊断/失败历史全部保留）：生产hash a8996da469633348f8d68a14ef4d7aa9b711ccdbdb997240433a874ca9e78f1b。最新完整Windows Native224文件1757pass/0fail/147skip、Linux224文件1888pass/0fail/16skip；Windows105消费者文件2283pass/0fail/27skip、Linux105文件2309pass/0fail/1skip；三文件资源合同Windows8pass/0fail/1skip、Linux9pass/0fail/0skip，六个批次均实际exit0。最新静态16check/health0、DB10180/0、plugin845/26、生成契约和空白均exit0，提交前再次核对。固定61+4、31revision、29表、root11保持；DB中间368及全项目生产Python3439不是最终预算/净减少声明。无退役测试删除，原四个正常Schema错误测试整类迁移，新增初始化与独立资源行为合同。
+
+完整108条安全命令记录、实际解释器/cwd/source身份、两端SDK版本、退出码、逐文件skip和失败整改见[Task4证据](../designs/hermes-db-two-layer-task4.json)及[诊断账本](../debug/hermes-db-task4-consumers.md)。原始日志仍ignored；最终Task17–20冻结/完整PG/发行/真实SDK/独立审查未执行，不解除原统一Task24、七项非WSL缺证或Windows八项基准问题。本地Task4提交创建后在Task5启动记录实际hash；不推送/合并/部署。
 
 ## Task 5：拆开数据源选择和业务资源获取
 
@@ -1332,14 +1354,14 @@ Windows独立发行组使用同根Windows实际路径、其PG父解释器及私�
 
 ### 当前执行结果
 
-- 规划：已准备设计、逐项映射和本实施计划；20项全部pending，0/20。
-- 单元/集成/SDK/发行/Schema/构建：本轮实施未开始，均未执行。
+- 当前实施：Task1–4已验证，4/20；Task4本地提交后立即进入Task5。
+- Task1–3证据见各Task；Task4诊断/整改进行中。最终完整冻结批次、SDK及独立审查尚未完成。
 - 规划结构/基准/本地链接及文档静态自检：实际命令与结果写入下方准备记录。
 - 代码审查：本轮尚未执行；旧APPROVED只属于已完成持久层职责精简。
 
 ### 未通过项目与最终状态
 
-实施验收均未执行，因此当前为`PLAN_READY`，不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
+当前为`IMPLEMENTING`，Task1–3已完成、Task4仍须完整门禁，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
 
 ## 规划准备记录与恢复
 

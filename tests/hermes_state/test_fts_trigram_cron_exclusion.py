@@ -27,7 +27,7 @@ def db(tmp_path):
 def _trigram_rowids(db: SessionDB) -> set[int]:
     return {
         row[0]
-        for row in db._conn.execute(
+        for row in db._connections._conn.execute(
             "SELECT id FROM messages_fts_trigram_docsize ORDER BY id"
         ).fetchall()
     }
@@ -43,7 +43,7 @@ def _install_pre_v27_trigram(db: SessionDB, *, with_tool_calls: bool = False) ->
     """
     cols = "content, tool_name" + (", tool_calls" if with_tool_calls else "")
     vals = "new.content, new.tool_name" + (", new.tool_calls" if with_tool_calls else "")
-    db._conn.executescript(
+    db._connections._conn.executescript(
         f"""
         DROP TRIGGER messages_fts_trigram_insert;
         DROP TRIGGER messages_fts_trigram_delete;
@@ -77,7 +77,7 @@ def test_fresh_trigram_indexes_conversations_but_not_cron(db: SessionDB):
 
     assert _trigram_rowids(db) == {cli_id}
     assert cron_id not in _trigram_rowids(db)
-    assert db._conn.execute(
+    assert db._connections._conn.execute(
         "SELECT id FROM messages_fts_docsize WHERE id = ?", (cron_id,)
     ).fetchone() is not None
 
@@ -105,10 +105,10 @@ def test_deferred_rebuild_does_not_reintroduce_cron(db: SessionDB):
     cli_id = db.append_message("cli", role="assistant", content="交互会话内容")
     db.append_message("cron", role="assistant", content="定时会话内容")
 
-    with db._lock:
-        db._reset_fts_index_to_empty(db._conn)
-        db._seed_fts_rebuild_markers(db._conn, force=True)
-        db._conn.commit()
+    with db._connections._lock:
+        db._reset_fts_index_to_empty(db._connections._conn)
+        db._seed_fts_rebuild_markers(db._connections._conn, force=True)
+        db._connections._conn.commit()
     while db.fts_rebuild_step():
         pass
 
@@ -133,14 +133,14 @@ def test_existing_external_layout_rebuilds_trigram_on_upgrade(tmp_path, old_vers
     assert [row["id"] for row in old.search_messages("互迁移")] == [cli_id]
     # Historical migration input, not latest-minus-one: unrelated schema bumps
     # must not relabel an unfinished v29/v30 FTS migration as already complete.
-    old._conn.execute("UPDATE schema_version SET version = ?", (old_version,))
-    old._conn.commit()
+    old._connections._conn.execute("UPDATE schema_version SET version = ?", (old_version,))
+    old._connections._conn.commit()
     old.close()
 
     migrated = SessionDB(db_path=db_path)
     try:
         assert _trigram_rowids(migrated) == {cli_id}
-        view_sql = migrated._conn.execute(
+        view_sql = migrated._connections._conn.execute(
             "SELECT sql FROM sqlite_master "
             "WHERE type = 'view' AND name = 'messages_fts_trigram_src'"
         ).fetchone()[0]
@@ -152,8 +152,8 @@ def test_existing_external_layout_rebuilds_trigram_on_upgrade(tmp_path, old_vers
         )] == [cron_id]
         new_cron_id = migrated.append_message("cron", role="user", content="新增定时内容")
         assert new_cron_id not in _trigram_rowids(migrated)
-        assert migrated._conn.execute("SELECT version FROM schema_version").fetchone()[0] == SCHEMA_VERSION
-        migrated._conn.execute(
+        assert migrated._connections._conn.execute("SELECT version FROM schema_version").fetchone()[0] == SCHEMA_VERSION
+        migrated._connections._conn.execute(
             "INSERT INTO messages_fts_trigram(messages_fts_trigram) VALUES('integrity-check')"
         )
     finally:
@@ -179,8 +179,8 @@ def test_install_already_at_v28_still_gets_the_cron_exclusion_migration(tmp_path
     cli_id = old.append_message("cli", role="user", content="交互迁移内容")
     cron_id = old.append_message("cron", role="user", content="定时迁移内容")
     assert _trigram_rowids(old) == {cli_id, cron_id}
-    old._conn.execute("UPDATE schema_version SET version = 28")
-    old._conn.commit()
+    old._connections._conn.execute("UPDATE schema_version SET version = 28")
+    old._connections._conn.commit()
     old.close()
 
     migrated = SessionDB(db_path=db_path)
@@ -209,8 +209,8 @@ def test_v1_tool_calls_layout_is_left_for_optimize_storage(tmp_path):
     cli_id = old.append_message("cli", role="user", content="交互迁移内容")
     cron_id = old.append_message("cron", role="user", content="定时迁移内容")
     assert _trigram_rowids(old) == {cli_id, cron_id}
-    old._conn.execute("UPDATE schema_version SET version = 28")
-    old._conn.commit()
+    old._connections._conn.execute("UPDATE schema_version SET version = 28")
+    old._connections._conn.commit()
     old.close()
 
     migrated = SessionDB(db_path=db_path)  # must not raise
@@ -221,7 +221,7 @@ def test_v1_tool_calls_layout_is_left_for_optimize_storage(tmp_path):
         # … and the opt-in path completes the transition: v2 columns,
         # cron-filtered view, cron row purged.
         migrated.optimize_fts_storage()
-        cols = [r[1] for r in migrated._conn.execute("PRAGMA table_info(messages_fts_trigram)")]
+        cols = [r[1] for r in migrated._connections._conn.execute("PRAGMA table_info(messages_fts_trigram)")]
         assert "tool_calls" not in cols
         assert _trigram_rowids(migrated) == {cli_id}
     finally:
@@ -249,13 +249,13 @@ def test_partial_upgrade_view_does_not_skip_historical_rebuild(tmp_path, old_ver
         "messages_fts_trigram_delete",
         "messages_fts_trigram_update",
     ):
-        old._conn.execute(f"DROP TRIGGER IF EXISTS {name}")
-    old._conn.execute("DROP VIEW messages_fts_trigram_src")
-    old._conn.executescript(FTS_TRIGRAM_SQL)
+        old._connections._conn.execute(f"DROP TRIGGER IF EXISTS {name}")
+    old._connections._conn.execute("DROP VIEW messages_fts_trigram_src")
+    old._connections._conn.executescript(FTS_TRIGRAM_SQL)
     # Historical migration input, not latest-minus-one: unrelated schema bumps
     # must not relabel an unfinished v29/v30 FTS migration as already complete.
-    old._conn.execute("UPDATE schema_version SET version = ?", (old_version,))
-    old._conn.commit()
+    old._connections._conn.execute("UPDATE schema_version SET version = ?", (old_version,))
+    old._connections._conn.commit()
     old.close()
 
     migrated = SessionDB(db_path=db_path)
@@ -265,7 +265,7 @@ def test_partial_upgrade_view_does_not_skip_historical_rebuild(tmp_path, old_ver
         assert [row["id"] for row in migrated.search_messages(
             "迁移中断内容", source_filter=["cron"]
         )] == [cron_id]
-        migrated._conn.execute(
+        migrated._connections._conn.execute(
             "INSERT INTO messages_fts_trigram(messages_fts_trigram, rank) "
             "VALUES('integrity-check', 1)"
         )
@@ -278,7 +278,7 @@ def test_delete_of_unindexed_cron_row_keeps_trigram_consistent(db: SessionDB):
     cron_id = db.append_message("cron", role="user", content="不会进入索引")
     assert cron_id not in _trigram_rowids(db)
 
-    db._conn.execute("DELETE FROM messages WHERE id = ?", (cron_id,))
-    db._conn.execute(
+    db._connections._conn.execute("DELETE FROM messages WHERE id = ?", (cron_id,))
+    db._connections._conn.execute(
         "INSERT INTO messages_fts_trigram(messages_fts_trigram) VALUES('integrity-check')"
     )

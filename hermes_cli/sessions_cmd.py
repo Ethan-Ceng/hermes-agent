@@ -162,7 +162,7 @@ def _cmd_repair(args):
         print(f"  strategy: {report.get('strategy')}")
         try:
             with SessionDB(db_path=db_path, read_only=drift_only) as _repair_db:
-                n = _repair_db._conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0]
+                n = _repair_db._connections._conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0]
             print(f"✓ Repaired — {n} sessions recovered.")
         except Exception:
             print("✓ Repaired.")

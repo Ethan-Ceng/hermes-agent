@@ -81,7 +81,7 @@ def _rows(db, kind: str, sql: str, cutoff: float) -> list[dict[str, Any]]:
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(db):
         return db.analytics_rows(kind, cutoff)
-    return [dict(r) for r in db._conn.execute(sql, (cutoff,)).fetchall()]
+    return [dict(r) for r in db._connections._conn.execute(sql, (cutoff,)).fetchall()]
 
 
 def _get_usage_analytics(days: int = 30, profile: Optional[str] = None):

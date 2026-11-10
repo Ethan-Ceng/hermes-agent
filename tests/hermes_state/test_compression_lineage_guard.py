@@ -173,12 +173,12 @@ def test_reopen_orphaned_compression_session_reclaims_expired_lease(
 ) -> None:
     _compression_parent(db, "expired-lease-parent")
     now = time.time()
-    db._conn.execute(
+    db._connections._conn.execute(
         "INSERT INTO compression_locks "
         "(session_id, holder, acquired_at, expires_at) VALUES (?, ?, ?, ?)",
         ("expired-lease-parent", "old-compressor", now - 60, now - 30),
     )
-    db._conn.commit()
+    db._connections._conn.commit()
 
     assert db.reopen_orphaned_compression_session("expired-lease-parent") is True
     assert db.refresh_compression_lock(
@@ -192,12 +192,12 @@ def test_reopen_orphaned_compression_session_loses_to_expired_lease_refresh(
 ) -> None:
     _compression_parent(db, "refreshed-lease-parent")
     now = time.time()
-    db._conn.execute(
+    db._connections._conn.execute(
         "INSERT INTO compression_locks "
         "(session_id, holder, acquired_at, expires_at) VALUES (?, ?, ?, ?)",
         ("refreshed-lease-parent", "live-compressor", now - 60, now - 30),
     )
-    db._conn.commit()
+    db._connections._conn.commit()
 
     assert db.refresh_compression_lock(
         "refreshed-lease-parent", "live-compressor"

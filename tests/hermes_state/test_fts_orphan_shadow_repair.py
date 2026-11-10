@@ -56,8 +56,8 @@ def test_orphaned_base_family_is_repaired_and_healthy_trigram_untouched(tmp_path
     reopened = SessionDB(db_path=db_path)
     try:
         assert reopened._fts_enabled is True
-        with reopened._lock:
-            hits = reopened._conn.execute(
+        with reopened._connections._lock:
+            hits = reopened._connections._conn.execute(
                 "SELECT count(*) FROM messages_fts WHERE messages_fts MATCH 'orphan'"
             ).fetchone()[0]
         assert hits == 3, "recreated index must be rebuilt from the canonical messages table"

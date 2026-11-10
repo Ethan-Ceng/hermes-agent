@@ -1126,7 +1126,7 @@ class TestAutomaticCompressionStateRefreshAfterLock:
                 force=True,
             )
 
-        children = db._conn.execute(
+        children = db._connections._conn.execute(
             "SELECT id FROM sessions WHERE parent_session_id = ?",
             (parent_id,),
         ).fetchall()

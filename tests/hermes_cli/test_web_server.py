@@ -275,7 +275,7 @@ class TestWebServerEndpoints:
         writer = SessionDB(db_path=db_path)
         monitor = None
         try:
-            writer._conn.execute("PRAGMA wal_autocheckpoint=0")
+            writer._connections._conn.execute("PRAGMA wal_autocheckpoint=0")
             writer.create_session("poll-wal", source="cli")
             writer.append_message(
                 "poll-wal",
@@ -353,7 +353,7 @@ class TestWebServerEndpoints:
         try:
             seed.create_session("stale", source="cli")
             seed.create_session("fresh", source="cli")
-            seed._conn.execute(
+            seed._connections._conn.execute(
                 "UPDATE sessions SET started_at = ? WHERE id = ?",
                 (time.time() - 30 * 86400, "stale"),
             )
@@ -1109,10 +1109,10 @@ CONFIG_SCHEMA = ProviderConfigSchema(
             db.create_session(
                 session_id="cyc-b", source="cli", parent_session_id="cyc-a"
             )
-            db._conn.execute(
+            db._connections._conn.execute(
                 "UPDATE sessions SET parent_session_id='cyc-b' WHERE id='cyc-a'"
             )
-            db._conn.commit()
+            db._connections._conn.commit()
         finally:
             db.close()
 
@@ -1137,8 +1137,8 @@ CONFIG_SCHEMA = ProviderConfigSchema(
             db.end_session("primary", "ws_orphan_reap")
             assert self.client.get("/api/sessions/primary/latest-descendant").json()["session_id"] == "primary"
 
-            db._conn.execute("UPDATE sessions SET end_reason='compression' WHERE id='primary'")
-            db._conn.commit()
+            db._connections._conn.execute("UPDATE sessions SET end_reason='compression' WHERE id='primary'")
+            db._connections._conn.commit()
             db.create_session(session_id="primary-cont", source="tui", parent_session_id="primary")
         finally:
             db.close()
@@ -3215,9 +3215,9 @@ class TestNewEndpoints:
         try:
             for i, local in enumerate(local_starts):
                 db.create_session(session_id=f"day-bucket-{i}", source="cli")
-                db._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?",
+                db._connections._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?",
                                  (local.replace(tzinfo=ZoneInfo(tz_name)).timestamp(), f"day-bucket-{i}"))
-            db._conn.commit()
+            db._connections._conn.commit()
         finally:
             db.close()
         original_tz = os.environ.get("TZ")

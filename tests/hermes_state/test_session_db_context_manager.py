@@ -42,10 +42,10 @@ def test_with_block_closes_the_handle(tmp_path):
     with SessionDB(db_path=path) as db:
         db.create_session(session_id="s1", source="cli", model="m")
         db.append_message("s1", role="user", content="hello")
-        assert db._conn is not None
+        assert db._connections._conn is not None
         assert _live_count(path) > 0
 
-    assert db._conn is None
+    assert db._connections._conn is None
     assert _live_count(path) == 0
 
 
@@ -67,7 +67,7 @@ def test_exception_inside_the_block_still_closes_and_propagates(tmp_path):
             db.create_session(session_id="s1", source="cli", model="m")
             raise ValueError("boom")
 
-    assert db._conn is None
+    assert db._connections._conn is None
     assert _live_count(path) == 0
 
 
@@ -83,6 +83,6 @@ def test_closing_inside_the_block_leaves_the_exit_clean(tmp_path):
     with SessionDB(db_path=path) as db:
         db.create_session(session_id="s1", source="cli", model="m")
         db.close()
-        assert db._conn is None
+        assert db._connections._conn is None
 
     assert _live_count(path) == 0

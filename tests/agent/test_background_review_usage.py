@@ -22,8 +22,8 @@ def db(tmp_path):
     return SessionDB(tmp_path / "state.db")
 
 def _usage_rows(db, session_id):
-    with db._lock:
-        rows = db._conn.execute(
+    with db._connections._lock:
+        rows = db._connections._conn.execute(
             "SELECT * FROM session_model_usage WHERE session_id = ? ORDER BY task",
             (session_id,),
         ).fetchall()

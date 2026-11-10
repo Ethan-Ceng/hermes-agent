@@ -37,18 +37,18 @@ class _MalformedConn:
 class TestQuarantineAfterStructuralCorruption:
     def test_structural_corruption_sets_sticky_flag_and_raises_typed(self, tmp_path):
         db = SessionDB(db_path=tmp_path / "state.db")
-        real_conn = db._conn
+        real_conn = db._connections._conn
         try:
             db.create_session(session_id="s1", source="cli", model="test")
-            db._conn = _MalformedConn(real_conn)
+            db._connections._conn = _MalformedConn(real_conn)
             with pytest.raises(StateDbCorruptError, match="malformed") as excinfo:
                 db.create_session(session_id="s2", source="cli", model="test")
             assert isinstance(excinfo.value.__cause__, sqlite3.DatabaseError)
-            assert db._db_corrupt is True
+            assert db._connections._db_corrupt is True
             # Structural damage must never be mistaken for FTS-scoped damage.
             assert db._fts_stale is False
         finally:
-            db._conn = real_conn
+            db._connections._conn = real_conn
             db.close()
 
 
@@ -70,13 +70,13 @@ class _RecordingConn:
 def _quarantined_db(tmp_path):
     """A SessionDB whose first corrupt write already tripped the quarantine."""
     db = SessionDB(db_path=tmp_path / "state.db")
-    real_conn = db._conn
+    real_conn = db._connections._conn
     db.create_session(session_id="s1", source="cli", model="test")
-    db._conn = _MalformedConn(real_conn)
+    db._connections._conn = _MalformedConn(real_conn)
     with pytest.raises(StateDbCorruptError):
         db.create_session(session_id="s2", source="cli", model="test")
-    db._conn = real_conn
-    assert db._db_corrupt is True
+    db._connections._conn = real_conn
+    assert db._connections._db_corrupt is True
     return db, real_conn
 
 
@@ -84,23 +84,23 @@ class TestQuarantinedHandleStopsTouchingTheFile:
     def test_subsequent_writes_fail_fast_without_touching_connection(self, tmp_path):
         db, real_conn = _quarantined_db(tmp_path)
         recorder = _RecordingConn(real_conn)
-        db._conn = recorder
+        db._connections._conn = recorder
         try:
             with pytest.raises(StateDbCorruptError):
                 db.create_session(session_id="s3", source="cli", model="test")
             assert recorder.recorded == []
         finally:
-            db._conn = real_conn
+            db._connections._conn = real_conn
             db.close()
 
     def test_close_skips_wal_checkpoint_when_quarantined(self, tmp_path, caplog):
         db, real_conn = _quarantined_db(tmp_path)
         recorder = _RecordingConn(real_conn)
-        db._conn = recorder
+        db._connections._conn = recorder
         with caplog.at_level("WARNING", logger="hermes_state"):
             db.close()
         assert not any("wal_checkpoint" in sql for sql in recorder.recorded)
-        assert db._conn is None
+        assert db._connections._conn is None
 
     def test_close_disables_sqlite_internal_checkpoint_on_py312(self, tmp_path):
         """Quarantine must also stop SQLite's own last-connection checkpoint.
@@ -112,16 +112,16 @@ class TestQuarantinedHandleStopsTouchingTheFile:
         """
         flag = getattr(sqlite3, "SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE", None)
         db = SessionDB(db_path=tmp_path / "state.db")
-        if flag is None or not hasattr(db._conn, "setconfig"):
+        if flag is None or not hasattr(db._connections._conn, "setconfig"):
             db.close()
             pytest.skip("SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE needs Python 3.12+")
-        real_conn = db._conn
+        real_conn = db._connections._conn
         db.create_session(session_id="s1", source="cli", model="test")
         assert real_conn.getconfig(flag) is False
-        db._conn = _MalformedConn(real_conn)
+        db._connections._conn = _MalformedConn(real_conn)
         with pytest.raises(StateDbCorruptError):
             db.create_session(session_id="s2", source="cli", model="test")
-        db._conn = real_conn
+        db._connections._conn = real_conn
         # _halt_db_corrupt armed the no-checkpoint-on-close switch.
         assert real_conn.getconfig(flag) is True
         db.close()
@@ -132,7 +132,7 @@ class TestQuarantinedHandleStopsTouchingTheFile:
         db, _real_conn = _quarantined_db(tmp_path)
         db.close()
         reopen = MagicMock()
-        monkeypatch.setattr("hermes_state._connect_tracked_db", reopen)
+        monkeypatch.setattr('hermes_db.infra.backends.sqlite.generation._connect_tracked_db', reopen)
         with pytest.raises(StateDbCorruptError, match="structural corruption"):
             db.create_session(session_id="s4", source="cli", model="test")
         reopen.assert_not_called()
@@ -157,7 +157,7 @@ class TestQuarantineScope:
         raw.close()
         try:
             db.append_message("s1", role="user", content="healed append")
-            assert db._db_corrupt is False
+            assert db._connections._db_corrupt is False
             assert db._fts_stale is True
             assert db._fts_enabled is False
         finally:
@@ -172,22 +172,22 @@ class TestQuarantineScope:
         live = tmp_path / "state.db"
         other = tmp_path / "other.db"
         db = SessionDB(db_path=live)
-        real_conn = db._conn
+        real_conn = db._connections._conn
         try:
             db.create_session(session_id="s1", source="cli", model="test")
-            if db._db_file_identity is None:
+            if db._connections._db_file_identity is None:
                 pytest.skip("filesystem does not expose st_dev/st_ino")
             alt = SessionDB(db_path=other)
             alt.create_session("other", "cli")
             alt.close()
             os.replace(other, live)
-            db._conn = _MalformedConn(real_conn)
+            db._connections._conn = _MalformedConn(real_conn)
             with pytest.raises(StateDbReplacedError):
                 db.create_session(session_id="s2", source="cli", model="test")
-            assert db._db_replaced is True
-            assert db._db_corrupt is False
+            assert db._connections._db_replaced is True
+            assert db._connections._db_corrupt is False
         finally:
-            db._conn = real_conn
+            db._connections._conn = real_conn
             db.close()
 
     def test_classify_persistence_error_maps_quarantine_to_corrupt(self):
@@ -220,21 +220,21 @@ class TestSharedRegistry:
         holder_a = registry.acquire(path)
         holder_b = registry.acquire(path)
         assert holder_a is holder_b
-        real_conn = holder_a._conn
+        real_conn = holder_a._connections._conn
         holder_a.create_session(session_id="s1", source="cli", model="test")
 
-        holder_a._conn = _MalformedConn(real_conn)
+        holder_a._connections._conn = _MalformedConn(real_conn)
         with pytest.raises(StateDbCorruptError):
             holder_a.create_session(session_id="s2", source="cli", model="test")
         recorder = _RecordingConn(real_conn)
-        holder_b._conn = recorder
+        holder_b._connections._conn = recorder
 
         with pytest.raises(StateDbCorruptError):
             holder_b.create_session(session_id="s3", source="cli", model="test")
 
         registry.close_all()
         assert not any("wal_checkpoint" in sql for sql in recorder.recorded)
-        assert holder_a._conn is None
+        assert holder_a._connections._conn is None
 
 
 _QUARANTINE_FLAGS = [
@@ -245,15 +245,15 @@ _QUARANTINE_FLAGS = [
 
 
 def _force_flag(db, flag_name):
-    setattr(db, flag_name, True)
+    setattr(db._connections if flag_name in {"_db_replaced", "_db_wal_generation_lost", "_db_corrupt"} else db, flag_name, True)
     if flag_name == "_db_corrupt":
-        db._db_corrupt_reason = "forced for test"
+        db._connections._db_corrupt_reason = "forced for test"
 
 
 def _clear_flag(db, flag_name):
-    setattr(db, flag_name, False)
+    setattr(db._connections if flag_name in {"_db_replaced", "_db_wal_generation_lost", "_db_corrupt"} else db, flag_name, False)
     if flag_name == "_db_corrupt":
-        db._db_corrupt_reason = ""
+        db._connections._db_corrupt_reason = ""
 
 
 class TestVacuumAndMaintenanceRespectQuarantine:
@@ -271,37 +271,37 @@ class TestVacuumAndMaintenanceRespectQuarantine:
     @pytest.mark.parametrize("flag_name,expected_exc", _QUARANTINE_FLAGS)
     def test_vacuum_refuses_when_quarantined(self, tmp_path, flag_name, expected_exc):
         db = SessionDB(db_path=tmp_path / "state.db")
-        real_conn = db._conn
+        real_conn = db._connections._conn
         try:
             db.create_session(session_id="s1", source="cli", model="test")
             db.append_message("s1", role="user", content="hello world")
             recorder = _RecordingConn(real_conn)
-            db._conn = recorder
+            db._connections._conn = recorder
             _force_flag(db, flag_name)
             with pytest.raises(expected_exc):
                 db.vacuum()
             assert recorder.recorded == []
         finally:
             _clear_flag(db, flag_name)
-            db._conn = real_conn
+            db._connections._conn = real_conn
             db.close()
 
     @pytest.mark.parametrize("flag_name,expected_exc", _QUARANTINE_FLAGS)
     def test_optimize_fts_refuses_when_quarantined(self, tmp_path, flag_name, expected_exc):
         db = SessionDB(db_path=tmp_path / "state.db")
-        real_conn = db._conn
+        real_conn = db._connections._conn
         try:
             db.create_session(session_id="s1", source="cli", model="test")
             db.append_message("s1", role="user", content="hello world")
             recorder = _RecordingConn(real_conn)
-            db._conn = recorder
+            db._connections._conn = recorder
             _force_flag(db, flag_name)
             with pytest.raises(expected_exc):
                 db.optimize_fts()
             assert recorder.recorded == []
         finally:
             _clear_flag(db, flag_name)
-            db._conn = real_conn
+            db._connections._conn = real_conn
             db.close()
 
     @pytest.mark.parametrize("flag_name,expected_exc", _QUARANTINE_FLAGS)
@@ -312,17 +312,17 @@ class TestVacuumAndMaintenanceRespectQuarantine:
         and recreates the index data entirely" — strictly more destructive — so it must refuse at
         least as eagerly."""
         db = SessionDB(db_path=tmp_path / "state.db")
-        real_conn = db._conn
+        real_conn = db._connections._conn
         try:
             db.create_session(session_id="s1", source="cli", model="test")
             db.append_message("s1", role="user", content="hello world")
             recorder = _RecordingConn(real_conn)
-            db._conn = recorder
+            db._connections._conn = recorder
             _force_flag(db, flag_name)
             with pytest.raises(expected_exc):
                 db.rebuild_fts()
             assert recorder.recorded == []
         finally:
             _clear_flag(db, flag_name)
-            db._conn = real_conn
+            db._connections._conn = real_conn
             db.close()

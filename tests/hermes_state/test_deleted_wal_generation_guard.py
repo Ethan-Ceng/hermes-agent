@@ -6,6 +6,7 @@ opener would mint a fresh WAL is the split-brain that produces intermittent
 fail closed on both the open and write paths instead of creating the second
 generation.
 """
+import hermes_db.infra.backends.sqlite.generation as sqlite_generation
 
 from hermes_cli import db_sqlite_policy as sqlite_policy
 
@@ -18,14 +19,13 @@ from pathlib import Path
 
 import pytest
 
-import hermes_state_dbfile
-import hermes_state_readpool
+import hermes_db.infra.backends.sqlite.generation as hermes_state_dbfile
+import hermes_db.infra.backends.sqlite.session_connections
 from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
-from hermes_state import (
-    DeletedWalGenerationError, SessionDB, StateDbReplacedError, _close_time_checkpoint_configurable,
-    classify_persistence_error, refuse_deleted_wal_generation,
-)
-from hermes_state_dbfile import _pread_db_header, iter_deleted_sqlite_sidecar_holders
+from hermes_state import DeletedWalGenerationError, SessionDB, StateDbReplacedError, classify_persistence_error
+from hermes_db.infra.backends.sqlite.session_connections import _close_time_checkpoint_configurable
+from hermes_db.infra.backends.sqlite.generation import refuse_deleted_wal_generation
+from hermes_db.infra.backends.sqlite.generation import _pread_db_header, iter_deleted_sqlite_sidecar_holders
 from tests.hermes_state._wal_generation_harness import (
     gateway_writer, integrity_ok_path, lose_sidecars, make_db, message_count, pin_wal, require_wal,
     write_second_generation,
@@ -210,7 +210,7 @@ def test_iter_holders_ignores_descriptor_closed_during_scan(tmp_path, monkeypatc
     vanished_fd = tmp_path / "closed-writable-opener-fd"
     monkeypatch.setattr(hermes_state_dbfile.sys, "platform", "linux")
     monkeypatch.setattr(
-        hermes_state_dbfile,
+        sqlite_generation,
         "_iter_proc_fd_targets",
         lambda: iter([(os.getpid(), str(wal) + " (deleted)", str(vanished_fd))]),
     )
@@ -234,7 +234,7 @@ def test_write_path_ignores_live_unhashed_dentry(tmp_path, force_wal, monkeypatc
     db = make_db(path, "s", "held")
     require_wal(db)
     # Mimic the post-close-race state that forces the /proc probe path.
-    db._db_sidecar_identity = {}
+    db._connections._db_sidecar_identity = {}
     real_readlink = os.readlink
 
     def fake_readlink(fd_path, *args, **kwargs):
@@ -243,9 +243,9 @@ def test_write_path_ignores_live_unhashed_dentry(tmp_path, force_wal, monkeypatc
             return target + " (deleted)"
         return target
 
-    monkeypatch.setattr(hermes_state_readpool.os, "readlink", fake_readlink)
+    monkeypatch.setattr(hermes_db.infra.backends.sqlite.session_connections.os, "readlink", fake_readlink)
     try:
-        assert db._wal_generation_was_lost() is False
+        assert db._connections._wal_generation_was_lost() is False
         db.append_message("s", role="user", content="after-artifact")
         rows = db.get_messages("s")
         assert any(m["content"] == "after-artifact" for m in rows)
@@ -282,13 +282,13 @@ def test_writer_halts_after_own_wal_unlinked(tmp_path, force_wal):
     path = tmp_path / "state.db"
     db = make_db(path, "s", "before")
     require_wal(db)
-    recorded = db._db_sidecar_identity.get("-wal")
+    recorded = db._connections._db_sidecar_identity.get("-wal")
     assert recorded is not None
     lose_sidecars(path, rename=False)
 
     with pytest.raises(DeletedWalGenerationError, match="deleted state.db-wal"):
         db.append_message("s", role="user", content="after-unlink")
-    assert db._db_wal_generation_lost is True
+    assert db._connections._db_wal_generation_lost is True
 
     with pytest.raises(DeletedWalGenerationError):
         db.append_message("s", role="user", content="second-after-halt")
@@ -358,8 +358,8 @@ def _assert_retirement_preserves_recoverable_wal(tmp_path, *, fd_directory, also
     path = tmp_path / "state.db"
     db = make_db(path, "gw-0", "seed")
     wal = require_wal(db)
-    db._conn.execute("PRAGMA wal_autocheckpoint=0")
-    db._try_wal_checkpoint()
+    db._connections._conn.execute("PRAGMA wal_autocheckpoint=0")
+    db._connections._try_wal_checkpoint()
     sentinel = "committed only in the retired WAL " + "x" * 3000
     db.append_message("gw-0", role="assistant", content=sentinel)
     original_stat = wal.stat()
@@ -390,12 +390,12 @@ def _assert_retirement_preserves_recoverable_wal(tmp_path, *, fd_directory, also
         assert other_contents
 
         # A previously observed structural error must not bypass lost-generation retirement.
-        db._db_corrupt = also_corrupt
+        db._connections._db_corrupt = also_corrupt
         db.close()
         db.close()  # repeated owner release must not take another permanent reference
-        assert db._db_wal_generation_lost is True
-        assert db._conn is None
-        artifact = db._retired_generation_capture
+        assert db._connections._db_wal_generation_lost is True
+        assert db._connections._conn is None
+        artifact = db._connections._retired_generation_capture
         assert artifact is not None
         del db
         gc.collect()
@@ -505,7 +505,7 @@ def test_refuse_helper_raises_while_deleted_wal_held(tmp_path, force_wal):
         if shm.exists():
             os.unlink(shm)
         with pytest.raises(DeletedWalGenerationError):
-            refuse_deleted_wal_generation(path)
+            refuse_deleted_wal_generation(path, message="deleted WAL generation")
         assert not wal.exists()
     finally:
         raw.close()

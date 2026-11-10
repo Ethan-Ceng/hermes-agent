@@ -594,14 +594,14 @@ class TestConversationGenerationRotates:
         scope_second = resolve_prompt_cache_scope(second)
         db.end_session("sess-clock-2", "session_reset")
         # The clock went backwards: this boundary lands BEFORE the first one.
-        with db._lock:
-            db._conn.execute(
+        with db._connections._lock:
+            db._connections._conn.execute(
                 "UPDATE sessions SET ended_at = ("
                 "  SELECT MIN(ended_at) FROM sessions WHERE ended_at IS NOT NULL"
                 ") - 60 WHERE id = ?",
                 ("sess-clock-2",),
             )
-            db._conn.commit()
+            db._connections._conn.commit()
 
         third = self._keyed(db, "sess-clock-3")
         scope_third = resolve_prompt_cache_scope(third)
@@ -721,14 +721,14 @@ class TestGenerationSurvivesPruning:
         scope_b = resolve_prompt_cache_scope(b)
         db.end_session("s-b", "session_reset")
         # Clock went backwards: this boundary lands before the first one.
-        with db._lock:
-            db._conn.execute(
+        with db._connections._lock:
+            db._connections._conn.execute(
                 "UPDATE sessions SET ended_at = ("
                 "  SELECT MIN(ended_at) FROM sessions WHERE ended_at IS NOT NULL"
                 ") - 60 WHERE id = ?",
                 ("s-b",),
             )
-            db._conn.commit()
+            db._connections._conn.commit()
         db.delete_session("s-b")
 
         c = self._keyed(db, "s-c")

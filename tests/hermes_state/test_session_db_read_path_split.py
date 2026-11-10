@@ -33,7 +33,7 @@ def db(tmp_path):
 @pytest.mark.requires_wal
 def test_reads_do_not_take_writer_lock(db):
     """Reads must complete while another thread holds self._lock."""
-    acquired = db._lock.acquire()
+    acquired = db._connections._lock.acquire()
     assert acquired
     try:
         done = {}
@@ -51,7 +51,7 @@ def test_reads_do_not_take_writer_lock(db):
         assert any("graphiti" in (m.get("snippet") or "") for m in done["search"])
         assert len(done["messages"]) == 2
     finally:
-        db._lock.release()
+        db._connections._lock.release()
 
 
 
@@ -62,15 +62,15 @@ def test_background_state_reads_never_touch_shared_writer(db):
     db.try_acquire_compression_lock("s1", "holder", ttl_seconds=60)
     assert db.request_handoff("s1", "telegram") is True
     # Open this thread's read connection before poisoning the shared writer.
-    assert db._get_read_conn() is not None
+    assert db._connections._get_read_conn() is not None
 
-    writer = db._conn
+    writer = db._connections._conn
 
     class PoisonWriter:
         def execute(self, *_args, **_kwargs):
             raise AssertionError("read touched shared writer connection")
 
-    db._conn = PoisonWriter()
+    db._connections._conn = PoisonWriter()
     try:
         assert db.get_compression_lock_holder("s1") == "holder"
         db.clear_session_activity_labels("s1")
@@ -81,7 +81,7 @@ def test_background_state_reads_never_touch_shared_writer(db):
         }
         assert [row["id"] for row in db.list_pending_handoffs()] == ["s1"]
     finally:
-        db._conn = writer
+        db._connections._conn = writer
 
 
 def test_read_your_writes(db):
@@ -94,8 +94,8 @@ def test_read_your_writes(db):
 
 
 def test_non_wal_uses_locked_path(db):
-    db._wal_active = False
-    assert db._get_read_conn() is None
+    db._connections._wal_active = False
+    assert db._connections._get_read_conn() is None
     # And queries still work via the legacy path.
     assert db.get_session("s1")["id"] == "s1"
 
@@ -129,7 +129,7 @@ def test_read_conn_open_failure_marks_thread(db, monkeypatch, tmp_path):
 def test_anchored_view_and_around_use_read_path(db):
     msgs = db.get_messages("s1")
     anchor = msgs[0]["id"]
-    db._lock.acquire()
+    db._connections._lock.acquire()
     try:
         done = {}
 
@@ -143,7 +143,7 @@ def test_anchored_view_and_around_use_read_path(db):
         assert done["around"]["window"]
         assert done["view"]["window"]
     finally:
-        db._lock.release()
+        db._connections._lock.release()
 
 
 @pytest.mark.requires_wal
@@ -166,7 +166,7 @@ def test_session_resume_reads_do_not_take_writer_lock(db):
     db.append_message("child1", role="user", content="child turn")
     db.append_message("child1", role="assistant", content="child reply")
 
-    db._lock.acquire()
+    db._connections._lock.acquire()
     try:
         done = {}
 
@@ -184,4 +184,4 @@ def test_session_resume_reads_do_not_take_writer_lock(db):
         assert len(display_history) == 4
         assert len(done["ancestor_prefix"]) == 2
     finally:
-        db._lock.release()
+        db._connections._lock.release()

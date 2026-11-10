@@ -8,6 +8,7 @@ lock the tombstone + no-mkdir contract without depending on Desktop.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from unittest.mock import patch
 
@@ -159,13 +160,13 @@ class TestDeletedProfileTombstone:
 
         profile_dir = create_profile("worker", no_alias=True, no_skills=True)
         held = registry.acquire(profile_dir / "state.db")
-        assert held._conn is not None
+        assert held._connections._conn is not None
         try:
             _delete("worker")
-            assert held._conn is None
+            assert held._connections._conn is None
             recreated = create_profile("worker", no_alias=True, no_skills=True)
             again = registry.acquire(recreated / "state.db")
-            assert again._conn is not None
+            assert again._connections._conn is not None
             registry.release(again)
         finally:
             registry.close_all()
@@ -224,11 +225,12 @@ class TestDeletedProfileTombstone:
         # naming the stray dir, and leave every byte in place (never rmtree a non-tombstoned dir).
         (shell / "skills" / "my-skill").mkdir(parents=True)
         (shell / "skills" / "my-skill" / "SKILL.md").write_text("# mine\n", encoding="utf-8")
-        with pytest.raises(FileExistsError, match=str(shell)):
+        with pytest.raises(FileExistsError, match=re.escape(str(shell))):
             create_profile("ghost", no_alias=True, no_skills=True)
         assert (shell / "skills" / "my-skill" / "SKILL.md").exists()
         assert "ghost" not in _named_homes(profile_env)
 
+    @pytest.mark.platforms("posix")
     def test_dangling_symlink_marker_is_still_identity(self, profile_env):
         """A profile whose only marker is a dangling symlinked ``config.yaml`` (clone/migration
         leftover) stays resolvable: ``is_file()`` follows links and would make it invisible."""

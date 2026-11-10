@@ -40,7 +40,7 @@ def test_reopened_writer_is_guarded_again(tmp_path, monkeypatch):
     db.close()
     db.append_message("s", role="user", content="after close")  # #94736 teardown/worker reopen
     try:
-        assert db._conn is not None and db._wal_lock_guard, "reopen returned an unguarded writer"
+        assert db._connections._conn is not None and db._connections._wal_lock_guard, "reopen returned an unguarded writer"
         assert not _foreign_exclusive_ok(str(db.db_path))
     finally:
         db.close()
@@ -86,7 +86,7 @@ def test_closing_writer_stays_guarded_until_sqlite_closes(tmp_path, monkeypatch)
         os.close(os.open(tmp_path / name, os.O_RDONLY))
     shm = os.stat(f"{path}-shm").st_ino
     in_gap: dict = {}
-    real_close = db._close_connection_quietly
+    real_close = db._connections._close_connection_quietly
 
     def _sibling_closes_in_the_gap(conn):
         subprocess.run([sys.executable, "-c",
@@ -95,7 +95,7 @@ def test_closing_writer_stays_guarded_until_sqlite_closes(tmp_path, monkeypatch)
         in_gap["shm"] = os.stat(f"{path}-shm").st_ino if os.path.exists(f"{path}-shm") else None
         real_close(conn)
 
-    monkeypatch.setattr(db, "_close_connection_quietly", _sibling_closes_in_the_gap)
+    monkeypatch.setattr(db._connections, "_close_connection_quietly", _sibling_closes_in_the_gap)
     db.close()
     assert in_gap["shm"] == shm, "a sibling's close unlinked -shm under the closing writer"
     assert not os.path.exists(f"{path}-wal"), "the true last close must still end the generation"

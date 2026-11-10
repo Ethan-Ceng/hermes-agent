@@ -418,7 +418,7 @@ class SessionMaintenanceMixin:
         """Integer PRAGMAs over the existing connection (never a byte probe); None + debug log on failure."""
         try:
             with self._read_ctx() as conn:
-                if self._conn is None:
+                if self._connections._conn is None:
                     return None
                 return [int(conn.execute(f"PRAGMA {name}").fetchone()[0]) for name in names]
         except Exception as exc:
@@ -447,7 +447,7 @@ class SessionMaintenanceMixin:
 
     def _try_checkpoint(self, mode: str, fail_msg: str) -> None:
         try:
-            self._conn.execute(f"PRAGMA wal_checkpoint({mode})")
+            self._connections._conn.execute(f"PRAGMA wal_checkpoint({mode})")
         except Exception as exc:
             logger.debug(fail_msg, exc)
 
@@ -465,19 +465,19 @@ class SessionMaintenanceMixin:
             optimized = self.optimize_fts()  # manages its own lock
         except Exception as exc:
             logger.warning("FTS optimize before VACUUM failed: %s", exc)
-        with self._lock:
-            self._raise_if_db_replaced()
-            if self._conn is None:
+        with self._connections._lock:
+            self._connections._raise_if_db_replaced()
+            if self._connections._conn is None:
                 self._reopen_after_close_locked(context="write")
             # PASSIVE, not TRUNCATE: a manual `hermes sessions vacuum` runs in a transient CLI
             # process; a TRUNCATE reset here would race a live gateway writer.
             self._try_checkpoint("PASSIVE", "WAL checkpoint (PASSIVE) before VACUUM failed: %s")
-            self._conn.execute("VACUUM")
+            self._connections._conn.execute("VACUUM")
             # VACUUM rewrites every page THROUGH the WAL; without this TRUNCATE a 3 GB DB leaves a 3 GB -wal.
             self._try_checkpoint("TRUNCATE", "WAL checkpoint (TRUNCATE) after VACUUM failed: %s")
             # TRUNCATE may replace the WAL inode; adopt the new sidecars so the
             # write-path generation guard does not halt this connection.
-            self._record_db_file_identity()
+            self._connections._record_db_file_identity()
         return optimized
 
     def maybe_auto_prune_and_vacuum(

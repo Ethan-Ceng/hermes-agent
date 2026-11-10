@@ -24,12 +24,12 @@ def db(tmp_path):
 def _trigram_rowids(db: SessionDB) -> set[int]:
     return {
         row[0]
-        for row in db._conn.execute("SELECT id FROM messages_fts_trigram_docsize").fetchall()
+        for row in db._connections._conn.execute("SELECT id FROM messages_fts_trigram_docsize").fetchall()
     }
 
 def _fts_rowids(db: SessionDB) -> set[int]:
     return {
-        row[0] for row in db._conn.execute("SELECT id FROM messages_fts_docsize").fetchall()
+        row[0] for row in db._connections._conn.execute("SELECT id FROM messages_fts_docsize").fetchall()
     }
 
 def _seed(db: SessionDB) -> dict[str, int]:
@@ -74,21 +74,21 @@ def test_subagent_rows_remain_word_searchable(db: SessionDB):
 
 def test_update_and_delete_of_unindexed_child_row_keep_trigram_consistent(db: SessionDB):
     ids = _seed(db)
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE messages SET content = ? WHERE id = ?", ("改写后的内容", ids["kid"])
     )
-    db._conn.execute("DELETE FROM messages WHERE id = ?", (ids["kid"],))
-    db._conn.execute(
+    db._connections._conn.execute("DELETE FROM messages WHERE id = ?", (ids["kid"],))
+    db._connections._conn.execute(
         "INSERT INTO messages_fts_trigram(messages_fts_trigram) VALUES('integrity-check')"
     )
     assert _trigram_rowids(db) == {ids["root"], ids["cont"]}
 
 def test_deferred_rebuild_does_not_reintroduce_children(db: SessionDB):
     ids = _seed(db)
-    with db._lock:
-        db._reset_fts_index_to_empty(db._conn)
-        db._seed_fts_rebuild_markers(db._conn, force=True)
-        db._conn.commit()
+    with db._connections._lock:
+        db._reset_fts_index_to_empty(db._connections._conn)
+        db._seed_fts_rebuild_markers(db._connections._conn, force=True)
+        db._connections._conn.commit()
     while db.fts_rebuild_step():
         pass
     assert _trigram_rowids(db) == {ids["root"], ids["cont"]}
@@ -106,7 +106,7 @@ def test_v29_install_purges_child_rows_on_upgrade(tmp_path):
         old.close()
         pytest.skip("trigram tokenizer unavailable in this SQLite build")
     # Recreate the v29 (cron-only) view/trigger boundary.
-    old._conn.executescript(
+    old._connections._conn.executescript(
         """
         DROP TRIGGER messages_fts_trigram_insert;
         DROP TRIGGER messages_fts_trigram_delete;
@@ -127,17 +127,17 @@ def test_v29_install_purges_child_rows_on_upgrade(tmp_path):
     )
     ids = _seed(old)
     assert _trigram_rowids(old) == set(ids.values())
-    old._conn.execute("UPDATE schema_version SET version = 29")
-    old._conn.commit()
+    old._connections._conn.execute("UPDATE schema_version SET version = 29")
+    old._connections._conn.commit()
     old.close()
 
     migrated = SessionDB(db_path=db_path)
     try:
         assert _trigram_rowids(migrated) == {ids["root"], ids["cont"]}
-        assert migrated._conn.execute(
+        assert migrated._connections._conn.execute(
             "SELECT version FROM schema_version"
         ).fetchone()[0] == SCHEMA_VERSION
-        migrated._conn.execute(
+        migrated._connections._conn.execute(
             "INSERT INTO messages_fts_trigram(messages_fts_trigram) VALUES('integrity-check')"
         )
     finally:

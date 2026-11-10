@@ -58,7 +58,7 @@ async def test_standalone_edits_commit_with_owner_guards(tmp_path, monkeypatch):
         assert db.get_session('edit-me') is None
         assert db.get_session('busy') is not None
         # The existing epoch was reused, not advanced: a standalone edit never fences an owner.
-        assert db._conn.execute('SELECT epoch FROM runtime_epoch').fetchone()[0] == epoch
+        assert db._connections._conn.execute('SELECT epoch FROM runtime_epoch').fetchone()[0] == epoch
 
 
 @pytest.mark.asyncio

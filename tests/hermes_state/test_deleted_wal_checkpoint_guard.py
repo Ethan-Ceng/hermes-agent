@@ -43,7 +43,7 @@ def _make_db(path: Path, session_id: str, content: str) -> SessionDB:
 
 
 def _require_wal(db: SessionDB) -> Path:
-    if not db._wal_active:
+    if not db._connections._wal_active:
         db.close()
         pytest.skip("WAL not active on this filesystem")
     wal = Path(str(db.db_path) + "-wal")
@@ -72,11 +72,11 @@ def test_close_after_halt_runs_no_checkpoint(tmp_path, force_wal):
 
     with pytest.raises(DeletedWalGenerationError):
         db.append_message("s", role="user", content="after-unlink")
-    assert db._db_wal_generation_lost is True
+    assert db._connections._db_wal_generation_lost is True
 
     # Neither the periodic checkpoint, the stale-FTS retry, VACUUM, nor close() may touch the file now.
-    with patch.object(db._conn, "execute", wraps=db._conn.execute) as mock_execute:
-        db._try_wal_checkpoint()
+    with patch.object(db._connections._conn, "execute", wraps=db._connections._conn.execute) as mock_execute:
+        db._connections._try_wal_checkpoint()
         db._fts_stale = True
         assert db.retry_deferred_fts_recovery() is False
         with pytest.raises(DeletedWalGenerationError):
@@ -107,13 +107,13 @@ def test_halt_disables_close_time_checkpoint(tmp_path, force_wal):
     db = _make_db(path, "s", "before")
     _require_wal(db)
 
-    setconfig = getattr(db._conn, "setconfig", None)
+    setconfig = getattr(db._connections._conn, "setconfig", None)
     if setconfig is None:
         pytest.skip("Connection.setconfig not available")
 
     _unlink_sidecars(path)
 
-    with patch.object(db._conn, "setconfig", wraps=setconfig) as mock_setconfig:
+    with patch.object(db._connections._conn, "setconfig", wraps=setconfig) as mock_setconfig:
         with pytest.raises(DeletedWalGenerationError):
             db.append_message("s", role="user", content="after-unlink")
 

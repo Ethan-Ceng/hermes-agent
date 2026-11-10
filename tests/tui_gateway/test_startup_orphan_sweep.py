@@ -26,16 +26,16 @@ IDLE_S = 6 * 3600
 def _seed_session(db, session_id, *, source, last_active, started_at=None):
     db.create_session(session_id, source=source)
     db.append_message(session_id, role="user", content="hello")
-    with db._lock:
-        db._conn.execute(
+    with db._connections._lock:
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at = ? WHERE id = ?",
             (last_active if started_at is None else started_at, session_id),
         )
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE messages SET timestamp = ? WHERE session_id = ?",
             (last_active, session_id),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
 
 class TestSweepOrphanedSessionRows:
@@ -71,12 +71,12 @@ class TestSweepOrphanedSessionRows:
         db = SessionDB(tmp_path / "state.db")
         stale = time.time() - 8 * 3600
         _seed_session(db, "stranded-tui", source="tui", last_active=stale)
-        with db._lock:
-            db._conn.execute(
+        with db._connections._lock:
+            db._connections._conn.execute(
                 "UPDATE sessions SET session_key = ? WHERE id = ?",
                 ("tui:peer-1", "stranded-tui"),
             )
-            db._conn.commit()
+            db._connections._conn.commit()
         monkeypatch.setattr(server, "_get_db", lambda: db)
         monkeypatch.setattr(server, "_SESSION_TTL_S", float(IDLE_S))
         monkeypatch.setattr(server, "_sessions", {})  # no live runtime

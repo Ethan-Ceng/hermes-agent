@@ -34,8 +34,8 @@ def _call(method: str, params: dict) -> dict:
 
 def _seed(db, sid: str) -> None:
     db.create_session(sid, source="desktop")
-    db._conn.execute("UPDATE sessions SET message_count = 1 WHERE id = ?", (sid,))
-    db._conn.commit()
+    db._connections._conn.execute("UPDATE sessions SET message_count = 1 WHERE id = ?", (sid,))
+    db._connections._conn.commit()
 
 
 def test_set_hidden_resolves_stored_id_without_live_session(db):
@@ -87,8 +87,8 @@ def test_session_list_hides_internal_sources(db, source):
     human picker; interactive rows stay (#112550)."""
     _seed(db, "plain-chat")
     db.create_session("internal-run", source=source)
-    db._conn.execute("UPDATE sessions SET message_count = 1 WHERE id = ?", ("internal-run",))
-    db._conn.commit()
+    db._connections._conn.execute("UPDATE sessions SET message_count = 1 WHERE id = ?", ("internal-run",))
+    db._connections._conn.commit()
 
     rows = _call("session.list", {})["result"]["sessions"]
     assert {s["id"] for s in rows} == {"plain-chat"}

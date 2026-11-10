@@ -24,12 +24,12 @@ def open_as_older_build(db):
     """What an older build's writable open does to this store's revision trigger, by its own DDL path.
     Returns the statements it executed."""
     executed = []
-    with db._lock:
-        db._conn.set_trace_callback(executed.append)
+    with db._connections._lock:
+        db._connections._conn.set_trace_callback(executed.append)
         try:
-            SessionDB._execute_ddl_skipping_settled_triggers(db._conn.cursor(), OLDER_BUILD_DDL)
+            SessionDB._execute_ddl_skipping_settled_triggers(db._connections._conn.cursor(), OLDER_BUILD_DDL)
         finally:
-            db._conn.set_trace_callback(None)
+            db._connections._conn.set_trace_callback(None)
     return executed
 
 

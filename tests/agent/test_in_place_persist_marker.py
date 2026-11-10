@@ -68,10 +68,10 @@ def _seed(db, sid, n=8):
 
 
 def _row_counts(db, sid):
-    total = db._conn.execute(
+    total = db._connections._conn.execute(
         "SELECT COUNT(*) FROM messages WHERE session_id = ?", (sid,)
     ).fetchone()[0]
-    active = db._conn.execute(
+    active = db._connections._conn.execute(
         "SELECT COUNT(*) FROM messages WHERE session_id = ? AND active = 1", (sid,)
     ).fetchone()[0]
     return total, active
@@ -105,7 +105,7 @@ class TestInPlaceCommitPersistMarker:
             total, active = _row_counts(db, sid)
             assert active == len(compressed) == 4
             assert total == 8 + len(compressed)  # archived seeds + active set
-            archived = db._conn.execute(
+            archived = db._connections._conn.execute(
                 "SELECT COUNT(*) FROM messages WHERE session_id = ? AND active = 0",
                 (sid,),
             ).fetchone()[0]
@@ -127,7 +127,7 @@ class TestInPlaceCommitPersistMarker:
             agent._persist_session(compressed, conversation_history=None)
             agent._persist_session(compressed, conversation_history=None)
             total2, active2 = _row_counts(db, sid)
-            dup_groups = db._conn.execute(
+            dup_groups = db._connections._conn.execute(
                 "SELECT content, COUNT(*) c FROM messages "
                 "WHERE session_id = ? AND active = 1 "
                 "GROUP BY content HAVING c > 1",

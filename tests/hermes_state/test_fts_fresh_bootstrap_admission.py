@@ -52,7 +52,7 @@ def test_fresh_fts_bootstrap_does_not_publish_schema_without_admission(tmp_path,
         try:
             assert deferred._fts_stale is True
             assert deferred._fts_enabled is False
-            assert deferred._conn.execute(
+            assert deferred._connections._conn.execute(
                 "SELECT 1 FROM sqlite_master WHERE name = 'messages_fts'"
             ).fetchone() is None
         finally:
@@ -67,7 +67,7 @@ def test_fresh_fts_bootstrap_does_not_publish_schema_without_admission(tmp_path,
         assert recovered._fts_enabled is True
         if _trigram_supported():
             assert recovered._trigram_available is True
-            assert recovered._conn.execute(
+            assert recovered._connections._conn.execute(
                 "SELECT 1 FROM sqlite_master WHERE name = 'messages_fts_trigram'"
             ).fetchone() is not None
         recovered.create_session("s1", source="test")

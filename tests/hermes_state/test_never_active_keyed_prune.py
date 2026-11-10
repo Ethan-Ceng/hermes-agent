@@ -46,10 +46,10 @@ def _insert(db, session_id, *, age_days, **overrides):
     row.update(overrides)
     cols = ", ".join(row)
     placeholders = ", ".join("?" for _ in row)
-    db._conn.execute(
+    db._connections._conn.execute(
         f"INSERT INTO sessions ({cols}) VALUES ({placeholders})", list(row.values())
     )
-    db._conn.commit()
+    db._connections._conn.commit()
     return session_id
 
 
@@ -94,12 +94,12 @@ class TestSelector:
     def test_row_with_messages_is_protected_even_if_counter_says_zero(self, db):
         """``message_count`` is a denormalised counter — trust the messages."""
         _insert(db, "stale-counter", age_days=45)
-        db._conn.execute(
+        db._connections._conn.execute(
             "INSERT INTO messages (session_id, role, content, timestamp) "
             "VALUES (?, ?, ?, ?)",
             ("stale-counter", "user", "hello", time.time() - 44 * DAY),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
         assert db.list_never_active_keyed_sessions(older_than_days=30) == []
 
 
@@ -114,7 +114,7 @@ class TestPrune:
 
         assert deleted == 2
         surviving = {
-            r[0] for r in db._conn.execute("SELECT id FROM sessions").fetchall()
+            r[0] for r in db._connections._conn.execute("SELECT id FROM sessions").fetchall()
         }
         assert surviving == {"keeper-young", "keeper-used"}
 
@@ -137,7 +137,7 @@ class TestPrune:
         result = db.prune_never_active_keyed_sessions(older_than_days=30)
 
         assert result == (1, 1, 0)
-        remaining = db._conn.execute(
+        remaining = db._connections._conn.execute(
             "SELECT session_key FROM gateway_routing"
         ).fetchall()
         assert [r[0] for r in remaining] == ["agent:main:telegram:dm:keeper"]
@@ -145,7 +145,7 @@ class TestPrune:
     def test_no_candidates_is_a_no_op(self, db):
         _insert(db, "keeper", age_days=1)
         assert db.prune_never_active_keyed_sessions(older_than_days=30) == (0, 0, 0)
-        assert db._conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0] == 1
+        assert db._connections._conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0] == 1
 
 
 class TestPruneSkipsLiveTurns:
@@ -171,8 +171,8 @@ class TestPruneSkipsLiveTurns:
 
         def list_then_vanish(**kw):
             rows = real_list(**kw)
-            db._conn.execute("DELETE FROM sessions WHERE id = 'gone-junk'")
-            db._conn.commit()
+            db._connections._conn.execute("DELETE FROM sessions WHERE id = 'gone-junk'")
+            db._connections._conn.commit()
             return rows
 
         monkeypatch.setattr(db, "list_never_active_keyed_sessions", list_then_vanish)
@@ -182,7 +182,7 @@ class TestPruneSkipsLiveTurns:
         assert db.get_session("live-junk") is not None
         remaining = {
             r[0]
-            for r in db._conn.execute("SELECT session_key FROM gateway_routing").fetchall()
+            for r in db._connections._conn.execute("SELECT session_key FROM gateway_routing").fetchall()
         }
         assert remaining == {"agent:main:telegram:dm:live-junk"}
 

@@ -54,12 +54,12 @@ def test_session_switching_providers_yields_separated_rows(db, models):
     _touch(db, "s1", "gpt-5.6-sol", "openai-codex", input_tokens=30_000, output_tokens=1_000)
     _touch(db, "s1", "anthropic/claude-opus-5", "nous", input_tokens=31_000, output_tokens=2_000)
     # The sessions row keeps only the final pair — the old misattribution source.
-    with db._lock:
-        db._conn.execute(
+    with db._connections._lock:
+        db._connections._conn.execute(
             "UPDATE sessions SET model = ?, billing_provider = ? WHERE id = ?",
             ("anthropic/claude-opus-5", "nous", "s1"),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
     result = models()
     pairs = _by_pair(result)
@@ -80,12 +80,12 @@ def test_phantom_pair_never_appears_for_switched_session(db, models):
     _touch(db, "s1", "gpt-5.6-sol", "openai-codex", input_tokens=100, output_tokens=10)
     _touch(db, "s1", "deepseek-v4-pro", "deepseek", input_tokens=200, output_tokens=20)
     # Fallback chains rewrite the sessions row without any user action (#71778 comment).
-    with db._lock:
-        db._conn.execute(
+    with db._connections._lock:
+        db._connections._conn.execute(
             "UPDATE sessions SET model = ?, billing_provider = ? WHERE id = ?",
             ("gpt-5.6-sol", "deepseek", "s1"),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
     pairs = _by_pair(models())
     assert ("gpt-5.6-sol", "deepseek") not in pairs
@@ -129,9 +129,9 @@ def test_db_without_session_model_usage_falls_back_to_sessions(db, models):
     _touch(db, "s1", "gpt-5.6-sol", "openai-codex", input_tokens=100, output_tokens=10)
     db.append_message("s1", "assistant", "running", tool_calls=[{"name": "terminal", "arguments": {}}])
     db.append_message("s1", "tool", "result")
-    with db._lock:
-        db._conn.execute("DROP TABLE session_model_usage")
-        db._conn.commit()
+    with db._connections._lock:
+        db._connections._conn.execute("DROP TABLE session_model_usage")
+        db._connections._conn.commit()
 
     row = _by_pair(models())[("gpt-5.6-sol", "openai-codex")]
     assert row["input_tokens"] == 100
@@ -142,8 +142,8 @@ def test_window_excludes_old_sessions(db, models):
     """The cutoff still filters by session start time."""
     db.create_session("s1", source="cli", model="gpt-5.6-sol")
     _touch(db, "s1", "gpt-5.6-sol", "openai-codex", input_tokens=100, output_tokens=10)
-    with db._lock:
-        db._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?", (time.time() - 90 * 86400, "s1"))
-        db._conn.commit()
+    with db._connections._lock:
+        db._connections._conn.execute("UPDATE sessions SET started_at = ? WHERE id = ?", (time.time() - 90 * 86400, "s1"))
+        db._connections._conn.commit()
 
     assert models()["models"] == []

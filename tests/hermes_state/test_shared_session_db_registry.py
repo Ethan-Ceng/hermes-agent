@@ -81,7 +81,7 @@ class TestInodeReplacement:
         # registry's job is that the connection object stays VALID —
         # a catchable, typed error, never a use-after-close segfault or
         # "Cannot operate on a closed database".
-        assert a._conn is not None, "retired generation closed while holders live"
+        assert a._connections._conn is not None, "retired generation closed while holders live"
         from hermes_state import StateDbReplacedError
 
         with pytest.raises(StateDbReplacedError):
@@ -106,13 +106,13 @@ class TestInodeReplacement:
         # Releases route to the right generation: A and B release the
         # OLD one (object-keyed), C releases the NEW one.
         assert registry.release(a) is True
-        assert a._conn is not None, "one holder releasing must not tear down the other"
+        assert a._connections._conn is not None, "one holder releasing must not tear down the other"
         assert registry.release(b) is True
-        assert a._conn is None, "final old-generation release tears it down"
-        assert c._conn is not None, "old-generation teardown must not touch the new one"
+        assert a._connections._conn is None, "final old-generation release tears it down"
+        assert c._connections._conn is not None, "old-generation teardown must not touch the new one"
 
         assert registry.release(c) is True
-        assert c._conn is None
+        assert c._connections._conn is None
         stats = registry.stats()
         assert stats["live_generations"] == 0
         assert stats["retired_generations"] == 0
@@ -132,7 +132,7 @@ class TestInodeReplacement:
         assert second is not first
         # Retired generation still drainable by its holder.
         assert registry.release(first) is True
-        assert first._conn is None
+        assert first._connections._conn is None
 
     def test_open_failure_after_replacement_leaves_no_stale_entry(self, tmp_path, monkeypatch):
         """Replacement-open failure must not leave a closed stale object
@@ -164,11 +164,11 @@ class TestInodeReplacement:
         )
         fresh = registry.acquire(db_path)
         assert fresh is not old
-        assert fresh._conn is not None
+        assert fresh._connections._conn is not None
 
         # The old generation still drains correctly through its holder.
         assert registry.release(old) is True
-        assert old._conn is None
+        assert old._connections._conn is None
 
 
 def _make_session_db(path):
@@ -347,7 +347,7 @@ class TestTeardownOutsideLock:
         )
         t.join(10.0)
         assert result.is_set()
-        assert db._conn is None
+        assert db._connections._conn is None
 
     def test_concurrent_acquire_and_release_no_deadlock(self, tmp_path):
         """Hammer acquire/release from multiple threads — teardown
@@ -382,8 +382,8 @@ class TestTeardownOutsideLock:
         assert errors == []
         verifier = registry.acquire(db_path)
         try:
-            with verifier._lock:
-                assert verifier._conn.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+            with verifier._connections._lock:
+                assert verifier._connections._conn.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
         finally:
             registry.release(verifier)
         stats = registry.stats()
@@ -400,9 +400,9 @@ class TestLifecycleBarrier:
         with registry.borrow_live_shared_session_dbs() as borrowed:
             assert borrowed == [db]
             assert registry.release(db) is True
-            assert db._conn is not None
+            assert db._connections._conn is not None
 
-        assert db._conn is None
+        assert db._connections._conn is None
 
 
 class TestLegacyCloseSemantics:
@@ -418,11 +418,11 @@ class TestLegacyCloseSemantics:
 
         # Legacy close: decrements, does not tear down (b still holds).
         a.close()
-        assert b._conn is not None, "close() must not tear down a shared instance"
+        assert b._connections._conn is not None, "close() must not tear down a shared instance"
 
         # The refcount is now 1 (b's); releasing b tears down.
         assert registry.release(b) is True
-        assert b._conn is None
+        assert b._connections._conn is None
         stats = registry.stats()
         assert stats["live_generations"] == 0
 
@@ -543,6 +543,7 @@ class TestMultiGenerationTeardownBarrier:
         assert current is not old
         return db_path, old, current
 
+    @pytest.mark.platforms("linux", "macos")
     def test_retired_drain_does_not_lift_a_pending_current_teardown(self, tmp_path, monkeypatch):
         """close_all() must not report a finished sweep over a pending close."""
         db_path, old, current = self._two_generations(tmp_path, monkeypatch)
@@ -556,7 +557,7 @@ class TestMultiGenerationTeardownBarrier:
             # The retired generation's final release settles completely while the
             # current generation's close is still admitted.
             assert registry.release(old) is True
-            assert old._conn is None
+            assert old._connections._conn is None
             barrier = registry._tearing_down.get(resolved)
             assert barrier is not None, "retired drain lifted the shared path barrier"
             assert barrier.pending == 1
@@ -572,7 +573,7 @@ class TestMultiGenerationTeardownBarrier:
             sweeper = threading.Thread(target=_close_all, daemon=True)
             sweeper.start()
             assert not sweep_done.wait(0.5), "close_all returned with a close still pending"
-            assert current._conn is not None
+            assert current._connections._conn is not None
 
             resume.set()
             assert sweep_done.wait(10.0)
@@ -582,9 +583,10 @@ class TestMultiGenerationTeardownBarrier:
             releaser.join(10.0)
 
         assert errors == []
-        assert current._conn is None
+        assert current._connections._conn is None
         assert registry._tearing_down.get(resolved) is None
 
+    @pytest.mark.platforms("linux", "macos")
     def test_replacement_is_not_published_before_the_last_close_settles(self, tmp_path, monkeypatch):
         """acquire() must not open a writer on top of an unfinished close."""
         db_path, old, current = self._two_generations(tmp_path, monkeypatch)
@@ -601,7 +603,7 @@ class TestMultiGenerationTeardownBarrier:
                 try:
                     fresh = registry.acquire(db_path)
                     # Record the predecessor's state AT publication time.
-                    acquired.append((fresh, current._conn is None))
+                    acquired.append((fresh, current._connections._conn is None))
                 except BaseException as exc:  # pragma: no cover - failure path
                     errors.append(exc)
                 finally:
@@ -653,17 +655,17 @@ class TestCloseAllUnder:
         profile_dir.mkdir(parents=True)
         inside = registry.acquire(profile_dir / "state.db")
         outside = registry.acquire(tmp_path / "other" / "state.db")
-        assert inside._conn is not None
-        assert outside._conn is not None
+        assert inside._connections._conn is not None
+        assert outside._connections._conn is not None
 
         closed = registry.close_all_under(profile_dir)
         assert closed == 1
-        assert inside._conn is None
-        assert outside._conn is not None
+        assert inside._connections._conn is None
+        assert outside._connections._conn is not None
         assert registry.close_all_under(profile_dir) == 0
 
         again = registry.acquire(profile_dir / "state.db")
-        assert again._conn is not None
+        assert again._connections._conn is not None
         assert again is not inside
         assert registry.release(again) is True
         assert registry.release(outside) is True
@@ -702,7 +704,7 @@ class TestCloseAllUnder:
             assert not sweep_done.wait(0.5), (
                 "close_all_under returned with a close still pending"
             )
-            assert db._conn is not None
+            assert db._connections._conn is not None
 
             resume.set()
             assert sweep_done.wait(10.0)
@@ -712,5 +714,5 @@ class TestCloseAllUnder:
             releaser.join(10.0)
 
         assert errors == []
-        assert db._conn is None
+        assert db._connections._conn is None
         assert swept == [0]

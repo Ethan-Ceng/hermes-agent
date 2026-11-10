@@ -31,7 +31,7 @@ async def probe(peer):
         async def fetch_member(self, uid):
             assert uid == 200
             # No SQLite transaction may span the network await.
-            assert not authority.db._conn.in_transaction
+            assert not authority.db._connections._conn.in_transaction
             self.calls += 1
             await asyncio.sleep(0)
             roles = list(self.roles)

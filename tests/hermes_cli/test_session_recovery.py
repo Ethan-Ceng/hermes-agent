@@ -51,7 +51,7 @@ def _make_source(path: Path) -> dict[str, int]:
 
         db.set_meta("goal:recovery-session-0", '{"status":"active"}')
         db.apply_telegram_topic_migration()
-        db._conn.execute(
+        db._connections._conn.execute(
             """
             INSERT INTO telegram_dm_topic_mode (
                 chat_id, user_id, enabled, activated_at, updated_at
@@ -59,7 +59,7 @@ def _make_source(path: Path) -> dict[str, int]:
             """,
             ("chat-1", "user-1", 1.0, 2.0),
         )
-        db._conn.execute(
+        db._connections._conn.execute(
             """
             INSERT INTO telegram_dm_topic_bindings (
                 chat_id, thread_id, user_id, session_key, session_id,
@@ -77,7 +77,7 @@ def _make_source(path: Path) -> dict[str, int]:
                 2.0,
             ),
         )
-        db._conn.execute(
+        db._connections._conn.execute(
             """
             INSERT INTO gateway_routing (
                 scope, session_key, entry_json, updated_at
@@ -85,7 +85,7 @@ def _make_source(path: Path) -> dict[str, int]:
             """,
             ("telegram", "telegram:user-1:chat-1", "{}", 2.0),
         )
-        db._conn.execute(
+        db._connections._conn.execute(
             """
             INSERT INTO async_delegations (
                 delegation_id, origin_session, state, dispatched_at, updated_at
@@ -945,13 +945,13 @@ def test_recover_carries_message_identity_columns(tmp_path):
     try:
         db.create_session("s", "cli", model="m")
         db.append_message(session_id="s", role="user", content="q")
-        db._conn.execute("UPDATE messages SET absorbed_message_uids = ? WHERE content = 'q'", (json.dumps(["b" * 32]),))
-        db._conn.commit()
+        db._connections._conn.execute("UPDATE messages SET absorbed_message_uids = ? WHERE content = 'q'", (json.dumps(["b" * 32]),))
+        db._connections._conn.commit()
         db.append_message(
             session_id="s", role="assistant", content="",
             tool_calls=[{"id": "call_1", "type": "function", "function": {"name": "t", "arguments": "{}"}}])
         db.append_message(session_id="s", role="tool", content="r", tool_call_id="call_1", tool_name="t")
-        expected = [dict(r) for r in db._conn.execute(
+        expected = [dict(r) for r in db._connections._conn.execute(
             "SELECT role, message_uid, absorbed_message_uids, tool_call_uids, tool_call_uid "
             "FROM messages WHERE session_id = 's' ORDER BY id")]
     finally:
@@ -964,7 +964,7 @@ def test_recover_carries_message_identity_columns(tmp_path):
 
     recovered = SessionDB(db_path=output)
     try:
-        got = [dict(r) for r in recovered._conn.execute(
+        got = [dict(r) for r in recovered._connections._conn.execute(
             "SELECT role, message_uid, absorbed_message_uids, tool_call_uids, tool_call_uid "
             "FROM messages WHERE session_id = 's' ORDER BY id")]
         assert got == expected

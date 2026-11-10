@@ -326,10 +326,10 @@ async def test_a_tick_whose_replaced_tick_starts_first_is_admitted_with_only_its
     async def claimed_first(adapter, event, identity, replaces=None):
         if replaces is not None:  # the drain claims the waiting tick between the check and the write
             # (The fixture's human message still heads the FIFO, so the claim is stamped directly.)
-            with authority.db._lock:
-                authority.db._conn.execute("UPDATE session_admissions SET status='started',owner_epoch=?,generation=1 "
+            with authority.db._connections._lock:
+                authority.db._connections._conn.execute("UPDATE session_admissions SET status='started',owner_epoch=?,generation=1 "
                                            "WHERE admission_id=?", (authority.epoch, replaces))
-                authority.db._conn.commit()
+                authority.db._connections._conn.commit()
         return await admit(adapter, event, identity, replaces)
     monkeypatch.setattr(authority, 'admit_automation', claimed_first)
 
@@ -386,11 +386,11 @@ async def test_a_late_tick_of_a_settled_batch_member_is_dropped(messaging):
              for process in ('proc_a', 'proc_b')]
     primary = dict(batch[0], _automation_identities=[producer_identity(messaging.runner, e) for e in batch])
     assert await messaging.runner._inject_watch_notification('[2 finished]', primary) is True
-    with messaging.authority.db._lock:
-        messaging.authority.db._conn.execute(
+    with messaging.authority.db._connections._lock:
+        messaging.authority.db._connections._conn.execute(
             "UPDATE session_admissions SET status='terminal',outcome='completed' WHERE request_id=?",
             ('["completion","proc_a",1.0]',))
-        messaging.authority.db._conn.commit()
+        messaging.authority.db._connections._conn.commit()
 
     assert await _drain_one(messaging.runner, messaging.event(
         'heartbeat', session_id='proc_b', **_tick_fields('proc_b', 1))) == 0

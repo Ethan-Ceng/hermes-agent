@@ -437,7 +437,7 @@ def test_resume_on_another_surface_restores_the_pinned_tool_bytes(monkeypatch, t
             sent.session_id = sid
             _mcp_agent.persist_agent_tool_names(sent)
         # Stored once, like the system prompt: a ~50KB array per session row would bloat state.db.
-        stored = db._conn.execute("SELECT COUNT(*) FROM system_prompts").fetchone()[0]
+        stored = db._connections._conn.execute("SELECT COUNT(*) FROM system_prompts").fetchone()[0]
 
         resumed = _agent([])
         resumed.tools, resumed._session_db, resumed.session_id = list(this_surface), db, "s1"

@@ -123,7 +123,7 @@ def test_refused_candidate_from_mutating_engine_returns_original_transcript(
         assert returned == original
         assert messages == original
         assert agent.session_id == session_id
-        assert db._conn.execute(
+        assert db._connections._conn.execute(
             "SELECT COUNT(*) FROM sessions WHERE parent_session_id = ?", (session_id,)
         ).fetchone()[0] == 0
         assert db.get_session(session_id)["end_reason"] is None

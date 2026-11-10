@@ -31,8 +31,8 @@ def _mk_response(model="aux-model", prompt=100, completion=20):
 
 
 def _usage_rows(db, session_id):
-    with db._lock:
-        rows = db._conn.execute(
+    with db._connections._lock:
+        rows = db._connections._conn.execute(
             "SELECT * FROM session_model_usage WHERE session_id = ? ORDER BY task",
             (session_id,),
         ).fetchall()
@@ -104,11 +104,11 @@ class TestRecordAuxiliaryUsage:
         """
         db.create_session("s1", source="local")
         db._own_profile_name = lambda: "default"
-        with db._lock:
-            db._conn.execute(
+        with db._connections._lock:
+            db._connections._conn.execute(
                 "UPDATE sessions SET created_source=NULL, profile_name=NULL WHERE id=?",
                 ("s1",))
-            db._conn.commit()
+            db._connections._conn.commit()
         db.record_auxiliary_usage("s1", "compression", model="m", input_tokens=1)
         row = db.get_session("s1")
         assert row["source"] == "local"
@@ -167,13 +167,13 @@ class TestSchemaMigrationV22:
 
         # Reopen: v22 migration rebuilds the table with task in the PK.
         db2 = SessionDB(tmp_path / "state.db")
-        with db2._lock:
+        with db2._connections._lock:
             pk_cols = [
-                r[1] for r in db2._conn.execute(
+                r[1] for r in db2._connections._conn.execute(
                     "SELECT * FROM pragma_table_info('session_model_usage') WHERE pk > 0"
                 ).fetchall()
             ]
-            row = db2._conn.execute(
+            row = db2._connections._conn.execute(
                 "SELECT task, input_tokens FROM session_model_usage WHERE session_id = 'legacy'"
             ).fetchone()
         assert "task" in pk_cols

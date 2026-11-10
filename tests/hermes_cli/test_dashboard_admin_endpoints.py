@@ -551,11 +551,11 @@ class TestSessionManagementEndpoints:
 
         db = SessionDB()
         db.create_session(session_id="sess-old-open", source="skip-test")
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at = ? WHERE id = ?",
             (1.0, "sess-old-open"),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
         db.close()
 
         r = self.client.post(

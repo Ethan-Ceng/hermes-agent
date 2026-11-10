@@ -22,16 +22,16 @@ def _assert_nonindexed_updates_bypass_missing_fts_target(
     db: SessionDB, message_id: int
 ) -> None:
     """Prove the UPDATE OF gate, not the trigger's content-change WHEN."""
-    db._conn.execute("DROP TABLE messages_fts")
-    assert _trigger_sql(db._conn, "messages_fts_update") is not None
+    db._connections._conn.execute("DROP TABLE messages_fts")
+    assert _trigger_sql(db._connections._conn, "messages_fts_update") is not None
 
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE messages SET active = 0, compacted = 1, observed = 1 "
         "WHERE id = ?",
         (message_id,),
     )
     with pytest.raises(sqlite3.OperationalError, match=r"no such table.*messages_fts"):
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE messages SET content = 'changed' WHERE id = ?",
             (message_id,),
         )
@@ -39,8 +39,8 @@ def _assert_nonindexed_updates_bypass_missing_fts_target(
 
 def _install_legacy_inline_base_fts(db: SessionDB) -> None:
     """Replace v23 FTS with the broad inline shape shipped by v11..v22."""
-    db._drop_fts_triggers(db._conn)
-    db._conn.executescript(
+    db._drop_fts_triggers(db._connections._conn)
+    db._connections._conn.executescript(
         """
         DROP TABLE IF EXISTS messages_fts;
         DROP TABLE IF EXISTS messages_fts_trigram;
@@ -74,7 +74,7 @@ def _install_legacy_inline_base_fts(db: SessionDB) -> None:
 def test_fresh_db_installs_update_of_triggers(tmp_path: Path):
     db = SessionDB(db_path=tmp_path / "state.db")
     try:
-        sql = _trigger_sql(db._conn, "messages_fts_update")
+        sql = _trigger_sql(db._connections._conn, "messages_fts_update")
         assert sql is not None
         compact = " ".join(sql.split()).upper()
         assert "AFTER UPDATE OF " in compact
@@ -82,7 +82,7 @@ def test_fresh_db_installs_update_of_triggers(tmp_path: Path):
         assert "TOOL_NAME" in compact
         assert "TOOL_CALLS" in compact
 
-        tri = _trigger_sql(db._conn, "messages_fts_trigram_update")
+        tri = _trigger_sql(db._connections._conn, "messages_fts_trigram_update")
         if tri:  # trigram may be unavailable on some builds
             tcompact = " ".join(tri.split()).upper()
             assert "AFTER UPDATE OF " in tcompact
@@ -95,8 +95,8 @@ def test_migrate_replaces_broad_update_trigger(tmp_path: Path):
     db = SessionDB(db_path=path)
     try:
         # Force a broad trigger the way older installs had it.
-        db._conn.execute("DROP TRIGGER IF EXISTS messages_fts_update")
-        db._conn.execute(
+        db._connections._conn.execute("DROP TRIGGER IF EXISTS messages_fts_update")
+        db._connections._conn.execute(
             """
             CREATE TRIGGER messages_fts_update AFTER UPDATE ON messages
             BEGIN
@@ -104,15 +104,15 @@ def test_migrate_replaces_broad_update_trigger(tmp_path: Path):
             END
             """
         )
-        db._conn.commit()
-        before = _trigger_sql(db._conn, "messages_fts_update")
+        db._connections._conn.commit()
+        before = _trigger_sql(db._connections._conn, "messages_fts_update")
         assert "AFTER UPDATE OF" not in " ".join(before.split()).upper()
 
-        dropped = db._migrate_broad_fts_update_triggers(db._conn)
-        db._conn.commit()
+        dropped = db._migrate_broad_fts_update_triggers(db._connections._conn)
+        db._connections._conn.commit()
         assert dropped >= 1
 
-        after = _trigger_sql(db._conn, "messages_fts_update")
+        after = _trigger_sql(db._connections._conn, "messages_fts_update")
         assert after is not None
         compact = " ".join(after.split()).upper()
         assert "AFTER UPDATE OF " in compact
@@ -141,10 +141,10 @@ def test_legacy_status_only_update_bypasses_migrated_fts_trigger(tmp_path: Path)
         mid = db.append_message(sid, role="user", content="legacy searchable")
         _install_legacy_inline_base_fts(db)
 
-        assert db._db_has_legacy_inline_fts(db._conn)
-        assert db._migrate_broad_fts_update_triggers(db._conn) >= 1
+        assert db._db_has_legacy_inline_fts(db._connections._conn)
+        assert db._migrate_broad_fts_update_triggers(db._connections._conn) >= 1
         assert "AFTER UPDATE OF" in " ".join(
-            _trigger_sql(db._conn, "messages_fts_update").split()
+            _trigger_sql(db._connections._conn, "messages_fts_update").split()
         ).upper()
 
         _assert_nonindexed_updates_bypass_missing_fts_target(db, mid)

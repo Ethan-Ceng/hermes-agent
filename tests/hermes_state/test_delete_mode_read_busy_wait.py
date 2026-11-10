@@ -33,8 +33,8 @@ def delete_mode_db(tmp_path, monkeypatch):
     (home / "config.yaml").write_text(yaml.safe_dump({"database": {"journal_mode": "delete"}}), encoding="utf-8")
     monkeypatch.setenv("HERMES_HOME", str(home))
     db = SessionDB(db_path=home / "state.db")
-    assert db._wal_active is False
-    assert db._conn.execute("PRAGMA journal_mode").fetchone()[0].lower() == "delete"
+    assert db._connections._wal_active is False
+    assert db._connections._conn.execute("PRAGMA journal_mode").fetchone()[0].lower() == "delete"
     db.create_session("s1", source="cli")
     db.append_message("s1", role="user", content="hello")
     yield db
@@ -59,4 +59,4 @@ def test_delete_mode_read_waits_for_other_process_commit(delete_mode_db, read_on
     finally:
         assert holder.wait(timeout=30) == 0
     # Writes keep their short busy timeout: they retry at application level with jitter.
-    assert delete_mode_db._conn.execute("PRAGMA busy_timeout").fetchone()[0] == 1000
+    assert delete_mode_db._connections._conn.execute("PRAGMA busy_timeout").fetchone()[0] == 1000

@@ -74,7 +74,7 @@ def _seed(db, sid, n=6):
     db.create_session(sid, "cli", model="test/model")
     for i in range(n):
         db.append_message(session_id=sid, role="user" if i % 2 == 0 else "assistant", content=f"seed msg {i}")
-    return [dict(r) for r in db._conn.execute(
+    return [dict(r) for r in db._connections._conn.execute(
         "SELECT id, content, message_uid FROM messages WHERE session_id = ? AND active = 1 ORDER BY id",
         (sid,)).fetchall()]
 
@@ -102,7 +102,7 @@ def test_compress_input_after_a_cold_restore_carries_every_rows_uid(db):
     engine = agent.context_compressor
     assert [m.get("message_uid") for m in engine.compress_input] == [r["message_uid"] for r in stored]
     # The committed generation: the copied tail keeps its uids, the summary got a fresh one.
-    active = [dict(r) for r in db._conn.execute(
+    active = [dict(r) for r in db._connections._conn.execute(
         "SELECT content, message_uid FROM messages WHERE session_id = ? AND active = 1 ORDER BY id", (sid,))]
     assert [r["content"] for r in active] == [
         "[CONTEXT COMPACTION] summary of prior turns", "seed msg 4", "seed msg 5"]
@@ -158,7 +158,7 @@ def test_turn_flush_stamps_uids_on_the_live_dicts_post_llm_call_hands_over(db):
     agent._persist_session(messages, conversation_history=None)
 
     assert all(len(m.get("message_uid", "")) == UID_LEN for m in messages)
-    stored = [r[0] for r in db._conn.execute(
+    stored = [r[0] for r in db._connections._conn.execute(
         "SELECT message_uid FROM messages WHERE session_id = ? AND active = 1 ORDER BY id", (sid,))]
     assert [m["message_uid"] for m in messages] == stored
 
@@ -179,7 +179,7 @@ def test_persist_override_keeps_the_uid(db):
 
     assert messages[0]["content"] == "what the user typed"
     assert messages[0]["message_uid"] == uid
-    row = db._conn.execute(
+    row = db._connections._conn.execute(
         "SELECT content, message_uid FROM messages WHERE session_id = ? AND active = 1", (sid,)).fetchone()
     assert (row[0], row[1]) == ("what the user typed", uid)
 
@@ -245,7 +245,7 @@ def test_tool_result_flushed_after_its_call_pairs_through_the_live_list(db):
     messages.append(result)
     agent._persist_session(messages, conversation_history=None)
     assert result["_tool_call_uid"] == uid
-    stored = db._conn.execute(
+    stored = db._connections._conn.execute(
         "SELECT tool_call_uid FROM messages WHERE session_id = ? AND role = 'tool'", (sid,)).fetchone()[0]
     assert stored == uid
 

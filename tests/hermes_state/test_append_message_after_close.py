@@ -38,7 +38,7 @@ class TestAppendAfterClose:
         db.append_message("s1", "user", content="hello")
 
         db.close()
-        assert db._conn is None
+        assert db._connections._conn is None
 
         with caplog.at_level(logging.WARNING, logger="hermes_state"):
             msg_id = db.append_message(
@@ -63,7 +63,7 @@ class TestAppendAfterClose:
         assert len(db.get_messages("s1")) == 2
 
         db.close()
-        assert db._conn is None
+        assert db._connections._conn is None
         db.close()  # idempotent
 
     def test_read_after_close_recovers_too(self, db):

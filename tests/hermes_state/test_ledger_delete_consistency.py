@@ -295,9 +295,9 @@ def test_pending_and_idle_probes_do_not_scan_finished_history(tmp_path, monkeypa
                              "status,adoption_digest) VALUES(?,'s','compute',1,1,'terminal','d')",
                              [(f'w{i}',) for i in range(20000)])
         db._execute_write(history)
-        monkeypatch.setattr(db, '_read_ctx', lambda: nullcontext(db._conn))
+        monkeypatch.setattr(db, '_read_ctx', lambda: nullcontext(db._connections._conn))
         ticks = []
-        db._conn.set_progress_handler(lambda: ticks.append(1) and 0, 1000)
+        db._connections._conn.set_progress_handler(lambda: ticks.append(1) and 0, 1000)
         probes = {
             'pending': lambda: rt.list_session_admissions(db, session_id='s'),
             'require_idle': lambda: db._execute_write(lambda c: require_idle(db, c, ['s'])),
@@ -309,4 +309,4 @@ def test_pending_and_idle_probes_do_not_scan_finished_history(tmp_path, monkeypa
             probe()
             # A scan of 40k finished rows is hundreds of thousands of VM steps; a bounded probe is a few.
             assert len(ticks) < 20, f'{name} scanned finished history ({len(ticks)}k VM steps)'
-        db._conn.set_progress_handler(None, 0)
+        db._connections._conn.set_progress_handler(None, 0)

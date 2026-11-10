@@ -44,17 +44,17 @@ def db(tmp_path):
 
 
 def _backdate_session(db: SessionDB, session_id: str, ts: float) -> None:
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE sessions SET started_at = ? WHERE id = ?", (ts, session_id)
     )
-    db._conn.commit()
+    db._connections._conn.commit()
 
 
 def _set_message_timestamps(db: SessionDB, session_id: str, ts: float) -> None:
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE messages SET timestamp = ? WHERE session_id = ?", (ts, session_id)
     )
-    db._conn.commit()
+    db._connections._conn.commit()
 
 
 def _make_session(

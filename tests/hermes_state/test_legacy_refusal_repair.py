@@ -29,7 +29,7 @@ def _refused_turn(db, sid, ask):
 
 def _as_legacy_store(db):
     """A store a pre-#149708 build wrote: the one-time repair has never run on it."""
-    db._conn.execute("DELETE FROM state_meta WHERE key = ?", (LEGACY_REFUSAL_REPAIR_DONE,))
+    db._connections._conn.execute("DELETE FROM state_meta WHERE key = ?", (LEGACY_REFUSAL_REPAIR_DONE,))
     db.close()
 
 
@@ -84,7 +84,7 @@ def test_refusal_folded_into_a_summary_is_left_alone_and_a_busy_chat_waits(tmp_p
     db.create_session("compacted", "cli")
     _refused_turn(db, "compacted", "the blocked ask")
     # Bot Chat /new -> /compact: the refused turn was archived into a summary that still restates it.
-    db._conn.execute("UPDATE messages SET active = 0, compacted = 1 WHERE session_id = 'compacted'")
+    db._connections._conn.execute("UPDATE messages SET active = 0, compacted = 1 WHERE session_id = 'compacted'")
     db.append_message("compacted", "user", "[CONTEXT COMPACTION] the user asked the blocked ask")
     db.append_message("compacted", "assistant", "noted")
     _refused_turn(db, "compacted", "an innocent follow-up")

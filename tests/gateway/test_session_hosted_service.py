@@ -33,9 +33,9 @@ async def test_room_owner_survives_service_restart_and_foreign_actor_cannot_clai
         with pytest.raises(RuntimeStoreError, match='permission_denied'):
             service.authorize_room('alice', 'absent')
         # A historical row without an owner cannot be adopted, including retired IDs.
-        with db._lock:
-            db._conn.execute("INSERT INTO hosted_room_retired_ids(room_id,retired_at) VALUES('retired',1)")
-            db._conn.commit()
+        with db._connections._lock:
+            db._connections._conn.execute("INSERT INTO hosted_room_retired_ids(room_id,retired_at) VALUES('retired',1)")
+            db._connections._conn.commit()
         with pytest.raises(RuntimeStoreError, match='permission_denied'):
             service.authorize_room('alice', 'retired', create=True)
         with pytest.raises(RuntimeStoreError, match='invalid_params'):
@@ -87,11 +87,11 @@ def test_hosted_dequeue_checks_exact_task_member_and_frozen_input(tmp_path, monk
                     {**row, 'request_id': 'hosted:' + json.dumps([asdict(identity), 999])}):
             with pytest.raises(RuntimeStoreError, match='permission_denied'):
                 service.check_admission(rpc.ref, bad)
-        with db._lock:
-            db._conn.execute("UPDATE hosted_rooms SET members_json=? WHERE room_id='room'", (json.dumps([
+        with db._connections._lock:
+            db._connections._conn.execute("UPDATE hosted_rooms SET members_json=? WHERE room_id='room'", (json.dumps([
                 {'member_id': 'replacement', 'profile': 'default', 'handle': 'replacement'},
                 {'member_id': 'two', 'profile': 'other', 'handle': 'two'}]),))
-            db._conn.commit()
+            db._connections._conn.commit()
         with pytest.raises(RuntimeStoreError, match='permission_denied'):
             service.check_admission(rpc.ref, row)
 

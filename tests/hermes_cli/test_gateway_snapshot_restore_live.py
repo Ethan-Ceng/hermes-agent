@@ -197,7 +197,7 @@ def test_snapshot_restore_rejoins_the_restored_authority(local_gateway, multiple
     finally:
         cli._release_active_session()
     assert store.connection is not connection and not store.connection.final
-    assert old_reader._wrapped._conn is None and shared_reader._conn is None
+    assert old_reader._wrapped._connections._conn is None and shared_reader._connections._conn is None
     assert cli.agent is None
     from hermes_cli import gateway_tools
     assert gateway_tools._view.connection is store.connection  # /agents, /stop and the status bar

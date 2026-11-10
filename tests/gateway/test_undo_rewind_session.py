@@ -98,7 +98,7 @@ def test_rewind_fails_closed_when_transcript_changes_after_snapshot(
 
     assert store.rewind_session(sid) is None
 
-    rows = store._db._conn.execute(
+    rows = store._db._connections._conn.execute(
         "SELECT content, active FROM messages "
         "WHERE session_id = ? ORDER BY id",
         (sid,),
@@ -134,7 +134,7 @@ def test_rewind_fails_closed_when_new_turn_lands_after_id_snapshot(
 
     assert store.rewind_session(sid) is None
 
-    rows = store._db._conn.execute(
+    rows = store._db._connections._conn.execute(
         "SELECT content, active FROM messages "
         "WHERE session_id = ? ORDER BY id",
         (sid,),

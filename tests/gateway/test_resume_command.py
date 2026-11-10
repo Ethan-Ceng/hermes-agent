@@ -268,9 +268,9 @@ class TestHandleResumeCommand:
         for sid, started, active in (("old_root", t0, t0 + 4 * 86400), ("new_root", t0 + 86400, t0 + 86400 + 60)):
             db.create_session(sid, "telegram", session_key=lane_key, user_id="12345", chat_id="67890")
             db.append_message(sid, "user", "hi")
-            db._conn.execute("UPDATE sessions SET started_at=?, last_activity_at=? WHERE id=?", (started, active, sid))
-            db._conn.execute("UPDATE messages SET timestamp=? WHERE session_id=?", (active, sid))
-        db._conn.commit()
+            db._connections._conn.execute("UPDATE sessions SET started_at=?, last_activity_at=? WHERE id=?", (started, active, sid))
+            db._connections._conn.execute("UPDATE messages SET timestamp=? WHERE session_id=?", (active, sid))
+        db._connections._conn.commit()
         db.set_session_title("old_root", "Old But Active")
         db.set_session_title("new_root", "Newer But Idle")
 
@@ -412,11 +412,11 @@ class TestHandleSessionsCommand:
         child_id = child.session_id
         db.set_session_title(child_id, "Legacy reset child")
         # Reproduce the on-disk shape from before _reset_from existed.
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET model_config = NULL WHERE id = ?",
             (child_id,),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
         runner = _make_runner(session_db=None, event=event)
         runner.session_store = store

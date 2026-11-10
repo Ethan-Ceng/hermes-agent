@@ -221,7 +221,7 @@ def test_retention_applies_both_halves_in_one_write(tmp_path):
         boundary = db.append_message("s", "user", "the request the filter blocked")
         assert retain_refused_turn_for_display(db, "s", notice=_NOTICE, boundary_row_id=boundary) is True
         # rewind_count incremented exactly once (a single committed rewind), not zero or twice.
-        count = db._conn.execute("SELECT rewind_count FROM sessions WHERE id = ?", ("s",)).fetchone()[0]
+        count = db._connections._conn.execute("SELECT rewind_count FROM sessions WHERE id = ?", ("s",)).fetchone()[0]
         assert count == 1
     finally:
         db.close()

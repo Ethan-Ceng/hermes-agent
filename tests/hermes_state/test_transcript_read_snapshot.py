@@ -16,7 +16,7 @@ def _count(db):
 def test_reads_inside_a_snapshot_see_one_generation(tmp_path):
     db = SessionDB(db_path=tmp_path / "state.db")
     try:
-        assert db._wal_active
+        assert db._connections._wal_active
         db.create_session("s1", source="cli")
         db.append_message("s1", role="user", content="hello")
         with db.transcript_read_snapshot() as consistent:
@@ -38,7 +38,7 @@ def test_a_delete_journal_store_is_not_pinned_and_any_write_makes_it_inconsisten
     monkeypatch.setenv("HERMES_HOME", str(home))
     db = SessionDB(db_path=home / "state.db")
     try:
-        assert db._wal_active is False
+        assert db._connections._wal_active is False
         db.create_session("s1", source="cli")
         done = []
 

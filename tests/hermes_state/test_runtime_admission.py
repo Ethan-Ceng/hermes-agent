@@ -10,7 +10,7 @@ def store(tmp_path):
     db = SessionDB(db_path=tmp_path / 'state.db')
     db.create_session('s', source='test')
     # This is the baseline behavior assertion, before importing the new API.
-    assert db._conn.execute("SELECT name FROM sqlite_master WHERE name='runtime_epoch'").fetchone(), 'canonical runtime schema missing'
+    assert db._connections._conn.execute("SELECT name FROM sqlite_master WHERE name='runtime_epoch'").fetchone(), 'canonical runtime schema missing'
     return db
 
 
@@ -57,7 +57,7 @@ def test_admission_retry_claim_and_restart_are_fenced(tmp_path):
         assert exc.value.reason == 'stale_epoch'
         assert rt.cancel_session_input(db, epoch=new_epoch, admission_id=third['admission_id'])['outcome'] == 'cancelled'
         assert [r['admission_id'] for r in rt.list_session_admissions(db, session_id='s')] == [second['admission_id']]
-        assert db._conn.execute('PRAGMA foreign_keys').fetchone()[0] == 1
+        assert db._connections._conn.execute('PRAGMA foreign_keys').fetchone()[0] == 1
         with pytest.raises(sqlite3.IntegrityError):
             db._execute_write(lambda conn: conn.execute("DELETE FROM sessions WHERE id='s'"))
     finally:
@@ -70,18 +70,18 @@ def test_sqlite_failure_never_acknowledges_or_partially_claims(tmp_path):
     try:
         epoch = rt.begin_runtime_epoch(db, instance_id='boot')
         args = dict(epoch=epoch, principal_id='human', session_id='s', request_id='one', payload={'text': 'hello'})
-        db._conn.execute("CREATE TRIGGER refuse_admission BEFORE INSERT ON session_admissions BEGIN SELECT RAISE(ABORT, 'full fixture'); END")
+        db._connections._conn.execute("CREATE TRIGGER refuse_admission BEFORE INSERT ON session_admissions BEGIN SELECT RAISE(ABORT, 'full fixture'); END")
         with pytest.raises(sqlite3.IntegrityError, match='full fixture'):
             rt.admit_session_input(db, **args)
         assert rt.list_session_admissions(db, session_id='s') == []
-        db._conn.execute('DROP TRIGGER refuse_admission')
+        db._connections._conn.execute('DROP TRIGGER refuse_admission')
         row = rt.admit_session_input(db, **args)
-        db._conn.execute("CREATE TRIGGER refuse_claim BEFORE UPDATE ON session_admissions BEGIN SELECT RAISE(ABORT, 'claim fixture'); END")
+        db._connections._conn.execute("CREATE TRIGGER refuse_claim BEFORE UPDATE ON session_admissions BEGIN SELECT RAISE(ABORT, 'claim fixture'); END")
         with pytest.raises(sqlite3.IntegrityError, match='claim fixture'):
             rt.claim_session_input(db, epoch=epoch, session_id='s')
         assert db.get_session('s')['runtime_generation'] == 0
         assert rt.get_session_admission(db, admission_id=row['admission_id'])['status'] == 'queued'
-        db._conn.execute('DROP TRIGGER refuse_claim')
+        db._connections._conn.execute('DROP TRIGGER refuse_claim')
         with sqlite3.connect(tmp_path / 'state.db', timeout=0) as peer:
             assert peer.execute('SELECT admission_id FROM session_admissions').fetchone()[0] == row['admission_id']
             peer.execute('BEGIN IMMEDIATE')

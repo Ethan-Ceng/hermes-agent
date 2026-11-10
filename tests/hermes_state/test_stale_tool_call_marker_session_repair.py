@@ -164,7 +164,7 @@ class TestPurgeStaleToolCallMarkers:
                 assert report["rows_affected"] == 1
 
                 # Nothing written: the raw row still has the marker.
-                raw = db._conn.execute(
+                raw = db._connections._conn.execute(
                     "SELECT content FROM messages WHERE role = 'assistant' "
                     "AND tool_calls IS NOT NULL AND tool_calls != ''"
                 ).fetchone()
@@ -189,7 +189,7 @@ class TestPurgeStaleToolCallMarkers:
                 assert report["backup_path"] is not None
                 assert Path(report["backup_path"]).exists()
 
-                row = db._conn.execute(
+                row = db._connections._conn.execute(
                     "SELECT content, tool_calls FROM messages WHERE role = 'assistant' "
                     "AND tool_calls IS NOT NULL AND tool_calls != ''"
                 ).fetchone()

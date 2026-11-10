@@ -77,7 +77,7 @@ class _HoldPredecessorEnd:
     names the new conversation, and nothing of it is in state.db yet."""
 
     def __init__(self, db):
-        self.conn, self.reached, self.release = db._conn, threading.Event(), threading.Event()
+        self.conn, self.reached, self.release = db._connections._conn, threading.Event(), threading.Event()
 
     def _trace(self, sql):
         if 'SET ended_at' in sql and not self.reached.is_set():

@@ -17,10 +17,10 @@ def test_hidden_excluded_by_default_included_on_request(db):
     db.create_session("secret", source="cli")
     # Give both a message so the default min_message_count filter keeps them.
     for sid in ("visible", "secret"):
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET message_count = 1 WHERE id = ?", (sid,)
         )
-    db._conn.commit()
+    db._connections._conn.commit()
 
     # Flip the hidden flag on one session.
     assert db.set_session_hidden("secret", True) is True

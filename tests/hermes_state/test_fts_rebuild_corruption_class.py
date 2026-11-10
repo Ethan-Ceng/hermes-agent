@@ -56,7 +56,7 @@ def test_corruption_class_error_is_caught_and_reported(
     The call must return 0 (no progress) rather than propagate, and only a malformed-image
     error earns the offline-repair hint — an IntegrityError is not corruption."""
     monkeypatch.setattr(
-        db._conn, "execute", _corrupting_execute(lambda sql: True, error=error)(db._conn.execute)
+        db._connections._conn, "execute", _corrupting_execute(lambda sql: True, error=error)(db._connections._conn.execute)
     )
     with caplog.at_level("WARNING"):
         assert db.rebuild_fts() == 0
@@ -70,10 +70,10 @@ def test_one_corrupt_index_does_not_stop_the_remaining_indexes(db, monkeypatch, 
     ``messages_fts_trigram``/``_cjk``. optimize_fts() shares the per-index loop shape."""
     expected = len(db._present_fts_tables()) - 1
     monkeypatch.setattr(
-        db._conn,
+        db._connections._conn,
         "execute",
         _corrupting_execute(lambda sql: sql.startswith("INSERT INTO messages_fts("), command)(
-            db._conn.execute
+            db._connections._conn.execute
         ),
     )
     assert getattr(db, method)() == expected

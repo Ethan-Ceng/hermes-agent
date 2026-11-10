@@ -100,7 +100,7 @@ def test_turn_flush_survives_fts_only_corruption(tmp_path):
         assert ok is True
         assert agent._last_persistence_error_cause is None
         assert _contents(db_path)[-1] == "lands after stomp"
-        assert db._db_corrupt is False
+        assert db._connections._db_corrupt is False
         # Builds whose sync trigger walks the stomped structure record detach the derived
         # indexes; builds that defer the read pass the insert through untouched. Either way
         # the canonical write landed, which is the contract.
@@ -130,7 +130,7 @@ def test_escaped_fts_only_error_is_index_scoped_not_quarantined(tmp_path, monkey
 
         assert ok is False
         assert agent._last_persistence_error_cause == "fts_index"
-        assert db._db_corrupt is False
+        assert db._connections._db_corrupt is False
         assert db._fts_stale is False
         assert "refused detach" not in _contents(db_path)
     finally:
@@ -177,7 +177,7 @@ def test_detach_waits_out_a_sibling_holding_the_write_lock(tmp_path):
 
         assert _contents(db_path)[-1] == "lands after the sibling lets go"
         assert db._fts_stale is True
-        assert db._db_corrupt is False
+        assert db._connections._db_corrupt is False
     finally:
         db.close()
 

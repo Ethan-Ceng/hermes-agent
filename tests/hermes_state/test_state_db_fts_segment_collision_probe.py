@@ -73,4 +73,4 @@ def test_repair_heals_segment_collision_and_restores_appends(tmp_path):
     assert _db_opens_cleanly(db_path) is None
     assert not _real_append_fails(db_path, sid)
     with SessionDB(db_path=db_path) as db:
-        assert db._conn.execute("SELECT COUNT(*) FROM messages WHERE session_id = ?", (sid,)).fetchone()[0] == 61
+        assert db._connections._conn.execute("SELECT COUNT(*) FROM messages WHERE session_id = ?", (sid,)).fetchone()[0] == 61

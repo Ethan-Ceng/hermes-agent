@@ -27,11 +27,11 @@ def _make_chain(db: SessionDB, ids_with_parent):
     base = int(time.time()) - 10_000
     for i, (sid, parent) in enumerate(ids_with_parent):
         db.create_session(sid, source="cli", parent_session_id=parent)
-        db._conn.execute(
+        db._connections._conn.execute(
             "UPDATE sessions SET started_at = ? WHERE id = ?",
             (base + i * 100, sid),
         )
-    db._conn.commit()
+    db._connections._conn.commit()
 
 
 def test_returns_self_when_only_parent_has_messages(db):
@@ -75,7 +75,7 @@ def test_follows_compression_tip_when_parent_retains_messages(db):
     db.append_message("cont", role="assistant", content="post-compression reply")
     # Force deterministic ordering so the continuation's started_at is clearly
     # at/after the parent's ended_at (the get_compression_tip discriminator).
-    conn = db._conn
+    conn = db._connections._conn
     assert conn is not None
     conn.execute("UPDATE sessions SET started_at = ?, ended_at = ? WHERE id = 'root'", (base, base + 50))
     conn.execute("UPDATE sessions SET started_at = ? WHERE id = 'cont'", (base + 100,))

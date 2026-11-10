@@ -34,13 +34,13 @@ def _mk_handed_off(db, session_id, *, handoff_state):
     )
     for i in range(3):
         db.append_message(session_id, "user" if i % 2 == 0 else "assistant", f"m{i}")
-    with db._lock:
-        db._conn.execute(
+    with db._connections._lock:
+        db._connections._conn.execute(
             "UPDATE sessions SET handoff_state=?, handoff_platform='qqbot', last_activity_at=?, "
             "ended_at=1000.0, end_reason='cli_close' WHERE id=?",
             (handoff_state, time.time(), session_id),
         )
-        db._conn.commit()
+        db._connections._conn.commit()
 
 
 def test_cli_close_after_completed_handoff_is_recoverable(db):

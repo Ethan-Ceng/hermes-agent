@@ -31,7 +31,7 @@ def test_preview_preserves_live_database_locks(tmp_path, route, target_kind):
         db.append_message("preview-test", "user", "before preview")
         shm = Path(str(path) + "-shm")
         target = {"main": path, "shm": shm, "directory": tmp_path}[target_kind]
-        conn = db._conn
+        conn = db._connections._conn
         assert isinstance(conn, sqlite3.Connection)
         conn.execute("CREATE TABLE preview_markers (value TEXT)")
         conn.commit()

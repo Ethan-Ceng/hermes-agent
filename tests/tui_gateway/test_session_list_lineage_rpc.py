@@ -35,16 +35,16 @@ def _seed_compressed_conversation(db) -> None:
     """``root1`` (compression-ended) -> ``tip1`` live continuation, both with messages."""
     t0 = time.time() - 3600
     db.create_session("root1", "cli")
-    db._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0, "root1"))
+    db._connections._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0, "root1"))
     db.append_message("root1", "user", "help me refactor auth")
-    db._conn.execute(
+    db._connections._conn.execute(
         "UPDATE sessions SET ended_at=?, end_reason=? WHERE id=?",
         (t0 + 1800, "compression", "root1"),
     )
     db.create_session("tip1", "cli", parent_session_id="root1")
-    db._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 1801, "tip1"))
+    db._connections._conn.execute("UPDATE sessions SET started_at=? WHERE id=?", (t0 + 1801, "tip1"))
     db.append_message("tip1", "user", "continuing")
-    db._conn.commit()
+    db._connections._conn.commit()
 
 
 def test_session_list_projects_lineage_root_id(db):

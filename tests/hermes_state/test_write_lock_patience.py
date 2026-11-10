@@ -177,7 +177,7 @@ def test_open_waits_out_lock_lost_inside_fts_constructor(tmp_path, monkeypatch, 
     _use_delete_journal_mode(monkeypatch, tmp_path)
     db_path = tmp_path / "state.db"
     seed = SessionDB(db_path=db_path)
-    assert not seed._wal_active
+    assert not seed._connections._wal_active
     seed.create_session("s", "cli")
     seed.append_message(session_id="s", role="user", content="needle")
     seed.close()

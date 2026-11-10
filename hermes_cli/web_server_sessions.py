@@ -50,7 +50,7 @@ def _session_latest_descendant(session_id: str, db):
     if not sid or not db.get_session(sid):
         return None, []
 
-    conn = getattr(db, "_conn", None)
+    conn = getattr(getattr(db, "_connections", None), "_conn", None)
     if conn is not None:
         keys = ("id", "parent_session_id", "started_at")
         rows = [dict(zip(keys, row)) for row in conn.execute(_DESCENDANTS_SQL, (sid,)).fetchall()]
@@ -388,7 +388,7 @@ def _open_session_db_at_path(db_path: Path, *, read_only: bool):
     def _open_probed():
         db = SessionDB(db_path=db_path, read_only=True)
         try:
-            conn = getattr(db, "_conn", None)
+            conn = getattr(getattr(db, "_connections", None), "_conn", None)
             if conn is not None:
                 for statement in _session_db_read_probe_statements():
                     conn.execute(statement).fetchone()

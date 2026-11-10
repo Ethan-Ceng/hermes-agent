@@ -10,6 +10,7 @@ uses to render a system line and fire the kickoff prompt.
 
 from __future__ import annotations
 
+from tests.tui_gateway.threading_stubs import patch_server_thread
 import importlib
 import threading
 import types
@@ -118,7 +119,7 @@ class _InlineThread:
 def turn_env(server, monkeypatch, tmp_path):
     """Neutralize side paths unrelated to post-turn goal continuation."""
     emitted = []
-    monkeypatch.setattr(server.threading, "Thread", _InlineThread)
+    patch_server_thread(monkeypatch, server, _InlineThread)
     monkeypatch.setattr(
         server,
         "_emit",

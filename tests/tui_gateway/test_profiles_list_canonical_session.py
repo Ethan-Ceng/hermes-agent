@@ -55,17 +55,17 @@ def _add_session(db, sid, *, source="cli", title="", ts, text, hidden=False,
     """Create one session with a single user message at an exact timestamp."""
     db.create_session(sid, source, parent_session_id=parent)
     db.append_message(sid, "user", text, timestamp=ts)
-    with db._lock:
-        db._conn.execute("UPDATE sessions SET title = ? WHERE id = ?", (title, sid))
+    with db._connections._lock:
+        db._connections._conn.execute("UPDATE sessions SET title = ? WHERE id = ?", (title, sid))
         if end_reason:
             # Mark ended AFTER appending: the DB (correctly) refuses writes
             # to a compression-closed session.
-            db._conn.execute(
+            db._connections._conn.execute(
                 "UPDATE sessions SET ended_at = ?, end_reason = ? WHERE id = ?",
                 (ts + 1, end_reason, sid),
             )
         if archived:
-            db._conn.execute(
+            db._connections._conn.execute(
                 "UPDATE sessions SET archived = 1 WHERE id = ?", (sid,))
     if hidden:
         db.set_session_hidden(sid, True)
@@ -205,8 +205,8 @@ def test_canonical_session_ignores_unmarked_normal_child(home):
 
 def _fold_all_rows(db, sid):
     """Fold every row of one session the way an orphaned compaction mark does."""
-    with db._lock:
-        db._conn.execute(
+    with db._connections._lock:
+        db._connections._conn.execute(
             "UPDATE messages SET active = 0, _compressed_summary = 1 WHERE session_id = ?", (sid,))
 
 
@@ -229,8 +229,8 @@ def test_canonical_session_live_count_skips_model_only_rows_like_the_reader(home
     """Micro-compaction's model-only rows never paint, so they must not make the open wait."""
     db = _db(home)
     _add_session(db, "modelonly", title="Bot Chat", ts=1000, text="for the model", hidden=True)
-    with db._lock:
-        db._conn.execute("UPDATE messages SET display_metadata = ? WHERE session_id = ?",
+    with db._connections._lock:
+        db._connections._conn.execute("UPDATE messages SET display_metadata = ? WHERE session_id = ?",
                          (json.dumps({MODEL_ONLY_DISPLAY_METADATA_KEY: True}), "modelonly"))
     painted = db.get_messages_as_conversation("modelonly", include_compacted=True)
     db.close()

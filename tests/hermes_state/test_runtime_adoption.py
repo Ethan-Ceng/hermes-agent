@@ -34,9 +34,9 @@ def test_explicit_worker_adoption_preserves_claim_without_reexecution(tmp_path, 
         receipt = append(db, **message_args)
         result = rt.settle_session_input(db, epoch=new_epoch, admission_id=accepted['admission_id'], generation=claim['generation'], outcome='completed')
         assert result['status'] == 'terminal'
-        before = db._conn.total_changes
+        before = db._connections._conn.total_changes
         assert append(db, **message_args) == receipt
-        assert db._conn.total_changes == before
+        assert db._connections._conn.total_changes == before
         with pytest.raises(rt.RuntimeStoreError, match='stale_generation'):
             append(db, epoch=new_epoch, **assignment, sequence=2, content='late')
     finally:

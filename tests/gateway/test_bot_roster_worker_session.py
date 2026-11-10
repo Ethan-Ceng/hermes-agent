@@ -43,8 +43,8 @@ def _authority(db, **extra):
 def _session(db, sid, *, source='kanban', title='', last_active=0, hidden=0, archived=0):
     """A stored row with a fixed activity stamp, so "newest worker" is decided by this test."""
     db.create_session(sid, source=source)
-    with db._lock:
-        db._conn.execute(
+    with db._connections._lock:
+        db._connections._conn.execute(
             'UPDATE sessions SET title=?, last_activity_at=?, started_at=?, hidden=?, archived=? WHERE id=?',
             (title, last_active, last_active, hidden, archived, sid))
 

@@ -54,11 +54,11 @@ class TestListSessionsRichQueryBound:
                     conn.set_trace_callback(None)
 
         monkeypatch.setattr(db, "_read_ctx", traced_read_ctx)
-        db._conn.set_trace_callback(statements.append)
+        db._connections._conn.set_trace_callback(statements.append)
         try:
             rows = db.list_sessions_rich(limit=50)
         finally:
-            db._conn.set_trace_callback(None)
+            db._connections._conn.set_trace_callback(None)
         return rows, statements
 
     def test_statement_count_does_not_scale_with_sessions(self, chain_db, monkeypatch):

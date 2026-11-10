@@ -218,8 +218,8 @@ def _get_message_storage_state(db, message_id) -> Optional[dict[str, Any]]:
         from hermes_db.health import is_postgresql_store
         if is_postgresql_store(db):
             return db.message_storage_state(message_id)
-        with db._lock:
-            return db._conn.execute(
+        with db._connections._lock:
+            return db._connections._conn.execute(
                 "SELECT session_id, active, compacted FROM messages WHERE id = ?", (message_id,)).fetchone()
     row = message_id and _quiet(_lookup, None, "message storage-state lookup failed for %s", message_id)
     return dict(row) if row else None
