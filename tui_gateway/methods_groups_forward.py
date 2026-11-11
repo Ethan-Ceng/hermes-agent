@@ -157,7 +157,7 @@ def forward(server, rid, method: str, params: dict) -> dict | None:
         from hermes_cli.db_setup import storage_backend
         if storage_backend(home) == "postgresql":
             # PG rooms belong to this Profile's dataset; the SQLite import/handoff has no role.
-            from hermes_db.domains.rooms.api import capture_room_store
+            from gateway.hosted_room_storage import capture_room_store
             location = capture_room_store(home)
             endpoint = owner_endpoint(location.profile_home)
             return None if endpoint is None else _call(server, rid, location.profile_home, endpoint, method, params)

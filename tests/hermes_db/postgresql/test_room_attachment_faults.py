@@ -67,7 +67,7 @@ def test_actual_metadata_commit_lost_ack_keeps_unique_bytes_and_restarts(pg_prof
 
 
 def test_cleanup_failure_is_persistent_and_new_process_replays_exact_blob_job(pg_profiles, monkeypatch):
-    from hermes_db.domains.rooms.api import open_room_store
+    from gateway.hosted_room_storage import open_room_store
     from hermes_db.domains.rooms.attachments.postgres.metadata import pending_jobs
     with pg_profiles("one") as home:
         now = [100.0]
@@ -95,7 +95,7 @@ def test_cleanup_failure_is_persistent_and_new_process_replays_exact_blob_job(pg
 
 
 def test_content_io_never_holds_a_pg_connection(pg_profiles, monkeypatch):
-    from hermes_db.domains.rooms.api import open_room_store
+    from gateway.hosted_room_storage import open_room_store
     from hermes_db.infra.backends.postgresql.engine import get_engine
     with pg_profiles("one"):
         store = HostedRoomAttachmentStore(rooms.default_db_path())

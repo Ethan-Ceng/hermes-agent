@@ -24,7 +24,7 @@ from typing import Any
 
 from gateway import hosted_rooms
 from gateway.hosted_rooms_common import DbPath
-from hermes_db.domains.rooms.api import room_operation
+from gateway.hosted_room_storage import room_operation
 
 # Actor id prefixes for posts the scheduler makes. A result post can start a round when it @mentions a
 # member; a failure notice never does (its text is machine-written, not addressed to anyone).

@@ -20,7 +20,7 @@ from hermes_db.domains.rooms.rules import MAX_ACTOR_ID_CHARS, HostedRoomError, R
 from gateway.hosted_rooms import _initialize_connection, _transaction, local_authority_gateway_id
 from gateway.hosted_rooms_common import DbPath
 from hermes_db.domains.rooms.rules import bounded_int, clock, utf8_len
-from hermes_db.domains.rooms.api import room_operation
+from gateway.hosted_room_storage import room_operation
 
 _EVENT_COLUMNS = "(room_id, seq, event_id, kind, actor_json, authority_epoch, payload_json, created_at)"
 _INSERT_ROOM_EVENT = f"INSERT INTO hosted_room_events {_EVENT_COLUMNS} VALUES (?, ?, ?, ?, ?, ?, ?, ?)"

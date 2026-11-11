@@ -4137,24 +4137,75 @@
       "hermes_db/domains/rooms/__init__.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/api.py",
     "baseline_sha256": "594ceb9a2b5ae74a05c9ae6e1b56c2dfed14d9f81628641df14b746f83908ed7",
     "layer": "business",
-    "action": "preserve",
+    "action": "split",
     "targets": [
-      "hermes_db/domains/rooms/api.py"
+      "hermes_db/domains/rooms/api.py",
+      "gateway/hosted_room_storage.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
-    "symbol_routes": {},
+    "symbol_routes": {
+      "capture_room_store": {
+        "target": "gateway/hosted_room_storage.py",
+        "task": 14,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Actual Profile acquisition/selection/dispatch belongs to existing Gateway;preserve captured target/home and Native optional dependency import behavior.",
+        "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+      },
+      "is_postgresql_location": {
+        "target": "gateway/hosted_room_storage.py",
+        "task": 14,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Actual Profile acquisition/selection/dispatch belongs to existing Gateway;preserve captured target/home and Native optional dependency import behavior.",
+        "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+      },
+      "assert_sqlite_location": {
+        "target": "gateway/hosted_room_storage.py",
+        "task": 14,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Actual Profile acquisition/selection/dispatch belongs to existing Gateway;preserve captured target/home and Native optional dependency import behavior.",
+        "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+      },
+      "open_room_store": {
+        "target": "gateway/hosted_room_storage.py",
+        "task": 14,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Actual Profile acquisition/selection/dispatch belongs to existing Gateway;preserve captured target/home and Native optional dependency import behavior.",
+        "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+      },
+      "room_operation": {
+        "target": "gateway/hosted_room_storage.py",
+        "task": 14,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Actual Profile acquisition/selection/dispatch belongs to existing Gateway;preserve captured target/home and Native optional dependency import behavior.",
+        "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+      },
+      "_ROOM_MODULES": {
+        "target": "gateway/hosted_room_storage.py",
+        "task": 14,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Actual Profile acquisition/selection/dispatch belongs to existing Gateway;preserve captured target/home and Native optional dependency import behavior.",
+        "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+      }
+    },
     "application_imports": [
       {
         "line": 63,
@@ -4190,7 +4241,8 @@
       "open_room_store",
       "room_operation",
       "RoomResource"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/attachments/__init__.py",
@@ -4201,11 +4253,12 @@
       "hermes_db/domains/rooms/attachments/__init__.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/attachments/api.py",
@@ -4216,13 +4269,14 @@
       "hermes_db/domains/rooms/attachments/api.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "b5b8a9b23515964f0a0a69c8952040c7f9dbe03821d1225ea224e126e5cad658",
     "symbol_names": [
       "AttachmentResource"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/attachments/files.py",
@@ -4233,7 +4287,7 @@
       "gateway/hosted_room_attachment_files.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "AttachmentContent and file gate/cleanup are actual filesystem work, including hidden domain-owned I/O.",
     "symbol_routes": {},
     "baseline_abi_sha256": "ba7077d0c5342916fd5f525dfa320af8a189001528822e926e9eda90bb8f436c",
@@ -4242,7 +4296,8 @@
       "replay_cleanup",
       "sweep_locked",
       "AttachmentContent"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/attachments/postgres/__init__.py",
@@ -4253,11 +4308,12 @@
       "hermes_db/domains/rooms/attachments/postgres/__init__.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/attachments/postgres/metadata.py",
@@ -4268,7 +4324,7 @@
       "hermes_db/domains/rooms/attachments/postgres/metadata.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4c4322652108310436dd68eb9eaa6ed3250bce44a6857614c17255fbc9857c7b",
@@ -4298,24 +4354,26 @@
       "_blob_row",
       "totals",
       "stats"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/attachments/postgres/reads.py",
     "baseline_sha256": "2c6d1e52d715473264f4002f32fa9b7984f8a6d21550519036738e194296abb2",
-    "layer": "business",
-    "action": "preserve",
+    "layer": "application",
+    "action": "move",
     "targets": [
-      "hermes_db/domains/rooms/attachments/postgres/reads.py"
+      "gateway/hosted_room_attachment_reads.py"
     ],
     "task": 14,
-    "status": "pending",
-    "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
+    "status": "completed",
+    "reason": "Actual AttachmentReaders invokes _read_blob/_read_blob_range between two authorization snapshots;the whole orchestration must leave business while select_committed stays business.",
     "symbol_routes": {},
     "baseline_abi_sha256": "49964496fd814373917d8156c1206e784d0b2fa5b025232f9c701c8252fbb435",
     "symbol_names": [
       "AttachmentReaders"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/attachments/rules.py",
@@ -4326,7 +4384,7 @@
       "hermes_db/domains/rooms/attachments/rules.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "ed804febb0c389e79d1d2a1574d32476f5d75a5a005499a082abe9a4d754a65a",
@@ -4348,7 +4406,8 @@
       "validate_manifest",
       "validate_task_manifest",
       "fold_catalog_text"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/authority_rules.py",
@@ -4359,7 +4418,7 @@
       "hermes_db/domains/rooms/authority_rules.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "0de2b20bdd10082e50855ce9a9a6c708a2d63a06a7258ef4eeb4f1aede50c80d",
@@ -4370,7 +4429,8 @@
       "validate_history",
       "at_sequence",
       "history_from_rows"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/driver_rules.py",
@@ -4381,7 +4441,7 @@
       "hermes_db/domains/rooms/driver_rules.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -4426,7 +4486,8 @@
       "_require_cancel_generation",
       "_key",
       "_attempt_prefix"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/postgres/__init__.py",
@@ -4437,11 +4498,12 @@
       "hermes_db/domains/rooms/postgres/__init__.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/postgres/grants.py",
@@ -4452,7 +4514,7 @@
       "hermes_db/domains/rooms/postgres/grants.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "959bbc777b5eef1539db67458e786e23be46dda6d2396247bd2175d024cd8dd9",
@@ -4481,7 +4543,8 @@
       "held_room_grant_revokes",
       "settle_room_grant_revoke",
       "retire_room_link_records"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/postgres/lifecycle.py",
@@ -4492,7 +4555,7 @@
       "hermes_db/domains/rooms/postgres/lifecycle.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -4520,7 +4583,8 @@
       "_latest",
       "room_context",
       "set_room_context"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/postgres/ownership.py",
@@ -4531,7 +4595,7 @@
       "hermes_db/domains/rooms/postgres/ownership.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "326abccddf9ca1c75e712c7d49e4d60594ab7c5a8c5acd08c24c79333d5793c3",
@@ -4555,7 +4619,8 @@
       "stopping_attempt_home",
       "stopping_attempt_homes",
       "forget_locked"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/postgres/policy.py",
@@ -4566,7 +4631,7 @@
       "hermes_db/domains/rooms/postgres/policy.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -4602,7 +4667,8 @@
       "store_active",
       "store_transcript",
       "discussion_events"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/postgres/replication.py",
@@ -4613,7 +4679,7 @@
       "hermes_db/domains/rooms/postgres/replication.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "691c75e7cf66f8c72678eb123607eab81a637072731896cca377e7215a6cd83a",
@@ -4624,7 +4690,8 @@
       "replica_state",
       "promote_replica",
       "demote_room"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/postgres/repository.py",
@@ -4635,7 +4702,7 @@
       "hermes_db/domains/rooms/postgres/repository.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4c0c7bab756a010bea462ebe2bf10e370acab1c61d5b67acd43357bf58603519",
@@ -4661,7 +4728,8 @@
       "task_rows",
       "update_lease",
       "update_task"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/postgres/tasks.py",
@@ -4672,7 +4740,7 @@
       "hermes_db/domains/rooms/postgres/tasks.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "d493c128cc3304b83cba8d9d14f11ac8343ba7e29c1eb37cea9b5ca2751a5d6b",
@@ -4706,7 +4774,8 @@
       "cancel_task",
       "begin_task_cancel",
       "complete_task_cancel"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/postgres/work.py",
@@ -4717,7 +4786,7 @@
       "hermes_db/domains/rooms/postgres/work.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "5bd3d396c97c1643ec6c3fde0eb7aeb505ff21224cf13b7aac3a82ef3513b9bf",
@@ -4744,7 +4813,8 @@
       "_size",
       "_budget",
       "save"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/replication_rules.py",
@@ -4755,7 +4825,7 @@
       "hermes_db/domains/rooms/replication_rules.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "7f35eaadcb1b039dd167a1f7b677ade94b7fdec17a5a7332f0388d078f0236c3",
@@ -4766,7 +4836,8 @@
       "_control_event",
       "_event_bytes",
       "_validate_page"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/rules.py",
@@ -4777,7 +4848,7 @@
       "hermes_db/domains/rooms/rules.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "817351e2b02a7f02fe201aaa6e1914404e6d0c42b7d3002019ae48b353b0a339",
@@ -4824,7 +4895,8 @@
       "validate_context",
       "PolicySnapshot",
       "_text"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/rooms/work_rules.py",
@@ -4835,7 +4907,7 @@
       "hermes_db/domains/rooms/work_rules.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "47bef1044bb3554e26a6322723c5f47cd9fc3b2310576df5fd98032fa1894fe0",
@@ -4862,7 +4934,8 @@
       "validate_stored",
       "scope",
       "validate_provenance"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/domains/runtime/__init__.py",
@@ -9947,13 +10020,14 @@
       "gateway/hosted_room_attachment_store.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "a783281a2fdb19c92ac7d95df67a48821661171d6716818715071fcc98ce25c3",
     "symbol_names": [
       "PostgresAttachmentStore"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/integration/room_policy.py",
@@ -9964,13 +10038,14 @@
       "gateway/hosted_room_policy_store.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4c07fa6bcc2aec1ed2dc1ef944fb105a9eacd48e10d90975a9df0ff7ae0e503e",
     "symbol_names": [
       "PostgresRoomPolicy"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/integration/room_router.py",
@@ -9982,34 +10057,41 @@
       "hermes_db/domains/rooms/postgres/router_claims.py"
     ],
     "task": 14,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {
       "PostgresRouterCalls": {
         "target": "tui_gateway/hosted_room_router_storage.py",
         "task": 14,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task14.json"
       },
       "PostgresRouterCalls._claim": {
         "target": "hermes_db/domains/rooms/postgres/router_claims.py",
         "target_symbol": "claim_router_call",
         "task": 14,
         "action": "extract",
-        "constraint": "Same captured owner/clock/scope/Connection, original conflict predicate and TTL; RouterCallLifecycle remains TUI application."
+        "constraint": "Same captured owner/clock/scope/Connection, original conflict predicate and TTL; RouterCallLifecycle remains TUI application.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task14.json"
       },
       "PostgresRouterCalls._release": {
         "target": "hermes_db/domains/rooms/postgres/router_claims.py",
         "target_symbol": "release_router_call",
         "task": 14,
         "action": "extract",
-        "constraint": "Same captured owner/clock/scope/Connection, original conflict predicate and TTL; RouterCallLifecycle remains TUI application."
+        "constraint": "Same captured owner/clock/scope/Connection, original conflict predicate and TTL; RouterCallLifecycle remains TUI application.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task14.json"
       }
     },
     "baseline_abi_sha256": "b824050f03e7799aa6ce6ac5ee474782afd1b9180a7bd6d16c28246a1d967ea5",
     "symbol_names": [
       "PostgresRouterCalls"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
   },
   {
     "source": "hermes_db/integration/run_resources.py",

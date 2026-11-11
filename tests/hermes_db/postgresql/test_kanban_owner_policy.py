@@ -40,7 +40,7 @@ def test_assigned_owner_freezes_pg_board_policy_and_writes_exact_receipt(pg_prof
         assert context["owner"]["store_id"] == "one"
         receipt = {"storage_backend": "postgresql", "profile_home": str(assigned), "store_id": "two",
                    "principal_id": "owner", "session_id": "session", "request_id": "request"}
-        from hermes_db.domains.rooms.api import capture_room_store
+        from gateway.hosted_room_storage import capture_room_store
         receipt["target"] = capture_room_store(assigned).target
         admit_postgresql_claim(context, params, receipt)
         admit_postgresql_claim(context, params, receipt)

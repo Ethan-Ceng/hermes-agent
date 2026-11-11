@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`IMPLEMENTING`；阶段：Rooms附件与应用生命周期；当前实施任务：Task14；完成：13 / 20；阻塞：无；日期2026-11-11。
+- 整体状态：`IMPLEMENTING`；阶段：插件与真实SDK生命周期；当前实施任务：Task15；完成：14 / 20；阻塞：无；日期2026-11-11。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 验证策略修订：按本轮分层风险精简（2026-11-11用户指示）
@@ -1081,7 +1081,7 @@ Kanban工作流中的原子写与外部准备/发布/清理有可核对边界。
 
 ## Task 14：拆开Rooms附件、路由与应用生命周期
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -1122,11 +1122,14 @@ Rooms领域保留日志/策略/附件元数据，文件与路由生命周期归G
 
 ### 执行结果
 
-未实施；planning不计完成。
+启动：Task13本地提交c358fad2318cf3dee0fde9397317a566d0aef029，13/20；11分区hash全部验证。原映射中API Profile选择/获取/dispatch及AttachmentReaders隐藏文件读取按真实调用补入应用迁出；先修订映射再实施。RoomStoreRef/字段归一/metadata SQL与授权快照留业务，文件读取两侧重授权和短事务顺序不变。
 
 ### 验证证据
 
-未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
+最终当前源码：=== Summary: 1 files, 1 tests passed, 0 failed (100% complete) in 2.4s (4 workers) ===；=== Summary: 1 files, 1 tests passed, 0 failed (100% complete) in 3.8s (4 workers) ===；=== Summary: 5 files, 15 tests passed, 0 failed (100% complete) in 75.9s (1 workers) ===。全部实际exit0、无skip；16check、DB/插件边界、生成合同及空白均exit0。实际展开命令、解释器/cwd/home/runtime/源码身份、预检修正与未验证项见[Task14证据](../designs/hermes-db-two-layer-task14.json)。
+
+
+结算：实际文件/读取授权重核/Profile/路由生命周期均有Gateway/TUI真实所有者；DTO及metadata/claim SQL保留业务。10项原算法/SQL/dispatch/生命周期AST证明通过；14既有受影响测试50断言未改，无测试删除。65固定资源/11分区hash、DB350/root11/31revision/29表模块、SQL字面量delta0。350只是路径计数，迁出不计整体代码净减少。全部必需验证通过后立即本地commit，hash在Task15启动记录。完成14/20，继续Task15。
 
 ## Task 15：闭合插件存储、API辅助库及真实SDK生命周期
 
@@ -1479,14 +1482,14 @@ wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-two-layer-acceptance-final/sourc
 
 ### 当前执行结果
 
-- 当前实施：Task1–13已验证，13/20；Task13本地提交后进入Task14。
+- 当前实施：Task1–14已验证，14/20；Task14本地提交后进入Task15。
 - Task1–7证据见各Task及对应诊断记录。最终完整冻结批次、SDK及独立审查尚未完成。
 - 规划结构/基准/本地链接及文档静态自检：实际命令与结果写入下方准备记录。
 - 代码审查：本轮尚未执行；旧APPROVED只属于已完成持久层职责精简。
 
 ### 未通过项目与最终状态
 
-当前为`IMPLEMENTING`，Task1–13已完成，下一项Task14，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
+当前为`IMPLEMENTING`，Task1–14已完成，下一项Task15，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
 
 ## 规划准备记录与恢复
 

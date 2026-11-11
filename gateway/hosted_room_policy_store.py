@@ -5,7 +5,8 @@ from collections.abc import Mapping
 from hermes_db.domains.rooms import rules as hosted_rooms
 from hermes_db.domains.rooms.postgres.lifecycle import read_events
 from hermes_db.domains.rooms import rules as native
-from hermes_db.domains.rooms.api import RoomStoreRef, capture_room_store, normalize_location, open_room_store
+from hermes_db.domains.rooms.api import RoomStoreRef, normalize_location
+from gateway.hosted_room_storage import capture_room_store, open_room_store
 from hermes_db.domains.rooms.postgres import policy as operations, policy as reads
 
 

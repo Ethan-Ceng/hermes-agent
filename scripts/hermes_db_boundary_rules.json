@@ -2537,14 +2537,6 @@
       ]
     },
     {
-      "target": "hermes_dir_acl.make_user_dir",
-      "category": "infrastructure",
-      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
-      "consumers": [
-        "hermes_db/domains/rooms/attachments/files.py"
-      ]
-    },
-    {
       "target": "hermes_state_compaction_display.later_tool_copy_ids",
       "category": "shared-pure",
       "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
@@ -2831,8 +2823,7 @@
       "category": "infrastructure",
       "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
       "consumers": [
-        "hermes_db/domains/kanban/postgres/files.py",
-        "hermes_db/domains/rooms/attachments/files.py"
+        "hermes_db/domains/kanban/postgres/files.py"
       ]
     },
     {
@@ -2840,8 +2831,7 @@
       "category": "infrastructure",
       "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
       "consumers": [
-        "hermes_db/domains/kanban/postgres/files.py",
-        "hermes_db/domains/rooms/attachments/files.py"
+        "hermes_db/domains/kanban/postgres/files.py"
       ]
     },
     {
@@ -2892,8 +2882,7 @@
       "category": "infrastructure",
       "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
       "consumers": [
-        "hermes_db/domains/kanban/postgres/files.py",
-        "hermes_db/domains/rooms/attachments/files.py"
+        "hermes_db/domains/kanban/postgres/files.py"
       ]
     },
     {

@@ -32,7 +32,7 @@ class RoomCoordination:
             runtime_for_store(self.authority.db).check_epoch(self.authority.epoch)
 
     def _prepare(self):
-        from hermes_db.domains.rooms.api import capture_room_store
+        from gateway.hosted_room_storage import capture_room_store
         if capture_room_store(profile_home_for_store(self.authority.db)) != self.path:
             raise RuntimeStoreError("profile_mismatch")
 

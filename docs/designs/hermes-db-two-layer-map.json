@@ -129,7 +129,7 @@
     {
       "id": 14,
       "title": "拆开Rooms附件、路由与应用生命周期",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         9,
         10
@@ -400,6 +400,16 @@
       "path": "hermes_db/domains/kanban/postgres/transfer.py",
       "task": 13,
       "layer": "business"
+    },
+    {
+      "path": "gateway/hosted_room_storage.py",
+      "task": 14,
+      "layer": "application"
+    },
+    {
+      "path": "gateway/hosted_room_attachment_reads.py",
+      "task": 14,
+      "layer": "application"
     }
   ],
   "new_behavior_tests": [
@@ -1361,7 +1371,7 @@
     "entries": [
       {
         "path": "hermes-db-two-layer-map/sources-db.json",
-        "sha256": "3c20e5865a5112ab4b36ffb0959e25057179f7e2f9fe818c01b083ef09206122",
+        "sha256": "57da24809e7d9fa86c54d45e88e1dc14638f56a3eac007db1d2a77b12793344c",
         "items": 359
       }
     ],
@@ -1766,5 +1776,26 @@
     ],
     "source_hash": "94fd0943e7b3cc713e0dc6129e478d3ec71cf10745b4314b9f9cb5292866fdf9",
     "actual_db_modules": 354
+  },
+  "task14_adjustment": {
+    "status": "completed",
+    "parent_commit": "c358fad2318cf3dee0fde9397317a566d0aef029",
+    "scope_counts": {
+      "entries": 26,
+      "external_sources": 0,
+      "consumer_files": 67,
+      "domain_boundaries": 0,
+      "native_patch_seams": 0,
+      "sqlite_lifecycle_candidates": 0,
+      "domain_io_sites": 5,
+      "non_python_consumer_files": 0
+    },
+    "actual_readpoint_refinements": [
+      "API Profile acquisition/backend selection/room operation dispatch move to Gateway owner;RoomStoreRef/normalization/reference/RoomResource stay business.",
+      "AttachmentReaders actual file reads and reauthorization orchestration move to Gateway;metadata.select_committed and exact original file/authorization order remain."
+    ],
+    "validation": "User lean scope:two Native optional-driver contracts and original five direct PG workflow files,plus source/ABI/SQL/boundary checks.",
+    "source_hash": "482aaabcf81eed5900ffab2610b5c86a95b0f04d2200dc83083ba4d27a19267f",
+    "actual_db_modules": 350
   }
 }

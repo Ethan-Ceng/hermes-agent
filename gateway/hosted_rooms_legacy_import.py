@@ -36,7 +36,7 @@ def source_path(db_path: Path) -> Path | None:
     Only the shared coordination database has one: callers that pass any other path (older
     layouts, tests) own that file directly.
     """
-    from hermes_db.domains.rooms.api import is_postgresql_location
+    from gateway.hosted_room_storage import is_postgresql_location
     if is_postgresql_location(db_path):
         return None
     return db_path.with_name(SOURCE_NAME) if db_path.name == "shared-state.db" else None

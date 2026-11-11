@@ -14,7 +14,7 @@ from gateway import hosted_rooms as rooms
 from gateway import hosted_room_work_storage as storage
 from hermes_db.domains.rooms.rules import identifier
 from gateway.hosted_rooms_common import table_exists
-from hermes_db.domains.rooms.api import room_operation
+from gateway.hosted_room_storage import room_operation
 
 VERSION = 1
 PERMISSION = "work_records"

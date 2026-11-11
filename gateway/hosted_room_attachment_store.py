@@ -11,13 +11,14 @@ import time
 from contextlib import contextmanager
 
 from hermes_db.domains.rooms.attachments import rules as native
-from hermes_db.domains.rooms.api import RoomStoreRef, capture_room_store, normalize_location, open_room_store
+from hermes_db.domains.rooms.api import RoomStoreRef, normalize_location
+from gateway.hosted_room_storage import capture_room_store, open_room_store
 from hermes_db.domains.rooms.attachments.api import AttachmentResource
 from hermes_db.errors import StorageConfigurationError
 from hermes_db.domains.rooms.attachments.postgres import metadata as uploads, metadata as commits, metadata as cleanup
 from hermes_db.domains.rooms.attachments.postgres import metadata as repo
-from hermes_db.domains.rooms.attachments.files import AttachmentContent, files_gate, replay_cleanup, sweep_locked
-from hermes_db.domains.rooms.attachments.postgres.reads import AttachmentReaders
+from gateway.hosted_room_attachment_files import AttachmentContent, files_gate, replay_cleanup, sweep_locked
+from gateway.hosted_room_attachment_reads import AttachmentReaders
 
 _READY = set()
 _STARTUP_LOCK = threading.Lock()

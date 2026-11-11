@@ -10,7 +10,7 @@ from gateway.session_hosted_controls import HostedControls
 from gateway.owner_identity import same_owner
 from hermes_state_runtime import RuntimeStoreError, _epoch
 from tui_gateway.hosted_room_service import HostedRoomService
-from hermes_db.domains.rooms.api import room_operation
+from gateway.hosted_room_storage import room_operation
 
 _OWNER = 'gateway.hosted.owner.v1:'
 # What the Stop of an attempt asks its admitting home after the profile moved: never create, submit or approve.

@@ -43,7 +43,7 @@ def _attachments(home):
     if namespace is None or not (home / "hosted-room-attachments" / namespace).is_dir():
         return
     from gateway.hosted_room_attachments import HostedRoomAttachmentStore
-    from hermes_db.domains.rooms.api import capture_room_store
+    from gateway.hosted_room_storage import capture_room_store
     store = HostedRoomAttachmentStore(capture_room_store())
     store.reconcile_room_events()
     store.prune()

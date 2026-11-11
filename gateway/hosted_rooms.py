@@ -15,7 +15,8 @@ from contextlib import closing
 from functools import partial
 from pathlib import Path
 from typing import Any, Callable, Mapping
-from hermes_db.domains.rooms.api import RoomStoreRef, room_operation, assert_sqlite_location
+from hermes_db.domains.rooms.api import RoomStoreRef
+from gateway.hosted_room_storage import room_operation, assert_sqlite_location
 
 from gateway.hosted_rooms_common import DbPath, connect, fenced_update as _fenced_update, open_sqlite, table_columns, table_exists, transaction
 from hermes_db.domains.rooms.rules import bounded_int, canonical_json, clock as _now, compact_json, identifier, utf8_len, bounded_grant_expiry
@@ -333,7 +334,7 @@ def default_db_path() -> Path | RoomStoreRef:
     from hermes_constants import get_hermes_home
     from hermes_cli.db_setup import storage_backend
     if storage_backend() == "postgresql":
-        from hermes_db.domains.rooms.api import capture_room_store
+        from gateway.hosted_room_storage import capture_room_store
         return capture_room_store()
     home = get_hermes_home()
     return (home.parent.parent if home.parent.name == "profiles" else home) / "shared-state.db"

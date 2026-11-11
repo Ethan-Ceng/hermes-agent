@@ -129,9 +129,9 @@ def _settled_message(
 class HostedRoomPolicyCheckpoint:
     """Incrementally index room policy without compacting visible history."""
     def __new__(cls, db_path, *, max_active_events=MAX_ACTIVE_POLICY_EVENTS):
-        from hermes_db.domains.rooms.api import is_postgresql_location
+        from gateway.hosted_room_storage import is_postgresql_location
         if is_postgresql_location(db_path):
-            from hermes_db.integration.room_policy import PostgresRoomPolicy
+            from gateway.hosted_room_policy_store import PostgresRoomPolicy
             return PostgresRoomPolicy(db_path, max_active_events=max_active_events)
         return super().__new__(cls)
 
@@ -152,7 +152,7 @@ class HostedRoomPolicyCheckpoint:
             2**63 - 2, MAX_THREAD_TRANSCRIPT_EVENTS * (self.max_active_events + MAX_ACTIVE_RETRY_RECEIPTS + 2))
 
     def _connect(self) -> sqlite3.Connection:
-        from hermes_db.domains.rooms.api import assert_sqlite_location
+        from gateway.hosted_room_storage import assert_sqlite_location
         assert_sqlite_location(self.db_path)
         # Late import: a gateway that outlives an on-disk upgrade has the OLD sqlite_util cached.
         from hermes_cli.db_sqlite_policy import open_ready_profile_sqlite

@@ -8,7 +8,7 @@ room's frozen recipient roster.
 """
 
 from __future__ import annotations
-from hermes_db.domains.rooms.attachments.files import AttachmentContent
+from gateway.hosted_room_attachment_files import AttachmentContent
 from hermes_db.domains.rooms.attachments.rules import AttachmentConflictError, AttachmentData, AttachmentError, AttachmentIntegrityError, AttachmentNotFoundError, AttachmentQuotaError, DISBANDED_GRACE_SECONDS, MAX_ATTACHMENTS_PER_MESSAGE, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENT_MIME_CHARS, MAX_ATTACHMENT_NAME_CHARS, MAX_GATEWAY_ATTACHMENT_COUNT, MAX_GATEWAY_BLOB_BYTES, MAX_IDENTIFIER_CHARS, MAX_MESSAGE_ATTACHMENT_BYTES, MAX_ROOM_ATTACHMENT_BYTES, MAX_ROOM_ATTACHMENT_COUNT, MAX_ROOM_UNCOMMITTED_BYTES, MAX_ROOM_UNCOMMITTED_COUNT, MAX_TASK_ATTACHMENTS, MAX_TASK_ATTACHMENT_BYTES, UNCOMMITTED_TTL_SECONDS, _BLOB_ID_RE, _attachment_id, _identifier, _kind, _mime, _name, _validate_mime_and_kind, fold_catalog_text, validate_manifest, validate_task_manifest
 
 from hermes_db.domains.rooms.rules import EventAttachmentConflictError
@@ -54,7 +54,7 @@ _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 def default_attachment_root(db_path: Path | str) -> Path:
     """Return the selected store's private byte root or persistent PG namespace."""
-    from hermes_db.domains.rooms.api import is_postgresql_location
+    from gateway.hosted_room_storage import is_postgresql_location
     if is_postgresql_location(db_path):
         return HostedRoomAttachmentStore(db_path).root
     return Path(db_path).parent / "hosted-room-attachments"
@@ -122,9 +122,9 @@ class HostedRoomAttachmentStore(AttachmentContent):
     """Selected-backend metadata and private, content-deduplicated blob bytes."""
 
     def __new__(cls, db_path, **kwargs):
-        from hermes_db.domains.rooms.api import is_postgresql_location
+        from gateway.hosted_room_storage import is_postgresql_location
         if cls is HostedRoomAttachmentStore and is_postgresql_location(db_path):
-            from hermes_db.integration.room_attachments import PostgresAttachmentStore
+            from gateway.hosted_room_attachment_store import PostgresAttachmentStore
             return PostgresAttachmentStore(db_path, **kwargs)
         return super().__new__(cls)
 
@@ -239,7 +239,7 @@ class HostedRoomAttachmentStore(AttachmentContent):
         )
 
     def _connect(self) -> sqlite3.Connection:
-        from hermes_db.domains.rooms.api import assert_sqlite_location
+        from gateway.hosted_room_storage import assert_sqlite_location
         from hermes_cli.db_sqlite_policy import open_ready_profile_sqlite
 
         assert_sqlite_location(self.db_path)
