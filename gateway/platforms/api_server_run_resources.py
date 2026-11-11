@@ -3,7 +3,8 @@
 from contextlib import ExitStack
 from threading import RLock
 
-from hermes_db.integration.api_resources import OwnedApiStore, open_run_store
+from hermes_db.domains.runtime.resources import OwnedApiStore
+from hermes_cli.db_api import open_run_store
 from hermes_db.errors import StorageClosedError, StorageConfigurationError
 from hermes_db.health import is_postgresql_store
 
@@ -19,7 +20,7 @@ class ProfileRunStores:
         self._root = _home()
         self._root_sqlite = storage_backend(self._root) == "sqlite"
         self._sqlite_factory = sqlite_factory
-        self._stores = {self._root: open_run_store(self._root, sqlite_factory, launch=True)}
+        self._stores = {self._root: open_run_store(self._root, sqlite_factory)}
         self._scopes = {}
         self._lock, self._closed = RLock(), False
 
@@ -39,7 +40,7 @@ class ProfileRunStores:
             candidate = self._home_store(self._root)
             shared = True
         else:
-            candidate = open_run_store(home, self._sqlite_factory, launch=home == self._root)
+            candidate = open_run_store(home, self._sqlite_factory)
             shared = False
         with self._lock:
             closed = self._closed

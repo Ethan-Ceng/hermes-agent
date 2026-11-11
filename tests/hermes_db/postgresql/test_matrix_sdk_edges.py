@@ -58,7 +58,7 @@ def request_event(sender="@bot:matrix.test"):
 async def test_real_sdk_swallowed_transaction_confirmation_loss_blocks_cursor(pg_profiles, monkeypatch):
     from tests.hermes_db.postgresql.test_matrix_adapter_storage import adapter_client
     from hermes_db.errors import UnknownCommitError
-    from hermes_db.domains.plugin_storage.matrix.postgres import runtime
+    from hermes_cli import db_matrix_runtime as runtime
     from mautrix.crypto import OlmAccount
     from mautrix.types import QueryKeysResponse
     with pg_profiles("one"):
@@ -70,7 +70,7 @@ async def test_real_sdk_swallowed_transaction_confirmation_loss_blocks_cursor(pg
             async def query(*args, **kwargs):
                 return QueryKeysResponse.deserialize({"device_keys": {str(client.mxid): {"PEER": peer.serialize()}}, "failures": {}})
             monkeypatch.setattr(client, "query_keys", query)
-            original, committed = runtime.unit_of_work, []
+            original, committed = store.runtime.unit_of_work, []
             @contextmanager
             def lose_first_write_ack(reference, *, write=False):
                 with original(reference, write=write) as conn:
@@ -78,14 +78,14 @@ async def test_real_sdk_swallowed_transaction_confirmation_loss_blocks_cursor(pg
                 if write and not committed:
                     committed.append(True)
                     raise UnknownCommitError("review loss after actual SDK device transaction COMMIT")
-            monkeypatch.setattr(runtime, "unit_of_work", lose_first_write_ack)
+            monkeypatch.setattr(store.runtime, "unit_of_work", lose_first_write_ack)
             raised = False
             try:
                 await adapter._absorb_sync(client, {"next_batch": "after-sdk-transaction", "device_one_time_keys_count": {"signed_curve25519": 50},
                     "to_device": {"events": [request_event()]}})
             except UnknownCommitError:
                 raised = True
-            monkeypatch.setattr(runtime, "unit_of_work", original)
+            monkeypatch.setattr(store.runtime, "unit_of_work", original)
             assert committed and await store.get_device(str(client.mxid), "PEER") is not None
             cursor = await store.get_next_batch()
             print(f"REVIEW_TRANSACTION raised={raised} cursor={cursor} committed_device=True")

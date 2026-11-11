@@ -12,6 +12,9 @@ from plugins.memory.retaindb import RetainDBMemoryProvider
 
 
 def test_write_queue_closes_owner_connection(tmp_path):
+    from plugins.memory.retaindb.storage_schema import initialize_queue_schema
+    from hermes_constants import get_hermes_home
+    initialize_queue_schema(profile_home=get_hermes_home(), db_path=tmp_path / "retaindb.db")
     queue = retaindb._WriteQueue(object(), tmp_path / "retaindb.db")
     owner_conn = queue._local.conn
     worker = retaindb.threading.Thread(target=queue._get_conn)
@@ -24,6 +27,9 @@ def test_write_queue_closes_owner_connection(tmp_path):
 
 
 def test_write_queue_ignores_enqueue_after_shutdown(tmp_path):
+    from plugins.memory.retaindb.storage_schema import initialize_queue_schema
+    from hermes_constants import get_hermes_home
+    initialize_queue_schema(profile_home=get_hermes_home(), db_path=tmp_path / "retaindb.db")
     queue = retaindb._WriteQueue(object(), tmp_path / "retaindb.db")
     queue.shutdown()
 

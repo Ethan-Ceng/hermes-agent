@@ -17,6 +17,7 @@ sys.addaudithook(lambda event, args: reject() if event == "sqlite3.connect" else
 threading.excepthook = lambda args: failures.append(args.exc_value)
 from hermes_cli.db_domains import acquire_profile_domain
 from hermes_db.domains.plugin_storage.retain.postgres.operations import queue as operations
+import plugins.plugin_storage as _plugin_storage_application
 from plugins.memory.retaindb import _WriteQueue
 from hermes_constants import get_hermes_home
 
@@ -50,5 +51,5 @@ if role == "backlog":
     assert sorted(messages[0]["index"] for messages in received) == list(range(205))
 else:
     assert received == [[{"content": "payload\x00🙂"}]]
-assert operations.counts(queue.reference)["pending"] == 0
+assert _plugin_storage_application.retain_counts(queue.reference)["pending"] == 0
 print("PG_RETAIN_RESTART_REPLAY_OK")

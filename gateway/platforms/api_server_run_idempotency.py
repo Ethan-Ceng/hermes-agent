@@ -68,7 +68,8 @@ class RunIdempotencyStore:
                 db_path = ":memory:"
         self._db_path = None if db_path == ":memory:" else db_path
         try:
-            self._conn = sqlite3.connect(db_path, check_same_thread=False, timeout=30)
+            from hermes_db.infra.backends.sqlite.connections import open_db
+            self._conn = open_db(db_path, db_label="runs_idempotency.db", row_factory=None, check_same_thread=False, busy_timeout_ms=30000, wal=False)
         except Exception as exc:
             # Docker may create the container object before `docker run` fails to start it (e.g. exit code
             # 125 when the daemon isn't ready, or a timeout mid-pull). That orphan is left in "Created"
@@ -77,7 +78,8 @@ class RunIdempotencyStore:
             logger.warning(
                 "Run idempotency storage is unavailable; falling back to "
                 "process memory, so replay will not survive a restart: %s", exc)
-            self._conn = sqlite3.connect(":memory:", check_same_thread=False)
+            from hermes_db.infra.backends.sqlite.connections import open_db
+            self._conn = open_db(":memory:", db_label="runs_idempotency.db", row_factory=None, check_same_thread=False, wal=False)
             self._db_path = None
         from hermes_cli.db_sqlite_policy import apply_wal_with_fallback
         apply_wal_with_fallback(self._conn, db_label="runs_idempotency.db")
@@ -106,6 +108,18 @@ class RunIdempotencyStore:
         self._conn.commit()
         self._lock = threading.Lock()
         self._tighten_permissions()
+
+    @classmethod
+    def open_existing(cls, *, db_path):
+        """Open the owning API dataset without implicit migration or memory fallback."""
+        from hermes_cli.db_sqlite_policy import open_ready_profile_sqlite
+        store = cls.__new__(cls)
+        store._db_path = str(db_path)
+        store._conn = open_ready_profile_sqlite(db_path, db_label='runs_idempotency.db',
+            ready=_schema_ready, row_factory=None, check_same_thread=False, busy_timeout_ms=30000)
+        store._lock = threading.Lock()
+        store._tighten_permissions()
+        return store
 
     def _tighten_permissions(self) -> None:
         for suffix in ("", "-wal", "-shm") if self._db_path else ():
@@ -255,3 +269,10 @@ class RunIdempotencyStore:
     def close(self) -> None:
         with self._lock:
             self._conn.close()
+
+
+def _schema_ready(conn):
+    columns = {row[1] for row in conn.execute('PRAGMA table_info(run_idempotency)')}
+    required = {'scope', 'idempotency_key', 'fingerprint', 'run_id', 'status_json',
+                'owner_pid', 'owner_started', 'retention_until', 'acknowledged_at', 'created_at', 'updated_at'}
+    return required.issubset(columns)

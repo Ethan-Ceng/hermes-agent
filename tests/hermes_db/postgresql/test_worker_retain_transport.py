@@ -9,9 +9,10 @@ from websockets.sync.server import serve
 
 from agent.runtime_domain_store import WorkerDomainStore
 from agent.runtime_session_store import RuntimeSessionStore, WorkerPersistenceError, WorkerRPC, _OwnerLink
-from hermes_db.domains.plugin_storage.retain.api import WorkerRetainQueueRef
+from plugins.plugin_storage import WorkerRetainQueueRef
 from hermes_db.domains.plugin_storage.retain.postgres.operations import queue as operations
-from hermes_db.integration.retain_transport import PostgresWriteQueue
+import plugins.plugin_storage as _plugin_storage_application
+from plugins.memory.retaindb.transport import PostgresWriteQueue
 from tests.hermes_db.postgresql.test_worker_domain_receipts import assignment
 from tests.waiting import wait_until
 
@@ -60,7 +61,7 @@ def test_websocket_close_preserves_consumer_and_requires_pending_write_reconcili
     reference = WorkerRetainQueueRef(resource, '7' * 64)
     messages = [{'role': 'user', 'content': '持久\x00🙂'}]
     if fault != 'committed_enqueue':
-        operations.enqueue(reference, operations.prepare(reference, 'retained-row', 'u', 'old-remote-session', messages))
+        _plugin_storage_application.retain_enqueue(reference, operations.prepare(reference, 'retained-row', 'u', 'old-remote-session', messages))
 
     class Client:
         base_url, project = 'http://127.0.0.1/test', 'test'
@@ -76,7 +77,7 @@ def test_websocket_close_preserves_consumer_and_requires_pending_write_reconcili
 
     monkeypatch.setattr(threading, 'excepthook', lambda args: faults.append(args.exc_value))
     monkeypatch.setattr(PostgresWriteQueue, '_wait', observed_wait)
-    monkeypatch.setattr('hermes_db.integration.retain_transport.capture_queue', lambda *args: reference)
+    monkeypatch.setattr('plugins.memory.retaindb.transport.capture_queue', lambda *args: reference)
     queue = PostgresWriteQueue(Client(), tmp_path / 'unused.sqlite3', profile_home=pg_store.scope.profile_home)
     try:
         request_id = 'retained-row'

@@ -3,8 +3,9 @@
 from threading import Event
 import pytest
 from plugins.memory import retaindb
-from hermes_db.domains.plugin_storage.retain.api import open_queue, capture_queue
+from plugins.plugin_storage import open_queue, capture_queue
 from hermes_db.domains.plugin_storage.retain.postgres.operations import queue as operations
+import plugins.plugin_storage as _plugin_storage_application
 from hermes_db.tables.retain_queue import pending
 from sqlalchemy import select
 
@@ -41,11 +42,11 @@ def test_actual_provider_sync_turn_uses_pg_and_waits_without_borrowing_connectio
             assert borrowed == 0
             with pg_profiles("two") as peer_home:
                 peer = capture_queue(peer_home, reference.destination_id)
-                assert operations.counts(peer)["pending"] == 0
+                assert _plugin_storage_application.retain_counts(peer)["pending"] == 0
         finally:
             release.set()
             provider.shutdown()
-        receipt = operations.inspect(reference, request_id)
+        receipt = _plugin_storage_application.retain_inspect(reference, request_id)
         assert receipt["status"] == "acknowledged"
         assert receipt["user_id"] is None and receipt["session_id"] is None and receipt["messages_json"] is None
 

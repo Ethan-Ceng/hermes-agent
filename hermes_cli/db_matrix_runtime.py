@@ -7,7 +7,6 @@ from contextvars import ContextVar, copy_context
 import sys
 
 from sqlalchemy.exc import DBAPIError, IntegrityError
-from hermes_db.domains.plugin_storage.matrix.api import unit_of_work
 from hermes_db.errors import RetryableStorageError, StorageBusyError, StorageClosedError, StorageConflictError, StorageWriteError
 
 
@@ -22,14 +21,15 @@ def _body_call(operation, conn, reference, arguments):
         raise kind("Matrix encryption transaction failed") from None
 
 
-def _unit(reference, operation, write, arguments):
+def _unit(reference, operation, write, arguments, unit_of_work):
     with unit_of_work(reference, write=write) as conn:
         return operation(conn, reference, **arguments)
 
 
 class _Transaction:
-    def __init__(self, reference):
+    def __init__(self, reference, unit_of_work):
         self.reference = reference
+        self.unit_of_work = unit_of_work
         self.owner = asyncio.current_task()
         self.pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="matrix-core")
         self.context = copy_context()
@@ -39,7 +39,7 @@ class _Transaction:
         return asyncio.wrap_future(self.pool.submit(self.context.run, function, *args))
 
     def begin(self):
-        self.manager = unit_of_work(self.reference, write=True)
+        self.manager = self.unit_of_work(self.reference, write=True)
         self.conn = self.manager.__enter__()
 
     def end(self, exception):
@@ -47,8 +47,9 @@ class _Transaction:
 
 
 class MatrixRuntime:
-    def __init__(self, reference):
+    def __init__(self, reference, unit_of_work):
         self.reference = reference
+        self.unit_of_work = unit_of_work
         self.closed = False
         self.pending = set()
         self.transactions = set()
@@ -78,7 +79,7 @@ class MatrixRuntime:
         actor = self._actor()
         if actor is not None:
             return await self._wait(actor.submit(_body_call, operation, actor.conn, self.reference, arguments))
-        return await self._wait(asyncio.to_thread(_unit, self.reference, operation, write, arguments))
+        return await self._wait(asyncio.to_thread(_unit, self.reference, operation, write, arguments, self.unit_of_work))
 
     @asynccontextmanager
     async def transaction(self):
@@ -93,7 +94,7 @@ class MatrixRuntime:
             else:
                 await self._wait(actor.submit(savepoint.commit))
             return
-        actor = _Transaction(self.reference)
+        actor = _Transaction(self.reference, self.unit_of_work)
         self.transactions.add(actor)
         token = self.active.set(actor)
         try:

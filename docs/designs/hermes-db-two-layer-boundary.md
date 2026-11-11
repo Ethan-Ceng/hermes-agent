@@ -2,7 +2,7 @@
 
 ## 文档状态
 
-- 状态：`IMPLEMENTING`；2026-11-11用户授权按既有20项计划实施。Task1–14已验证，14/20；Task14完成Rooms附件、Profile与路由应用生命周期分层，下一项Task15，最终验证及独立审查尚未完成。
+- 状态：`IMPLEMENTING`；2026-11-11用户授权按既有20项计划实施。Task1–15已验证，15/20；Task15完成插件/API/真实SDK生命周期，下一项Task16，最终验证及独立审查尚未完成。
 - 日期：2026-11-10；设计基准：`0d8782ba8adb168a86abb6a8e338591d70d03428`。
 - 隔离目录：D:/AI/hermes-db-packages；实施分支refactor/hermes-db-two-layer-boundary。正式D:/AI/hermes-agent仍在90a2987e8c，未切换。
 - 依据：[持久层精简设计](hermes-db-persistence-scope.md)、[已完成实施账本](../plans/hermes-db-persistence-scope-plan.md)、[逐项映射及固定锚点](hermes-db-persistence-scope-map.json)、[统一后端设计](unified-database-backends.md)。本设计不改写这些工作的历史验收。
@@ -229,3 +229,5 @@ dashboard通过既有kanban_db模块读取实际已消费的decorator，不增�
 Kanban事务/文件边界：`hermes_cli/kanban_storage_<workflow>.py`拥有Profile策略、Worker/租约线程、文件准备/发布/清理和post-commit通知。领域`postgres`模块保留具体SQL、快照、CAS、约束、回执及原短事务文件栅栏；应用仍在原连接/锁位置调用。动态读取点位于`kanban_storage_application._KANBAN_MODULES[(topic, operation)]`；测试patch按真实定义迁移。逻辑归档文件入口是`hermes_cli.kanban_storage_transfer`，业务快照/图写入是`hermes_db.domains.kanban.postgres.transfer`。
 
 Rooms应用读取点：`gateway.hosted_room_storage`捕获Profile/target及选择后端；`gateway.hosted_room_attachment_store/files/reads`持有原文件gate、内容发布/回收和读取两侧授权重核，`gateway.hosted_room_policy_store`协调日志cursor。TUI的`hosted_room_router_storage`保留原RouterCallLifecycle，具体同连接CAS/TTL与release SQL位于`domains/rooms/postgres/router_claims.py`。RoomStoreRef/RoomResource/metadata业务合同原位保留。
+
+插件获取读取点：已发布 `plugins.plugin_storage` 持有 Profile/Worker、具体 Matrix/Discord wrapper 及 portable provider；SQL 和记录合同留在业务域。Matrix actor/executor 在 `hermes_cli.db_matrix_runtime`，业务 Store 接收捕获 reference 和真实 provider。API 获取在 `hermes_cli.db_api`，Profile Run 生命周期在 Gateway；OwnedApiStore 留在业务域。Native API、portable、Discord、Retain、Matrix 普通打开只检查既有 Schema；创建/升级由 Profile 生命周期、插件启用/setup 或各插件显式 db upgrade 执行。Matrix 原 SDK 升级表只用于显式升级；缺失/旧 Schema 拒绝普通打开并保留旧 pickle。

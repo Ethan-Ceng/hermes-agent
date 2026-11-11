@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`IMPLEMENTING`；阶段：插件与真实SDK生命周期；当前实施任务：Task15；完成：14 / 20；阻塞：无；日期2026-11-11。
+- 整体状态：`IMPLEMENTING`；阶段：消费者与层次门禁收口；当前实施任务：Task16；完成：15 / 20；阻塞：无；日期2026-11-11。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 验证策略修订：按本轮分层风险精简（2026-11-11用户指示）
@@ -1133,7 +1133,7 @@ Rooms领域保留日志/策略/附件元数据，文件与路由生命周期归G
 
 ## Task 15：闭合插件存储、API辅助库及真实SDK生命周期
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -1178,6 +1178,7 @@ Rooms领域保留日志/策略/附件元数据，文件与路由生命周期归G
 - `Test-Native -Files @('tests/gateway/test_matrix_sqlite_schema_lifecycle.py','tests/gateway/test_matrix_crypto_store_per_profile.py','tests/gateway/test_matrix_plugin_setup.py','tests/hermes_db/contracts/test_matrix_close.py','tests/hermes_db/contracts/test_native_http_turn.py')`；预期完整命令exit0，实际计数/skip按本轮收集记录。
 - `Test-NativeLinux -Files @('tests/gateway/test_matrix_sqlite_schema_lifecycle.py','tests/gateway/test_matrix_crypto_store_per_profile.py','tests/gateway/test_matrix_plugin_setup.py','tests/hermes_db/contracts/test_matrix_close.py','tests/hermes_db/contracts/test_native_http_turn.py')`；预期完整命令exit0，实际计数/skip按本轮收集记录。
 - `Test-Pg -Files @('tests/hermes_db/postgresql/test_matrix_sdk_flows.py','tests/hermes_db/postgresql/test_matrix_sdk_concurrency.py','tests/hermes_db/postgresql/test_matrix_close.py','tests/hermes_db/postgresql/test_single_backend.py')`；预期完整命令exit0，实际计数/skip按本轮收集记录。
+- 两端附加直接受影响的5个Native合同：tests/gateway/test_api_sqlite_schema_lifecycle.py、tests/plugins/test_plugin_schema_lifecycle.py、tests/plugins/test_portable_storage.py、tests/hermes_db/contracts/test_plugins_sqlite_optional_drivers.py、tests/hermes_db/contracts/test_discord_sqlite_optional_drivers.py。验证实际新PID、普通打开0DDL、缺失Schema拒绝及原DDL初始化原子性；不扩大到旧业务目录。
 - `Check-Storage`；固定61+4路径/hash、DB文件预算、接口/SQL与读取点审计写回实际命令和结果。结构审计不替代业务测试。
 
 ### 完成条件
@@ -1186,11 +1187,14 @@ Rooms领域保留日志/策略/附件元数据，文件与路由生命周期归G
 
 ### 执行结果
 
-未实施；planning不计完成。
+启动：Task14本地commit91af47415bb0bcb7350d278bf61639d5faf69948；14/20。11分区hash全部验证，当前Task主责/读取点按索引展开。依用户精简策略，仅验证当前插件/SDK/API边界，历史PG深度结果不计本轮成果。
 
 ### 验证证据
 
-未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
+必需Native两端10文件：Windows12passed/6Linux-only skips，Linux18passed；PG4文件8passed。SDK当前等待方式4passed，旧模拟协议直接读取点14passed；全部实际exit0。16check及DB/插件边界、生成合同、空白exit0。命令/解释器/cwd/home/runtime/源码身份、先失败与修正、验证源差异及未验证项见[Task15证据](../designs/hermes-db-two-layer-task15.json)。
+
+
+结算：插件Profile/Worker与具体应用wrapper归已发布facade，Matrix actor归应用，业务保留SQL/资源/SDK合同。Native辅助库及真实SDK普通打开不执行DDL，创建/升级有实际显式入口；缺失Schema保留旧pickle，原事务/close/unknown commit语义保留。195原测试/504断言完整，27断言仅实际读取点改变；72方法AST证明，2处旧launch参数按明确生命周期移除。原SQL无删改，新增只读readiness5种7处；65固定资源/11hash/DB346/root11/31/29有效。移出路径不计整体代码净减少。立即本地commit，Task16启动记录hash；完成15/20。
 
 ## Task 16：收口所有消费者、patch、文档与层次检查
 
@@ -1482,14 +1486,14 @@ wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-two-layer-acceptance-final/sourc
 
 ### 当前执行结果
 
-- 当前实施：Task1–14已验证，14/20；Task14本地提交后进入Task15。
+- 当前实施：Task1–15已验证，15/20；Task15本地提交后进入Task16。
 - Task1–7证据见各Task及对应诊断记录。最终完整冻结批次、SDK及独立审查尚未完成。
 - 规划结构/基准/本地链接及文档静态自检：实际命令与结果写入下方准备记录。
 - 代码审查：本轮尚未执行；旧APPROVED只属于已完成持久层职责精简。
 
 ### 未通过项目与最终状态
 
-当前为`IMPLEMENTING`，Task1–14已完成，下一项Task15，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
+当前为`IMPLEMENTING`，Task1–15已完成，下一项Task16，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
 
 ## 规划准备记录与恢复
 

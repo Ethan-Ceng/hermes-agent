@@ -13,7 +13,8 @@ class BlockDrivers(importlib.abc.MetaPathFinder):
         if fullname.split('.')[0] in {'sqlalchemy','psycopg','alembic'}:
             raise ImportError('PG driver blocked in standalone plugin contract')
 sys.meta_path.insert(0,BlockDrivers())
-from plugins.plugin_storage import plugin_store,PluginStorageConflict
+from plugins.plugin_storage import plugin_store, initialize_plugin_store,PluginStorageConflict
+initialize_plugin_store('example')
 saved=plugin_store('example').put('key\x00',{'value':'零\x00🙂'},expected_revision=0)
 store=plugin_store('example')
 assert store.get(saved.key)==saved

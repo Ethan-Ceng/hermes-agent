@@ -185,9 +185,9 @@ class _WriteQueue:
     """SQLite-backed async write queue. Survives crashes — pending rows replay on startup."""
 
     def __new__(cls, client, db_path, *, profile_home=None):
-        from hermes_cli.db_setup import storage_backend
+        from plugins.plugin_storage import selected_storage_backend as storage_backend
         if cls is _WriteQueue and storage_backend(profile_home) == "postgresql":
-            from hermes_db.integration.retain_transport import PostgresWriteQueue
+            from plugins.memory.retaindb.transport import PostgresWriteQueue
             return PostgresWriteQueue(client, db_path, profile_home=profile_home)
         return object.__new__(cls)
 
@@ -196,25 +196,26 @@ class _WriteQueue:
         self._profile_home = Path(profile_home) if profile_home is not None else get_hermes_home()
         self._client, self._db_path, self._q = client, db_path, queue.Queue()
         self._thread = spawn_context_thread(self._loop, name="retaindb-writer")
-        db_path.parent.mkdir(parents=True, exist_ok=True)
         self._local = threading.local()  # one cached connection per thread, all tracked in _connections
         self._connections: set[sqlite3.Connection] = set()
         self._connections_lock, self._shutdown_lock, self._shutdown = threading.Lock(), threading.Lock(), False
-        conn = self._execute("CREATE TABLE IF NOT EXISTS pending (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT, "
-                             "session_id TEXT, messages_json TEXT, created_at TEXT, last_error TEXT)").connection
+        conn = self._get_conn()
         self._thread.start()
         replay = conn.execute("SELECT id, user_id, session_id, messages_json FROM pending ORDER BY id ASC LIMIT 200").fetchall()
         for row_id, user_id, session_id, msgs_json in replay:  # rows left from a previous crash
             self._q.put((row_id, user_id, session_id, json.loads(msgs_json)))
 
     def _get_conn(self) -> sqlite3.Connection:
-        from hermes_cli.db_setup import storage_backend
+        from plugins.plugin_storage import selected_storage_backend as storage_backend
         if storage_backend(self._profile_home) != "sqlite":
-            from hermes_db.errors import StorageConfigurationError
+            from plugins.plugin_storage import StorageConfigurationError
             raise StorageConfigurationError("Captured RetainDB SQLite backend changed; reopen its owning provider")
         conn = getattr(self._local, "conn", None)
         if conn is None:
-            conn = self._local.conn = sqlite3.connect(str(self._db_path), timeout=30, check_same_thread=False)
+            from plugins.plugin_storage import open_plugin_database
+            from .storage_schema import schema_ready
+            conn = self._local.conn = open_plugin_database(self._db_path, db_label="RetainDB queue",
+                ready=schema_ready, profile_home=self._profile_home, busy_timeout_ms=30000, wal=False, check_same_thread=False)
             conn.row_factory = sqlite3.Row
             with self._connections_lock:
                 self._connections.add(conn)
@@ -342,6 +343,11 @@ class RetainDBMemoryProvider(MemoryProvider):
     def initialize(self, session_id: str, **kwargs) -> None:
         from .initialization import initialize
         return initialize(self, session_id, **kwargs)
+
+
+    def on_profile_created(self, profile_name, hermes_home):
+        from .storage_schema import initialize_queue_schema
+        initialize_queue_schema(profile_home=hermes_home)
 
     def system_prompt_block(self) -> str:
         project = self._client.project if self._client else "retaindb"

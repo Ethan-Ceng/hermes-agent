@@ -6,13 +6,13 @@ import logging
 import threading
 import uuid
 from websockets.exceptions import WebSocketException
-from agent.memory_provider import spawn_context_thread
-from agent.runtime_session_store import WorkerPersistenceError
-from agent.redact import redact_sensitive_text
-from hermes_cli.db_setup import _owning_profile
-from hermes_db.domains.plugin_storage.retain.api import capture_queue
-from hermes_db.errors import StorageConfigurationError, StorageError, UnknownCommitError
-from hermes_db.domains.plugin_storage.retain.postgres.operations import queue as operations
+from plugins.plugin_storage import spawn_plugin_thread as spawn_context_thread
+from plugins.plugin_storage import WorkerPersistenceError
+from plugins.plugin_storage import redact_storage_error
+from plugins.plugin_storage import plugin_profile_scope as _owning_profile
+from plugins.plugin_storage import capture_queue
+from plugins.plugin_storage import StorageConfigurationError, StorageError, UnknownCommitError
+from plugins import plugin_storage as operations
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class PostgresWriteQueue:
         self._client = client
         self._wake, self._stop = threading.Event(), threading.Event()
         self._shutdown_lock, self._shutdown = threading.Lock(), False
-        counts = operations.counts(self.reference)
+        counts = operations.retain_counts(self.reference)
         if counts["other_destination"]:
             logger.warning("RetainDB retains pending requests for another endpoint/project; restore that destination to deliver them")
         with _owning_profile(self.reference.profile_home):
@@ -43,9 +43,9 @@ class PostgresWriteQueue:
             if self._shutdown:
                 return
             request_id = str(uuid.uuid4())
-            record = operations.prepare(self.reference, request_id, user_id, session_id, messages)
+            record = operations.retain_prepare(self.reference, request_id, user_id, session_id, messages)
             try:
-                operations.enqueue(self.reference, record)
+                operations.retain_enqueue(self.reference, record)
             except (UnknownCommitError, WorkerPersistenceError, OSError, WebSocketException) as error:
                 error.request_id = request_id
                 raise
@@ -54,19 +54,19 @@ class PostgresWriteQueue:
 
     def _send(self, row):
         request_id, token = row["request_id"], row["claim_token"]
-        if not operations.renew(self.reference, request_id, token):
+        if not operations.retain_renew(self.reference, request_id, token):
             return
         # A replayed renewal receipt is historical; only a fresh PG read admits this HTTP attempt.
-        if not operations.owns_claim(self.reference, request_id, token):
+        if not operations.retain_owns_claim(self.reference, request_id, token):
             return
         try:
             self._client.ingest_session(row["user_id"], row["session_id"], json.loads(row["messages_json"]))
         except (RuntimeError, OSError, ValueError) as error:
-            safe = redact_sensitive_text(str(error), force=True, redact_url_credentials=True)
+            safe = redact_storage_error(str(error))
             logger.warning("RetainDB ingest failed; pending row retained: %s", safe)
-            operations.fail(self.reference, request_id, token, safe)
+            operations.retain_fail(self.reference, request_id, token, safe)
         else:
-            operations.acknowledge(self.reference, request_id, token)
+            operations.retain_acknowledge(self.reference, request_id, token)
 
     def _wait(self):
         self._wake.wait(timeout=2)
@@ -75,7 +75,7 @@ class PostgresWriteQueue:
     def _loop(self):
         while True:
             try:
-                row = operations.claim(self.reference)
+                row = operations.retain_claim(self.reference)
                 if row is not None:
                     self._send(row)
                     continue
@@ -97,7 +97,7 @@ class PostgresWriteQueue:
             logger.warning("RetainDB writer is still completing a request; unconfirmed work remains durable")
         else:
             try:
-                counts = operations.counts(self.reference)
+                counts = operations.retain_counts(self.reference)
             except (StorageError, WorkerPersistenceError, OSError, WebSocketException):
                 logger.exception("RetainDB closed without proving its pending count")
             else:

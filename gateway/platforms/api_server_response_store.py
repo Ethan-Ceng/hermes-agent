@@ -61,9 +61,11 @@ class ResponseStore:
                 db_path = str(get_hermes_home() / "response_store.db")
         self._db_path: Optional[str] = db_path if db_path != ":memory:" else None
         try:
-            self._conn = sqlite3.connect(db_path, check_same_thread=False)
+            from hermes_db.infra.backends.sqlite.connections import open_db
+            self._conn = open_db(db_path, db_label="response_store.db", row_factory=None, check_same_thread=False, wal=False)
         except Exception:
-            self._conn = sqlite3.connect(":memory:", check_same_thread=False)
+            from hermes_db.infra.backends.sqlite.connections import open_db
+            self._conn = open_db(":memory:", db_label="response_store.db", row_factory=None, check_same_thread=False, wal=False)
             self._db_path = None
         # Shared WAL-fallback so response_store.db degrades gracefully on NFS/SMB/FUSE homes.
         from hermes_cli.db_sqlite_policy import apply_wal_with_fallback
@@ -97,6 +99,26 @@ class ResponseStore:
         self._evict_and_commit()
         # Conversation history lives here: owner-only perms, once at init (not per commit).
         self._tighten_file_permissions()
+
+    @classmethod
+    def open_existing(cls, *, db_path, max_size=MAX_STORED_RESPONSES, max_identities=None):
+        """Ordinary application acquisition checks existing Schema and never runs DDL."""
+        from hermes_cli.db_sqlite_policy import open_ready_profile_sqlite
+        store = cls.__new__(cls)
+        store._lock = threading.RLock()
+        store._max_size, store._max_identities = max_size, max_identities
+        store._db_path = str(db_path)
+        store._conn = open_ready_profile_sqlite(db_path, db_label='response_store.db',
+            ready=_schema_ready, row_factory=None, check_same_thread=False)
+        try:
+            store._mark_settled('1', ())
+            store._settle_terminal_admissions()
+            store._evict_and_commit()
+            store._tighten_file_permissions()
+        except BaseException:
+            store._conn.close()
+            raise
+        return store
 
     def atomically(self, fn, /, *args, **kwargs):
         """Run ``fn`` (a sequence of this store's calls) as one unit no other caller interleaves."""
@@ -184,7 +206,8 @@ class ResponseStore:
         terminal = []
         ids = list(pending)
         try:
-            with closing(sqlite3.connect(read_only_db_uri(state_db), uri=True)) as canon:
+            from hermes_db.infra.backends.sqlite.connections import open_uri
+            with closing(open_uri(read_only_db_uri(state_db), db_label="response canonical state", row_factory=None, wal=False)) as canon:
                 for start in range(0, len(ids), 500):
                     chunk = ids[start:start + 500]
                     marks = ','.join('?' * len(chunk))
@@ -341,3 +364,15 @@ class ResponseStore:
     def __len__(self) -> int:
         row = self._conn.execute("SELECT COUNT(*) FROM responses").fetchone()
         return row[0] if row else 0
+
+
+def _schema_ready(conn):
+    required = {
+        'responses': {'response_id', 'data', 'accessed_at'},
+        'conversations': {'name', 'response_id'},
+        'response_keys': {'request_key', 'fingerprint', 'created_at', 'model_json', 'settled_at', 'response_id'},
+        'response_admissions': {'request_key', 'admission_id'},
+        'response_output_order': {'request_key', 'item_id', 'output_index'},
+    }
+    return all(columns.issubset({row[1] for row in conn.execute(f'PRAGMA table_info({table})')})
+               for table, columns in required.items())

@@ -10,7 +10,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network, pytest.mark.pl
 async def test_real_olm_account_device_and_sync_token_reopen_on_pg(pg_profiles):
     from mautrix.crypto import OlmAccount
     from mautrix.types import DeviceID, SyncToken
-    from hermes_db.domains.plugin_storage.matrix.postgres.crypto import PostgresCryptoStore
+    from plugins.plugin_storage import matrix_crypto_store as PostgresCryptoStore
     arguments = dict(account_id="@bot:matrix.test", device_id="DEVICE", homeserver="https://matrix.test", pickle_key="isolated-test-key")
     with pg_profiles("one"):
         store = PostgresCryptoStore(**arguments)

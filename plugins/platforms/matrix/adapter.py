@@ -777,8 +777,6 @@ def ensure_matrix_deps() -> bool:
         from plugins.platforms.matrix.adapter_storage import ensure_pg_dependencies
         return ensure_pg_dependencies(_import, globals())
 
-    # A complete install (module-level imports already bound the types) needs no sync; only a
-    # partial one goes through ensure_and_bind, which rebinds after the install.
     if extras.missing("matrix") and not extras.ensure_and_bind("matrix", _import, globals()):
         logger.warning(
             "Matrix: required packages not installed or need a restart. "
@@ -3105,6 +3103,9 @@ def interactive_setup() -> None:
 
             print_info("Preparing Matrix dependencies...")
             sync_venv(["matrix"], explicit=True)
+            if want_e2ee:
+                from .storage_schema import setup_crypto_schema
+                setup_crypto_schema()
             print_success("Matrix dependencies prepared. Restart Hermes to use them.")
         except Exception as exc:
             print_warning(f"Matrix dependencies could not be prepared: {exc}")
@@ -3157,6 +3158,8 @@ def _is_connected(config) -> bool:
 
 
 def register(ctx) -> None:
+    from .storage_schema import register_commands
+    register_commands(ctx)
     from .adapter_hint import PLATFORM_HINT
     from .send_targets import SEND_ENTRY_KWARGS
     from .dashboard_card import DASHBOARD_CARD

@@ -5,9 +5,10 @@ import subprocess
 import sys
 import pytest
 from sqlalchemy import select, update
-from hermes_db.domains.plugin_storage.retain.api import open_queue
+from plugins.plugin_storage import open_queue
 from hermes_db.errors import UnknownCommitError
 from hermes_db.domains.plugin_storage.retain.postgres.operations import queue as operations
+import plugins.plugin_storage as _plugin_storage_application
 from hermes_db.tables.retain_queue import pending
 from plugins.memory.retaindb import _WriteQueue
 from tests.hermes_db.postgresql.test_retain_queue_worker import Client
@@ -38,14 +39,14 @@ def test_remote_success_without_local_ack_replays_identical_data_after_restart(p
             wait_until(lambda: len(calls) == 1, what="RetainDB remote accepted request")
         finally:
             queue.shutdown()
-        assert operations.counts(queue.reference)["pending"] == 1
+        assert _plugin_storage_application.retain_counts(queue.reference)["pending"] == 1
         with open_queue(queue.reference, write=True) as conn:
             row = conn.execute(select(pending).where(operations.scope(queue.reference))).mappings().one()
             request_id = row["request_id"]
             # Model elapsed crash-lease time without sleeping for the production TTL.
             conn.execute(update(pending).where(operations.key(queue.reference, request_id)).values(lease_until=0))
         replay(home, "replay")
-        assert operations.inspect(queue.reference, request_id)["status"] == "acknowledged"
+        assert _plugin_storage_application.retain_inspect(queue.reference, request_id)["status"] == "acknowledged"
 
 
 def test_restart_drains_all_205_persisted_rows_not_only_first_200(pg_profiles):
@@ -54,7 +55,7 @@ def test_restart_drains_all_205_persisted_rows_not_only_first_200(pg_profiles):
         bootstrap.shutdown()
         reference = bootstrap.reference
         for index in range(205):
-            operations.enqueue(reference, operations.prepare(reference, f"backlog-{index:03d}", "user", "session", [{"index": index}]))
-        assert operations.counts(reference)["pending"] == 205
+            _plugin_storage_application.retain_enqueue(reference, operations.prepare(reference, f"backlog-{index:03d}", "user", "session", [{"index": index}]))
+        assert _plugin_storage_application.retain_counts(reference)["pending"] == 205
         replay(home, "backlog")
-        assert operations.counts(reference) == dict(pending=0, other_destination=0, acknowledged=205)
+        assert _plugin_storage_application.retain_counts(reference) == dict(pending=0, other_destination=0, acknowledged=205)

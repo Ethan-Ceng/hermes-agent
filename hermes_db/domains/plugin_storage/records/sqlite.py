@@ -1,40 +1,15 @@
 """Portable plugin records on native SQLite; no optional PG dependency required."""
 
-from contextlib import contextmanager
 import time
-from hermes_cli.db_setup import _owning_profile, storage_backend
-from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
-from hermes_db.infra.backends.sqlite.transactions import write_txn
-from hermes_constants import mkdir_under_hermes_home
-from hermes_db.errors import StorageConfigurationError
 from plugins import plugin_storage_types as contract
 
 
 class SQLitePluginStore:
-    def __init__(self, plugin_id, namespace, profile_home):
+    def __init__(self, plugin_id, namespace, profile_home, *, connection):
         self.profile_home, self.namespace = profile_home, namespace
         self.path = profile_home / "plugin-data" / plugin_id / "portable.db"
-        with self._connection(write=True) as conn:
-            conn.execute("CREATE TABLE IF NOT EXISTS plugin_namespaces(namespace TEXT PRIMARY KEY, revision INTEGER NOT NULL DEFAULT 0)")
-            conn.execute("CREATE TABLE IF NOT EXISTS plugin_records(namespace TEXT NOT NULL, key BLOB NOT NULL, value BLOB NOT NULL, "
-                "revision INTEGER NOT NULL, expires_at REAL, PRIMARY KEY(namespace,key), FOREIGN KEY(namespace) REFERENCES plugin_namespaces(namespace))")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_plugin_records_expiry ON plugin_records(namespace,expires_at)")
+        self._connection = connection
 
-    @contextmanager
-    def _connection(self, *, write=False):
-        with _owning_profile(self.profile_home):
-            if storage_backend(self.profile_home) != "sqlite":
-                raise StorageConfigurationError("Captured SQLite plugin backend changed; reopen its owning store")
-            mkdir_under_hermes_home(self.path.parent)
-            conn = open_db(self.path, db_label="plugin portable storage", foreign_keys=True)
-            try:
-                if write:
-                    with write_txn(conn):
-                        yield conn
-                else:
-                    yield conn
-            finally:
-                conn.close()
 
     def get(self, key):
         key = contract.validate_key(key)
@@ -94,3 +69,15 @@ class SQLitePluginStore:
         with self._connection(write=True) as conn:
             return conn.execute("DELETE FROM plugin_records WHERE namespace=? AND key IN (SELECT key FROM plugin_records WHERE namespace=? "
                 "AND expires_at<=? ORDER BY key LIMIT ?)", (self.namespace, self.namespace, time.time(), limit)).rowcount
+
+
+def initialize_schema(conn):
+    conn.execute("CREATE TABLE IF NOT EXISTS plugin_namespaces(namespace TEXT PRIMARY KEY, revision INTEGER NOT NULL DEFAULT 0)")
+    conn.execute("CREATE TABLE IF NOT EXISTS plugin_records(namespace TEXT NOT NULL, key BLOB NOT NULL, value BLOB NOT NULL, "
+        "revision INTEGER NOT NULL, expires_at REAL, PRIMARY KEY(namespace,key), FOREIGN KEY(namespace) REFERENCES plugin_namespaces(namespace))")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_plugin_records_expiry ON plugin_records(namespace,expires_at)")
+
+
+def schema_ready(conn):
+    tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    return {'plugin_namespaces', 'plugin_records'}.issubset(tables)

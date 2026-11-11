@@ -410,7 +410,6 @@
       "category": "entry-bridge",
       "reason": "Original owner/backend or Worker protocol dispatch at an API entry; no SQL workflow depends on a full application store.",
       "consumers": [
-        "hermes_db/domains/plugin_storage/retain/api.py",
         "hermes_db/domains/verification/api.py"
       ]
     },
@@ -754,12 +753,7 @@
       "category": "entry-bridge",
       "reason": "Original profile secret/config binding at API reacquisition or Native adapter entry; no lower SQL workflow reads CLI configuration.",
       "consumers": [
-        "hermes_db/backends/sqlite/plugin_storage.py",
         "hermes_db/domains/metrics/api.py",
-        "hermes_db/domains/plugin_storage/discord/api.py",
-        "hermes_db/domains/plugin_storage/matrix/api.py",
-        "hermes_db/domains/plugin_storage/records/api.py",
-        "hermes_db/domains/plugin_storage/retain/api.py",
         "hermes_db/domains/rooms/api.py"
       ]
     },
@@ -769,7 +763,6 @@
       "reason": "Original owner/backend or Worker protocol dispatch at an API entry; no SQL workflow depends on a full application store.",
       "consumers": [
         "hermes_db/domains/cron/api.py",
-        "hermes_db/domains/plugin_storage/matrix/api.py",
         "hermes_db/domains/verification/api.py"
       ]
     },
@@ -778,7 +771,6 @@
       "category": "entry-bridge",
       "reason": "Original owner/backend or Worker protocol dispatch at an API entry; no SQL workflow depends on a full application store.",
       "consumers": [
-        "hermes_db/backends/sqlite/plugin_storage.py",
         "hermes_db/domains/kanban/api.py",
         "hermes_db/domains/rooms/api.py"
       ]
@@ -965,14 +957,6 @@
       ]
     },
     {
-      "target": "hermes_cli.db_sqlite_policy.open_profile_sqlite",
-      "category": "sqlite-bridge",
-      "reason": "Existing SQLite plugin adapter obtains captured application WAL policy; ordinary technical open has no Profile discovery. Business adapter relocation/lifecycle remains Task15.",
-      "consumers": [
-        "hermes_db/backends/sqlite/plugin_storage.py"
-      ]
-    },
-    {
       "target": "hermes_cli.timefmt.EPOCH_MAX",
       "category": "shared-pure",
       "reason": "Actual shared profile-name normalization or bounded epoch conversion; no configuration discovery or data I/O.",
@@ -1009,22 +993,6 @@
       ]
     },
     {
-      "target": "hermes_constants.get_hermes_home",
-      "category": "infrastructure",
-      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
-      "consumers": [
-        "hermes_db/domains/plugin_storage/matrix/postgres/crypto.py"
-      ]
-    },
-    {
-      "target": "hermes_constants.mkdir_under_hermes_home",
-      "category": "infrastructure",
-      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
-      "consumers": [
-        "hermes_db/backends/sqlite/plugin_storage.py"
-      ]
-    },
-    {
       "target": "hermes_constants.parse_reasoning_effort",
       "category": "infrastructure",
       "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
@@ -1038,14 +1006,6 @@
       "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
       "consumers": [
         "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
-      ]
-    },
-    {
-      "target": "hermes_cli.db_sessions._owner_only",
-      "category": "entry-bridge",
-      "reason": "Existing selected-backend/Worker entry dispatch only; no lower SQL workflow may acquire a resource or select application composition. Task5 moves this same named entry bridge to its real application owner; no consumer is added.",
-      "consumers": [
-        "hermes_db/domains/plugin_storage/matrix/api.py"
       ]
     },
     {
@@ -2521,10 +2481,6 @@
       "consumers": [
         "hermes_db/domains/kanban/api.py",
         "hermes_db/domains/metrics/api.py",
-        "hermes_db/domains/plugin_storage/discord/api.py",
-        "hermes_db/domains/plugin_storage/matrix/api.py",
-        "hermes_db/domains/plugin_storage/records/api.py",
-        "hermes_db/domains/plugin_storage/retain/api.py",
         "hermes_db/domains/rooms/api.py"
       ]
     },
@@ -2731,7 +2687,7 @@
       "category": "shared-pure",
       "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
       "consumers": [
-        "hermes_db/backends/sqlite/plugin_storage.py",
+        "hermes_db/domains/plugin_storage/records/sqlite.py",
         "hermes_db/domains/plugin_storage/records/postgres/store.py"
       ]
     },
@@ -2740,7 +2696,7 @@
       "category": "shared-pure",
       "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
       "consumers": [
-        "hermes_db/backends/sqlite/plugin_storage.py",
+        "hermes_db/domains/plugin_storage/records/sqlite.py",
         "hermes_db/domains/plugin_storage/records/postgres/store.py"
       ]
     },
@@ -2749,7 +2705,7 @@
       "category": "shared-pure",
       "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
       "consumers": [
-        "hermes_db/backends/sqlite/plugin_storage.py",
+        "hermes_db/domains/plugin_storage/records/sqlite.py",
         "hermes_db/domains/plugin_storage/records/postgres/store.py"
       ]
     },
@@ -2758,7 +2714,7 @@
       "category": "shared-pure",
       "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
       "consumers": [
-        "hermes_db/backends/sqlite/plugin_storage.py",
+        "hermes_db/domains/plugin_storage/records/sqlite.py",
         "hermes_db/domains/plugin_storage/records/postgres/store.py"
       ]
     },
@@ -2767,7 +2723,7 @@
       "category": "shared-pure",
       "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
       "consumers": [
-        "hermes_db/backends/sqlite/plugin_storage.py",
+        "hermes_db/domains/plugin_storage/records/sqlite.py",
         "hermes_db/domains/plugin_storage/records/postgres/store.py"
       ]
     },
@@ -2776,9 +2732,8 @@
       "category": "shared-pure",
       "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
       "consumers": [
-        "hermes_db/backends/sqlite/plugin_storage.py",
-        "hermes_db/domains/plugin_storage/discord/postgres/operations/recovery.py",
-        "hermes_db/domains/plugin_storage/records/postgres/store.py"
+        "hermes_db/domains/plugin_storage/records/sqlite.py",
+        "hermes_db/domains/plugin_storage/discord/postgres/operations/recovery.py"
       ]
     },
     {
@@ -2786,9 +2741,8 @@
       "category": "shared-pure",
       "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
       "consumers": [
-        "hermes_db/backends/sqlite/plugin_storage.py",
-        "hermes_db/domains/plugin_storage/discord/postgres/operations/recovery.py",
-        "hermes_db/domains/plugin_storage/records/postgres/store.py"
+        "hermes_db/domains/plugin_storage/records/sqlite.py",
+        "hermes_db/domains/plugin_storage/discord/postgres/operations/recovery.py"
       ]
     },
     {
@@ -2796,8 +2750,7 @@
       "category": "shared-pure",
       "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
       "consumers": [
-        "hermes_db/backends/sqlite/plugin_storage.py",
-        "hermes_db/domains/plugin_storage/records/postgres/store.py"
+        "hermes_db/domains/plugin_storage/records/sqlite.py"
       ]
     },
     {
@@ -2805,8 +2758,7 @@
       "category": "shared-pure",
       "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
       "consumers": [
-        "hermes_db/backends/sqlite/plugin_storage.py",
-        "hermes_db/domains/plugin_storage/records/postgres/store.py"
+        "hermes_db/domains/plugin_storage/records/sqlite.py"
       ]
     },
     {
@@ -2814,8 +2766,7 @@
       "category": "shared-pure",
       "reason": "Existing independent plugin storage value protocol and canonical quota error; preserves published wire/revision contracts without extending plugin_api.json or boundary baseline.",
       "consumers": [
-        "hermes_db/backends/sqlite/plugin_storage.py",
-        "hermes_db/domains/plugin_storage/records/postgres/store.py"
+        "hermes_db/domains/plugin_storage/records/sqlite.py"
       ]
     },
     {

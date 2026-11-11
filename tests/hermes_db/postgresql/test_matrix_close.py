@@ -20,7 +20,7 @@ class _CloseDeadline(BaseException):
 @pytest.mark.asyncio
 @pytest.mark.parametrize('cancel_close', [False, True])
 async def test_sdk_disconnect_drains_cancelled_pg_write_and_preserves_its_commit(pg_profiles, cancel_close):
-    from hermes_db.domains.plugin_storage.matrix.postgres import runtime as matrix_runtime
+    from hermes_cli import db_matrix_runtime as matrix_runtime
     from hermes_db.domains.plugin_storage.matrix.postgres.operations.accounts import put_next_batch
     from plugins.platforms.matrix.adapter import MatrixAdapter
     from plugins.platforms.matrix.adapter_storage import _StoreLifecycle
@@ -39,7 +39,7 @@ async def test_sdk_disconnect_drains_cancelled_pg_write_and_preserves_its_commit
 
         def driver():
             try:
-                return matrix_runtime._unit(store.reference, write, True, {})
+                return matrix_runtime._unit(store.reference, write, True, {}, store.runtime.unit_of_work)
             finally:
                 driver_finished.set()
 

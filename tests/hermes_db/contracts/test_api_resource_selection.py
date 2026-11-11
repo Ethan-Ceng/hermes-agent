@@ -68,7 +68,7 @@ def test_routed_responses_share_native_storage_but_close_only_owned_handles(nati
 
 
 def test_pg_response_acquisition_refusal_never_uses_a_file_store(core_pair, unavailable_native):
-    from hermes_db.integration.api_resources import open_response_store
+    from hermes_cli.db_api import open_response_store
     home = _configure(core_pair[0])
     with pytest.raises(StorageError):
         open_response_store(home, _no_sqlite)

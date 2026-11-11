@@ -3,7 +3,6 @@ from sqlalchemy import and_, delete, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 from hermes_db.tables.plugins import namespaces, records
 from plugins import plugin_storage_types as contract
-from hermes_db.domains.plugin_storage.records.api import capture_plugin, open_plugin
 
 def scope(table, reference):
     return and_(table.c.store_id == reference.store_id, table.c.plugin_id == reference.plugin_id, table.c.namespace == reference.namespace)
@@ -58,38 +57,3 @@ def prune(conn, reference, limit):
     lock_namespace(conn, reference)
     keys = list(conn.scalars(select(records.c.key).where(scope(records, reference), records.c.expires_at <= now(conn)).order_by(records.c.key).limit(limit)))
     return 0 if not keys else conn.execute(delete(records).where(scope(records, reference), records.c.key.in_(keys))).rowcount
-
-class PostgresPluginStore:
-
-    def __init__(self, plugin_id, namespace, profile_home):
-        self.reference = capture_plugin(plugin_id, namespace, profile_home)
-
-    def get(self, key):
-        key = contract.validate_key(key)
-        with open_plugin(self.reference) as conn:
-            return get(conn, self.reference, key)
-
-    def put(self, key, value, *, expected_revision=None, ttl_seconds=None):
-        key, data = (contract.validate_key(key), contract.encode_value(value))
-        contract.validate_revision(expected_revision)
-        contract.validate_ttl(ttl_seconds)
-        with open_plugin(self.reference, write=True) as conn:
-            return put(conn, self.reference, key, data, expected_revision, ttl_seconds)
-
-    def delete(self, key, *, expected_revision=None):
-        key = contract.validate_key(key)
-        contract.validate_revision(expected_revision)
-        with open_plugin(self.reference, write=True) as conn:
-            return remove(conn, self.reference, key, expected_revision)
-
-    def scan(self, *, after=None, prefix='', limit=100):
-        after = None if after is None else contract.validate_key(after)
-        prefix = contract.validate_key(prefix, empty=True)
-        contract.validate_limit(limit)
-        with open_plugin(self.reference) as conn:
-            return scan(conn, self.reference, after, prefix, limit)
-
-    def prune_expired(self, *, limit=200):
-        contract.validate_limit(limit)
-        with open_plugin(self.reference, write=True) as conn:
-            return prune(conn, self.reference, limit)

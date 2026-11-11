@@ -25,6 +25,10 @@ def initialize_new_profile_storage(profile_home: Path) -> None:
         if not (profile_home / "projects.db").exists():
             projects_db.initialize_projects(profile_home=profile_home)
         initialize_cron_stores()
+        from plugins.plugin_storage import initialize_selected_plugin_stores
+        initialize_selected_plugin_stores(profile_home)
+        _initialize_kanban_stores()
+        _initialize_api_stores(profile_home)
         _initialize_metrics_if_owned(profile_home)
 
 
@@ -49,6 +53,10 @@ def upgrade_sqlite_profile_storage(scope) -> dict:
                 initialize_delivery_ledger(scope.profile_home / "state.db")
                 hosted_rooms._initialize_connection(scope.profile_home / "state.db").close()
                 hosted_rooms._initialize_connection(room_path).close()
+                from plugins.plugin_storage import initialize_selected_plugin_stores
+                initialize_selected_plugin_stores(scope.profile_home)
+                _initialize_kanban_stores()
+                _initialize_api_stores(scope.profile_home)
                 _initialize_metrics_if_owned(scope.profile_home)
                 return result
     except OwnershipConflict:
@@ -64,3 +72,17 @@ def _initialize_metrics_if_owned(profile_home: Path) -> None:
     if enabled or exists:
         from hermes_cli.observability.shared_metrics import SharedMetricsStore
         SharedMetricsStore.create(profile_home=profile_home)
+
+
+def _initialize_api_stores(profile_home):
+    from gateway.platforms.api_server_response_store import ResponseStore
+    from gateway.platforms.api_server_run_idempotency import RunIdempotencyStore
+    ResponseStore(db_path=str(profile_home / 'response_store.db')).close()
+    RunIdempotencyStore(db_path=str(profile_home / 'runs_idempotency.db')).close()
+
+
+def _initialize_kanban_stores():
+    from hermes_cli import kanban_db
+    for board in kanban_db.list_boards(include_archived=True):
+        if not board.get('archived'):
+            kanban_db.init_db(board=board['slug'])

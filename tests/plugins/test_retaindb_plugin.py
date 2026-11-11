@@ -125,6 +125,9 @@ class TestWriteQueue:
             client = MagicMock()
             client.ingest_session = MagicMock(return_value={"status": "ok"})
         db_path = tmp_path / "test_queue.db"
+        from plugins.memory.retaindb.storage_schema import initialize_queue_schema
+        from hermes_constants import get_hermes_home
+        initialize_queue_schema(profile_home=get_hermes_home(), db_path=db_path)
         return _WriteQueue(client, db_path), client, db_path
 
     def test_flush_deletes_row_on_success(self, tmp_path):
@@ -140,6 +143,9 @@ class TestWriteQueue:
     def test_crash_recovery_replays_pending(self, tmp_path):
         """Simulate crash: create rows, then new queue should replay them."""
         db_path = tmp_path / "recovery_test.db"
+        from plugins.memory.retaindb.storage_schema import initialize_queue_schema
+        from hermes_constants import get_hermes_home
+        initialize_queue_schema(profile_home=get_hermes_home(), db_path=db_path)
         # First: create a queue and insert rows, but don't let them flush
         client1 = MagicMock()
         client1.ingest_session = MagicMock(side_effect=RuntimeError("fail"))

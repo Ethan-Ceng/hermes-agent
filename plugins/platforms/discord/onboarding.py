@@ -272,6 +272,8 @@ def interactive_setup() -> None:
         return
     save_env_value("DISCORD_BOT_TOKEN", token)
     print_success("Discord token saved")
+    from .recovery import initialize_recovery_schema
+    initialize_recovery_schema()
     if check is None:
         print_info("Make sure Message Content Intent is on (Bot page → Privileged Gateway Intents), "
                    "or Discord will refuse the bot's connection.")

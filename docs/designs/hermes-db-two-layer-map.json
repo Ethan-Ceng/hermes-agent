@@ -138,7 +138,7 @@
     {
       "id": 15,
       "title": "闭合插件存储、API辅助库及真实SDK生命周期",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         6,
         8,
@@ -410,6 +410,40 @@
       "path": "gateway/hosted_room_attachment_reads.py",
       "task": 14,
       "layer": "application"
+    },
+    {
+      "path": "plugins/memory/retaindb/storage_schema.py",
+      "task": 15,
+      "layer": "application",
+      "reason": "Actual Native lifecycle candidates need plugin-owned explicit schema resource/CLI and direct no-DDL/recovery/atomicity contracts;no new generic registration layer."
+    },
+    {
+      "path": "plugins/memory/retaindb/cli.py",
+      "task": 15,
+      "layer": "application",
+      "reason": "Actual Native lifecycle candidates need plugin-owned explicit schema resource/CLI and direct no-DDL/recovery/atomicity contracts;no new generic registration layer."
+    },
+    {
+      "path": "tests/gateway/test_api_sqlite_schema_lifecycle.py",
+      "task": 15,
+      "layer": "test",
+      "reason": "Actual Native lifecycle candidates need plugin-owned explicit schema resource/CLI and direct no-DDL/recovery/atomicity contracts;no new generic registration layer."
+    },
+    {
+      "path": "tests/plugins/test_plugin_schema_lifecycle.py",
+      "task": 15,
+      "layer": "test",
+      "reason": "Actual Native lifecycle candidates need plugin-owned explicit schema resource/CLI and direct no-DDL/recovery/atomicity contracts;no new generic registration layer."
+    },
+    {
+      "path": "hermes_cli/db_matrix_runtime.py",
+      "task": 15,
+      "layer": "application"
+    },
+    {
+      "path": "tests/gateway/fixtures/matrix_protocol.py",
+      "task": 15,
+      "layer": "test"
     }
   ],
   "new_behavior_tests": [
@@ -1371,14 +1405,14 @@
     "entries": [
       {
         "path": "hermes-db-two-layer-map/sources-db.json",
-        "sha256": "57da24809e7d9fa86c54d45e88e1dc14638f56a3eac007db1d2a77b12793344c",
+        "sha256": "ddac2ebc4cf91aef576e23a89ca70a4b015e8fcb50cca762e039e7bb9e98cbf2",
         "items": 359
       }
     ],
     "external_sources": [
       {
         "path": "hermes-db-two-layer-map/sources-native.json",
-        "sha256": "bb80be01b4854c1d68661bfa9e5bc130e40a9314b6308cb778ad2e5d066ae18d",
+        "sha256": "16379ca9bdf13cae8936568621e13917a7b92935420d97da421092556af000a7",
         "items": 141
       }
     ],
@@ -1797,5 +1831,34 @@
     "validation": "User lean scope:two Native optional-driver contracts and original five direct PG workflow files,plus source/ABI/SQL/boundary checks.",
     "source_hash": "482aaabcf81eed5900ffab2610b5c86a95b0f04d2200dc83083ba4d27a19267f",
     "actual_db_modules": 350
+  },
+  "task15_adjustment": {
+    "status": "completed",
+    "parent_commit": "91af47415bb0bcb7350d278bf61639d5faf69948",
+    "scope_counts": {
+      "entries": 35,
+      "external_sources": 8,
+      "consumer_files": 120,
+      "domain_boundaries": 0,
+      "native_patch_seams": 0,
+      "sqlite_lifecycle_candidates": 7,
+      "domain_io_sites": 0,
+      "non_python_consumer_files": 0
+    },
+    "validation": "Native10files each host;PG4files;actualSDK4 and moved fake-SDK14;source/SQL/ABI/fixed-resource and full static gates.",
+    "actual_readpoint_refinements": [
+      "Plugin API files contained actual Profile acquisition/backend checks and Retain Worker RPC;these move to the existing public plugins.plugin_storage facade,while captured value dataclasses stay business.",
+      "Concrete records/Discord application store wrappers move with their actual open/capture consumers;all named SQL stays business.",
+      "Matrix SDK business adapter/runtime receive actual captured reference and supplied unit-of-work/initialization functions;business does not resolve Profile or construct engines.",
+      "Retain queue application selects owner/Worker and the original read/write boundary;SQL helpers receive the same required connection and contain no RPC or optional implicit acquisition.",
+      "Portable SQLite constructor performs no DDL or file opening;original schema SQL is invoked only by explicit setup/installation/upgrade.Ordinary acquisition uses existing checked SQLite open.",
+      "Seven lifecycle candidates were inspected in full:Discord/Retain ordinary startup contained real CREATE,Dashboard ordinary connection invoked init_db.Original SQL resources now have explicit existing platform setup/provider Profile-created/CLI ownership;ordinary paths check existing stores.",
+      "Retain post_setup was evaluated and removed before functional use because it takes over credentials/config;on_profile_created and the already-discovered active-provider CLI preserve generic setup.",
+      "Native API open_existing is strict and no-DDL;original create constructors remain actual explicit creators in selected Profile lifecycle.Past Launch flag removed together with actual internal callers since captured home is now always explicit.",
+      "MatrixRuntime owns actual ThreadPoolExecutor/async task cancellation/drain assembly;move its real definition to db_matrix_runtime and inject the concrete runtime factory into the business SDK adapter.",
+      "Native API creation and canonical read-only acquisition use existing infra connection configuration;explicit :memory: creation has actual API consumers.Read-only URI acquisition uses existing tracked connection mechanism to retain SQLite file-lock inspection safety."
+    ],
+    "source_hash": "c4a6627d8319e1ae63121f0ca39643c8e0f65dedaa0a0d022c2addd886737eab",
+    "actual_db_modules": 346
   }
 }

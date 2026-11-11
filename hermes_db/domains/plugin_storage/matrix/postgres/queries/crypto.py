@@ -3,7 +3,6 @@
 import uuid
 from sqlalchemy import LargeBinary, and_, select, update
 from sqlalchemy.dialects.postgresql import insert
-from hermes_db.domains.plugin_storage.matrix.api import resource_for
 from hermes_db.errors import StorageConfigurationError
 from hermes_db.tables.matrix_crypto import roots
 from hermes_db.core.values import encode_text, decode_text
@@ -41,11 +40,10 @@ def change(conn, reference, table, fields, record):
     return conn.execute(update(table).where(key(table, reference, fields)).values(**values(table, record))).rowcount
 
 
-def initialize(reference):
-    with resource_for(reference) as resource, resource.write() as conn:
-        conn.execute(insert(roots).values(store_id=reference.store_id, account_key=encode_text(reference.account_key), owner_device=encode_text(reference.owner_device),
-            generation=uuid.uuid4().hex, device_id=encode_text(reference.owner_device)).on_conflict_do_nothing())
-        return conn.scalar(select(roots.c.generation).where(scope(roots, reference)))
+def initialize(conn, reference):
+    conn.execute(insert(roots).values(store_id=reference.store_id, account_key=encode_text(reference.account_key), owner_device=encode_text(reference.owner_device),
+        generation=uuid.uuid4().hex, device_id=encode_text(reference.owner_device)).on_conflict_do_nothing())
+    return conn.scalar(select(roots.c.generation).where(scope(roots, reference)))
 
 
 def check_generation(conn, reference, *, lock=False):

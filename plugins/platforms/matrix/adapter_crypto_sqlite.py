@@ -23,19 +23,17 @@ async def connect_sqlite(self, client: Any, api: Any, state_store: Any) -> bool:
     if not self._encryption:
         return True
     phase = "import"
+    crypto_db = None
     try:
         from mautrix.crypto import OlmMachine
         from mautrix.crypto.store.asyncpg import PgCryptoStore
-        from mautrix.util.async_db import Database
-        self._store_dir.mkdir(parents=True, exist_ok=True)
+        from plugins.platforms.matrix.storage_schema import open_crypto_database
         phase = "create"
+        crypto_db = await open_crypto_database(self._crypto_db_path)
+        self._crypto_db = crypto_db
         if (self._store_dir / "crypto_store.pickle").exists():  # pre-SQLite era
             logger.info("Matrix: removing legacy crypto_store.pickle (migrated to SQLite)")
             (self._store_dir / "crypto_store.pickle").unlink()
-        crypto_db = Database.create(
-            f"sqlite:///{self._crypto_db_path}", upgrade_table=PgCryptoStore.upgrade_table)
-        await crypto_db.start()
-        self._crypto_db = crypto_db
         _acct_id = self._user_id or "hermes"
         # Key on the RESOLVED client.device_id (token's real device), not the configured
         # one, or the Olm account is stored under a key that can never be looked up.
@@ -75,5 +73,8 @@ async def connect_sqlite(self, client: Any, api: Any, state_store: Any) -> bool:
             f", device_id={client.device_id}" if client.device_id else "")
     except Exception as exc:
         logger.exception("Matrix: SQLite encryption setup failed")
+        if crypto_db is not None:
+            await crypto_db.stop()
+            self._crypto_db = None
         return await self._e2ee_setup_failed(phase, exc, api)
     return True

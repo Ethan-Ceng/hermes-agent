@@ -47,7 +47,7 @@ def test_discord_response_carries_cursor_and_survives_reopen(pg_profiles, monkey
 def test_pg_claim_age_and_attempt_budget_survive_discovery(pg_profiles, monkeypatch):
     from datetime import datetime, timedelta, UTC
     from sqlalchemy import update
-    from hermes_db.domains.plugin_storage.discord.api import open_discord
+    from plugins.plugin_storage import open_discord
     from hermes_db.domains.plugin_storage.discord.postgres.queries import recovery as repo
     from hermes_db.tables.discord_recovery import messages
     with pg_profiles("one"):
@@ -77,7 +77,7 @@ def test_pg_private_sqlite_callbacks_are_explicitly_refused(pg_profiles, monkeyp
 
 
 def test_opaque_ids_empty_values_and_null_coalesce_match_native_contract(pg_profiles, monkeypatch):
-    from hermes_db.domains.plugin_storage.discord.api import open_discord
+    from plugins.plugin_storage import open_discord
     from hermes_db.domains.plugin_storage.discord.postgres.queries.recovery import message
     with pg_profiles("one"):
         store = build_adapter(monkeypatch)._discord_recovery_store

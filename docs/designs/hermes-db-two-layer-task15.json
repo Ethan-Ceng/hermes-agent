@@ -1,0 +1,999 @@
+{
+  "task": 15,
+  "status": "completed",
+  "parent_commit": "91af47415bb0bcb7350d278bf61639d5faf69948",
+  "mapping_refs_verified": 11,
+  "scope_counts": {
+    "entries": 35,
+    "external_sources": 8,
+    "consumer_files": 120,
+    "domain_boundaries": 0,
+    "native_patch_seams": 0,
+    "sqlite_lifecycle_candidates": 7,
+    "domain_io_sites": 0,
+    "non_python_consumer_files": 0
+  },
+  "required_pending": [],
+  "deleted_tests": [],
+  "untracked_preserved": [
+    "owned/SOUL.md",
+    "target/SOUL.md"
+  ],
+  "partial_implementation": {
+    "status": "All Task15 implementation and required focused gates completed;final frozen acceptance remains pending",
+    "moves": {
+      "hermes_db.integration.run_resources": "gateway.platforms.api_server_run_resources",
+      "hermes_db.integration.retain_transport": "plugins.memory.retaindb.transport",
+      "hermes_db.backends.sqlite.plugin_storage": "hermes_db.domains.plugin_storage.records.sqlite"
+    },
+    "API_symbol_routes": {
+      "OwnedApiStore": "hermes_db.domains.runtime.resources",
+      "open_response_store": "hermes_cli.db_api",
+      "open_run_store": "hermes_cli.db_api"
+    },
+    "consumer_files_changed": [
+      "gateway/platforms/api_server_run_resources.py",
+      "gateway/platforms/api_server_runs.py",
+      "gateway/platforms/api_server_storage_resources.py",
+      "plugins/memory/retaindb/__init__.py",
+      "plugins/plugin_storage.py",
+      "tests/hermes_db/contracts/test_api_resource_selection.py",
+      "tests/hermes_db/contracts/test_api_run_resource_selection.py",
+      "tests/hermes_db/postgresql/test_merge_collaboration_consumers.py",
+      "tests/hermes_db/postgresql/test_merge_commit_recovery.py",
+      "tests/hermes_db/postgresql/test_merge_process_recovery.py",
+      "tests/hermes_db/postgresql/test_worker_retain_transport.py",
+      "tui_gateway/methods_groups.py"
+    ],
+    "plugin_owner_extraction": "Profile capture/open,WorkerRetainQueueRef,records/Discord concrete application wrappers now defined in existing public plugin_storage;SQL,constructors and consumers still being closed;no completion claim.",
+    "Matrix_providers": "Business CryptoStore/MatrixRuntime receive explicit captured reference,initialization and UoW providers;real SDK methods,actor/thread/close/ratchet algorithms remain unchanged except threading the concrete provider. Final consumers and API/native lifecycles still pending.",
+    "Retain_connection_split": {
+      "operations": [
+        "enqueue",
+        "ready",
+        "claim",
+        "renew",
+        "owns_claim",
+        "acknowledge",
+        "fail",
+        "inspect",
+        "counts"
+      ],
+      "business": "Required supplied connection;original SQL statement bodies and token/receipt fences remain.",
+      "application": "Existing public facade owns original Profile open and exact Worker command/query branches;transport imports only published capabilities.",
+      "status": "Normal direct consumers and dynamic API/test patch routes still being closed."
+    },
+    "Native_portable": "Explicit transactional initialization and supplied connection provider;ordinary checked open has no DDL",
+    "portable_initialization_consumers": "Explicit generic plugin enable/installation and Profile create/upgrade provision configured portable stores;existing SQLite contract fixtures initialize names before normal reads/writes. Other Native API/Discord/Retain lifecycle edges remain pending.",
+    "legacy_lifecycles": "Discord ordinary call only checked-open+original prune;explicit platform setup and plugin CLI own original DDL.Native Retain ordinary constructor only checked-open;original single CREATE moved to provider post_setup/on_profile_created resource.CLI and normal fixture setup still being closed;full current mandatory batches not run.",
+    "lifecycle_protocol_correction": "Verified _post_setup_hook means full credentials/config takeover;removed proposed Retain post_setup before runtime use.Genuine existing on_profile_created initializes new configured Profiles;active-provider CLI owns explicit status/upgrade.No credential prompts,authorization generation or config activation moved.",
+    "Kanban_dashboard": "Removed hidden init_db from ordinary dashboard connection;explicit selected Profile lifecycle initializes active Native boards while retired generations remain unchanged.Task creation routes/fixtures still being checked.",
+    "fixture_setup": "Existing portable/Retain/Discord normal business assertions retained;explicit Native schema setup added before normal store use.Single-backend write phase initializes selected datasets;new-PID read phase remains ordinary checked open.",
+    "SDK_runtime_owner": "Actual executor/cancellation/drain class moved to hermes_cli.db_matrix_runtime;business CryptoStore receives concrete runtime_factory and named SQL operations.Original close/transaction/ratchet algorithms retained;proof/gates pending.",
+    "API_driver_owner": "Native API creators reuse infra open_db;ordinary opens use checked existing policy.Canonical readonly reader uses infra open_uri with existing connection tracking.Business query/settlement algorithms retained.",
+    "SDK_mock_read_points": "Original Matrix fake SDK helper moved intact to fixtures/matrix_protocol with actual checked-open mock seam;all existing adapter behavior assertions retained.Real no-DDL/schema protocol remains covered by actual SDK lifecycle file.",
+    "single_backend_recovery": "Native write phase explicitly upgrades SDK crypto and initializes Retain queue;read phase uses checked SDK open/new PID.Original encrypted payload/identity and all recovery assertions retained."
+  },
+  "SDK_facts": {
+    "WSL": "actual mautrix0.21.1,SDK10 revisions,9 final crypto tables",
+    "Windows": "pyproject matrix extra intentionally excludes mautrix/python-olm outside Linux;not an SDK pass",
+    "red_contract": "new Linux real SDK lifecycle file:0passed/3failed because implementation module absent;exit1",
+    "current": "explicit lifecycle implemented;focused green validation pending;other Task15 edges remain in_progress",
+    "first_implementation_contract": "2passed/1failed:the new test incorrectly expected Database.create default upgrade_table to be None. Actual0.21.1 create constructs an empty UpgradeTable;Database.start skips it because upgrades is empty. Updated assertion to no upgrade entries;trace-level no DDL,real account/token writes and new PID recovery remain required.",
+    "second_contract_correction": "2passed/1failed:real SDK Client requires HTTPAPI base_url;reuse existing SDK machine fixture with explicit no-network HTTPAPI/session lifetime. Actual crypto/schema/no-DDL/new-process assertions unchanged.",
+    "focused_result": "Linux canonical runner1file/3passed/0failed/0skip/exit0/14.2s;realSDK0.21.1,actual SQLite SQL trace no DDL,OlmMachine/account/sync token and new PID restoration. Final required source freeze not yet reached."
+  },
+  "scope_refinements": [
+    "Plugin API files contained actual Profile acquisition/backend checks and Retain Worker RPC;these move to the existing public plugins.plugin_storage facade,while captured value dataclasses stay business.",
+    "Concrete records/Discord application store wrappers move with their actual open/capture consumers;all named SQL stays business.",
+    "Matrix SDK business adapter/runtime receive actual captured reference and supplied unit-of-work/initialization functions;business does not resolve Profile or construct engines.",
+    "Retain queue application selects owner/Worker and the original read/write boundary;SQL helpers receive the same required connection and contain no RPC or optional implicit acquisition.",
+    "Portable SQLite constructor performs no DDL or file opening;original schema SQL is invoked only by explicit setup/installation/upgrade.Ordinary acquisition uses existing checked SQLite open."
+  ],
+  "preflight_findings": [
+    {
+      "finding": "infra.initialize_database owns failure-close but does not commit/start transaction;initial Native portable extraction needed original three-DDL atomicity explicitly retained.",
+      "resolution": "Shared explicit plugin schema runner invokes original resource under existing infra write_txn;portable initializer uses it.Discord executescript and original prune are committed before close.",
+      "status": "source correction before final functional gates;atomic failure behavior still to validate"
+    },
+    {
+      "finding": "Runtime module alias rewriter did not consume existing as-alias;compile rejected generated duplicate alias before writing invalid file.",
+      "resolution": "Resumed only remaining consumer closure with alias-aware rewrite;no task completion claim."
+    }
+  ],
+  "preliminary_native_contracts": {
+    "windows": "5files/9passed/0failed/0skip/exit0/9.6s",
+    "WSL": "same5files/9passed/0failed/0skip/exit0/22.1s",
+    "scope": "Focused Native lifecycle checks before final source freeze;not final Task15 acceptance."
+  },
+  "failures": [
+    {
+      "phase": "mandatory PG four files",
+      "result": "6 passed,2 failed,exit1",
+      "root_cause": "Close-contract driver directly called moved _unit without its now-explicit actual unit_of_work provider;the driver failed before entered event.Production SDK flow/concurrency and single-backend file passed.",
+      "fix": "Supply store.runtime.unit_of_work at actual test read point;all original drain/cancel/committed/new-scope assertions retained.",
+      "pending": "Rerun mandatory PG group;Native production/tests unchanged by this fix."
+    },
+    {
+      "phase": "first mandatory static",
+      "result": "16checks exit1: db-boundaries19 and ruff8;other14passed",
+      "root_cause": "Moved pure portable record contract consumers still used old boundary review path;new exports/tests needed sorted exports/explicit subprocess policy/async thread delegation.",
+      "fix": "Relocate only original pure symbol-specific reviews,remove stale application grants;sort exports and make subprocess policy explicit.PG/Native business assertions unchanged."
+    }
+  ],
+  "completed_validation": [
+    {
+      "record_file": "native-win-4dac3e5270cd4c7488a115e36c553cda.log.json",
+      "completed_mtime_ns": 1794410788453761700,
+      "label": "native-win",
+      "source_commit": "91af47415bb0bcb7350d278bf61639d5faf69948",
+      "dirty_diff_sha256": "f6b1258c6f904d1cbc9a1ee3a338a56adf0066c4498e1c65e2823e24a7979f97",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/gateway/test_matrix_sqlite_schema_lifecycle.py",
+        "tests/gateway/test_matrix_crypto_store_per_profile.py",
+        "tests/gateway/test_matrix_plugin_setup.py",
+        "tests/hermes_db/contracts/test_matrix_close.py",
+        "tests/hermes_db/contracts/test_native_http_turn.py",
+        "tests/gateway/test_api_sqlite_schema_lifecycle.py",
+        "tests/plugins/test_plugin_schema_lifecycle.py",
+        "tests/plugins/test_portable_storage.py",
+        "tests/hermes_db/contracts/test_plugins_sqlite_optional_drivers.py",
+        "tests/hermes_db/contracts/test_discord_sqlite_optional_drivers.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 10 files, 12 tests passed, 0 failed, 6 skipped (100% complete) in 39.5s (4 workers) ==="
+      ]
+    },
+    {
+      "record_file": "native-linux-a8642d86f61a42c4ba454f0feab2a022.log.json",
+      "completed_mtime_ns": 1794410852193373300,
+      "label": "native-linux",
+      "source_commit": "91af47415bb0bcb7350d278bf61639d5faf69948",
+      "dirty_diff_sha256": "f6b1258c6f904d1cbc9a1ee3a338a56adf0066c4498e1c65e2823e24a7979f97",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/gateway/test_matrix_sqlite_schema_lifecycle.py",
+        "tests/gateway/test_matrix_crypto_store_per_profile.py",
+        "tests/gateway/test_matrix_plugin_setup.py",
+        "tests/hermes_db/contracts/test_matrix_close.py",
+        "tests/hermes_db/contracts/test_native_http_turn.py",
+        "tests/gateway/test_api_sqlite_schema_lifecycle.py",
+        "tests/plugins/test_plugin_schema_lifecycle.py",
+        "tests/plugins/test_portable_storage.py",
+        "tests/hermes_db/contracts/test_plugins_sqlite_optional_drivers.py",
+        "tests/hermes_db/contracts/test_discord_sqlite_optional_drivers.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 10 files, 18 tests passed, 0 failed (100% complete) in 100.7s (4 workers) ==="
+      ]
+    },
+    {
+      "record_file": "pg-linux-b03b9ddcc35e4d9d846fc8c06f3979bf.log.json",
+      "completed_mtime_ns": 1794411253099167900,
+      "label": "pg-linux",
+      "source_commit": "91af47415bb0bcb7350d278bf61639d5faf69948",
+      "dirty_diff_sha256": "79c874a3e68672b048e0ec4e1b388855ec751c79790ddd950585a3edf18e0ab6",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/postgresql/test_matrix_sdk_flows.py",
+        "tests/hermes_db/postgresql/test_matrix_sdk_concurrency.py",
+        "tests/hermes_db/postgresql/test_matrix_close.py",
+        "tests/hermes_db/postgresql/test_single_backend.py",
+        "-j",
+        "1",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra",
+        "-m",
+        "integration",
+        "--postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 4 files, 8 tests passed, 0 failed (100% complete) in 117.3s (1 workers) ==="
+      ]
+    },
+    {
+      "record_file": "static-dc8e0ee56b9e4da4aa3cbf5f6915e314.log.json",
+      "completed_mtime_ns": 1794411766185993000,
+      "label": "static",
+      "source_commit": "91af47415bb0bcb7350d278bf61639d5faf69948",
+      "dirty_diff_sha256": "2c7eee38cadd9747bf21199dde3f672a105eab457e7dbbdd1c5ce132f9ec9220",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/check",
+        "--staged",
+        "--base",
+        "0d8782ba8a"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "scripts/check: 16 checks, ok"
+      ]
+    },
+    {
+      "record_file": "db-boundary-08b18f0bb43f43ba8727e2c9442e75af.log.json",
+      "completed_mtime_ns": 1794411768207427100,
+      "label": "db-boundary",
+      "source_commit": "91af47415bb0bcb7350d278bf61639d5faf69948",
+      "dirty_diff_sha256": "2c7eee38cadd9747bf21199dde3f672a105eab457e7dbbdd1c5ce132f9ec9220",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/hermes_db_boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "hermes_db boundaries: 8560 resolved imports, 0 violations"
+      ]
+    },
+    {
+      "record_file": "plugin-boundary-49622dd6e35348d8b222a22bd5b277a0.log.json",
+      "completed_mtime_ns": 1794411788653105900,
+      "label": "plugin-boundary",
+      "source_commit": "91af47415bb0bcb7350d278bf61639d5faf69948",
+      "dirty_diff_sha256": "2c7eee38cadd9747bf21199dde3f672a105eab457e7dbbdd1c5ce132f9ec9220",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "module_to_core: 829",
+        "core_to_module: 26"
+      ]
+    },
+    {
+      "record_file": "contracts-c480fac375d2477b84aa91dafc560e53.log.json",
+      "completed_mtime_ns": 1794411790189112700,
+      "label": "contracts",
+      "source_commit": "91af47415bb0bcb7350d278bf61639d5faf69948",
+      "dirty_diff_sha256": "2c7eee38cadd9747bf21199dde3f672a105eab457e7dbbdd1c5ce132f9ec9220",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/gen_gateway_contracts.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": []
+    },
+    {
+      "record_file": "whitespace-6b403a2a83e040f2848d83ee1b9a0266.log.json",
+      "completed_mtime_ns": 1794411790496202400,
+      "label": "whitespace",
+      "source_commit": "91af47415bb0bcb7350d278bf61639d5faf69948",
+      "dirty_diff_sha256": "2c7eee38cadd9747bf21199dde3f672a105eab457e7dbbdd1c5ce132f9ec9220",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=D:/AI/hermes-db-packages",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": []
+    }
+  ],
+  "supplemental_validation": [
+    {
+      "record_file": "native-linux-f7094e3e803247f2950d58db82c1f238.log.json",
+      "completed_mtime_ns": 1794411473973072300,
+      "label": "native-linux",
+      "source_commit": "91af47415bb0bcb7350d278bf61639d5faf69948",
+      "dirty_diff_sha256": "2c7eee38cadd9747bf21199dde3f672a105eab457e7dbbdd1c5ce132f9ec9220",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/gateway/test_matrix_sqlite_schema_lifecycle.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 1 files, 4 tests passed, 0 failed (100% complete) in 69.4s (4 workers) ==="
+      ]
+    },
+    {
+      "record_file": "sdk-mock-win-5d0e1306b25940c3bc3fd2039b2a3dc7.log.json",
+      "completed_mtime_ns": 1794411489883289300,
+      "label": "sdk-mock-win",
+      "source_commit": "91af47415bb0bcb7350d278bf61639d5faf69948",
+      "dirty_diff_sha256": "2c7eee38cadd9747bf21199dde3f672a105eab457e7dbbdd1c5ce132f9ec9220",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/gateway/test_matrix.py",
+        "-j",
+        "1",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra",
+        "-k",
+        "test_connect_with_access_token_and_encryption or test_connect_fails_when_encryption_true_but_no_e2ee_deps or test_connect_continues_when_e2ee_optional_but_no_deps or test_connect_keeps_configured_device_id_on_adapter or test_password_login_uses_device_id or test_connect_receives_dm_from_initial_sync_dispatch or test_upload_encrypted_room_uses_file_payload or test_matrix_recovery_key_bootstrap_skips_existing_output_file or test_connect_registers_encrypted_event_handler_when_encryption_on or test_no_proxy_returns_trust_env_session or test_none_device_id_resolved_via_query_keys or test_connect_calls_disconnect_when_client_already_set or test_flag_clears_when_second_connect_resolves_device_id or test_connect_resets_store_when_token_device_differs_from_config"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 1 files, 14 tests passed, 0 failed (100% complete) in 9.7s (1 workers) ==="
+      ]
+    }
+  ],
+  "source_audit": {
+    "task": 15,
+    "parent_commit": "91af47415bb0bcb7350d278bf61639d5faf69948",
+    "mapping_refs": 11,
+    "fixed_resources": 65,
+    "db_modules": 346,
+    "root_entries": 11,
+    "revisions": 31,
+    "table_modules": 29,
+    "original_method_proofs": {
+      "SQLitePluginStore.get": true,
+      "SQLitePluginStore.put": true,
+      "SQLitePluginStore.delete": true,
+      "SQLitePluginStore.scan": true,
+      "SQLitePluginStore.prune_expired": true,
+      "PostgresPluginStore.__init__": true,
+      "PostgresPluginStore.get": true,
+      "PostgresPluginStore.put": true,
+      "PostgresPluginStore.delete": true,
+      "PostgresPluginStore.scan": true,
+      "PostgresPluginStore.prune_expired": true,
+      "PostgresDiscordRecoveryStore.__init__": true,
+      "PostgresDiscordRecoveryStore.path": true,
+      "PostgresDiscordRecoveryStore.call": true,
+      "PostgresDiscordRecoveryStore._initialize": true,
+      "PostgresDiscordRecoveryStore._operation": true,
+      "ProfileRunStores.__init__": false,
+      "ProfileRunStores._require_open": true,
+      "ProfileRunStores._home_store": false,
+      "ProfileRunStores._for_scope": true,
+      "ProfileRunStores._known_scope": true,
+      "ProfileRunStores.durable": true,
+      "ProfileRunStores.is_native_scope": true,
+      "ProfileRunStores.reserve": true,
+      "ProfileRunStores.lookup": true,
+      "ProfileRunStores.find_or_close": true,
+      "ProfileRunStores.status_for_run": true,
+      "ProfileRunStores.extend_retention": true,
+      "ProfileRunStores.owns_run": true,
+      "ProfileRunStores.forget": true,
+      "ProfileRunStores.update_status": true,
+      "ProfileRunStores.close": true,
+      "PostgresCryptoStore.close": true,
+      "PostgresCryptoStore.flush": true,
+      "PostgresCryptoStore._call": true,
+      "PostgresCryptoStore._assert_owner": true,
+      "PostgresCryptoStore.transaction": true,
+      "PostgresCryptoStore.delete": true,
+      "PostgresCryptoStore.get_device_id": true,
+      "PostgresCryptoStore.put_device_id": true,
+      "PostgresCryptoStore.get_account": true,
+      "PostgresCryptoStore.put_account": true,
+      "PostgresCryptoStore.get_next_batch": true,
+      "PostgresCryptoStore.put_next_batch": true,
+      "PostgresCryptoStore.has_session": true,
+      "PostgresCryptoStore.get_sessions": true,
+      "PostgresCryptoStore.get_latest_session": true,
+      "PostgresCryptoStore.add_session": true,
+      "PostgresCryptoStore.update_session": true,
+      "PostgresCryptoStore.put_group_session": true,
+      "PostgresCryptoStore.get_group_session": true,
+      "PostgresCryptoStore.has_group_session": true,
+      "PostgresCryptoStore.redact_group_session": true,
+      "PostgresCryptoStore.redact_group_sessions": true,
+      "PostgresCryptoStore.redact_expired_group_sessions": true,
+      "PostgresCryptoStore.redact_outdated_group_sessions": true,
+      "PostgresCryptoStore.add_outbound_group_session": true,
+      "PostgresCryptoStore.update_outbound_group_session": true,
+      "PostgresCryptoStore.get_outbound_group_session": true,
+      "PostgresCryptoStore.remove_outbound_group_session": true,
+      "PostgresCryptoStore.remove_outbound_group_sessions": true,
+      "PostgresCryptoStore.validate_message_index": true,
+      "PostgresCryptoStore.get_devices": true,
+      "PostgresCryptoStore.get_device": true,
+      "PostgresCryptoStore.find_device_by_key": true,
+      "PostgresCryptoStore.put_devices": true,
+      "PostgresCryptoStore.filter_tracked_users": true,
+      "PostgresCryptoStore.get_cross_signing_keys": true,
+      "PostgresCryptoStore.put_cross_signing_key": true,
+      "PostgresCryptoStore._signature_fields": true,
+      "PostgresCryptoStore.put_signature": true,
+      "PostgresCryptoStore.is_key_signed_by": true,
+      "PostgresCryptoStore.drop_signatures_by_key": true,
+      "OwnedApiStore": true
+    },
+    "existing_tests": [
+      {
+        "path": "tests/gateway/fixtures/matrix_protocol.py",
+        "existing_tests": 0,
+        "existing_assertions": 0
+      },
+      {
+        "path": "tests/gateway/test_api_sqlite_schema_lifecycle.py",
+        "existing_tests": 0,
+        "existing_assertions": 0
+      },
+      {
+        "path": "tests/gateway/test_matrix.py",
+        "existing_tests": 101,
+        "existing_assertions": 212
+      },
+      {
+        "path": "tests/gateway/test_matrix_sqlite_schema_lifecycle.py",
+        "existing_tests": 0,
+        "existing_assertions": 0
+      },
+      {
+        "path": "tests/hermes_db/contracts/test_api_resource_selection.py",
+        "existing_tests": 4,
+        "existing_assertions": 10
+      },
+      {
+        "path": "tests/hermes_db/contracts/test_api_run_resource_selection.py",
+        "existing_tests": 5,
+        "existing_assertions": 14
+      },
+      {
+        "path": "tests/hermes_db/contracts/test_discord_sqlite_optional_drivers.py",
+        "existing_tests": 1,
+        "existing_assertions": 2
+      },
+      {
+        "path": "tests/hermes_db/contracts/test_matrix_close.py",
+        "existing_tests": 2,
+        "existing_assertions": 9
+      },
+      {
+        "path": "tests/hermes_db/contracts/test_plugins_sqlite_optional_drivers.py",
+        "existing_tests": 1,
+        "existing_assertions": 2
+      },
+      {
+        "path": "tests/hermes_db/matrix_support.py",
+        "existing_tests": 0,
+        "existing_assertions": 0
+      },
+      {
+        "path": "tests/hermes_db/postgresql/scenarios/retain_recovery.py",
+        "existing_tests": 0,
+        "existing_assertions": 0
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_discord_backfill.py",
+        "existing_tests": 2,
+        "existing_assertions": 6
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_discord_recovery.py",
+        "existing_tests": 5,
+        "existing_assertions": 15
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_discord_recovery_faults.py",
+        "existing_tests": 4,
+        "existing_assertions": 13
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_matrix_close.py",
+        "existing_tests": 1,
+        "existing_assertions": 9
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_matrix_crypto_store.py",
+        "existing_tests": 2,
+        "existing_assertions": 10
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_matrix_faults.py",
+        "existing_tests": 5,
+        "existing_assertions": 12
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_matrix_sdk_edges.py",
+        "existing_tests": 5,
+        "existing_assertions": 27
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_merge_collaboration_consumers.py",
+        "existing_tests": 2,
+        "existing_assertions": 15
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_merge_commit_recovery.py",
+        "existing_tests": 2,
+        "existing_assertions": 6
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_merge_process_recovery.py",
+        "existing_tests": 1,
+        "existing_assertions": 4
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_plugin_storage.py",
+        "existing_tests": 7,
+        "existing_assertions": 19
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_retain_queue.py",
+        "existing_tests": 2,
+        "existing_assertions": 12
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_retain_queue_process.py",
+        "existing_tests": 2,
+        "existing_assertions": 4
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_retain_queue_transactions.py",
+        "existing_tests": 2,
+        "existing_assertions": 19
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_retain_queue_worker.py",
+        "existing_tests": 5,
+        "existing_assertions": 24
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_worker_retain_transport.py",
+        "existing_tests": 1,
+        "existing_assertions": 16
+      },
+      {
+        "path": "tests/hermes_db/single_backend_core.py",
+        "existing_tests": 0,
+        "existing_assertions": 0
+      },
+      {
+        "path": "tests/hermes_db/single_backend_recovery.py",
+        "existing_tests": 0,
+        "existing_assertions": 0
+      },
+      {
+        "path": "tests/plugins/memory/test_retaindb_provider.py",
+        "existing_tests": 9,
+        "existing_assertions": 14
+      },
+      {
+        "path": "tests/plugins/test_plugin_schema_lifecycle.py",
+        "existing_tests": 0,
+        "existing_assertions": 0
+      },
+      {
+        "path": "tests/plugins/test_portable_storage.py",
+        "existing_tests": 3,
+        "existing_assertions": 5
+      },
+      {
+        "path": "tests/plugins/test_retaindb_plugin.py",
+        "existing_tests": 21,
+        "existing_assertions": 25
+      }
+    ],
+    "deleted_tests": [],
+    "changed_python_blobs": [
+      [
+        "gateway/platforms/api_server_response_store.py",
+        "009bb85da0949c5df4956d6ae4fb3f07254c04e0f73130ef84a2ef81417175e0"
+      ],
+      [
+        "gateway/platforms/api_server_run_idempotency.py",
+        "9e60ebfedfc4b1d06c384569abeb5bab948480032366f10710bf0aebb44030d5"
+      ],
+      [
+        "gateway/platforms/api_server_run_resources.py",
+        "3a2652c490c29ad32dd5f17a005d0f8b1736f5716e91a771ab9343a8e2945d91"
+      ],
+      [
+        "gateway/platforms/api_server_runs.py",
+        "34cea987b38b17b62bc2f6ca98e6e21d20848c872936cd1a690c5f389305fb42"
+      ],
+      [
+        "gateway/platforms/api_server_storage_resources.py",
+        "6cb6df9e67aca6566095f01677b57b4905d390f3d1186e1f9c4e580bde4956b2"
+      ],
+      [
+        "hermes_cli/db_api.py",
+        "ef9aa113f7eebc215be0101140d2b5925b2d94bb4fecc10fcf993e9b671cc716"
+      ],
+      [
+        "hermes_cli/db_matrix_runtime.py",
+        "26b48824ea30562d6862b0295435dce77754852d1166c003d23093fba4a5a53f"
+      ],
+      [
+        "hermes_cli/db_profile_schema.py",
+        "dbe8f575000cb4f0b8f77c5f7a7885ebac10853a702bf302cf91c11535bc3315"
+      ],
+      [
+        "hermes_cli/plugins_cmd.py",
+        "f87db59537ea5f603a44dc9eef8032d34147f79077ac2999ff0dedd358591d6d"
+      ],
+      [
+        "hermes_db/domains/plugin_storage/discord/api.py",
+        "0539cb9569eb5eb9346c6e7505b6a17f2b08c6409c892a654f52add5956f197a"
+      ],
+      [
+        "hermes_db/domains/plugin_storage/matrix/api.py",
+        "0e3858596b57ba046288f2e4dee78eab42e1d947399584e9f6bc63bbb659896a"
+      ],
+      [
+        "hermes_db/domains/plugin_storage/matrix/postgres/crypto.py",
+        "89be41acdf44d25ec422882a5955169c0156b74674782889f4f7ba4c6f5d4a47"
+      ],
+      [
+        "hermes_db/domains/plugin_storage/matrix/postgres/queries/crypto.py",
+        "0075fd96e1b61bd126674297a887017c5b9fcebc6972cff3c1460fa280308fe8"
+      ],
+      [
+        "hermes_db/domains/plugin_storage/records/api.py",
+        "1db96f998bb4b6ce49c37118768e09b4741d6c5d3ff0e2b6f699e12b49bffa33"
+      ],
+      [
+        "hermes_db/domains/plugin_storage/records/postgres/store.py",
+        "df0208a23c497e540d49188bb6b2b6e240f69fa3ac47b03353db7bf041b86208"
+      ],
+      [
+        "hermes_db/domains/plugin_storage/records/sqlite.py",
+        "3eb5082cc550d6ca5afff8eaf185819407831205c1c5d608068754cedbe01b96"
+      ],
+      [
+        "hermes_db/domains/plugin_storage/retain/api.py",
+        "03a8a1f97120307fa30f0e585adb55a33517793a1cf595c34fbdf044e99041d1"
+      ],
+      [
+        "hermes_db/domains/plugin_storage/retain/postgres/operations/queue.py",
+        "d6f79bf313c3a8c34953aeb6b0bdfde4ae1ecf22ee02ecee7d799abb4a791353"
+      ],
+      [
+        "hermes_db/domains/runtime/resources.py",
+        "2be89ebfa992ba8134c63ca6bbb1a7c538c261ca7816c8f6177e6dd17d0f8aba"
+      ],
+      [
+        "hermes_db/infra/backends/sqlite/connections.py",
+        "561971938b49b1fbfacb6a65d0e9fbcb43f63491d6a9b63081486dbac036c734"
+      ],
+      [
+        "plugins/kanban/dashboard/plugin_api.py",
+        "31075db95939e0983ef34490b89c35d4c15f049548f96846c2e98cf849ae6b0f"
+      ],
+      [
+        "plugins/memory/retaindb/__init__.py",
+        "9de16f93eae82257d5da03c72e5fcc9cb07fa522aeb016c2c51bbe15ba50390b"
+      ],
+      [
+        "plugins/memory/retaindb/cli.py",
+        "c43184c3eecb94d99ff3122416a15253a63f567f4e5ec4c268e88d9c367f33a3"
+      ],
+      [
+        "plugins/memory/retaindb/storage_schema.py",
+        "f41c7c899a61a2f9942312f89ca52b34e55a8d6e933cb7e3bdedc7a5ab35b512"
+      ],
+      [
+        "plugins/memory/retaindb/transport.py",
+        "9c7216ae0129de7b70a7062a116178ea00f4c8d0a0253f3910e892ebac1d8385"
+      ],
+      [
+        "plugins/platforms/discord/adapter.py",
+        "3400dff35b9bb221eefc4df5417e451252fbd0892b62ab77f273970bea56817b"
+      ],
+      [
+        "plugins/platforms/discord/onboarding.py",
+        "e67c5d24f2cc431ea93bd187cc05c7449f38c2491379b9b7f33974fab8a0494d"
+      ],
+      [
+        "plugins/platforms/discord/recovery.py",
+        "ecffb2f44852dc135de5a0e924991998c691a5705ac953cd34e61890cef6285c"
+      ],
+      [
+        "plugins/platforms/matrix/adapter.py",
+        "3f541af8204e2f03c2133013aeee5cb2d7c91c6175ed68af0d615e8fe4a71128"
+      ],
+      [
+        "plugins/platforms/matrix/adapter_crypto_sqlite.py",
+        "3d1cf2a89591f4395ea68fea60ea0667bad0aa6f406abc7b8908b2efe43d1c1b"
+      ],
+      [
+        "plugins/platforms/matrix/adapter_storage.py",
+        "ba26d46257049f1287b35475420df9a832b96d3032af1ece13642792fd3e7b86"
+      ],
+      [
+        "plugins/platforms/matrix/storage_schema.py",
+        "9dabcfebac0a16a6efa014db61187be8270ec02ebbce591c0806139b21e08ec5"
+      ],
+      [
+        "plugins/plugin_storage.py",
+        "d1dd44bac1cc20b417ebdeea108eab7d23402199ac70486911c2b25df1bad520"
+      ],
+      [
+        "tests/gateway/fixtures/matrix_protocol.py",
+        "7e8833a2bd333e6f8596463feccf2b2c8dec12388a92d5dd0bc2ade32cb3e76b"
+      ],
+      [
+        "tests/gateway/test_api_sqlite_schema_lifecycle.py",
+        "79684b752eef3b04a2787a605b3358e9a48c5f6d7c7a1dead66d3277cc32c5ff"
+      ],
+      [
+        "tests/gateway/test_matrix.py",
+        "4a0e84ab500499c1e04fa5bf3132d781931797ac37feb6dbd908828ae889855a"
+      ],
+      [
+        "tests/gateway/test_matrix_sqlite_schema_lifecycle.py",
+        "d9e098ca70b232888aee0c0b298f4145b6424e0d69f4719556547d4c3e1f889b"
+      ],
+      [
+        "tests/hermes_db/contracts/test_api_resource_selection.py",
+        "d2eb294221d6112bdd5700ce490baaea830f304525fdef0fc740968ded980770"
+      ],
+      [
+        "tests/hermes_db/contracts/test_api_run_resource_selection.py",
+        "27d6163cf832275cd08a1621ded9bb341e34311c1edec06f19325153e81e1a49"
+      ],
+      [
+        "tests/hermes_db/contracts/test_discord_sqlite_optional_drivers.py",
+        "af15ce54c606917bec7a9c396cc7b49b91a0f2889f77d845551d52c07917a8a0"
+      ],
+      [
+        "tests/hermes_db/contracts/test_matrix_close.py",
+        "82599d173ba931338f37ab56e494342a3d3e70e87b76eb938f871d73b527398a"
+      ],
+      [
+        "tests/hermes_db/contracts/test_plugins_sqlite_optional_drivers.py",
+        "950524985bfafd9622dfb7342a96162cc9c02dedc3e0e7f81104b319d462af52"
+      ],
+      [
+        "tests/hermes_db/matrix_support.py",
+        "6f0cc35a037e8a58b60542223bb4b7765600396f8eec316f9e5850f5c974c62b"
+      ],
+      [
+        "tests/hermes_db/postgresql/scenarios/retain_recovery.py",
+        "288565f2a7d949c13e9eaea215c848a5536d384ac77c54fdc29b9552550e86c5"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_discord_backfill.py",
+        "36e5d50146b6369007bf8ee27bcb65894e37a44b5bd269cdba7fa1d0ec4f7bb3"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_discord_recovery.py",
+        "617e9ed95ae5366f14a5ac42476f4aa57a3b58874880f775783707371dc880ff"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_discord_recovery_faults.py",
+        "7c49151ef1435ad63fa645820e9ba40d8e7adea4902130c9744b789a0b889ad6"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_matrix_close.py",
+        "4a4deebf8da23b09f3a17b4b4de74b2218e3ecec5376b952afd1ffe2dd7a07d5"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_matrix_crypto_store.py",
+        "6793212b94b43317aa30beef8e3320d2fd41e5f4918726d37ed2bfcc026fdc5d"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_matrix_faults.py",
+        "01a8cfc8ec9448e1b856be9611fc5ddb105fb3f4e90a0ebd20371a9dc215faed"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_matrix_sdk_edges.py",
+        "0ce499b632caf622cef485fb6583e71db282bb1737fb89bc55ed7d1fb2e3ee83"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_merge_collaboration_consumers.py",
+        "d58b72f4e20e98ac39401e471d87d7b0ab160ab202be66e37534821c2360f7a0"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_merge_commit_recovery.py",
+        "f04f5df1e5c737fb46ccedba270a10830861618b750688a9063c67e2404aef4b"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_merge_process_recovery.py",
+        "85d3f0054278dfe3334ea503a6df4f3bb89132d40cbc7813be6768dbb3d402df"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_plugin_storage.py",
+        "79005e9cfd961ada645b02a149bc21153f1e68e5b7b3798188393d5386b3d832"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_retain_queue.py",
+        "2a63a64b54d09cc829d4b55822083853d86d16620a91b8e18c20b9c42b346b33"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_retain_queue_process.py",
+        "ff29d8b0be98d4b2ad7ab5294c4d51b657ac7502f2bd66a75a010a38f2e1fa80"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_retain_queue_transactions.py",
+        "30ac1249f578afeafe2a221f24681e29d77709a21ca50f8b26ab1d047d6df848"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_retain_queue_worker.py",
+        "5764c436bd0c7f7c1b52636119ce230b61dd9d68e1c4f4aae803ab872ce506e2"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_worker_retain_transport.py",
+        "459e3e517a0b82b5c3df3043d2b2999eebff57233a5330bb6959195c86a4d046"
+      ],
+      [
+        "tests/hermes_db/single_backend_core.py",
+        "f402f44893fceb28d3c8fa1ab71d49bc12a5f04536a637c7eda6fc63d6080216"
+      ],
+      [
+        "tests/hermes_db/single_backend_recovery.py",
+        "2010d834f69dc717266b1525292ca124cc46f4861f5d141ce5a70bb3564b5fae"
+      ],
+      [
+        "tests/plugins/memory/test_retaindb_provider.py",
+        "f294c8aa4a935fe329bb18831662203fd28f0cf0b7fb8a0bed16aaf9aae49cb4"
+      ],
+      [
+        "tests/plugins/test_plugin_schema_lifecycle.py",
+        "937b8ac182d7be015d45552ffd2549caa3ff132cb4880e32f792fbecce89e2f4"
+      ],
+      [
+        "tests/plugins/test_portable_storage.py",
+        "817f5b7a496f159ea682122ca7c4bd28e4357c75ef5a37a3ef0e2c913fa4bb8f"
+      ],
+      [
+        "tests/plugins/test_retaindb_plugin.py",
+        "b25bc5478aa0ab081b5318fdcdcf61eab6ef3a752bb47a89c282bc4700efee76"
+      ],
+      [
+        "tui_gateway/methods_groups.py",
+        "3a9a97b903490fc992c11942e3be98453ea0a6e140e5ba91814431aa298a70df"
+      ]
+    ],
+    "changed_python_blob_sha256": "c4a6627d8319e1ae63121f0ca39643c8e0f65dedaa0a0d022c2addd886737eab",
+    "assertion_readpoint_equivalence": {
+      "changed_tests": 8,
+      "changed_assertion_calls": 27,
+      "normalization": "Only exact operations.<op> to public _plugin_storage_application.retain_<op>;all original values,comparisons,timeouts and remaining AST identical."
+    },
+    "intentional_method_delta": {
+      "ProfileRunStores.__init__": "Remove obsolete launch=True argument;captured root home always explicit,ordinary native must open existing;profile lifecycle owns creation.",
+      "ProfileRunStores._home_store": "Remove obsolete home==root launch flag together with actual internal API;cross-Profile cache/lock/close body unchanged."
+    },
+    "SQL_delta_classification": {
+      "removed": 0,
+      "added_occurrences": 7,
+      "added_distinct": 5,
+      "reason": "Only read-only schema readiness SELECT sqlite_master/crypto_version and PRAGMA table_info;all original DML/DDL literals retained;SDK chain untouched."
+    },
+    "SQL_added_hashes": [
+      "8166810c78580e1c22607e279c2770a066863063b615d020f1d853990542f403",
+      "6b4296016bcacf7196f19c1d3fa175677d6c15c56fa6e4176f68334fe345318c",
+      "2dd43fe9595aa16cd87dfe8759cca59a4c4f34ce04b062b7e0c2cf4f1bc92e4a",
+      "2dd43fe9595aa16cd87dfe8759cca59a4c4f34ce04b062b7e0c2cf4f1bc92e4a",
+      "2dd43fe9595aa16cd87dfe8759cca59a4c4f34ce04b062b7e0c2cf4f1bc92e4a",
+      "a3a381d85629dd62fb16ad24428d0ac28057beb875b91c18efb6e9f63ab61393",
+      "1e0f5d4c763fcf4c2de684828a0ee713838a8bc64042fcd9c5ab1146c828b632"
+    ]
+  },
+  "unverified": [
+    "Final frozen payloads/current final lean manifest and independent review remain Tasks16–20.",
+    "Windows actual Matrix SDK is Linux-only in project PM;6 Linux-only skips in Native mandatory batch are not SDK coverage.",
+    "Original unified Task24,seven non-WSL gaps,eight Windows baseline issues remain independent."
+  ],
+  "source_identity_notes": [
+    "Native10-file batches preceded static-only __all__ sorting,re.IGNORECASE and explicit check=False;ordinary production algorithms/SQL unchanged.",
+    "SDK test subprocess wait became asyncio.to_thread and was rerun on current source:4pass.Moved fake adapter seam selected14 original contracts:14pass.",
+    "PG missing actual provider readpoint fixed and full required4-file group rerun:8pass.Final full static snapshot reflects all current code/tests."
+  ]
+}

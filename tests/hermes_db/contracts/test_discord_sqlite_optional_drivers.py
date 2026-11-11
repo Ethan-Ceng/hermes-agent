@@ -14,7 +14,8 @@ class BlockDrivers(importlib.abc.MetaPathFinder):
         if fullname.split('.')[0] in {'sqlalchemy','psycopg','alembic'}:
             raise ImportError('PG imports blocked in native Discord contract')
 sys.meta_path.insert(0,BlockDrivers())
-from plugins.platforms.discord.recovery import DiscordRecoveryStore
+from plugins.platforms.discord.recovery import DiscordRecoveryStore, initialize_recovery_schema
+initialize_recovery_schema()
 stamp=datetime.now(UTC).isoformat()
 store=DiscordRecoveryStore()
 row=dict(message_id='message',channel_id='channel',thread_id=None,parent_channel_id=None,author_id='author',created_at=stamp,status='queued',updated_at=stamp)

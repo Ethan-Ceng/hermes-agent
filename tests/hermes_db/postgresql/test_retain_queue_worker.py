@@ -3,8 +3,9 @@
 from threading import Event
 import pytest
 from plugins.memory.retaindb import _WriteQueue
-from hermes_db.domains.plugin_storage.retain.api import open_queue
+from plugins.plugin_storage import open_queue
 from hermes_db.domains.plugin_storage.retain.postgres.operations import queue as operations
+import plugins.plugin_storage as _plugin_storage_application
 from hermes_db.tables.retain_queue import pending
 from sqlalchemy import select
 from tests.waiting import wait_until
@@ -40,17 +41,17 @@ def test_failure_is_persisted_and_retry_uses_same_frozen_payload_without_connect
             with open_queue(queue.reference) as conn:
                 request_id = conn.scalar(select(pending.c.request_id).where(operations.scope(queue.reference)))
             release.set()
-            wait_until(lambda: operations.inspect(queue.reference, request_id)["status"] == "pending", what="failed RetainDB row retained with retry")
-            row = operations.inspect(queue.reference, request_id)
+            wait_until(lambda: _plugin_storage_application.retain_inspect(queue.reference, request_id)["status"] == "pending", what="failed RetainDB row retained with retry")
+            row = _plugin_storage_application.retain_inspect(queue.reference, request_id)
             assert "not-a-real-secret" not in row["last_error"]
             assert completed.wait(15)
             assert calls == [[{"content": "original\x00🙂", "false": False}]] * 2
         finally:
             release.set()
             queue.shutdown()
-        assert operations.inspect(queue.reference, request_id)["status"] == "acknowledged"
+        assert _plugin_storage_application.retain_inspect(queue.reference, request_id)["status"] == "acknowledged"
         queue.enqueue("user", "ignored after shutdown", [])
-        assert operations.counts(queue.reference)["acknowledged"] == 1
+        assert _plugin_storage_application.retain_counts(queue.reference)["acknowledged"] == 1
 
 
 def test_two_real_writers_claim_distinct_rows_while_clients_wait(pg_profiles):
@@ -82,7 +83,7 @@ def test_two_real_writers_claim_distinct_rows_while_clients_wait(pg_profiles):
             if second is not None:
                 second.shutdown()
         assert sorted(calls) == [0, 1]
-        assert operations.counts(first.reference)["acknowledged"] == 2
+        assert _plugin_storage_application.retain_counts(first.reference)["acknowledged"] == 2
 
 
 def test_actual_ack_commit_with_missing_confirmation_does_not_resend(pg_profiles, monkeypatch):
@@ -97,7 +98,7 @@ def test_actual_ack_commit_with_missing_confirmation_does_not_resend(pg_profiles
         queue = _WriteQueue(Client(lambda *args: calls.append(args)), home / "retaindb_queue.db", profile_home=home)
         try:
             queue.enqueue("user", "session", [{"content": "payload\x00🙂"}])
-            wait_until(lambda: operations.counts(queue.reference)["acknowledged"] == 1, what="RetainDB committed receipt despite confirmation loss")
+            wait_until(lambda: _plugin_storage_application.retain_counts(queue.reference)["acknowledged"] == 1, what="RetainDB committed receipt despite confirmation loss")
         finally:
             queue.shutdown()
         assert len(calls) == 1
@@ -108,7 +109,7 @@ def test_changed_remote_project_never_receives_original_pending_data(pg_profiles
         bootstrap = _WriteQueue(Client(lambda *args: None), home / "retaindb_queue.db", profile_home=home)
         bootstrap.shutdown()
         original = bootstrap.reference
-        operations.enqueue(original, operations.prepare(original, "old-target", "user", "session", [{"content": "original project"}]))
+        _plugin_storage_application.retain_enqueue(original, operations.prepare(original, "old-target", "user", "session", [{"content": "original project"}]))
         changed_calls = []
         changed_client = Client(lambda *args: changed_calls.append(args))
         changed_client.project = "another-project"
@@ -118,8 +119,8 @@ def test_changed_remote_project_never_receives_original_pending_data(pg_profiles
         finally:
             changed.shutdown()
         assert [call[2] for call in changed_calls] == [[{"content": "new project"}]]
-        assert operations.inspect(original, "old-target")["status"] == "pending"
-        assert operations.counts(changed.reference)["other_destination"] == 1
+        assert _plugin_storage_application.retain_inspect(original, "old-target")["status"] == "pending"
+        assert _plugin_storage_application.retain_counts(changed.reference)["other_destination"] == 1
         assert "another endpoint/project" in caplog.text
         restored_calls, delivered = [], Event()
         def restored_ingest(*args):
@@ -131,7 +132,7 @@ def test_changed_remote_project_never_receives_original_pending_data(pg_profiles
         finally:
             restored.shutdown()
         assert [call[2] for call in restored_calls] == [[{"content": "original project"}]]
-        assert operations.inspect(original, "old-target")["status"] == "acknowledged"
+        assert _plugin_storage_application.retain_inspect(original, "old-target")["status"] == "acknowledged"
 
 
 def test_enqueue_unknown_commit_reports_request_and_committed_work_still_delivers(pg_profiles, monkeypatch):
@@ -154,5 +155,5 @@ def test_enqueue_unknown_commit_reports_request_and_committed_work_still_deliver
             assert delivered.wait(15)
         finally:
             queue.shutdown()
-        receipt = operations.inspect(queue.reference, outcome.value.request_id)
+        receipt = _plugin_storage_application.retain_inspect(queue.reference, outcome.value.request_id)
         assert receipt["status"] == "acknowledged" and len(calls) == 1

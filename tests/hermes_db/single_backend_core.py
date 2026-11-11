@@ -109,9 +109,13 @@ def metrics(home, label, role, saved):
 
 
 def plugins(home, label, role, saved):
-    from plugins.plugin_storage import plugin_store
-    from plugins.platforms.discord.recovery import DiscordRecoveryStore
+    from plugins.plugin_storage import plugin_store, initialize_plugin_store
+    from plugins.platforms.discord.recovery import DiscordRecoveryStore, initialize_recovery_schema
+    if role == "write":
+        initialize_recovery_schema(home)
     for plugin in ("discord", "other"):
+        if role == "write":
+            initialize_plugin_store(plugin, profile_home=home)
         store = plugin_store(plugin, namespace="same")
         if role == "write":
             store.put("same", label + plugin, expected_revision=0)

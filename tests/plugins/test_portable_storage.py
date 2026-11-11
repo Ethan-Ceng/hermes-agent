@@ -1,7 +1,14 @@
 """Native SQLite implements the public portable record contract."""
 
-from plugins.plugin_storage import plugin_store
+import pytest
+from plugins.plugin_storage import plugin_store, initialize_plugin_store
 from tests.plugins.portable_storage_contracts import assert_invalid_values, assert_portable_records
+
+
+@pytest.fixture(autouse=True)
+def portable_schema():
+    for name in ['portable', 'other', 'validation', 'expiry', 'key-quota']:
+        initialize_plugin_store(name)
 
 
 def test_portable_records_scope_cas_pagination_and_values():

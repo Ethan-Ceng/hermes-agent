@@ -24,7 +24,7 @@ def test_closed_admission_replays_after_real_commit_ack_loss(pg_profiles, monkey
     from gateway.platforms.api_server_run_idempotency import RunIdempotencyStore
     from hermes_cli.db_sessions import open_session_store
     from hermes_db.errors import UnknownCommitError
-    from hermes_db.integration.run_resources import ProfileRunStores
+    from gateway.platforms.api_server_run_resources import ProfileRunStores
     with pg_profiles('one') as home, closing(open_session_store(home / 'state.db')) as db:
         resources = ProfileRunStores(RunIdempotencyStore)
         try:

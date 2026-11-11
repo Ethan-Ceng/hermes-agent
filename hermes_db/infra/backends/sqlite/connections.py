@@ -7,6 +7,8 @@ from functools import partial
 from pathlib import Path
 
 def _connect_create(path: Path | str, **options) -> sqlite3.Connection:
+    if str(path) == ":memory:":
+        return sqlite3.connect(":memory:", **options)
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     return sqlite3.connect(path, **options)
@@ -70,3 +72,9 @@ def _open_configured(
         conn.close()
         raise
     return conn
+
+
+def open_uri(uri: str, **options) -> sqlite3.Connection:
+    """Open an already-resolved SQLite URI while retaining actual file-connection tracking."""
+    from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
+    return _open_configured(partial(connect_tracked, uri, uri=True), **options)

@@ -9,13 +9,11 @@ logger = logging.getLogger(__name__)
 
 
 def capture_storage(adapter):
-    from hermes_cli.db_setup import _owning_profile, resolve_db_configuration
-    home = get_hermes_home()
-    with _owning_profile(home):
-        settings, scope = resolve_db_configuration(home)
-    adapter._storage_home = scope.profile_home
-    adapter._storage_backend = settings.backend
-    return settings.backend
+    from plugins.plugin_storage import storage_profile
+    home, backend = storage_profile(get_hermes_home())
+    adapter._storage_home = home
+    adapter._storage_backend = backend
+    return backend
 
 
 def make_client(client_class, adapter, **arguments):
@@ -26,12 +24,8 @@ def make_client(client_class, adapter, **arguments):
 
 
 def pg_dependencies_available():
-    try:
-        from hermes_db.domains.plugin_storage.matrix.postgres.crypto import PostgresCryptoStore
-        import psycopg
-    except ImportError:
-        return False
-    return True
+    from plugins.plugin_storage import matrix_dependencies_available
+    return matrix_dependencies_available()
 
 
 def ensure_pg_dependencies(importer, namespace):
@@ -72,15 +66,15 @@ async def _verify_identity(adapter, client, store, *, published=False):
 
 
 async def connect_postgresql(adapter, client, api, state_store):
-    from hermes_cli.db_setup import _owning_profile
-    from hermes_db.domains.plugin_storage.matrix.postgres.crypto import PostgresCryptoStore
+    from plugins.plugin_storage import plugin_profile_scope as _owning_profile
+    from plugins.plugin_storage import matrix_crypto_store
     from mautrix.crypto import OlmMachine
     from mautrix.types import TrustState
     from plugins.platforms.matrix.adapter_crypto import _CryptoStateStore
     handle = None
     try:
         with _owning_profile(adapter._storage_home):
-            store = PostgresCryptoStore(account_id=str(client.mxid), device_id=str(client.device_id or ""),
+            store = matrix_crypto_store(account_id=str(client.mxid), device_id=str(client.device_id or ""),
                 homeserver=adapter._homeserver, pickle_key=f"{client.mxid}:{client.device_id}", profile_home=adapter._storage_home)
             handle = _StoreLifecycle(store)
             await store.open()

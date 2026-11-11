@@ -7082,6 +7082,8 @@ _is_connected = _env_is_connected("DISCORD_BOT_TOKEN")
 
 
 def register(ctx) -> None:
+    from .recovery import register_storage_cli, dispatch_storage_cli
+    ctx.register_cli_command("discord", "Inspect or upgrade Discord recovery storage", register_storage_cli, dispatch_storage_cli)
     """Plugin entry point — called by the Hermes plugin system."""
     from .adapter_hint import PLATFORM_HINT
     from .send_targets import SEND_ENTRY_KWARGS

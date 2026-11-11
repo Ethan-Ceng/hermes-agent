@@ -3761,14 +3761,15 @@
       "gateway/platforms/api_server_response_store.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Storage adapter/lifecycle candidate; actual business/SDK types and plugin published API boundaries remain.",
     "symbol_routes": {},
     "baseline_abi_sha256": "fed3faf00a68179af2892f5bb07ef916ead147f78e78c04c7f1c7dcf47f685be",
     "symbol_names": [
       "_locked",
       "ResponseStore"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "gateway/platforms/api_server_run_idempotency.py",
@@ -3779,14 +3780,15 @@
       "gateway/platforms/api_server_run_idempotency.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Storage adapter/lifecycle candidate; actual business/SDK types and plugin published API boundaries remain.",
     "symbol_routes": {},
     "baseline_abi_sha256": "56c529404e3dc44f04286a7f10bd04eb64d8dcc9dee961bf38ad93b5c779e0ef",
     "symbol_names": [
       "_outcome",
       "RunIdempotencyStore"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "gateway/readiness.py",
@@ -5260,7 +5262,7 @@
       "plugins/kanban/dashboard/plugin_api.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Storage adapter/lifecycle candidate; actual business/SDK types and plugin published API boundaries remain.",
     "symbol_routes": {},
     "baseline_abi_sha256": "6460686d5b8254389410318126de812aeda95205cad9c3d122474ecb342a2ec4",
@@ -5386,7 +5388,8 @@
       "_ws_board_live",
       "_EventTail",
       "stream_events"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "plugins/memory/retaindb/__init__.py",
@@ -5397,7 +5400,7 @@
       "plugins/memory/retaindb/__init__.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Storage adapter/lifecycle candidate; actual business/SDK types and plugin published API boundaries remain.",
     "symbol_routes": {},
     "baseline_abi_sha256": "f4253cbb6dc3f5587f022197ea46ba9d74740b6792e54c924bb3e0fd9d6ba45d",
@@ -5414,7 +5417,8 @@
       "_build_overlay",
       "RetainDBMemoryProvider",
       "register"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "plugins/platforms/discord/recovery.py",
@@ -5425,13 +5429,14 @@
       "plugins/platforms/discord/recovery.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Storage adapter/lifecycle candidate; actual business/SDK types and plugin published API boundaries remain.",
     "symbol_routes": {},
     "baseline_abi_sha256": "a0acfae7b8825c17ee6944e76bf031a006362f3a1733d8e681c6ac4a555c4200",
     "symbol_names": [
       "DiscordRecoveryStore"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "plugins/platforms/matrix/adapter.py",
@@ -5442,7 +5447,7 @@
       "plugins/platforms/matrix/adapter.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Reuse published PluginContext CLI/platform setup and plugin_storage façade; no new private import allowlist or core-to-specific-plugin crossing.",
     "symbol_routes": {},
     "baseline_abi_sha256": "2b4a8e4715ae2e721fbc78026da02228ccccb2d5e60dae939e2afe078ed9ddfb",
@@ -5496,7 +5501,8 @@
       "_apply_yaml_config",
       "_is_connected",
       "register"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "plugins/platforms/matrix/adapter_crypto_sqlite.py",
@@ -5508,20 +5514,23 @@
       "plugins/platforms/matrix/storage_schema.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "SDK create(upgrade_table=real table) only in explicit setup/upgrade; normal create without upgrades then read-only version/table checks. Preserve actual PgCryptoStore/OlmMachine.",
     "symbol_routes": {
       "connect_sqlite": {
         "target": "plugins/platforms/matrix/adapter_crypto_sqlite.py",
         "task": 15,
         "action": "preserve_or_split_in_place",
-        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim."
+        "constraint": "Keep real existing business/diagnostic definition; route technical/app parts using the explicit method plan. Never leave re-export shim.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task15.json"
       }
     },
     "baseline_abi_sha256": "79883a276bdb7fdce2ca2a7b3348f9a68f083de0c21a1ec2965ec9a5ab84ab42",
     "symbol_names": [
       "connect_sqlite"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "plugins/plugin_storage.py",
@@ -5532,7 +5541,7 @@
       "plugins/plugin_storage.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Reuse published PluginContext CLI/platform setup and plugin_storage façade; no new private import allowlist or core-to-specific-plugin crossing.",
     "symbol_routes": {},
     "baseline_abi_sha256": "e2ebfc76913627fdf78bca9928bb1160401c85ef420a867bf399db1b506c2af2",
@@ -5541,7 +5550,8 @@
       "plugin_data_dir",
       "plugin_db",
       "plugin_store"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "tools/async_delegation.py",

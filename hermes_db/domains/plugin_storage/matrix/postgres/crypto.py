@@ -8,21 +8,19 @@ from dataclasses import replace
 from mautrix.client.state_store import SyncStore
 from mautrix.crypto.store import CryptoStore
 
-from hermes_constants import get_hermes_home
 from hermes_db.domains.plugin_storage.matrix.postgres import codec
-from hermes_db.domains.plugin_storage.matrix.api import capture_matrix
 from hermes_db.errors import StorageClosedError
-from hermes_db.domains.plugin_storage.matrix.postgres.runtime import MatrixRuntime
 from hermes_db.domains.plugin_storage.matrix.postgres.operations import accounts, sessions
-from hermes_db.domains.plugin_storage.matrix.postgres.queries.crypto import initialize
 from hermes_db.core.values import decode_text
 
 
 class PostgresCryptoStore(CryptoStore, SyncStore):
-    def __init__(self, *, account_id, device_id, homeserver, pickle_key, profile_home=None):
+    def __init__(self, *, account_id, pickle_key, reference, initialize, runtime_factory):
         self.account_id = account_id
         self.pickle_key = pickle_key
-        self.reference = capture_matrix(profile_home or get_hermes_home(), homeserver, account_id, device_id)
+        self.reference = reference
+        self._initialize = initialize
+        self._runtime_factory = runtime_factory
         self.runtime = None
         self._open_lock = asyncio.Lock()
         self._pid = os.getpid()
@@ -36,9 +34,9 @@ class PostgresCryptoStore(CryptoStore, SyncStore):
                 if self.runtime.closed:
                     raise StorageClosedError("Recreate the Matrix store after closing it")
                 return
-            generation = await asyncio.to_thread(initialize, self.reference)
+            generation = await asyncio.to_thread(self._initialize, self.reference)
             self.reference = replace(self.reference, generation=generation)
-            self.runtime = MatrixRuntime(self.reference)
+            self.runtime = self._runtime_factory(self.reference)
 
     async def close(self):
         self._assert_owner()

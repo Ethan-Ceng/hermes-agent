@@ -4,8 +4,8 @@ from contextlib import asynccontextmanager
 
 
 def new_store(**overrides):
-    from hermes_db.domains.plugin_storage.matrix.postgres.crypto import PostgresCryptoStore
-    return PostgresCryptoStore(**dict(dict(account_id="@bot:matrix.test", device_id="DEVICE", homeserver="https://matrix.test", pickle_key="isolated-test-key"), **overrides))
+    from plugins.plugin_storage import matrix_crypto_store
+    return matrix_crypto_store(**dict(dict(account_id="@bot:matrix.test", device_id="DEVICE", homeserver="https://matrix.test", pickle_key="isolated-test-key"), **overrides))
 
 
 def olm_pair():

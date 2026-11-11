@@ -19,13 +19,13 @@ def _adapter():
     from mautrix.client.state_store import SyncStore
     from mautrix.crypto.store import CryptoStore
     from hermes_db.domains.plugin_storage.matrix.postgres.crypto import PostgresCryptoStore
-    from hermes_db.domains.plugin_storage.matrix.postgres.runtime import MatrixRuntime
+    from hermes_cli.db_matrix_runtime import MatrixRuntime
     from plugins.platforms.matrix.adapter_storage import _StoreLifecycle
 
     # Only the close protocol is under test; no configuration, connection or SQL is substituted.
     store = object.__new__(PostgresCryptoStore)
     store._pid = os.getpid()
-    store.runtime = MatrixRuntime(None)
+    store.runtime = MatrixRuntime(None, None)
     assert isinstance(store, (CryptoStore, SyncStore))
     return store, SimpleNamespace(_closing=False, _sync_task=None, _invite_join_tasks={},
         _reaction_redaction_tasks=set(), _crypto_db=_StoreLifecycle(store), _client=None)

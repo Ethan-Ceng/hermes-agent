@@ -45,7 +45,7 @@ def test_pg_public_portable_record_contract_and_validation(pg_profiles):
 def test_pg_expiry_prune_preserves_monotonic_revision(pg_profiles):
     from sqlalchemy import update
     from plugins.plugin_storage import plugin_store
-    from hermes_db.domains.plugin_storage.records.api import open_plugin
+    from plugins.plugin_storage import open_plugin
     from hermes_db.domains.plugin_storage.records.postgres.store import scope
     from hermes_db.tables.plugins import records
     with pg_profiles("one"):
@@ -75,7 +75,7 @@ def test_retained_key_quota_rolls_back_and_releases_after_delete(pg_profiles):
     from sqlalchemy import insert, update
     from plugins.plugin_storage import plugin_store, PluginStorageQuotaError
     from plugins.plugin_storage_types import MAX_NAMESPACE_KEYS
-    from hermes_db.domains.plugin_storage.records.api import open_plugin
+    from plugins.plugin_storage import open_plugin
     from hermes_db.domains.plugin_storage.records.postgres.store import scope
     from hermes_db.tables.plugins import namespaces, records
     with pg_profiles("one"):
@@ -100,20 +100,21 @@ def test_unknown_plugin_commit_is_observable_without_blind_cas_retry(pg_profiles
     from contextlib import contextmanager
     from plugins.plugin_storage import plugin_store, PluginStorageConflict
     from hermes_db.domains.plugin_storage.records.postgres import store as implementation
+    import plugins.plugin_storage as _plugin_storage_application
     from hermes_db.errors import UnknownCommitError
     with pg_profiles("one"):
         store = plugin_store("unknown-commit")
-        original = implementation.open_plugin
+        original = _plugin_storage_application.open_plugin
         @contextmanager
         def lose_ack(reference, *, write=False):
             with original(reference, write=write) as conn:
                 yield conn
             if write:
                 raise UnknownCommitError("injected confirmation loss after actual COMMIT")
-        monkeypatch.setattr(implementation, "open_plugin", lose_ack)
+        monkeypatch.setattr(_plugin_storage_application, "open_plugin", lose_ack)
         with pytest.raises(UnknownCommitError):
             store.put("request", {"accepted": True}, expected_revision=0)
-        monkeypatch.setattr(implementation, "open_plugin", original)
+        monkeypatch.setattr(_plugin_storage_application, "open_plugin", original)
         current = plugin_store("unknown-commit").get("request")
         assert current.value == {"accepted": True}
         with pytest.raises(PluginStorageConflict):

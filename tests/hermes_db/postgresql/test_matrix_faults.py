@@ -42,12 +42,12 @@ async def test_cancelled_sdk_transaction_rolls_back_and_releases_connection(pg_p
 
 @pytest.mark.asyncio
 async def test_unknown_commit_is_observable_without_retry_in_sdk_transaction(pg_profiles, monkeypatch):
-    from hermes_db.domains.plugin_storage.matrix.postgres import runtime
+    from hermes_cli import db_matrix_runtime as runtime
     from hermes_db.errors import UnknownCommitError
     with pg_profiles("one"):
         store = new_store()
         await store.open()
-        original, writes = runtime.unit_of_work, []
+        original, writes = store.runtime.unit_of_work, []
         @contextmanager
         def lose_ack(reference, *, write=False):
             with original(reference, write=write) as conn:
@@ -56,13 +56,13 @@ async def test_unknown_commit_is_observable_without_retry_in_sdk_transaction(pg_
                 writes.append(True)
                 raise UnknownCommitError("injected confirmation loss after real crypto COMMIT")
         try:
-            monkeypatch.setattr(runtime, "unit_of_work", lose_ack)
+            monkeypatch.setattr(store.runtime, "unit_of_work", lose_ack)
             with pytest.raises(UnknownCommitError):
                 async with store.transaction():
                     await store.put_next_batch("actually committed")
                     await store.put_devices("@committed:matrix.test", {})
             assert writes == [True]
-            monkeypatch.setattr(runtime, "unit_of_work", original)
+            monkeypatch.setattr(store.runtime, "unit_of_work", original)
             assert await store.get_next_batch() == "actually committed"
             assert await store.get_devices("@committed:matrix.test") == {}
             assert current_engine().pool.checkedout() == 0
@@ -74,7 +74,7 @@ async def test_unknown_commit_is_observable_without_retry_in_sdk_transaction(pg_
 async def test_identity_collision_wrong_pickle_and_retired_dataset_are_explicit(pg_profiles):
     from mautrix.crypto import OlmAccount
     from hermes_db.errors import StorageConflictError, StorageConfigurationError
-    from hermes_db.domains.plugin_storage.matrix.api import unit_of_work
+    from plugins.plugin_storage import unit_of_work
     from hermes_db.domains.plugin_storage.matrix.postgres.queries.crypto import scope
     from hermes_db.tables.matrix_crypto import roots
     from sqlalchemy import delete

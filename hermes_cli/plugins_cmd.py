@@ -644,6 +644,8 @@ def _set_plugin_enabled(name: str, *, enable: bool, aliases=(), console=None) ->
 
     if enable:
         _refuse_recalled_entry(_find_plugin_entry(name))
+        from plugins.plugin_storage import initialize_plugin_store
+        initialize_plugin_store(name.rsplit("/", 1)[-1])
     with _selection_lock():
         expected_config = _plugin_selection_version()
         config = read_home_selection(get_hermes_home()) or {}

@@ -327,13 +327,14 @@
       "hermes_db/domains/plugin_storage/records/sqlite.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Portable plugin CRUD/CAS/quota/TTL is business persistence; initialize explicitly.",
     "symbol_routes": {},
     "baseline_abi_sha256": "ee472e29b8ca7344a1d8342e2cc48c7733f183d888deeb8b28eb66427bd863f5",
     "symbol_names": [
       "SQLitePluginStore"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/contracts.py",
@@ -3355,11 +3356,12 @@
       "hermes_db/domains/plugin_storage/__init__.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/discord/__init__.py",
@@ -3370,24 +3372,43 @@
       "hermes_db/domains/plugin_storage/discord/__init__.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/discord/api.py",
     "baseline_sha256": "4ba22eaf46c4566d651d7d4635ff460cb7441c6d792b7bac1ac87502b413dd57",
     "layer": "business",
-    "action": "preserve",
+    "action": "split",
     "targets": [
-      "hermes_db/domains/plugin_storage/discord/api.py"
+      "hermes_db/domains/plugin_storage/discord/api.py",
+      "plugins/plugin_storage.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
-    "symbol_routes": {},
+    "symbol_routes": {
+      "capture_discord": {
+        "target": "plugins/plugin_storage.py",
+        "task": 15,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Profile acquisition,backend/target checks and Worker RPC belong to existing public application facade;DTOs and supplied-Connection SQL remain business.",
+        "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+      },
+      "open_discord": {
+        "target": "plugins/plugin_storage.py",
+        "task": 15,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Profile acquisition,backend/target checks and Worker RPC belong to existing public application facade;DTOs and supplied-Connection SQL remain business.",
+        "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+      }
+    },
     "application_imports": [
       {
         "line": 26,
@@ -3401,7 +3422,8 @@
       "DiscordRef",
       "capture_discord",
       "open_discord"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/discord/postgres/__init__.py",
@@ -3412,11 +3434,12 @@
       "hermes_db/domains/plugin_storage/discord/postgres/__init__.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/discord/postgres/operations/__init__.py",
@@ -3427,11 +3450,12 @@
       "hermes_db/domains/plugin_storage/discord/postgres/operations/__init__.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/discord/postgres/operations/recovery.py",
@@ -3442,7 +3466,7 @@
       "hermes_db/domains/plugin_storage/discord/postgres/operations/recovery.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -3480,7 +3504,8 @@
       "cursor",
       "advance_cursor",
       "prune"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/discord/postgres/queries/__init__.py",
@@ -3491,11 +3516,12 @@
       "hermes_db/domains/plugin_storage/discord/postgres/queries/__init__.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/discord/postgres/queries/recovery.py",
@@ -3506,7 +3532,7 @@
       "hermes_db/domains/plugin_storage/discord/postgres/queries/recovery.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "ebad633e9d52c028d6eedb142545d4b26d72107d79079500208e33506de97ae4",
@@ -3518,24 +3544,35 @@
       "lock_store",
       "message",
       "insert_row"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/discord/postgres/store.py",
     "baseline_sha256": "908e75b4995715530e5336f28cec72424fa1b741190c4bc89fc4a712a851175f",
     "layer": "business",
-    "action": "preserve",
+    "action": "move",
     "targets": [
-      "hermes_db/domains/plugin_storage/discord/postgres/store.py"
+      "plugins/plugin_storage.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
-    "symbol_routes": {},
+    "symbol_routes": {
+      "PostgresDiscordRecoveryStore": {
+        "target": "plugins/plugin_storage.py",
+        "task": 15,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Profile acquisition,backend/target checks and Worker RPC belong to existing public application facade;DTOs and supplied-Connection SQL remain business.",
+        "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+      }
+    },
     "baseline_abi_sha256": "a10ade8debbac7308ca2989b1ecbf40873ce2a01c3fd9f4493b25946a0d19b49",
     "symbol_names": [
       "PostgresDiscordRecoveryStore"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/__init__.py",
@@ -3546,24 +3583,51 @@
       "hermes_db/domains/plugin_storage/matrix/__init__.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/api.py",
     "baseline_sha256": "cb6a78c7b60fa757f6ebedd2ac037d3c31e3ac511a9f065dcbf39febeed2808b",
     "layer": "business",
-    "action": "preserve",
+    "action": "split",
     "targets": [
-      "hermes_db/domains/plugin_storage/matrix/api.py"
+      "hermes_db/domains/plugin_storage/matrix/api.py",
+      "plugins/plugin_storage.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
-    "symbol_routes": {},
+    "symbol_routes": {
+      "capture_matrix": {
+        "target": "plugins/plugin_storage.py",
+        "task": 15,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Profile acquisition,backend/target checks and Worker RPC belong to existing public application facade;DTOs and supplied-Connection SQL remain business.",
+        "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+      },
+      "resource_for": {
+        "target": "plugins/plugin_storage.py",
+        "task": 15,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Profile acquisition,backend/target checks and Worker RPC belong to existing public application facade;DTOs and supplied-Connection SQL remain business.",
+        "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+      },
+      "unit_of_work": {
+        "target": "plugins/plugin_storage.py",
+        "task": 15,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Profile acquisition,backend/target checks and Worker RPC belong to existing public application facade;DTOs and supplied-Connection SQL remain business.",
+        "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+      }
+    },
     "application_imports": [
       {
         "line": 22,
@@ -3583,7 +3647,8 @@
       "capture_matrix",
       "resource_for",
       "unit_of_work"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/__init__.py",
@@ -3594,11 +3659,12 @@
       "hermes_db/domains/plugin_storage/matrix/postgres/__init__.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/codec.py",
@@ -3609,7 +3675,7 @@
       "hermes_db/domains/plugin_storage/matrix/postgres/codec.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "307e082403aaabeb8a4dfb4c1fcf3341f2c35bff050665bd872056d008900db2",
@@ -3627,7 +3693,8 @@
       "restore_outbound",
       "device_record",
       "restore_device"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/crypto.py",
@@ -3638,13 +3705,14 @@
       "hermes_db/domains/plugin_storage/matrix/postgres/crypto.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "f9bc7eb6953a59d26ac9a4924571702fd4aa5b5ed6deb64d826da34bf4c4461b",
     "symbol_names": [
       "PostgresCryptoStore"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/failures.py",
@@ -3655,14 +3723,15 @@
       "hermes_db/domains/plugin_storage/matrix/postgres/failures.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "5e5c44fc3b892971dd02bf74beecd547f2c1fe1c8b75e53074fb8c91f2ea6dce",
     "symbol_names": [
       "remember",
       "checkpoint"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/olm_cache.py",
@@ -3673,13 +3742,14 @@
       "hermes_db/domains/plugin_storage/matrix/postgres/olm_cache.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "a9c31769b97c1dffd16f8e1b423aed33b71e53795b94fbd248c39c2b68022a34",
     "symbol_names": [
       "OlmSessions"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/operations/__init__.py",
@@ -3690,11 +3760,12 @@
       "hermes_db/domains/plugin_storage/matrix/postgres/operations/__init__.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/operations/accounts.py",
@@ -3705,7 +3776,7 @@
       "hermes_db/domains/plugin_storage/matrix/postgres/operations/accounts.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "aa8356ff3ef0587ccfc6d27200511ed883329f5a2c62217a769a62669af93f0b",
@@ -3725,7 +3796,8 @@
       "is_key_signed_by",
       "drop_signatures_by_key",
       "validate_message_index"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/operations/sessions.py",
@@ -3736,7 +3808,7 @@
       "hermes_db/domains/plugin_storage/matrix/postgres/operations/sessions.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "fb4de0aec2e4dc996b9d586f40b3805d4b797cfef05268c8c06101894ab9843b",
@@ -3757,7 +3829,8 @@
       "update_outbound_group_session",
       "get_outbound_group_session",
       "remove_outbound_group_sessions"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/queries/__init__.py",
@@ -3768,11 +3841,12 @@
       "hermes_db/domains/plugin_storage/matrix/postgres/queries/__init__.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/queries/crypto.py",
@@ -3783,7 +3857,7 @@
       "hermes_db/domains/plugin_storage/matrix/postgres/queries/crypto.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "6f735e9835ca3795415acc31bfeb057800b899f7ca66acc2f3176829da984d0b",
@@ -3797,19 +3871,20 @@
       "change",
       "initialize",
       "check_generation"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/runtime.py",
     "baseline_sha256": "e04f9f3ba6dea8cf69966873b5cbeb807566c24fdd95e971c12942b86304b8ef",
-    "layer": "business",
-    "action": "preserve",
+    "layer": "application",
+    "action": "move",
     "targets": [
-      "hermes_db/domains/plugin_storage/matrix/postgres/runtime.py"
+      "hermes_cli/db_matrix_runtime.py"
     ],
     "task": 15,
-    "status": "pending",
-    "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
+    "status": "completed",
+    "reason": "Actual SDK executor/task/cancellation/close orchestration belongs to application;business SDK methods receive concrete runtime factory and supplied SQL operations.",
     "symbol_routes": {},
     "baseline_abi_sha256": "415084709a7b361c84e036ac45c9f29b9fe098d943f63738490f0ac4bad2eab9",
     "symbol_names": [
@@ -3817,7 +3892,8 @@
       "_unit",
       "_Transaction",
       "MatrixRuntime"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/records/__init__.py",
@@ -3828,24 +3904,43 @@
       "hermes_db/domains/plugin_storage/records/__init__.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/records/api.py",
     "baseline_sha256": "9a8a1d82d48ec51f46d9603f424a22f81bf7884f915372ac3e898711ab2b98a1",
     "layer": "business",
-    "action": "preserve",
+    "action": "split",
     "targets": [
-      "hermes_db/domains/plugin_storage/records/api.py"
+      "hermes_db/domains/plugin_storage/records/api.py",
+      "plugins/plugin_storage.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
-    "symbol_routes": {},
+    "symbol_routes": {
+      "capture_plugin": {
+        "target": "plugins/plugin_storage.py",
+        "task": 15,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Profile acquisition,backend/target checks and Worker RPC belong to existing public application facade;DTOs and supplied-Connection SQL remain business.",
+        "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+      },
+      "open_plugin": {
+        "target": "plugins/plugin_storage.py",
+        "task": 15,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Profile acquisition,backend/target checks and Worker RPC belong to existing public application facade;DTOs and supplied-Connection SQL remain business.",
+        "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+      }
+    },
     "application_imports": [
       {
         "line": 27,
@@ -3859,7 +3954,8 @@
       "PluginRef",
       "capture_plugin",
       "open_plugin"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/records/postgres/__init__.py",
@@ -3870,24 +3966,35 @@
       "hermes_db/domains/plugin_storage/records/postgres/__init__.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/records/postgres/store.py",
     "baseline_sha256": "e7da3d280aec960271900402bbaac4450539c89f87b67930c7710b8ab1e51609",
     "layer": "business",
-    "action": "preserve",
+    "action": "split",
     "targets": [
-      "hermes_db/domains/plugin_storage/records/postgres/store.py"
+      "hermes_db/domains/plugin_storage/records/postgres/store.py",
+      "plugins/plugin_storage.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
-    "symbol_routes": {},
+    "symbol_routes": {
+      "PostgresPluginStore": {
+        "target": "plugins/plugin_storage.py",
+        "task": 15,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Profile acquisition,backend/target checks and Worker RPC belong to existing public application facade;DTOs and supplied-Connection SQL remain business.",
+        "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+      }
+    },
     "application_imports": [
       {
         "line": 5,
@@ -3908,7 +4015,8 @@
       "scan",
       "prune",
       "PostgresPluginStore"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/retain/__init__.py",
@@ -3919,24 +4027,51 @@
       "hermes_db/domains/plugin_storage/retain/__init__.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/retain/api.py",
     "baseline_sha256": "7ce80ca0a917df91a99da8602fcdb65391efda585dc42c84ac2ba9e53b2a48c8",
     "layer": "business",
-    "action": "preserve",
+    "action": "split",
     "targets": [
-      "hermes_db/domains/plugin_storage/retain/api.py"
+      "hermes_db/domains/plugin_storage/retain/api.py",
+      "plugins/plugin_storage.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
-    "symbol_routes": {},
+    "symbol_routes": {
+      "WorkerRetainQueueRef": {
+        "target": "plugins/plugin_storage.py",
+        "task": 15,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Profile acquisition,backend/target checks and Worker RPC belong to existing public application facade;DTOs and supplied-Connection SQL remain business.",
+        "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+      },
+      "capture_queue": {
+        "target": "plugins/plugin_storage.py",
+        "task": 15,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Profile acquisition,backend/target checks and Worker RPC belong to existing public application facade;DTOs and supplied-Connection SQL remain business.",
+        "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+      },
+      "open_queue": {
+        "target": "plugins/plugin_storage.py",
+        "task": 15,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Profile acquisition,backend/target checks and Worker RPC belong to existing public application facade;DTOs and supplied-Connection SQL remain business.",
+        "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+      }
+    },
     "application_imports": [
       {
         "line": 38,
@@ -3956,7 +4091,8 @@
       "WorkerRetainQueueRef",
       "capture_queue",
       "open_queue"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/retain/postgres/__init__.py",
@@ -3967,11 +4103,12 @@
       "hermes_db/domains/plugin_storage/retain/postgres/__init__.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/retain/postgres/operations/__init__.py",
@@ -3982,11 +4119,12 @@
       "hermes_db/domains/plugin_storage/retain/postgres/operations/__init__.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/plugin_storage/retain/postgres/operations/queue.py",
@@ -3997,7 +4135,7 @@
       "hermes_db/domains/plugin_storage/retain/postgres/operations/queue.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "c0575bebfe8cc824c050f7fd9cc34744f17146cea13a4457bacb0267b787158b",
@@ -4018,7 +4156,8 @@
       "fail",
       "inspect",
       "counts"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/domains/projects/__init__.py",
@@ -9085,26 +9224,32 @@
       "hermes_cli/db_api.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {
       "OwnedApiStore": {
         "target": "hermes_db/domains/runtime/resources.py",
         "task": 15,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task15.json"
       },
       "open_response_store": {
         "target": "hermes_cli/db_api.py",
         "task": 15,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task15.json"
       },
       "open_run_store": {
         "target": "hermes_cli/db_api.py",
         "task": 15,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task15.json"
       }
     },
     "baseline_abi_sha256": "ec23fd5e0a3822ce957e35f11f553b8a9d84cf184bea06e48b4bf48740d9a7bc",
@@ -9112,7 +9257,8 @@
       "OwnedApiStore",
       "open_response_store",
       "open_run_store"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/integration/archive_refs.py",
@@ -10003,13 +10149,14 @@
       "plugins/memory/retaindb/transport.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "e785239d892382947510801e7461c9825d4ba63878915c746bc556980df7e9cc",
     "symbol_names": [
       "PostgresWriteQueue"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/integration/room_attachments.py",
@@ -10102,14 +10249,15 @@
       "gateway/platforms/api_server_run_resources.py"
     ],
     "task": 15,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "b2d3464bbcafedb8d424097071af005bb32b96fc91b105b339f8dbc8df31afae",
     "symbol_names": [
       "_home",
       "ProfileRunStores"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
   },
   {
     "source": "hermes_db/integration/runtime_access.py",
