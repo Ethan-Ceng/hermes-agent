@@ -47,7 +47,7 @@ def test_pg_readiness_reports_unreachable_storage_instead_of_uninitialized_file(
 
 
 def test_core_spillover_sweep_preserves_referenced_files_and_uses_explicit_owner(core_pair, monkeypatch):
-    from hermes_db.integration import archive_refs
+    import hermes_cli.db_archive_files as archive_refs
     from tools import tool_result_storage as tools
     owner, other = core_pair
     _configured(monkeypatch, owner)
@@ -83,7 +83,7 @@ def test_core_spillover_sweep_preserves_referenced_files_and_uses_explicit_owner
 
 
 def test_core_unknown_archive_references_keep_every_file(core_pair, monkeypatch):
-    from hermes_db.integration import archive_refs
+    import hermes_cli.db_archive_files as archive_refs
     from hermes_db.errors import StorageUnavailableError
     from tools import tool_result_storage as tools
     owner = core_pair[0]
@@ -107,7 +107,7 @@ def test_core_unknown_archive_references_keep_every_file(core_pair, monkeypatch)
 
 
 def test_core_age_sweep_rechecks_mtime_after_acquiring_the_reference_fence(core_pair, monkeypatch):
-    from hermes_db.integration import archive_refs
+    import hermes_cli.db_archive_files as archive_refs
     from tools import tool_result_storage as tools
     store = core_pair[0]
     _configured(monkeypatch, store)

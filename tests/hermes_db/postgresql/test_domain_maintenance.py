@@ -60,7 +60,7 @@ def test_maintenance_resumes_workspace_token_and_releases_reference_fence(pg_pro
                 kb._cleanup_workspace(store, task)
             with pytest.raises(StorageBusyError):
                 workspace.set_workspace_path(store, waiting, path)
-    from hermes_db.maintenance import maintain_profile
+    from hermes_cli.db_maintenance import maintain_profile
     with pg_profiles("two"):
         if removed_before_crash:
             root = Path(__file__).resolve().parents[3]
@@ -87,7 +87,7 @@ def test_maintenance_replays_retirement_then_does_not_move_recreated_slug(pg_pro
             fault.setattr(files, "_archive_files", interrupted)
             with pytest.raises(OSError):
                 kb.remove_board("retired", archive=True)
-    from hermes_db.maintenance import maintain_profile
+    from hermes_cli.db_maintenance import maintain_profile
     with pg_profiles("two"):
         maintain_profile(home)
     with pg_profiles("one"):
@@ -112,7 +112,7 @@ def test_pg_physical_recovery_refuses_before_copy_or_sqlite(pg_profiles, tmp_pat
 
 def test_committed_completion_recovers_downstream_and_hook_after_lost_ack(pg_profiles, monkeypatch):
     from hermes_db.errors import UnknownCommitError
-    from hermes_db.maintenance import maintain_profile
+    from hermes_cli.db_maintenance import maintain_profile
     hooks = []
     monkeypatch.setattr(kb, "_fire_task_hook", lambda event, task, task_id, run_id, **fields: hooks.append((event, task_id)))
     with pg_profiles("one") as home, kbc.connect_closing() as board:
@@ -135,7 +135,7 @@ def test_committed_completion_recovers_downstream_and_hook_after_lost_ack(pg_pro
 
 def test_deleted_task_cannot_strand_interrupted_workspace_intent(pg_profiles, monkeypatch):
     from hermes_db.domains.kanban.postgres import repository as repo
-    from hermes_db.maintenance import maintain_profile
+    from hermes_cli.db_maintenance import maintain_profile
     with pg_profiles("one") as home, kbc.connect_closing() as board:
         task = kb.create_task(board, title="removable", workspace_kind="scratch")
         path = kb.workspaces_root() / task
@@ -155,7 +155,7 @@ def test_deleted_task_cannot_strand_interrupted_workspace_intent(pg_profiles, mo
 
 def test_attachment_deletion_failure_retains_intent_until_fresh_process_replays(pg_profiles, monkeypatch):
     from hermes_db.errors import StorageBusyError
-    from hermes_db.maintenance import maintain_profile
+    from hermes_cli.db_maintenance import maintain_profile
     with pg_profiles("one") as home, kbc.connect_closing() as board:
         task = kb.create_task(board, title="attachment owner")
         identity = kb.store_attachment_bytes(board, task, "proof.txt", b"durable content")
@@ -182,7 +182,7 @@ def test_unknown_uncommitted_file_generation_is_swept_but_old_dataset_marker_is_
     import json
     from hermes_db.infra.backends.postgresql.transactions import Transactions
     from hermes_db.errors import UnknownCommitError
-    from hermes_db.maintenance import maintain_profile
+    from hermes_cli.db_maintenance import maintain_profile
     with pg_profiles("one") as home, kbc.connect_closing() as board:
         task = kb.create_task(board, title="uncertain upload")
         original = Transactions.write
@@ -213,7 +213,7 @@ def test_maintenance_prunes_plugin_ttl_without_reusing_revisions_and_replays_roo
     from sqlalchemy import update
     from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.tables.plugins import records
-    from hermes_db.maintenance import maintain_profile
+    from hermes_cli.db_maintenance import maintain_profile
     from plugins.plugin_storage import plugin_store
     from gateway.hosted_room_attachments import HostedRoomAttachmentStore, UNCOMMITTED_TTL_SECONDS
     from gateway import hosted_rooms as rooms
@@ -249,7 +249,7 @@ def test_maintenance_prunes_plugin_ttl_without_reusing_revisions_and_replays_roo
 
 def test_archived_board_cannot_poison_pending_completion_recovery(pg_profiles, monkeypatch):
     from hermes_db.errors import UnknownCommitError
-    from hermes_db.maintenance import maintain_profile
+    from hermes_cli.db_maintenance import maintain_profile
     hooks = []
     monkeypatch.setattr(kb, "_fire_task_hook", lambda event, task, task_id, run_id, **fields: hooks.append((event, fields.get("board"))))
     with pg_profiles("one") as home:

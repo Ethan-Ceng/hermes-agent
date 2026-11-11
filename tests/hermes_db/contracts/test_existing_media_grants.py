@@ -6,7 +6,7 @@ import pytest
 
 
 def _existing_grant(source, target, *, spillover=(), media=()):
-    from hermes_db.core.file_scope import owner_id
+    from hermes_cli.db_file_identity import owner_id
     from hermes_db.domains.sessions.postgres.queries import file_grants
 
     source.scope.profile_home.mkdir(parents=True, exist_ok=True)

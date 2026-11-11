@@ -65,7 +65,7 @@ def test_maximum_attachment_uses_small_frames_and_replays_lost_commit(pg_profile
     with pg_profiles("one"), kbc.connect_closing() as reopened:
         attachment, = kb.list_attachments(reopened, task)
         assert Path(attachment.stored_path).stat().st_size == kb.KANBAN_ATTACHMENT_MAX_BYTES
-        from hermes_db.maintenance import maintain_profile
+        from hermes_cli.db_maintenance import maintain_profile
         maintain_profile(home)
         assert not list((home / "kanban" / "uploads").rglob("*.part"))
         assert list((home / "kanban" / "uploads").rglob(".reclaimed"))

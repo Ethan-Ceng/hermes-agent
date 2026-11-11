@@ -20,6 +20,11 @@ import pytest
 def _make_store(tmp_path):
     from gateway.config import GatewayConfig
     from gateway.session import SessionStore
+    from hermes_cli.db_profile_schema import initialize_new_profile_storage
+    from hermes_state import _default_db_path
+    from hermes_constants import get_hermes_home
+    for owner in sorted({get_hermes_home(), _default_db_path().parent}, key=str):
+        initialize_new_profile_storage(owner)
     sessions_dir = tmp_path / "sessions"
     sessions_dir.mkdir(exist_ok=True)
     store = SessionStore(

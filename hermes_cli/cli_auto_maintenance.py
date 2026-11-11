@@ -19,7 +19,7 @@ def _run_state_db_auto_maintenance(session_db) -> None:
     if session_db is None:
         return
     try:
-        from hermes_db.maintenance import maintain_profile
+        from hermes_cli.db_maintenance import maintain_profile
         maintain_profile()
         from hermes_cli.config import load_config as _load_full_config
         from hermes_constants import get_hermes_home as _get_hermes_home  # lazy: tests patch it

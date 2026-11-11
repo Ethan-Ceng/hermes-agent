@@ -33,7 +33,7 @@ class RuntimePolicy:
     def mutate_session_data(self, **kwargs):
         from hermes_db.domains.sessions.postgres.operations.mutations import mutate
         with self._context.write() as conn:
-            result, event = mutate(conn, self._context.scope, ownership=self._context.session.ownership, routes=self._context.session.routes, **kwargs, media_references=self._context.session.media.admission_references)
+            result, event = mutate(conn, self._context.scope, ownership=self._context.session.ownership, routes=self._context.session.routes, **kwargs, media_references=self._context.session.media.admission_references, retire_spillover=self._context.session.media.retire_spillover)
         return result, event
 
     def policy_picks(self, session_id):

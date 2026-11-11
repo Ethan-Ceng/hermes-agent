@@ -4302,7 +4302,7 @@ def _housekeeping_state_db_maintenance(launch: Optional[tuple[Path, Path]] = Non
     from hermes_cli.config import load_config as _load_full_config
     from hermes_db.access import release_session_store as release_or_close
     from hermes_cli.db_sessions import acquire_sessions as acquire
-    from hermes_db.maintenance import maintain_profile
+    from hermes_cli.db_maintenance import maintain_profile
     maintain_profile()
     _sess_cfg = (_load_full_config().get("sessions") or {})
     if not (_sess_cfg.get("auto_archive", False) or _sess_cfg.get("auto_prune", False)):

@@ -396,14 +396,15 @@
       "hermes_cli/db_file_identity.py"
     ],
     "task": 10,
-    "status": "pending",
+    "status": "completed",
     "reason": "Actual file owner identity and lstat/open/create behavior belongs to application file coordination.",
     "symbol_routes": {},
     "baseline_abi_sha256": "42c0aa7a4e0020eecb2c5bc34cffc9a249cc44d5f646379b312197ff29a98e26",
     "symbol_names": [
       "owner_id",
       "identity"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task10.json"
   },
   {
     "source": "hermes_db/core/resource.py",
@@ -7260,14 +7261,22 @@
     "source": "hermes_db/domains/sessions/postgres/queries/media.py",
     "baseline_sha256": "a5aa86fbdd29dc5ed29652bd9a1fe8857db5bf11a16fc6921cb5d184d070b2c7",
     "layer": "business",
-    "action": "preserve",
+    "action": "split_workflow",
     "targets": [
       "hermes_db/domains/sessions/postgres/queries/media.py"
     ],
-    "task": 9,
+    "task": 10,
     "status": "completed",
-    "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
-    "symbol_routes": {},
+    "reason": "Existing retire_spillover contains local filesystem identity capture under the same fenced Connection. Move actual effect through required owner callback; remaining candidate/text/candidate-forget SQL stays here.",
+    "symbol_routes": {
+      "retire_spillover": {
+        "target": "hermes_cli/db_media_retirement.py",
+        "task": 10,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve same Connection, scope and store/lease lock order; no new authorization or token."
+      }
+    },
     "application_imports": [
       {
         "line": 36,
@@ -7285,7 +7294,12 @@
       "candidates",
       "forget"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task10.json",
+    "previous_task_review": {
+      "task": 9,
+      "status": "completed",
+      "commit": "d20361745731344cc1b31a928a2f7579b44f3545"
+    }
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/messages.py",
@@ -8404,38 +8418,43 @@
       "hermes_db/domains/sessions/postgres/queries/archive_refs.py"
     ],
     "task": 10,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {
       "_read_scope": {
         "target": "hermes_cli/db_archive_files.py",
         "task": 10,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "_write_scope": {
         "target": "hermes_cli/db_archive_files.py",
         "task": 10,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "for_profile": {
         "target": "hermes_cli/db_archive_files.py",
         "task": 10,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "cleanup_if_postgresql": {
         "target": "hermes_cli/db_archive_files.py",
         "task": 10,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "_unlink": {
         "target": "hermes_cli/db_archive_files.py",
         "task": 10,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       }
     },
     "baseline_abi_sha256": "358fc338d1ae1b1af9913322bac255a0aafda1b6a1db98c3a2cd07a23d2fa103",
@@ -8445,7 +8464,9 @@
       "for_profile",
       "cleanup_if_postgresql",
       "_unlink"
-    ]
+    ],
+    "implementation": "Existing archive_refs query module retained unchanged. Only the actual profile/file coordinator moves.",
+    "evidence": "docs/designs/hermes-db-two-layer-task10.json"
   },
   {
     "source": "hermes_db/integration/authority_access.py",
@@ -8844,7 +8865,7 @@
       "hermes_db/domains/sessions/postgres/media_grants.py"
     ],
     "task": 10,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "225ec831b710082effc438c93132f0bcd9969e3c69584322cd2d29c561440ddb",
@@ -8854,7 +8875,8 @@
       "lock_scopes",
       "_remaining",
       "release_unused"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task10.json"
   },
   {
     "source": "hermes_db/integration/media_retirement.py",
@@ -8866,56 +8888,64 @@
       "hermes_db/domains/sessions/postgres/queries/media_retirement.py"
     ],
     "task": 10,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {
       "_history": {
         "target": "hermes_db/domains/sessions/postgres/queries/media_retirement.py",
         "task": 10,
         "action": "split",
-        "constraint": "DB rows and bounded matching stay business-owned; application-only reference interpretation is supplied without changing fences."
+        "constraint": "DB rows and bounded matching stay business-owned; application-only reference interpretation is supplied without changing fences.",
+        "status": "completed"
       },
       "collect": {
         "target": "hermes_cli/db_media_retirement.py",
         "task": 10,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "release": {
         "target": "hermes_cli/db_media_retirement.py",
         "task": 10,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "collect_scope": {
         "target": "hermes_cli/db_media_retirement.py",
         "task": 10,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "_release_foreign": {
         "target": "hermes_cli/db_media_retirement.py",
         "task": 10,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "_collect_spills": {
         "target": "hermes_cli/db_media_retirement.py",
         "task": 10,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "_collect_media": {
         "target": "hermes_cli/db_media_retirement.py",
         "task": 10,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "held_media_paths": {
         "target": "hermes_cli/db_media_retirement.py",
         "task": 10,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       }
     },
     "baseline_abi_sha256": "3ad460f60942458f28d1d626fc8f566039cdc869209b9e1bbbf9132a2d2fba35",
@@ -8928,7 +8958,9 @@
       "_collect_spills",
       "_collect_media",
       "held_media_paths"
-    ]
+    ],
+    "implementation": "Pure bounded history/held SQL moves to query module. Application supplies parser and interprets held references, retains short file effect fences. Business grants use required owner-supplied history/held callbacks.",
+    "evidence": "docs/designs/hermes-db-two-layer-task10.json"
   },
   {
     "source": "hermes_db/integration/metrics_snapshot.py",
@@ -9085,13 +9117,14 @@
       "hermes_db/domains/sessions/postgres/profile_lifecycle.py"
     ],
     "task": 10,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "87cc6534f11c8043789b1224bda34d7ea7ca6e183f8b534f079550e086d9fb1d",
     "symbol_names": [
       "purge"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task10.json"
   },
   {
     "source": "hermes_db/integration/profile_paths.py",
@@ -9102,7 +9135,7 @@
       "hermes_db/domains/profile_paths.py"
     ],
     "task": 10,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "600e66a24c5cb7acadcf5f09fdfd322a9ec84fc47cf58cfb704745ae689560f2",
@@ -9116,7 +9149,8 @@
       "_workspace_keys",
       "_require_cleanup_payload",
       "reanchor"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task10.json"
   },
   {
     "source": "hermes_db/integration/registry.py",
@@ -9730,26 +9764,32 @@
       "hermes_cli/db_maintenance.py"
     ],
     "task": 10,
-    "status": "pending",
+    "status": "completed",
     "reason": "Real root definition/entry, not an old internal re-export shim.",
     "symbol_routes": {
       "maintain_profile": {
         "target": "hermes_cli/db_maintenance.py",
         "task": 10,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       },
       "_attachments": {
         "target": "hermes_cli/db_maintenance.py",
         "task": 10,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "database_target": "hermes_db/maintenance.py",
+        "database_symbol": "attachment_namespace",
+        "status": "completed"
       },
       "_plugins": {
         "target": "hermes_db/maintenance.py",
         "task": 10,
         "action": "split",
-        "constraint": "Split acquisition into app coordinator and preserve SQL in real prune_plugin_records(conn,scope,limit=200)."
+        "constraint": "Split acquisition into app coordinator and preserve SQL in real prune_plugin_records(conn,scope,limit=200).",
+        "database_symbol": "prune_plugin_records",
+        "status": "completed"
       }
     },
     "baseline_abi_sha256": "562267f8e592a722b371be77512c7f8731693015dcef2794d69c4354ae41c4a6",
@@ -9757,7 +9797,8 @@
       "maintain_profile",
       "_plugins",
       "_attachments"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task10.json"
   },
   {
     "source": "hermes_db/migrations/__init__.py",

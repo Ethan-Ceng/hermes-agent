@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`IMPLEMENTING`；阶段：Profile生命周期与媒体退休边界；当前实施任务：Task10；完成：9 / 20；阻塞：无；日期2026-11-11。
+- 整体状态：`IMPLEMENTING`；阶段：Cron/Projects/Verification/Metrics边界；当前实施任务：Task11；完成：10 / 20；阻塞：无；日期2026-11-11。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 范围与可判定边界
@@ -791,7 +791,7 @@ Session/Runtime装配、Profile回调、事件、线程、进程证明、文件�
 
 ## Task 10：拆开Profile和媒体回收的存储与应用职责
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -838,11 +838,26 @@ Profile生命周期和媒体授权数据规则留存储，实际文件协调归�
 
 ### 执行结果
 
-未实施；planning不计完成。
+启动：Task9实际本地commit d20361745731344cc1b31a928a2f7579b44f3545，当前9/20。全部映射分区hash已核对，按Task10条目和实际短事务文件栅栏继续实施；Task9测试不计Task10验收。
 
 ### 验证证据
 
 未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
+
+
+当前代码细化：archive纯查询已存在，保持原模块不复制。queries/media.retire_spillover含文件identity/owner读取，补映射至应用实际callback，并从原删除/变更链在相同Conn/锁位置调用。media_grants的历史/held解释通过真实应用提供的必需窄回调传入；业务不反向import应用。maintenance根保留实际200条插件过期清理和附件namespace SQL，Profile/资源/文件协调外移。开始先为文件替换、嵌套capture最后pin及原短事务栅栏建立保留合同，再迁代码。owned/SOUL.md与新发现的target/SOUL.md均保留、不暂存。
+
+迁移前新增保留合同：Native2文件8pass/0fail、真实PG1文件4pass/0fail，均exit0，作为本Task原有栅栏行为基线。生产第一阶段完成文件/业务归属迁出，引用改写脚本遇到AST Module无col_offset而中断；未重放已完成移动，改为只恢复引用阶段并明确排除owned/与target/。继续编译和本Task必需验证，当前不计完成。
+
+迁移后首个Windows必需4文件12pass/1fail，Profile purge fixture在SessionStore首次获取前未准备Schema，导致JSONL路由处理后未清数据库心跳。只在实际两个测试home显式初始化，原删除/保留断言不变；复验4文件13pass/0fail，PG必需3文件16pass/0fail，均exit0。DB边界初检6违规来自3个新位置未复核符号；已核对同Connection锁顺序和纯namespace编码，增加精确消费者/符号说明，不允许应用文件IO反向依赖。WSL必需批次、扩大消费者及静态仍待完成。
+
+扩大Windows98文件512pass/0fail/4平台skip、PG7文件50pass/0fail，均实际exit0。WSL必需4文件13pass/0fail。源码审计：11分区引用working/staged hash、65固定资源canonical working/staged/HEAD、31revision、29表模块、root11通过；DB362为中间数。文件owner/identity、archive unlink、media/spillover collect、retire_spillover与bounded history scanner共7组算法体逐项AST一致；生产SQL字面量delta0。现存36项业务测试116条assert保留，无测试删除。等待WSL同98文件和最新文档后的静态门禁；证据见hermes-db-two-layer-task10.json，仍in_progress。
+
+文档同步后的16check再次发现AGENTS链长度超限（gateway30152、hermes_cli30096）。只将本轮新增的详细owner/文件栅栏说明移入既有设计，AGENTS保留精简路由和关键约束；保留30000上限和原有规则，随后重新运行完整静态门禁。
+
+最终结算：Windows98文件512pass/0fail/4平台skip，WSL相同98文件516pass/0fail/0skip，PG7文件50pass/0fail，均实际exit0。必需4文件/PG3文件全部包含，验收范围未删减。最新16check、DB边界0违规、插件边界、生成契约与空白均exit0。固定65资源、11分区hash、root11、31revision、29表模块和生产SQL字面量delta0通过。文件身份与回收/历史scanner7组原算法体AST保持一致，36既有测试116条业务assert全部保留，无测试删除。DB362为中间数，最终<=359继续由后续Task闭合，迁出不冒充算法净减少。
+
+文件/资源/Profile协调已迁到实际应用拥有者，短事务、同Connection、store/lease锁顺序、最后pin和既有授权读取保持。首次保留基线和全部失败/整改、展开命令/解释器/cwd/源码身份/退出码/skip与恢复点见[Task10证据](../designs/hermes-db-two-layer-task10.json)。正式目录预期HEAD且clean，只读核对通过。立即创建本地commit，实际hash由Task11启动记录；完成10/20。原统一Task24、七项非WSL缺证、Windows八项基准及最终冻结验证/独立审查仍独立保留。
 
 ## Task 11：闭合Cron、Projects、Verification和Metrics边界
 
@@ -1436,14 +1451,14 @@ Windows独立发行组使用同根Windows实际路径、其PG父解释器及私�
 
 ### 当前执行结果
 
-- 当前实施：Task1–9已验证，9/20；Task9本地提交后立即进入Task10。
+- 当前实施：Task1–10已验证，10/20；Task10本地提交后进入Task11。
 - Task1–7证据见各Task及对应诊断记录。最终完整冻结批次、SDK及独立审查尚未完成。
 - 规划结构/基准/本地链接及文档静态自检：实际命令与结果写入下方准备记录。
 - 代码审查：本轮尚未执行；旧APPROVED只属于已完成持久层职责精简。
 
 ### 未通过项目与最终状态
 
-当前为`IMPLEMENTING`，Task1–9已完成，下一项Task10，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
+当前为`IMPLEMENTING`，Task1–10已完成，下一项Task11，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
 
 ## 规划准备记录与恢复
 

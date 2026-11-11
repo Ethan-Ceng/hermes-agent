@@ -2,7 +2,7 @@
 
 ## 文档状态
 
-- 状态：`IMPLEMENTING`；2026-11-11用户授权按既有20项计划实施。Task1–9已验证，9/20；Task9完成Session/Runtime应用装配迁出及消费者闭合，下一项Task10，最终验证及独立审查尚未完成。
+- 状态：`IMPLEMENTING`；2026-11-11用户授权按既有20项计划实施。Task1–10已验证，10/20；Task10完成Profile/文件效果分层及原事务栅栏闭合，下一项Task11，最终验证及独立审查尚未完成。
 - 日期：2026-11-10；设计基准：`0d8782ba8adb168a86abb6a8e338591d70d03428`。
 - 隔离目录：D:/AI/hermes-db-packages；实施分支refactor/hermes-db-two-layer-boundary。正式D:/AI/hermes-agent仍在90a2987e8c，未切换。
 - 依据：[持久层精简设计](hermes-db-persistence-scope.md)、[已完成实施账本](../plans/hermes-db-persistence-scope-plan.md)、[逐项映射及固定锚点](hermes-db-persistence-scope-map.json)、[统一后端设计](unified-database-backends.md)。本设计不改写这些工作的历史验收。
@@ -196,3 +196,17 @@ SQLite保留各原生存储的真实版本演进。实施必须将连接获取�
 本次准备此设计、20项实施计划及逐项映射，没有修改生产/测试、旧计划/映射/审查记录或正式实例。设计自检核对本地链接、基准HEAD、现有路径和固定资源直接导入；业务测试未运行，本设计的验收复选框均保持未完成；规划结构/资源/接口自检结果见实施计划准备记录。
 
 2026-11-11 Task2预算核算修订：同职责PG查询路径/投影助手合并为domains/sql/postgresql.py，原空expressions包移除，抵消infra与domains/sql两个新初始化文件；中间Task也遵守359上限，规划路径并集350→348，不宣称移动或合并减少业务算法。
+
+## 应用实现读点
+
+Session/Runtime装配由hermes_cli/db_sessions.py、db_runtime.py和db_session_lifecycle.py拥有，
+延迟accounting线程由db_usage_writer.py拥有。业务registry接收实际owner的build回调；
+构造读取点与测试patch位于hermes_cli.db_sessions._construct_store。Native装配不加载PG依赖。
+
+archive/media文件协调由db_archive_files.py和db_media_retirement.py拥有，文件身份由
+db_file_identity.py拥有，Profile维护协调由db_maintenance.py拥有。业务maintenance接收已有
+Connection/scope；引用检查与本地unlink保持原短事务及锁顺序，长file-job准备/发布保持连接外。
+
+Gateway的session_storage_authority.py拥有claim检查和owner-memory commit协调，
+session_worker_process_proof.py在数据库访问前捕获PID/birth证明。保留原same-Connection历史授权、
+publication顺序，以及Session map fence到session_ingress_media capture lease lock的原顺序和最后pin保护。

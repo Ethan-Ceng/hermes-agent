@@ -727,7 +727,8 @@
       "category": "shared-pure",
       "reason": "Independent bounded wire validation/projection, timestamp stripping or deterministic response identity; no Gateway service, router, backend factory or file operation.",
       "consumers": [
-        "hermes_db/domains/sessions/postgres/operations/gateway_rekey.py"
+        "hermes_db/domains/sessions/postgres/operations/gateway_rekey.py",
+        "hermes_db/domains/sessions/postgres/profile_lifecycle.py"
       ]
     },
     {
@@ -2262,6 +2263,7 @@
       "category": "shared-connection",
       "reason": "Existing Session/Runtime canonical-owner workflow borrows the caller Connection/scope; no new transaction, pool, callback timing or store identity.",
       "consumers": [
+        "hermes_db/domains/profile_paths.py",
         "hermes_db/domains/runtime/postgres/admissions.py",
         "hermes_db/domains/runtime/postgres/delegations.py",
         "hermes_db/domains/runtime/postgres/idempotency.py",
@@ -3099,6 +3101,14 @@
       "reason": "Text-free export timings derived solely from the supplied message rows and session ID; normal portability algorithm unchanged.",
       "consumers": [
         "hermes_db/domains/sessions/postgres/portability.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.kanban.postgres.files.lock_files",
+      "category": "shared-connection",
+      "reason": "Existing Kanban file-map row lock on the supplied Connection/resource; no filesystem work. Reanchor preserves file-map lock before Session map lock in the original transaction.",
+      "consumers": [
+        "hermes_db/domains/profile_paths.py"
       ]
     }
   ]

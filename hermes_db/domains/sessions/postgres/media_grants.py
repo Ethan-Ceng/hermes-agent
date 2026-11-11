@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-from hermes_db.integration.media_retirement import held_media_paths
 from hermes_db.errors import RetryableStorageError
 from hermes_db.domains.sessions.postgres.queries import file_grants as repo, sessions
 from hermes_db.scope import DatabaseScope
@@ -30,26 +29,25 @@ def lock_scopes(conn, scopes, *, receivers=()):
     return planned
 
 
-def _remaining(conn, scope, grants):
+def _remaining(conn, scope, grants, *, history, held_media_paths):
     from hermes_db.domains.sessions.postgres.queries.archive_refs import message_names
-    from hermes_db.integration.media_retirement import _history
     names = message_names(conn, scope)
     if names is None:
         return None
     references = [reference for _, value in grants for reference in value["files"]["media"]]
     mentioned = set()
     if references:
-        mentioned, _ = _history(conn, scope, references)
+        mentioned, _ = history(conn, scope, references)
         if mentioned is None:
             return None
         mentioned |= held_media_paths(conn, scope)
     return names, mentioned
 
 
-def release_unused(conn, scope):
+def release_unused(conn, scope, *, history, held_media_paths):
     lock_scopes(conn, [scope], receivers=[scope])
     grants = received(conn, scope)
-    remaining = _remaining(conn, scope, grants)
+    remaining = _remaining(conn, scope, grants, history=history, held_media_paths=held_media_paths)
     if remaining is None:
         return []
     names, paths = remaining

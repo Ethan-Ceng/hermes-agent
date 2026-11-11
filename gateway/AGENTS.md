@@ -8,11 +8,8 @@ setup/upgrade and first domain creation. Service boot, Driver/checkpoint/attachm
 and ordinary operations check existing stores. Attachment authorization, pins and file fences
 keep their original business transaction and lock order.
 
-Session claim authorization and owner-memory commit selection live in
-`session_storage_authority.py`; worker PID/birth proof lives in `session_worker_process_proof.py`.
-Capture process proof before acquiring any storage connection; retain the original native
-same-Connection history claim gate and owner-memory publication order.
-
+Session DB/file owners: [two-layer design](../docs/designs/hermes-db-two-layer-boundary.md).
+Keep process proof before DB access and original same-Connection, file/lease and final-pin fences.
 
 ## Shape
 

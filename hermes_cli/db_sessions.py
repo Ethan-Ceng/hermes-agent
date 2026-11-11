@@ -131,8 +131,8 @@ def create_session_store(transactions, scope):
         SessionResumeTooLargeError, SessionExportTooLargeError)
     from gateway.owner_identity import same_owner, owners_agree
     from hermes_state_mutation_binding import _history_row, _owner_user
-    from hermes_db.integration.profile_lifecycle import purge
-    from hermes_db.integration.media_retirement import collect, release
+    from hermes_db.domains.sessions.postgres.profile_lifecycle import purge
+    from hermes_cli.db_media_retirement import collect, release
     ownership = HistoryOwnership(_history_row, _owner_user, same_owner, owners_agree)
     effects = SessionEffects(partial(emit_deleted, profile), purge, collect, release)
     from hermes_cli.db_runtime import create_runtime_store
@@ -170,6 +170,10 @@ class SessionRouting:
 
 
 class SessionMedia:
+    def retire_spillover(self, conn, scope, session_ids):
+        from hermes_cli.db_media_retirement import retire_spillover
+        return retire_spillover(conn, scope, session_ids)
+
     def settled_references(self, payload):
         from gateway.session_contract import admission_media_references
         return admission_media_references(payload)

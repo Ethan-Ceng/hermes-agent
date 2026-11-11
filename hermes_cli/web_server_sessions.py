@@ -438,7 +438,7 @@ def _maybe_auto_archive_for_profile(profile: Optional[str]) -> None:
         # of its own and a bare lock-file probe would report stopped.
         if _check_gateway_running(profile_home):
             return
-        from hermes_db.maintenance import maintain_profile
+        from hermes_cli.db_maintenance import maintain_profile
         maintain_profile(profile_home)
         if not cfg.get("auto_archive", False):
             return

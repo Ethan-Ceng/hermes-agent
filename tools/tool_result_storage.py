@@ -107,7 +107,7 @@ def referenced_spillover_names(spill_dir) -> set | None:
     when the reference set is UNKNOWN (unreadable / truncated query) so callers fail closed
     and keep the files; a plain read-only connection is enough, the write path owns the locks."""
     from hermes_cli.config_backend import ConfigBackendUnavailable
-    from hermes_db.integration.archive_refs import for_profile
+    from hermes_cli.db_archive_files import for_profile
     try:
         selected, names = for_profile(spill_dir.parent.parent)
         if selected:
@@ -160,7 +160,7 @@ def cleanup_spillover_cache(max_age_hours: int | None = None) -> int:
             pass
     if not expired:
         return 0
-    from hermes_db.integration.archive_refs import cleanup_if_postgresql
+    from hermes_cli.db_archive_files import cleanup_if_postgresql
     if (removed := cleanup_if_postgresql(get_spillover_dir().parent.parent, expired, cutoff=cutoff)) is not None:
         return removed
     referenced = referenced_spillover_names(get_spillover_dir())

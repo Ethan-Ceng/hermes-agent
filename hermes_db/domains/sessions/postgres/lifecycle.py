@@ -96,7 +96,7 @@ class SessionLifecycle:
         if include_compression_chain:
             return self.delete_sessions([session_id], sessions_dir=sessions_dir, exclude_active_write_guards=exclude_active_write_guards, include_compression_chain=True) > 0
         with self._context.write() as conn:
-            deleted, targets = operations.delete_one(conn, self._context.scope, session_id, expected_delete_ids=expected_delete_ids, expected_display_messages=expected_display_messages, exclude_active_write_guards=exclude_active_write_guards, media_references=self._context.media.admission_references)
+            deleted, targets = operations.delete_one(conn, self._context.scope, session_id, expected_delete_ids=expected_delete_ids, expected_display_messages=expected_display_messages, exclude_active_write_guards=exclude_active_write_guards, media_references=self._context.media.admission_references, retire_spillover=self._context.media.retire_spillover)
         if deleted:
             self._after_session_delete(targets, primary=session_id, sessions_dir=sessions_dir)
         return deleted
@@ -104,7 +104,7 @@ class SessionLifecycle:
     def delete_sessions(self, session_ids, sessions_dir=None, exclude_active_write_guards=False, skipped_ids=None, include_compression_chain=False):
         from hermes_db.domains.sessions.postgres.operations import retirement as operations
         with self._context.write() as conn:
-            count, targets, skipped = operations.delete_many(conn, self._context.scope, session_ids, exclude_active_write_guards=exclude_active_write_guards, include_compression_chain=include_compression_chain, media_references=self._context.media.admission_references)
+            count, targets, skipped = operations.delete_many(conn, self._context.scope, session_ids, exclude_active_write_guards=exclude_active_write_guards, include_compression_chain=include_compression_chain, media_references=self._context.media.admission_references, retire_spillover=self._context.media.retire_spillover)
         if skipped_ids is not None:
             skipped_ids.extend(skipped)
         if count:
@@ -147,13 +147,13 @@ class SessionLifecycle:
 
     def prune_empty_ghost_sessions(self, sessions_dir=None):
         with self._context.write() as conn:
-            ids = housekeeping.prune_ghosts(conn, self._context.scope, media_references=self._context.media.admission_references)
+            ids = housekeeping.prune_ghosts(conn, self._context.scope, media_references=self._context.media.admission_references, retire_spillover=self._context.media.retire_spillover)
         self._after_session_delete(ids, reason='ghost_prune', sessions_dir=sessions_dir)
         return len(ids)
 
     def delete_empty_sessions(self, sessions_dir=None):
         with self._context.write() as conn:
-            ids = housekeeping.delete_empty(conn, self._context.scope, media_references=self._context.media.admission_references)
+            ids = housekeeping.delete_empty(conn, self._context.scope, media_references=self._context.media.admission_references, retire_spillover=self._context.media.retire_spillover)
         if ids:
             self._after_session_delete(ids, reason='empty_sweep', sessions_dir=sessions_dir)
         else:
@@ -162,7 +162,7 @@ class SessionLifecycle:
 
     def delete_session_if_empty(self, session_id, sessions_dir=None):
         with self._context.write() as conn:
-            deleted = housekeeping.delete_if_empty(conn, self._context.scope, session_id, media_references=self._context.media.admission_references)
+            deleted = housekeeping.delete_if_empty(conn, self._context.scope, session_id, media_references=self._context.media.admission_references, retire_spillover=self._context.media.retire_spillover)
         if deleted:
             self._after_session_delete([session_id], reason='empty_sweep', sessions_dir=sessions_dir)
         else:
@@ -171,14 +171,14 @@ class SessionLifecycle:
 
     def discard_unadmitted_session(self, session_id):
         with self._context.write() as conn:
-            deleted, fenced = housekeeping.discard_unadmitted(conn, self._context.scope, session_id, media_references=self._context.media.admission_references)
+            deleted, fenced = housekeeping.discard_unadmitted(conn, self._context.scope, session_id, media_references=self._context.media.admission_references, retire_spillover=self._context.media.retire_spillover)
         if fenced:
             self._after_session_delete(fenced, primary=session_id)
         return deleted
 
     def prune_never_active_keyed_sessions(self, *, older_than_days, sessions_dir=None, deleted_ids=None):
         with self._context.write() as conn:
-            count, removed, skipped, routes, reported = housekeeping.never_active(conn, self._context.scope, older_than_days, media_references=self._context.media.admission_references)
+            count, removed, skipped, routes, reported = housekeeping.never_active(conn, self._context.scope, older_than_days, media_references=self._context.media.admission_references, retire_spillover=self._context.media.retire_spillover)
         if removed:
             self._after_session_delete(removed, sessions_dir=sessions_dir)
         if deleted_ids is not None:
@@ -256,7 +256,7 @@ class SessionLifecycle:
         if filters.get('include_open'):
             raise ValueError('prune_sessions never deletes open sessions')
         with self._context.write() as conn:
-            removed = maintenance.prune(conn, self._context.scope, older_than_days, source, filters, exclude_active_write_guards=exclude_active_write_guards, media_references=self._context.media.admission_references)
+            removed = maintenance.prune(conn, self._context.scope, older_than_days, source, filters, exclude_active_write_guards=exclude_active_write_guards, media_references=self._context.media.admission_references, retire_spillover=self._context.media.retire_spillover)
         if deleted_ids is not None:
             deleted_ids.extend(removed)
         if removed:
@@ -293,7 +293,7 @@ class SessionLifecycle:
             return {'skipped': True, 'pruned': 0, 'closed': 0, 'vacuumed': False}
         try:
             with self._context.write() as conn:
-                result, removed = maintenance.auto_prune(conn, self._context.scope, retention_days, min_interval_hours, media_references=self._context.media.admission_references)
+                result, removed = maintenance.auto_prune(conn, self._context.scope, retention_days, min_interval_hours, media_references=self._context.media.admission_references, retire_spillover=self._context.media.retire_spillover)
             if removed:
                 self._after_session_delete(removed, reason='prune', sessions_dir=sessions_dir)
             return result

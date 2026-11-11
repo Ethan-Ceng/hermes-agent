@@ -29,7 +29,7 @@ def save_receipt(conn, scope, key, digest, result):
 
 
 def mutate(conn, scope, *, ownership, routes, epoch, principal_id, session_id, request_id, expected_revision, operation, payload,
-           expected_generation=None, _live_guard=None, _authorize_write=None, _prepare_only=False, _prepared=None, media_references):
+           expected_generation=None, _live_guard=None, _authorize_write=None, _prepare_only=False, _prepared=None, media_references, retire_spillover):
     for value in (principal_id, session_id, request_id):
         _text(value)
     if type(expected_revision) is not int or expected_revision < 0:
@@ -63,7 +63,7 @@ def mutate(conn, scope, *, ownership, routes, epoch, principal_id, session_id, r
         if operation == "branch":
             _require_idle(conn, scope, sorted({session_id, snapshot["target"]}))
         return {"snapshot": snapshot}, None
-    affected, projection = _apply(conn, scope, session_id, operation, payload, targets, deepcopy(_prepared), ownership=ownership, routes=routes, media_references=media_references)
+    affected, projection = _apply(conn, scope, session_id, operation, payload, targets, deepcopy(_prepared), ownership=ownership, routes=routes, media_references=media_references, retire_spillover=retire_spillover)
     event = (projection["deleted_ids"], "delete") if operation == "delete" else None
     if payload.get("archived") is True and row and not row["archived"]:
         event = (list(affected) or [session_id], "archive")
@@ -76,7 +76,7 @@ def mutate(conn, scope, *, ownership, routes, epoch, principal_id, session_id, r
     return result, event
 
 
-def _apply(conn, scope, session_id, operation, payload, targets, prepared, *, ownership, routes, media_references):
+def _apply(conn, scope, session_id, operation, payload, targets, prepared, *, ownership, routes, media_references, retire_spillover):
     if operation == "import":
         from hermes_db.domains.sessions.postgres.operations.imports import import_current
         from hermes_db.domains.sessions.import_rules import values
@@ -101,7 +101,7 @@ def _apply(conn, scope, session_id, operation, payload, targets, prepared, *, ow
         return mutation_policy.HANDLERS[operation](conn, scope, session_id, payload, prepared)
     if operation == "delete":
         _require_idle(conn, scope, targets)
-        retirement.retire_sessions(conn, scope, targets, media_references=media_references)
+        retirement.retire_sessions(conn, scope, targets, media_references=media_references, retire_spillover=retire_spillover)
         for sid in targets:
             row = sessions.raw_session(conn, scope, sid)
             if row:

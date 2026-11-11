@@ -11,7 +11,7 @@ def fork_storage_identity(home):
     from hermes_cli.config_effective import load_user_config_effective
     from hermes_cli.db_setup import _backend, _section, _storage
     from hermes_db.errors import StorageConfigurationError
-    from hermes_db.core.file_scope import owner_id
+    from hermes_cli.db_file_identity import owner_id
     config_path = home / "config.yaml"
     config = load_user_config_effective(config_path, fail_closed=True)
     storage = _storage(config)

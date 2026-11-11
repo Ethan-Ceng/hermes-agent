@@ -58,7 +58,7 @@ def test_scoped_current_data_contracts(pg_pair, contract):
 
 def test_configured_readiness_and_archive_refs_without_local_file(pg_store, postgres_test_config, monkeypatch):
     from hermes_cli import db_setup
-    from hermes_db.integration import archive_refs
+    import hermes_cli.db_archive_files as archive_refs
     from hermes_cli.db_diagnostics import configured_probe
     from hermes_db.settings import DatabaseSettings
     from tools import tool_result_storage as tools
@@ -112,7 +112,7 @@ def test_current_pg_revision_backfills_archive_refs(postgres_test_config, postgr
 
 def test_archive_sweep_waits_for_committed_new_reference(pg_store, monkeypatch):
     from sqlalchemy import text
-    from hermes_db.integration import archive_refs
+    import hermes_cli.db_archive_files as archive_refs
     from hermes_db.domains.sessions.postgres.operations.messages import insert_rows
     from hermes_db.domains.sessions.postgres.queries import messages, sessions
     from tests.waiting import wait_until

@@ -94,7 +94,7 @@
     {
       "id": 10,
       "title": "拆开Profile和媒体回收的存储与应用职责",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         9
       ]
@@ -1251,7 +1251,7 @@
     "entries": [
       {
         "path": "hermes-db-two-layer-map/sources-db.json",
-        "sha256": "7519e0905e3796be00b86fc7e7082b7a1ff0670eeb2d7733effaf004c19c9e57",
+        "sha256": "ef724fc21712859c7a3bface44bcc2577577f35e13899d4be6002c93267ec26c",
         "items": 359
       }
     ],
@@ -1514,5 +1514,26 @@
     "final_validation": "Windows105561pass/4skip,WSL105565pass/0skip,PG320pass; all exit0. Static16,DB/plugin boundaries,generated contracts and whitespace exit0.",
     "actual_db_modules": 364
   },
-  "task9_evidence": "docs/designs/hermes-db-two-layer-task9.json"
+  "task9_evidence": "docs/designs/hermes-db-two-layer-task9.json",
+  "task9_commit": "d20361745731344cc1b31a928a2f7579b44f3545",
+  "task10_adjustment": {
+    "status": "completed",
+    "parent_commit": "d20361745731344cc1b31a928a2f7579b44f3545",
+    "refinements": [
+      "archive_refs already delegates SQL to an existing business query module; preserve it and move the actual coordinator only.",
+      "queries/media.retire_spillover currently reads/mints local file identity under the original transaction. Move that actual file work to the application through a required callback in the existing deletion/mutation pipeline; same Connection and lock position.",
+      "Business media_grants currently reaches application held-media interpretation. Supply required history/held callbacks from the actual application owner, keeping scope locks and reads unchanged.",
+      "Keep root maintenance real: prune_plugin_records(conn,scope,limit=200) and attachment_namespace(conn,scope) retain SQL. Resource/Profile/file coordination goes to db_maintenance."
+    ],
+    "untracked_preserved": [
+      "owned/SOUL.md",
+      "target/SOUL.md"
+    ],
+    "startup_diagnostic": "First subset extraction assumed every partition is an array. non_python consumer refs point into a dictionary; fixed indexed subsection lookup. No production change from that failed read.",
+    "actual_sources": "Original7 mapped sources plus the misclassified queries/media.py file-identity workflow;8 primary Task10 entries. Required callback propagation touches existing deletion/mutation pipeline, without changing SQL or locks.",
+    "source_hash": "9990f33320de764aab9aa42b1bd1045f33d810d2282045adf1fd493becb35961",
+    "actual_db_modules": 362,
+    "final_validation": "Windows98:512pass/4skip,WSL98:516pass/0skip,PG7:50pass. All exit0;latest static16,boundaries,generated contracts and whitespace exit0. Original7 algorithm bodies preserved; production SQL literal delta0."
+  },
+  "task10_evidence": "docs/designs/hermes-db-two-layer-task10.json"
 }

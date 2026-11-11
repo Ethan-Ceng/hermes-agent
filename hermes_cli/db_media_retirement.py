@@ -1,8 +1,6 @@
 """Collect retired local files after deletion commits, under the owning profile."""
 import json
-from sqlalchemy import select
 from hermes_cli.db_scope import bind_profile_home
-from hermes_db.tables.runtime import session_admissions
 from pathlib import Path
 from hermes_db.domains.sessions.postgres.queries import media, sessions
 from hermes_db.domains.runtime.receipts import RETIRED_MEDIA_PREFIX as PREFIX, MEDIA_SPILLOVER_PREFIX as SPILLOVER_PREFIX
@@ -42,37 +40,21 @@ def collect_scope(transactions, scope, profile):
 
 def _release_foreign(context):
     from hermes_db.errors import StorageError
-    from hermes_db.core.file_scope import owner_id
-    from hermes_db.integration.media_grants import release_unused
+    from hermes_cli.db_file_identity import owner_id
+    from hermes_db.domains.sessions.postgres.media_grants import release_unused
     from hermes_cli.db_scope import OwnedProfileContext
     try:
         with context.profile.activate(), context.write() as conn:
-            origins = release_unused(conn, context.scope)
+            origins = release_unused(conn, context.scope, history=_history, held_media_paths=held_media_paths)
         for scope, identity in origins:
             if identity is not None and owner_id(scope.profile_home) == identity:
                 collect_scope(context.transactions, scope, OwnedProfileContext(scope))
     except (StorageError, ValueError, TypeError, KeyError):
         return
 
-def _history(conn, scope, references):
-    from tools.tool_result_storage import spillover_names_in_text
-    needles, mentioned, spill_names = ({}, set(), set())
-    for reference in references:
-        for sep in ('/', '\\'):
-            tail = reference['sha256'] + sep + Path(reference['path']).name
-            needles[tail] = needles[json.dumps(tail)[1:-1]] = reference['path']
-    matched = 0
-    for content, api in media.text_rows(conn, scope):
-        text = content.decode('utf-8', 'replace') if isinstance(content, bytes) else str(content)
-        spill_names |= spillover_names_in_text(text, api)
-        mentioned.update((raw for needle, raw in needles.items() if needle in text or needle in (api or '')))
-        matched += int('spillover' in text or bool(needles))
-        if matched > 20000:
-            return (None, None)
-    return (mentioned, spill_names)
 
 def _collect_spills(scope, candidates, referenced):
-    from hermes_db.core.file_scope import identity, owner_id
+    from hermes_cli.db_file_identity import identity, owner_id
     done, root = ([], (scope.profile_home / 'cache' / 'spillover').resolve())
     owner = owner_id(scope.profile_home)
     for key, reference in candidates:
@@ -127,8 +109,8 @@ def held_media_paths(conn, scope):
     from gateway.session_contract import admission_media_references
     from gateway.session_ingress_media import hosted_document_references
     held = set()
-    rows = conn.execute(select(session_admissions.c.status, session_admissions.c.request_id, session_admissions.c.payload_json)
-        .where(session_admissions.c.store_id == scope.require_store_id()).execution_options(yield_per=512))
+    from hermes_db.domains.sessions.postgres.queries.media_retirement import held_payloads
+    rows = held_payloads(conn, scope)
     with bind_profile_home(scope):
         for status, request_id, raw in rows:
             payload = json.loads(raw)
@@ -138,3 +120,26 @@ def held_media_paths(conn, scope):
                 refs.extend(hosted_document_references(request_id, payload))
             held.update(reference["path"] for reference in refs)
     return held
+
+
+def _history(conn, scope, references):
+    from hermes_db.domains.sessions.postgres.queries.media_retirement import history
+    from tools.tool_result_storage import spillover_names_in_text
+    return history(conn, scope, references, spillover_names=spillover_names_in_text)
+
+
+def retire_spillover(conn, scope, session_ids):
+    from hermes_db.domains.sessions.postgres.queries.media import _candidate, text_rows
+    from hermes_cli.db_file_identity import identity, owner_id
+    from tools.tool_result_storage import spillover_names_in_text
+    root = scope.profile_home / "cache" / "spillover"
+    owner = owner_id(scope.profile_home, create=True)
+    for start in range(0, len(session_ids), 1000):
+        for content, api in text_rows(conn, scope, session_ids[start:start + 1000]):
+            for name in spillover_names_in_text(content, api):
+                try:
+                    stamp = identity(root / name)
+                except OSError:
+                    stamp = None
+                _candidate(conn, scope, SPILLOVER_PREFIX + name,
+                    {"name": name, "owner": owner, "identity": stamp})

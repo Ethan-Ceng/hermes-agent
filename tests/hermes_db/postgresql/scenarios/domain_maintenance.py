@@ -11,5 +11,5 @@ def audit(event, _args):
 sys.addaudithook(audit)
 
 if __name__ == "__main__":
-    from hermes_db.maintenance import maintain_profile
+    from hermes_cli.db_maintenance import maintain_profile
     assert maintain_profile(sys.argv[1])["backend"] == "postgresql"

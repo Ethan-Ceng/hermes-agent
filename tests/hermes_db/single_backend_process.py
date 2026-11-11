@@ -32,7 +32,7 @@ def main():
             if backend == "postgresql":
                 pg_plugins(home, label, role)
                 completed.extend(("retain", "matrix"))
-                from hermes_db.maintenance import maintain_profile
+                from hermes_cli.db_maintenance import maintain_profile
                 maintain_profile(home)
             else:
                 retain(home, label, role)
