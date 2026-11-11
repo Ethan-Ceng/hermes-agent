@@ -8,7 +8,7 @@ import pytest
 from hermes_db.errors import UnknownCommitError
 from hermes_cli.db_scope import OwnedProfileContext
 from hermes_db.scope import DatabaseScope
-from hermes_db.domains.sessions.postgres.support.usage_writer import UsageWriter
+from hermes_cli.db_usage_writer import UsageWriter
 
 
 def test_writer_captures_owner_and_preserves_queue_order(tmp_path):

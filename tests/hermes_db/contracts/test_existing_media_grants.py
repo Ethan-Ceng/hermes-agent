@@ -74,7 +74,7 @@ def test_existing_grant_does_not_collect_changed_file_owner(core_pair):
 
 def test_existing_media_grant_protects_normal_release(core_pair):
     import hashlib
-    from hermes_db.integration.runtime_composition import create_runtime_store
+    from hermes_cli.db_runtime import create_runtime_store
     from gateway.session_ingress_media import native_inputs_root
 
     source, target = core_pair

@@ -1,12 +1,14 @@
 """Independent local Kanban metadata resolves native owner references without PID inference."""
 
+from hermes_cli.db_sessions import _build_session_resources
+
 from hermes_db.errors import StorageUnavailableError
 
 
 def test_kanban_native_owner_reads_configured_scope_and_never_inferrs_remote_pid(core_pair, native_registry, monkeypatch):
     from hermes_cli import kanban_owner_recovery as recovery
     from hermes_cli import db_sessions as factory
-    from hermes_db.integration.runtime_composition import create_runtime_store
+    from hermes_cli.db_runtime import create_runtime_store
     db, _other = core_pair
     home = db.scope.profile_home
     home.mkdir(parents=True)
@@ -14,7 +16,7 @@ def test_kanban_native_owner_reads_configured_scope_and_never_inferrs_remote_pid
         f"    schema: hermes\n    store_id: {db.scope.store_id}\n")
     (home / ".env").write_text("HERMES_POSTGRES_DSN=postgresql://unused/db\n")
     registry, _opened = native_registry
-    monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope))
+    monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope, build=_build_session_resources))
     runtime = create_runtime_store(db)
     db.create_session("owner-session", "kanban")
     epoch = runtime.begin_epoch(instance_id="remote-owner")

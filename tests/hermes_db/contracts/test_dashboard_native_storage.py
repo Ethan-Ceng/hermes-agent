@@ -1,5 +1,7 @@
 """Dashboard browsing and offline metadata mutations select the native store."""
 
+from hermes_cli.db_sessions import _build_session_resources
+
 import pytest
 
 
@@ -9,14 +11,14 @@ def test_native_browse_timeline_and_offline_import_have_no_local_database(core_p
     from hermes_cli import web_server_sessions as web
     from hermes_cli.web_routers.sessions import _timeline_session_id
     from hermes_cli import db_sessions as factory
-    from hermes_db.integration.runtime_access import runtime_for_store
+    from hermes_db.domains.runtime.access import runtime_for_store
     from hermes_constants import set_hermes_home_override, reset_hermes_home_override
     from tests.hermes_db.contracts.test_surface_acquisition import _profile
     db, other = core_pair
     registry, _ = native_registry
     home = db.scope.profile_home
     _profile(home, db.scope.store_id)
-    monkeypatch.setattr(factory, 'acquire_db', lambda settings, scope: registry.acquire(settings.postgresql, scope))
+    monkeypatch.setattr(factory, 'acquire_db', lambda settings, scope: registry.acquire(settings.postgresql, scope, build=_build_session_resources))
     monkeypatch.setattr(web, '_session_db_path_for_profile', lambda profile: home / 'state.db')
     token = set_hermes_home_override(home)
     try:

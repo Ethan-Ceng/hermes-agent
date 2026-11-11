@@ -2,6 +2,12 @@
 
 Applies on top of the root `AGENTS.md`. Long-form: `website/docs/developer-guide/cli-internals.md`.
 
+Session/Runtime application assembly lives in `db_sessions.py`, `db_runtime.py` and
+`db_session_lifecycle.py`; the deferred accounting thread lives in `db_usage_writer.py`.
+The business registry requires the actual owner build callback. Patch `_construct_store` in
+`hermes_cli.db_sessions`, where construction is read. Keep native assembly free of PG imports.
+
+
 ## CLI architecture
 
 `cli.py` holds `HermesCLI` (REPL loop, config, slash dispatch); behaviour lives in mixins

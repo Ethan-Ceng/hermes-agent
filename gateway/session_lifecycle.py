@@ -112,7 +112,7 @@ class SessionLifecycleMixin:
             return None
         import sqlite3
 
-        from hermes_db.integration.local_access import local_receipt
+        from hermes_db.domains.runtime.local_access import local_receipt
         from hermes_state_runtime import RuntimeStoreError
         try:
             receipt = local_receipt(db, str(origin.chat_id))

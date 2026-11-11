@@ -144,7 +144,7 @@ def _ledger_busy(runner) -> str | None:
     for authority in all_authorities(runner):
         db = authority.db
         from hermes_db.health import is_postgresql_store
-        from hermes_db.integration.runtime_access import runtime_for_store
+        from hermes_db.domains.runtime.access import runtime_for_store
         if is_postgresql_store(db):
             reason = runtime_for_store(db).runtime_busy_reason()
             if reason:

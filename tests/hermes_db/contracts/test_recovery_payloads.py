@@ -4,7 +4,7 @@ import json
 
 
 def test_webhook_recovery_preserves_nul_and_automation_presence(core_pair):
-    from hermes_db.integration.runtime_composition import create_runtime_store
+    from hermes_cli.db_runtime import create_runtime_store
 
     store, other = core_pair
     runtime = create_runtime_store(store)
@@ -32,7 +32,7 @@ def test_webhook_recovery_preserves_nul_and_automation_presence(core_pair):
 
 
 def test_webhook_recovery_scans_past_a_full_unrelated_batch(core_pair):
-    from hermes_db.integration.runtime_composition import create_runtime_store
+    from hermes_cli.db_runtime import create_runtime_store
 
     store, _ = core_pair
     runtime = create_runtime_store(store)

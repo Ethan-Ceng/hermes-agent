@@ -33,6 +33,8 @@ def gateway(tmp_path, monkeypatch):
 
     profile_home = home / "profiles" / "developer"
     profile_home.mkdir(parents=True)
+    with SessionDB(db_path=profile_home / "state.db"):
+        pass
 
     # session.resume resolves the profile via hermes_cli.profiles
     monkeypatch.setattr(

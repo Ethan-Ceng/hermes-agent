@@ -253,7 +253,7 @@ def install_hosted_transport(server, authority, loop, *, attest):
                 raise RuntimeStoreError('permission_denied')
             conn.execute('INSERT OR IGNORE INTO state_meta(key,value) VALUES(?,?)', (key, encoded))
         if is_postgresql_store(authority.db):
-            from hermes_db.integration.runtime_access import runtime_for_store
+            from hermes_db.domains.runtime.access import runtime_for_store
             runtime_for_store(authority.db).persist_hosted_binding(epoch=authority.epoch, key=key, value=encoded)
         else:
             authority.db._execute_write(persist)

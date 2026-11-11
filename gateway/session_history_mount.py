@@ -22,7 +22,7 @@ def _reader(authority, actor, sid):
     """The importer an import binding names, else the profile's owner: its native peer (the evidence
     legacy adoption takes) or an operator. Knowing an old id is not ownership."""
     from hermes_state_mutation_binding import BINDING_PREFIX
-    from hermes_db.integration.authority_access import history_binding_names
+    from hermes_db.domains.runtime.authority import history_binding_names
     binding = authority.db.get_meta(BINDING_PREFIX + sid)
     if binding is not None:
         return history_binding_names(authority.db, binding, actor)
@@ -58,7 +58,7 @@ def require_history_leaf(authority, sid):
     if not is_history_mount(authority.sessions[sid]):
         return
     if is_postgresql_store(authority.db):
-        from hermes_db.integration.runtime_access import runtime_for_store
+        from hermes_db.domains.runtime.access import runtime_for_store
         return runtime_for_store(authority.db).require_history_leaf(sid)
     from hermes_state_mutation_guards import delete_targets
     chain = set(authority.db.get_compression_lineage(sid))

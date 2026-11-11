@@ -477,6 +477,7 @@
       "category": "agent-policy",
       "reason": "Exact skill scaffold wire markers and pure describe_skill_invocation parser; no skill loader, cache, config reload or prompt mutation.",
       "consumers": [
+        "hermes_db/domains/sessions/postgres/portability.py",
         "hermes_db/domains/sessions/postgres/support/message_preview.py"
       ]
     },
@@ -494,6 +495,7 @@
       "category": "agent-policy",
       "reason": "Exact skill scaffold wire markers and pure describe_skill_invocation parser; no skill loader, cache, config reload or prompt mutation.",
       "consumers": [
+        "hermes_db/domains/sessions/postgres/portability.py",
         "hermes_db/domains/sessions/postgres/support/message_preview.py"
       ]
     },
@@ -1202,6 +1204,7 @@
         "hermes_db/domains/sessions/postgres/operations/mutation_transcript.py",
         "hermes_db/domains/sessions/postgres/operations/mutations.py",
         "hermes_db/domains/sessions/postgres/operations/retention.py",
+        "hermes_db/domains/sessions/postgres/portability.py",
         "hermes_db/domains/sessions/postgres/queries/file_grants.py",
         "hermes_db/domains/sessions/postgres/queries/gateway.py",
         "hermes_db/domains/sessions/postgres/queries/mutation_binding.py",
@@ -1223,6 +1226,7 @@
         "hermes_db/domains/sessions/postgres/operations/mutation_transcript.py",
         "hermes_db/domains/sessions/postgres/operations/mutations.py",
         "hermes_db/domains/sessions/postgres/operations/retention.py",
+        "hermes_db/domains/sessions/postgres/portability.py",
         "hermes_db/domains/sessions/postgres/queries/file_grants.py",
         "hermes_db/domains/sessions/postgres/queries/gateway.py",
         "hermes_db/domains/sessions/postgres/queries/lineage.py",
@@ -1351,6 +1355,7 @@
         "hermes_db/domains/sessions/postgres/operations/mutation_branch.py",
         "hermes_db/domains/sessions/postgres/operations/mutation_policy.py",
         "hermes_db/domains/sessions/postgres/operations/mutation_transcript.py",
+        "hermes_db/domains/sessions/postgres/portability.py",
         "hermes_db/domains/sessions/postgres/queries/bot_views.py",
         "hermes_db/domains/sessions/postgres/queries/lineage.py",
         "hermes_db/domains/sessions/postgres/queries/retirement.py",
@@ -2685,7 +2690,8 @@
       "category": "shared-pure",
       "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
       "consumers": [
-        "hermes_db/domains/runtime/postgres/operations/worker_children.py"
+        "hermes_db/domains/runtime/postgres/operations/worker_children.py",
+        "hermes_db/domains/sessions/postgres/portability.py"
       ]
     },
     {
@@ -2933,6 +2939,166 @@
       "reason": "Pure cached control-host OS family for native SQLite descriptor/header safety; no Profile, application service, secrets or dataset selection.",
       "consumers": [
         "hermes_db/infra/backends/sqlite/generation.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.import_rules.values",
+      "category": "shared-query-value",
+      "reason": "Existing business import validation over the supplied payload; no Profile, filesystem, events or construction.",
+      "consumers": [
+        "hermes_db/domains/runtime/authority.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.mutation_binding.binding_names",
+      "category": "shared-connection",
+      "reason": "History binding names use supplied actor, captured scope and existing ownership predicates; no application discovery.",
+      "consumers": [
+        "hermes_db/domains/runtime/authority.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.sessions.postgres.queries.mutation_binding.import_history_control",
+      "category": "shared-connection",
+      "reason": "Import control executes inside the original caller Connection through CoreEffect, with explicit actor/session IDs.",
+      "consumers": [
+        "hermes_db/domains/runtime/authority.py"
+      ]
+    },
+    {
+      "target": "hermes_state_local.local_lineage_owner",
+      "category": "shared-connection",
+      "reason": "Native lineage owner performs SELECT against the supplied Connection only; no current Profile or owner-memory publication.",
+      "consumers": [
+        "hermes_db/domains/runtime/authority.py"
+      ]
+    },
+    {
+      "target": "hermes_state_mutation_binding.binding_names",
+      "category": "shared-pure",
+      "reason": "Native history binding names classify supplied saved row and actor subject only.",
+      "consumers": [
+        "hermes_db/domains/runtime/authority.py"
+      ]
+    },
+    {
+      "target": "hermes_state_mutation_binding.import_history_control",
+      "category": "shared-connection",
+      "reason": "Native import history control retains the supplied Connection and explicit actor/session IDs; no new acquisition.",
+      "consumers": [
+        "hermes_db/domains/runtime/authority.py"
+      ]
+    },
+    {
+      "target": "hermes_state_mutation_chat_pick.commit_chat_pick",
+      "category": "shared-connection",
+      "reason": "Native chat pick commits the existing fenced policy/receipt operation on the supplied store; no Profile, process or file resolution.",
+      "consumers": [
+        "hermes_db/domains/runtime/authority.py"
+      ]
+    },
+    {
+      "target": "hermes_state_mutation_chat_pick.prepare_chat_pick",
+      "category": "shared-connection",
+      "reason": "Native chat pick preparation reads the supplied store and explicit request values; no file or process proof.",
+      "consumers": [
+        "hermes_db/domains/runtime/authority.py"
+      ]
+    },
+    {
+      "target": "hermes_state_mutation_prepared.commit_refreshed_policy",
+      "category": "shared-connection",
+      "reason": "Native policy refresh retains its current receipt and transaction on the provided store; no application assembly.",
+      "consumers": [
+        "hermes_db/domains/runtime/authority.py"
+      ]
+    },
+    {
+      "target": "hermes_state_mutation_prepared.policy_picks",
+      "category": "shared-connection",
+      "reason": "Native policy pick query reads existing rows on the supplied store only.",
+      "consumers": [
+        "hermes_db/domains/runtime/authority.py"
+      ]
+    },
+    {
+      "target": "hermes_state_terminal.retry_terminal_admission",
+      "category": "shared-connection",
+      "reason": "Native terminal retry keeps existing admission identity and fenced transaction on the supplied store; no process or file effect.",
+      "consumers": [
+        "hermes_db/domains/runtime/authority.py"
+      ]
+    },
+    {
+      "target": "hermes_state_local.end_idle_local_session",
+      "category": "shared-connection",
+      "reason": "Native idle-end checks admission and worker rows and stamps the target in the original supplied-store write transaction.",
+      "consumers": [
+        "hermes_db/domains/runtime/local_access.py"
+      ]
+    },
+    {
+      "target": "hermes_state_local.handoff_head",
+      "category": "shared-connection",
+      "reason": "Native handoff head reads policy, lineage and compression tip from the supplied store; no handoff process coordination.",
+      "consumers": [
+        "hermes_db/domains/runtime/local_access.py"
+      ]
+    },
+    {
+      "target": "hermes_state_local.local_receipt",
+      "category": "shared-connection",
+      "reason": "Native local receipt loads and decodes the saved policy row from the supplied store only.",
+      "consumers": [
+        "hermes_db/domains/runtime/local_access.py"
+      ]
+    },
+    {
+      "target": "hermes_state_local_lineage.validate_local_lineage",
+      "category": "shared-connection",
+      "reason": "Native lineage validation uses the original supplied Connection and receipt; no generation of owner authorization.",
+      "consumers": [
+        "hermes_db/domains/runtime/local_access.py"
+      ]
+    },
+    {
+      "target": "hermes_state_worker_compression.worker_claim_origin",
+      "category": "shared-connection",
+      "reason": "Native worker origin reads the first persisted receipt assignment on the provided store, without PID or RPC work.",
+      "consumers": [
+        "hermes_db/domains/runtime/worker_access.py"
+      ]
+    },
+    {
+      "target": "hermes_state_worker_compression.worker_retry_target",
+      "category": "shared-connection",
+      "reason": "Native exact compression retry verifies its canonical fingerprint and existing receipt assignment; no worker process liveness.",
+      "consumers": [
+        "hermes_db/domains/runtime/worker_access.py"
+      ]
+    },
+    {
+      "target": "hermes_state_keys.CRON_PRINCIPAL_ID",
+      "category": "shared-pure",
+      "reason": "Canonical persisted Cron principal marker shared with original native business export; no config lookup.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/portability.py"
+      ]
+    },
+    {
+      "target": "hermes_state_keys.cron_run_from_request",
+      "category": "shared-pure",
+      "reason": "Pure canonical Cron request identity parser over supplied strings, without Profile or file access.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/portability.py"
+      ]
+    },
+    {
+      "target": "hermes_state_portability._export_timings",
+      "category": "shared-pure",
+      "reason": "Text-free export timings derived solely from the supplied message rows and session ID; normal portability algorithm unchanged.",
+      "consumers": [
+        "hermes_db/domains/sessions/postgres/portability.py"
       ]
     }
   ]

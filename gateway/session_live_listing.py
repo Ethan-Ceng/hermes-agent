@@ -43,7 +43,7 @@ def _store_facts(db, session_ids):
     non-local receipt reads as no target, as ``_local_target`` does."""
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(db):
-        from hermes_db.integration.runtime_access import runtime_for_store
+        from hermes_db.domains.runtime.access import runtime_for_store
         return runtime_for_store(db).live_store_facts(session_ids)
     from hermes_db.domains.runtime.receipts import POLICY_PREFIX
     ids = json.dumps(list(session_ids))

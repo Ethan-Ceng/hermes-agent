@@ -176,7 +176,7 @@ def recover_detached_sessions(authority, pending):
     from gateway.session_contract import SessionRef
     from gateway.session_route_recovery import restore_routed_session
     scheduled = []
-    from hermes_db.integration.runtime_calls import list_session_admissions
+    from hermes_db.domains.runtime.calls import list_session_admissions
     for session_id in sorted(pending):
         if session_id in authority.sessions or not any(  # a lost (unknown) turn waits for /discard
                 row['status'] == 'queued' for row in list_session_admissions(authority.db, session_id=session_id)):

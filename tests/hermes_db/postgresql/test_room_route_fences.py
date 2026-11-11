@@ -9,7 +9,7 @@ from gateway import hosted_rooms as rooms, hosted_room_discussion as discussion
 from gateway.hosted_room_context import set_room_context, room_context
 from gateway.session_hosted_service import CanonicalHostedRoomService
 from hermes_cli.db_sessions import open_session_store
-from hermes_db.integration.runtime_access import runtime_for_store
+from hermes_db.domains.runtime.access import runtime_for_store
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 

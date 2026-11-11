@@ -883,7 +883,7 @@ def rebind_launch_key(authority, session, api_key):
     source = authority.sessions[session.session_id].source
     if source is None or source.platform != Platform.LOCAL:
         raise RuntimeStoreError('admission_conflict')
-    from hermes_db.integration.local_access import local_receipt
+    from hermes_db.domains.runtime.local_access import local_receipt
     ref = restore_policy(local_receipt(authority.db, session.session_id)['policy']).credential_ref
     if ref is None:
         raise RuntimeStoreError('admission_conflict')

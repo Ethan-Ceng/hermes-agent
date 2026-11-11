@@ -36,8 +36,8 @@ def test_real_root_lock_timeout_does_not_partially_admit(pg_store, pg_runtime):
     from hermes_db.infra.backends.postgresql.transactions import Transactions
     from hermes_db.tables.metadata import SCHEMA
     from hermes_db.domains.sessions.postgres.queries import sessions
-    from hermes_db.integration.runtime_composition import create_runtime_store
-    from hermes_db.integration.session_composition import create_session_store
+    from hermes_cli.db_runtime import create_runtime_store
+    from hermes_cli.db_sessions import create_session_store
     base = pg_store._transactions
     contender = create_session_store(Transactions(base.engine, base.schema, lock_timeout=0.05, schema_token=SCHEMA), pg_store.scope)
     try:

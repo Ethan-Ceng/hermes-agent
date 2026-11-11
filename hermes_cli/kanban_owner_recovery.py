@@ -55,7 +55,7 @@ def _native_admission_row(receipt):
     from hermes_cli.db_sessions import open_session_store
     from hermes_db.errors import StorageError
     from hermes_db.health import is_postgresql_store
-    from hermes_db.integration.runtime_access import runtime_for_store
+    from hermes_db.domains.runtime.access import runtime_for_store
     if is_worker_process():
         return None
     try:

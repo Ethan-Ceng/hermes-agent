@@ -119,7 +119,7 @@ async def discard_lost_turns(authority, session_id) -> str:
     followers run once it commits."""
     from gateway.session_contract import SessionRef
     from hermes_state_runtime import RuntimeStoreError
-    from hermes_db.integration.runtime_calls import list_session_admissions
+    from hermes_db.domains.runtime.calls import list_session_admissions
     rows = await asyncio.to_thread(list_session_admissions, authority.db, session_id=session_id)
     lost = [row for row in rows if row['status'] == 'unknown']
     if not lost:

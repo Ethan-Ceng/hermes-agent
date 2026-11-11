@@ -18,7 +18,7 @@ def owner(pg_profiles, monkeypatch):
     from gateway.session import SessionStore
     from gateway.session_authority import SessionAuthority
     from hermes_cli.db_sessions import open_session_store
-    from hermes_db.integration.runtime_access import runtime_for_store
+    from hermes_db.domains.runtime.access import runtime_for_store
     with pg_profiles("one") as home, closing(open_session_store(home / "state.db")) as resource:
         db = resource.session_store
         monkeypatch.setattr(SessionStore, "_open_session_db_for_active_scope", lambda self, **kwargs: db)
@@ -40,7 +40,7 @@ async def test_room_fence_and_admission_are_atomic_and_replay_lost_confirmation(
     from gateway.session_hosted_storage import HostedAdmissionFence
     from hermes_db.errors import UnknownCommitError
     from hermes_db.domains.runtime.postgres.queries.runtime import set_meta
-    from hermes_db.integration.runtime_access import runtime_for_store
+    from hermes_db.domains.runtime.access import runtime_for_store
     from hermes_state_runtime import RuntimeStoreError
     from tui_gateway.hosted_room_driver import HostedRoomBinding
     authority, db = owner

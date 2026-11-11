@@ -22,13 +22,11 @@ class RuntimeMedia:
         self._context = context
 
     def settled_native_media(self):
-        from gateway.session_contract import admission_media_references
+        admission_media_references = self._context.session.media.settled_references
         with self._context.read() as conn:
             rows = conn.scalars(select(table.c.payload_json).where(table.c.store_id == self._context.scope.require_store_id(), table.c.status == 'terminal').execution_options(yield_per=128))
             return [reference for raw in rows for reference in admission_media_references(json.loads(raw))]
 
-    def release_media(self, references, *, retain_history=True):
-        return self._context.session.effects.release_media(self._context.session, references, retain_history=retain_history)
 
     def retire_refused_media(self, references):
         with self._context.write() as conn:

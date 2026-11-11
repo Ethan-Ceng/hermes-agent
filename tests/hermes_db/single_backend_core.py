@@ -84,9 +84,10 @@ def rooms(home, label, role, saved):
     from gateway import hosted_rooms as rooms
     from gateway.hosted_room_attachments import HostedRoomAttachmentStore
     location = rooms.default_db_path()
-    attachments = HostedRoomAttachmentStore(location)
     if role == "write":
         rooms.create_room(location, room_id="same", name=label, members=[{"id": "ops"}], authority_gateway_id="owner")
+    attachments = HostedRoomAttachmentStore(location)
+    if role == "write":
         saved["image"] = attachments.put(room_id="same", upload_id="same", kind="image", name="proof.png", mime="image/png", data=b"\x89PNG\r\n\x1a\n" + label.encode())["attachment_id"]
         image = attachments.find_upload(room_id="same", upload_id="same")
         manifest = [{key: image[key] for key in ("attachment_id", "kind", "name", "size", "mime")}]

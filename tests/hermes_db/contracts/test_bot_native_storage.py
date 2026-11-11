@@ -11,7 +11,7 @@ from tests.hermes_db.contracts.test_gateway_authority import _owner_at
 async def test_current_history_resume_keeps_prefix_and_restores_after_owner_restart(core_pair, monkeypatch):
     from gateway.session_local_migration import resolve_local_target
     from gateway.session_listing import stored_picker_sessions
-    from hermes_db.integration.local_access import validate_local_lineage, local_receipt
+    from hermes_db.domains.runtime.local_access import validate_local_lineage, local_receipt
     from hermes_state_runtime import RuntimeStoreError
     db, other = core_pair
     db.create_session("current", "cli", model="saved")
@@ -45,7 +45,7 @@ async def test_native_bot_roster_displacement_and_request_lookup_are_store_scope
     from gateway.session_bot import _admission_at, _displace_bot_chat
     from gateway.session_group_controls import _read_bot_sessions
     from gateway.session_local import create_local_session
-    from hermes_db.integration.runtime_access import runtime_for_store
+    from hermes_db.domains.runtime.access import runtime_for_store
     db, other = core_pair
     async with _owner_at(db, monkeypatch, "bot-owner") as (owner, actor):
         ref = create_local_session(owner, actor, dict(request_id="bot-create", source="gui", toolsets=[]))

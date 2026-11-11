@@ -138,7 +138,7 @@ def test_canonical_room_coordination_uses_canonical_pg_target(pg_profiles):
     from gateway.session_hosted_storage import RoomCoordination
     from hermes_cli.db_sessions import open_session_store
     from hermes_db.domains.rooms.api import RoomStoreRef
-    from hermes_db.integration.runtime_access import runtime_for_store
+    from hermes_db.domains.runtime.access import runtime_for_store
     with pg_profiles("one") as home, closing(open_session_store(home / "state.db")) as db:
         epoch = runtime_for_store(db).begin_epoch(instance_id="owner")
         coordination = RoomCoordination(SimpleNamespace(db=db, epoch=epoch))

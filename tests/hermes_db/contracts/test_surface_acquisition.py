@@ -1,5 +1,7 @@
 """Ordinary opens select the owning profile without creating PG state.db files."""
 
+from hermes_cli.db_sessions import _build_session_resources
+
 import pytest
 
 from hermes_db.errors import StorageError
@@ -39,7 +41,7 @@ def test_ordinary_pg_opens_without_a_local_file_and_retains_scope(native_registr
     from hermes_cli import db_sessions as factory
     from hermes_cli.db_sessions import acquire_sessions, open_session_store, session_store_exists
     registry, _ = native_registry
-    monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope))
+    monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope, build=_build_session_resources))
     homes = [db.scope.profile_home for db in core_pair]
     for home, sid in zip(homes, ("one", "two")):
         _profile(home, sid)

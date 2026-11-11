@@ -46,7 +46,7 @@ async def test_pg_create_retry_uses_stable_store_identity_across_local_homes(cor
     from gateway.session_contract import SessionRef
     from gateway.session_mutations import mutate_session
     from hermes_db.scope import DatabaseScope
-    from hermes_db.integration.session_composition import create_session_store
+    from hermes_cli.db_sessions import create_session_store
     original, other = core_pair
     second = create_session_store(original._transactions,
         DatabaseScope(tmp_path / "another-node", original.scope.store_id))
@@ -82,7 +82,7 @@ async def test_native_resume_refreshes_settings_without_rewriting_prompt_or_hist
     import json
     from gateway.session_local import create_local_session
     from gateway.session_policy_refresh import commit_refresh
-    from hermes_db.integration.local_access import local_receipt
+    from hermes_db.domains.runtime.local_access import local_receipt
     db, _other = core_pair
     async with _owner_at(db, monkeypatch, "refresh-owner") as (owner, actor):
         home = db.scope.profile_home

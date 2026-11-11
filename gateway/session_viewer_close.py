@@ -25,7 +25,7 @@ from functools import partial
 from pathlib import Path
 
 from gateway.session_history_mount import is_history_mount
-from hermes_db.integration.local_access import local_receipt
+from hermes_db.domains.runtime.local_access import local_receipt
 from hermes_db.domains.runtime.receipts import VIEWER_CLOSE_PREFIX
 from hermes_state_runtime import RuntimeStoreError
 
@@ -48,7 +48,7 @@ def _physical_target(authority, session_id):
 def _busy(authority, session_id, target):
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(authority.db):
-        from hermes_db.integration.runtime_access import runtime_for_store
+        from hermes_db.domains.runtime.access import runtime_for_store
         return runtime_for_store(authority.db).viewer_busy(session_id, target)
     with authority.db._read_ctx() as conn:
         return conn.execute(_BUSY_SQL, (session_id, session_id, target)).fetchone() is not None
@@ -117,7 +117,7 @@ def _persist_close(authority, session_id, record):
     from hermes_state_runtime import _epoch
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(authority.db):
-        from hermes_db.integration.runtime_access import runtime_for_store
+        from hermes_db.domains.runtime.access import runtime_for_store
         return runtime_for_store(authority.db).store_viewer_close(epoch=authority.epoch, session_id=session_id, record=record)
 
     def write(conn):
@@ -140,7 +140,7 @@ def forget_persisted_close(authority, session_id, record):
     try:
         from hermes_db.health import is_postgresql_store
         if is_postgresql_store(authority.db):
-            from hermes_db.integration.runtime_access import runtime_for_store
+            from hermes_db.domains.runtime.access import runtime_for_store
             return runtime_for_store(authority.db).forget_viewer_close(epoch=authority.epoch, session_id=session_id, record=record)
         return bool(authority.db._execute_write(write))
     except RuntimeStoreError as exc:
@@ -263,7 +263,7 @@ def _idle_s(authority, session_id):
     target = _physical_target(authority, session_id)
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(authority.db):
-        from hermes_db.integration.runtime_access import runtime_for_store
+        from hermes_db.domains.runtime.access import runtime_for_store
         active = runtime_for_store(authority.db).session_last_active(target)
     else:
         with authority.db._read_ctx() as conn:
@@ -354,7 +354,7 @@ async def _resolve_abandoned_unknown(authority, session_id, live, close):
     transcript boundary written) and the drain moves on; a queued successor still runs before the
     close. A viewer back first cancels the close and keeps the decision. Returns whether the
     close may go on to its idle check (no ``unknown`` turn is left)."""
-    from hermes_db.integration.runtime_calls import list_session_admissions
+    from hermes_db.domains.runtime.calls import list_session_admissions
     rows = await asyncio.to_thread(list_session_admissions, authority.db, session_id=session_id)
     unknown = [row for row in rows if row['status'] == 'unknown']
     if not unknown:

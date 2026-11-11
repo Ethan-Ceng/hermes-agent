@@ -2,7 +2,7 @@
 
 ## 文档状态
 
-- 状态：`IMPLEMENTING`；2026-11-11用户授权按既有20项计划实施。Task1–8已验证，8/20；Task8完成其他Native SQLite显式生命周期与消费者闭合，下一项Task9，最终验证及独立审查尚未完成。
+- 状态：`IMPLEMENTING`；2026-11-11用户授权按既有20项计划实施。Task1–9已验证，9/20；Task9完成Session/Runtime应用装配迁出及消费者闭合，下一项Task10，最终验证及独立审查尚未完成。
 - 日期：2026-11-10；设计基准：`0d8782ba8adb168a86abb6a8e338591d70d03428`。
 - 隔离目录：D:/AI/hermes-db-packages；实施分支refactor/hermes-db-two-layer-boundary。正式D:/AI/hermes-agent仍在90a2987e8c，未切换。
 - 依据：[持久层精简设计](hermes-db-persistence-scope.md)、[已完成实施账本](../plans/hermes-db-persistence-scope-plan.md)、[逐项映射及固定锚点](hermes-db-persistence-scope-map.json)、[统一后端设计](unified-database-backends.md)。本设计不改写这些工作的历史验收。

@@ -258,7 +258,7 @@ def _committed(authority, principal, request_id):
     """The rows of this delivery's identity in the FIFO."""
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(authority.db):
-        from hermes_db.integration.runtime_access import runtime_for_store
+        from hermes_db.domains.runtime.access import runtime_for_store
         return runtime_for_store(authority.db).committed_delivery(principal, request_id)
     return authority.db._read_all('SELECT admission_id FROM session_admissions '
         'WHERE principal_id=? AND request_id=?', (principal, request_id))
@@ -267,7 +267,7 @@ async def _webhook_retry(authority, event, payload, rows):
     # One-shot finalization ends the route. Resolve an existing provider receipt
     # before SessionStore would rotate it into a new physical session.
     from gateway.session_ingress_media import ingress_fingerprint
-    from hermes_db.integration.runtime_calls import get_session_admission
+    from hermes_db.domains.runtime.calls import get_session_admission
     if not rows:
         return None
     row = get_session_admission(authority.db, admission_id=rows[0]['admission_id'])
@@ -300,7 +300,7 @@ def finalize_webhook(authority, receipt):
     sid = receipt.ref.session_id
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(authority.db):
-        from hermes_db.integration.runtime_access import runtime_for_store
+        from hermes_db.domains.runtime.access import runtime_for_store
         return runtime_for_store(authority.db).finalize_webhook(epoch=authority.epoch, session_id=sid,
             generation=receipt.execution_generation, admission_id=receipt.admission_id, owner_epoch=receipt.authority_epoch)
     def write(conn):
@@ -322,10 +322,10 @@ async def recover_webhook_finalizations(authority):
     from gateway.session_envelope import check_native_route
     from gateway.session_contract import SessionRef
     from hermes_state_runtime import RuntimeStoreError
-    from hermes_db.integration.runtime_calls import get_session_admission
+    from hermes_db.domains.runtime.calls import get_session_admission
 
     from hermes_db.health import is_postgresql_store
-    from hermes_db.integration.runtime_access import runtime_for_store
+    from hermes_db.domains.runtime.access import runtime_for_store
     rows = runtime_for_store(authority.db).webhook_finalizations() if is_postgresql_store(authority.db) else authority.db._read_all("""
         SELECT a.admission_id FROM sessions AS s
         JOIN session_admissions AS a ON a.target_session_id=s.id

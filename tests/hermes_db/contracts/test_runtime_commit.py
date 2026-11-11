@@ -9,7 +9,7 @@ def test_admission_lost_confirmation_can_be_queried_and_replayed_once(core_pair,
     from hermes_db.errors import UnknownCommitError
     from hermes_db.domains.runtime.postgres.operations.effects import CoreEffect
     from hermes_db.domains.runtime.postgres.queries import runtime as repo
-    from hermes_db.integration.runtime_composition import create_runtime_store
+    from hermes_cli.db_runtime import create_runtime_store
 
     store = core_pair[0]
     runtime = create_runtime_store(store)

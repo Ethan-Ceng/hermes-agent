@@ -12,7 +12,7 @@ PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p
 def test_native_api_recovery_and_terminal_media_keep_history_until_delete(api_owner, monkeypatch):
     from gateway.session_api_turn import admit_api_turn, recover_authority_api_turns
     from gateway.session_ingress_media import collect_unheld_api_images, release_admission_media
-    from hermes_db.integration.runtime_access import runtime_for_store
+    from hermes_db.domains.runtime.access import runtime_for_store
     owner, db, other = api_owner
     adapter = SimpleNamespace(gateway_runner=owner.runner, _ensure_session_db=lambda: db, _model_routes={})
     owner.runner._adapter_for_source = lambda source: adapter

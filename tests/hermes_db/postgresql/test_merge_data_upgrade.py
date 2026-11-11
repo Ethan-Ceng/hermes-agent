@@ -19,7 +19,7 @@ def old_store(postgres_test_config, postgres_schema, tmp_path):
     from hermes_db.infra.backends.postgresql.transactions import Transactions
     from hermes_db.tables.metadata import SCHEMA
     from hermes_db.scope import DatabaseScope
-    from hermes_db.integration.session_composition import create_session_store
+    from hermes_cli.db_sessions import create_session_store
     settings = replace(postgres_test_config.settings, schema=postgres_schema)
     directory = Path(__file__).parents[3] / 'hermes_db' / 'migrations'
     config = Config(str(directory / 'alembic.ini'))

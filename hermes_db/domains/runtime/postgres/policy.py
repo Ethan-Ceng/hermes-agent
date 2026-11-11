@@ -30,15 +30,11 @@ class RuntimePolicy:
         with self._context.write() as conn:
             return deferred_pick.compare(conn, self._context.scope, **kwargs)
 
-    def mutate_session(self, **kwargs):
+    def mutate_session_data(self, **kwargs):
         from hermes_db.domains.sessions.postgres.operations.mutations import mutate
         with self._context.write() as conn:
             result, event = mutate(conn, self._context.scope, ownership=self._context.session.ownership, routes=self._context.session.routes, **kwargs, media_references=self._context.session.media.admission_references)
-        if event is not None:
-            self._context.session.effects.deleted(event[0], reason=event[1], primary=kwargs['session_id'])
-            if event[1] == 'delete':
-                self._context.collect_retired_media()
-        return result
+        return result, event
 
     def policy_picks(self, session_id):
         from hermes_db.domains.sessions.postgres.operations.mutation_policy import picks

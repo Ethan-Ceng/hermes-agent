@@ -1,7 +1,7 @@
 """Owner-side worker claim reads dispatch without exposing database details to compute."""
 
 from hermes_db.health import is_postgresql_store
-from hermes_db.integration.runtime_access import runtime_for_store
+from hermes_db.domains.runtime.access import runtime_for_store
 
 
 def worker_claim_origin(db, params):

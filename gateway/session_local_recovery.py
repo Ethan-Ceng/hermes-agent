@@ -10,9 +10,9 @@ from gateway.session import SessionEntry, SessionSource
 from gateway.session_contract import SessionRef
 from hermes_state_keys import local_identity
 from hermes_db.domains.runtime.receipts import POLICY_PREFIX
-from hermes_db.integration.local_access import local_receipt
+from hermes_db.domains.runtime.local_access import local_receipt
 from hermes_state_runtime import RuntimeStoreError
-from hermes_db.integration.runtime_calls import list_session_admissions
+from hermes_db.domains.runtime.calls import list_session_admissions
 
 
 def local_adapter_map(authority):
@@ -124,7 +124,7 @@ def owned_receipt(authority, sid):
     if receipt['profile_id'] != persisted_profile_id(authority):
         raise RuntimeStoreError('profile_mismatch')
     if is_postgresql_store(authority.db):
-        from hermes_db.integration.local_access import validate_local_lineage
+        from hermes_db.domains.runtime.local_access import validate_local_lineage
         validate_local_lineage(authority.db, receipt)
         chat_id = receipt['session_id']
     else:
@@ -196,7 +196,7 @@ def restore_local_session(authority, sid):
         if adopted is not receipt:  # re-read after a catch-up: check the copy that will be served
             receipt, entry = adopted, _checked_entry(authority, adopted, source, route)
         target = entry.session_id
-        from hermes_db.integration.local_access import validate_local_lineage
+        from hermes_db.domains.runtime.local_access import validate_local_lineage
         validate_local_lineage(authority.db, receipt)
     except _CatchUpPending:
         raise
@@ -481,7 +481,7 @@ def release_handed_off_receipts(db, *, epoch):
 
 def local_receipt_ids(authority):
     if is_postgresql_store(authority.db):
-        from hermes_db.integration.runtime_access import runtime_for_store
+        from hermes_db.domains.runtime.access import runtime_for_store
         return runtime_for_store(authority.db).local_receipt_ids()
     from gateway.session_viewer_close import CLOSE_PREFIX
     start = len(POLICY_PREFIX) + 1

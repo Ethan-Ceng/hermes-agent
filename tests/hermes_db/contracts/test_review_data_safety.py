@@ -15,7 +15,7 @@ from hermes_state_runtime import RuntimeStoreError
 
 @pytest.mark.parametrize('in_place', [True, False])
 def test_prepared_compression_refuses_late_public_append(core_pair, in_place):
-    from hermes_db.integration.runtime_composition import create_runtime_store
+    from hermes_cli.db_runtime import create_runtime_store
     from tests.hermes_db.contracts.test_prepared_mutations import local_setup
     db = core_pair[0]
     runtime = create_runtime_store(db)

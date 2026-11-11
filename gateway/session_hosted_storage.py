@@ -28,7 +28,7 @@ class RoomCoordination:
 
     def check_epoch(self):
         if self.native:
-            from hermes_db.integration.runtime_access import runtime_for_store
+            from hermes_db.domains.runtime.access import runtime_for_store
             runtime_for_store(self.authority.db).check_epoch(self.authority.epoch)
 
     def _prepare(self):

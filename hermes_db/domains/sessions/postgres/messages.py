@@ -231,8 +231,7 @@ class SessionMessages:
 
     def assert_resume_safe(self, session_id, max_messages=None, *, tip_only=False):
         if max_messages is None:
-            with self._context.profile.activate():
-                max_messages = self._context.transcript_limits.resume_limit()
+            max_messages = self._context.transcript_limits.resume_limit()
         if max_messages < 0:
             raise ValueError('max_messages must be non-negative')
         if max_messages == 0:
@@ -480,8 +479,7 @@ class SessionMessages:
         if not session_id:
             return None
         if max_chars is None:
-            from tools.todo_tool import MAX_TODO_RESULT_CHARS
-            max_chars = MAX_TODO_RESULT_CHARS
+            max_chars = self._context.todo_result_limit()
         with self._context.read() as conn:
             ids = repo.resume_lineage(conn, self._context.scope, session_id)
             removed = _removed_todos(conn, self._context.scope, ids)

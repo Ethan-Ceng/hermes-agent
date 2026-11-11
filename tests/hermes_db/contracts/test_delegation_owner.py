@@ -6,7 +6,7 @@ from hermes_state_runtime import RuntimeStoreError
 
 
 def _ledger(store):
-    from hermes_db.integration.runtime_composition import create_runtime_store
+    from hermes_cli.db_runtime import create_runtime_store
     return create_runtime_store(store).delegations
 
 

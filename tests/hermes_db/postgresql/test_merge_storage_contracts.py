@@ -19,7 +19,7 @@ def test_transcript_snapshot_pins_public_reads_without_crossing_profile(pg_pair)
             assert nested() and consistent() and nested.pinned
         assert [row["content"] for row in peer.get_messages("same")] == ["peer only"]
     assert [row["content"] for row in owner.get_messages("same")] == ["owner first", "owner committed"]
-    from hermes_db.integration.session_composition import create_session_store
+    from hermes_cli.db_sessions import create_session_store
     reopened = create_session_store(owner._transactions, owner.scope)
     try:
         assert reopened.get_session("same")["message_count"] == 2
@@ -151,7 +151,7 @@ def test_explicit_archive_retires_visible_reaped_bot_chat(pg_store):
 
 
 def test_refused_turn_keeps_display_and_reopens_without_model_input(pg_pair):
-    from hermes_db.integration.session_composition import create_session_store
+    from hermes_cli.db_sessions import create_session_store
     owner, peer = pg_pair
     for store in (owner, peer):
         store.create_session('s', 'cli')
@@ -196,7 +196,7 @@ def test_refusal_fallback_releases_checkout_for_one_connection_pool(pg_store, po
     from hermes_db.infra.backends.postgresql.engine import get_engine
     from hermes_db.infra.backends.postgresql.transactions import Transactions
     from hermes_db.tables.metadata import SCHEMA
-    from hermes_db.integration.session_composition import create_session_store
+    from hermes_cli.db_sessions import create_session_store
     settings = replace(postgres_test_config.settings, pool_size=1, max_overflow=0,
                        connection_budget=1, pool_timeout_seconds=1)
     engine = get_engine(settings)

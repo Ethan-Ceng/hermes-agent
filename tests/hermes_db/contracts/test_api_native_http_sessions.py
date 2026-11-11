@@ -1,5 +1,7 @@
 """HTTP session CRUD uses native owner resources and typed failure responses."""
 
+from hermes_cli.db_sessions import _build_session_resources
+
 from contextlib import contextmanager
 
 import pytest
@@ -15,7 +17,7 @@ async def test_native_http_creation_conflicts_retirement_and_unknown_commit(api_
     from hermes_db.health import is_postgresql_store
     from hermes_cli import db_sessions as factory
     registry, _opened = native_registry
-    monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope))
+    monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope, build=_build_session_resources))
     owner, db, _other = api_owner
     home = db.scope.profile_home
     (home / "config.yaml").write_text("storage:\n  backend: postgresql\n  postgresql:\n"

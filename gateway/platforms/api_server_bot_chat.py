@@ -107,7 +107,7 @@ def _reset_local_title_owner(db, title, include_hidden, source=None):
     if (row is None or row.get('end_reason') != 'session_reset' or row.get('archived')
             or (row.get('hidden') and not include_hidden) or (source and row.get('source') != source)):
         return []
-    from hermes_db.integration.local_access import local_receipt
+    from hermes_db.domains.runtime.local_access import local_receipt
     try:
         lineage = local_receipt(db, row['id']).get('lineage') or []
     except RuntimeStoreError:

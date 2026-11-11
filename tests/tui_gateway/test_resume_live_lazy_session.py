@@ -26,6 +26,10 @@ def home(tmp_path, monkeypatch):
     h = tmp_path / ".hermes"
     (h / "profiles" / "ops").mkdir(parents=True)
     monkeypatch.setenv("HERMES_HOME", str(h))
+    from hermes_state import SessionDB
+    for owner in (h, h / "profiles" / "ops"):
+        with SessionDB(db_path=owner / "state.db"):
+            pass
     return h
 
 

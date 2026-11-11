@@ -183,7 +183,7 @@ def follow_bot_chat(authority, session_id, policy, live, picked=()):
             return policy
         from hermes_db.health import is_postgresql_store
         if is_postgresql_store(db):
-            from hermes_db.integration.local_access import local_receipt
+            from hermes_db.domains.runtime.local_access import local_receipt
             if titled['id'] not in local_receipt(db, session_id).get('lineage', [session_id]):
                 return policy
         else:
@@ -281,7 +281,7 @@ def adopt_legacy_session(authority, actor, row):
     from gateway.run import _load_gateway_config, _resolve_gateway_model
     from gateway.session_policy import build_policy, bind_launch_key
     from gateway.session_local_recovery import restore_local_session
-    from hermes_db.integration.local_access import commit_local_session
+    from gateway.session_storage_authority import commit_local_session
     from hermes_cli.active_sessions import active_session_liveness_guard, ActiveSessionRegistryError
 
     request_id = 'legacy:' + row['id']

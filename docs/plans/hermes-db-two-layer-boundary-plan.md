@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`IMPLEMENTING`；阶段：SQLite其他业务领域显式生命周期；当前实施任务：Task8已完成，下一项Task9；完成：8 / 20；阻塞：无；日期2026-11-11。
+- 整体状态：`IMPLEMENTING`；阶段：Profile生命周期与媒体退休边界；当前实施任务：Task10；完成：9 / 20；阻塞：无；日期2026-11-11。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 范围与可判定边界
@@ -711,7 +711,7 @@ Windows188完整最新组1701pass/0fail/65skip，必需扩展八文件Windows及
 
 ## Task 9：迁出Sessions与Runtime应用装配
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -736,7 +736,7 @@ Sessions/Runtime存储组合及应用依赖有明确唯一拥有者。
 - `hermes_db/integration/session_composition.py`。
 - `hermes_db/integration/session_portability.py`。
 - `hermes_db/integration/worker_access.py`。
-- 新落位：`gateway/session_storage_authority.py`, `gateway/session_worker_process_proof.py`, `hermes_cli/db_runtime.py`, `hermes_cli/db_sessions.py`, `hermes_cli/db_usage_writer.py`, `hermes_db/domains/runtime/access.py`, `hermes_db/domains/runtime/authority.py`, `hermes_db/domains/runtime/calls.py`, `hermes_db/domains/runtime/local_access.py`, `hermes_db/domains/runtime/worker_access.py`, `hermes_db/domains/sessions/postgres/portability.py`, `hermes_db/domains/sessions/registry.py`。
+- 新落位：`gateway/session_storage_authority.py`, `gateway/session_worker_process_proof.py`, `hermes_cli/db_runtime.py`, `hermes_cli/db_sessions.py`, `hermes_cli/db_session_lifecycle.py`, `hermes_cli/db_usage_writer.py`, `hermes_db/domains/runtime/access.py`, `hermes_db/domains/runtime/authority.py`, `hermes_db/domains/runtime/calls.py`, `hermes_db/domains/runtime/local_access.py`, `hermes_db/domains/runtime/worker_access.py`, `hermes_db/domains/sessions/postgres/portability.py`, `hermes_db/domains/sessions/registry.py`。
 - 同Task同步映射consumer_files中实际读取点、动态字符串和测试patch；主责Task之外的依赖导入变化也必须当场完成。
 
 ### 依赖与接口
@@ -766,11 +766,28 @@ Sessions/Runtime存储组合及应用依赖有明确唯一拥有者。
 
 ### 执行结果
 
-未实施；planning不计完成。
+2026-11-11实施中：装配、事件、UsageWriter、进程证明与短文件清理迁到应用所有者。typed registry使用必需build回调，缓存键、等待、引用计数与关闭顺序不变；Runtime访问读取实际成员，原生handle复用同一Runtime。第一批4文件22pass/1fail，工厂共享引用fixture缺显式Schema准备；补齐后7文件28pass/12fail，两个TUI恢复fixture同样缺Schema。仅补显式空库准备，正常懒会话/隔离/404断言保留。最新Windows7文件41pass/0fail、PG3文件20pass/0fail，均exit0；新增Runtime构造失败清理与重新获取合同。其他必需批次、静态与完整消费者仍待核验，不计完成。
+
+2026-11-11启动。Task8实际commit 2c18b7a48ef4c0eba6602868a5f6d66f58da2388，8/20。11个映射引用对应7个分区hash已核对，Task8提交后已跟踪工作区clean。按当前源码保留前置Task改动，先核对本Task逐符号、消费者和动态patch，再按现有设计迁移所有者。
+
+开始按实际模块落位实施。141项中124项为保留审查，17项为迁出/拆分。runtime_access原含对象装配，业务访问改读真实runtime成员，构造归应用；旧数据及raw Native/PG/SessionResource真实调用入口均须保持。retired_files实际文件删除不属于业务查询，作为原映射误分类同步迁到应用生命周期，算法与授权目录限制保持。Transcript marker、活动规范化和Tool上限由现有应用所有者传入，SQL及事务不改。
 
 ### 验证证据
 
+扩大消费者完整104文件首轮Windows552pass/5fail/4skip，WSL555pass/6fail，均exit1。3个Delivery fixture遗漏显式账本初始化；两个真实SQLite单后端/Matrix恢复合同先构造附件再创建Room，应按真实首次创建顺序创建Room后获取附件；CLI不可用后端测试仍patch旧registry构造位置。修正仅涉及准备/真实patch读取点，原业务assert保留。修后Windows四文件23pass/0fail/1平台skip。第一轮16checks因新业务路径55个未复核逐符号依赖失败；已人工复核26个真实符号依赖，保留边界方向规则和插件API。核对时发现local commit触发owner memory读取/发布，将该选择协调迁到Gateway而未修改Native实现。PG依赖隔离检查发现Native Runtime工厂不能与PG子类顶层导入同一模块，已留在无PG导入的db_sessions。全部整改后重新运行104文件双主机完整批次、PG必需3文件及静态，结果待收集。
+
+结构审计最初采用Git自动rename视图漏计旧路径，出现新增2个原有SQL字面量的假阳性；改为--no-renames逐源/目标计数后SQL字面量delta0。固定65资源working/staged/HEAD、11映射引用hash、root11、31revision、29表模块通过；当前DB364为中间预算。进程证明与受限snapshot清理函数AST保持一致，测试未删除。
+
 未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
+
+
+第二轮Windows104文件551pass/6fail/4skip，均来自test_local_creation中的混合import：commit选择迁到Gateway时，同一import中的local_receipt/end_idle被一起改写。按AST逐符号拆分，Gateway仅接收commit/authorize_history，纯local读取仍留业务；未增加旧路径shim。WSL同轮结果继续如实收集。16check、DB边界0违规、插件边界与生成契约均exit0；空白检查发现一个EOF多余空行，去除后exit0，业务AST一致。
+
+A2A实际消费者加入后105文件首批Windows558pass/3fail/4skip；补准备后两个局部批次各9pass/2fail。根因是测试既改Profile环境home又由公共fixture固定DEFAULT_DB_PATH：只准备一侧会缺Session或Projects。现在显式准备两个实际拥有者home，局部11pass/0fail。为固定载荷，终止两个旧源码诊断批次（工具实际exit1，均不计通过），完整105文件范围保留并重新运行。最新Windows105文件561pass/0fail/4平台skip，exit0；最新16check、DB边界0违规、插件边界、生成契约与空白均exit0。现存58修改测试文件的209既有测试、797条业务assert全部保留。WSL采用2worker完整105文件复验，仅并发数变化，选择范围不减。等待其实际exit0前Task9仍in_progress。
+
+最终结算：Windows105文件561pass/0fail/4平台skip，WSL同105文件565pass/0fail/0skip；PG必需3文件20pass/0fail，均实际exit0。最新16check、DB边界0违规、插件边界、生成契约和空白均exit0。两个被停止的旧源码诊断批次实际exit1，单独记录且不计通过。保留全部必需范围与原业务断言，没有删除测试。结构审计固定65资源canonical working/staged/HEAD、11映射引用、root11、31revision、29表模块、SQL字面量delta0通过；两个未触碰的既有CRLF checkout文件有明确记录，Git字节与冻结hash相同。当前DB364为中间数，最终<=359仍待后续闭合。
+
+Session/Runtime装配、Profile回调、事件、线程、进程证明、文件清理及owner memory commit协调有实际应用拥有者；业务端保留同Connection/事务/回执/快照，Runtime读取真实已装配成员。141映射条目已逐项复核，原124preserve/17active经retired_files修正为123preserve/18active；源文件迁出不冒充算法净减少。58修改测试文件的209既有测试、797条业务assert逐项保留。展开命令、解释器/cwd/源码身份、退出码、失败/整改/skip与恢复点见[Task9证据](../designs/hermes-db-two-layer-task9.json)。正式目录HEAD90a2987e8c且clean，只读核对通过。Task9完成后立即本地commit，实际hash由Task10启动记录；9/20，最终验证与独立审查仍待完成。
 
 ## Task 10：拆开Profile和媒体回收的存储与应用职责
 
@@ -1419,14 +1436,14 @@ Windows独立发行组使用同根Windows实际路径、其PG父解释器及私�
 
 ### 当前执行结果
 
-- 当前实施：Task1–8已验证，8/20；Task8本地提交后立即进入Task9。
+- 当前实施：Task1–9已验证，9/20；Task9本地提交后立即进入Task10。
 - Task1–7证据见各Task及对应诊断记录。最终完整冻结批次、SDK及独立审查尚未完成。
 - 规划结构/基准/本地链接及文档静态自检：实际命令与结果写入下方准备记录。
 - 代码审查：本轮尚未执行；旧APPROVED只属于已完成持久层职责精简。
 
 ### 未通过项目与最终状态
 
-当前为`IMPLEMENTING`，Task1–8已完成，下一项Task9，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
+当前为`IMPLEMENTING`，Task1–9已完成，下一项Task10，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
 
 ## 规划准备记录与恢复
 

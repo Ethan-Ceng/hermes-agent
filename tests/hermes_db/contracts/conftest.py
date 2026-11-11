@@ -9,11 +9,11 @@ import pytest
 
 @pytest.fixture
 def unavailable_native(monkeypatch):
-    from hermes_db.integration import registry as native_registry
+    import hermes_db.domains.sessions.registry as native_registry
     from hermes_db.errors import StorageUnavailableError
     def unavailable(*args):
         raise StorageUnavailableError('test storage unavailable')
-    monkeypatch.setattr(native_registry, '_construct_store', unavailable)
+    monkeypatch.setattr("hermes_cli.db_sessions._construct_store", unavailable)
 
 
 def _offline_engine(sa, tmp_path, name):
@@ -58,7 +58,7 @@ def store(request, tmp_path):
             yield db
         return
     sa = pytest.importorskip("sqlalchemy", reason="optional postgresql extra")
-    from hermes_db.integration.session_composition import create_session_store
+    from hermes_cli.db_sessions import create_session_store
     from hermes_db.scope import DatabaseScope
     from hermes_db.tables import load_metadata
     from hermes_db.infra.backends.postgresql.transactions import Transactions
@@ -79,7 +79,7 @@ def store(request, tmp_path):
 @pytest.fixture
 def core_pair(tmp_path):
     sa = pytest.importorskip("sqlalchemy", reason="optional postgresql extra")
-    from hermes_db.integration.session_composition import create_session_store
+    from hermes_cli.db_sessions import create_session_store
     from hermes_db.scope import DatabaseScope
     from hermes_db.tables import load_metadata
     from hermes_db.infra.backends.postgresql.transactions import Transactions
@@ -101,8 +101,8 @@ def core_pair(tmp_path):
 
 @pytest.fixture
 def native_registry(core_pair, monkeypatch):
-    from hermes_db.integration import registry as native_registry
-    from hermes_db.integration.session_composition import create_session_store
+    import hermes_db.domains.sessions.registry as native_registry
+    from hermes_cli.db_sessions import create_session_store
     opened = []
 
     def construct(settings, scope):
@@ -110,7 +110,7 @@ def native_registry(core_pair, monkeypatch):
         opened.append(store)
         return store
 
-    monkeypatch.setattr(native_registry, "_construct_store", construct)
+    monkeypatch.setattr("hermes_cli.db_sessions._construct_store", construct)
     yield native_registry, opened
     native_registry.close_all()
 
@@ -119,9 +119,9 @@ def native_registry(core_pair, monkeypatch):
 def runtime(store, tmp_path):
     from hermes_state import SessionDB
     if isinstance(store, SessionDB):
-        from hermes_db.integration.runtime_access import runtime_for_store
+        from hermes_db.domains.runtime.access import runtime_for_store
         return runtime_for_store(store)
-    from hermes_db.integration.runtime_composition import create_runtime_store
+    from hermes_cli.db_runtime import create_runtime_store
     return create_runtime_store(store)
 
 
@@ -132,7 +132,7 @@ def api_owner(core_pair, monkeypatch):
     from gateway.session import SessionStore
     from gateway.session_authority import SessionAuthority
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
-    from hermes_db.integration.runtime_composition import create_runtime_store
+    from hermes_cli.db_runtime import create_runtime_store
     db, other = core_pair
     home = db.scope.profile_home
     home.mkdir(parents=True)

@@ -24,7 +24,7 @@ def _ledger(store, runtime):
             return persist_worker_delegation(runtime._db, **assignment, sequence=sequence, operation=operation,
                                              payload=payload, worker_pid=pid, worker_birth=birth)
     else:
-        from hermes_db.integration.authority_access import verify_worker_delegation_owner as verify_owner
+        from gateway.session_worker_process_proof import verify_worker_delegation_owner as verify_owner
         owner = verify_owner("worker", pid, birth)
         def send(sequence, operation, payload):
             return runtime.persist_delegation(**assignment, sequence=sequence, operation=operation, payload=payload, owner=owner)

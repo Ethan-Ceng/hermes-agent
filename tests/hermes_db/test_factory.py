@@ -11,9 +11,14 @@ from hermes_db.settings import DatabaseSettings, PostgresSettings
 
 
 def test_sqlite_handles_share_registry_and_release_independently(tmp_path):
+    from hermes_state import SessionDB
+    with SessionDB(db_path=tmp_path / "state.db"):
+        pass
     settings, scope = DatabaseSettings(), DatabaseScope(tmp_path)
     first, second = acquire_db(settings, scope), acquire_db(settings, scope)
     try:
+        from hermes_db.domains.runtime.access import runtime_for_store
+        assert runtime_for_store(first.sessions) is first.runtime
         first.sessions.create_session("s", source="cli")
         epoch = first.runtime.begin_epoch(instance_id="owner")
         admitted = first.runtime.admit_input(epoch=epoch, principal_id="p", session_id="s",
@@ -34,10 +39,9 @@ def test_sqlite_handles_share_registry_and_release_independently(tmp_path):
 def test_postgres_uninitialized_backend_never_opens_sqlite(tmp_path, monkeypatch):
     pytest.importorskip("psycopg", reason="optional postgresql extra")
     settings = DatabaseSettings("postgresql", PostgresSettings("postgresql://localhost/unused", "hermes"))
-    from hermes_db.integration import registry as native_registry
     def uninitialized(settings, scope):
         raise StorageSchemaError('schema is not initialized')
-    monkeypatch.setattr(native_registry, '_construct_store', uninitialized)
+    monkeypatch.setattr("hermes_cli.db_sessions._construct_store", uninitialized)
     with pytest.raises(StorageSchemaError):
         acquire_db(settings, DatabaseScope(tmp_path, "stable"))
     assert not (tmp_path / "state.db").exists()

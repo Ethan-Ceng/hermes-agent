@@ -411,7 +411,7 @@ def _bot_sessions(authority, actor):
 def _read_bot_sessions(db, subject, operator):
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(db):
-        from hermes_db.integration.runtime_access import runtime_for_store
+        from hermes_db.domains.runtime.access import runtime_for_store
         return runtime_for_store(db).bot_sessions(subject, operator)
     from hermes_state_local_migration import LEGACY_PREFIX
     from hermes_state_sessions import INTERNAL_LISTING_SOURCES

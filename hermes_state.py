@@ -379,6 +379,11 @@ class SessionDB(
     # Accounting workers retire when idle so a bound-method target can't keep an abandoned SessionDB alive.
     _TOKEN_WRITER_IDLE_SECONDS = 30.0
 
+    @property
+    def runtime(self):
+        from hermes_cli.db_sessions import sqlite_runtime_for_store
+        return sqlite_runtime_for_store(self)
+
     @staticmethod
     def _store_system_prompt(conn, system_prompt: Optional[str]) -> Optional[str]:
         if system_prompt is None:

@@ -27,7 +27,7 @@ async def worker_domain_read(connection, ref, params):
 def _read(connection, ref, params):
     from gateway.session_worker_recall import verify_read
     from hermes_db.health import is_postgresql_store
-    from hermes_db.integration.runtime_access import runtime_for_store
+    from hermes_db.domains.runtime.access import runtime_for_store
     verify_read(connection, ref, params)
     db = connection.authority.db
     if not is_postgresql_store(db):

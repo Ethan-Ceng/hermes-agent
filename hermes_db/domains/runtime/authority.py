@@ -1,7 +1,7 @@
 """Ordinary authority read gates select explicit native or existing SQLite operations."""
 
 from hermes_db.health import is_postgresql_store
-from hermes_db.integration.runtime_access import runtime_for_store
+from hermes_db.domains.runtime.access import runtime_for_store
 
 
 def validate_import(db, payload):
@@ -106,35 +106,3 @@ def history_binding_names(db, saved, actor):
         return binding_names(saved, db.scope, actor.subject, ownership=db._context.ownership)
     from hermes_state_mutation_binding import binding_names
     return binding_names(saved, actor.subject)
-
-
-def authorize_history(authority, actor, session_id):
-    if is_postgresql_store(authority.db):
-        native = getattr(authority, "_native_legacy_transports", {}).get(actor.transport_id) == actor
-        return runtime_for_store(authority.db).authorize_history(actor, session_id, native_transport=native)
-    from gateway.session_local_migration import require_history_claim
-    from hermes_state_mutation_binding import authorize_history as sqlite_authorize
-    with authority.db._read_ctx() as conn:
-        require_history_claim(authority, conn, actor, session_id)
-        return sqlite_authorize(conn, actor, session_id)
-
-
-def verify_worker_delegation_owner(execution_id, worker_pid, worker_birth):
-    """Capture process proof before acquiring any database connection or lock."""
-    from hermes_db.domains.runtime.values import (
-        VerifiedDelegationOwner, RuntimeStoreError, delegation_text as _text, delegation_number as _number,
-    )
-    import psutil
-    from hermes_cli import process_identity
-    from gateway.status import get_process_start_time
-    _text(execution_id)
-    if type(worker_pid) is not int or worker_pid <= 0:
-        raise RuntimeStoreError("invalid_params")
-    _number(worker_birth)
-    try:
-        if process_identity.worker_birth(psutil.Process(worker_pid)) != worker_birth:
-            raise RuntimeStoreError("permission_denied")
-        started_at = get_process_start_time(worker_pid)
-    except psutil.Error:
-        raise RuntimeStoreError("worker_not_live") from None
-    return VerifiedDelegationOwner(execution_id, worker_pid, worker_birth, started_at)

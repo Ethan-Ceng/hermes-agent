@@ -63,15 +63,6 @@ class SessionLifecycle:
             row = sessions.raw_session(conn, self._context.scope, session_id)
             return row['lineage_root_id'] if row else session_id
 
-    def _lease_callback(self, callback, *args):
-        if callback is None:
-            return None
-        try:
-            with self._context.profile.activate():
-                return callback(*args)
-        except Exception:
-            logger.debug('Session lease callback failed', exc_info=True)
-        return None
 
     def acquire_session_turn_lease(self, session_id, holder, *, ttl_seconds=300.0, wait_seconds=1800.0, poll_interval_seconds=1.0, on_wait=None, wait_notice_interval_seconds=15.0, should_abort=None, acquire_patience_s=0.5, on_contended=None):
         deadline = time.monotonic() + max(0.0, float(wait_seconds))
@@ -120,21 +111,8 @@ class SessionLifecycle:
             self._after_session_delete(targets, primary=session_ids[0] if len(session_ids) == 1 else None, sessions_dir=sessions_dir)
         return count
 
-    def _after_session_delete(self, targets, *, primary=None, reason='delete', sessions_dir=None):
-        from hermes_db.domains.sessions.postgres.support.retired_files import remove
-        self._context.effects.deleted(targets, reason=reason, primary=primary)
-        remove(sessions_dir, targets)
-        self.collect_retired_media()
 
-    def collect_retired_media(self):
-        self._context.effects.collect_media(self._context)
 
-    def _export_limit(self, maximum):
-        self._context.assert_open()
-        if maximum is None:
-            with self._context.profile.activate():
-                maximum = self._context.transcript_limits.export_limit()
-        return maximum
 
     def assert_export_safe(self, session_id, max_messages=None):
         maximum = self._export_limit(max_messages)
@@ -228,10 +206,10 @@ class SessionLifecycle:
         with self._context.read() as conn:
             return retirement_housekeeping.has_receipt(conn, self._context.scope, principal_id, session_id, request_id)
 
-    def first_generation(self, derive, *, pinned=None, spent=None):
+    def first_generation_data(self, derive, *, pinned=None, spent=None):
         from hermes_db.domains.runtime.postgres.operations.effects import invoke
         generation = 0
-        with self._context.profile.activate(), self._context.read() as conn:
+        with self._context.read() as conn:
             while True:
                 sid = derive(generation)
                 if housekeeping_sessions.retired_session(conn, self._context.scope, sid):
@@ -241,8 +219,8 @@ class SessionLifecycle:
                     return (generation, sid)
                 generation += 1
 
-    def keep_passed_fences(self, derive, session_id):
-        with self._context.profile.activate(), self._context.write() as conn:
+    def keep_passed_fences_data(self, derive, session_id):
+        with self._context.write() as conn:
             housekeeping_sessions.lock_store(conn, self._context.scope, exclusive=True)
             return retirement_housekeeping.keep_passed(conn, self._context.scope, derive, session_id)
 
@@ -273,9 +251,6 @@ class SessionLifecycle:
         self._emit_archives(events)
         return count
 
-    def _emit_archives(self, events):
-        for primary, ids in events:
-            self._context.effects.deleted(ids, reason='archive', primary=primary)
 
     def prune_sessions(self, older_than_days=90, source=None, sessions_dir=None, exclude_active_write_guards=False, deleted_ids=None, **filters):
         if filters.get('include_open'):
@@ -410,9 +385,6 @@ class SessionLifecycle:
     def session_gateway_runtime(session_meta: Optional[dict[str, Any]]) -> dict[str, Any]:
         return session_gateway_runtime(session_meta)
 
-    def purge_profile_state(self, profile):
-        with self._context.write() as conn:
-            return self._context.effects.purge_profile(conn, self._context.scope, profile)
 
     def rekey_profile_state(self, old_name, new_name):
         from hermes_db.domains.sessions.postgres.operations.gateway_rekey import rekey

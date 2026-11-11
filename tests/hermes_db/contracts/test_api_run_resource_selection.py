@@ -1,5 +1,7 @@
 """API Run background updates retain their authenticated store and API scope."""
 
+from hermes_cli.db_sessions import _build_session_resources
+
 import pytest
 
 from hermes_db.errors import StorageError
@@ -23,7 +25,7 @@ def test_run_updates_use_the_authenticated_scope_after_a_profile_context_switch(
     from hermes_cli import db_sessions as factory
     from hermes_db.integration.run_resources import ProfileRunStores
     registry, _ = native_registry
-    monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope))
+    monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope, build=_build_session_resources))
     homes = [_configure(db) for db in core_pair]
     token = set_hermes_home_override(homes[0])
     resources = None
@@ -66,7 +68,7 @@ def test_close_admission_uses_routed_owner_and_survives_resource_reacquisition(n
     from hermes_cli import db_sessions as factory
     from hermes_db.integration.run_resources import ProfileRunStores
     registry, _ = native_registry
-    monkeypatch.setattr(factory, 'acquire_db', lambda settings, scope: registry.acquire(settings.postgresql, scope))
+    monkeypatch.setattr(factory, 'acquire_db', lambda settings, scope: registry.acquire(settings.postgresql, scope, build=_build_session_resources))
     homes = [_configure(db) for db in core_pair]
     token = set_hermes_home_override(homes[0])
     resources = None
@@ -97,7 +99,7 @@ def test_native_api_auth_namespace_survives_local_home_and_profile_label_changes
     from gateway.platforms.api_server_runs import _run_idempotency_scope
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
     from hermes_db.scope import DatabaseScope
-    from hermes_db.integration.session_composition import create_session_store
+    from hermes_cli.db_sessions import create_session_store
     from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
     first, other = core_pair
     alias = create_session_store(first._transactions, DatabaseScope(tmp_path / "renamed", first.scope.store_id))
@@ -131,10 +133,10 @@ def test_native_run_poll_uses_epoch_recovery_and_never_local_pid_liveness(native
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
     from hermes_cli import db_sessions as factory
     from hermes_db.integration.run_resources import ProfileRunStores
-    from hermes_db.integration.runtime_composition import create_runtime_store
+    from hermes_cli.db_runtime import create_runtime_store
     db = core_pair[0]
     registry, _ = native_registry
-    monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope))
+    monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope, build=_build_session_resources))
     token = set_hermes_home_override(_configure(db))
     stores = ProfileRunStores(_no_sqlite)
     runtime = create_runtime_store(db)

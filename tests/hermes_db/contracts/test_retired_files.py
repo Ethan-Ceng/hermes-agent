@@ -22,7 +22,7 @@ def test_core_spillover_cleanup_keeps_shared_branch_pointer_until_last_owner(cor
 
 def test_core_retired_media_keeps_live_input_then_releases_under_own_profile(core_pair):
     import hashlib
-    from hermes_db.integration.runtime_composition import create_runtime_store
+    from hermes_cli.db_runtime import create_runtime_store
     from gateway.session_ingress_media import native_inputs_root
 
     store, other = core_pair

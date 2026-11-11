@@ -62,7 +62,7 @@ def run_admission(adapter, run_id):
     alias = getattr(adapter, '_run_admission_aliases', {}).get(run_id)
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(authority.db):
-        from hermes_db.integration.runtime_access import runtime_for_store
+        from hermes_db.domains.runtime.access import runtime_for_store
         row = runtime_for_store(authority.db).find_api_run(run_id, admission_id=alias)
         return (authority, row) if row is not None else None
     column, value = ('admission_id', alias) if alias else ('request_id', run_id)

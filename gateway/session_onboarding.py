@@ -152,7 +152,7 @@ async def _create_chat(connection):
     from gateway.session_local import stage_local_session
     from gateway.session_local_recovery import restore_local_session
     from gateway.session_runtime_workers import tracked_write
-    from hermes_db.integration.local_access import commit_local_session
+    from gateway.session_storage_authority import commit_local_session
     authority = connection.authority
     staged = stage_local_session(authority, connection.actor, {'source': 'gui', 'request_id': uuid.uuid4().hex},
                                  client_local=connection.native_owner,

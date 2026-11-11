@@ -2,9 +2,9 @@
 from contextvars import ContextVar
 
 from hermes_state_runtime import RuntimeStoreError, _admission, _epoch
-from hermes_db.integration.runtime_calls import settle_session_input
+from hermes_db.domains.runtime.calls import settle_session_input
 from hermes_db.health import is_postgresql_store
-from hermes_db.integration.runtime_access import runtime_for_store, effect_for_store
+from hermes_db.domains.runtime.access import runtime_for_store, effect_for_store
 
 execution_result: ContextVar[dict | None] = ContextVar("execution_result", default=None)
 from hermes_db.domains.runtime.receipts import RESULT_PREFIX as _RESULT_PREFIX, load_result

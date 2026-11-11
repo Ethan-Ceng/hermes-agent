@@ -41,7 +41,7 @@ class SessionEffects:
     release_media: object
 
 class SessionContext:
-    def __init__(self, transactions, scope, *, own_profile, profile, transcript_limits, ownership, effects, is_context_summary, routes, media):
+    def __init__(self, transactions, scope, *, own_profile, profile, transcript_limits, ownership, effects, is_context_summary, routes, media, runtime_factory, activity_description, activity_provenance, todo_result_limit):
         scope.require_store_id()
         self.transactions = transactions
         self.scope = scope
@@ -53,6 +53,10 @@ class SessionContext:
         self.is_context_summary = is_context_summary
         self.routes = routes
         self.media = media
+        self.runtime_factory = runtime_factory
+        self.activity_description = activity_description
+        self.activity_provenance = activity_provenance
+        self.todo_result_limit = todo_result_limit
         self.closed = False
 
     def assert_open(self):

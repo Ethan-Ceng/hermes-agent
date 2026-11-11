@@ -29,15 +29,6 @@ _lock = RLock()
 _entries = {}
 
 
-def _construct_store(settings, scope):
-    from hermes_db.factory import acquire_backend
-    from hermes_db.settings import DatabaseSettings
-    from hermes_db.tables.metadata import SCHEMA
-    from hermes_db.schema import check_schema
-    from hermes_db.integration.session_composition import create_session_store
-    check_schema(settings)
-    backend = acquire_backend(DatabaseSettings("postgresql", settings), scope, schema_token=SCHEMA)
-    return create_session_store(backend.transactions, scope)
 
 
 def _handle(key, entry):
@@ -45,15 +36,9 @@ def _handle(key, entry):
         valid=lambda: not entry.closing)
 
 
-def _build(key, entry):
-    from hermes_db.integration.runtime_composition import create_runtime_store
+def _build(key, entry, build):
     try:
-        store = _construct_store(key.settings, key.scope)
-        try:
-            runtime = create_runtime_store(store)
-        except BaseException:
-            store.close()
-            raise
+        store, runtime = build(key.settings, key.scope)
     except BaseException:
         with _lock:
             _entries.pop(key, None)
@@ -65,7 +50,7 @@ def _build(key, entry):
         return _handle(key, entry)
 
 
-def acquire(settings, scope):
+def acquire(settings, scope, *, build):
     scope.require_store_id()
     key = _Key(os.getpid(), settings, scope)
     while True:
@@ -73,14 +58,14 @@ def acquire(settings, scope):
             entry = _entries.get(key)
             if entry is None:
                 entry = _entries[key] = _Entry()
-                build = True
+                construct = True
             elif entry.store is not None and not entry.closing:
                 entry.refs += 1
                 return _handle(key, entry)
             else:
-                build = False
-        if build:
-            return _build(key, entry)
+                construct = False
+        if construct:
+            return _build(key, entry, build)
         # Construction and final usage flush happen outside the global lock.
         entry.ready.wait()
 

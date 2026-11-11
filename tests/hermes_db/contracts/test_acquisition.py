@@ -1,5 +1,7 @@
 """Native acquisitions share scoped stores, not connections or caller ownership."""
 
+from hermes_cli.db_sessions import _build_session_resources
+
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 
@@ -37,7 +39,7 @@ def test_native_handles_share_store_and_release_only_their_acquisition(native_re
     from hermes_db.errors import StorageClosedError
     registry, opened = native_registry
     scope = core_pair[0].scope
-    first, second = registry.acquire(_settings(), scope), registry.acquire(_settings(), scope)
+    first, second = registry.acquire(_settings(), scope, build=_build_session_resources), registry.acquire(_settings(), scope, build=_build_session_resources)
     try:
         assert first.sessions is second.sessions and len(opened) == 1
         first.sessions.create_session("s", "cli")
@@ -52,7 +54,7 @@ def test_native_handles_share_store_and_release_only_their_acquisition(native_re
         first.close()
         second.close()
     assert opened[0]._closed
-    with registry.acquire(_settings(), scope) as reopened:
+    with registry.acquire(_settings(), scope, build=_build_session_resources) as reopened:
         assert len(opened) == 2 and reopened.sessions.get_session("s")["id"] == "s"
 
 
@@ -62,13 +64,13 @@ def test_parallel_acquisition_builds_one_scoped_store(native_registry, core_pair
 
     def acquire():
         barrier.wait(10)
-        return registry.acquire(_settings(), core_pair[0].scope)
+        return registry.acquire(_settings(), core_pair[0].scope, build=_build_session_resources)
 
     with ThreadPoolExecutor(max_workers=6) as pool:
         handles = list(pool.map(lambda _: acquire(), range(6)))
     try:
         assert len(opened) == 1 and len({id(handle.sessions) for handle in handles}) == 1
-        other = registry.acquire(_settings(), core_pair[1].scope)
+        other = registry.acquire(_settings(), core_pair[1].scope, build=_build_session_resources)
         try:
             assert other.sessions is not handles[0].sessions and len(opened) == 2
         finally:
@@ -85,9 +87,9 @@ def test_failed_pg_acquisition_never_creates_a_local_database(native_registry, c
     def unavailable(settings, scope):
         raise StorageUnavailableError("injected connection failure")
 
-    monkeypatch.setattr(registry, "_construct_store", unavailable)
+    monkeypatch.setattr("hermes_cli.db_sessions._construct_store", unavailable)
     with pytest.raises(StorageUnavailableError):
-        registry.acquire(_settings(), core_pair[0].scope)
+        registry.acquire(_settings(), core_pair[0].scope, build=_build_session_resources)
     assert opened == [] and not (core_pair[0].scope.profile_home / "state.db").exists()
 
 
@@ -101,7 +103,7 @@ def test_profile_unserve_invalidates_held_resources_and_reopens_one_generation(n
     path = scope.profile_home / "state.db"
 
     def acquire():
-        return SessionResource(registry.acquire(_settings(), scope))
+        return SessionResource(registry.acquire(_settings(), scope, build=_build_session_resources))
 
     first = cache.get(path, acquire)
     first.create_session("keep", "cli")
@@ -122,8 +124,8 @@ def test_ordinary_profile_close_invalidates_only_its_native_resources(native_reg
     from hermes_db.access import session_store_is_live
     from hermes_db.domains.sessions.resource import SessionResource
     registry, _ = native_registry
-    first = SessionResource(registry.acquire(_settings(), core_pair[0].scope))
-    second = SessionResource(registry.acquire(_settings(), core_pair[1].scope))
+    first = SessionResource(registry.acquire(_settings(), core_pair[0].scope, build=_build_session_resources))
+    second = SessionResource(registry.acquire(_settings(), core_pair[1].scope, build=_build_session_resources))
     try:
         assert close_session_resources_under(core_pair[0].scope.profile_home) == 1
         assert not session_store_is_live(first) and session_store_is_live(second)
@@ -133,3 +135,23 @@ def test_ordinary_profile_close_invalidates_only_its_native_resources(native_reg
     finally:
         first.close()
         second.close()
+
+
+def test_runtime_construction_failure_closes_store_and_allows_reacquisition(native_registry, core_pair, monkeypatch):
+    from hermes_db.errors import StorageUnavailableError
+    from hermes_cli.db_runtime import create_runtime_store
+    registry, opened = native_registry
+    scope = core_pair[0].scope
+
+    def unavailable(store):
+        raise StorageUnavailableError("injected runtime construction failure")
+
+    monkeypatch.setattr("hermes_cli.db_runtime.create_runtime_store", unavailable)
+    with pytest.raises(StorageUnavailableError):
+        registry.acquire(_settings(), scope, build=_build_session_resources)
+    assert len(opened) == 1 and opened[0]._closed
+    monkeypatch.setattr("hermes_cli.db_runtime.create_runtime_store", create_runtime_store)
+    with registry.acquire(_settings(), scope, build=_build_session_resources) as handle:
+        handle.sessions.create_session("recovered", "cli")
+        assert handle.runtime.begin_epoch(instance_id="owner")
+    assert len(opened) == 2 and opened[1]._closed

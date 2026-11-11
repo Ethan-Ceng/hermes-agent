@@ -76,7 +76,7 @@ async def apply_chat_pick(authority, ref, owner, live, params, *, principal_id):
     exact retry answers its stored receipt without re-applying the override, and the commit bumps the
     mount's revision, so a retry of an older pick refuses ``revision_conflict``."""
     from hermes_state_mutation_chat_pick import chat_pick_key
-    from hermes_db.integration.authority_access import commit_chat_pick, prepare_chat_pick
+    from hermes_db.domains.runtime.authority import commit_chat_pick, prepare_chat_pick
     from hermes_db.domains.runtime.mutation_rules import validate_action
     operation, payload = params['operation'], params['payload']
     validate_action(operation, payload)

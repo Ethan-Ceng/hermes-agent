@@ -11,6 +11,7 @@ def ledger(store, monkeypatch):
     if isinstance(store, SessionDB):
         from gateway import delivery_ledger
         monkeypatch.setattr(delivery_ledger, "_db_path", lambda: store.db_path)
+        delivery_ledger.initialize(store.db_path)
         return delivery_ledger
     from hermes_db.domains.runtime.postgres.delivery_ledger import PostgresDeliveryLedger
     return PostgresDeliveryLedger(store, instance_id="owner", lease_ttl_seconds=30)

@@ -176,7 +176,7 @@ async def conversation_head(runner, session_id):
     history onto the lane while the live conversation stays local, its receipt released (#143286)."""
     import asyncio
     from gateway.session_authorities import active_authority
-    from hermes_db.integration.local_access import handoff_head
+    from hermes_db.domains.runtime.local_access import handoff_head
     authority = active_authority(runner)
     db = authority.db if authority is not None else getattr(runner._session_db, '_db', runner._session_db)
     if db is None:

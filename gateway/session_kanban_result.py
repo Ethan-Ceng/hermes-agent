@@ -20,7 +20,7 @@ async def result_task(connection, params):
 def _result(connection, params):
     from gateway.session_local_recovery import local_identity
     from gateway.session_policy import restore_policy
-    from hermes_db.integration.local_access import local_receipt
+    from hermes_db.domains.runtime.local_access import local_receipt
     from gateway.session_kanban_policy import claim_request_id
     authority = connection.authority
     request_id = claim_request_id(params)

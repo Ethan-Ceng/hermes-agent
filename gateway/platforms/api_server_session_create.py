@@ -7,7 +7,7 @@ import time
 def create_row(db, session_id, source, model, config, prompt, title):
     from hermes_db.health import is_postgresql_store
     if is_postgresql_store(db):
-        from hermes_db.integration.runtime_access import runtime_for_store
+        from hermes_db.domains.runtime.access import runtime_for_store
         return runtime_for_store(db).create_api_session(session_id=session_id, source=source,
             model=model, model_config=config, system_prompt=prompt, title=title)
 

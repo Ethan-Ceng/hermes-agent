@@ -17,6 +17,10 @@ async def test_forwarded_identity_survives_reconnect_without_policy_override(tmp
     from hermes_state_runtime import RuntimeStoreError
 
     monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    from hermes_cli.db_profile_schema import initialize_new_profile_storage
+    from hermes_state import _default_db_path
+    for owner in sorted({tmp_path, _default_db_path().parent}, key=str):
+        initialize_new_profile_storage(owner)
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'model': {'default': 'fixture'}, 'platform_toolsets': {'cli': []}})
     monkeypatch.setattr(run, '_resolve_gateway_model', lambda config: 'fixture')
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
@@ -70,6 +74,10 @@ async def test_forwarding_does_not_merge_lossy_context_or_peer_identity(tmp_path
     from gateway import run
 
     monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    from hermes_cli.db_profile_schema import initialize_new_profile_storage
+    from hermes_state import _default_db_path
+    for owner in sorted({tmp_path, _default_db_path().parent}, key=str):
+        initialize_new_profile_storage(owner)
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'model': {'default': 'fixture'}, 'platform_toolsets': {'cli': []}})
     monkeypatch.setattr(run, '_resolve_gateway_model', lambda config: 'fixture')
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
@@ -126,6 +134,10 @@ async def test_forwarded_turns_are_authored_by_the_peer_for_memory_attribution(t
     from gateway import run
 
     monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    from hermes_cli.db_profile_schema import initialize_new_profile_storage
+    from hermes_state import _default_db_path
+    for owner in sorted({tmp_path, _default_db_path().parent}, key=str):
+        initialize_new_profile_storage(owner)
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'model': {'default': 'fixture'}, 'platform_toolsets': {'cli': []}})
     monkeypatch.setattr(run, '_resolve_gateway_model', lambda config: 'fixture')
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())

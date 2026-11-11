@@ -152,7 +152,7 @@ def defer_local_model_pick(authority, live, result, effort=''):
     import uuid
     from gateway.session_contract import SessionRef
     from gateway.session_deferred_pick import defer_pick
-    from hermes_db.integration.local_access import local_receipt
+    from hermes_db.domains.runtime.local_access import local_receipt
     sid = live.source.chat_id
     owner = SimpleNamespace(subject=local_receipt(authority.db, sid)['principal_id'])
     # The alias the user typed, not the bare model it names: two aliases may name one model on one

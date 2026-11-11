@@ -160,21 +160,21 @@ def _mutate_offline_store(profile, actor, params):
     second writer beside it); revision/generation/idle guards are the gateway's own.
     """
     from fastapi import HTTPException
-    from hermes_db.integration.runtime_calls import begin_runtime_epoch, mutate_runtime_session
+    from hermes_db.domains.runtime.calls import begin_runtime_epoch, mutate_runtime_session
 
     def run():
         db = _open_session_db_for_profile(profile, read_only=False)
         try:
             write_guard = None
             if params['operation'] == 'import':
-                from hermes_db.integration.authority_access import validate_import, import_history_effect
+                from hermes_db.domains.runtime.authority import validate_import, import_history_effect
                 normalized, errors = validate_import(db, params['payload']['sessions'])
                 if errors:
                     raise HTTPException(status_code=400, detail={'errors': errors})
                 write_guard = import_history_effect(db, actor, tuple(item['session']['id'] for item in normalized))
             from hermes_db.health import is_postgresql_store
             if is_postgresql_store(db):
-                from hermes_db.integration.runtime_access import runtime_for_store
+                from hermes_db.domains.runtime.access import runtime_for_store
                 current = runtime_for_store(db).current_epoch()
             else:
                 with db._read_ctx() as conn:

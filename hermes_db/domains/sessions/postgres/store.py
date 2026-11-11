@@ -18,6 +18,10 @@ class PostgresSessionStore:
         self._portability = portability
 
     @property
+    def runtime(self):
+        return self._context.runtime_factory(self)
+
+    @property
     def _transactions(self):
         return self._context.transactions
 

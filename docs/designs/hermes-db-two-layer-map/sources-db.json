@@ -361,11 +361,12 @@
       "hermes_db/core/__init__.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep actual definitions required by frozen tables/migration helpers; never turn into re-export.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/core/catalog.py",
@@ -473,7 +474,7 @@
       "hermes_db/core/values.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep actual definitions required by frozen tables/migration helpers; never turn into re-export.",
     "symbol_routes": {},
     "baseline_abi_sha256": "b9c55439465868be454ede82c25f1a5ff1a4bb1f75c6c7626d5594963aa9c5c7",
@@ -488,7 +489,8 @@
       "_bytes",
       "digest",
       "resource_key"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/__init__.py",
@@ -499,11 +501,12 @@
       "hermes_db/domains/__init__.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/cron/__init__.py",
@@ -4245,11 +4248,12 @@
       "hermes_db/domains/runtime/__init__.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/mutation_rules.py",
@@ -4260,7 +4264,7 @@
       "hermes_db/domains/runtime/mutation_rules.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "bc612e78b127a1af614f2201bff8cbeaced87deefc9646e8426f1a8487d04cd1",
@@ -4270,7 +4274,8 @@
       "_valid_editor_fingerprint",
       "_valid_compress_payload",
       "_child_policy"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/__init__.py",
@@ -4281,11 +4286,12 @@
       "hermes_db/domains/runtime/postgres/__init__.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/admissions.py",
@@ -4296,14 +4302,15 @@
       "hermes_db/domains/runtime/postgres/admissions.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4cdb5b4e3f2c3e815180217b529629e7fd77f20045d513e7a576ee719d2f7737",
     "symbol_names": [
       "_webhook",
       "RuntimeAdmissions"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/context.py",
@@ -4314,7 +4321,7 @@
       "hermes_db/domains/runtime/postgres/context.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {
       "RuntimeContext.write": {
@@ -4325,7 +4332,9 @@
         "calls": [
           "self.session.profile.activate"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections.",
+        "application_symbol": "OwnedRuntimeContext.write",
+        "status": "completed"
       }
     },
     "application_imports": [],
@@ -4341,7 +4350,8 @@
     "baseline_abi_sha256": "ed90718e686447959adf4b155191e0af383d4911511b54e2e97389f357d3825f",
     "symbol_names": [
       "RuntimeContext"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/delegations.py",
@@ -4352,14 +4362,15 @@
       "hermes_db/domains/runtime/postgres/delegations.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "9a0bd0cae198c5c0380efb22ec5721b6616eb4ed4cc9700aae42b97ff688d69f",
     "symbol_names": [
       "AsyncDelegationStore",
       "_prune_overflow"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/delivery_claim.py",
@@ -4370,13 +4381,14 @@
       "hermes_db/domains/runtime/postgres/delivery_claim.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "42cb2e7ecd47106dacf0810a96c71a9df1f909dfcd4faaf4ba9a20d761900582",
     "symbol_names": [
       "DeliveryClaim"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/delivery_ledger.py",
@@ -4387,13 +4399,14 @@
       "hermes_db/domains/runtime/postgres/delivery_ledger.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "67242ddd26acb35a361de5750bc60a815d25f1d03a8764b644f4b827cfec7252",
     "symbol_names": [
       "PostgresDeliveryLedger"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/idempotency.py",
@@ -4404,13 +4417,14 @@
       "hermes_db/domains/runtime/postgres/idempotency.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "e54f64d22cfdee84c9d66965e0b44edaa1ccb8e8e8d660ddeecf41031f772b99",
     "symbol_names": [
       "PostgresRunIdempotencyStore"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/local.py",
@@ -4421,13 +4435,14 @@
       "hermes_db/domains/runtime/postgres/local.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "f1c6ec7bd7d7a68e8a8bc35b79ea1864656e4cd6da967c3f86e29977346714d0",
     "symbol_names": [
       "RuntimeLocal"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/media.py",
@@ -4438,7 +4453,7 @@
       "hermes_db/domains/runtime/postgres/media.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {
       "RuntimeMedia.release_media": {
@@ -4449,7 +4464,9 @@
         "calls": [
           "self._context.session.effects.release_media"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections.",
+        "application_symbol": "OwnedRuntimeMedia.release_media",
+        "status": "completed"
       }
     },
     "application_imports": [
@@ -4472,7 +4489,8 @@
     "symbol_names": [
       "_compact",
       "RuntimeMedia"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/metrics.py",
@@ -4483,13 +4501,14 @@
       "hermes_db/domains/runtime/postgres/metrics.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "60c717e205f1fa0183936adbb27a279f917c97d1832911539d42f4432edc80a4",
     "symbol_names": [
       "WorkerMetricsStore"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/__init__.py",
@@ -4500,11 +4519,12 @@
       "hermes_db/domains/runtime/postgres/operations/__init__.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/api.py",
@@ -4515,7 +4535,7 @@
       "hermes_db/domains/runtime/postgres/operations/api.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -4532,7 +4552,8 @@
       "settle_keys",
       "evict",
       "delete"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/api_binding.py",
@@ -4543,7 +4564,7 @@
       "hermes_db/domains/runtime/postgres/operations/api_binding.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "94657c11f317bfc0c0a2faf0de194d0236e149220e3119bf7e8d2eb8f433e6c8",
@@ -4552,7 +4573,8 @@
       "_declare",
       "admit_target",
       "_check_row"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/chat_pick.py",
@@ -4563,7 +4585,7 @@
       "hermes_db/domains/runtime/postgres/operations/chat_pick.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "665505a152922383bd6db4488858add762419eb958d0aa7a7b6d40e7f704b89c",
@@ -4571,7 +4593,8 @@
       "_fenced",
       "prepare",
       "commit"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/current_history.py",
@@ -4582,14 +4605,15 @@
       "hermes_db/domains/runtime/postgres/operations/current_history.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "58cbf9368871f4970215088db30f5370b949ee30b4b18363160111f9f1ec3a00",
     "symbol_names": [
       "claim_value",
       "promote"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/deferred_pick.py",
@@ -4600,14 +4624,15 @@
       "hermes_db/domains/runtime/postgres/operations/deferred_pick.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "fb236735d04d2bd7e49f8f33084dffba56973d56c5e7e51dc5095dd56d23c5b9",
     "symbol_names": [
       "defer",
       "compare"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/deliveries.py",
@@ -4618,7 +4643,7 @@
       "hermes_db/domains/runtime/postgres/operations/deliveries.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -4641,7 +4666,8 @@
       "_claimed",
       "sweep",
       "pending"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/effects.py",
@@ -4652,14 +4678,15 @@
       "hermes_db/domains/runtime/postgres/operations/effects.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "9cdddff25d17d49c28ac6bdff715b23016e8f5148a604e7763673c4726ef1e1d",
     "symbol_names": [
       "CoreEffect",
       "invoke"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/local_sessions.py",
@@ -4670,7 +4697,7 @@
       "hermes_db/domains/runtime/postgres/operations/local_sessions.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -4686,7 +4713,8 @@
       "_retry",
       "commit",
       "idle_end"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/runtime.py",
@@ -4697,7 +4725,7 @@
       "hermes_db/domains/runtime/postgres/operations/runtime.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "cdb3d981d66ed00a36a4a8167569aa7df21140b711ff852db3f43028c4b4df65",
@@ -4715,7 +4743,8 @@
       "revert_steer",
       "recover",
       "resolve_unknown"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/runtime_queue.py",
@@ -4726,7 +4755,7 @@
       "hermes_db/domains/runtime/postgres/operations/runtime_queue.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "1d5634ac5d77ce06cd760aa6d4c7a769cd1f3e36409947a8b13d8fbb55ee763d",
@@ -4738,7 +4767,8 @@
       "retire_replaced_input",
       "check_replaced_input",
       "replace_automation"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/terminal_boundary.py",
@@ -4749,7 +4779,7 @@
       "hermes_db/domains/runtime/postgres/operations/terminal_boundary.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -4768,7 +4798,8 @@
     "baseline_abi_sha256": "d9da5203f5d72c78b9b0bef65bab091f5910334579f8edf42a6683b716a54a02",
     "symbol_names": [
       "close_discarded"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_children.py",
@@ -4779,14 +4810,15 @@
       "hermes_db/domains/runtime/postgres/operations/worker_children.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "b474eeed51b57add25bfe14221026cca126d6be9782fa9a1a18223c25997dfb8",
     "symbol_names": [
       "reservation_effect",
       "reserve"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_compression.py",
@@ -4797,7 +4829,7 @@
       "hermes_db/domains/runtime/postgres/operations/worker_compression.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "c98038af57f657cf1a5c8f53ffb30b292080a302c5e719386b5906bef57055dc",
@@ -4811,7 +4843,8 @@
       "_publish_config",
       "publish",
       "_migrate_automation"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py",
@@ -4822,7 +4855,7 @@
       "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "38dadeda0e2c8cc845239541da634d92ab56332ee5553edf20ea1313c7c5d827",
@@ -4832,7 +4865,8 @@
       "lineage",
       "boundary",
       "history"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_compression_state.py",
@@ -4843,7 +4877,7 @@
       "hermes_db/domains/runtime/postgres/operations/worker_compression_state.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "5963a365f0642f326ec86f572c2db440b0e50dee431d622615cdd532b8a18719",
@@ -4856,7 +4890,8 @@
       "reopen",
       "cleanup",
       "handlers"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_delegations.py",
@@ -4867,7 +4902,7 @@
       "hermes_db/domains/runtime/postgres/operations/worker_delegations.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -4888,7 +4923,8 @@
       "delivery",
       "unscheduled",
       "handlers"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_domains.py",
@@ -4899,7 +4935,7 @@
       "hermes_db/domains/runtime/postgres/operations/worker_domains.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "6cca2818fb874d491dca5e32f89e38e4981dd73c91da2ae7baeab1d16426cfa5",
@@ -4912,7 +4948,8 @@
       "record_verification",
       "write_handlers",
       "read"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_handlers.py",
@@ -4923,7 +4960,7 @@
       "hermes_db/domains/runtime/postgres/operations/worker_handlers.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -4948,7 +4985,8 @@
       "finish",
       "usage_main",
       "handlers"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py",
@@ -4959,7 +4997,7 @@
       "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -4993,7 +5031,8 @@
       "billing_route",
       "api_content",
       "user_content"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_metrics.py",
@@ -5004,7 +5043,7 @@
       "hermes_db/domains/runtime/postgres/operations/worker_metrics.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -5033,7 +5072,8 @@
       "feature",
       "handlers",
       "read"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_reservation.py",
@@ -5044,14 +5084,15 @@
       "hermes_db/domains/runtime/postgres/operations/worker_reservation.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "ffaa58cb99ad71b7cd0d2438a137b2891836ebc9859b3d8a8fadc0658d794b3c",
     "symbol_names": [
       "reserve",
       "lose"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_retain_queue.py",
@@ -5062,7 +5103,7 @@
       "hermes_db/domains/runtime/postgres/operations/worker_retain_queue.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4d88ecbdeb774502bcc5e8556ab76909796db69cc3d3ecb166c041c15c195603",
@@ -5071,7 +5112,8 @@
       "invoke",
       "write_handlers",
       "read"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_turn.py",
@@ -5082,13 +5124,14 @@
       "hermes_db/domains/runtime/postgres/operations/worker_turn.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f224008f1fbd66d113bd60cccdf35cee94a7a398b19269ac326189b18683951",
     "symbol_names": [
       "turn"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/workers.py",
@@ -5099,7 +5142,7 @@
       "hermes_db/domains/runtime/postgres/operations/workers.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "f7818b1445a9e8e3fb98577d4e0f68cc6a281dc9fe99be4318e11796e042893b",
@@ -5108,7 +5151,8 @@
       "adopt",
       "apply_receipt",
       "_save_receipt"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/policy.py",
@@ -5119,7 +5163,7 @@
       "hermes_db/domains/runtime/postgres/policy.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {
       "RuntimePolicy.mutate_session": {
@@ -5130,7 +5174,10 @@
         "calls": [
           "self._context.session.effects.deleted"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections.",
+        "application_symbol": "OwnedRuntimePolicy.mutate_session",
+        "database_symbol": "RuntimePolicy.mutate_session_data",
+        "status": "completed"
       }
     },
     "application_imports": [],
@@ -5147,7 +5194,8 @@
     "symbol_names": [
       "_policy_target",
       "RuntimePolicy"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/__init__.py",
@@ -5158,11 +5206,12 @@
       "hermes_db/domains/runtime/postgres/queries/__init__.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/api.py",
@@ -5173,7 +5222,7 @@
       "hermes_db/domains/runtime/postgres/queries/api.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "db912b8606e501a8d38f1bfa486f2206838c39dd0880a997a51b7799c4d3ae0c",
@@ -5188,7 +5237,8 @@
       "bind_admission",
       "output_index",
       "set_conversation"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/api_runs.py",
@@ -5199,7 +5249,7 @@
       "hermes_db/domains/runtime/postgres/queries/api_runs.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "c977440927077c31857912230db66bae3d7b0a64b8d91cee57fedca392a940e2",
@@ -5210,7 +5260,8 @@
       "insert",
       "extend",
       "prune"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/delegations.py",
@@ -5221,7 +5272,7 @@
       "hermes_db/domains/runtime/postgres/queries/delegations.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "2f24b1125fac1015246504c151f4db695426401971bcc8e03170f54467e0960b",
@@ -5231,7 +5282,8 @@
       "owned",
       "insert",
       "update"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/deliveries.py",
@@ -5242,7 +5294,7 @@
       "hermes_db/domains/runtime/postgres/queries/deliveries.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "c839bd5aa9e1a6c10d73bf63baa5d81a1556ed0865d32b5636a2834dd00c9725",
@@ -5258,7 +5310,8 @@
       "available",
       "claim",
       "prune"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/history_access.py",
@@ -5269,14 +5322,15 @@
       "hermes_db/domains/runtime/postgres/queries/history_access.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "8bab191361ed4d090ebe867878a77714b590a53a9f13ddfe67c37b99ac5860a1",
     "symbol_names": [
       "authorize_claim",
       "require_leaf"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/local_recovery.py",
@@ -5287,7 +5341,7 @@
       "hermes_db/domains/runtime/postgres/queries/local_recovery.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "8ae5fbf0335b3fb371be4c5b0c7762c1caf5bf84522ddfa6324662150b7cb8ff",
@@ -5295,7 +5349,8 @@
       "local_owner",
       "receipt_ids",
       "unknown_inputs"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/runtime.py",
@@ -5306,7 +5361,7 @@
       "hermes_db/domains/runtime/postgres/queries/runtime.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "7ab288ae4a65cacf0129703bf5ff9e815ad117b7d46d4d5c5d74c0eee63fe260",
@@ -5325,7 +5380,8 @@
       "worker_states",
       "meta",
       "set_meta"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/terminal.py",
@@ -5336,7 +5392,7 @@
       "hermes_db/domains/runtime/postgres/queries/terminal.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "41571cd43139af2a222f043dca0f290391ea45d09956420daf016905bf68a4ee",
@@ -5345,7 +5401,8 @@
       "api_admissions",
       "result",
       "worker_receipt"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/worker_retirement.py",
@@ -5356,7 +5413,7 @@
       "hermes_db/domains/runtime/postgres/queries/worker_retirement.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "fec288c13babbe36cff6a81bacb9707b348b81c20ec0b35afd97725556227303",
@@ -5367,7 +5424,8 @@
       "compact_terminal",
       "descendant_condition",
       "discard_orphans_on_reset"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/workers.py",
@@ -5378,7 +5436,7 @@
       "hermes_db/domains/runtime/postgres/queries/workers.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "cb65aaa5100917a9446ea88ce5c2067d72cdfe88eebb1b1b43e313dbdb454550",
@@ -5392,7 +5450,8 @@
       "linked_admission",
       "claim_origin",
       "retry_target"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/response_store.py",
@@ -5403,13 +5462,14 @@
       "hermes_db/domains/runtime/postgres/response_store.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "c0b15dfad1f1787fc5f0fefc5fba74b45c5adfe1bda472e131a5fbadeb55fb88",
     "symbol_names": [
       "PostgresResponseStore"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/store.py",
@@ -5420,13 +5480,14 @@
       "hermes_db/domains/runtime/postgres/store.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "ed6058db07288dd975a6432a4040009a023616aad3f37a6765abf9b51b0e85fe",
     "symbol_names": [
       "PostgresRuntimeStore"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/postgres/workers.py",
@@ -5437,13 +5498,14 @@
       "hermes_db/domains/runtime/postgres/workers.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "9b624d176c4f97456a2bb130acca1785b21d5657ff5aec29ed090f19ce138e7b",
     "symbol_names": [
       "RuntimeWorkers"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/receipts.py",
@@ -5454,7 +5516,7 @@
       "hermes_db/domains/runtime/receipts.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -5489,7 +5551,8 @@
       "run_identity_record",
       "deferred_value",
       "automation_descriptor"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/runtime/values.py",
@@ -5500,7 +5563,7 @@
       "hermes_db/domains/runtime/values.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -5562,7 +5625,8 @@
       "delegation_text",
       "delegation_number",
       "VerifiedDelegationOwner"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/__init__.py",
@@ -5573,11 +5637,12 @@
       "hermes_db/domains/sessions/__init__.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/codec.py",
@@ -5588,7 +5653,7 @@
       "hermes_db/domains/sessions/codec.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -5703,7 +5768,8 @@
       "_tool_calls_count",
       "_tool_calls_len",
       "_repair_replayed_conversation"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/coverage.py",
@@ -5714,7 +5780,7 @@
       "hermes_db/domains/sessions/coverage.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -5801,7 +5867,8 @@
       "_holds_as_block",
       "_images_replaced",
       "CoverageRules"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/import_rules.py",
@@ -5812,7 +5879,7 @@
       "hermes_db/domains/sessions/import_rules.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -5826,7 +5893,8 @@
     "baseline_abi_sha256": "bcf470c863832d3996496cb121acc2b3b92cb9334f38d5f85cbfafd9985ba3db",
     "symbol_names": [
       "ImportValues"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/__init__.py",
@@ -5837,11 +5905,12 @@
       "hermes_db/domains/sessions/postgres/__init__.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/catalog.py",
@@ -5852,7 +5921,7 @@
       "hermes_db/domains/sessions/postgres/catalog.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {
       "SessionCatalog.set_session_archived": {
@@ -5863,7 +5932,10 @@
         "calls": [
           "self._context.effects.deleted"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections.",
+        "application_symbol": "OwnedSessionCatalog.set_session_archived",
+        "database_symbol": "SessionCatalog.archive_session_data",
+        "status": "completed"
       }
     },
     "application_imports": [
@@ -5899,7 +5971,8 @@
       "_row",
       "_replies",
       "SessionCatalog"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/context.py",
@@ -5910,7 +5983,7 @@
       "hermes_db/domains/sessions/postgres/context.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "fae0a7fa26ae8368769258682ecb105fc95e29a7b5e3fdceb3f9e6518766e609",
@@ -5921,7 +5994,8 @@
       "HistoryOwnership",
       "SessionEffects",
       "SessionContext"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/history.py",
@@ -5932,7 +6006,7 @@
       "hermes_db/domains/sessions/postgres/history.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -5973,7 +6047,8 @@
       "_bookends",
       "_find",
       "SessionHistory"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/lifecycle.py",
@@ -5984,7 +6059,7 @@
       "hermes_db/domains/sessions/postgres/lifecycle.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {
       "SessionLifecycle._lease_callback": {
@@ -5995,7 +6070,9 @@
         "calls": [
           "self._context.profile.activate"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections.",
+        "application_symbol": "OwnedSessionLifecycle._lease_callback",
+        "status": "completed"
       },
       "SessionLifecycle._after_session_delete": {
         "target": "hermes_cli/db_session_lifecycle.py",
@@ -6005,7 +6082,9 @@
         "calls": [
           "self._context.effects.deleted"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections.",
+        "application_symbol": "OwnedSessionLifecycle._after_session_delete",
+        "status": "completed"
       },
       "SessionLifecycle.collect_retired_media": {
         "target": "hermes_cli/db_session_lifecycle.py",
@@ -6015,7 +6094,9 @@
         "calls": [
           "self._context.effects.collect_media"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections.",
+        "application_symbol": "OwnedSessionLifecycle.collect_retired_media",
+        "status": "completed"
       },
       "SessionLifecycle._export_limit": {
         "target": "hermes_cli/db_session_lifecycle.py",
@@ -6025,7 +6106,9 @@
         "calls": [
           "self._context.profile.activate"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections.",
+        "application_symbol": "OwnedSessionLifecycle._export_limit",
+        "status": "completed"
       },
       "SessionLifecycle.first_generation": {
         "target": "hermes_cli/db_session_lifecycle.py",
@@ -6035,7 +6118,10 @@
         "calls": [
           "self._context.profile.activate"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections.",
+        "application_symbol": "OwnedSessionLifecycle.first_generation",
+        "database_symbol": "SessionLifecycle.first_generation_data",
+        "status": "completed"
       },
       "SessionLifecycle.keep_passed_fences": {
         "target": "hermes_cli/db_session_lifecycle.py",
@@ -6045,7 +6131,10 @@
         "calls": [
           "self._context.profile.activate"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections.",
+        "application_symbol": "OwnedSessionLifecycle.keep_passed_fences",
+        "database_symbol": "SessionLifecycle.keep_passed_fences_data",
+        "status": "completed"
       },
       "SessionLifecycle._emit_archives": {
         "target": "hermes_cli/db_session_lifecycle.py",
@@ -6055,7 +6144,9 @@
         "calls": [
           "self._context.effects.deleted"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections.",
+        "application_symbol": "OwnedSessionLifecycle._emit_archives",
+        "status": "completed"
       },
       "SessionLifecycle.purge_profile_state": {
         "target": "hermes_cli/db_session_lifecycle.py",
@@ -6065,7 +6156,9 @@
         "calls": [
           "self._context.effects.purge_profile"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections.",
+        "application_symbol": "OwnedSessionLifecycle.purge_profile_state",
+        "status": "completed"
       }
     },
     "application_imports": [],
@@ -6130,7 +6223,8 @@
     "baseline_abi_sha256": "66c0fb4ac6bf1432c2cfb58c94a9da7ff0ce645f47478fa2d71fc538bbdddbfc",
     "symbol_names": [
       "SessionLifecycle"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/messages.py",
@@ -6141,7 +6235,7 @@
       "hermes_db/domains/sessions/postgres/messages.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {
       "SessionMessages.assert_resume_safe": {
@@ -6152,7 +6246,11 @@
         "calls": [
           "self._context.profile.activate"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections.",
+        "application_symbol": "hermes_cli.db_session_lifecycle.profile_limit",
+        "database_symbol": "SessionMessages.assert_resume_safe",
+        "implementation": "Captured required transcript callback binds Profile; counting/query/error identity remains business.",
+        "status": "completed"
       }
     },
     "application_imports": [
@@ -6193,7 +6291,8 @@
       "_copy_keys",
       "_removed_todos",
       "SessionMessages"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/__init__.py",
@@ -6204,11 +6303,12 @@
       "hermes_db/domains/sessions/postgres/operations/__init__.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/compression.py",
@@ -6219,7 +6319,7 @@
       "hermes_db/domains/sessions/postgres/operations/compression.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "b5e6c3b11845e7badb73ccb36d58e9709e88e976f3940147ec503cf86dff6dc2",
@@ -6228,7 +6328,8 @@
       "compact",
       "compact_on_connection",
       "_classify"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/compression_publish.py",
@@ -6239,7 +6340,7 @@
       "hermes_db/domains/sessions/postgres/operations/compression_publish.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -6262,7 +6363,8 @@
       "create_child",
       "carry_timestamps",
       "_unarchive_automatic"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/compression_state.py",
@@ -6273,7 +6375,7 @@
       "hermes_db/domains/sessions/postgres/operations/compression_state.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "8e3560e6ed9922a81c6f912808b6ff32e6a9d1a084f03e24236adda8580870db",
@@ -6286,7 +6388,8 @@
       "reopen",
       "_any_continuation",
       "finalize_orphans"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/gateway.py",
@@ -6297,7 +6400,7 @@
       "hermes_db/domains/sessions/postgres/operations/gateway.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "ef216f75be9aa04ac1b370171d66fbbb1ea17cc6f1e671b83c53610dc81194a1",
@@ -6305,7 +6408,8 @@
       "save_route",
       "replace_routes",
       "retire_routes"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/gateway_local_handoff.py",
@@ -6316,7 +6420,7 @@
       "hermes_db/domains/sessions/postgres/operations/gateway_local_handoff.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "539a3af9edb27e73e9ceb497ef223c55b0af112b5c16b45e29b4938c2c94e338",
@@ -6325,7 +6429,8 @@
       "_settle",
       "_move_title",
       "_rank"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/gateway_peers.py",
@@ -6336,14 +6441,15 @@
       "hermes_db/domains/sessions/postgres/operations/gateway_peers.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "5e8ea0995de4f861fcd9754492b764416696dfdab9b2f439f7a29b590f2fa9bb",
     "symbol_names": [
       "record",
       "adopt"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/gateway_rekey.py",
@@ -6354,7 +6460,7 @@
       "hermes_db/domains/sessions/postgres/operations/gateway_rekey.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -6375,7 +6481,8 @@
       "_namespace_column",
       "_session_origins",
       "_routes"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/housekeeping.py",
@@ -6386,7 +6493,7 @@
       "hermes_db/domains/sessions/postgres/operations/housekeeping.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "267a8ef1cfe861170edc7f79a506cc84f2a54c5113d0299992e94d14fcc24822",
@@ -6398,7 +6505,8 @@
       "delete_if_empty",
       "discard_unadmitted",
       "never_active"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/imports.py",
@@ -6409,7 +6517,7 @@
       "hermes_db/domains/sessions/postgres/operations/imports.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -6426,7 +6534,8 @@
       "attach_parents",
       "_cycle",
       "import_current"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/leases.py",
@@ -6437,7 +6546,7 @@
       "hermes_db/domains/sessions/postgres/operations/leases.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "8989e5c16f768d2d2afe3c15716f316f5a6482e264a48d8177f7d2a5f4d8faaa",
@@ -6446,7 +6555,8 @@
       "change",
       "expiry",
       "compression_holder"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/messages.py",
@@ -6457,7 +6567,7 @@
       "hermes_db/domains/sessions/postgres/operations/messages.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -6511,7 +6621,8 @@
       "replace_on_connection",
       "_kept_prefix",
       "rewind"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/mutation_branch.py",
@@ -6522,7 +6633,7 @@
       "hermes_db/domains/sessions/postgres/operations/mutation_branch.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "21ca8548076f4f725c3ca7a05ae38708bac6956b869df13d26737c493aaf2bfc",
@@ -6530,7 +6641,8 @@
       "boundary",
       "_title",
       "branch"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/mutation_policy.py",
@@ -6541,7 +6653,7 @@
       "hermes_db/domains/sessions/postgres/operations/mutation_policy.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "fa3af5179725813efe2207f77ef190e32c916df276174c00fee6851dbaf441d1",
@@ -6557,7 +6669,8 @@
       "edit_policy",
       "picks",
       "refresh"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/mutation_transcript.py",
@@ -6568,7 +6681,7 @@
       "hermes_db/domains/sessions/postgres/operations/mutation_transcript.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -6590,7 +6703,8 @@
       "reset",
       "_summarized",
       "rewind"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/mutations.py",
@@ -6601,7 +6715,7 @@
       "hermes_db/domains/sessions/postgres/operations/mutations.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "1f51edc7d29938a3ada4f391fffc22fd1de2cee35e1d1c862166839e972dd3b3",
@@ -6611,7 +6725,8 @@
       "mutate",
       "_apply",
       "_require_idle"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/retention.py",
@@ -6622,7 +6737,7 @@
       "hermes_db/domains/sessions/postgres/operations/retention.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "e67c8f8d0a0f0870b95545b01614393ffb56b1f763acc9af145bbb158b92eda6",
@@ -6635,7 +6750,8 @@
       "_quiet_ids",
       "sweep_orphans",
       "auto_prune"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/retirement.py",
@@ -6646,7 +6762,7 @@
       "hermes_db/domains/sessions/postgres/operations/retirement.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "8b6db995eee7492899b0e1c1fba93ac9ed77b54424af28d5e75296bf4c6c2f28",
@@ -6656,7 +6772,8 @@
       "_rebase_orphans",
       "delete_one",
       "delete_many"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/retirement_guards.py",
@@ -6667,7 +6784,7 @@
       "hermes_db/domains/sessions/postgres/operations/retirement_guards.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "c39b26a7335875ce5ae7ba1f615f2dec8c43b3c60c6404e628f166ba36d97761",
@@ -6676,7 +6793,8 @@
       "lock_targets",
       "require_unleased",
       "guarded_ids"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/rewrites.py",
@@ -6687,7 +6805,7 @@
       "hermes_db/domains/sessions/postgres/operations/rewrites.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -6715,7 +6833,8 @@
       "_changes",
       "_archive_twin",
       "prune"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/sessions.py",
@@ -6726,7 +6845,7 @@
       "hermes_db/domains/sessions/postgres/operations/sessions.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "013d5e4d91eba9f492955d9bd46236bd33b56e3f79d410797bbf5a2a32f2307d",
@@ -6742,7 +6861,8 @@
       "lineage_flag",
       "reopen",
       "retire_queued_on_connection"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/titles.py",
@@ -6753,7 +6873,7 @@
       "hermes_db/domains/sessions/postgres/operations/titles.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "2ff91d98abda1e1e730fa95c9fdb82ecf15d800f67cee24e2e53537d16b203fd",
@@ -6763,7 +6883,8 @@
       "set_title_on_connection",
       "_free_title",
       "_is_ancestor"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/transcript_guards.py",
@@ -6774,14 +6895,15 @@
       "hermes_db/domains/sessions/postgres/operations/transcript_guards.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "7a1587cd491b99f0dff512be293125b59cf1be8f7f24b4892b27a93765b38cb4",
     "symbol_names": [
       "check",
       "_check_lease"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/transcript_repair.py",
@@ -6792,7 +6914,7 @@
       "hermes_db/domains/sessions/postgres/operations/transcript_repair.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -6864,7 +6986,8 @@
       "resolve_batch",
       "_find_target",
       "_repair_target"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/__init__.py",
@@ -6875,11 +6998,12 @@
       "hermes_db/domains/sessions/postgres/queries/__init__.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/analytics.py",
@@ -6890,7 +7014,7 @@
       "hermes_db/domains/sessions/postgres/queries/analytics.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "dffe686dece0d625f017d03cda56ef586d86050e8556e13aada78c1dbbc90e5d",
@@ -6902,7 +7026,8 @@
       "_usage",
       "_daily",
       "rows"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/archive_refs.py",
@@ -6913,7 +7038,7 @@
       "hermes_db/domains/sessions/postgres/queries/archive_refs.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -6928,7 +7053,8 @@
     "symbol_names": [
       "message_names",
       "referenced_names"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/bot_views.py",
@@ -6939,14 +7065,15 @@
       "hermes_db/domains/sessions/postgres/queries/bot_views.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "efcdc0d2bf899299580969f3c60a2d57bb4210dcb8912c92a0ef4fbd4134a29c",
     "symbol_names": [
       "roster",
       "_summary"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/compression.py",
@@ -6957,7 +7084,7 @@
       "hermes_db/domains/sessions/postgres/queries/compression.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "a22d102372fde1151f91c6bbdb9e12a8ecb304428b7d04b08c6e732af848be40",
@@ -6965,7 +7092,8 @@
       "clone_rows",
       "_target",
       "archive"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/file_grants.py",
@@ -6976,7 +7104,7 @@
       "hermes_db/domains/sessions/postgres/queries/file_grants.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "1b9b4c4ad388035ba434d7c57c1321d1334a539563fda78f152f22fa516747b4",
@@ -6986,7 +7114,8 @@
       "drop",
       "owned",
       "pins"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/gateway.py",
@@ -6997,7 +7126,7 @@
       "hermes_db/domains/sessions/postgres/queries/gateway.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "f488c7aa3066095cc493245bfe50e72cb96248c66ac2636bb5f285dd434fd67e",
@@ -7010,7 +7139,8 @@
       "expire_route_fences",
       "retire_shared",
       "delete_routes"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/gateway_peers.py",
@@ -7021,7 +7151,7 @@
       "hermes_db/domains/sessions/postgres/queries/gateway_peers.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "1bc00897f78dd46ed87999cd6ef9d50477d0d8590f22964cb394580ca1beb3e6",
@@ -7034,7 +7164,8 @@
       "orphan_candidates",
       "orphan_donors",
       "orphans"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/insights.py",
@@ -7045,7 +7176,7 @@
       "hermes_db/domains/sessions/postgres/queries/insights.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "79beccdeb6939fce0f07d3b241960098e25edc45a2dc4f6b82edc70db5236587",
@@ -7053,7 +7184,8 @@
       "_filter",
       "_messages",
       "rows"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/leases.py",
@@ -7064,7 +7196,7 @@
       "hermes_db/domains/sessions/postgres/queries/leases.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "c05f34169c34746209905052e2b74ef7eff5681d46d55cbbc29bffe97401610b",
@@ -7074,7 +7206,8 @@
       "renew",
       "release",
       "merge_turn_roots"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/lineage.py",
@@ -7085,7 +7218,7 @@
       "hermes_db/domains/sessions/postgres/queries/lineage.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "1259e08bb930abb532d2d5c65ad6641c83e19a59dbe3d17475f1e8a340416970",
@@ -7094,7 +7227,8 @@
       "validate_local_receipt",
       "runtime_targets",
       "advance_local_target"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/lineage_reads.py",
@@ -7105,7 +7239,7 @@
       "hermes_db/domains/sessions/postgres/queries/lineage_reads.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "85efac8acfe3e344ef9fe36d77a7788ca7de84b5ce7affee47db088bc709bb4f",
@@ -7119,7 +7253,8 @@
       "declared_scope_identity",
       "get_tool_rotation_root",
       "is_explicit_fork_child_row"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/media.py",
@@ -7130,7 +7265,7 @@
       "hermes_db/domains/sessions/postgres/queries/media.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -7149,7 +7284,8 @@
       "retire_spillover",
       "candidates",
       "forget"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/messages.py",
@@ -7160,7 +7296,7 @@
       "hermes_db/domains/sessions/postgres/queries/messages.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "162e1f773d1698063998cd9945dec09dae7cd28a9a10aa8ad523c687f8806804",
@@ -7178,7 +7314,8 @@
       "bump_counters",
       "active_ids",
       "resume_lineage"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/mutation_binding.py",
@@ -7189,7 +7326,7 @@
       "hermes_db/domains/sessions/postgres/queries/mutation_binding.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "badfe431430f16e1dc9aafcbbe81d29b04039fe232d50d1aa00788fa43391267",
@@ -7201,7 +7338,8 @@
       "import_history_control",
       "authorize_history",
       "same_history_owner"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/prompts.py",
@@ -7212,14 +7350,15 @@
       "hermes_db/domains/sessions/postgres/queries/prompts.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "628b1e04e2d0da12661560ae6371feef4ca0dfa555168b563a3cb8eda86d7161",
     "symbol_names": [
       "store_prompt",
       "prune_prompts"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/retention.py",
@@ -7230,7 +7369,7 @@
       "hermes_db/domains/sessions/postgres/queries/retention.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "c753f8803101e3a70288566d594dde6f42ee0b6e05d174cb96afad4934b0e27f",
@@ -7242,7 +7381,8 @@
       "conditions",
       "candidates",
       "_continued_ancestors"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/retirement.py",
@@ -7253,7 +7393,7 @@
       "hermes_db/domains/sessions/postgres/queries/retirement.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "1ac8a3e24e8afb25265e0f9ac91e0a290ceba2c23fa4192465d6ed2ef9bb1626",
@@ -7267,7 +7407,8 @@
       "display_snapshot",
       "canonical_targets",
       "compression_neighbors"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/retirement_fences.py",
@@ -7278,7 +7419,7 @@
       "hermes_db/domains/sessions/postgres/queries/retirement_fences.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "8ce295fb6768f8704cccf6a18917921b6d6c967feaa1bf1f1e9a289a0833ae6f",
@@ -7288,7 +7429,8 @@
       "retire_mutations",
       "_prefixed",
       "_delete_meta"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/retirement_housekeeping.py",
@@ -7299,7 +7441,7 @@
       "hermes_db/domains/sessions/postgres/queries/retirement_housekeeping.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "b0fbd55c6db893c419db8475a2a9807900b8bc6bd39ef770e464ea737ca6597f",
@@ -7309,7 +7451,8 @@
       "prune",
       "keep_passed",
       "has_receipt"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/retirement_ledger.py",
@@ -7320,7 +7463,7 @@
       "hermes_db/domains/sessions/postgres/queries/retirement_ledger.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "1330692f28f2d45fe1cf5bb3ad6a02d2b5d31497dcf8622ce2842e4899a0b5f1",
@@ -7328,7 +7471,8 @@
       "retire",
       "_retire_admission",
       "_retire_worker"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/search_context.py",
@@ -7339,14 +7483,15 @@
       "hermes_db/domains/sessions/postgres/queries/search_context.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "5880d97483a8e093b9e5c8f21df83a1c8fb7d2a88d35fdf79d20f49d479d9477",
     "symbol_names": [
       "_neighbor",
       "attach"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/session_queries.py",
@@ -7357,7 +7502,7 @@
       "hermes_db/domains/sessions/postgres/queries/session_queries.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -7386,7 +7531,8 @@
       "_previews",
       "project_tips",
       "_chains_by_root"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/sessions.py",
@@ -7397,7 +7543,7 @@
       "hermes_db/domains/sessions/postgres/queries/sessions.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "2f3ec4880f305015752be8b0a75a73372df6fe9dfa7247acb11188938a554310",
@@ -7417,7 +7563,8 @@
       "compression_tip",
       "retired_session",
       "bump_generation"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/usage.py",
@@ -7428,7 +7575,7 @@
       "hermes_db/domains/sessions/postgres/queries/usage.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "32f0f68cc19eeab7e64abf0541e76d4bf65c7db757995e4f1d101f886756790e",
@@ -7437,7 +7584,8 @@
       "update_totals",
       "_counter_value",
       "recent_route"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/store.py",
@@ -7448,13 +7596,14 @@
       "hermes_db/domains/sessions/postgres/store.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "25518b8203f1571586e8f32a19e363ba0900238ecadf3e0b2c41d7618b54d134",
     "symbol_names": [
       "PostgresSessionStore"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/__init__.py",
@@ -7465,11 +7614,12 @@
       "hermes_db/domains/sessions/postgres/support/__init__.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/archive_projection.py",
@@ -7480,7 +7630,7 @@
       "hermes_db/domains/sessions/postgres/support/archive_projection.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -7494,7 +7644,8 @@
     "baseline_abi_sha256": "c60bfe27168b2ca40d0738ffd6f120619be643ed2f324133d9c53dcb80f95a37",
     "symbol_names": [
       "spillover_names"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/compression_coverage.py",
@@ -7505,7 +7656,7 @@
       "hermes_db/domains/sessions/postgres/support/compression_coverage.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -7560,7 +7711,8 @@
     "symbol_names": [
       "Coverage",
       "exact_id"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/message_codec.py",
@@ -7571,7 +7723,7 @@
       "hermes_db/domains/sessions/postgres/support/message_codec.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "07f5f6a3416f9a883df0ca86155b5873ad0efd87dc12b239f242335bc03cb98b",
@@ -7581,7 +7733,8 @@
       "stored_values",
       "decoded_row",
       "merge_display_metadata"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/message_preview.py",
@@ -7592,7 +7745,7 @@
       "hermes_db/domains/sessions/postgres/support/message_preview.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -7643,24 +7796,34 @@
       "preview_text",
       "_nonempty",
       "roster_preview"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/retired_files.py",
     "baseline_sha256": "bd8f81017f204fd6ebfe922402ac71f4a8170494333010de1af72acaba91d895",
     "layer": "business",
-    "action": "preserve",
+    "action": "move",
     "targets": [
-      "hermes_db/domains/sessions/postgres/support/retired_files.py"
+      "hermes_cli/db_session_lifecycle.py"
     ],
     "task": 9,
-    "status": "pending",
-    "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
-    "symbol_routes": {},
+    "status": "completed",
+    "reason": "Actual filesystem cleanup belongs to Session application lifecycle. Preserve confined unlink/glob algorithm and postcommit order.",
+    "symbol_routes": {
+      "remove": {
+        "target": "hermes_cli/db_session_lifecycle.py",
+        "target_symbol": "remove_snapshots",
+        "task": 9,
+        "action": "move",
+        "status": "completed"
+      }
+    },
     "baseline_abi_sha256": "cb24ebb9749ff599f15737e1b68549e68618e3abadb4155cf1b197bc29069fe3",
     "symbol_names": [
       "remove"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/search.py",
@@ -7671,7 +7834,7 @@
       "hermes_db/domains/sessions/postgres/support/search.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "7270897d41d29bed11456314edbc2830af6908ab59adb04d1d609321010c30f5",
@@ -7682,7 +7845,8 @@
       "_filters",
       "_full_body",
       "statement"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/search_projection.py",
@@ -7693,7 +7857,7 @@
       "hermes_db/domains/sessions/postgres/support/search_projection.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "2ae6779af5a8c04254c95b96bc4fcc390f24284da06a7dd1949894dfe2a5c8e2",
@@ -7701,7 +7865,8 @@
       "content_text",
       "short_grams",
       "projection"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/search_query.py",
@@ -7712,14 +7877,15 @@
       "hermes_db/domains/sessions/postgres/support/search_query.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "3d888c8ad38851812490ec231b603ad2e2ed40743e33940e98a337b47cbab4ca",
     "symbol_names": [
       "SearchQuery",
       "parse_query"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/usage_writer.py",
@@ -7730,7 +7896,7 @@
       "hermes_cli/db_usage_writer.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Background thread/Profile capture is application lifecycle; SQL token updates stay in business persistence.",
     "symbol_routes": {},
     "application_imports": [
@@ -7744,7 +7910,8 @@
     "baseline_abi_sha256": "3e63398d40385b83115dc7929c5454ea056ccfa416d817a5e7309705a7414030",
     "symbol_names": [
       "UsageWriter"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/postgres/usage.py",
@@ -7755,13 +7922,14 @@
       "hermes_db/domains/sessions/postgres/usage.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "5a1db4e4c41d078710c57564e6f0fe52ea44237ed2cf3c127203cfe402b8f5e6",
     "symbol_names": [
       "SessionUsage"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/rewind.py",
@@ -7772,7 +7940,7 @@
       "hermes_db/domains/sessions/rewind.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -7842,7 +8010,8 @@
       "_comparison_content",
       "plan_user_turn_rewind",
       "rewind_user_turn"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/rules.py",
@@ -7853,7 +8022,7 @@
       "hermes_db/domains/sessions/rules.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -7883,7 +8052,8 @@
       "is_automatic_end_reason",
       "classify_session_status",
       "bot_chat_title_released"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/sessions/search_rules.py",
@@ -7894,7 +8064,7 @@
       "hermes_db/domains/sessions/search_rules.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "e76e9b963819086b81a9ddb963096095535ec8852d7e73c1634c09ea82348a28",
@@ -7903,7 +8073,8 @@
       "SearchRules",
       "search_sessions_by_id",
       "_flatten_text"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/domains/verification/__init__.py",
@@ -8287,98 +8458,113 @@
       "gateway/session_worker_process_proof.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {
       "verify_worker_delegation_owner": {
         "target": "gateway/session_worker_process_proof.py",
         "task": 9,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       },
       "authorize_history": {
         "target": "gateway/session_storage_authority.py",
         "task": 9,
         "action": "split",
-        "constraint": "Claim/process authorization remains app-owned; same-Connection row authorization remains domains/runtime/authority.py."
+        "constraint": "Claim/process authorization remains app-owned; same-Connection row authorization remains domains/runtime/authority.py.",
+        "status": "completed"
       },
       "validate_import": {
         "target": "hermes_db/domains/runtime/authority.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "pending_target_ids": {
         "target": "hermes_db/domains/runtime/authority.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "import_history_effect": {
         "target": "hermes_db/domains/runtime/authority.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "retry_terminal_admission": {
         "target": "hermes_db/domains/runtime/authority.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "policy_picks": {
         "target": "hermes_db/domains/runtime/authority.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "commit_refreshed_policy": {
         "target": "hermes_db/domains/runtime/authority.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "prepare_chat_pick": {
         "target": "hermes_db/domains/runtime/authority.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "commit_chat_pick": {
         "target": "hermes_db/domains/runtime/authority.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "has_mutation_receipt": {
         "target": "hermes_db/domains/runtime/authority.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "local_lineage_owner": {
         "target": "hermes_db/domains/runtime/authority.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "session_launch_source": {
         "target": "hermes_db/domains/runtime/authority.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "is_compression_child": {
         "target": "hermes_db/domains/runtime/authority.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "history_binding_names": {
         "target": "hermes_db/domains/runtime/authority.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       }
     },
     "baseline_abi_sha256": "fb0ae2aab26a95bbe29dd56af9f0d43f8ab08c9a90c2e7b1e72be592da726f45",
@@ -8398,7 +8584,8 @@
       "history_binding_names",
       "authorize_history",
       "verify_worker_delegation_owner"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/integration/cron_application.py",
@@ -8452,13 +8639,14 @@
       "hermes_cli/db_sessions.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "a92fe2dedae4bc539d5ebc3f92401510735b06a14464dc23aee43653dc804d7d",
     "symbol_names": [
       "emit_deleted"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/integration/kanban_application.py",
@@ -8620,14 +8808,23 @@
     "source": "hermes_db/integration/local_access.py",
     "baseline_sha256": "c5beb70e58ec5393a57536a57a37ff92e035ee2a010b62ed04a983fb9827bd78",
     "layer": "business",
-    "action": "move",
+    "action": "split",
     "targets": [
-      "hermes_db/domains/runtime/local_access.py"
+      "hermes_db/domains/runtime/local_access.py",
+      "gateway/session_storage_authority.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
-    "symbol_routes": {},
+    "symbol_routes": {
+      "commit_local_session": {
+        "target": "gateway/session_storage_authority.py",
+        "task": 9,
+        "action": "move",
+        "constraint": "Native owner-memory preflight/publication remains application-owned; no change to SQL/transaction or PG runtime commit.",
+        "status": "completed"
+      }
+    },
     "baseline_abi_sha256": "65b0c69d298be5eb8045edc15859090f7a3e1d3901fb742e128a90ae65f1fa2e",
     "symbol_names": [
       "commit_local_session",
@@ -8635,7 +8832,8 @@
       "handoff_head",
       "end_idle_local_session",
       "validate_local_lineage"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/integration/media_grants.py",
@@ -8930,62 +9128,71 @@
       "hermes_cli/db_sessions.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {
       "_construct_store": {
         "target": "hermes_cli/db_sessions.py",
         "task": 9,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed"
       },
       "_build": {
         "target": "hermes_db/domains/sessions/registry.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Take actual build callback from app; no late app imports, no new generic backend registry."
+        "constraint": "Take actual build callback from app; no late app imports, no new generic backend registry.",
+        "status": "completed"
       },
       "_Key": {
         "target": "hermes_db/domains/sessions/registry.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "_Entry": {
         "target": "hermes_db/domains/sessions/registry.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "_handle": {
         "target": "hermes_db/domains/sessions/registry.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "acquire": {
         "target": "hermes_db/domains/sessions/registry.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "_finish_close": {
         "target": "hermes_db/domains/sessions/registry.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "_release": {
         "target": "hermes_db/domains/sessions/registry.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       },
       "close_all": {
         "target": "hermes_db/domains/sessions/registry.py",
         "task": 9,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed"
       }
     },
     "baseline_abi_sha256": "eae7b4b324c6dd1e78f9b3de4f3d4826f9c84ebd4bb531b0adcf1cbd00aa563e",
@@ -8999,7 +9206,8 @@
       "_finish_close",
       "_release",
       "close_all"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/integration/retain_transport.py",
@@ -9118,14 +9326,16 @@
       "hermes_db/domains/runtime/access.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "9a4c2ad7a40978a474c81b3dc5b3e7167e2b7c0409a6adfedf57834ea7d08951",
     "symbol_names": [
       "runtime_for_store",
       "effect_for_store"
-    ]
+    ],
+    "implementation": "Pure runtime_for_store reads actual runtime member. Raw Native owner factory is hermes_cli.db_sessions.sqlite_runtime_for_store; PG gets required context runtime_factory. Native handle sessions/runtime share one adapter.",
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/integration/runtime_calls.py",
@@ -9136,7 +9346,7 @@
       "hermes_db/domains/runtime/calls.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "0e310c0e0c04f0766eac51f05954c12d6b8d192e066a353bfdeb562105c09116",
@@ -9160,7 +9370,8 @@
       "adopt_worker_execution",
       "mutate_worker_execution",
       "apply_worker_receipt"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/integration/runtime_composition.py",
@@ -9171,7 +9382,7 @@
       "hermes_cli/db_runtime.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "da3ac731e0e25b6da9e8d22cddc7eea33d0e28d20533e268ee74ebe08eccf6f3",
@@ -9179,7 +9390,8 @@
       "create_runtime_store",
       "create_worker_handlers",
       "worker_automation_state_types"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/integration/session_composition.py",
@@ -9190,7 +9402,7 @@
       "hermes_cli/db_sessions.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "970f86732b622e2b284599e9b6f79924e5a4929acb9ac1d5eb36166359af5d13",
@@ -9199,7 +9411,8 @@
       "is_context_summary",
       "SessionRouting",
       "SessionMedia"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/integration/session_portability.py",
@@ -9210,7 +9423,7 @@
       "hermes_db/domains/sessions/postgres/portability.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "74226e0d179602f9a026ca3d44109a2017388523b7ebcf82090d8486b1ee956d",
@@ -9219,7 +9432,8 @@
       "cron_identity",
       "find_foreign",
       "SessionPortability"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/integration/transfer/__init__.py",
@@ -9443,14 +9657,15 @@
       "hermes_db/domains/runtime/worker_access.py"
     ],
     "task": 9,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "92b3cec4a24b07d1bf9b583ff385a55980e9174aa22cb13ccdfd5d5d2f70705f",
     "symbol_names": [
       "worker_claim_origin",
       "worker_retry_target"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
   },
   {
     "source": "hermes_db/integration/worker_metrics.py",

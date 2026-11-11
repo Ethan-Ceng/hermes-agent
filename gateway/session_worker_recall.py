@@ -39,7 +39,7 @@ def verify_read(connection, ref, params):
         raise RuntimeStoreError("invalid_params")
     from gateway.session_worker import _claim, _verify
     from hermes_db.health import is_postgresql_store
-    from hermes_db.integration.runtime_access import runtime_for_store
+    from hermes_db.domains.runtime.access import runtime_for_store
     authority = connection.authority
     claim = _claim(connection, ref, params)
     if is_postgresql_store(authority.db):

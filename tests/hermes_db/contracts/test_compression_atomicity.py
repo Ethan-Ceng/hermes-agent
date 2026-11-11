@@ -47,8 +47,8 @@ def test_core_archive_failure_rolls_back_rows_config_counters_and_physical_stamp
 
 
 def test_core_worker_publication_origin_retry_and_scope_survive_new_handle(core_pair, tmp_path):
-    from hermes_db.integration.runtime_composition import create_runtime_store
-    from hermes_db.integration.session_composition import create_session_store
+    from hermes_cli.db_runtime import create_runtime_store
+    from hermes_cli.db_sessions import create_session_store
 
     first, foreign = core_pair
     for store in core_pair:

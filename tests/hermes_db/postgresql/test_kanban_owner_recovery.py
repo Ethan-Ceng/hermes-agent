@@ -7,7 +7,7 @@ import pytest
 
 from hermes_cli import kanban_db as kb, kanban_db_connect as kbc, kanban_owner_recovery as recovery
 from hermes_cli.db_sessions import open_session_store
-from hermes_db.integration.runtime_access import runtime_for_store
+from hermes_db.domains.runtime.access import runtime_for_store
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 

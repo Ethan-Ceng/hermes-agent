@@ -6,7 +6,7 @@ from hermes_state_runtime import RuntimeStoreError
 
 
 def _registered(store):
-    from hermes_db.integration.runtime_composition import create_runtime_store
+    from hermes_cli.db_runtime import create_runtime_store
     store.create_session("s", "cli")
     runtime = create_runtime_store(store)
     epoch = runtime.begin_epoch(instance_id="owner")

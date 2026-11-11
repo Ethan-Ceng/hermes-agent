@@ -10,7 +10,7 @@ def pg_store(postgres_test_config, postgres_schema, tmp_path):
     from hermes_db.infra.backends.postgresql.engine import get_engine
     from hermes_db.schema import upgrade_schema
     from hermes_db.scope import DatabaseScope
-    from hermes_db.integration.session_composition import create_session_store
+    from hermes_cli.db_sessions import create_session_store
     from hermes_db.infra.backends.postgresql.transactions import Transactions
     from hermes_db.tables.metadata import SCHEMA
 
@@ -28,14 +28,14 @@ def pg_store(postgres_test_config, postgres_schema, tmp_path):
 
 @pytest.fixture
 def pg_runtime(pg_store):
-    from hermes_db.integration.runtime_composition import create_runtime_store
+    from hermes_cli.db_runtime import create_runtime_store
     return create_runtime_store(pg_store)
 
 
 @pytest.fixture
 def pg_pair(pg_store, tmp_path):
     from hermes_db.scope import DatabaseScope
-    from hermes_db.integration.session_composition import create_session_store
+    from hermes_cli.db_sessions import create_session_store
     peer = create_session_store(pg_store._transactions, DatabaseScope(tmp_path / "other", "other-store"))
     try:
         yield [pg_store, peer]

@@ -220,7 +220,7 @@ def release_unknown_turn_markers(runner):
         return
     for authority in _authorities(runner):
         with owner_scope(authority):
-            from hermes_db.integration.authority_access import pending_target_ids
+            from hermes_db.domains.runtime.authority import pending_target_ids
             unknown = pending_target_ids(authority.db, ('unknown',))
             if not unknown:
                 continue
@@ -677,7 +677,7 @@ async def recover_profile_native_sessions(runner, authority):
     """Bind one authority's queued native rows to the adapters connected now."""
     from gateway.session_authorities import owner_scope
     with owner_scope(authority):
-        from hermes_db.integration.authority_access import pending_target_ids
+        from hermes_db.domains.runtime.authority import pending_target_ids
         pending = pending_target_ids(authority.db, ('queued', 'unknown'))
         bindings = [(owner, entry.origin, runner._adapter_for_source(entry.origin))
                     for entry in runner.session_store.list_sessions() if entry.origin is not None

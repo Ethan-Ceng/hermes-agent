@@ -23,7 +23,7 @@ def test_postcommit_maintenance_failure_preserves_journal_and_cached_replay_runs
     from hermes_cli.config import atomic_config_write, read_user_config_raw
     from hermes_cli.db_setup import _owning_profile, open_profile_db
     from hermes_cli.process_identity import worker_birth
-    from hermes_db.integration.runtime_access import runtime_for_store
+    from hermes_db.domains.runtime.access import runtime_for_store
     from hermes_db.tables.runtime import worker_executions, worker_receipts
 
     with pg_profiles('one') as home:

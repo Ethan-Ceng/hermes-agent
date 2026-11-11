@@ -152,7 +152,7 @@ def test_retry_of_pre_finite_kanban_admission_returns_original_receipt(kanban_ow
     """An attempt admitted before cards were finite keeps its committed payload on retry: the
     upgraded run_task must return the original receipt, not admission_conflict. The retry reads
     that payload by its exact admission key, never by listing the session's admissions."""
-    from hermes_db.integration import runtime_calls
+    import hermes_db.domains.runtime.calls as runtime_calls
     from gateway.session_kanban import run_task
     from hermes_state_runtime import list_session_admissions
 

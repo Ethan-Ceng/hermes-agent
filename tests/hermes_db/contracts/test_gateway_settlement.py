@@ -43,7 +43,7 @@ def test_gateway_result_retry_preserves_committed_reply_and_rejects_wrong_genera
 
 def test_unknown_discard_boundary_is_committed_once_with_its_receipt(store, runtime):
     from gateway.session_results import close_discarded_turn
-    from hermes_db.integration.runtime_access import effect_for_store
+    from hermes_db.domains.runtime.access import effect_for_store
     epoch, row = _started(store, runtime)
     epoch = runtime.begin_epoch(instance_id="replacement")
     runtime.recover_inputs(epoch=epoch)

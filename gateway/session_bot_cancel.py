@@ -12,7 +12,7 @@ import asyncio
 
 from gateway.session_contract import SessionRef
 from hermes_state_runtime import RuntimeStoreError
-from hermes_db.integration.runtime_calls import get_session_admission
+from hermes_db.domains.runtime.calls import get_session_admission
 
 _FIELDS = frozenset({'id', 'profile', 'author_id'})
 

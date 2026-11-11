@@ -13,7 +13,7 @@ from gateway.session_api import bind_api_steps, restore_api_session, run_steps, 
 from gateway.session_results import admission_result
 from hermes_state_runtime import RuntimeStoreError
 from hermes_db.domains.runtime.values import _json
-from hermes_db.integration.runtime_calls import admit_session_input
+from hermes_db.domains.runtime.calls import admit_session_input
 from hermes_db.health import is_postgresql_store
 
 api_execution: ContextVar[dict | None] = ContextVar('api_execution', default=None)
@@ -216,7 +216,7 @@ def admit_api_steps(adapter, **kwargs):
 
 
 def _admit_api_payload(authority, adapter, sid, request_id, payload, settings, declared_key, kwargs):
-    from hermes_db.integration.authority_access import retry_terminal_admission
+    from hermes_db.domains.runtime.authority import retry_terminal_admission
     row = retry_terminal_admission(authority.db, epoch=authority.epoch, principal_id='api',
         session_id=sid, request_id=request_id, payload=payload)
     if row is not None:
@@ -298,14 +298,14 @@ def recover_api_turns(adapter):
 
 
 def recover_authority_api_turns(adapter, authority):
-    from hermes_db.integration.runtime_calls import list_session_admissions
+    from hermes_db.domains.runtime.calls import list_session_admissions
     from gateway.session_ingress_media import collect_unheld_api_images
     import logging
     collect_unheld_api_images(authority.db)
     from gateway.session_api_media import compact_settled_api_payloads
     compact_settled_api_payloads(authority.db)
     if is_postgresql_store(authority.db):
-        from hermes_db.integration.runtime_access import runtime_for_store
+        from hermes_db.domains.runtime.access import runtime_for_store
         targets = runtime_for_store(authority.db).queued_api_sessions()
     else:
         with authority.db._read_ctx() as conn:
@@ -352,7 +352,7 @@ async def run_api_turn(adapter, *, approval_notify_callback=None, approval_sessi
 
 async def observe_api_turn(admitted, **kwargs):
     authority, ref, row = admitted
-    from hermes_db.integration.runtime_calls import get_session_admission
+    from hermes_db.domains.runtime.calls import get_session_admission
     # The admission-time snapshot is stale once a drain already running ahead claims and settles
     # (or a stop cancels) the row; a waiter registered after that is never resolved. The current
     # row decides, read with no suspension before the waiter is registered.
@@ -399,7 +399,7 @@ async def observe_api_turn(admitted, **kwargs):
 def _settled_api_result(authority, admission_id):
     saved = admission_result(authority.db, admission_id)
     if saved is None:
-        from hermes_db.integration.runtime_calls import get_session_admission
+        from hermes_db.domains.runtime.calls import get_session_admission
         current = get_session_admission(authority.db, admission_id=admission_id)
         if current['outcome'] == 'cancelled':
             return {'final_response': '', 'interrupted': True, 'completed': False}, {}
@@ -420,7 +420,7 @@ def observe_api_controls(admitted, sink):
     source ``GET /v1/runs/{id}`` reports). Subscribing and snapshotting in ONE stream-lock hold
     is the consistent cut: prompts are registered and answered under that lock, so each one is
     either in the snapshot or arrives live (never both), and one already answered is absent."""
-    from hermes_db.integration.runtime_calls import get_session_admission
+    from hermes_db.domains.runtime.calls import get_session_admission
     authority, ref, row = admitted
     from gateway.session_retirement import restore_retired
     restore_retired(authority, ref.session_id)  # idle between its bind and this admission's commit

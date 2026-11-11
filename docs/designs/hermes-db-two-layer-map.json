@@ -83,7 +83,7 @@
     {
       "id": 9,
       "title": "迁出Sessions与Runtime应用装配",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         5,
         6,
@@ -290,6 +290,11 @@
       "task": 8,
       "layer": "application",
       "status": "completed"
+    },
+    {
+      "path": "hermes_cli/db_session_lifecycle.py",
+      "task": 9,
+      "layer": "application"
     }
   ],
   "new_behavior_tests": [
@@ -1246,7 +1251,7 @@
     "entries": [
       {
         "path": "hermes-db-two-layer-map/sources-db.json",
-        "sha256": "e07ea243f8fa5da21a73d0f5e2da3ebfb481d6af748e317a56fe3db8c01a231a",
+        "sha256": "7519e0905e3796be00b86fc7e7082b7a1ff0670eeb2d7733effaf004c19c9e57",
         "items": 359
       }
     ],
@@ -1491,5 +1496,23 @@
     "final_validation": "Windows434 union3894pass/99skip. Linux188 full1766pass/2skip. Latest eight-file contracts both22pass. All exit0. Static16, boundaries, generated contracts and whitespace exit0.",
     "source_hash": "d9cb72035a92b75455ec56de1fadab398c22d5d612f6d8a47a2d9d603e85c912"
   },
-  "task8_evidence": "docs/designs/hermes-db-two-layer-task8.json"
+  "task8_evidence": "docs/designs/hermes-db-two-layer-task8.json",
+  "task8_commit": "2c18b7a48ef4c0eba6602868a5f6d66f58da2388",
+  "task9_adjustment": {
+    "status": "completed",
+    "parent_commit": "2c18b7a48ef4c0eba6602868a5f6d66f58da2388",
+    "actual_scope": "141 original mapped review entries:124 preserve/17 active before inspection. Retired-files filesystem correction gives123 preserve/18 active. New raw runtime-member composition changes stay within the same task.",
+    "refinements": [
+      "Runtime access currently constructs adapters. Application owners construct runtime resources, business access reads the real runtime member. Preserve raw SessionDB, raw PG stores and existing SessionResource callers through normal entries.",
+      "The supposedly preserved retired_files module performs filesystem deletion. Move its unchanged confined cleanup algorithm to the Session application lifecycle owner.",
+      "Owner captures transcript limit resolution, activity normalization and tool limit callbacks. Existing pure persisted-field metadata constants remain shared business dependencies, including fixed retirement query callers; no signature/SQL/algorithm changes to those queries.",
+      "Typed Session registry retains PID/config/scope keys, concurrent construction/refcounts and final flush. Required construction callback supplied by actual application owner.",
+      "Actual Native commit_local_session reads/publishes owner memory via on_create, so its backend selection workflow belongs to Gateway storage authority. Preserve existing Native implementation and transaction unchanged; only pure local receipt/lineage reads remain business access."
+    ],
+    "implementation": "Real runtime members on raw Native/PG stores and native handles. Concrete owner components surround original SQL/transactions; required captured callbacks resolve Profile limits/activity/tool values. UsageWriter and process proof live outside package.",
+    "source_hash": "54c60926555e8f0ee6876d6e952c1e585f3b1d1fad1c1ce7169859e53d968b35",
+    "final_validation": "Windows105561pass/4skip,WSL105565pass/0skip,PG320pass; all exit0. Static16,DB/plugin boundaries,generated contracts and whitespace exit0.",
+    "actual_db_modules": 364
+  },
+  "task9_evidence": "docs/designs/hermes-db-two-layer-task9.json"
 }

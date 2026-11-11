@@ -1,14 +1,9 @@
 """Current local service calls select the owning runtime, with SQLite behavior retained."""
 
 from hermes_db.health import is_postgresql_store
-from hermes_db.integration.runtime_access import runtime_for_store
+from hermes_db.domains.runtime.access import runtime_for_store
 
 
-def commit_local_session(db, *, epoch, receipt):
-    if is_postgresql_store(db):
-        return runtime_for_store(db).commit_local_session(epoch=epoch, receipt=receipt)
-    from hermes_state_local import commit_local_session as sqlite_commit
-    return sqlite_commit(db, epoch=epoch, receipt=receipt)
 
 
 def local_receipt(db, session_id):

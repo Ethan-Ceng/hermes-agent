@@ -91,7 +91,7 @@ def test_core_run_lost_commit_ack_is_observed_by_original_key_without_reserving_
 def test_core_response_identity_settles_from_same_store_retired_admission_without_observer(core_pair):
     from gateway.platforms.api_server_response_identity import durable_response_id
     from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
-    from hermes_db.integration.runtime_composition import create_runtime_store
+    from hermes_cli.db_runtime import create_runtime_store
 
     sessions, _ = core_pair
     sessions.create_session("s", "api_server")
@@ -114,7 +114,7 @@ def test_core_response_identity_settles_from_same_store_retired_admission_withou
 
 def test_core_response_pointer_repair_uses_existing_transaction_and_never_reopens_canonical_store(core_pair, monkeypatch):
     from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
-    from hermes_db.integration.runtime_composition import create_runtime_store
+    from hermes_cli.db_runtime import create_runtime_store
     from hermes_state_runtime import RuntimeStoreError
 
     sessions, _ = core_pair

@@ -126,7 +126,7 @@ class SessionCatalog:
             repo.lock_session(conn, self._context.scope, session_id)
             repo.update_session(conn, self._context.scope, session_id, {'expiry_finalized': int(finalized)})
 
-    def set_session_archived(self, session_id, archived, *, notify=True):
+    def archive_session_data(self, session_id, archived):
         with self._context.write() as conn:
             row = repo.lock_session(conn, self._context.scope, session_id)
             ids = operations.lineage_flag(conn, self._context.scope, session_id, 'archived', int(archived), extra={'auto_archived': 0})
@@ -134,9 +134,7 @@ class SessionCatalog:
                 from hermes_db.domains.sessions.postgres.operations.titles import retire_bot_chat
                 retire_bot_chat(conn, self._context.scope, ids)
             newly_archived = archived and row and (not row['archived'])
-        if newly_archived and notify:
-            self._context.effects.deleted(ids, reason='archive', primary=session_id)
-        return bool(ids)
+        return bool(ids), ids if newly_archived else None
 
     def set_session_hidden(self, session_id, hidden):
         with self._context.write() as conn:
@@ -189,13 +187,12 @@ class SessionCatalog:
             return repo.update_session(conn, self._context.scope, session_id, values, metadata_sessions.c.cwd == cwd, metadata_sessions.c.git_metadata_generation == generation) == 1
 
     def touch_session_activity(self, session_id, ts=None, *, description=None, provenance=None):
-        from agent.session_activity import bound_activity_description, normalize_activity_provenance
         if not session_id:
             return
         when = float(time.time() if ts is None else ts)
         with self._context.write() as conn:
             repo.lock_session(conn, self._context.scope, session_id)
-            repo.update_session(conn, self._context.scope, session_id, {'last_activity_at': when, 'last_activity_description': encode_text(bound_activity_description(description)), 'last_activity_provenance': normalize_activity_provenance(provenance).value}, metadata_sessions.c.last_activity_at.is_(None) | (metadata_sessions.c.last_activity_at < when))
+            repo.update_session(conn, self._context.scope, session_id, {'last_activity_at': when, 'last_activity_description': encode_text(self._context.activity_description(description)), 'last_activity_provenance': self._context.activity_provenance(provenance)}, metadata_sessions.c.last_activity_at.is_(None) | (metadata_sessions.c.last_activity_at < when))
 
     def clear_session_activity_labels(self, session_id):
         if not session_id:

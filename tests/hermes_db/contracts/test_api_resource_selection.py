@@ -1,5 +1,7 @@
 """Responses composition keeps native resource ownership and routed scope together."""
 
+from hermes_cli.db_sessions import _build_session_resources
+
 from types import SimpleNamespace
 
 import pytest
@@ -28,10 +30,10 @@ def test_routed_responses_share_native_storage_but_close_only_owned_handles(nati
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
     from hermes_cli import db_sessions as factory
     registry, _ = native_registry
-    monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope))
+    monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope, build=_build_session_resources))
     homes = [_configure(db) for db in core_pair]
     settings, scope = resolve_db_configuration(homes[0])
-    primary = registry.acquire(settings.postgresql, scope)
+    primary = registry.acquire(settings.postgresql, scope, build=_build_session_resources)
     adapter = SimpleNamespace()
     first_token = set_hermes_home_override(homes[0])
     try:
@@ -76,7 +78,7 @@ def test_pg_response_acquisition_refusal_never_uses_a_file_store(core_pair, unav
 def test_native_admission_lookup_reuses_the_response_connection_and_rejects_another_scope(core_pair, monkeypatch):
     from gateway.platforms.api_server_response_admissions import _lookup_admission
     from hermes_db.domains.runtime.postgres.response_store import PostgresResponseStore
-    from hermes_db.integration.runtime_composition import create_runtime_store
+    from hermes_cli.db_runtime import create_runtime_store
     from hermes_state_runtime import RuntimeStoreError
     db, other = core_pair
     db.create_session("s", "api_server")
@@ -109,7 +111,7 @@ def test_response_resource_reopens_after_a_profile_generation_is_retired(native_
     from hermes_cli import db_sessions as factory
     from hermes_cli.db_sessions import close_session_resources_under
     registry, _ = native_registry
-    monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope))
+    monkeypatch.setattr(factory, "acquire_db", lambda settings, scope: registry.acquire(settings.postgresql, scope, build=_build_session_resources))
     home = _configure(core_pair[0])
     token = set_hermes_home_override(home)
     adapter = SimpleNamespace()
