@@ -196,7 +196,7 @@
     {
       "id": 20,
       "title": "独立代码审查、整改复验和最终交付",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         18,
         19
@@ -479,16 +479,16 @@
       "verification_evidence": {
         "path": "tests/hermes_db/contracts/test_infra_independence.py",
         "task": 2,
-        "record_path": ".build/two-layer-evidence/final-native_layer-linux-da1837128c004fa4be97886f0cce3896.log.json",
-        "source_commit": "e3898db77144cded81d64a1a750f6c2d9a31eefa",
+        "record_path": ".build/two-layer-acceptance-final-v2/test-driver/.build/two-layer-evidence/v2-native_layer-win-29cf1be66782478b8864c7706d28365f.log.json",
+        "source_commit": "0aa4f5973542615cd044ec748313c8c4b9c988be",
         "exit_code": 0,
         "summary": [
-          "=== Summary: 8 files, 36 tests passed, 0 failed (100% complete) in 91.2s (2 workers) ==="
+          "=== Summary: 8 files, 34 tests passed, 0 failed, 2 skipped (100% complete) in 21.0s (2 workers) ==="
         ],
-        "label": "final-native_layer-linux"
+        "label": "v2-native_layer-win"
       },
-      "validation_phase": "initial_frozen_snapshot_superseded_after_R1",
-      "evidence_scope": "Implementation/local-test completion. Only the frozen verification manifest groups support current final acceptance;historical prior-project runs are not counted."
+      "validation_phase": "current_frozen_final",
+      "evidence_scope": "Implementation/local full-file validation;only current freeze manifest groups support final corrected-source acceptance."
     },
     {
       "path": "tests/hermes_db/contracts/test_infra_resource_ownership.py",
@@ -498,16 +498,16 @@
       "verification_evidence": {
         "path": "tests/hermes_db/contracts/test_infra_resource_ownership.py",
         "task": 5,
-        "record_path": ".build/two-layer-evidence/final-sqlite_payload-linux-f4ea58e80a81483b8ce5e71e300a5fa8.log.json",
-        "source_commit": "e3898db77144cded81d64a1a750f6c2d9a31eefa",
+        "record_path": ".build/two-layer-acceptance-final-v2/test-driver/.build/two-layer-evidence/v2-sqlite_payload-win-589d96544d644dc1912c3a5a4bdabd79.log.json",
+        "source_commit": "0aa4f5973542615cd044ec748313c8c4b9c988be",
         "exit_code": 0,
         "summary": [
-          "=== Summary: 3 files, 3 tests passed, 0 failed (100% complete) in 1.3s (2 workers) ==="
+          "=== Summary: 3 files, 3 tests passed, 0 failed (100% complete) in 3.1s (2 workers) ==="
         ],
-        "label": "final-sqlite_payload-linux"
+        "label": "v2-sqlite_payload-win"
       },
-      "validation_phase": "initial_frozen_snapshot_superseded_after_R1",
-      "evidence_scope": "Implementation/local-test completion. Only the frozen verification manifest groups support current final acceptance;historical prior-project runs are not counted."
+      "validation_phase": "current_frozen_final",
+      "evidence_scope": "Implementation/local full-file validation;only current freeze manifest groups support final corrected-source acceptance."
     },
     {
       "path": "tests/hermes_db/contracts/test_sqlite_open_lifecycle.py",
@@ -526,7 +526,7 @@
         "label": "native-linux"
       },
       "validation_phase": "this_round_task_local_before_final_freeze",
-      "evidence_scope": "Implementation/local-test completion. Only the frozen verification manifest groups support current final acceptance;historical prior-project runs are not counted."
+      "evidence_scope": "Implementation/local full-file validation;only current freeze manifest groups support final corrected-source acceptance."
     },
     {
       "path": "tests/hermes_cli/test_db_sqlite_upgrade.py",
@@ -545,7 +545,7 @@
         "label": "native-linux"
       },
       "validation_phase": "this_round_task_local_before_final_freeze",
-      "evidence_scope": "Implementation/local-test completion. Only the frozen verification manifest groups support current final acceptance;historical prior-project runs are not counted."
+      "evidence_scope": "Implementation/local full-file validation;only current freeze manifest groups support final corrected-source acceptance."
     },
     {
       "path": "tests/hermes_db/contracts/test_application_effect_fences.py",
@@ -564,7 +564,7 @@
         "label": "native-linux"
       },
       "validation_phase": "this_round_task_local_before_final_freeze",
-      "evidence_scope": "Implementation/local-test completion. Only the frozen verification manifest groups support current final acceptance;historical prior-project runs are not counted."
+      "evidence_scope": "Implementation/local full-file validation;only current freeze manifest groups support final corrected-source acceptance."
     },
     {
       "path": "tests/gateway/test_storage_owner_acquisition.py",
@@ -583,7 +583,7 @@
         "label": "native-win"
       },
       "validation_phase": "this_round_task_local_before_final_freeze",
-      "evidence_scope": "Implementation/local-test completion. Only the frozen verification manifest groups support current final acceptance;historical prior-project runs are not counted."
+      "evidence_scope": "Implementation/local full-file validation;only current freeze manifest groups support final corrected-source acceptance."
     },
     {
       "path": "tests/gateway/test_matrix_sqlite_schema_lifecycle.py",
@@ -593,16 +593,16 @@
       "verification_evidence": {
         "path": "tests/gateway/test_matrix_sqlite_schema_lifecycle.py",
         "task": 15,
-        "record_path": ".build/two-layer-evidence/final-sqlite_matrix_payload-linux-f5fc2af29af247b3a7153208eec47887.log.json",
-        "source_commit": "e3898db77144cded81d64a1a750f6c2d9a31eefa",
+        "record_path": ".build/two-layer-evidence/v2-sqlite_matrix_payload-linux-94c11ae55f9f43e183a5d5bc7a1bb2d6.log.json",
+        "source_commit": "0aa4f5973542615cd044ec748313c8c4b9c988be",
         "exit_code": 0,
         "summary": [
-          "=== Summary: 1 files, 4 tests passed, 0 failed (100% complete) in 1.4s (2 workers) ==="
+          "=== Summary: 1 files, 4 tests passed, 0 failed (100% complete) in 1.5s (2 workers) ==="
         ],
-        "label": "final-sqlite_matrix_payload-linux"
+        "label": "v2-sqlite_matrix_payload-linux"
       },
-      "validation_phase": "initial_frozen_snapshot_superseded_after_R1",
-      "evidence_scope": "Implementation/local-test completion. Only the frozen verification manifest groups support current final acceptance;historical prior-project runs are not counted."
+      "validation_phase": "current_frozen_final",
+      "evidence_scope": "Implementation/local full-file validation;only current freeze manifest groups support final corrected-source acceptance."
     },
     {
       "path": "tests/hermes_db/postgresql/test_infra_independence.py",
@@ -616,16 +616,16 @@
       "verification_evidence": {
         "path": "tests/hermes_db/postgresql/test_infra_independence.py",
         "task": 2,
-        "record_path": ".build/two-layer-evidence/final-pg_layer-linux-9e69e9719c7d400180badfdb66706310.log.json",
-        "source_commit": "e3898db77144cded81d64a1a750f6c2d9a31eefa",
+        "record_path": ".build/two-layer-evidence/v2-pg_layer-linux-e6ef56ddb91f4a10979f5e9e413055e3.log.json",
+        "source_commit": "0aa4f5973542615cd044ec748313c8c4b9c988be",
         "exit_code": 0,
         "summary": [
-          "=== Summary: 7 files, 19 tests passed, 0 failed (100% complete) in 68.8s (1 workers) ==="
+          "=== Summary: 8 files, 20 tests passed, 0 failed (100% complete) in 64.8s (1 workers) ==="
         ],
-        "label": "final-pg_layer-linux"
+        "label": "v2-pg_layer-linux"
       },
-      "validation_phase": "initial_frozen_snapshot_superseded_after_R1",
-      "evidence_scope": "Implementation/local-test completion. Only the frozen verification manifest groups support current final acceptance;historical prior-project runs are not counted."
+      "validation_phase": "current_frozen_final",
+      "evidence_scope": "Implementation/local full-file validation;only current freeze manifest groups support final corrected-source acceptance."
     },
     {
       "path": "tests/hermes_db/postgresql/test_application_effect_fences.py",
@@ -644,7 +644,7 @@
         "label": "pg-linux"
       },
       "validation_phase": "this_round_task_local_before_final_freeze",
-      "evidence_scope": "Implementation/local-test completion. Only the frozen verification manifest groups support current final acceptance;historical prior-project runs are not counted."
+      "evidence_scope": "Implementation/local full-file validation;only current freeze manifest groups support final corrected-source acceptance."
     },
     {
       "path": "tests/hermes_state/test_session_resource_initialization.py",
@@ -663,7 +663,7 @@
         "label": "task7-native-linux-all-final"
       },
       "validation_phase": "this_round_task_local_before_final_freeze",
-      "evidence_scope": "Implementation/local-test completion. Only the frozen verification manifest groups support current final acceptance;historical prior-project runs are not counted."
+      "evidence_scope": "Implementation/local full-file validation;only current freeze manifest groups support final corrected-source acceptance."
     },
     {
       "path": "tests/hermes_db/contracts/test_session_connection_pool.py",
@@ -682,7 +682,7 @@
         "label": "native-linux"
       },
       "validation_phase": "this_round_task_local_before_final_freeze",
-      "evidence_scope": "Implementation/local-test completion. Only the frozen verification manifest groups support current final acceptance;historical prior-project runs are not counted."
+      "evidence_scope": "Implementation/local full-file validation;only current freeze manifest groups support final corrected-source acceptance."
     },
     {
       "path": "tests/hermes_db/contracts/test_sqlite_domain_lifecycle.py",
@@ -706,15 +706,28 @@
         "label": "native-linux"
       },
       "validation_phase": "this_round_task_local_before_final_freeze",
-      "evidence_scope": "Implementation/local-test completion. Only the frozen verification manifest groups support current final acceptance;historical prior-project runs are not counted."
+      "evidence_scope": "Implementation/local full-file validation;only current freeze manifest groups support final corrected-source acceptance."
     },
     {
       "path": "tests/hermes_db/postgresql/test_kanban_decompose_boundary.py",
       "task": 20,
-      "status": "in_progress",
+      "status": "completed",
       "contract": "Real PG rejected decomposition retains manual-review child status/events;explicit approval still promotes.",
       "red": "0passed/1failed actual ready/promoted vs todo/created",
-      "green": "Focused1passed;newfreeze/full final scope and independent re-review pending"
+      "green": "Focused1passed;newfreeze/full final scope and independent re-review pending",
+      "verification_evidence": {
+        "path": "tests/hermes_db/postgresql/test_kanban_decompose_boundary.py",
+        "task": 20,
+        "record_path": ".build/two-layer-evidence/v2-pg_layer-linux-e6ef56ddb91f4a10979f5e9e413055e3.log.json",
+        "source_commit": "0aa4f5973542615cd044ec748313c8c4b9c988be",
+        "exit_code": 0,
+        "summary": [
+          "=== Summary: 8 files, 20 tests passed, 0 failed (100% complete) in 64.8s (1 workers) ==="
+        ],
+        "label": "v2-pg_layer-linux"
+      },
+      "validation_phase": "current_frozen_final",
+      "evidence_scope": "Implementation/local full-file validation;only current freeze manifest groups support final corrected-source acceptance."
     }
   ],
   "fixed_anchors": {
@@ -2121,12 +2134,12 @@
     "posttest_hash_mismatches": 0
   },
   "task20_behavior_metadata_closure": {
-    "planned_tests": 12,
-    "existing_files": 12,
-    "complete_file_exit0_records": 12,
-    "all_records_belong_to_this_branch_round": true,
-    "pending_statuses_corrected": 9,
-    "final_scope_unchanged": true
+    "planned_tests": 13,
+    "existing_files": 13,
+    "complete_file_exit0_records": 13,
+    "R1_current_frozen_passed": true,
+    "current_source_tip": "0aa4f5973542615cd044ec748313c8c4b9c988be",
+    "initial_results_not_counted": true
   },
   "task20_review_remediation": {
     "R1": {
@@ -2135,8 +2148,10 @@
       "base_source_tip": "e3898db77144cded81d64a1a750f6c2d9a31eefa",
       "fix": "Application wrapper returns immediately when SQL helper returns None;original0d control flow restored,SQL/schema/locks unchanged.",
       "test": "tests/hermes_db/postgresql/test_kanban_decompose_boundary.py",
-      "status": "local_green_pending_newfreeze",
-      "old_results": "Initial10groups158passed/3skips retained as history,not current fixed source acceptance."
+      "status": "closed",
+      "old_results": "Initial10groups158passed/3skips retained as history,not current fixed source acceptance.",
+      "final_review": "APPROVED",
+      "corrected_source_tip": "0aa4f5973542615cd044ec748313c8c4b9c988be"
     }
   },
   "initial_task17_adjustment": {
@@ -2173,5 +2188,16 @@
     "windows_linux_only_skips": 1,
     "all_exit_codes": 0,
     "posttest_hash_mismatches": 0
+  },
+  "final_status": {
+    "status": "READY_TO_MERGE",
+    "completed_tasks": 20,
+    "source_tip": "0aa4f5973542615cd044ec748313c8c4b9c988be",
+    "freeze_generation": 2,
+    "passed": 159,
+    "failed": 0,
+    "platform_skips": 3,
+    "independent_review": "docs/reviews/hermes-db-two-layer-boundary-review.md",
+    "whole_system_acceptance": false
   }
 }

@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`VERIFYING`；阶段：Task20 R1独立复审与最终验证；当前实施任务：Task20；完成：19 / 20；阻塞：无；日期2026-11-12。
+- 整体状态：`READY_TO_MERGE`；阶段：本轮分层与独立复审完成；当前实施任务：无；完成：20 / 20；阻塞：无；日期2026-11-12。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 验证策略修订：按本轮分层风险精简（2026-11-11用户指示）
@@ -1419,7 +1419,7 @@ V2当前结算：两端发行Windows3passed/1Linux-only SDKskip、Linux4passed�
 
 ## Task 20：独立代码审查、整改复验和最终交付
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -1463,6 +1463,12 @@ verification-before-completion：当前Git全部运行Python/测试/pyproject/uv
 
 
 独立初审结论CHANGES_REQUIRED，R1真实PG红灯后只加ids is None提前return，focused1passed。原子成功分解兼容合同/新冻结全量精简组/独立复审尚待。初审报告与失败保留，Task17–19重置为复验，当前16/20；这是补齐必需验收，未缩减范围。
+
+
+V2完成前验证：Task19实际commitbd589d51cec5dc967e8ccb050237d4cf40846f1b；0aa4f597新源5fresh载荷/10批完整精简组159passed/3真实平台skip，R1新合同已在新载荷通过。测试后5身份探针/全部Python测试lock逐字节Git对象/24019归档文件/11分区hash/65固定资源/正式HEAD与clean再次核对通过。当前REVIEWING，只待独立复审及最新元数据门禁；初审CHANGES_REQUIRED及红灯保留，不能据初版结果批准。
+
+
+最终结算：独立最终复审APPROVED，R1关闭，无未处理blocking/major/minor；原始CHANGES_REQUIRED/红灯/初版记录保留。新源0aa4f597的5freshPM载荷、全部10完整精简批次159passed/3真实平台skip、PG8文件20passed、双端24019文件/当前Git/固定资源及最新16check等门禁均实际通过。当前仅报告/状态元数据收口，不改代码/测试/依赖；READY_TO_MERGE仅指本轮分层，不外推历史平台/系统验收。完成20/20后立即创建本地Task20commit，并在独立文档receipt记录实际hash。
 
 ## 最终冻结与分层关键验证命令
 
@@ -1525,21 +1531,30 @@ wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-two-layer-acceptance-final-v2/so
 
 ### 执行命令
 
-后续执行用户精简策略下的关键合同清单及必要门禁，不执行精简前的目录级全量组。完成后以真实manifest中的source/解释器/cwd/环境路径和退出码替换执行记录；不得将本轮规划自检或旧分包/精简验收算入。
+当前唯一运行源为0aa4f5973542615cd044ec748313c8c4b9c988be，v2两端独占根与全部展开argv/python/cwd/home/runtime/来源/退出码见[当前冻结manifest](../designs/hermes-db-two-layer-freeze.json)、[Task18](../designs/hermes-db-two-layer-task18.json)、[Task19](../designs/hermes-db-two-layer-task19.json)、[Task20](../designs/hermes-db-two-layer-task20.json)。所有测试实际通过scripts/run_tests.sh：Native/消费者/发行/SQLite组-j2，PG组-j1 -m integration --postgres-test-config=<既有私有fixture路径>，--file-timeout1200 -- --tb=short -ra；完整文件清单见[精简manifest](../designs/hermes-db-two-layer-verification.json)，没有-k缩减最终批次。
 
-### 当前执行结果
+- 五个新载荷由冻结source自身PM build_env建立，dev/test及声明extras，全部exit0；没有resolve/rawpip/rawuv。
+- 当前完整静态：PM解释器 scripts/check --staged --base 0d8782ba8a；hermes_db_boundary_lint.py --check、boundary_lint.py --check、gen_gateway_contracts.py --check、git diff --cached --check，全部exit0。
+- 完成前验证使用批量Git对象逐字节核对全部Python/测试/pyproject/uv.lock、11映射hash/65固定资源、24019文件归档与两端source/driver；5载荷测试后依赖/安装身份探针exit0。实际标准库命令见Task20。
 
-- 当前实施：Task1–19已完成；R1最小修正、真实红绿灯、全新v2五载荷及全部10精简冻结批次已通过。当前19/20，Task20独立复审仍待；初版CHANGES_REQUIRED和158结果单独历史保留。
-- 初版精简冻结验证（已被R1失效，不能算整改源结果）：10完整命令均exit0，Windows66passed/3Linux-only skips，Linux92passed/0skip，总158passed。PG7文件19passed；SDK、独立发行及纯SQLite实际读写/新PID均使用5个全新PM载荷。
-- 冻结source/test-driver两端各23998文件hash0差异；当前Git全部Python/测试/lock逐字节等价，固定65资源/DB340/root11/31/29保留。
-- 本轮Task20独立初审CHANGES_REQUIRED，仅R1一项major；整改后须独立复审APPROVED，旧结果不能作为整改源批准。
-- Task1–19证据见各Task及对应诊断记录。当前精简冻结批次、SDK与5个全新PM载荷均已实际通过；Task20独立审查尚未完成。
-- 规划结构/基准/本地链接及文档静态自检：实际命令与结果写入下方准备记录。
-- 代码审查：本轮独立初审CHANGES_REQUIRED，原始报告及R1证据已保存；整改源独立复审尚待，不能READY_TO_MERGE。
+### 执行结果
 
-### 未通过项目与最终状态
+- 当前10个完整精简冻结批次全部exit0：Windows66passed/3Linux-only SDK skips，Linux93passed/0skip，总159passed/0failed/3skip；当前PG8文件20passed，含R1新回归。
+- 构建：5个fresh v2 PM载荷全部exit0，SQLite及SQLite+Matrix不含SQLAlchemy/psycopg/Alembic，Linux实际mautrix0.21.1。两端source/test-driver各24019文件hash0差异。
+- 迁移/持久化：真实随机fixture-owned PG Schema，0030→0031、重复升级重开、独立Profile数据集切换、新PID/多scope、真实COMMIT后丢ACK、实际SDK及PG完整业务0SQLite均由本轮新源执行。纯SQLite及真实SDK普通打开0DDL/恢复通过。
+- 静态：16检查通过，DB8534解析依赖/0违规，插件边界/生成合同/空白exit0。未改TypeScript接口，无独立TS构建声明。
+- 资源/预算：61Python+4迁移资源原位，0031/31revision/29表模块保持；DB340<=359/root11。全项目生产Python3591→3620，迁出不计净删。
+- 独立审查：[最终APPROVED报告](../reviews/hermes-db-two-layer-boundary-review.md)。[初审CHANGES_REQUIRED](../reviews/hermes-db-two-layer-boundary-review-initial.md)的R1已通过真实红绿灯、最小2行修正、新冻结全组复验并独立关闭；[整改记录](../debug/hermes-db-two-layer-decompose-rejection.md)保留。初版158passed不计整改源结果。
+- 正式目录仅只读核对，仍90a2987e8c5decb7997157ca17a301ff51ecce78且clean。原owned/SOUL.md、target/SOUL.md保留。未推送、PR、合并、发布、部署或停止/重启正式Hermes。
+- 测试调整有逐项台账：17测试迁文件/改名、10自动DDL退役后的生命周期断言调整；正常误分类断言恢复。HTTP滴流保留socket预算与循环deadline两种原有异常边界，压缩并发用例在0.2s计时前预热配置解析；对应生产算法未改。R1另新增1个真实PG合同，无正常业务测试删除。
 
-当前为`VERIFYING`，Task1–16已完成；Task20独立初审major R1已作最小修正，Task17–19须用v2新源/新载荷重验，独立复审仍待，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
+### 未通过项目与限制
+
+本轮必需门禁无未通过项，无未处理审查问题。3个Windows skip均为项目PM已有Linux专属SDK覆盖限制，不算Windows SDK通过。原统一后端Task24、七项非WSL缺证和Windows八项历史基准问题独立保留；未重跑旧PG全领域深测，不宣称全系统验收。
+
+### 最终状态
+
+READY_TO_MERGE；20/20已完成。本地Task20完成commit及实际hash随后写入恢复receipt；不执行合并或部署。
 
 ## 规划准备记录与恢复
 
