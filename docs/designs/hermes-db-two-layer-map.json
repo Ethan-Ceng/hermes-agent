@@ -179,7 +179,7 @@
     {
       "id": 18,
       "title": "执行双主机完整Native与消费者验收",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         17
       ]
@@ -2096,9 +2096,15 @@
     "source_driver_mismatches": 0
   },
   "task18_acceptance": {
-    "status": "pending",
+    "status": "completed",
+    "freeze_generation": 2,
     "source_tip": "0aa4f5973542615cd044ec748313c8c4b9c988be",
-    "reason": "R1 new source requires all frozen Native/SQLite/SDK groups"
+    "groups": 7,
+    "windows_passed": 63,
+    "linux_passed": 69,
+    "windows_linux_only_skips": 2,
+    "all_exit_codes": 0,
+    "posttest_hash_mismatches": 0
   },
   "task19_acceptance": {
     "status": "pending",

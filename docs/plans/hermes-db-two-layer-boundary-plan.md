@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`VERIFYING`；阶段：Task20 R1整改源冻结合同复验；当前实施任务：Task18（复验）；完成：17 / 20；阻塞：无；日期2026-11-12。
+- 整体状态：`VERIFYING`；阶段：Task20 R1整改源发行与PG复验；当前实施任务：Task19（复验）；完成：18 / 20；阻塞：无；日期2026-11-12。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 验证策略修订：按本轮分层风险精简（2026-11-11用户指示）
@@ -1310,7 +1310,7 @@ V2当前结算：SOURCE_TIP 0aa4f5973542615cd044ec748313c8c4b9c988be；两端各
 
 ## Task 18：执行双主机分层关键合同与消费者冒烟
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -1355,6 +1355,12 @@ V2当前结算：SOURCE_TIP 0aa4f5973542615cd044ec748313c8c4b9c988be；两端各
 
 
 结算：本轮关键分层/消费者、纯SQLite实际读写新PID恢复及Linux真实SDK普通打开0DDL均由冻结载荷实际通过，未借用旧开发批次数字。无本Task失败或测试删改。65固定资源/DB340/root11/31/29由相同源码及23998文件hash保持。完成18/20后立即本地commit，Task19启动记录hash；不宣称全系统重新验收。
+
+
+V2复验启动：Task17实际commit6549ee9bf014a369b85dfbcb887c2dd30202a11a，source/driver清单hash全部核对后运行7个新载荷Native/SQLite/SDK完整精简组；发行/PG组留Task19。
+
+
+V2当前结算：7个完整精简组全部实际exit0，Windows63passed/2Linux-only SDK close skips，Linux69passed/0skip。当前24019文件source/driver两端0差异，运行源/测试与整改检查点0aa4f597等价；16check/DB与插件边界/生成合同/空白全exit0。实际命令/解释器/cwd/home/runtime/SourceTip、skip用例见当前Task18.json。初版数字不计本次通过。完成18/20后立即本地commit，继续Task19v2。
 
 ## Task 19：执行PG、发行与SDK分层关键验证
 
