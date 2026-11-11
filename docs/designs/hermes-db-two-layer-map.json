@@ -187,7 +187,7 @@
     {
       "id": 19,
       "title": "执行完整PG、发行与SDK故障恢复验收",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         17,
         18
@@ -1932,6 +1932,17 @@
     "windows_passed": 63,
     "linux_passed": 69,
     "windows_linux_only_skips": 2,
+    "all_exit_codes": 0,
+    "posttest_hash_mismatches": 0
+  },
+  "task19_acceptance": {
+    "status": "completed",
+    "source_tip": "e3898db77144cded81d64a1a750f6c2d9a31eefa",
+    "groups": 3,
+    "windows_distribution_passed": 3,
+    "linux_distribution_passed": 4,
+    "linux_pg_passed": 19,
+    "windows_linux_only_skips": 1,
     "all_exit_codes": 0,
     "posttest_hash_mismatches": 0
   }
