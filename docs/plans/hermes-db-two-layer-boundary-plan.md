@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`VERIFYING`；阶段：Task20 R1整改后重新冻结；当前实施任务：Task17（复验）；完成：16 / 20；阻塞：无；日期2026-11-12。
+- 整体状态：`VERIFYING`；阶段：Task20 R1整改源冻结合同复验；当前实施任务：Task18（复验）；完成：17 / 20；阻塞：无；日期2026-11-12。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 验证策略修订：按本轮分层风险精简（2026-11-11用户指示）
@@ -1255,7 +1255,7 @@ Native3文件两端各31passed，PG2文件6passed；恢复混合断言与最严�
 
 ## Task 17：冻结最终源码并创建全新独立PM载荷
 
-状态：in_progress
+状态：completed
 
 ### 目标
 
@@ -1301,6 +1301,12 @@ Windows2/Linux3全新PM环境全部实际exit0；5个独立解释器安装身份
 
 
 结算：唯一SOURCE_TIP e3898db77144cded81d64a1a750f6c2d9a31eefa，archiveSHA256 743f6d0ce34827f994f7cd631204300933e0fb7550523a111f8124dbafcef763。五载荷使用冻结源自身PM/dev,test及精确extras，不使用resolve/rawpip/rawuv/旧载荷；当前Git可执行源与冻结源一致。完成17/20并立即本地commit，Task18启动记录实际hash；当前最终业务验收与独立审查仍未完成。
+
+
+R1复验启动：整改运行检查点0aa4f5973542615cd044ec748313c8c4b9c988be为v2唯一SOURCE_TIP；同一新archive先导出Windows source/test-driver并逐项核对24019文件0差异。Linux独立导出、5freshPM载荷及当前门禁尚待，旧初版结果不计新源通过。
+
+
+V2当前结算：SOURCE_TIP 0aa4f5973542615cd044ec748313c8c4b9c988be；两端各source/driver 24019文件构建前后0差异，5个全新PM载荷构建及5身份/依赖探针全exit0。SQLite(含LinuxMatrix)无PG栈，SDK0.21.1。当前16check/DB与插件边界/生成合同/空白全exit0。实际argv/python/cwd/home/runtime/来源见当前freeze.json和Task17.json；初版*-initial.json及旧根独立保留，未借用其结果。完成17/20后立即本地commit，继续Task18v2。
 
 ## Task 18：执行双主机分层关键合同与消费者冒烟
 

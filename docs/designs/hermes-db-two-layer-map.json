@@ -171,7 +171,7 @@
     {
       "id": 17,
       "title": "冻结最终源码并创建全新独立PM载荷",
-      "status": "in_progress",
+      "status": "completed",
       "dependencies": [
         16
       ]
@@ -2082,38 +2082,28 @@
   },
   "task17_adjustment": {
     "status": "completed",
-    "source_tip": "e3898db77144cded81d64a1a750f6c2d9a31eefa",
-    "archive_sha256": "743f6d0ce34827f994f7cd631204300933e0fb7550523a111f8124dbafcef763",
-    "tracked_files": 23998,
-    "partitions": 8,
-    "actual_linux_bootstrap_python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
-    "policy": "Actual existing PM bootstrap interpreter path replaces generic example;target payloads are all fresh.Five PM builds and postbuild hash/import checks pending.",
+    "freeze_generation": 2,
+    "source_tip": "0aa4f5973542615cd044ec748313c8c4b9c988be",
+    "archive_sha256": "737ab2a1de45973c814a439622f66445fdc0bfbf71c0b1b716cc5a985ae7b64e",
+    "tracked_files": 24019,
+    "new_payloads": 5,
+    "initial_records": "docs/designs/hermes-db-two-layer-freeze-initial.json",
+    "policy": "R1 changed runtime;all new source/driver/PM roots and current final groups required;old successes do not count.",
     "fresh_payloads": 5,
     "all_build_exit_codes": 0,
     "all_probe_exit_codes": 0,
-    "tracked_files_each": 23998,
+    "tracked_files_each": 24019,
     "source_driver_mismatches": 0
   },
   "task18_acceptance": {
-    "status": "completed",
-    "source_tip": "e3898db77144cded81d64a1a750f6c2d9a31eefa",
-    "groups": 7,
-    "windows_passed": 63,
-    "linux_passed": 69,
-    "windows_linux_only_skips": 2,
-    "all_exit_codes": 0,
-    "posttest_hash_mismatches": 0
+    "status": "pending",
+    "source_tip": "0aa4f5973542615cd044ec748313c8c4b9c988be",
+    "reason": "R1 new source requires all frozen Native/SQLite/SDK groups"
   },
   "task19_acceptance": {
-    "status": "completed",
-    "source_tip": "e3898db77144cded81d64a1a750f6c2d9a31eefa",
-    "groups": 3,
-    "windows_distribution_passed": 3,
-    "linux_distribution_passed": 4,
-    "linux_pg_passed": 19,
-    "windows_linux_only_skips": 1,
-    "all_exit_codes": 0,
-    "posttest_hash_mismatches": 0
+    "status": "pending",
+    "source_tip": "0aa4f5973542615cd044ec748313c8c4b9c988be",
+    "reason": "R1 new source requires both distribution groups andPG8files includingnewregression"
   },
   "task20_behavior_metadata_closure": {
     "planned_tests": 12,
@@ -2133,5 +2123,40 @@
       "status": "local_green_pending_newfreeze",
       "old_results": "Initial10groups158passed/3skips retained as history,not current fixed source acceptance."
     }
+  },
+  "initial_task17_adjustment": {
+    "status": "completed",
+    "source_tip": "e3898db77144cded81d64a1a750f6c2d9a31eefa",
+    "archive_sha256": "743f6d0ce34827f994f7cd631204300933e0fb7550523a111f8124dbafcef763",
+    "tracked_files": 23998,
+    "partitions": 8,
+    "actual_linux_bootstrap_python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+    "policy": "Actual existing PM bootstrap interpreter path replaces generic example;target payloads are all fresh.Five PM builds and postbuild hash/import checks pending.",
+    "fresh_payloads": 5,
+    "all_build_exit_codes": 0,
+    "all_probe_exit_codes": 0,
+    "tracked_files_each": 23998,
+    "source_driver_mismatches": 0
+  },
+  "initial_task18_acceptance": {
+    "status": "completed",
+    "source_tip": "e3898db77144cded81d64a1a750f6c2d9a31eefa",
+    "groups": 7,
+    "windows_passed": 63,
+    "linux_passed": 69,
+    "windows_linux_only_skips": 2,
+    "all_exit_codes": 0,
+    "posttest_hash_mismatches": 0
+  },
+  "initial_task19_acceptance": {
+    "status": "completed",
+    "source_tip": "e3898db77144cded81d64a1a750f6c2d9a31eefa",
+    "groups": 3,
+    "windows_distribution_passed": 3,
+    "linux_distribution_passed": 4,
+    "linux_pg_passed": 19,
+    "windows_linux_only_skips": 1,
+    "all_exit_codes": 0,
+    "posttest_hash_mismatches": 0
   }
 }

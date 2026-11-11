@@ -544,7 +544,7 @@
       ]
     },
     "test_ast_sha256": "5c7b17ba8cec45e8fd5f756bda6c9297644322e24ff983a1c95ece48fb809537",
-    "new_source_checkpoint": "pending",
+    "new_source_checkpoint": "0aa4f5973542615cd044ec748313c8c4b9c988be",
     "new_roots": [
       "D:/AI/hermes-db-packages/.build/two-layer-acceptance-final-v2",
       "/var/tmp/hermes-db-two-layer-acceptance-final-v2"
@@ -707,6 +707,7 @@
       "production_lines_added": 2,
       "business_SQL_schema_locks_changed": false,
       "new_regression_cases": 1
-    }
+    },
+    "new_freeze_generation": 2
   }
 }
