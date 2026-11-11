@@ -69,10 +69,10 @@ def kanban_resource(backend):
     values = KanbanValues(Task.from_row, Run.from_row, Comment.from_row, Attachment.from_row, Event.from_row,
         LiveClaimError, HallucinatedCardsError, EmptyCompletionError, ArtifactPreservationError, AttachmentTooLarge,
         DispatchResult, SwarmCreated)
-    from hermes_db.integration.kanban_application import (KanbanApplicationContext, KanbanProfilePolicy,
-        KanbanProcesses, KanbanObservers, KanbanFiles)
-    from hermes_db.integration.kanban_owner import board_operation_scope, board_reference
-    from hermes_db.integration.kanban_wire import pack, unpack, CommandRefusal
+    from hermes_cli.kanban_storage_application import KanbanApplicationContext, KanbanProfilePolicy, KanbanProcesses, KanbanObservers, KanbanFiles
+    from hermes_cli.kanban_storage_owner import board_operation_scope
+    from hermes_db.domains.kanban.owner import board_reference
+    from hermes_cli.kanban_storage_wire import pack, unpack, CommandRefusal
     codec = KanbanCodec(pack, unpack, CommandRefusal, board_reference)
     context = KanbanApplicationContext(scope)
     policy = KanbanProfilePolicy(context)

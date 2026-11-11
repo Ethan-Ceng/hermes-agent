@@ -731,14 +731,56 @@
     "source": "hermes_db/domains/kanban/api.py",
     "baseline_sha256": "7c0e612ea31855867f7979536393a24fab27a19a99f0a3780ab6e86e902eb590",
     "layer": "business",
-    "action": "preserve",
+    "action": "split_workflow",
     "targets": [
-      "hermes_db/domains/kanban/api.py"
+      "hermes_db/domains/kanban/api.py",
+      "hermes_cli/kanban_storage_application.py"
     ],
     "task": 13,
     "status": "pending",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
-    "symbol_routes": {},
+    "symbol_routes": {
+      "_KANBAN_MODULES": {
+        "target": "hermes_cli/kanban_storage_application.py",
+        "task": 12,
+        "action": "move",
+        "constraint": "Preserve exact original closed dispatch/worker fences, signatures and read/patch seams; no business-to-application import or old-path shim.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task12.json"
+      },
+      "domain_operation": {
+        "target": "hermes_cli/kanban_storage_application.py",
+        "task": 12,
+        "action": "move",
+        "constraint": "Preserve exact original closed dispatch/worker fences, signatures and read/patch seams; no business-to-application import or old-path shim.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task12.json"
+      },
+      "profile_operation": {
+        "target": "hermes_cli/kanban_storage_application.py",
+        "task": 12,
+        "action": "move",
+        "constraint": "Preserve exact original closed dispatch/worker fences, signatures and read/patch seams; no business-to-application import or old-path shim.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task12.json"
+      },
+      "owner_scoped_operation": {
+        "target": "hermes_cli/kanban_storage_application.py",
+        "task": 12,
+        "action": "move",
+        "constraint": "Preserve exact original closed dispatch/worker fences, signatures and read/patch seams; no business-to-application import or old-path shim.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task12.json"
+      },
+      "connect": {
+        "target": "hermes_cli/kanban_storage_application.py",
+        "task": 12,
+        "action": "move",
+        "constraint": "Preserve exact original closed dispatch/worker fences, signatures and read/patch seams; no business-to-application import or old-path shim.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task12.json"
+      }
+    },
     "application_imports": [
       {
         "line": 239,
@@ -762,7 +804,8 @@
       "profile_operation",
       "owner_scoped_operation",
       "connect"
-    ]
+    ],
+    "task12_refinement": "Owner/Profile/Worker selectors are actual application routing; move them with Task12. BoardResource/DTO/business state remain here and primary Task13 stays pending."
   },
   {
     "source": "hermes_db/domains/kanban/postgres/__init__.py",
@@ -8714,7 +8757,7 @@
       "hermes_cli/kanban_storage_application.py"
     ],
     "task": 12,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "ef6012374ffbc10f61ca353f23469cdbb9f8eaaf4078816c7d751d3738ec9b68",
@@ -8725,7 +8768,8 @@
       "KanbanObservers",
       "KanbanFiles",
       "count_notify_subs"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task12.json"
   },
   {
     "source": "hermes_db/integration/kanban_owner.py",
@@ -8737,74 +8781,104 @@
       "hermes_db/domains/kanban/owner.py"
     ],
     "task": 12,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {
       "board_reference": {
         "target": "hermes_db/domains/kanban/owner.py",
         "task": 12,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task12.json"
       },
       "validate_reference": {
         "target": "hermes_db/domains/kanban/owner.py",
         "task": 12,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve business signature/result/exception and actual read/patch seams.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task12.json"
       },
       "open_board_owner": {
         "target": "hermes_cli/kanban_storage_owner.py",
         "task": 12,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task12.json"
       },
       "BoardFiles": {
         "target": "hermes_cli/kanban_storage_owner.py",
         "task": 12,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task12.json"
       },
       "board_files": {
         "target": "hermes_cli/kanban_storage_owner.py",
         "task": 12,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task12.json"
       },
       "_captured": {
         "target": "hermes_cli/kanban_storage_owner.py",
         "task": 12,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task12.json"
       },
       "content_root": {
         "target": "hermes_cli/kanban_storage_owner.py",
         "task": 12,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task12.json"
       },
       "_path": {
         "target": "hermes_cli/kanban_storage_owner.py",
         "task": 12,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task12.json"
       },
       "generation_path": {
         "target": "hermes_cli/kanban_storage_owner.py",
         "task": 12,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task12.json"
       },
       "managed_scratch_roots": {
         "target": "hermes_cli/kanban_storage_owner.py",
         "task": 12,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task12.json",
+        "extracted_query": {
+          "target": "hermes_db/domains/kanban/owner.py",
+          "symbol": "board_generations",
+          "signature": "(conn,store_id)",
+          "task": 12,
+          "status": "completed",
+          "reason": "Original SELECT columns,predicate and row materialization preserved on the same supplied Connection;app retains acquire/home/path coordination."
+        }
       },
       "board_operation_scope": {
         "target": "hermes_cli/kanban_storage_owner.py",
         "task": 12,
         "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task12.json"
       }
     },
     "baseline_abi_sha256": "2b26316b9b05518ed1533e244b1e8d4b867284e76184b7d3e3ded8b1b123cc45",
@@ -8820,7 +8894,8 @@
       "generation_path",
       "managed_scratch_roots",
       "board_operation_scope"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task12.json"
   },
   {
     "source": "hermes_db/integration/kanban_wire.py",
@@ -8831,7 +8906,7 @@
       "hermes_cli/kanban_storage_wire.py"
     ],
     "task": 12,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "2689fe72d36f7691eb3f910e5972c7d0eec0f6ad9a01c4728206e6c90b1ab1d9",
@@ -8839,7 +8914,8 @@
       "CommandRefusal",
       "pack",
       "unpack"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task12.json"
   },
   {
     "source": "hermes_db/integration/kanban_worker.py",
@@ -8850,7 +8926,7 @@
       "agent/runtime_kanban_storage.py"
     ],
     "task": 12,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "55f5410b09bdfa8a6a696fa35f280890c8d6a8557044e7c59e95ffd954e0dca5",
@@ -8859,7 +8935,8 @@
       "worker_binding",
       "connect_worker_board",
       "WorkerBoardResource"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task12.json"
   },
   {
     "source": "hermes_db/integration/local_access.py",

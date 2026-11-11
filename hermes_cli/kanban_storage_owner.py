@@ -7,26 +7,12 @@ from pathlib import Path
 
 from hermes_db.domains.kanban.api import BoardResource
 from hermes_db.errors import StorageConfigurationError
-
-_FIELDS = {"version", "backend", "profile_home", "store_id", "board_id", "board", "target"}
-
-
-def board_reference(store):
-    from hermes_db.core.values import resource_key
-    return {"version": 2, "backend": "postgresql", "profile_home": str(store.scope.profile_home),
-            "store_id": store.scope.require_store_id(), "board_id": store.board_id, "board": store.slug,
-            "target": resource_key(store._transactions)}
+from hermes_db.domains.kanban.owner import validate_reference, board_generations
 
 
-def validate_reference(reference):
-    from hermes_db.domains.kanban.rules import _require_slug
-    if (not isinstance(reference, dict) or set(reference) != _FIELDS or type(reference["version"]) is not int
-            or reference["version"] != 2 or reference["backend"] != "postgresql"
-            or any(not isinstance(reference[key], str) or not 0 < len(reference[key]) <= 4096
-                   for key in _FIELDS - {"version"}) or not Path(reference["profile_home"]).is_absolute()):
-        raise StorageConfigurationError("Invalid Kanban Board owner reference")
-    _require_slug(reference["board"])
-    return reference
+
+
+
 
 
 @contextmanager
@@ -83,7 +69,7 @@ def _captured():
     frame = _current_files.get()
     if frame is not None:
         return frame
-    from hermes_db.integration.kanban_worker import worker_binding
+    from agent.runtime_kanban_storage import worker_binding
     binding = worker_binding()
     if binding is not None:
         owner = binding[1]["owner"]
@@ -113,22 +99,22 @@ def generation_path(env_var, board, leaf):
         return None
     from agent.runtime_session_store import is_worker_process
     if is_worker_process():
-        from hermes_db.integration.kanban_worker import connect_worker_board
+        from agent.runtime_kanban_storage import connect_worker_board
         with connect_worker_board(board=slug) as proxy:
             owner = proxy.context["owner"]
             return _path(BoardFiles(Path(owner["profile_home"]), owner["board_id"], owner["board"]), env_var, leaf)
-    from hermes_db.domains.kanban.api import connect
+    from hermes_cli.kanban_storage_application import connect
     with connect(board=slug) as store:
         return _path(BoardFiles(store.scope.profile_home, store.board_id, store.slug), env_var, leaf)
 
 
 def managed_scratch_roots():
     from hermes_cli.db_setup import storage_backend
-    from hermes_db.integration.kanban_worker import worker_binding
+    from agent.runtime_kanban_storage import worker_binding
     frame = _captured()
     from agent.runtime_session_store import is_worker_process
     if frame is None and is_worker_process() and storage_backend() == "postgresql":
-        from hermes_db.integration.kanban_worker import connect_worker_board
+        from agent.runtime_kanban_storage import connect_worker_board
         with connect_worker_board() as proxy:
             owner = proxy.context["owner"]
             frame = BoardFiles(Path(owner["profile_home"]), owner["board_id"], owner["board"])
@@ -136,12 +122,9 @@ def managed_scratch_roots():
         return [(_path(frame, "HERMES_KANBAN_WORKSPACES_ROOT", "workspaces"), frame.slug)]
     if frame is None and storage_backend() != "postgresql":
         return []
-    from sqlalchemy import select
     from hermes_cli.db_domains import acquire_profile_domain
-    from hermes_db.tables.kanban import kanban_boards
     with acquire_profile_domain("kanban_tasks", profile_home=frame.home if frame else None) as resource, resource.read() as conn:
-        boards = list(conn.execute(select(kanban_boards.c.board_id, kanban_boards.c.slug).where(
-            kanban_boards.c.store_id == resource.scope.require_store_id())))
+        boards = board_generations(conn, resource.scope.require_store_id())
         home = resource.scope.profile_home
     return [(_path(BoardFiles(home, row.board_id, row.slug), "HERMES_KANBAN_WORKSPACES_ROOT", "workspaces"), row.slug) for row in boards]
 

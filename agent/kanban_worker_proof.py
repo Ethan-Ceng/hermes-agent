@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 def adopted_claim_proof(task_id, db_path, run_id, claim_lock):
-    from hermes_db.integration.kanban_worker import worker_binding
+    from agent.runtime_kanban_storage import worker_binding
     binding = worker_binding()
     if binding is None:
         return None

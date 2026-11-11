@@ -6,7 +6,7 @@ import sqlite3
 import time
 import psutil
 
-from hermes_db.domains.kanban.api import domain_operation
+from hermes_cli.kanban_storage_application import domain_operation
 from hermes_db.domains.kanban.rules import TaskEvidence, typed_owner_receipt
 
 

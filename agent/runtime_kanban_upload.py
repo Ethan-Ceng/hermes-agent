@@ -10,7 +10,7 @@ def upload_attachment(proxy, args, kwargs):
     from agent.runtime_session_store import call_off_event_loop
     from gateway.session_worker_kanban_upload import CHUNK_BYTES
     from hermes_cli import kanban_db as kb
-    from hermes_db.integration.kanban_wire import pack, unpack, CommandRefusal
+    from hermes_cli.kanban_storage_wire import pack, unpack, CommandRefusal
     bound = inspect.signature(kb.store_attachment_bytes).bind(proxy, *args, **kwargs)
     fields = bound.arguments
     data = fields["data"]

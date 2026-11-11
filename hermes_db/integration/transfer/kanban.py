@@ -7,7 +7,7 @@ import shutil
 import tempfile
 import time
 from sqlalchemy import select, LargeBinary, update
-from hermes_db.integration.kanban_owner import BoardFiles, _path
+from hermes_cli.kanban_storage_owner import BoardFiles, _path
 from hermes_db.domains.kanban.postgres import repository as repo
 from hermes_db.tables.kanban import tasks, links, comments, events, runs, kanban_boards
 from hermes_db.tables.kanban_artifacts import attachments

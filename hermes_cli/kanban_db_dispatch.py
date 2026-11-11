@@ -28,7 +28,7 @@ from typing import Mapping
 from typing import Optional
 
 from hermes_cli.quiet_single_query import KANBAN_WORKER_EXIT_TRAILER
-from hermes_db.domains.kanban.api import domain_operation
+from hermes_cli.kanban_storage_application import domain_operation
 
 if TYPE_CHECKING:
     from hermes_cli.kanban_db import Task

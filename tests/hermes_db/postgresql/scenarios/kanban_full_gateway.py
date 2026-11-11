@@ -118,7 +118,7 @@ def wait_completion(store, task_id, home):
 
 def run_worker_probe(pg_profiles, tmp_path, monkeypatch, *, owner_module="gateway.run", separate_profile=False):
     from hermes_cli.config import atomic_config_write, read_user_config_raw
-    from hermes_db.integration.kanban_owner import board_reference
+    from hermes_db.domains.kanban.owner import board_reference
     from tests.gateway.fixtures.local_recovery_probe import child_env
     root = Path(__file__).resolve().parents[4]
     guard = tmp_path / "guard"

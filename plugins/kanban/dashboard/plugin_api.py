@@ -39,7 +39,6 @@ from hermes_cli import kanban_db_workspace as kbw
 from hermes_cli import kanban_diagnostics as kd
 from hermes_cli import kanban_db_queries as queries
 from hermes_db.errors import StorageError
-from hermes_db.domains.kanban.api import domain_operation
 from hermes_cli.kanban_db import KANBAN_ATTACHMENT_MAX_BYTES, _collision_free_path, _safe_attachment_name
 
 log = logging.getLogger(__name__)
@@ -685,7 +684,7 @@ def delete_task(task_id: str, board: Optional[str] = Query(None)):
         return {"deleted": True, "task_id": task_id}
 
 
-@domain_operation("dashboard")
+@kanban_db.domain_operation("dashboard")
 def _parents_blocking_ready(conn: sqlite3.Connection, task_id: str) -> list:
     """Parent rows (id, title, status) not ``done`` that block promotion to ``ready``.
 
@@ -701,7 +700,7 @@ def _parents_blocking_ready(conn: sqlite3.Connection, task_id: str) -> list:
     return [{"id": r["id"], "title": r["title"], "status": r["status"]} for r in rows]
 
 
-@domain_operation("dashboard")
+@kanban_db.domain_operation("dashboard")
 def _set_status_direct(conn: sqlite3.Connection, task_id: str, new_status: str) -> bool:
     """Direct status write for drag-drop moves without a structured verb (todo<->ready,
     running<->ready) + a ``status`` event. Leaving ``running`` closes the run as 'reclaimed'

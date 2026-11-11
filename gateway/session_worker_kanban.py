@@ -2,8 +2,8 @@
 
 import asyncio
 
-from hermes_db.integration.kanban_owner import open_board_owner
-from hermes_db.integration.kanban_wire import pack
+from hermes_cli.kanban_storage_owner import open_board_owner
+from hermes_cli.kanban_storage_wire import pack
 from hermes_db.errors import StorageError
 from hermes_db.domains.kanban.postgres.receipts import CommandReceipt, CommandReplay, refusal
 from hermes_state_keys import admission_fingerprint

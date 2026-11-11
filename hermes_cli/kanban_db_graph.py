@@ -5,7 +5,7 @@ from hermes_db.domains.kanban.rules import _validate_children_graph
 import sqlite3
 import time
 from typing import Any, Optional
-from hermes_db.domains.kanban.api import domain_operation
+from hermes_cli.kanban_storage_application import domain_operation
 
 def inherit_creator_origin(
     conn: sqlite3.Connection, task_id: str, creator_task_id: Optional[str], *,

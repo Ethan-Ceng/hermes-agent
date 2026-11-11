@@ -757,13 +757,13 @@ def _open_checked_existing(path: Path):
 
 def connect(db_path: Optional[Path] = None, *, board: Optional[str] = None) -> sqlite3.Connection:
     """Open an initialized board with its established WAL and file-generation policy."""
-    from hermes_db.integration.kanban_worker import connect_worker_board
+    from agent.runtime_kanban_storage import connect_worker_board
     worker = connect_worker_board(db_path, board=board)
     if worker is not None:
         return worker
     from hermes_cli.db_setup import storage_backend
     if storage_backend() == "postgresql":
-        from hermes_db.domains.kanban.api import connect as connect_board
+        from hermes_cli.kanban_storage_application import connect as connect_board
         return connect_board(board)
     path = db_path if db_path is not None else _kb.kanban_db_path(board=board)
     from agent.delegation_context import kanban_path_is_fenced

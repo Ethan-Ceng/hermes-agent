@@ -316,7 +316,7 @@ class _Collector:
             return None
         from hermes_db.domains.kanban.api import BoardResource
         if isinstance(conn, BoardResource):
-            from hermes_db.integration.kanban_owner import board_reference
+            from hermes_db.domains.kanban.owner import board_reference
             sub = dict(sub, _board_owner=board_reference(conn))
         task = self.kb.get_task(conn, sub["task_id"])
         logger.debug("kanban notifier: claimed %d event(s) for %s on board %s cursor %s→%s",

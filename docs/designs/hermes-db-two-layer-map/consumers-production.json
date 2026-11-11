@@ -29,7 +29,11 @@
     "providers": [
       1
     ],
-    "lines": [152,153,156]
+    "lines": [
+      152,
+      153,
+      156
+    ]
   },
   {
     "path": "acp_adapter/server.py",
@@ -50,7 +54,11 @@
       2,
       5
     ],
-    "providers": [1,250,253],
+    "providers": [
+      1,
+      250,
+      253
+    ],
     "lines": [
       10,
       11,
@@ -125,7 +133,11 @@
     "providers": [
       481
     ],
-    "lines": [1203,1212,1237]
+    "lines": [
+      1203,
+      1212,
+      1237
+    ]
   },
   {
     "path": "agent/codex_runtime.py",
@@ -392,7 +404,11 @@
     "providers": [
       481
     ],
-    "lines": [79,81,89]
+    "lines": [
+      79,
+      81,
+      89
+    ]
   },
   {
     "path": "agent/prompt_builder.py",
@@ -402,7 +418,11 @@
     "providers": [
       481
     ],
-    "lines": [1201,1202,1203]
+    "lines": [
+      1201,
+      1202,
+      1203
+    ]
   },
   {
     "path": "agent/prompt_refresh.py",
@@ -559,7 +579,11 @@
     "providers": [
       481
     ],
-    "lines": [112,119,130]
+    "lines": [
+      112,
+      119,
+      130
+    ]
   },
   {
     "path": "agent/side_question_lease.py",
@@ -582,7 +606,11 @@
     "providers": [
       481
     ],
-    "lines": [682,687,688]
+    "lines": [
+      682,
+      687,
+      688
+    ]
   },
   {
     "path": "agent/system_prompt.py",
@@ -610,8 +638,16 @@
   },
   {
     "path": "agent/title_generator.py",
-    "tasks": [4,8,13],
-    "providers": [362,365,466],
+    "tasks": [
+      4,
+      8,
+      13
+    ],
+    "providers": [
+      362,
+      365,
+      466
+    ],
     "lines": [
       721,
       722,
@@ -625,7 +661,11 @@
       4,
       16
     ],
-    "providers": [365,481,498],
+    "providers": [
+      365,
+      481,
+      498
+    ],
     "lines": [
       61,
       91,
@@ -646,7 +686,11 @@
     "providers": [
       1
     ],
-    "lines": [229,230,236]
+    "lines": [
+      229,
+      230,
+      236
+    ]
   },
   {
     "path": "agent/transcript_repair.py",
@@ -711,8 +755,16 @@
   },
   {
     "path": "agent/turn_finalizer.py",
-    "tasks": [8,13,16],
-    "providers": [362,466,481],
+    "tasks": [
+      8,
+      13,
+      16
+    ],
+    "providers": [
+      362,
+      466,
+      481
+    ],
     "lines": [
       63,
       65,
@@ -778,7 +830,11 @@
       3,
       11
     ],
-    "providers": [247,249,364],
+    "providers": [
+      247,
+      249,
+      364
+    ],
     "lines": [
       6,
       122,
@@ -893,7 +949,11 @@
     "providers": [
       481
     ],
-    "lines": [142,144,145]
+    "lines": [
+      142,
+      144,
+      145
+    ]
   },
   {
     "path": "cron/bot_chat_legacy.py",
@@ -1086,7 +1146,11 @@
     "tasks": [
       8
     ],
-    "providers": [435,437,438],
+    "providers": [
+      435,
+      437,
+      438
+    ],
     "lines": [
       245,
       246,
@@ -1178,7 +1242,11 @@
   },
   {
     "path": "cron/scheduler.py",
-    "tasks": [5,8,16],
+    "tasks": [
+      5,
+      8,
+      16
+    ],
     "providers": [
       1,
       374,
@@ -1333,7 +1401,11 @@
       7,
       8
     ],
-    "providers": [361,434,438],
+    "providers": [
+      361,
+      434,
+      438
+    ],
     "lines": [
       6,
       7,
@@ -1345,7 +1417,11 @@
   },
   {
     "path": "cron/scheduler_delivery_room.py",
-    "tasks": [7,8,14],
+    "tasks": [
+      7,
+      8,
+      14
+    ],
     "providers": [
       96,
       116,
@@ -1579,7 +1655,11 @@
     "providers": [
       438
     ],
-    "lines": [175,184,185]
+    "lines": [
+      175,
+      184,
+      185
+    ]
   },
   {
     "path": "evals/api_delegation_http_probe.py",
@@ -1628,7 +1708,11 @@
     "providers": [
       495
     ],
-    "lines": [109,110,157]
+    "lines": [
+      109,
+      110,
+      157
+    ]
   },
   {
     "path": "evals/core_tool_deferral/worker.py",
@@ -1651,7 +1735,11 @@
     "providers": [
       438
     ],
-    "lines": [47,48,69]
+    "lines": [
+      47,
+      48,
+      69
+    ]
   },
   {
     "path": "evals/delivery_flood_wire.py",
@@ -1782,7 +1870,11 @@
     "providers": [
       365
     ],
-    "lines": [136,202,211]
+    "lines": [
+      136,
+      202,
+      211
+    ]
   },
   {
     "path": "evals/hosted_attachment_transfer/bench.py",
@@ -1822,7 +1914,11 @@
       8,
       13
     ],
-    "providers": [362,466,468],
+    "providers": [
+      362,
+      466,
+      468
+    ],
     "lines": [
       29,
       32,
@@ -1902,7 +1998,11 @@
     "providers": [
       365
     ],
-    "lines": [194,205,213]
+    "lines": [
+      194,
+      205,
+      213
+    ]
   },
   {
     "path": "evals/postmortem/review_probes/context_cap_probe.py",
@@ -1984,7 +2084,11 @@
     "providers": [
       365
     ],
-    "lines": [26,41,119]
+    "lines": [
+      26,
+      41,
+      119
+    ]
   },
   {
     "path": "evals/session_search_schema/runner.py",
@@ -2047,7 +2151,11 @@
     "providers": [
       365
     ],
-    "lines": [195,201,213]
+    "lines": [
+      195,
+      201,
+      213
+    ]
   },
   {
     "path": "evals/tool_search/tool_search_livetest2.py",
@@ -2057,7 +2165,11 @@
     "providers": [
       481
     ],
-    "lines": [106,107,108]
+    "lines": [
+      106,
+      107,
+      108
+    ]
   },
   {
     "path": "gateway/authz_mixin.py",
@@ -2082,7 +2194,11 @@
     "providers": [
       1
     ],
-    "lines": [352,353,360]
+    "lines": [
+      352,
+      353,
+      360
+    ]
   },
   {
     "path": "gateway/config.py",
@@ -2125,8 +2241,16 @@
   },
   {
     "path": "gateway/delivery_backend.py",
-    "tasks": [5,7,9],
-    "providers": [125,251,361],
+    "tasks": [
+      5,
+      7,
+      9
+    ],
+    "providers": [
+      125,
+      251,
+      361
+    ],
     "lines": [
       13,
       15,
@@ -2155,7 +2279,11 @@
   },
   {
     "path": "gateway/hosted_room_attachments.py",
-    "tasks": [3,8,14],
+    "tasks": [
+      3,
+      8,
+      14
+    ],
     "providers": [
       96,
       99,
@@ -2687,7 +2815,11 @@
   },
   {
     "path": "gateway/hosted_room_policy_checkpoint.py",
-    "tasks": [3,8,14],
+    "tasks": [
+      3,
+      8,
+      14
+    ],
     "providers": [
       96,
       116,
@@ -2930,7 +3062,11 @@
       8,
       14
     ],
-    "providers": [117,444,447],
+    "providers": [
+      117,
+      444,
+      447
+    ],
     "lines": [
       2,
       6,
@@ -2955,7 +3091,11 @@
   },
   {
     "path": "gateway/hosted_rooms.py",
-    "tasks": [7,8,14],
+    "tasks": [
+      7,
+      8,
+      14
+    ],
     "providers": [
       96,
       116,
@@ -3319,7 +3459,11 @@
   },
   {
     "path": "gateway/kanban_watchers.py",
-    "tasks": [8,12,13],
+    "tasks": [
+      8,
+      12,
+      13
+    ],
     "providers": [
       262,
       362,
@@ -3364,7 +3508,11 @@
       8,
       13
     ],
-    "providers": [362,466,468],
+    "providers": [
+      362,
+      466,
+      468
+    ],
     "lines": [
       22,
       27,
@@ -3378,7 +3526,11 @@
   },
   {
     "path": "gateway/kanban_watchers_notifier.py",
-    "tasks": [8,12,13],
+    "tasks": [
+      8,
+      12,
+      13
+    ],
     "providers": [
       30,
       262,
@@ -3589,7 +3741,11 @@
   },
   {
     "path": "gateway/platforms/api_server_bot_chat.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       253,
       265,
@@ -3645,7 +3801,11 @@
   },
   {
     "path": "gateway/platforms/api_server_response_admissions.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       253,
       283,
@@ -3675,7 +3835,11 @@
   },
   {
     "path": "gateway/platforms/api_server_response_store.py",
-    "tasks": [3,9,16],
+    "tasks": [
+      3,
+      9,
+      16
+    ],
     "providers": [
       170,
       364,
@@ -3737,7 +3901,11 @@
       3,
       9
     ],
-    "providers": [170,364,426],
+    "providers": [
+      170,
+      364,
+      426
+    ],
     "lines": [
       2,
       16,
@@ -3760,7 +3928,11 @@
   },
   {
     "path": "gateway/platforms/api_server_runs.py",
-    "tasks": [2,15,16],
+    "tasks": [
+      2,
+      15,
+      16
+    ],
     "providers": [
       250,
       281,
@@ -3792,8 +3964,16 @@
   },
   {
     "path": "gateway/platforms/api_server_session_create.py",
-    "tasks": [5,9,16],
-    "providers": [253,282,399],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
+    "providers": [
+      253,
+      282,
+      399
+    ],
     "lines": [
       8,
       9,
@@ -3892,12 +4072,24 @@
     "providers": [
       283
     ],
-    "lines": [840,842,847]
+    "lines": [
+      840,
+      842,
+      847
+    ]
   },
   {
     "path": "gateway/platforms/webhook_delivery.py",
-    "tasks": [5,9,16],
-    "providers": [253,282,411],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
+    "providers": [
+      253,
+      282,
+      411
+    ],
     "lines": [
       6,
       15,
@@ -3917,7 +4109,11 @@
   },
   {
     "path": "gateway/platforms/webhook_ingress.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       253,
       282,
@@ -4042,7 +4238,11 @@
     "providers": [
       495
     ],
-    "lines": [18,21,22]
+    "lines": [
+      18,
+      21,
+      22
+    ]
   },
   {
     "path": "gateway/run_adapters.py",
@@ -4052,7 +4252,11 @@
     "providers": [
       481
     ],
-    "lines": [1077,1078,1079]
+    "lines": [
+      1077,
+      1078,
+      1079
+    ]
   },
   {
     "path": "gateway/run_adapters_recovery.py",
@@ -4091,7 +4295,11 @@
     "providers": [
       454
     ],
-    "lines": [442,444,528]
+    "lines": [
+      442,
+      444,
+      528
+    ]
   },
   {
     "path": "gateway/run_bootstrap.py",
@@ -4099,7 +4307,11 @@
       8,
       16
     ],
-    "providers": [407,450,454],
+    "providers": [
+      407,
+      450,
+      454
+    ],
     "lines": [
       21,
       24,
@@ -4148,7 +4360,11 @@
       5,
       16
     ],
-    "providers": [253,411,498],
+    "providers": [
+      253,
+      411,
+      498
+    ],
     "lines": [
       25,
       35,
@@ -4286,7 +4502,11 @@
     "tasks": [
       16
     ],
-    "providers": [382,411,481],
+    "providers": [
+      382,
+      411,
+      481
+    ],
     "lines": [
       29,
       31,
@@ -4306,7 +4526,11 @@
     "providers": [
       481
     ],
-    "lines": [92,110,111]
+    "lines": [
+      92,
+      110,
+      111
+    ]
   },
   {
     "path": "gateway/run_profile_reconcile.py",
@@ -4331,7 +4555,11 @@
   },
   {
     "path": "gateway/run_runtime.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       1,
       253,
@@ -4422,7 +4650,11 @@
       8,
       16
     ],
-    "providers": [439,481,495],
+    "providers": [
+      439,
+      481,
+      495
+    ],
     "lines": [
       378,
       379,
@@ -4505,7 +4737,11 @@
     "providers": [
       487
     ],
-    "lines": [27,40,43]
+    "lines": [
+      27,
+      40,
+      43
+    ]
   },
   {
     "path": "gateway/runtime_ownership.py",
@@ -4534,7 +4770,11 @@
   },
   {
     "path": "gateway/session_a2a.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       137,
       163,
@@ -4580,7 +4820,11 @@
       9,
       16
     ],
-    "providers": [170,265,411],
+    "providers": [
+      170,
+      265,
+      411
+    ],
     "lines": [
       10,
       11,
@@ -4674,7 +4918,11 @@
   },
   {
     "path": "gateway/session_api.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       137,
       163,
@@ -4756,7 +5004,11 @@
   },
   {
     "path": "gateway/session_api_media.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       171,
       253,
@@ -4850,7 +5102,11 @@
   },
   {
     "path": "gateway/session_authorities.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       253,
       257,
@@ -4875,7 +5131,11 @@
   },
   {
     "path": "gateway/session_authority.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       137,
       170,
@@ -4979,7 +5239,11 @@
   },
   {
     "path": "gateway/session_automation.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       137,
       140,
@@ -5058,7 +5322,11 @@
   },
   {
     "path": "gateway/session_bot.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       137,
       170,
@@ -5215,7 +5483,11 @@
     "providers": [
       411
     ],
-    "lines": [12,22,34]
+    "lines": [
+      12,
+      22,
+      34
+    ]
   },
   {
     "path": "gateway/session_cli_turn.py",
@@ -5276,7 +5548,11 @@
     "providers": [
       411
     ],
-    "lines": [12,18,24]
+    "lines": [
+      12,
+      18,
+      24
+    ]
   },
   {
     "path": "gateway/session_config.py",
@@ -5344,7 +5620,11 @@
   },
   {
     "path": "gateway/session_controls.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       253,
       265,
@@ -5472,11 +5752,19 @@
     "providers": [
       19
     ],
-    "lines": [51,52,55]
+    "lines": [
+      51,
+      52,
+      55
+    ]
   },
   {
     "path": "gateway/session_deferred_pick.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       119,
       170,
@@ -5712,8 +6000,16 @@
   },
   {
     "path": "gateway/session_group_peers.py",
-    "tasks": [8,14,16],
-    "providers": [116,411,446],
+    "tasks": [
+      8,
+      14,
+      16
+    ],
+    "providers": [
+      116,
+      411,
+      446
+    ],
     "lines": [
       11,
       39,
@@ -5747,7 +6043,11 @@
   },
   {
     "path": "gateway/session_history_mount.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       170,
       253,
@@ -5862,7 +6162,11 @@
   },
   {
     "path": "gateway/session_hosted_member_homes.py",
-    "tasks": [5,8,14],
+    "tasks": [
+      5,
+      8,
+      14
+    ],
     "providers": [
       105,
       109,
@@ -6225,7 +6529,11 @@
   },
   {
     "path": "gateway/session_ingress_media.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       253,
       282,
@@ -6356,7 +6664,11 @@
   },
   {
     "path": "gateway/session_kanban_pg_worker.py",
-    "tasks": [12,13,16],
+    "tasks": [
+      12,
+      13,
+      16
+    ],
     "providers": [
       41,
       262,
@@ -6501,7 +6813,11 @@
   },
   {
     "path": "gateway/session_listing.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       253,
       257,
@@ -6535,7 +6851,11 @@
   },
   {
     "path": "gateway/session_live_listing.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       170,
       253,
@@ -6574,7 +6894,11 @@
   },
   {
     "path": "gateway/session_local.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       170,
       253,
@@ -6622,7 +6946,11 @@
       5,
       16
     ],
-    "providers": [253,385,411],
+    "providers": [
+      253,
+      385,
+      411
+    ],
     "lines": [
       13,
       28,
@@ -6692,7 +7020,11 @@
       9,
       16
     ],
-    "providers": [265,382,411],
+    "providers": [
+      265,
+      382,
+      411
+    ],
     "lines": [
       24,
       46,
@@ -6726,7 +7058,11 @@
   },
   {
     "path": "gateway/session_local_migration.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       170,
       253,
@@ -6897,7 +7233,11 @@
   },
   {
     "path": "gateway/session_managed_worker.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       253,
       257,
@@ -7005,11 +7345,19 @@
     "providers": [
       411
     ],
-    "lines": [10,49,64]
+    "lines": [
+      10,
+      49,
+      64
+    ]
   },
   {
     "path": "gateway/session_mutations.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       119,
       175,
@@ -7081,7 +7429,11 @@
   },
   {
     "path": "gateway/session_native_history.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       170,
       253,
@@ -7115,8 +7467,16 @@
   },
   {
     "path": "gateway/session_onboarding.py",
-    "tasks": [5,9,16],
-    "providers": [253,265,411],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
+    "providers": [
+      253,
+      265,
+      411
+    ],
     "lines": [
       13,
       22,
@@ -7261,7 +7621,11 @@
   },
   {
     "path": "gateway/session_policy.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       170,
       253,
@@ -7317,7 +7681,11 @@
   },
   {
     "path": "gateway/session_policy_refresh.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       253,
       257,
@@ -7360,7 +7728,11 @@
   },
   {
     "path": "gateway/session_queued_controls.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       137,
       140,
@@ -7450,7 +7822,11 @@
   },
   {
     "path": "gateway/session_results.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       141,
       170,
@@ -7568,7 +7944,11 @@
       9,
       16
     ],
-    "providers": [265,396,411],
+    "providers": [
+      265,
+      396,
+      411
+    ],
     "lines": [
       93,
       94,
@@ -7698,7 +8078,11 @@
       4,
       16
     ],
-    "providers": [365,374,410],
+    "providers": [
+      365,
+      374,
+      410
+    ],
     "lines": [
       221,
       222,
@@ -7768,7 +8152,11 @@
       4,
       16
     ],
-    "providers": [365,396,411],
+    "providers": [
+      365,
+      396,
+      411
+    ],
     "lines": [
       21,
       53,
@@ -7833,7 +8221,11 @@
   },
   {
     "path": "gateway/session_unattended_unknown.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       253,
       282,
@@ -7893,7 +8285,11 @@
   },
   {
     "path": "gateway/session_viewer_close.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       170,
       253,
@@ -7953,7 +8349,11 @@
   },
   {
     "path": "gateway/session_worker.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       171,
       253,
@@ -7994,7 +8394,11 @@
   },
   {
     "path": "gateway/session_worker_child.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       142,
       170,
@@ -8043,7 +8447,11 @@
   },
   {
     "path": "gateway/session_worker_delegation.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       171,
       253,
@@ -8108,7 +8516,11 @@
   },
   {
     "path": "gateway/session_worker_domains.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       20,
       253,
@@ -8236,7 +8648,11 @@
   },
   {
     "path": "gateway/session_worker_kanban_operations.py",
-    "tasks": [12,13,16],
+    "tasks": [
+      12,
+      13,
+      16
+    ],
     "providers": [
       41,
       45,
@@ -8277,8 +8693,16 @@
   },
   {
     "path": "gateway/session_worker_kanban_upload.py",
-    "tasks": [2,13,16],
-    "providers": [250,411,466],
+    "tasks": [
+      2,
+      13,
+      16
+    ],
+    "providers": [
+      250,
+      411,
+      466
+    ],
     "lines": [
       11,
       17,
@@ -8313,7 +8737,11 @@
       7,
       11
     ],
-    "providers": [51,290,361],
+    "providers": [
+      51,
+      290,
+      361
+    ],
     "lines": [
       3,
       4,
@@ -8329,7 +8757,11 @@
       5,
       16
     ],
-    "providers": [253,328,411],
+    "providers": [
+      253,
+      328,
+      411
+    ],
     "lines": [
       5,
       22,
@@ -8343,7 +8775,11 @@
   },
   {
     "path": "gateway/session_worker_recall.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       253,
       282,
@@ -8370,7 +8806,11 @@
   },
   {
     "path": "gateway/session_worker_reservation.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       171,
       253,
@@ -8546,7 +8986,11 @@
     "providers": [
       379
     ],
-    "lines": [34,44,59]
+    "lines": [
+      34,
+      44,
+      59
+    ]
   },
   {
     "path": "gateway/wake.py",
@@ -8580,8 +9024,16 @@
   },
   {
     "path": "hermes_cli/approvals_suggest.py",
-    "tasks": [2,7,11],
-    "providers": [250,269,361],
+    "tasks": [
+      2,
+      7,
+      11
+    ],
+    "providers": [
+      250,
+      269,
+      361
+    ],
     "lines": [
       153,
       156,
@@ -8595,7 +9047,11 @@
   },
   {
     "path": "hermes_cli/backup.py",
-    "tasks": [3,4,16],
+    "tasks": [
+      3,
+      4,
+      16
+    ],
     "providers": [
       371,
       379,
@@ -8781,7 +9237,11 @@
     "providers": [
       438
     ],
-    "lines": [231,232,233]
+    "lines": [
+      231,
+      232,
+      233
+    ]
   },
   {
     "path": "hermes_cli/cli_agent_setup_mixin.py",
@@ -8841,7 +9301,11 @@
   },
   {
     "path": "hermes_cli/cli_commands_mixin.py",
-    "tasks": [4,5,16],
+    "tasks": [
+      4,
+      5,
+      16
+    ],
     "providers": [
       1,
       365,
@@ -8959,7 +9423,11 @@
     "providers": [
       495
     ],
-    "lines": [45,54,58]
+    "lines": [
+      45,
+      54,
+      58
+    ]
   },
   {
     "path": "hermes_cli/cli_session_mixin.py",
@@ -8967,7 +9435,11 @@
       4,
       16
     ],
-    "providers": [365,381,416],
+    "providers": [
+      365,
+      381,
+      416
+    ],
     "lines": [
       17,
       117,
@@ -8996,8 +9468,16 @@
   },
   {
     "path": "hermes_cli/cli_single_query.py",
-    "tasks": [8,13,16],
-    "providers": [362,431,466],
+    "tasks": [
+      8,
+      13,
+      16
+    ],
+    "providers": [
+      362,
+      431,
+      466
+    ],
     "lines": [
       74,
       75,
@@ -9021,7 +9501,11 @@
       5,
       16
     ],
-    "providers": [1,458,463],
+    "providers": [
+      1,
+      458,
+      463
+    ],
     "lines": [
       16,
       20,
@@ -9184,7 +9668,11 @@
     "providers": [
       462
     ],
-    "lines": [12,35,107]
+    "lines": [
+      12,
+      35,
+      107
+    ]
   },
   {
     "path": "hermes_cli/config_worker_save.py",
@@ -9201,7 +9689,11 @@
   },
   {
     "path": "hermes_cli/console_engine.py",
-    "tasks": [4,5,16],
+    "tasks": [
+      4,
+      5,
+      16
+    ],
     "providers": [
       1,
       365,
@@ -9349,8 +9841,16 @@
   },
   {
     "path": "hermes_cli/db_cmd.py",
-    "tasks": [2,6,7],
-    "providers": [250,327,361],
+    "tasks": [
+      2,
+      6,
+      7
+    ],
+    "providers": [
+      250,
+      327,
+      361
+    ],
     "lines": [
       8,
       9,
@@ -9376,7 +9876,11 @@
   },
   {
     "path": "hermes_cli/db_setup.py",
-    "tasks": [2,4,5],
+    "tasks": [
+      2,
+      4,
+      5
+    ],
     "providers": [
       19,
       250,
@@ -9461,7 +9965,11 @@
   },
   {
     "path": "hermes_cli/doctor_state.py",
-    "tasks": [4,5,16],
+    "tasks": [
+      4,
+      5,
+      16
+    ],
     "providers": [
       253,
       365,
@@ -9645,7 +10153,11 @@
     "providers": [
       481
     ],
-    "lines": [191,195,197]
+    "lines": [
+      191,
+      195,
+      197
+    ]
   },
   {
     "path": "hermes_cli/install_state.py",
@@ -10086,9 +10598,14 @@
   {
     "path": "hermes_cli/kanban_db_boards.py",
     "tasks": [
+      12,
       13
     ],
-    "providers": [30,48,466],
+    "providers": [
+      30,
+      48,
+      466
+    ],
     "lines": [
       11,
       18,
@@ -10235,7 +10752,12 @@
   },
   {
     "path": "hermes_cli/kanban_db_dispatch.py",
-    "tasks": [5,8,13],
+    "tasks": [
+      5,
+      8,
+      12,
+      13
+    ],
     "providers": [
       1,
       30,
@@ -10442,6 +10964,7 @@
   {
     "path": "hermes_cli/kanban_db_failure.py",
     "tasks": [
+      12,
       13
     ],
     "providers": [
@@ -10463,9 +10986,14 @@
   {
     "path": "hermes_cli/kanban_db_graph.py",
     "tasks": [
+      12,
       13
     ],
-    "providers": [30,48,466],
+    "providers": [
+      30,
+      48,
+      466
+    ],
     "lines": [
       3,
       8,
@@ -10492,8 +11020,16 @@
   },
   {
     "path": "hermes_cli/kanban_db_identity.py",
-    "tasks": [5,7,13],
-    "providers": [32,251,361],
+    "tasks": [
+      5,
+      7,
+      13
+    ],
+    "providers": [
+      32,
+      251,
+      361
+    ],
     "lines": [
       5,
       6,
@@ -10560,6 +11096,7 @@
   {
     "path": "hermes_cli/kanban_db_queries.py",
     "tasks": [
+      12,
       13
     ],
     "providers": [
@@ -10581,6 +11118,7 @@
   {
     "path": "hermes_cli/kanban_db_runs.py",
     "tasks": [
+      12,
       13
     ],
     "providers": [
@@ -10710,7 +11248,11 @@
       8,
       13
     ],
-    "providers": [362,466,470],
+    "providers": [
+      362,
+      466,
+      470
+    ],
     "lines": [
       26,
       221,
@@ -10725,13 +11267,18 @@
   {
     "path": "hermes_cli/kanban_diagnostic_snapshot.py",
     "tasks": [
+      12,
       13
     ],
     "providers": [
       30,
       466
     ],
-    "lines": [3,6,26]
+    "lines": [
+      3,
+      6,
+      26
+    ]
   },
   {
     "path": "hermes_cli/kanban_diagnostics.py",
@@ -10813,6 +11360,7 @@
       5,
       7,
       9,
+      12,
       13
     ],
     "providers": [
@@ -10896,7 +11444,11 @@
     "providers": [
       48
     ],
-    "lines": [12,108,110]
+    "lines": [
+      12,
+      108,
+      110
+    ]
   },
   {
     "path": "hermes_cli/kanban_pr_acceptance_store.py",
@@ -10904,7 +11456,11 @@
       8,
       13
     ],
-    "providers": [48,362,466],
+    "providers": [
+      48,
+      362,
+      466
+    ],
     "lines": [
       4,
       5,
@@ -10919,7 +11475,11 @@
     "tasks": [
       13
     ],
-    "providers": [48,466,468],
+    "providers": [
+      48,
+      466,
+      468
+    ],
     "lines": [
       2,
       7,
@@ -10955,9 +11515,14 @@
   {
     "path": "hermes_cli/kanban_swarm.py",
     "tasks": [
+      12,
       13
     ],
-    "providers": [30,48,466],
+    "providers": [
+      30,
+      48,
+      466
+    ],
     "lines": [
       17,
       18,
@@ -11000,7 +11565,11 @@
   },
   {
     "path": "hermes_cli/kanban_transfer.py",
-    "tasks": [7,8,13],
+    "tasks": [
+      7,
+      8,
+      13
+    ],
     "providers": [
       48,
       288,
@@ -11040,8 +11609,16 @@
   },
   {
     "path": "hermes_cli/kanban_worker_client.py",
-    "tasks": [8,12,16],
-    "providers": [262,362,455],
+    "tasks": [
+      8,
+      12,
+      16
+    ],
+    "providers": [
+      262,
+      362,
+      455
+    ],
     "lines": [
       45,
       154,
@@ -11206,8 +11783,16 @@
   },
   {
     "path": "hermes_cli/main_tui_launch.py",
-    "tasks": [5,13,16],
-    "providers": [1,466,488],
+    "tasks": [
+      5,
+      13,
+      16
+    ],
+    "providers": [
+      1,
+      466,
+      488
+    ],
     "lines": [
       88,
       90,
@@ -11271,7 +11856,11 @@
       3,
       11
     ],
-    "providers": [52,53,364],
+    "providers": [
+      52,
+      53,
+      364
+    ],
     "lines": [
       18,
       34,
@@ -11599,7 +12188,11 @@
     "providers": [
       481
     ],
-    "lines": [331,336,337]
+    "lines": [
+      331,
+      336,
+      337
+    ]
   },
   {
     "path": "hermes_cli/plugins_activation.py",
@@ -11609,7 +12202,11 @@
     "providers": [
       481
     ],
-    "lines": [204,205,206]
+    "lines": [
+      204,
+      205,
+      206
+    ]
   },
   {
     "path": "hermes_cli/plugins_activation_live.py",
@@ -11666,7 +12263,11 @@
     "providers": [
       481
     ],
-    "lines": [43,44,45]
+    "lines": [
+      43,
+      44,
+      45
+    ]
   },
   {
     "path": "hermes_cli/plugins_context.py",
@@ -11676,7 +12277,11 @@
     "providers": [
       481
     ],
-    "lines": [25,33,39]
+    "lines": [
+      25,
+      33,
+      39
+    ]
   },
   {
     "path": "hermes_cli/plugins_discovery.py",
@@ -11867,8 +12472,16 @@
   },
   {
     "path": "hermes_cli/profile_storage.py",
-    "tasks": [2,7,10],
-    "providers": [16,250,361],
+    "tasks": [
+      2,
+      7,
+      10
+    ],
+    "providers": [
+      16,
+      250,
+      361
+    ],
     "lines": [
       12,
       13,
@@ -11933,7 +12546,11 @@
       8,
       13
     ],
-    "providers": [48,363,466],
+    "providers": [
+      48,
+      363,
+      466
+    ],
     "lines": [
       4,
       85,
@@ -12049,7 +12666,11 @@
     "providers": [
       495
     ],
-    "lines": [209,224,227]
+    "lines": [
+      209,
+      224,
+      227
+    ]
   },
   {
     "path": "hermes_cli/resource_limits.py",
@@ -12059,7 +12680,11 @@
     "providers": [
       462
     ],
-    "lines": [11,20,21]
+    "lines": [
+      11,
+      20,
+      21
+    ]
   },
   {
     "path": "hermes_cli/session_export.py",
@@ -12080,7 +12705,11 @@
       3,
       16
     ],
-    "providers": [381,483,485],
+    "providers": [
+      381,
+      483,
+      485
+    ],
     "lines": [
       19,
       20,
@@ -12176,7 +12805,11 @@
     "providers": [
       481
     ],
-    "lines": [38,39,40]
+    "lines": [
+      38,
+      39,
+      40
+    ]
   },
   {
     "path": "hermes_cli/sessions_adopt.py",
@@ -12217,7 +12850,11 @@
   },
   {
     "path": "hermes_cli/sessions_cmd.py",
-    "tasks": [4,5,16],
+    "tasks": [
+      4,
+      5,
+      16
+    ],
     "providers": [
       1,
       253,
@@ -12286,12 +12923,24 @@
     "providers": [
       374
     ],
-    "lines": [7,158,264]
+    "lines": [
+      7,
+      158,
+      264
+    ]
   },
   {
     "path": "hermes_cli/sessions_cmd_journal_mode.py",
-    "tasks": [3,4,16],
-    "providers": [365,379,426],
+    "tasks": [
+      3,
+      4,
+      16
+    ],
+    "providers": [
+      365,
+      379,
+      426
+    ],
     "lines": [
       47,
       48,
@@ -12399,7 +13048,11 @@
   },
   {
     "path": "hermes_cli/status.py",
-    "tasks": [4,7,16],
+    "tasks": [
+      4,
+      7,
+      16
+    ],
     "providers": [
       361,
       365,
@@ -12515,7 +13168,11 @@
     "providers": [
       481
     ],
-    "lines": [104,106,107]
+    "lines": [
+      104,
+      106,
+      107
+    ]
   },
   {
     "path": "hermes_cli/tui_worktree_resume.py",
@@ -12676,7 +13333,11 @@
       7,
       16
     ],
-    "providers": [361,379,458],
+    "providers": [
+      361,
+      379,
+      458
+    ],
     "lines": [
       74,
       76,
@@ -12810,7 +13471,11 @@
     "providers": [
       486
     ],
-    "lines": [33,211,213]
+    "lines": [
+      33,
+      211,
+      213
+    ]
   },
   {
     "path": "hermes_cli/web_routers/ops.py",
@@ -12895,8 +13560,16 @@
   },
   {
     "path": "hermes_cli/web_routers/status.py",
-    "tasks": [4,7,16],
-    "providers": [361,365,453],
+    "tasks": [
+      4,
+      7,
+      16
+    ],
+    "providers": [
+      361,
+      365,
+      453
+    ],
     "lines": [
       81,
       82,
@@ -13366,8 +14039,16 @@
   },
   {
     "path": "hermes_db/backends/sqlite/plugin_storage.py",
-    "tasks": [2,3,7],
-    "providers": [250,361,364],
+    "tasks": [
+      2,
+      3,
+      7
+    ],
+    "providers": [
+      250,
+      361,
+      364
+    ],
     "lines": [
       5,
       6,
@@ -13389,7 +14070,11 @@
       250,
       330
     ],
-    "lines": [5,40,48]
+    "lines": [
+      5,
+      40,
+      48
+    ]
   },
   {
     "path": "hermes_db/core/resource.py",
@@ -13399,7 +14084,11 @@
     "providers": [
       250
     ],
-    "lines": [7,22,27]
+    "lines": [
+      7,
+      22,
+      27
+    ]
   },
   {
     "path": "hermes_db/core/schema_status.py",
@@ -13418,7 +14107,11 @@
   },
   {
     "path": "hermes_db/domains/cron/api.py",
-    "tasks": [5,7,11],
+    "tasks": [
+      5,
+      7,
+      11
+    ],
     "providers": [
       17,
       25,
@@ -13442,8 +14135,16 @@
   },
   {
     "path": "hermes_db/domains/cron/postgres/delivery.py",
-    "tasks": [1,9,11],
-    "providers": [20,26,334],
+    "tasks": [
+      1,
+      9,
+      11
+    ],
+    "providers": [
+      20,
+      26,
+      334
+    ],
     "lines": [
       10,
       11,
@@ -13484,8 +14185,16 @@
   },
   {
     "path": "hermes_db/domains/cron/postgres/executions.py",
-    "tasks": [1,9,11],
-    "providers": [20,28,333],
+    "tasks": [
+      1,
+      9,
+      11
+    ],
+    "providers": [
+      20,
+      28,
+      333
+    ],
     "lines": [
       7,
       8,
@@ -14224,7 +14933,11 @@
   },
   {
     "path": "hermes_db/domains/kanban/postgres/evidence.py",
-    "tasks": [1,9,13],
+    "tasks": [
+      1,
+      9,
+      13
+    ],
     "providers": [
       20,
       43,
@@ -14500,7 +15213,11 @@
   },
   {
     "path": "hermes_db/domains/kanban/postgres/notify.py",
-    "tasks": [1,9,13],
+    "tasks": [
+      1,
+      9,
+      13
+    ],
     "providers": [
       20,
       43,
@@ -14565,7 +15282,11 @@
   },
   {
     "path": "hermes_db/domains/kanban/postgres/owners.py",
-    "tasks": [1,9,13],
+    "tasks": [
+      1,
+      9,
+      13
+    ],
     "providers": [
       20,
       43,
@@ -14603,8 +15324,16 @@
   },
   {
     "path": "hermes_db/domains/kanban/postgres/receipts.py",
-    "tasks": [1,9,13],
-    "providers": [43,171,340],
+    "tasks": [
+      1,
+      9,
+      13
+    ],
+    "providers": [
+      43,
+      171,
+      340
+    ],
     "lines": [
       5,
       6,
@@ -14616,8 +15345,16 @@
   },
   {
     "path": "hermes_db/domains/kanban/postgres/repository.py",
-    "tasks": [1,9,13],
-    "providers": [20,47,338],
+    "tasks": [
+      1,
+      9,
+      13
+    ],
+    "providers": [
+      20,
+      47,
+      338
+    ],
     "lines": [
       6,
       7,
@@ -14718,7 +15455,11 @@
   },
   {
     "path": "hermes_db/domains/kanban/postgres/runs.py",
-    "tasks": [1,9,13],
+    "tasks": [
+      1,
+      9,
+      13
+    ],
     "providers": [
       20,
       43,
@@ -14773,7 +15514,11 @@
   },
   {
     "path": "hermes_db/domains/kanban/postgres/swarm.py",
-    "tasks": [1,9,13],
+    "tasks": [
+      1,
+      9,
+      13
+    ],
     "providers": [
       20,
       32,
@@ -15015,8 +15760,16 @@
   },
   {
     "path": "hermes_db/domains/metrics/postgres/records.py",
-    "tasks": [1,9,11],
-    "providers": [20,53,348],
+    "tasks": [
+      1,
+      9,
+      11
+    ],
+    "providers": [
+      20,
+      53,
+      348
+    ],
     "lines": [
       5,
       6,
@@ -15078,7 +15831,11 @@
   },
   {
     "path": "hermes_db/domains/metrics/postgres/store.py",
-    "tasks": [1,2,11],
+    "tasks": [
+      1,
+      2,
+      11
+    ],
     "providers": [
       50,
       52,
@@ -15319,7 +16076,11 @@
   },
   {
     "path": "hermes_db/domains/plugin_storage/matrix/postgres/crypto.py",
-    "tasks": [2,9,15],
+    "tasks": [
+      2,
+      9,
+      15
+    ],
     "providers": [
       20,
       70,
@@ -15473,8 +16234,16 @@
   },
   {
     "path": "hermes_db/domains/plugin_storage/matrix/postgres/operations/sessions.py",
-    "tasks": [1,9,15],
-    "providers": [20,80,346],
+    "tasks": [
+      1,
+      9,
+      15
+    ],
+    "providers": [
+      20,
+      80,
+      346
+    ],
     "lines": [
       4,
       5,
@@ -15711,8 +16480,16 @@
   },
   {
     "path": "hermes_db/domains/projects/api.py",
-    "tasks": [2,5,11],
-    "providers": [17,93,250],
+    "tasks": [
+      2,
+      5,
+      11
+    ],
+    "providers": [
+      17,
+      93,
+      250
+    ],
     "lines": [
       5,
       6,
@@ -15725,8 +16502,16 @@
   },
   {
     "path": "hermes_db/domains/projects/postgres.py",
-    "tasks": [1,9,11],
-    "providers": [20,94,350],
+    "tasks": [
+      1,
+      9,
+      11
+    ],
+    "providers": [
+      20,
+      94,
+      350
+    ],
     "lines": [
       3,
       6,
@@ -15851,8 +16636,16 @@
   },
   {
     "path": "hermes_db/domains/rooms/attachments/api.py",
-    "tasks": [1,2,14],
-    "providers": [112,250,352],
+    "tasks": [
+      1,
+      2,
+      14
+    ],
+    "providers": [
+      112,
+      250,
+      352
+    ],
     "lines": [
       5,
       6,
@@ -15868,7 +16661,11 @@
       2,
       14
     ],
-    "providers": [101,103,250],
+    "providers": [
+      101,
+      103,
+      250
+    ],
     "lines": [
       2,
       7,
@@ -16177,7 +16974,11 @@
   },
   {
     "path": "hermes_db/domains/rooms/postgres/lifecycle.py",
-    "tasks": [1,9,14],
+    "tasks": [
+      1,
+      9,
+      14
+    ],
     "providers": [
       20,
       101,
@@ -16314,7 +17115,11 @@
   },
   {
     "path": "hermes_db/domains/rooms/postgres/ownership.py",
-    "tasks": [1,9,14],
+    "tasks": [
+      1,
+      9,
+      14
+    ],
     "providers": [
       105,
       108,
@@ -16449,7 +17254,11 @@
   },
   {
     "path": "hermes_db/domains/rooms/postgres/policy.py",
-    "tasks": [1,9,14],
+    "tasks": [
+      1,
+      9,
+      14
+    ],
     "providers": [
       20,
       112,
@@ -16611,7 +17420,11 @@
   },
   {
     "path": "hermes_db/domains/rooms/postgres/repository.py",
-    "tasks": [1,9,14],
+    "tasks": [
+      1,
+      9,
+      14
+    ],
     "providers": [
       20,
       105,
@@ -16791,7 +17604,11 @@
   },
   {
     "path": "hermes_db/domains/rooms/postgres/work.py",
-    "tasks": [1,9,14],
+    "tasks": [
+      1,
+      9,
+      14
+    ],
     "providers": [
       20,
       104,
@@ -16954,7 +17771,11 @@
   },
   {
     "path": "hermes_db/domains/runtime/postgres/admissions.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       132,
       139,
@@ -17202,7 +18023,11 @@
   },
   {
     "path": "hermes_db/domains/runtime/postgres/local.py",
-    "tasks": [1,2,9],
+    "tasks": [
+      1,
+      2,
+      9
+    ],
     "providers": [
       20,
       134,
@@ -17618,7 +18443,11 @@
   },
   {
     "path": "hermes_db/domains/runtime/postgres/operations/local_sessions.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       163,
       170,
@@ -17670,7 +18499,11 @@
   },
   {
     "path": "hermes_db/domains/runtime/postgres/operations/runtime.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       137,
       163,
@@ -17824,7 +18657,11 @@
   },
   {
     "path": "hermes_db/domains/runtime/postgres/operations/runtime_queue.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       163,
       170,
@@ -17914,7 +18751,11 @@
   },
   {
     "path": "hermes_db/domains/runtime/postgres/operations/worker_children.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       137,
       165,
@@ -18147,7 +18988,11 @@
   },
   {
     "path": "hermes_db/domains/runtime/postgres/operations/worker_delegations.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       137,
       159,
@@ -18452,7 +19297,11 @@
   },
   {
     "path": "hermes_db/domains/runtime/postgres/operations/worker_metrics.py",
-    "tasks": [1,9,11],
+    "tasks": [
+      1,
+      9,
+      11
+    ],
     "providers": [
       51,
       53,
@@ -18484,7 +19333,11 @@
   },
   {
     "path": "hermes_db/domains/runtime/postgres/operations/worker_reservation.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       163,
       165,
@@ -18540,7 +19393,11 @@
       9,
       15
     ],
-    "providers": [90,147,171],
+    "providers": [
+      90,
+      147,
+      171
+    ],
     "lines": [
       6,
       7,
@@ -19046,7 +19903,11 @@
   },
   {
     "path": "hermes_db/domains/runtime/postgres/queries/workers.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       163,
       171,
@@ -19191,7 +20052,11 @@
       171,
       382
     ],
-    "lines": [5,6,162]
+    "lines": [
+      5,
+      6,
+      162
+    ]
   },
   {
     "path": "hermes_db/domains/runtime/values.py",
@@ -19275,7 +20140,11 @@
   },
   {
     "path": "hermes_db/domains/sessions/postgres/catalog.py",
-    "tasks": [1,2,9],
+    "tasks": [
+      1,
+      2,
+      9
+    ],
     "providers": [
       7,
       8,
@@ -19619,7 +20488,11 @@
   },
   {
     "path": "hermes_db/domains/sessions/postgres/lifecycle.py",
-    "tasks": [1,2,9],
+    "tasks": [
+      1,
+      2,
+      9
+    ],
     "providers": [
       20,
       137,
@@ -19917,7 +20790,11 @@
   },
   {
     "path": "hermes_db/domains/sessions/postgres/operations/compression.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       20,
       173,
@@ -19964,7 +20841,11 @@
   },
   {
     "path": "hermes_db/domains/sessions/postgres/operations/compression_publish.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       20,
       173,
@@ -20094,7 +20975,11 @@
       1,
       9
     ],
-    "providers": [212,229,337],
+    "providers": [
+      212,
+      229,
+      337
+    ],
     "lines": [
       5,
       6,
@@ -20371,7 +21256,11 @@
       1,
       9
     ],
-    "providers": [215,229,337],
+    "providers": [
+      215,
+      229,
+      337
+    ],
     "lines": [
       7,
       8,
@@ -20392,7 +21281,11 @@
   },
   {
     "path": "hermes_db/domains/sessions/postgres/operations/messages.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       173,
       204,
@@ -20458,7 +21351,11 @@
   },
   {
     "path": "hermes_db/domains/sessions/postgres/operations/mutation_branch.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       20,
       119,
@@ -20813,7 +21710,11 @@
   },
   {
     "path": "hermes_db/domains/sessions/postgres/operations/retirement.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       200,
       218,
@@ -20908,7 +21809,11 @@
   },
   {
     "path": "hermes_db/domains/sessions/postgres/operations/rewrites.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       20,
       173,
@@ -21070,7 +21975,11 @@
   },
   {
     "path": "hermes_db/domains/sessions/postgres/operations/transcript_guards.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       171,
       229,
@@ -21095,7 +22004,11 @@
   },
   {
     "path": "hermes_db/domains/sessions/postgres/operations/transcript_repair.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       219,
       235,
@@ -21276,8 +22189,16 @@
   },
   {
     "path": "hermes_db/domains/sessions/postgres/queries/file_grants.py",
-    "tasks": [1,2,9],
-    "providers": [163,250,357],
+    "tasks": [
+      1,
+      2,
+      9
+    ],
+    "providers": [
+      163,
+      250,
+      357
+    ],
     "lines": [
       8,
       9,
@@ -21452,7 +22373,11 @@
   },
   {
     "path": "hermes_db/domains/sessions/postgres/queries/lineage.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       20,
       134,
@@ -21595,7 +22520,11 @@
   },
   {
     "path": "hermes_db/domains/sessions/postgres/queries/messages.py",
-    "tasks": [1,2,9],
+    "tasks": [
+      1,
+      2,
+      9
+    ],
     "providers": [
       8,
       229,
@@ -21911,7 +22840,11 @@
   },
   {
     "path": "hermes_db/domains/sessions/postgres/queries/retirement_ledger.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       163,
       170,
@@ -21952,7 +22885,11 @@
       1,
       9
     ],
-    "providers": [235,245,332],
+    "providers": [
+      235,
+      245,
+      332
+    ],
     "lines": [
       5,
       6,
@@ -21965,7 +22902,11 @@
   },
   {
     "path": "hermes_db/domains/sessions/postgres/queries/session_queries.py",
-    "tasks": [1,2,9],
+    "tasks": [
+      1,
+      2,
+      9
+    ],
     "providers": [
       20,
       229,
@@ -22031,7 +22972,11 @@
   },
   {
     "path": "hermes_db/domains/sessions/postgres/queries/sessions.py",
-    "tasks": [1,2,9],
+    "tasks": [
+      1,
+      2,
+      9
+    ],
     "providers": [
       20,
       170,
@@ -22154,7 +23099,11 @@
       239,
       498
     ],
-    "lines": [3,7,8]
+    "lines": [
+      3,
+      7,
+      8
+    ]
   },
   {
     "path": "hermes_db/domains/sessions/postgres/support/compression_coverage.py",
@@ -22162,7 +23111,11 @@
       9,
       16
     ],
-    "providers": [173,174,432],
+    "providers": [
+      173,
+      174,
+      432
+    ],
     "lines": [
       6,
       7,
@@ -22347,8 +23300,16 @@
   },
   {
     "path": "hermes_db/domains/verification/api.py",
-    "tasks": [5,7,11],
-    "providers": [248,251,361],
+    "tasks": [
+      5,
+      7,
+      11
+    ],
+    "providers": [
+      248,
+      251,
+      361
+    ],
     "lines": [
       6,
       7,
@@ -22466,7 +23427,11 @@
       2,
       5
     ],
-    "providers": [13,250,328],
+    "providers": [
+      13,
+      250,
+      328
+    ],
     "lines": [
       7,
       8,
@@ -22522,7 +23487,11 @@
   },
   {
     "path": "hermes_db/integration/api_resources.py",
-    "tasks": [5,7,9],
+    "tasks": [
+      5,
+      7,
+      9
+    ],
     "providers": [
       19,
       126,
@@ -22588,7 +23557,11 @@
   },
   {
     "path": "hermes_db/integration/authority_access.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       20,
       137,
@@ -23008,7 +23981,11 @@
     "providers": [
       466
     ],
-    "lines": [16,35,57]
+    "lines": [
+      16,
+      35,
+      57
+    ]
   },
   {
     "path": "hermes_db/integration/kanban_worker.py",
@@ -23047,7 +24024,11 @@
   },
   {
     "path": "hermes_db/integration/local_access.py",
-    "tasks": [5,9,16],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
     "providers": [
       253,
       282,
@@ -23271,7 +24252,11 @@
       1,
       9
     ],
-    "providers": [212,229,337],
+    "providers": [
+      212,
+      229,
+      337
+    ],
     "lines": [
       7,
       8,
@@ -23382,7 +24367,11 @@
   },
   {
     "path": "hermes_db/integration/retain_transport.py",
-    "tasks": [2,7,15],
+    "tasks": [
+      2,
+      7,
+      15
+    ],
     "providers": [
       87,
       90,
@@ -23536,7 +24525,11 @@
       1,
       14
     ],
-    "providers": [96,112,353],
+    "providers": [
+      96,
+      112,
+      353
+    ],
     "lines": [
       7,
       8,
@@ -23745,7 +24738,11 @@
   },
   {
     "path": "hermes_db/integration/session_portability.py",
-    "tasks": [1,9,16],
+    "tasks": [
+      1,
+      9,
+      16
+    ],
     "providers": [
       20,
       163,
@@ -23938,8 +24935,16 @@
   },
   {
     "path": "hermes_db/integration/worker_access.py",
-    "tasks": [5,9,16],
-    "providers": [253,282,427],
+    "tasks": [
+      5,
+      9,
+      16
+    ],
+    "providers": [
+      253,
+      282,
+      427
+    ],
     "lines": [
       3,
       4,
@@ -24235,7 +25240,11 @@
     "providers": [
       250
     ],
-    "lines": [8,22,26]
+    "lines": [
+      8,
+      22,
+      26
+    ]
   },
   {
     "path": "hermes_db/settings.py",
@@ -24263,7 +25272,11 @@
       1,
       6
     ],
-    "providers": [15,330,347],
+    "providers": [
+      15,
+      330,
+      347
+    ],
     "lines": [
       6,
       7,
@@ -24363,7 +25376,11 @@
     "providers": [
       347
     ],
-    "lines": [4,6,7]
+    "lines": [
+      4,
+      6,
+      7
+    ]
   },
   {
     "path": "hermes_db/tables/discord_recovery.py",
@@ -24464,7 +25481,11 @@
     "providers": [
       347
     ],
-    "lines": [5,7,11]
+    "lines": [
+      5,
+      7,
+      11
+    ]
   },
   {
     "path": "hermes_db/tables/kanban_dispatch.py",
@@ -24487,7 +25508,11 @@
     "providers": [
       347
     ],
-    "lines": [4,6,10]
+    "lines": [
+      4,
+      6,
+      10
+    ]
   },
   {
     "path": "hermes_db/tables/kanban_file_jobs.py",
@@ -24497,7 +25522,11 @@
     "providers": [
       347
     ],
-    "lines": [4,6,7]
+    "lines": [
+      4,
+      6,
+      7
+    ]
   },
   {
     "path": "hermes_db/tables/kanban_notify.py",
@@ -24507,7 +25536,11 @@
     "providers": [
       347
     ],
-    "lines": [4,8,14]
+    "lines": [
+      4,
+      8,
+      14
+    ]
   },
   {
     "path": "hermes_db/tables/kanban_workspaces.py",
@@ -24533,7 +25566,11 @@
     "providers": [
       347
     ],
-    "lines": [4,8,9]
+    "lines": [
+      4,
+      8,
+      9
+    ]
   },
   {
     "path": "hermes_db/tables/metrics.py",
@@ -24932,7 +25969,11 @@
       9,
       16
     ],
-    "providers": [244,382,402],
+    "providers": [
+      244,
+      382,
+      402
+    ],
     "lines": [
       3,
       15,
@@ -24962,7 +26003,11 @@
   },
   {
     "path": "hermes_state_compression.py",
-    "tasks": [4,9,16],
+    "tasks": [
+      4,
+      9,
+      16
+    ],
     "providers": [
       244,
       365,
@@ -25006,7 +26051,11 @@
       9,
       16
     ],
-    "providers": [173,174,367],
+    "providers": [
+      173,
+      174,
+      367
+    ],
     "lines": [
       10,
       17,
@@ -25023,7 +26072,11 @@
   },
   {
     "path": "hermes_state_dbfile.py",
-    "tasks": [3,4,16],
+    "tasks": [
+      3,
+      4,
+      16
+    ],
     "providers": [
       365,
       367,
@@ -25122,7 +26175,11 @@
   },
   {
     "path": "hermes_state_gateway.py",
-    "tasks": [4,9,16],
+    "tasks": [
+      4,
+      9,
+      16
+    ],
     "providers": [
       244,
       365,
@@ -25241,7 +26298,11 @@
   },
   {
     "path": "hermes_state_local.py",
-    "tasks": [4,9,16],
+    "tasks": [
+      4,
+      9,
+      16
+    ],
     "providers": [
       170,
       171,
@@ -25479,7 +26540,11 @@
   },
   {
     "path": "hermes_state_messages.py",
-    "tasks": [4,9,16],
+    "tasks": [
+      4,
+      9,
+      16
+    ],
     "providers": [
       173,
       244,
@@ -25586,7 +26651,11 @@
       9,
       16
     ],
-    "providers": [170,386,411],
+    "providers": [
+      170,
+      386,
+      411
+    ],
     "lines": [
       3,
       5,
@@ -26062,7 +27131,11 @@
   },
   {
     "path": "hermes_state_reconcile.py",
-    "tasks": [3,7,16],
+    "tasks": [
+      3,
+      7,
+      16
+    ],
     "providers": [
       374,
       378,
@@ -26130,7 +27203,11 @@
       4,
       16
     ],
-    "providers": [365,367,371],
+    "providers": [
+      365,
+      367,
+      371
+    ],
     "lines": [
       40,
       43,
@@ -26158,7 +27235,11 @@
   },
   {
     "path": "hermes_state_repair.py",
-    "tasks": [3,4,16],
+    "tasks": [
+      3,
+      4,
+      16
+    ],
     "providers": [
       365,
       367,
@@ -26587,7 +27668,11 @@
   },
   {
     "path": "hermes_state_sessions.py",
-    "tasks": [4,9,16],
+    "tasks": [
+      4,
+      9,
+      16
+    ],
     "providers": [
       244,
       365,
@@ -26798,7 +27883,11 @@
       9,
       16
     ],
-    "providers": [170,171,411],
+    "providers": [
+      170,
+      171,
+      411
+    ],
     "lines": [
       10,
       11,
@@ -26844,7 +27933,11 @@
   },
   {
     "path": "hermes_state_titles.py",
-    "tasks": [4,9,16],
+    "tasks": [
+      4,
+      9,
+      16
+    ],
     "providers": [
       244,
       365,
@@ -26938,7 +28031,11 @@
   },
   {
     "path": "hermes_state_worker_compression.py",
-    "tasks": [4,9,16],
+    "tasks": [
+      4,
+      9,
+      16
+    ],
     "providers": [
       171,
       365,
@@ -27178,7 +28275,11 @@
       5,
       15
     ],
-    "providers": [1,253,494],
+    "providers": [
+      1,
+      253,
+      494
+    ],
     "lines": [
       152,
       153,
@@ -27211,6 +28312,7 @@
       2,
       7,
       8,
+      12,
       13
     ],
     "providers": [
@@ -27376,7 +28478,11 @@
   },
   {
     "path": "plugins/memory/retaindb/__init__.py",
-    "tasks": [2,7,15],
+    "tasks": [
+      2,
+      7,
+      15
+    ],
     "providers": [
       250,
       277,
@@ -27511,8 +28617,16 @@
   },
   {
     "path": "plugins/platforms/matrix/adapter_pg_client.py",
-    "tasks": [2,7,15],
-    "providers": [74,250,361],
+    "tasks": [
+      2,
+      7,
+      15
+    ],
+    "providers": [
+      74,
+      250,
+      361
+    ],
     "lines": [
       8,
       9,
@@ -27523,7 +28637,11 @@
   },
   {
     "path": "plugins/platforms/matrix/adapter_storage.py",
-    "tasks": [2,7,15],
+    "tasks": [
+      2,
+      7,
+      15
+    ],
     "providers": [
       73,
       250,
@@ -27623,7 +28741,11 @@
     "providers": [
       481
     ],
-    "lines": [743,745,746]
+    "lines": [
+      743,
+      745,
+      746
+    ]
   },
   {
     "path": "run_agent.py",
@@ -27657,7 +28779,11 @@
       3,
       11
     ],
-    "providers": [364,478,479],
+    "providers": [
+      364,
+      478,
+      479
+    ],
     "lines": [
       43,
       47,
@@ -27720,7 +28846,11 @@
     "providers": [
       481
     ],
-    "lines": [187,190,191]
+    "lines": [
+      187,
+      190,
+      191
+    ]
   },
   {
     "path": "tools/async_delegation.py",
@@ -27946,7 +29076,11 @@
     "providers": [
       481
     ],
-    "lines": [365,377,381]
+    "lines": [
+      365,
+      377,
+      381
+    ]
   },
   {
     "path": "tools/environments/vercel_sandbox.py",
@@ -27956,7 +29090,11 @@
     "providers": [
       462
     ],
-    "lines": [24,205,209]
+    "lines": [
+      24,
+      205,
+      209
+    ]
   },
   {
     "path": "tools/file_tools.py",
@@ -28008,7 +29146,11 @@
     "providers": [
       481
     ],
-    "lines": [576,578,580]
+    "lines": [
+      576,
+      578,
+      580
+    ]
   },
   {
     "path": "tools/kanban_tools.py",
@@ -28052,7 +29194,11 @@
     "providers": [
       481
     ],
-    "lines": [680,681,682]
+    "lines": [
+      680,
+      681,
+      682
+    ]
   },
   {
     "path": "tools/mcp_tool_registration.py",
@@ -28193,7 +29339,11 @@
   },
   {
     "path": "tools/session_search_tool.py",
-    "tasks": [4,5,9],
+    "tasks": [
+      4,
+      5,
+      9
+    ],
     "providers": [
       1,
       244,
@@ -28255,7 +29405,11 @@
     "providers": [
       481
     ],
-    "lines": [127,131,150]
+    "lines": [
+      127,
+      131,
+      150
+    ]
   },
   {
     "path": "tools/subagent_worktree.py",
@@ -28265,7 +29419,11 @@
     "providers": [
       488
     ],
-    "lines": [196,197,201]
+    "lines": [
+      196,
+      197,
+      201
+    ]
   },
   {
     "path": "tools/terminal_scope.py",
@@ -28365,7 +29523,11 @@
     "providers": [
       481
     ],
-    "lines": [27,28,31]
+    "lines": [
+      27,
+      28,
+      31
+    ]
   },
   {
     "path": "tools/video_generation_tool.py",
@@ -28375,7 +29537,11 @@
     "providers": [
       481
     ],
-    "lines": [94,95,96]
+    "lines": [
+      94,
+      95,
+      96
+    ]
   },
   {
     "path": "tools/voice_mode.py",
@@ -28385,7 +29551,11 @@
     "providers": [
       481
     ],
-    "lines": [1467,1468,1473]
+    "lines": [
+      1467,
+      1468,
+      1473
+    ]
   },
   {
     "path": "tools/web_tools.py",
@@ -28408,7 +29578,11 @@
     "providers": [
       1
     ],
-    "lines": [443,444,448]
+    "lines": [
+      443,
+      444,
+      448
+    ]
   },
   {
     "path": "tui_gateway/agent_factory.py",
@@ -28437,7 +29611,11 @@
       365,
       379
     ],
-    "lines": [228,229,231]
+    "lines": [
+      228,
+      229,
+      231
+    ]
   },
   {
     "path": "tui_gateway/compute_host.py",
@@ -28566,7 +29744,11 @@
       8,
       14
     ],
-    "providers": [96,446,447],
+    "providers": [
+      96,
+      446,
+      447
+    ],
     "lines": [
       18,
       19,
@@ -28588,7 +29770,11 @@
       441,
       446
     ],
-    "lines": [15,131,217]
+    "lines": [
+      15,
+      131,
+      217
+    ]
   },
   {
     "path": "tui_gateway/hosted_room_prepare_stall.py",
@@ -28609,7 +29795,11 @@
   },
   {
     "path": "tui_gateway/hosted_room_router_call.py",
-    "tasks": [3,8,14],
+    "tasks": [
+      3,
+      8,
+      14
+    ],
     "providers": [
       96,
       280,
@@ -28639,11 +29829,19 @@
       96,
       441
     ],
-    "lines": [36,37,75]
+    "lines": [
+      36,
+      37,
+      75
+    ]
   },
   {
     "path": "tui_gateway/hosted_room_service.py",
-    "tasks": [8,14,16],
+    "tasks": [
+      8,
+      14,
+      16
+    ],
     "providers": [
       96,
       116,
@@ -28735,7 +29933,11 @@
     "providers": [
       481
     ],
-    "lines": [16,19,20]
+    "lines": [
+      16,
+      19,
+      20
+    ]
   },
   {
     "path": "tui_gateway/methods_browser.py",
@@ -28861,7 +30063,11 @@
   },
   {
     "path": "tui_gateway/methods_groups_forward.py",
-    "tasks": [7,8,14],
+    "tasks": [
+      7,
+      8,
+      14
+    ],
     "providers": [
       96,
       116,
@@ -28990,8 +30196,16 @@
   },
   {
     "path": "tui_gateway/methods_prompt.py",
-    "tasks": [8,14,16],
-    "providers": [116,425,446],
+    "tasks": [
+      8,
+      14,
+      16
+    ],
+    "providers": [
+      116,
+      425,
+      446
+    ],
     "lines": [
       299,
       300,
@@ -29009,7 +30223,11 @@
   },
   {
     "path": "tui_gateway/methods_session.py",
-    "tasks": [4,5,16],
+    "tasks": [
+      4,
+      5,
+      16
+    ],
     "providers": [
       1,
       365,
@@ -29217,7 +30435,11 @@
     "tasks": [
       16
     ],
-    "providers": [384,481,495],
+    "providers": [
+      384,
+      481,
+      495
+    ],
     "lines": [
       165,
       166,
@@ -29231,7 +30453,11 @@
   },
   {
     "path": "tui_gateway/session_notifications.py",
-    "tasks": [8,13,16],
+    "tasks": [
+      8,
+      13,
+      16
+    ],
     "providers": [
       362,
       372,
@@ -29290,7 +30516,11 @@
       5,
       16
     ],
-    "providers": [1,374,432],
+    "providers": [
+      1,
+      374,
+      432
+    ],
     "lines": [
       669,
       670,

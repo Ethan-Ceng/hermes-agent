@@ -7,8 +7,18 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`IMPLEMENTING`；阶段：Kanban所有者与RPC边界；当前实施任务：Task12；完成：11 / 20；阻塞：无；日期2026-11-11。
+- 整体状态：`IMPLEMENTING`；阶段：Kanban事务与文件工作流分层；当前实施任务：Task13；完成：12 / 20；阻塞：无；日期2026-11-11。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
+
+## 验证策略修订：按本轮分层风险精简（2026-11-11用户指示）
+
+用户最新指示：“不用特别多测试，因为我们只是拆分层，之前pgsql改造已经深度验收了”。本节优先于下文精简前的目录级全量/重复回归要求；20项实现、逐Task计划更新及本地commit、固定资源/安全边界及独立最终审查继续保留。
+
+- Task13起只执行实际改动边界的关键合同：导入/装配、显式Schema、scope/target、原事务/锁/回执/关闭与必要真实SDK。纯搬迁先核对原函数/SQL/ABI及真实读取点，再选相关少量完整测试文件；不再扩展大批无关消费者，已有PG深度验收仅作背景，不计本轮新成果。
+- 纯空白/文档及可证明运行代码等价的调整，采用compile/AST/源码身份与轻量门禁，不再触发业务整组重测。实际行为、事务/锁/回执、Schema、资源关闭或打包改变时验证受影响合同；失败仍如实保留并整改，不能通过删正常断言/强制skip取得通过。
+- Task16冻结精简且有风险理由的最终文件清单；Task17仍冻结当前源码及61+4资源，并用项目PM建立原定全新载荷，不能把旧环境/旧结果充作本轮验收。
+- Task18/19改为新载荷上的分层关键合同和冒烟：两后端真实读写/新PID恢复、无PG依赖SQLite、普通打开无DDL、0031与资源可用、scope隔离/数据集选择、一个真实COMMIT后丢ACK恢复及本轮SDK生命周期。不再运行完整tests/hermes_db、完整tests/hermes_state、完整tests/hermes_db/postgresql或旧PG各领域深测。
+- 最终仍执行verification-before-completion和独立子Agent code-review。结论只覆盖本轮分层及实际精简验证；原统一Task24、七项非WSL缺证、Windows八项基准及具名环境skip独立保留，不宣称全系统重新验收。
 
 ## 范围与可判定边界
 
@@ -942,7 +952,7 @@ Cron诊断：同源完整文件actualexit1：39pass/1fail，精确失败为原10
 
 ## Task 12：迁出Kanban拥有者、进程和RPC适配
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -983,11 +993,23 @@ owner/RPC控制仍在应用且多Profile/新代次保护保持，业务SQL无进
 
 ### 执行结果
 
-未实施；planning不计完成。
+启动：Task11实际本地commit 805122d791b9a2068aed2eeb170b37149b09800d；完成11/20。已验证全部11分区hash并核对4主责/28索引读取点。按实际代码，另将API中4个Worker/Profile选择函数及_KANBAN_MODULES一起迁至应用兄弟，业务BoardResource/DTO及主责Task13仍保留。managed_scratch_roots的原SELECT留为已给Connection的具体业务查询。dashboard使用既有kanban_db模块读取点，删除旧私有decorator crossing，不新增facade定义、旧内部路径shim或plugin_api白名单。全部调整先映射后实施。
 
 ### 验证证据
 
-未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
+当前将先执行原合同基线，再迁移与复验；本Task不能沿用历史Task11验收。所有实际展开命令、解释器/cwd/源码身份/退出码、skip/失败及恢复点写入Task12证据。
+
+
+实施审计：4个旧内部文件移除、40个Python定义/读取点同步。10组原capability/owner/Worker/RPC/BoardResource/selector/dispatch/SELECT/plugin事务函数体等价，生产SQL字面量delta0，15既有测试59条assert全保留，无删除。固定65资源、11分区暂存hash、root11/31revision/29表模块保持，DB354≤359；不宣称迁出等于全项目算法净减少。插件白名单未改、旧私有crossing减少1。原基线两端Native各1pass、PG3文件8pass；搬迁后Windows必需+无PG依赖2文件2pass，边界0违规。扩大验证文件列表在失败前冻结为Native18/PG13，保留全部原必需文件，顺序执行两主机/PG/static，避免叠加启动资源竞争。展开命令及实际结果由Task12证据保存。
+
+
+首次完整复验结果：PG13文件41pass/0fail/0skip，Windows18文件211pass/0fail/6skip，WSL同18文件215pass/0fail/2skip，均exit0；两端各217项收集。16checks/边界/契约均exit0，最后whitespace实际exit2：API抽取后EOF多余空行。只移除末尾多余换行，compile marshal代码对象字节相同；仍保持Task12 in_progress，重算源码hash并重跑原Native18/PG13与静态门禁，不缩减范围或将旧hash结果冒充新验收。Windows skip包括5平台项及原DB过小合成截断条件1项；Linux为Windows锁测试1项和既有Node不可用的UI touch/drag测试1项，该Linux UI分支未验证，不冒充平台覆盖；UI代码/RPC wire未变，Windows实际Node分支通过。
+
+
+EOF整改后源码审计hash 77b6ab7838d8f9bfabe4550a75c67216872dd8993a38a29e9cdb419cef36e800；10组原算法、SQL delta0、15既有测试59条assert、65固定资源及354/11/31/29计数再次通过。新hash的全部原固定Native18/PG13及静态门禁重新执行；此前源码hash628664的成功结果保留为历史记录。
+
+
+最终结算：=== Summary: 18 files, 211 tests passed, 0 failed, 6 skipped (100% complete) in 102.0s (4 workers) ===；=== Summary: 18 files, 215 tests passed, 0 failed, 2 skipped (100% complete) in 388.6s (4 workers) ===；=== Summary: 13 files, 41 tests passed, 0 failed (100% complete) in 452.1s (1 workers) ===。均实际exit0，两端同18文件、PG13文件全部原冻结选择器完整包含。最新16check、DB/插件边界、生成契约与空白均exit0。固定65资源/11分区hash/root11/31revision/29表模块、DB354≤359、生产SQL字面量delta0通过。10组原算法体/DTO/RPC/selector/SQL/原插件事务体一致，15既有测试59条业务assert保留，无测试删除；plugin_API白名单不变、旧私有crossing移除1。全部实际argv/解释器/cwd/源码身份/退出码、实际skip文件及失败修正见[Task12证据](../designs/hermes-db-two-layer-task12.json)。正式目录预期HEAD且clean，只读核对通过。立即创建本地commit，实际hash由Task13启动记录；完成12/20。最终冻结验证、独立审查及既有独立平台缺证仍保留。
 
 ## Task 13：拆开Kanban事务工作流与文件归档编排
 
@@ -1243,7 +1265,7 @@ Rooms领域保留日志/策略/附件元数据，文件与路由生命周期归G
 
 ### 验证方式
 
-- 执行下文“最终冻结与完整验收命令”；本Task相关全部命令真实exit0才完成，不能沿用旧载荷/旧数字。
+- 执行下文“最终冻结与分层关键验证命令”；本Task相关全部命令真实exit0才完成，不能沿用旧载荷/旧数字。
 - `Check-Storage`；固定61+4路径/hash、DB文件预算、接口/SQL与读取点审计写回实际命令和结果。结构审计不替代业务测试。
 
 ### 完成条件
@@ -1258,13 +1280,13 @@ Rooms领域保留日志/策略/附件元数据，文件与路由生命周期归G
 
 未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
 
-## Task 18：执行双主机完整Native与消费者验收
+## Task 18：执行双主机分层关键合同与消费者冒烟
 
 状态：pending
 
 ### 目标
 
-当前冻结版本在Windows/Linux完成全部必需Native和消费者验收。
+当前冻结版本在Windows/Linux完成Task16精简清单内的分层关键合同和消费者冒烟。
 
 ### 涉及文件
 
@@ -1279,14 +1301,14 @@ Rooms领域保留日志/策略/附件元数据，文件与路由生命周期归G
 
 ### 实施步骤
 
-1. 两主机分别执行完整tests/hermes_db Native组，安装payload参数实际给全；同源driver运行，不误读开发checkout。
-2. 运行完整tests/hermes_state、各Task冻结的Native生命周期/CLI/TUI/Gateway/Cron/plugin消费者组。按冻结文件表每批不超过80文件避免Windows命令长度；每批完整exit0，不能用单个-k补跑冒充完整组。
+1. 两主机分别执行Task16冻结的native_layer与native_consumers精简文件组，实际给全载荷参数；同源driver运行，不调用整个旧目录回归。
+2. 每个实际变化的所有权边界选必要的代表合同，优先复用本轮已通过证据；不再整组重跑hermes_state或所有消费者。精简文件组仍完整exit0并准确记录skip，不能隐瞒功能失败。
 3. 单独用两主机普通SQLite载荷做真实读写/新PID恢复；Linux SQLite+Matrix做真实SDK恢复与普通startup 0DDL。
 4. 逐批记录实际收集/通过/失败/skip、用例ID和平台理由；Windows既有基准8项如果仍重现，单独记录，不将失败批次标exit0或删正常断言。关键本轮失败或必需环境阻塞不能计Task完成。
 
 ### 验证方式
 
-- 执行下文“最终冻结与完整验收命令”；本Task相关全部命令真实exit0才完成，不能沿用旧载荷/旧数字。
+- 执行下文“最终冻结与分层关键验证命令”；本Task相关全部命令真实exit0才完成，不能沿用旧载荷/旧数字。
 - `Check-Storage`；固定61+4路径/hash、DB文件预算、接口/SQL与读取点审计写回实际命令和结果。结构审计不替代业务测试。
 
 ### 完成条件
@@ -1301,13 +1323,13 @@ Rooms领域保留日志/策略/附件元数据，文件与路由生命周期归G
 
 未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
 
-## Task 19：执行完整PG、发行与SDK故障恢复验收
+## Task 19：执行PG、发行与SDK分层关键验证
 
 状态：pending
 
 ### 目标
 
-当前冻结版本完成真实PG全部领域、发行、Schema与故障恢复闭环。
+当前冻结版本完成分层相关PG/发行/Schema/SDK及关键故障恢复合同，不重复旧PG全部领域深度验收。
 
 ### 涉及文件
 
@@ -1318,24 +1340,24 @@ Rooms领域保留日志/策略/附件元数据，文件与路由生命周期归G
 
 - 前置：Task17, Task18。
 - 输入：固定源码/已有合同与前置Task已通过的实际资源/接口。
-- 输出：当前全PG/发行/SDK/迁移与故障恢复全部完整exit0、同源hash可核对，未验证平台仍独立。
+- 输出：当前精简PG/发行/SDK/迁移与关键恢复清单实际exit0、同源hash可核对，未验证平台及未重跑的旧深度业务验收均具名独立。
 
 ### 实施步骤
 
-1. 在fixture拥有的随机Schema执行完整tests/hermes_db/postgresql -j1 -m integration；仅文件级串行，保留用例内部并发，不管理数据库服务。
-2. 两主机执行独立发行组（Native+PG初始化）；Linux实际执行所有Matrix SDK类型/crypto/ratchet/关闭/新PID测试，PG业务捕获所有sqlite3 audit连接入口。
+1. 在fixture拥有的随机Schema执行Task16精简pg_layer清单 -j1 -m integration；重点覆盖本轮所有权/Schema/回执与资源边界，保留必要用例内部并发，不管理数据库服务。
+2. 两主机做必要独立发行/初始化冒烟；Linux执行本轮Matrix实际生命周期代表合同，PG关键业务子进程继续捕获全部sqlite3 audit连接入口。不重跑未变化的SDK全部业务场景。
 3. 验证临时Profile新PID SQLite A→PG B→SQLite A→PG B独立数据集，故障/未初始化明确失败且0SQLite、0意外DDL；从旧revision升级、重复升级及0031重开。
 4. 真实do_commit后丢ACK、receipt/tombstone/debt、新进程与多scope恢复必须保留；不能用提交前异常或mock存储替代。
-5. 全部最终命令真实exit0后核对两主机source/driver最终hash0差异、当前源码Git等价及静态/生成契约/插件边界。
+5. 全部精简最终命令真实exit0后核对两主机source/driver最终hash0差异、当前源码Git等价及静态/生成契约/插件边界；不外推旧PG所有领域已在本轮重验。
 
 ### 验证方式
 
-- 执行下文“最终冻结与完整验收命令”；本Task相关全部命令真实exit0才完成，不能沿用旧载荷/旧数字。
+- 执行下文“最终冻结与分层关键验证命令”；本Task相关全部命令真实exit0才完成，不能沿用旧载荷/旧数字。
 - `Check-Storage`；固定61+4路径/hash、DB文件预算、接口/SQL与读取点审计写回实际命令和结果。结构审计不替代业务测试。
 
 ### 完成条件
 
-当前全PG/发行/SDK/迁移与故障恢复全部完整exit0、同源hash可核对，未验证平台仍独立。 所有必需失败/阻塞清零或在本Task保持未完成；立即记录本地恢复commit。
+当前精简PG/发行/SDK/迁移与关键恢复清单实际exit0、同源hash可核对，未验证平台及未重跑的旧深度业务验收均具名独立。 所有必需失败/阻塞清零或在本Task保持未完成；立即记录本地恢复commit。
 
 ### 执行结果
 
@@ -1389,7 +1411,7 @@ Rooms领域保留日志/策略/附件元数据，文件与路由生命周期归G
 
 未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
 
-## 最终冻结与完整验收命令
+## 最终冻结与分层关键验证命令
 
 Task17由Task16最后运行代码commit计算唯一SOURCE_TIP；保存Git tree、archive SHA256、全tracked/生产/测试hash及PM参数，source和test-driver分别从同一archive导出。以下固定的最终根与测试参数只用于该唯一冻结；若需要重新冻结使用新的独占根并更新全部记录，禁止覆写或混合旧成功结果。
 
@@ -1423,41 +1445,15 @@ wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-two-layer-acceptance-final/sourc
 ```
 
 
-以下完整批次展示真实argv；执行时统一交由Invoke-SafeBatch或等价安全控制器捕获，原始日志不输出。最终Linux批次使用冻结test-driver cwd及同根解释器，不能调用硬编码开发cwd的Test-NativeLinux/Test-Pg冒充冻结验证。
+以下最终测试由Task16冻结到docs/designs/hermes-db-two-layer-verification.json，逐组包含files、覆盖的边界、平台/载荷与理由、必要参数及sha256。Task17在任何业务测试前从同一冻结archive导出该清单；Task18/19通过Invoke-SafeBatch展开真实argv并记录exitcode，不使用开发checkout或旧载荷。
 
-Windows原生完整组（cwd为最终test-driver，先将HERMES_PYTHON设为同根env-postgresql/Scripts/python.exe并绑定独立HOME/RUNTIME）：
+- Windows/Linux native_layer、native_consumers：同根PG测试解释器，scripts/run_tests.sh加清单中的少量完整文件，-j2 --file-timeout1200 -- --tb=short -ra及原有独立载荷参数。
+- 纯SQLite：同根env-sqlite父/子解释器，在sqlite_payload精简组实际写入并新PID恢复，拒绝PG依赖导入；Linux sqlite_matrix_payload组验证实际SDK显式升级、普通启动0DDL和恢复。
+- PG：同根PG解释器，pg_layer精简组，-j1 --file-timeout1200 -- --tb=short -ra -m integration --postgres-test-config=<既有私有fixture配置路径>。仅fixture拥有的随机Schema，不打印配置、DSN或秘密。
+- distribution与sdk：仅精简清单的本轮路径/资源/生命周期关键合同；保留真实COMMIT后丢ACK、新PID、scope与0SQLite验证。
+- 若实际变更使某一关键合同不足，补充该直接风险对应的用例，不按习惯扩大成目录级全部旧业务深测。纯格式/文档修正使用运行等价与轻量检查，避免重复整组业务测试。
 
-```powershell
-& 'D:/Programs/Git/bin/bash.exe' scripts/run_tests.sh tests/hermes_db -j 4 --file-timeout 1200 -- --tb=short -ra --hermes-distribution-source=D:/AI/hermes-db-packages/.build/two-layer-acceptance-final/source --hermes-sqlite-python=D:/AI/hermes-db-packages/.build/two-layer-acceptance-final/env-sqlite/Scripts/python.exe --hermes-postgresql-python=D:/AI/hermes-db-packages/.build/two-layer-acceptance-final/env-postgresql/Scripts/python.exe
-& 'D:/Programs/Git/bin/bash.exe' scripts/run_tests.sh tests/hermes_state -j 4 --file-timeout 1200 -- --tb=short -ra
-```
-
-Linux同根Native完整组（cwd为最终test-driver，HERMES_PYTHON同根env-postgresql/bin/python，显式HOME/RUNTIME）：
-
-```bash
-bash scripts/run_tests.sh tests/hermes_db -j 4 --file-timeout 1200 -- --tb=short -ra --hermes-distribution-source=/var/tmp/hermes-db-two-layer-acceptance-final/source --hermes-sqlite-python=/var/tmp/hermes-db-two-layer-acceptance-final/env-sqlite/bin/python --hermes-postgresql-python=/var/tmp/hermes-db-two-layer-acceptance-final/env-postgresql/bin/python --hermes-sqlite-matrix-python=/var/tmp/hermes-db-two-layer-acceptance-final/env-sqlite-matrix/bin/python
-bash scripts/run_tests.sh tests/hermes_state -j 4 --file-timeout 1200 -- --tb=short -ra
-```
-
-两端消费者组使用Task16已结算的必需测试文件表，按最多80文件划分固定批次，并保存每批文件清单及hash。每批实际执行同一scripts/run_tests.sh、-j4/timeout1200及原有platform marker；所有必需批次完整exit0。2095个全量消费者测试候选/155个内部路径变化测试候选是审计输入，最终必需清单由实际影响结算；未列为必需者需有“公共路径/行为未改且由哪些合同覆盖”等理由。不能在发生失败后临时缩小文件表。
-
-纯SQLite独立组以各自env-sqlite解释器为父/子进程执行test_backend_dataset_selection及SQLite普通打开/显式生命周期合同，实际无PG依赖；Linux另用env-sqlite-matrix执行真实SDK组。新PID和标记/恢复内容必须由真实数据库读出。
-
-Linux完整PG（同根PG解释器，随机fixture Schema）：
-
-```bash
-bash scripts/run_tests.sh tests/hermes_db/postgresql -j 1 --file-timeout 1200 -- --tb=short -ra -m integration --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml --hermes-distribution-source=/var/tmp/hermes-db-two-layer-acceptance-final/source --hermes-sqlite-python=/var/tmp/hermes-db-two-layer-acceptance-final/env-sqlite/bin/python --hermes-postgresql-python=/var/tmp/hermes-db-two-layer-acceptance-final/env-postgresql/bin/python --hermes-sqlite-matrix-python=/var/tmp/hermes-db-two-layer-acceptance-final/env-sqlite-matrix/bin/python
-bash scripts/run_tests.sh tests/hermes_db/test_distribution.py tests/hermes_db/postgresql/test_distribution_initialization.py -j 2 --file-timeout 1200 -- --tb=short -ra -m 'integration or not integration' --postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml --hermes-distribution-source=/var/tmp/hermes-db-two-layer-acceptance-final/source --hermes-sqlite-python=/var/tmp/hermes-db-two-layer-acceptance-final/env-sqlite/bin/python --hermes-postgresql-python=/var/tmp/hermes-db-two-layer-acceptance-final/env-postgresql/bin/python --hermes-sqlite-matrix-python=/var/tmp/hermes-db-two-layer-acceptance-final/env-sqlite-matrix/bin/python
-```
-
-Windows独立发行组使用同根Windows实际路径、其PG父解释器及私有配置Windows路径执行同样两个测试文件，`-m 'integration or not integration'`；SDK限定Linux的skip单独列出，不能改marker或以SDK缺失skip冒充已验。
-
-```powershell
-& 'D:/Programs/Git/bin/bash.exe' scripts/run_tests.sh tests/hermes_db/test_distribution.py tests/hermes_db/postgresql/test_distribution_initialization.py -j 2 --file-timeout 1200 -- --tb=short -ra -m 'integration or not integration' --postgres-test-config=D:/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml --hermes-distribution-source=D:/AI/hermes-db-packages/.build/two-layer-acceptance-final/source --hermes-sqlite-python=D:/AI/hermes-db-packages/.build/two-layer-acceptance-final/env-sqlite/Scripts/python.exe --hermes-postgresql-python=D:/AI/hermes-db-packages/.build/two-layer-acceptance-final/env-postgresql/Scripts/python.exe
-```
-
-
-最终还需：两端source/driver全部hash核对0差异，当前源码Git规范化内容等价（CRLF差异单列）、61+4固定资源、31revision/29表、DB/root/全项目文件数量、生成契约、插件边界及最新staged静态/空白检查。实际触及TS/wire才按对应AGENTS运行相应真实类型/构建检查，不能以Python测试替代。
+精简前的完整目录命令保留在Git历史805122d791及更早计划中，属于可选深度回归，不再作为当前必需执行项。源码/资源冻结、5个全新PM构建、当前精简批次真实exit0与独立审查继续强制；实际结果只支持本轮分层声明。
 
 ## 设计覆盖与验收对应
 
@@ -1470,24 +1466,24 @@ Windows独立发行组使用同根Windows实际路径、其PG父解释器及私�
 | 应用装配/进程/文件归包外、原事务和栅栏保持 | 9–15 |
 | Worker owner、Profile绑定、提示缓存和数据集隔离 | 5、9–15、18、19 |
 | 全量消费者/patch/动态/文档、无shim和预算 | 每Task同步，16收口 |
-| 最新完整验收、独立审查、整改后复验 | 17–20 |
+| 当前精简关键合同、独立审查、按影响整改复验 | 17–20 |
 
 ## 最终验证
 
 ### 执行命令
 
-未来执行上文实际命令及各Task固定组。完成后以真实manifest中的source/解释器/cwd/环境路径和退出码替换执行记录；不得将本轮规划自检或旧分包/精简验收算入。
+后续执行用户精简策略下的关键合同清单及必要门禁，不执行精简前的目录级全量组。完成后以真实manifest中的source/解释器/cwd/环境路径和退出码替换执行记录；不得将本轮规划自检或旧分包/精简验收算入。
 
 ### 当前执行结果
 
-- 当前实施：Task1–11已验证，11/20；Task11本地提交后进入Task12。
+- 当前实施：Task1–12已验证，12/20；Task12本地提交后进入Task13。
 - Task1–7证据见各Task及对应诊断记录。最终完整冻结批次、SDK及独立审查尚未完成。
 - 规划结构/基准/本地链接及文档静态自检：实际命令与结果写入下方准备记录。
 - 代码审查：本轮尚未执行；旧APPROVED只属于已完成持久层职责精简。
 
 ### 未通过项目与最终状态
 
-当前为`IMPLEMENTING`，Task1–11已完成，下一项Task12，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
+当前为`IMPLEMENTING`，Task1–12已完成，下一项Task13，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
 
 ## 规划准备记录与恢复
 

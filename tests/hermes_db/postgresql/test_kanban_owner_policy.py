@@ -10,7 +10,8 @@ from gateway.session_contract import SessionActor
 from gateway.session_kanban import build_kanban_policy
 from gateway.session_kanban_policy import admit_postgresql_claim
 from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
-from hermes_db.integration.kanban_owner import board_reference, open_board_owner
+from hermes_db.domains.kanban.owner import board_reference
+from hermes_cli.kanban_storage_owner import open_board_owner
 from hermes_db.errors import StorageConfigurationError
 from hermes_db.domains.kanban.postgres import owners as kanban_owner
 from hermes_state_runtime import RuntimeStoreError

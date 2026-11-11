@@ -15,7 +15,7 @@ import time
 from typing import Any
 from typing import Optional
 from pathlib import Path
-from hermes_db.domains.kanban.api import profile_operation
+from hermes_cli.kanban_storage_application import profile_operation
 
 
 def _dir_holds_board(d: Path) -> bool:

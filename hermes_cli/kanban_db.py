@@ -37,7 +37,7 @@ from hermes_cli.kanban_workflow import DEFAULT_STATUSES as VALID_STATUSES
 from hermes_cli.kanban_errors import TaskAlreadyClaimedError
 from toolsets import get_toolset_names
 from utils import unlink_files_older_than
-from hermes_db.domains.kanban.api import domain_operation, profile_operation
+from hermes_cli.kanban_storage_application import domain_operation, profile_operation
 
 _log = logging.getLogger(__name__)
 
@@ -510,7 +510,7 @@ def _board_path(
     resolving through the pin. Without explicit intent the ``env_var`` override
     pins the file, else legacy ``<root>/<default_parts>`` for the ``default``
     board, else ``board_dir(slug)/leaf``."""
-    from hermes_db.integration.kanban_owner import generation_path
+    from hermes_cli.kanban_storage_owner import generation_path
     selected_path = generation_path(env_var, board, leaf)
     if selected_path is not None:
         return selected_path

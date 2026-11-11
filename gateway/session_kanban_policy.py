@@ -26,7 +26,7 @@ def validate_claim_params(params):
             or type(params["run_id"]) is not int):
         raise RuntimeStoreError("invalid_params")
     if "owner" in params:
-        from hermes_db.integration.kanban_owner import validate_reference
+        from hermes_db.domains.kanban.owner import validate_reference
         from hermes_db.errors import StorageConfigurationError
         try:
             validate_reference(params["owner"])
@@ -52,7 +52,8 @@ def _describe(conn, task, params, retry, storage):
 
 def _postgresql_claim(params, authority):
     from hermes_cli import kanban_db as kb
-    from hermes_db.integration.kanban_owner import open_board_owner, validate_reference
+    from hermes_cli.kanban_storage_owner import open_board_owner
+    from hermes_db.domains.kanban.owner import validate_reference
     from hermes_db.domains.kanban.postgres.owners import inspect_claim
     validate_reference(params["owner"])
     if params["owner"]["board"] != params["board"]:
@@ -97,7 +98,7 @@ def describe_claim(params, authority):
 
 
 def admit_postgresql_claim(context, params, receipt):
-    from hermes_db.integration.kanban_owner import open_board_owner
+    from hermes_cli.kanban_storage_owner import open_board_owner
     from hermes_db.domains.kanban.postgres.owners import admit_claim
     with open_board_owner(context["owner"]) as store:
         admit_claim(store, params, receipt)

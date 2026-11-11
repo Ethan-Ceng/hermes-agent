@@ -111,7 +111,7 @@
     {
       "id": 12,
       "title": "迁出Kanban拥有者、进程和RPC适配",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         9,
         11
@@ -315,6 +315,31 @@
       "path": "agent/runtime_metrics_store.py",
       "task": 11,
       "layer": "application"
+    },
+    {
+      "path": "hermes_cli/kanban_storage_application.py",
+      "task": 12,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_cli/kanban_storage_owner.py",
+      "task": 12,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_cli/kanban_storage_wire.py",
+      "task": 12,
+      "layer": "application"
+    },
+    {
+      "path": "agent/runtime_kanban_storage.py",
+      "task": 12,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_db/domains/kanban/owner.py",
+      "task": 12,
+      "layer": "business"
     }
   ],
   "new_behavior_tests": [
@@ -487,15 +512,20 @@
     ]
   },
   "validation_policy": {
-    "runtime_tests_run_in_planning": false,
-    "all_tasks_pending": true,
-    "no_retired_business_tests": true,
-    "data_change": false,
-    "schema_change": false,
-    "new_backend": false,
-    "ordinary_startup_ddl": false,
-    "secrets_printed": false,
-    "formal_instance_changed": false
+    "authority": "User instruction on2026-11-11 after Task12: 不用特别多测试，因为我们只是拆分层，之前pgsql改造已经深度验收了",
+    "scope": "Targeted layer ownership/import/assembly/schema/scope/transaction/receipt/close contracts. No directory-level old PG business regression or repeated business suites for bytecode-equivalent formatting.",
+    "source_freshness": "Original new PM payload/source freeze remains;previous PG deep validation is background only,not current evidence.",
+    "final_manifest": "docs/designs/hermes-db-two-layer-verification.json,curated inTask16 before final tests",
+    "required_final_review": "verification-before-completion then independent code-review;no all-system acceptance claim",
+    "unchanged_constraints": [
+      "65fixed resources",
+      "0031/31revisions/29tables",
+      "DB<=359/root11",
+      "official runtime/data read-only",
+      "fixture-owned random PG schemas",
+      "no old-path shims or new framework",
+      "no push/PR/merge/deploy/restart"
+    ]
   },
   "reference_encoding": {
     "provider_paths": [
@@ -1271,7 +1301,7 @@
     "entries": [
       {
         "path": "hermes-db-two-layer-map/sources-db.json",
-        "sha256": "33c5c5edb0341bb0accb579db98b2658379a275137b1084a7e2ec983e8b0d59e",
+        "sha256": "e55bb45307c470fef8f34f372405899505a140e44385907815dd58029fd2f682",
         "items": 359
       }
     ],
@@ -1285,7 +1315,7 @@
     "consumer_files": [
       {
         "path": "hermes-db-two-layer-map/consumers-production.json",
-        "sha256": "7b1aafb9570a74c830d21b3f7158e5336f983a3006733bf4a2c85c6cef498276",
+        "sha256": "2b754a26bbb0968b17aef44fd9cf85507c73ba38c2befc690c6669424b3e271c",
         "items": 938
       },
       {
@@ -1595,5 +1625,68 @@
       []
     ]
   },
-  "task11_evidence": "docs/designs/hermes-db-two-layer-task11.json"
+  "task11_evidence": "docs/designs/hermes-db-two-layer-task11.json",
+  "task11_commit": "805122d791b9a2068aed2eeb170b37149b09800d",
+  "task12_adjustment": {
+    "status": "completed",
+    "parent_commit": "805122d791b9a2068aed2eeb170b37149b09800d",
+    "primary_db_entries": 4,
+    "api_symbol_routes": [
+      "_KANBAN_MODULES",
+      "domain_operation",
+      "profile_operation",
+      "owner_scoped_operation",
+      "connect"
+    ],
+    "refinements": [
+      "Move actual owner/Profile/Worker selection and closed dispatch together with concrete application capabilities; leave BoardResource and DTO definitions business-owned.",
+      "Keep board_reference/validate_reference pure business definitions; move managed-scratch generation SELECT to a supplied-Connection business query, preserve original query and resource lifetime.",
+      "Dashboard already imports the Kanban facade. Use its existing actually-consumed domain_operation name and remove the old private crossing; add no facade definition,shim,public-API whitelist or private path grant.",
+      "Keep exact RPC shapes/errors/DTO identity and generation/target/scope fencing. No frontend wire change."
+    ],
+    "source_hash": "77b6ab7838d8f9bfabe4550a75c67216872dd8993a38a29e9cdb419cef36e800",
+    "actual_db_modules": 354,
+    "final_validation": [
+      [
+        "=== Summary: 18 files, 211 tests passed, 0 failed, 6 skipped (100% complete) in 102.0s (4 workers) ==="
+      ],
+      [
+        "=== Summary: 18 files, 215 tests passed, 0 failed, 2 skipped (100% complete) in 388.6s (4 workers) ==="
+      ],
+      [
+        "=== Summary: 13 files, 41 tests passed, 0 failed (100% complete) in 452.1s (1 workers) ==="
+      ],
+      [
+        "scripts/check: 16 checks, ok"
+      ],
+      [
+        "hermes_db boundaries: 9306 resolved imports, 0 violations"
+      ],
+      [
+        "module_to_core: 842",
+        "core_to_module: 26"
+      ],
+      [],
+      []
+    ]
+  },
+  "task12_evidence": "docs/designs/hermes-db-two-layer-task12.json",
+  "historical_validation_policy_before_user_scope_reduction": {
+    "runtime_tests_run_in_planning": false,
+    "all_tasks_pending": true,
+    "no_retired_business_tests": true,
+    "data_change": false,
+    "schema_change": false,
+    "new_backend": false,
+    "ordinary_startup_ddl": false,
+    "secrets_printed": false,
+    "formal_instance_changed": false
+  },
+  "validation_policy_revision": {
+    "status": "active",
+    "user_quote": "不用特别多测试，因为我们只是拆分层，之前pgsql改造已经深度验收了",
+    "effective_tasks": "Task13–20;Task12 already-running batches finish and remain actual evidence",
+    "retained": "20 implementation tasks and per-task commits,current source freeze/new PM payloads,critical real contracts,independent final review",
+    "retired_requirement": "Repeated whole-business and directory-level regression beyond direct layering risk"
+  }
 }

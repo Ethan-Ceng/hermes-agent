@@ -1,42 +1,12 @@
-"""Kanban business dispatch and immutable, owner-resolved Board handles."""
+"""Kanban business values and immutable, caller-resolved Board handles."""
 
 from contextlib import contextmanager
-from functools import wraps
 from dataclasses import dataclass
-from importlib import import_module
 
 from hermes_db.domains.resource import DomainResource
 from hermes_db.errors import StorageConfigurationError
 
 
-_KANBAN_MODULES = {'archive': 'hermes_db.domains.kanban.postgres.catalog',
- 'artifacts': 'hermes_db.domains.kanban.postgres.files',
- 'claims': 'hermes_db.domains.kanban.postgres.claims',
- 'completion': 'hermes_db.domains.kanban.postgres.completion',
- 'completion_guards': 'hermes_db.domains.kanban.postgres.completion',
- 'crash_sweeps': 'hermes_db.domains.kanban.postgres.maintenance',
- 'dashboard': 'hermes_db.domains.kanban.postgres.catalog',
- 'diagnostic_snapshot': 'hermes_db.domains.kanban.postgres.catalog',
- 'dispatch': 'hermes_db.domains.kanban.postgres.dispatch',
- 'dispatch_lane': 'hermes_db.domains.kanban.postgres.dispatch',
- 'dispatch_queries': 'hermes_db.domains.kanban.postgres.dispatch',
- 'events': 'hermes_db.domains.kanban.postgres.catalog',
- 'failures': 'hermes_db.domains.kanban.postgres.runs',
- 'graph': 'hermes_db.domains.kanban.postgres.catalog',
- 'lease_sweeps': 'hermes_db.domains.kanban.postgres.maintenance',
- 'notify': 'hermes_db.domains.kanban.postgres.notify',
- 'owner_recovery': 'hermes_db.domains.kanban.postgres.owners',
- 'queries': 'hermes_db.domains.kanban.postgres.catalog',
- 'reopen': 'hermes_db.domains.kanban.postgres.catalog',
- 'review': 'hermes_db.domains.kanban.postgres.review',
- 'runs': 'hermes_db.domains.kanban.postgres.runs',
- 'runtime_sweeps': 'hermes_db.domains.kanban.postgres.maintenance',
- 'swarm': 'hermes_db.domains.kanban.postgres.swarm',
- 'tasks': 'hermes_db.domains.kanban.postgres.catalog',
- 'terminal_workers': 'hermes_db.domains.kanban.postgres.maintenance',
- 'transitions': 'hermes_db.domains.kanban.postgres.claims',
- 'worker_identity': 'hermes_db.domains.kanban.postgres.dispatch',
- 'workspaces': 'hermes_db.domains.kanban.postgres.workspaces'}
 
 
 @dataclass(frozen=True)
@@ -189,57 +159,3 @@ class BoardResource(DomainResource):
         from hermes_db.domains.kanban.postgres.workspaces import set_branch_name
         with self._operation_scope():
             return set_branch_name(self, task_id, branch_name)
-
-def domain_operation(topic):
-    def decorate(sqlite_operation):
-        @wraps(sqlite_operation)
-        def operation(store, *args, **kwargs):
-            from hermes_db.integration.kanban_worker import WorkerBoardResource
-            if isinstance(store, WorkerBoardResource):
-                return store.invoke(sqlite_operation.__name__, args, kwargs)
-            if isinstance(store, DomainResource):
-                if not isinstance(store, BoardResource) or store.settings.backend != "postgresql":
-                    raise StorageConfigurationError("Kanban operations require the selected Board store")
-                module = import_module(_KANBAN_MODULES[topic])
-                with store._operation_scope():
-                    return getattr(module, sqlite_operation.__name__)(store, *args, **kwargs)
-            return sqlite_operation(store, *args, **kwargs)
-        return operation
-    return decorate
-
-
-def profile_operation(sqlite_operation):
-    @wraps(sqlite_operation)
-    def operation(*args, **kwargs):
-        from hermes_cli.db_setup import storage_backend
-        if storage_backend() == "postgresql":
-            from hermes_db.domains.kanban.postgres import catalog as kanban_boards
-            from hermes_cli.db_domains import acquire_profile_domain
-            with acquire_profile_domain("kanban_tasks") as resource:
-                return getattr(kanban_boards, sqlite_operation.__name__)(resource, *args, **kwargs)
-        return sqlite_operation(*args, **kwargs)
-    return operation
-
-
-def owner_scoped_operation(file_operation):
-    """Shared file orchestration still binds the resource's owning Profile."""
-    @wraps(file_operation)
-    def operation(store, *args, **kwargs):
-        if isinstance(store, DomainResource):
-            if not isinstance(store, BoardResource):
-                raise StorageConfigurationError("Kanban file operations require a Board resource")
-            store._assert_open()
-            with store._operation_scope():
-                return file_operation(store, *args, **kwargs)
-        return file_operation(store, *args, **kwargs)
-    return operation
-
-
-def connect(board=None):
-    from hermes_cli import kanban_db as kb
-    from hermes_cli.db_domains import acquire_profile_domain
-    from hermes_db.domains.kanban.postgres.catalog import resolve_board
-    slug = kb._explicit_board_slug(board) or kb.get_current_board()
-    with acquire_profile_domain("kanban_tasks") as resource:
-        board_id = resolve_board(resource, slug)
-        return BoardResource(resource, board_id, slug)

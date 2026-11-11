@@ -14,8 +14,8 @@ from agent.runtime_session_store import RuntimeSessionStore
 from gateway.session_worker_kanban import worker_kanban
 from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
 from hermes_cli.db_sessions import open_session_store
-from hermes_db.integration.kanban_wire import unpack
-from hermes_db.integration.kanban_worker import WorkerBoardResource
+from hermes_cli.kanban_storage_wire import unpack
+from agent.runtime_kanban_storage import WorkerBoardResource
 from tests.hermes_db.postgresql.test_kanban_interactive_worker import setup_owner, call
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]

@@ -10,7 +10,7 @@ _binding = None
 
 def bind_worker_board(context):
     from agent.runtime_session_store import current_worker_store, WorkerPersistenceError
-    from hermes_db.integration.kanban_owner import validate_reference
+    from hermes_db.domains.kanban.owner import validate_reference
     global _binding
     store = current_worker_store()
     if store is None or store.scope["pid"] != os.getpid():
@@ -37,7 +37,7 @@ def connect_worker_board(db_path=None, *, board=None):
             return None
         if db_path is not None:
             raise StorageConfigurationError("Worker may select only a Board slug in its owning Profile")
-        from hermes_db.integration.kanban_wire import unpack
+        from hermes_cli.kanban_storage_wire import unpack
         store = current_worker_store()
         context = unpack(call_off_event_loop(store.kanban_read, "board.resolve", {"board": board}))
         return WorkerBoardResource(store, context)
@@ -58,7 +58,7 @@ class WorkerBoardResource:
     def invoke(self, operation, args, kwargs):
         from agent.runtime_session_store import call_off_event_loop
         from gateway.session_worker_kanban_operations import READS, COMMANDS
-        from hermes_db.integration.kanban_wire import pack, unpack, CommandRefusal
+        from hermes_cli.kanban_storage_wire import pack, unpack, CommandRefusal
         if self.closed or self.pid != os.getpid():
             raise StorageClosedError("Worker Board resource is closed or belongs to another process")
         if operation not in READS | COMMANDS:

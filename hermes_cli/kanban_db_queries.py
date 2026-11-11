@@ -1,7 +1,7 @@
 """Named dashboard and event-tail reads on the selected Board backend."""
 from hermes_db.domains.kanban.rules import summarize_board
 
-from hermes_db.domains.kanban.api import domain_operation
+from hermes_cli.kanban_storage_application import domain_operation
 
 
 @domain_operation("queries")

@@ -98,7 +98,7 @@ def test_old_raw_cleanup_token_reconciles_or_preserves_canonical_live_reference(
     from hermes_db.tables.kanban_artifacts import attachments, blobs
     from hermes_db.domains.kanban.postgres import repository as repo
     from hermes_db.domains.kanban.postgres.files import reconcile
-    from hermes_db.integration.kanban_owner import board_files
+    from hermes_cli.kanban_storage_owner import board_files
     from hermes_db.errors import StorageBusyError
     from hermes_db.core.values import encode_text
     with pg_profiles("review-old-token"), kbc.connect_closing() as board:

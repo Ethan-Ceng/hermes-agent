@@ -63,6 +63,6 @@ def frozen_context(connection, ref, params):
         if target.get("board_id", board_id) != board_id:
             raise RuntimeStoreError("stale_generation")
         from hermes_db.domains.kanban.api import BoardResource
-        from hermes_db.integration.kanban_owner import board_reference
+        from hermes_db.domains.kanban.owner import board_reference
         with BoardResource(resource, board_id, slug) as board:
             return {"board": slug, "owner": board_reference(board)}
