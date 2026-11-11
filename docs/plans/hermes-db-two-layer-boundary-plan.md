@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`VERIFYING`；阶段：Task20 R1整改源发行与PG复验；当前实施任务：Task19（复验）；完成：18 / 20；阻塞：无；日期2026-11-12。
+- 整体状态：`VERIFYING`；阶段：Task20 R1独立复审与最终验证；当前实施任务：Task20；完成：19 / 20；阻塞：无；日期2026-11-12。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 验证策略修订：按本轮分层风险精简（2026-11-11用户指示）
@@ -1364,7 +1364,7 @@ V2当前结算：7个完整精简组全部实际exit0，Windows63passed/2Linux-o
 
 ## Task 19：执行PG、发行与SDK分层关键验证
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -1410,6 +1410,12 @@ Windows发行1文件3passed/1Linux-only SDK skip；Linux发行1文件4passed，P
 
 
 结算：全部必需精简冻结批次实际exit0、当前源码与唯一SOURCE_TIP等价，无本Task失败/源码或测试删改。固定65资源/DB340/root11/31/29通过同源hash保持。完成19/20后立即本地commit，Task20启动记录实际hash；尚待最终verification与独立审查，不能READY_TO_MERGE，不外推全系统验收。
+
+
+V2当前启动：Task18实际commit8925f5ca1805a2bbff2e65a2907a15da31591d5c；source0aa4f597保持。使用v2新源/新解释器运行distribution两端和PG8文件完整组，包含R1真实业务合同，之后重新核对所有hash及独立复审。
+
+
+V2当前结算：两端发行Windows3passed/1Linux-only SDKskip、Linux4passed；真实PG8文件20passed/0skip（含R1新合同）。全部3组及当前16check/DB与插件边界/生成合同/空白实际exit0；测试后source/driver双端各24019文件hash0差异。全10组完整输出及hash已重新审计，总159passed/3真实平台skip，初版158不计本次通过。实际argv/python/cwd/home/runtime/源码/skip见当前Task19.json。R1原始报告与真实红灯保留，整改源仍待独立复审，不得READY_TO_MERGE。完成19/20后立即本地commit。
 
 ## Task 20：独立代码审查、整改复验和最终交付
 
@@ -1523,7 +1529,7 @@ wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-two-layer-acceptance-final-v2/so
 
 ### 当前执行结果
 
-- 当前实施：Task1–16已完成；Task20独立初审发现major R1并红灯复现，最小修正后本地focused1passed。Task17–19重新冻结/复验，当前16/20。初版记录保留于*-initial.json和初审报告。
+- 当前实施：Task1–19已完成；R1最小修正、真实红绿灯、全新v2五载荷及全部10精简冻结批次已通过。当前19/20，Task20独立复审仍待；初版CHANGES_REQUIRED和158结果单独历史保留。
 - 初版精简冻结验证（已被R1失效，不能算整改源结果）：10完整命令均exit0，Windows66passed/3Linux-only skips，Linux92passed/0skip，总158passed。PG7文件19passed；SDK、独立发行及纯SQLite实际读写/新PID均使用5个全新PM载荷。
 - 冻结source/test-driver两端各23998文件hash0差异；当前Git全部Python/测试/lock逐字节等价，固定65资源/DB340/root11/31/29保留。
 - 本轮Task20独立初审CHANGES_REQUIRED，仅R1一项major；整改后须独立复审APPROVED，旧结果不能作为整改源批准。

@@ -1,11 +1,455 @@
 {
   "task": 19,
-  "status": "pending",
+  "status": "completed",
   "revalidation_reason": "Independent major R1 fixed runtime control flow;original acceptance is historical only.",
   "initial_execution_record": "docs/designs/hermes-db-two-layer-task19-initial.json",
-  "required_pending": [
-    "New unique frozen source and all applicable current required commands actualexit0"
-  ],
+  "required_pending": [],
   "new_windows_root": "D:/AI/hermes-db-packages/.build/two-layer-acceptance-final-v2",
-  "new_linux_root": "/var/tmp/hermes-db-two-layer-acceptance-final-v2"
+  "new_linux_root": "/var/tmp/hermes-db-two-layer-acceptance-final-v2",
+  "parent_commit": "8925f5ca1805a2bbff2e65a2907a15da31591d5c",
+  "source_tip": "0aa4f5973542615cd044ec748313c8c4b9c988be",
+  "freeze_generation": 2,
+  "required_groups": {
+    "windows": [
+      "distribution"
+    ],
+    "linux": [
+      "distribution",
+      "pg_layer"
+    ]
+  },
+  "required_groups_results": [
+    {
+      "record_path": ".build/two-layer-acceptance-final-v2/test-driver/.build/two-layer-evidence/v2-distribution-win-db7d07113be14373b09874324ba2c01e.log.json",
+      "completed_mtime_ns": 1794418483400293400,
+      "label": "v2-distribution-win",
+      "source_commit": "0aa4f5973542615cd044ec748313c8c4b9c988be",
+      "dirty_diff_sha256": "8cc99125fad9a5b68f6442d46c889f6963cede4353a1cd96a41063913a359bd1",
+      "cwd": "D:\\AI\\hermes-db-packages\\.build\\two-layer-acceptance-final-v2\\test-driver",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/test_distribution.py",
+        "-j",
+        "2",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra",
+        "--hermes-distribution-source=D:/AI/hermes-db-packages/.build/two-layer-acceptance-final-v2/source",
+        "--hermes-sqlite-python=D:/AI/hermes-db-packages/.build/two-layer-acceptance-final-v2/env-sqlite/Scripts/python.exe",
+        "--hermes-postgresql-python=D:/AI/hermes-db-packages/.build/two-layer-acceptance-final-v2/env-postgresql/Scripts/python.exe"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-acceptance-final-v2/env-postgresql/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-acceptance-final-v2/test-profiles/distribution",
+      "runtime": "D:/AI/hermes-db-packages/.build/two-layer-acceptance-final-v2/test-runtimes/distribution",
+      "temp": "D:/ht5-4e9ca735/final-twolayer-v2",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 1 files, 3 tests passed, 0 failed, 1 skipped (100% complete) in 14.2s (2 workers) ==="
+      ]
+    },
+    {
+      "record_path": ".build/two-layer-evidence/v2-distribution-linux-8ebb8428fd9645658d94052afdede7ea.log.json",
+      "completed_mtime_ns": 1794418482167653400,
+      "label": "v2-distribution-linux",
+      "source_commit": "0aa4f5973542615cd044ec748313c8c4b9c988be",
+      "dirty_diff_sha256": "8cc99125fad9a5b68f6442d46c889f6963cede4353a1cd96a41063913a359bd1",
+      "cwd": "/var/tmp/hermes-db-two-layer-acceptance-final-v2/test-driver",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/var/tmp/hermes-db-two-layer-acceptance-final-v2/test-driver",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-acceptance-final-v2/test-profiles/distribution",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-two-layer-acceptance-final-v2/test-runtimes/distribution",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-acceptance-final-v2/env-postgresql/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/test_distribution.py",
+        "-j",
+        "2",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra",
+        "--hermes-distribution-source=/var/tmp/hermes-db-two-layer-acceptance-final-v2/source",
+        "--hermes-sqlite-python=/var/tmp/hermes-db-two-layer-acceptance-final-v2/env-sqlite/bin/python",
+        "--hermes-postgresql-python=/var/tmp/hermes-db-two-layer-acceptance-final-v2/env-postgresql/bin/python",
+        "--hermes-sqlite-matrix-python=/var/tmp/hermes-db-two-layer-acceptance-final-v2/env-sqlite-matrix/bin/python"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-acceptance-final-v2/env-postgresql/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-acceptance-final-v2/test-profiles/distribution",
+      "runtime": "/var/tmp/hermes-db-two-layer-acceptance-final-v2/test-runtimes/distribution",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 1 files, 4 tests passed, 0 failed (100% complete) in 13.1s (2 workers) ==="
+      ]
+    },
+    {
+      "record_path": ".build/two-layer-evidence/v2-pg_layer-linux-e6ef56ddb91f4a10979f5e9e413055e3.log.json",
+      "completed_mtime_ns": 1794418547652621000,
+      "label": "v2-pg_layer-linux",
+      "source_commit": "0aa4f5973542615cd044ec748313c8c4b9c988be",
+      "dirty_diff_sha256": "8cc99125fad9a5b68f6442d46c889f6963cede4353a1cd96a41063913a359bd1",
+      "cwd": "/var/tmp/hermes-db-two-layer-acceptance-final-v2/test-driver",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/var/tmp/hermes-db-two-layer-acceptance-final-v2/test-driver",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-acceptance-final-v2/test-profiles/pg_layer",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-two-layer-acceptance-final-v2/test-runtimes/pg_layer",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-acceptance-final-v2/env-postgresql/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/postgresql/test_infra_independence.py",
+        "tests/hermes_db/postgresql/test_transaction_failures.py",
+        "tests/hermes_db/postgresql/test_merge_commit_recovery.py",
+        "tests/hermes_db/postgresql/test_backend_dataset_selection.py",
+        "tests/hermes_db/postgresql/test_distribution_initialization.py",
+        "tests/hermes_db/postgresql/test_matrix_sdk_flows.py",
+        "tests/hermes_db/postgresql/test_matrix_close.py",
+        "tests/hermes_db/postgresql/test_kanban_decompose_boundary.py",
+        "-j",
+        "1",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra",
+        "-m",
+        "integration",
+        "--postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml",
+        "--hermes-distribution-source=/var/tmp/hermes-db-two-layer-acceptance-final-v2/source",
+        "--hermes-sqlite-python=/var/tmp/hermes-db-two-layer-acceptance-final-v2/env-sqlite/bin/python",
+        "--hermes-postgresql-python=/var/tmp/hermes-db-two-layer-acceptance-final-v2/env-postgresql/bin/python",
+        "--hermes-sqlite-matrix-python=/var/tmp/hermes-db-two-layer-acceptance-final-v2/env-sqlite-matrix/bin/python"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-acceptance-final-v2/env-postgresql/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-acceptance-final-v2/test-profiles/pg_layer",
+      "runtime": "/var/tmp/hermes-db-two-layer-acceptance-final-v2/test-runtimes/pg_layer",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 8 files, 20 tests passed, 0 failed (100% complete) in 64.8s (1 workers) ==="
+      ]
+    }
+  ],
+  "required_static_results": [
+    {
+      "record_path": ".build/two-layer-evidence/static-dacbf19a8fac478488f2f60f94418599.log.json",
+      "completed_mtime_ns": 1794418660399297600,
+      "label": "static",
+      "source_commit": "8925f5ca1805a2bbff2e65a2907a15da31591d5c",
+      "dirty_diff_sha256": "8cc99125fad9a5b68f6442d46c889f6963cede4353a1cd96a41063913a359bd1",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/check",
+        "--staged",
+        "--base",
+        "0d8782ba8a"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "scripts/check: 16 checks, ok"
+      ]
+    },
+    {
+      "record_path": ".build/two-layer-evidence/db-boundary-6a042b75012d4794b2b4bb0f809af006.log.json",
+      "completed_mtime_ns": 1794418662397689500,
+      "label": "db-boundary",
+      "source_commit": "8925f5ca1805a2bbff2e65a2907a15da31591d5c",
+      "dirty_diff_sha256": "8cc99125fad9a5b68f6442d46c889f6963cede4353a1cd96a41063913a359bd1",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/hermes_db_boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "hermes_db boundaries: 8534 resolved imports, 0 violations"
+      ]
+    },
+    {
+      "record_path": ".build/two-layer-evidence/plugin-boundary-28f36a248f144a3cb653bb69f0c9ec81.log.json",
+      "completed_mtime_ns": 1794418679282969000,
+      "label": "plugin-boundary",
+      "source_commit": "8925f5ca1805a2bbff2e65a2907a15da31591d5c",
+      "dirty_diff_sha256": "8cc99125fad9a5b68f6442d46c889f6963cede4353a1cd96a41063913a359bd1",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "module_to_core: 829",
+        "core_to_module: 26"
+      ]
+    },
+    {
+      "record_path": ".build/two-layer-evidence/contracts-18a4c39e4615452d80f1df6cd6ec9ea1.log.json",
+      "completed_mtime_ns": 1794418680651900600,
+      "label": "contracts",
+      "source_commit": "8925f5ca1805a2bbff2e65a2907a15da31591d5c",
+      "dirty_diff_sha256": "8cc99125fad9a5b68f6442d46c889f6963cede4353a1cd96a41063913a359bd1",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/gen_gateway_contracts.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": []
+    },
+    {
+      "record_path": ".build/two-layer-evidence/whitespace-d08cd88079f3446eaf8dbc0801d60e9f.log.json",
+      "completed_mtime_ns": 1794418680821454600,
+      "label": "whitespace",
+      "source_commit": "8925f5ca1805a2bbff2e65a2907a15da31591d5c",
+      "dirty_diff_sha256": "8cc99125fad9a5b68f6442d46c889f6963cede4353a1cd96a41063913a359bd1",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=D:/AI/hermes-db-packages",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": []
+    }
+  ],
+  "posttest_identity_results": [
+    {
+      "record_path": ".build/two-layer-evidence/v2-post-pg-hash-win-cfccd6b462114dd9811dda008e3fe0ef.log.json",
+      "completed_mtime_ns": 1794418680299348400,
+      "label": "v2-post-pg-hash-win",
+      "source_commit": "0aa4f5973542615cd044ec748313c8c4b9c988be",
+      "dirty_diff_sha256": "8cc99125fad9a5b68f6442d46c889f6963cede4353a1cd96a41063913a359bd1",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        ".build/two-layer-dev/verify_frozen_files.py",
+        ".build/two-layer-dev/frozen-v2-files.json",
+        ".build/two-layer-acceptance-final-v2/source",
+        ".build/two-layer-acceptance-final-v2/test-driver"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": []
+    },
+    {
+      "record_path": ".build/two-layer-evidence/v2-post-pg-hash-linux-92c14e8531ff4a5d99bf2a633af7587d.log.json",
+      "completed_mtime_ns": 1794418681175008400,
+      "label": "v2-post-pg-hash-linux",
+      "source_commit": "0aa4f5973542615cd044ec748313c8c4b9c988be",
+      "dirty_diff_sha256": "8cc99125fad9a5b68f6442d46c889f6963cede4353a1cd96a41063913a359bd1",
+      "cwd": "/var/tmp/hermes-db-two-layer-acceptance-final-v2/source",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/var/tmp/hermes-db-two-layer-acceptance-final-v2/source",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-acceptance-final-v2/probe-profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-two-layer-acceptance-final-v2/probe-runtime",
+        "HERMES_PYTHON=/usr/bin/python3",
+        "/usr/bin/python3",
+        "/mnt/d/AI/hermes-db-packages/.build/two-layer-dev/verify_frozen_files.py",
+        "/mnt/d/AI/hermes-db-packages/.build/two-layer-dev/frozen-v2-files.json",
+        "/var/tmp/hermes-db-two-layer-acceptance-final-v2/source",
+        "/var/tmp/hermes-db-two-layer-acceptance-final-v2/test-driver"
+      ],
+      "python": "/usr/bin/python3",
+      "home": "/var/tmp/hermes-db-two-layer-acceptance-final-v2/probe-profile",
+      "runtime": "/var/tmp/hermes-db-two-layer-acceptance-final-v2/probe-runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": []
+    }
+  ],
+  "full_frozen_output_audit": [
+    {
+      "label": "v2-native_layer-win",
+      "record_path": ".build/two-layer-acceptance-final-v2/test-driver/.build/two-layer-evidence/v2-native_layer-win-29cf1be66782478b8864c7706d28365f.log.json",
+      "full_log_sha256": "2fd7a1a7190b51ae46f35ee018aa505dcf4e827679835a7be18e2cc18da802dc",
+      "full_log_bytes": 2773,
+      "exit_code": 0,
+      "summary": "=== Summary: 8 files, 34 tests passed, 0 failed, 2 skipped (100% complete) in 21.0s (2 workers) ===",
+      "notes": [
+        "note: platforms('linux') tests (in 1 file) were SKIPPED on this host (win32); they run on the main Linux CI lane."
+      ],
+      "surfaced_warnings": []
+    },
+    {
+      "label": "v2-native_consumers-win",
+      "record_path": ".build/two-layer-acceptance-final-v2/test-driver/.build/two-layer-evidence/v2-native_consumers-win-900adb8b9bfd4794a6a3a73ec74e74c1.log.json",
+      "full_log_sha256": "e012e521f0c63f6094dd44de01149c43b3bdb31445e667c3dbd07f21074ffadc",
+      "full_log_bytes": 1975,
+      "exit_code": 0,
+      "summary": "=== Summary: 5 files, 26 tests passed, 0 failed (100% complete) in 29.9s (2 workers) ===",
+      "notes": [],
+      "surfaced_warnings": []
+    },
+    {
+      "label": "v2-sqlite_payload-win",
+      "record_path": ".build/two-layer-acceptance-final-v2/test-driver/.build/two-layer-evidence/v2-sqlite_payload-win-589d96544d644dc1912c3a5a4bdabd79.log.json",
+      "full_log_sha256": "7e0b481626ff0ab76c90d43144590ca5d241908b3d8aa6a554a9d277c0384f45",
+      "full_log_bytes": 1571,
+      "exit_code": 0,
+      "summary": "=== Summary: 3 files, 3 tests passed, 0 failed (100% complete) in 3.1s (2 workers) ===",
+      "notes": [],
+      "surfaced_warnings": []
+    },
+    {
+      "label": "v2-native_layer-linux",
+      "record_path": ".build/two-layer-evidence/v2-native_layer-linux-a9990ee1774844d39ebcb035271038a9.log.json",
+      "full_log_sha256": "5d43332a542907c18bbaa14878fd4d55e2ada813cd1370db51f5a35eb5b0fa71",
+      "full_log_bytes": 2672,
+      "exit_code": 0,
+      "summary": "=== Summary: 8 files, 36 tests passed, 0 failed (100% complete) in 18.8s (2 workers) ===",
+      "notes": [],
+      "surfaced_warnings": []
+    },
+    {
+      "label": "v2-native_consumers-linux",
+      "record_path": ".build/two-layer-evidence/v2-native_consumers-linux-a2a0de6e65b54758818aa93e200db979.log.json",
+      "full_log_sha256": "d4af23825a23ffc836aa6fef81c38aa6fb8e30cb3edf4b44a6939ecab3984ad1",
+      "full_log_bytes": 2009,
+      "exit_code": 0,
+      "summary": "=== Summary: 5 files, 26 tests passed, 0 failed (100% complete) in 25.6s (2 workers) ===",
+      "notes": [],
+      "surfaced_warnings": []
+    },
+    {
+      "label": "v2-sqlite_payload-linux",
+      "record_path": ".build/two-layer-evidence/v2-sqlite_payload-linux-0f0d9b54386341c78e28479fc60d4590.log.json",
+      "full_log_sha256": "2573970a2dec4f8ea3a42a8b4db20b6eb9d0a0784dce5f201107efbc1b5bf6f6",
+      "full_log_bytes": 1613,
+      "exit_code": 0,
+      "summary": "=== Summary: 3 files, 3 tests passed, 0 failed (100% complete) in 1.4s (2 workers) ===",
+      "notes": [],
+      "surfaced_warnings": []
+    },
+    {
+      "label": "v2-sqlite_matrix_payload-linux",
+      "record_path": ".build/two-layer-evidence/v2-sqlite_matrix_payload-linux-94c11ae55f9f43e183a5d5bc7a1bb2d6.log.json",
+      "full_log_sha256": "707da2fc1e858caa8cc647f3fd85960d3b38b21a4a21705b7556c999a0c84d92",
+      "full_log_bytes": 1066,
+      "exit_code": 0,
+      "summary": "=== Summary: 1 files, 4 tests passed, 0 failed (100% complete) in 1.5s (2 workers) ===",
+      "notes": [],
+      "surfaced_warnings": []
+    },
+    {
+      "label": "v2-distribution-win",
+      "record_path": ".build/two-layer-acceptance-final-v2/test-driver/.build/two-layer-evidence/v2-distribution-win-db7d07113be14373b09874324ba2c01e.log.json",
+      "full_log_sha256": "ffc82d0f08d0bb5f83d2ecb01c447bf7072d42647612354ffcb0b1877a06440a",
+      "full_log_bytes": 1108,
+      "exit_code": 0,
+      "summary": "=== Summary: 1 files, 3 tests passed, 0 failed, 1 skipped (100% complete) in 14.2s (2 workers) ===",
+      "notes": [
+        "note: platforms('linux') tests (in 1 file) were SKIPPED on this host (win32); they run on the main Linux CI lane."
+      ],
+      "surfaced_warnings": []
+    },
+    {
+      "label": "v2-distribution-linux",
+      "record_path": ".build/two-layer-evidence/v2-distribution-linux-8ebb8428fd9645658d94052afdede7ea.log.json",
+      "full_log_sha256": "a6d43177442dce44cbd4b0caa4b24bb0256ea28ef535c0a8bba9a0cc2e5a4e68",
+      "full_log_bytes": 1022,
+      "exit_code": 0,
+      "summary": "=== Summary: 1 files, 4 tests passed, 0 failed (100% complete) in 13.1s (2 workers) ===",
+      "notes": [],
+      "surfaced_warnings": []
+    },
+    {
+      "label": "v2-pg_layer-linux",
+      "record_path": ".build/two-layer-evidence/v2-pg_layer-linux-e6ef56ddb91f4a10979f5e9e413055e3.log.json",
+      "full_log_sha256": "74ddc5694fbc95efc1379df910fcf2656d8292c87a6c631d0434449214a7ee20",
+      "full_log_bytes": 2769,
+      "exit_code": 0,
+      "summary": "=== Summary: 8 files, 20 tests passed, 0 failed (100% complete) in 64.8s (1 workers) ===",
+      "notes": [],
+      "surfaced_warnings": []
+    }
+  ],
+  "windows_distribution": {
+    "passed": 3,
+    "failed": 0,
+    "skipped": 1
+  },
+  "linux_distribution": {
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0
+  },
+  "linux_pg": {
+    "files": 8,
+    "passed": 20,
+    "failed": 0,
+    "skipped": 0
+  },
+  "actual_skips": [
+    {
+      "file": "tests/hermes_db/test_distribution.py",
+      "id": "test_installed_sqlite_bundle_restores_actual_sdk_crypto",
+      "reason": "note: platforms('linux') tests (in 1 file) were SKIPPED on this host (win32); they run on the main Linux CI lane.",
+      "host": "windows"
+    }
+  ],
+  "source_driver_tracked_files_each": 24019,
+  "source_driver_mismatches": 0,
+  "R1_current_frozen_regression_passed": true,
+  "remaining": [
+    "Task20 latest verification-before-completion and independent re-review APPROVED still required.",
+    "Original unifiedTask24/sevennon-WSL/eightWindows issues remain separate."
+  ],
+  "scope_statement": "R1 corrected source0aa v2 all10 lean complete groups actualexit0,total159passed/3 genuine Windows Linux-only skips;initial158not counted."
 }

@@ -187,7 +187,7 @@
     {
       "id": 19,
       "title": "执行完整PG、发行与SDK故障恢复验收",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         17,
         18
@@ -2107,9 +2107,18 @@
     "posttest_hash_mismatches": 0
   },
   "task19_acceptance": {
-    "status": "pending",
+    "status": "completed",
+    "freeze_generation": 2,
     "source_tip": "0aa4f5973542615cd044ec748313c8c4b9c988be",
-    "reason": "R1 new source requires both distribution groups andPG8files includingnewregression"
+    "groups": 3,
+    "windows_distribution_passed": 3,
+    "linux_distribution_passed": 4,
+    "linux_pg_files": 8,
+    "linux_pg_passed": 20,
+    "R1_regression_passed": true,
+    "windows_linux_only_skips": 1,
+    "all_exit_codes": 0,
+    "posttest_hash_mismatches": 0
   },
   "task20_behavior_metadata_closure": {
     "planned_tests": 12,
