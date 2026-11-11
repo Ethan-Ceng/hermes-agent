@@ -836,7 +836,8 @@
       "category": "shared-pure",
       "reason": "Independent workflow/default-status, block/failure policy, original error identity or pure Swarm plan; runtime respawn/process/filesystem operations are injected from integration.",
       "consumers": [
-        "hermes_db/domains/kanban/postgres/catalog.py"
+        "hermes_db/domains/kanban/postgres/catalog.py",
+        "hermes_db/domains/kanban/postgres/transfer.py"
       ]
     },
     {

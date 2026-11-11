@@ -721,11 +721,12 @@
       "hermes_db/domains/kanban/__init__.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/api.py",
@@ -737,7 +738,7 @@
       "hermes_cli/kanban_storage_application.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {
       "_KANBAN_MODULES": {
@@ -805,7 +806,8 @@
       "owner_scoped_operation",
       "connect"
     ],
-    "task12_refinement": "Owner/Profile/Worker selectors are actual application routing; move them with Task12. BoardResource/DTO/business state remain here and primary Task13 stays pending."
+    "task12_refinement": "Owner/Profile/Worker selectors are actual application routing; move them with Task12. BoardResource/DTO/business state remain here and primary Task13 stays pending.",
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/postgres/__init__.py",
@@ -816,11 +818,12 @@
       "hermes_db/domains/kanban/postgres/__init__.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/postgres/catalog.py",
@@ -828,114 +831,247 @@
     "layer": "business",
     "action": "split_workflow",
     "targets": [
-      "hermes_db/domains/kanban/postgres/catalog.py"
+      "hermes_db/domains/kanban/postgres/catalog.py",
+      "hermes_cli/kanban_storage_catalog.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {
       "write_board_metadata": {
         "target": "hermes_cli/kanban_storage_catalog.py",
         "database_target": "hermes_db/domains/kanban/postgres/catalog.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.files.write_metadata_file"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "create_board": {
         "target": "hermes_cli/kanban_storage_catalog.py",
         "database_target": "hermes_db/domains/kanban/postgres/catalog.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.files.write_metadata_file"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "remove_board": {
         "target": "hermes_cli/kanban_storage_catalog.py",
         "database_target": "hermes_db/domains/kanban/postgres/catalog.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.policy.clear_current_board",
           "store.policy.get_current_board"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_workspace": {
         "target": "hermes_cli/kanban_storage_catalog.py",
         "database_target": "hermes_db/domains/kanban/postgres/catalog.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.files.read_board_metadata",
           "store.policy.resolve_project_link"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "prepare": {
         "target": "hermes_cli/kanban_storage_catalog.py",
         "database_target": "hermes_db/domains/kanban/postgres/catalog.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.policy.normalize_task_skills"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_insert": {
         "target": "hermes_cli/kanban_storage_catalog.py",
         "database_target": "hermes_db/domains/kanban/postgres/catalog.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.policy.project_branch_name"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "notify_task_updated": {
         "target": "hermes_cli/kanban_storage_catalog.py",
         "database_target": "hermes_db/domains/kanban/postgres/catalog.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.observers.fire_kanban_lifecycle_hook",
           "store.observers.kanban_observer_consumed"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "known_assignees": {
         "target": "hermes_cli/kanban_storage_catalog.py",
         "database_target": "hermes_db/domains/kanban/postgres/catalog.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.policy.list_profiles_on_disk"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "archive_task": {
         "target": "hermes_cli/kanban_storage_catalog.py",
         "database_target": "hermes_db/domains/kanban/postgres/catalog.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.processes.terminate_reclaimed_worker"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "terminate": {
         "target": "hermes_cli/kanban_storage_catalog.py",
         "database_target": "hermes_db/domains/kanban/postgres/catalog.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.processes.terminate_reclaimed_worker"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "assign_task": {
+        "target": "hermes_cli/kanban_storage_catalog.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "set_model_override": {
+        "target": "hermes_cli/kanban_storage_catalog.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_set_status_direct": {
+        "target": "hermes_cli/kanban_storage_catalog.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "create_task": {
+        "target": "hermes_cli/kanban_storage_catalog.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "list_boards": {
+        "target": "hermes_cli/kanban_storage_catalog.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "read_board_metadata": {
+        "target": "hermes_cli/kanban_storage_catalog.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "insert_prepared": {
+        "target": "hermes_cli/kanban_storage_catalog.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "set_reasoning_effort": {
+        "target": "hermes_cli/kanban_storage_catalog.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "decompose_triage_task": {
+        "target": "hermes_cli/kanban_storage_catalog.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_metadata": {
+        "target": "hermes_cli/kanban_storage_catalog.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_override": {
+        "target": "hermes_cli/kanban_storage_catalog.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "edit_task": {
+        "target": "hermes_cli/kanban_storage_catalog.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "resolve_board": {
+        "target": "hermes_cli/kanban_storage_catalog.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "invalidate_descendants_for_parent_reopen": {
+        "target": "hermes_cli/kanban_storage_catalog.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       }
     },
     "application_imports": [
@@ -1099,7 +1235,8 @@
       "invalidate",
       "terminate",
       "invalidate_descendants_for_parent_reopen"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/postgres/claims.py",
@@ -1107,43 +1244,74 @@
     "layer": "business",
     "action": "split_workflow",
     "targets": [
-      "hermes_db/domains/kanban/postgres/claims.py"
+      "hermes_db/domains/kanban/postgres/claims.py",
+      "hermes_cli/kanban_storage_claims.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {
       "_claim": {
         "target": "hermes_cli/kanban_storage_claims.py",
         "database_target": "hermes_db/domains/kanban/postgres/claims.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.policy.resolve_claim_ttl_seconds",
           "store.processes.claimer_id"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "heartbeat_claim": {
         "target": "hermes_cli/kanban_storage_claims.py",
         "database_target": "hermes_db/domains/kanban/postgres/claims.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.policy.resolve_claim_ttl_seconds",
           "store.processes.claimer_id"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "reclaim_task": {
         "target": "hermes_cli/kanban_storage_claims.py",
         "database_target": "hermes_db/domains/kanban/postgres/claims.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.processes.terminate_reclaimed_worker"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "block_task": {
+        "target": "hermes_cli/kanban_storage_claims.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "claim_review_task": {
+        "target": "hermes_cli/kanban_storage_claims.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "claim_task": {
+        "target": "hermes_cli/kanban_storage_claims.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       }
     },
     "application_imports": [
@@ -1194,7 +1362,8 @@
       "schedule_task",
       "_promotion_error",
       "promote_task"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/postgres/completion.py",
@@ -1202,44 +1371,52 @@
     "layer": "business",
     "action": "split_workflow",
     "targets": [
-      "hermes_db/domains/kanban/postgres/completion.py"
+      "hermes_db/domains/kanban/postgres/completion.py",
+      "hermes_cli/kanban_storage_completion.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {
       "_prepare_files": {
         "target": "hermes_cli/kanban_storage_completion.py",
-        "database_target": "hermes_db/domains/kanban/postgres/completion.py",
         "task": 13,
-        "action": "split",
-        "calls": [
-          "store.files.discard_staged_copies",
-          "store.files.persist_scratch_completion_artifacts",
-          "store.files.task_attachments_dir"
-        ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_prepare_completion": {
         "target": "hermes_cli/kanban_storage_completion.py",
-        "database_target": "hermes_db/domains/kanban/postgres/completion.py",
         "task": 13,
-        "action": "split",
-        "calls": [
-          "store.files.merge_completion_prose_artifacts",
-          "store.processes.claim_is_live"
-        ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "prepare": {
         "target": "hermes_cli/kanban_storage_completion.py",
-        "database_target": "hermes_db/domains/kanban/postgres/completion.py",
         "task": 13,
-        "action": "split",
-        "calls": [
-          "store.files.collect_acceptance"
-        ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "complete_task": {
+        "target": "hermes_cli/kanban_storage_completion.py",
+        "task": 13,
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "edit_result": {
+        "target": "hermes_cli/kanban_storage_completion.py",
+        "task": 13,
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       }
     },
     "application_imports": [],
@@ -1289,7 +1466,8 @@
       "prepare",
       "record",
       "edit_result"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/postgres/dispatch.py",
@@ -1297,55 +1475,64 @@
     "layer": "business",
     "action": "split_workflow",
     "targets": [
-      "hermes_db/domains/kanban/postgres/dispatch.py"
+      "hermes_db/domains/kanban/postgres/dispatch.py",
+      "hermes_cli/kanban_storage_dispatch.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {
       "dispatch_once": {
         "target": "hermes_cli/kanban_storage_dispatch.py",
         "database_target": "hermes_db/domains/kanban/postgres/dispatch.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.observers.fire_dispatch_tick_hook",
           "store.processes.dispatch_once_locked"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_guard": {
         "target": "hermes_cli/kanban_storage_dispatch.py",
         "database_target": "hermes_db/domains/kanban/postgres/dispatch.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.processes.profile_exists_fn"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_workspace": {
         "target": "hermes_cli/kanban_storage_dispatch.py",
         "database_target": "hermes_db/domains/kanban/postgres/dispatch.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.files.maybe_emit_scratch_tip",
           "store.files.resolve_workspace",
           "store.files.resolve_worktree_workspace"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_dispatch_lane_task": {
         "target": "hermes_cli/kanban_storage_dispatch.py",
         "database_target": "hermes_db/domains/kanban/postgres/dispatch.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.observers.fire_worker_spawned_hook",
           "store.processes.call_spawn_fn"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "DispatchPermit.before_spawn": {
         "target": "hermes_cli/kanban_storage_dispatch.py",
@@ -1355,49 +1542,99 @@
         "calls": [
           "store.policy.resolve_claim_ttl_seconds"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_has_spawnable": {
         "target": "hermes_cli/kanban_storage_dispatch.py",
         "database_target": "hermes_db/domains/kanban/postgres/dispatch.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.processes.profile_exists_fn"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "check_respawn_guard": {
         "target": "hermes_cli/kanban_storage_dispatch.py",
         "database_target": "hermes_db/domains/kanban/postgres/dispatch.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.policy.respawn_history_guard",
           "store.policy.respawn_primary_guard"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_set_worker_pid": {
         "target": "hermes_cli/kanban_storage_dispatch.py",
         "database_target": "hermes_db/domains/kanban/postgres/dispatch.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.processes.process_fingerprint"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "adopt_worker_pid": {
         "target": "hermes_cli/kanban_storage_dispatch.py",
         "database_target": "hermes_db/domains/kanban/postgres/dispatch.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.processes.host_prefix",
           "store.processes.process_fingerprint"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "hold_dispatch_lease": {
+        "target": "hermes_cli/kanban_storage_dispatch.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_spawn_failure": {
+        "target": "hermes_cli/kanban_storage_dispatch.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_finish_tick": {
+        "target": "hermes_cli/kanban_storage_dispatch.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "DispatchLease": {
+        "target": "hermes_cli/kanban_storage_dispatch.py",
+        "task": 13,
+        "action": "split",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "DispatchPermit": {
+        "target": "hermes_cli/kanban_storage_dispatch.py",
+        "task": 13,
+        "action": "split",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       }
     },
     "application_imports": [
@@ -1507,7 +1744,8 @@
       "check_respawn_guard",
       "_set_worker_pid",
       "adopt_worker_pid"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/postgres/effects.py",
@@ -1515,21 +1753,44 @@
     "layer": "business",
     "action": "split_workflow",
     "targets": [
-      "hermes_db/domains/kanban/postgres/effects.py"
+      "hermes_db/domains/kanban/postgres/effects.py",
+      "hermes_cli/kanban_storage_effects.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {
       "_invoke": {
         "target": "hermes_cli/kanban_storage_effects.py",
-        "database_target": "hermes_db/domains/kanban/postgres/effects.py",
         "task": 13,
-        "action": "split",
-        "calls": [
-          "store.observers.fire_task_hook"
-        ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_run": {
+        "target": "hermes_cli/kanban_storage_effects.py",
+        "task": 13,
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "drain": {
+        "target": "hermes_cli/kanban_storage_effects.py",
+        "task": 13,
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "after_commit": {
+        "target": "hermes_cli/kanban_storage_effects.py",
+        "task": 13,
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       }
     },
     "application_imports": [],
@@ -1552,7 +1813,8 @@
       "_run",
       "drain",
       "after_commit"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/postgres/evidence.py",
@@ -1563,7 +1825,7 @@
       "hermes_db/domains/kanban/postgres/evidence.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "0465d8ab810218bae468945037e89d65d4f6b3dd21765828278b5a51b90ff027",
@@ -1571,7 +1833,8 @@
       "snapshot",
       "running_snapshots",
       "unchanged"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -1579,82 +1842,249 @@
     "layer": "business",
     "action": "split_workflow",
     "targets": [
-      "hermes_db/domains/kanban/postgres/files.py"
+      "hermes_db/domains/kanban/postgres/files.py",
+      "hermes_cli/kanban_storage_files.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {
       "_store_attachment_bytes": {
         "target": "hermes_cli/kanban_storage_files.py",
         "database_target": "hermes_db/domains/kanban/postgres/files.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.files.task_attachments_dir"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "discard_copies": {
         "target": "hermes_cli/kanban_storage_files.py",
         "database_target": "hermes_db/domains/kanban/postgres/files.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "resource.files.discard_staged_copies"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_orphans": {
         "target": "hermes_cli/kanban_storage_files.py",
         "database_target": "hermes_db/domains/kanban/postgres/files.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "resource.files.board_path"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_completed": {
         "target": "hermes_cli/kanban_storage_files.py",
         "database_target": "hermes_db/domains/kanban/postgres/files.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "resource.files.terminal_execution"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "prepare": {
         "target": "hermes_cli/kanban_storage_files.py",
         "database_target": "hermes_db/domains/kanban/postgres/files.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.files.board_path",
           "store.files.content_root"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_archive_files": {
         "target": "hermes_cli/kanban_storage_files.py",
         "database_target": "hermes_db/domains/kanban/postgres/files.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.files.read_metadata_file"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "run_job": {
         "target": "hermes_cli/kanban_storage_files.py",
         "database_target": "hermes_db/domains/kanban/postgres/files.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.files.finish_import"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "add_attachment": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "store_attachment_bytes": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "delete_files": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_retire_attachment": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_read_job": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_sweep_generation": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_preflight_reference": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "discard_empty_generation": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "reconcile": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "prepare_directory": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_remove_directory": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_add_attachment": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "reclaim": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "delete_attachment": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_gate": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_owner": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "settle_import_stage": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "local_files_lock": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "finish": {
+        "target": "hermes_cli/kanban_storage_files.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       }
     },
     "application_imports": [],
@@ -1753,7 +2183,8 @@
       "pending_delete",
       "settle_import_stage",
       "run_job"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/postgres/maintenance.py",
@@ -1761,17 +2192,18 @@
     "layer": "business",
     "action": "split_workflow",
     "targets": [
-      "hermes_db/domains/kanban/postgres/maintenance.py"
+      "hermes_db/domains/kanban/postgres/maintenance.py",
+      "hermes_cli/kanban_storage_maintenance.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {
       "_prepare": {
         "target": "hermes_cli/kanban_storage_maintenance.py",
         "database_target": "hermes_db/domains/kanban/postgres/maintenance.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.policy.resolve_crash_grace_seconds",
           "store.processes.apply_attempt_note",
@@ -1781,25 +2213,29 @@
           "store.processes.owner_reclaim_blocked",
           "store.processes.worker_alive"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "detect_crashed_workers": {
         "target": "hermes_cli/kanban_storage_maintenance.py",
         "database_target": "hermes_db/domains/kanban/postgres/maintenance.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.observers.fire_kanban_lifecycle_hook",
           "store.observers.kanban_observer_consumed",
           "store.processes.record_crash_summary"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "release_stale_claims": {
         "target": "hermes_cli/kanban_storage_maintenance.py",
         "database_target": "hermes_db/domains/kanban/postgres/maintenance.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.observers.fire_kanban_lifecycle_hook",
           "store.observers.kanban_observer_consumed",
@@ -1808,74 +2244,136 @@
           "store.processes.reclaim_error",
           "store.processes.worker_alive"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "reconcile_orphaned_running": {
         "target": "hermes_cli/kanban_storage_maintenance.py",
         "database_target": "hermes_db/domains/kanban/postgres/maintenance.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.processes.owner_reclaim_blocked",
           "store.processes.worker_alive"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "enforce_max_runtime": {
         "target": "hermes_cli/kanban_storage_maintenance.py",
         "database_target": "hermes_db/domains/kanban/postgres/maintenance.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.processes.host_prefix",
           "store.processes.owner_reclaim_blocked"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "detect_stale_running": {
         "target": "hermes_cli/kanban_storage_maintenance.py",
         "database_target": "hermes_db/domains/kanban/postgres/maintenance.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.processes.owner_reclaim_blocked"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "extend": {
         "target": "hermes_cli/kanban_storage_maintenance.py",
         "database_target": "hermes_db/domains/kanban/postgres/maintenance.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.policy.resolve_claim_ttl_seconds"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "terminate": {
         "target": "hermes_cli/kanban_storage_maintenance.py",
         "database_target": "hermes_db/domains/kanban/postgres/maintenance.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.processes.owner_reclaim_blocked_after_kill",
           "store.processes.terminate_reclaimed_worker",
           "store.processes.worker_survived_termination"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_reap": {
         "target": "hermes_cli/kanban_storage_maintenance.py",
         "database_target": "hermes_db/domains/kanban/postgres/maintenance.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.processes.host_prefix",
           "store.processes.pid_alive",
           "store.processes.terminate_reclaimed_worker",
           "store.processes.worker_alive"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "terminal_workspaces": {
+        "target": "hermes_cli/kanban_storage_maintenance.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_orphan_imports": {
+        "target": "hermes_cli/kanban_storage_maintenance.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "reap_terminal_workers": {
+        "target": "hermes_cli/kanban_storage_maintenance.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "replay_files": {
+        "target": "hermes_cli/kanban_storage_maintenance.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "pending_workspaces": {
+        "target": "hermes_cli/kanban_storage_maintenance.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "owns_import_stage": {
+        "target": "hermes_cli/kanban_storage_maintenance.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       }
     },
     "application_imports": [],
@@ -1986,7 +2484,8 @@
       "owns_import_stage",
       "terminal_workspaces",
       "pending_workspaces"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/postgres/notify.py",
@@ -1997,7 +2496,7 @@
       "hermes_db/domains/kanban/postgres/notify.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "8e0aa20ccf49089e6daacfff1e77979559d2cbb1795e61de182fc62f42119e66",
@@ -2021,7 +2520,8 @@
       "rewind_notify_cursor",
       "inherit",
       "count_subscriptions"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/postgres/owners.py",
@@ -2032,7 +2532,7 @@
       "hermes_db/domains/kanban/postgres/owners.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "74d4ecea782f32333f9cb387f134e10e672da707dd5335dae747c99b7316f79f",
@@ -2051,7 +2551,8 @@
       "_owner_receipt",
       "_latest_run_event",
       "_task_owner_state"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/postgres/receipts.py",
@@ -2062,7 +2563,7 @@
       "hermes_db/domains/kanban/postgres/receipts.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "1c939afb5fdcb2f1443343b39e91b38259711f0715443eac6493e17c4de9ca08",
@@ -2070,7 +2571,8 @@
       "CommandReplay",
       "refusal",
       "CommandReceipt"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/postgres/repository.py",
@@ -2081,7 +2583,7 @@
       "hermes_db/domains/kanban/postgres/repository.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "baseline_abi_sha256": "ddff2c14fe5c260cee3f68e8d2603564f21a133065fbb969233add19822c4524",
@@ -2103,7 +2605,8 @@
       "history",
       "blocked_is_sticky",
       "resume_status"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/postgres/review.py",
@@ -2111,31 +2614,28 @@
     "layer": "business",
     "action": "split_workflow",
     "targets": [
-      "hermes_db/domains/kanban/postgres/review.py"
+      "hermes_db/domains/kanban/postgres/review.py",
+      "hermes_cli/kanban_storage_review.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {
       "_prepare_review": {
         "target": "hermes_cli/kanban_storage_review.py",
-        "database_target": "hermes_db/domains/kanban/postgres/review.py",
         "task": 13,
-        "action": "split",
-        "calls": [
-          "store.processes.claim_is_live"
-        ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "request_review": {
         "target": "hermes_cli/kanban_storage_review.py",
-        "database_target": "hermes_db/domains/kanban/postgres/review.py",
         "task": 13,
-        "action": "split",
-        "calls": [
-          "store.files.merge_completion_prose_artifacts"
-        ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       }
     },
     "application_imports": [],
@@ -2165,7 +2665,8 @@
       "request_changes",
       "_changes_error",
       "reopen_review_task"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/postgres/runs.py",
@@ -2176,7 +2677,7 @@
       "hermes_db/domains/kanban/postgres/runs.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -2211,7 +2712,8 @@
       "close_run",
       "retry_status",
       "synthesize"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/postgres/swarm.py",
@@ -2219,31 +2721,52 @@
     "layer": "business",
     "action": "split_workflow",
     "targets": [
-      "hermes_db/domains/kanban/postgres/swarm.py"
+      "hermes_db/domains/kanban/postgres/swarm.py",
+      "hermes_cli/kanban_storage_swarm.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {
       "_build": {
         "target": "hermes_cli/kanban_storage_swarm.py",
         "database_target": "hermes_db/domains/kanban/postgres/swarm.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.policy.swarm_context"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "create_swarm": {
         "target": "hermes_cli/kanban_storage_swarm.py",
         "database_target": "hermes_db/domains/kanban/postgres/swarm.py",
         "task": 13,
-        "action": "split",
+        "action": "move",
         "calls": [
           "store.observers.fire_kanban_lifecycle_hook"
         ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_root": {
+        "target": "hermes_cli/kanban_storage_swarm.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_insert": {
+        "target": "hermes_cli/kanban_storage_swarm.py",
+        "task": 13,
+        "action": "move",
+        "status": "completed",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       }
     },
     "application_imports": [
@@ -2277,7 +2800,8 @@
       "_existing",
       "_build",
       "create_swarm"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/postgres/workspaces.py",
@@ -2285,56 +2809,85 @@
     "layer": "business",
     "action": "split_workflow",
     "targets": [
-      "hermes_db/domains/kanban/postgres/workspaces.py"
+      "hermes_db/domains/kanban/postgres/workspaces.py",
+      "hermes_cli/kanban_storage_workspaces.py",
+      "hermes_cli/kanban_storage_owner.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {
       "gc_archived_workspaces": {
         "target": "hermes_cli/kanban_storage_workspaces.py",
-        "database_target": "hermes_db/domains/kanban/postgres/workspaces.py",
         "task": 13,
-        "action": "split",
-        "calls": [
-          "store.files.workspaces_root"
-        ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_clean_one": {
         "target": "hermes_cli/kanban_storage_workspaces.py",
-        "database_target": "hermes_db/domains/kanban/postgres/workspaces.py",
         "task": 13,
-        "action": "split",
-        "calls": [
-          "store.files.is_linked_worktree_checkout",
-          "store.files.is_managed_scratch_path"
-        ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_remove": {
         "target": "hermes_cli/kanban_storage_workspaces.py",
-        "database_target": "hermes_db/domains/kanban/postgres/workspaces.py",
         "task": 13,
-        "action": "split",
-        "calls": [
-          "store.files.cleanup_worker_tmux",
-          "store.files.cleanup_worktree_workspace",
-          "store.files.release_lsp_clients",
-          "store.files.remove_tree"
-        ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "resume_pending": {
         "target": "hermes_cli/kanban_storage_workspaces.py",
-        "database_target": "hermes_db/domains/kanban/postgres/workspaces.py",
         "task": 13,
-        "action": "split",
-        "calls": [
-          "store.files.is_linked_worktree_checkout",
-          "store.files.is_managed_scratch_path"
-        ],
-        "constraint": "Application preflight/effects surround the original fenced DB operation; preserve same Connection, scope, snapshots, receipts and original critical sections."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_cleanup_workspace": {
+        "target": "hermes_cli/kanban_storage_workspaces.py",
+        "task": 13,
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "_workspace_in_use_by_other": {
+        "target": "hermes_cli/kanban_storage_workspaces.py",
+        "task": 13,
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "set_workspace_path": {
+        "target": "hermes_cli/kanban_storage_workspaces.py",
+        "task": 13,
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "cleanup_workspace": {
+        "target": "hermes_cli/kanban_storage_workspaces.py",
+        "task": 13,
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+      },
+      "canonical_path": {
+        "target": "hermes_cli/kanban_storage_owner.py",
+        "task": 13,
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       }
     },
     "application_imports": [],
@@ -2398,7 +2951,8 @@
       "guard_live_task",
       "guard_parent_link",
       "live_references"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/kanban/rules.py",
@@ -2409,7 +2963,7 @@
       "hermes_db/domains/kanban/rules.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
     "symbol_routes": {},
     "application_imports": [
@@ -2456,7 +3010,8 @@
       "TaskEvidence",
       "typed_owner_receipt",
       "require_swarm_text"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/domains/metrics/__init__.py",
@@ -9608,171 +10163,223 @@
   {
     "source": "hermes_db/integration/transfer/kanban.py",
     "baseline_sha256": "68e199e8719fbd049ab094c94dcbe4fbc400064c94c1f127a9cb2d6ed93bc6ef",
-    "layer": "mixed_split",
+    "layer": "split",
     "action": "split",
     "targets": [
       "hermes_cli/kanban_storage_transfer.py",
       "hermes_db/domains/kanban/postgres/transfer.py"
     ],
     "task": 13,
-    "status": "pending",
+    "status": "completed",
     "reason": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries.",
     "symbol_routes": {
       "snapshot": {
         "target": "hermes_db/domains/kanban/postgres/transfer.py",
         "task": 13,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "scrub_runtime": {
         "target": "hermes_db/domains/kanban/postgres/transfer.py",
         "task": 13,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "insert_import_row": {
         "target": "hermes_db/domains/kanban/postgres/transfer.py",
         "task": 13,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_insert_rows": {
         "target": "hermes_db/domains/kanban/postgres/transfer.py",
         "task": 13,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_commit_graph": {
         "target": "hermes_db/domains/kanban/postgres/transfer.py",
         "task": 13,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_prepare_rows": {
-        "target": "hermes_db/domains/kanban/postgres/transfer.py",
+        "target": "hermes_cli/kanban_storage_transfer.py",
         "task": 13,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_rows": {
         "target": "hermes_db/domains/kanban/postgres/transfer.py",
         "task": 13,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_graph": {
         "target": "hermes_db/domains/kanban/postgres/transfer.py",
         "task": 13,
         "action": "move",
-        "constraint": "Preserve business signature/result/exception and actual read/patch seams."
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "copy_registered_file": {
         "target": "hermes_cli/kanban_storage_transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_attachments": {
         "target": "hermes_cli/kanban_storage_transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "export_board": {
         "target": "hermes_cli/kanban_storage_transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "compensate_stage": {
         "target": "hermes_cli/kanban_storage_transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_target_slug": {
-        "target": "hermes_cli/kanban_storage_transfer.py",
+        "target": "hermes_db/domains/kanban/postgres/transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_stage": {
         "target": "hermes_cli/kanban_storage_transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_import": {
         "target": "hermes_cli/kanban_storage_transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "import_board": {
         "target": "hermes_cli/kanban_storage_transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_publish": {
         "target": "hermes_cli/kanban_storage_transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_configuration": {
         "target": "hermes_cli/kanban_storage_transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_cleanup_stage": {
         "target": "hermes_cli/kanban_storage_transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_activate": {
-        "target": "hermes_cli/kanban_storage_transfer.py",
+        "target": "hermes_db/domains/kanban/postgres/transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "finish_import": {
         "target": "hermes_cli/kanban_storage_transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_json": {
         "target": "hermes_cli/kanban_storage_transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "member_path": {
         "target": "hermes_cli/kanban_storage_transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "fingerprint": {
         "target": "hermes_cli/kanban_storage_transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "_validate_proof": {
         "target": "hermes_cli/kanban_storage_transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       },
       "read_archive": {
         "target": "hermes_cli/kanban_storage_transfer.py",
         "task": 13,
-        "action": "edit",
-        "constraint": "Split pure DB rules from application context/effects; preserve exact existing transaction/receipt boundaries."
+        "action": "move",
+        "constraint": "Preserve public call signature and original connection/lock/receipt/effect ordering; SQL facts/clauses remain concrete business operations.",
+        "status": "completed",
+        "evidence": "docs/designs/hermes-db-two-layer-task13.json"
       }
     },
     "baseline_abi_sha256": "8e2796b7e63b7a8969e537cec3a94b980d1fd4447f2c0fda8590ac4516614e17",
@@ -9803,7 +10410,8 @@
       "_validate_proof",
       "_graph",
       "read_archive"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
   },
   {
     "source": "hermes_db/integration/worker_access.py",

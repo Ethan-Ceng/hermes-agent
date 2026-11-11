@@ -9,7 +9,7 @@ import pytest
 
 from hermes_cli import kanban_db as kb, kanban_db_connect as kbc, kanban_db_dispatch as dispatch
 from hermes_db.errors import StorageBusyError
-from hermes_db.domains.kanban.postgres.dispatch import DispatchLease, hold_dispatch_lease
+from hermes_cli.kanban_storage_dispatch import DispatchLease, hold_dispatch_lease
 from hermes_db.domains.kanban.postgres import repository as repo
 
 pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
@@ -72,9 +72,10 @@ def test_lease_release_failure_preserves_unknown_primary_commit(pg_profiles, mon
 
 def test_operator_reclaim_during_workspace_preparation_fences_old_spawn(pg_profiles, dispatcher, monkeypatch):
     from hermes_db.domains.kanban.postgres import dispatch as kanban_dispatch_lane
+    import hermes_cli.kanban_storage_dispatch as kanban_dispatch_lane_application
     with pg_profiles("one"), kbc.connect_closing() as store:
         task_id = kb.create_task(store, title="operator race", assignee="coder", workspace_kind="scratch")
-        prepare = kanban_dispatch_lane._workspace
+        prepare = kanban_dispatch_lane_application._workspace
         replacement = []
 
         def prepare_and_replace(store, task):
@@ -83,7 +84,7 @@ def test_operator_reclaim_during_workspace_preparation_fences_old_spawn(pg_profi
             replacement.append(kb.claim_task(store, task.id, claimer="operator").current_run_id)
             return path
 
-        monkeypatch.setattr(kanban_dispatch_lane, "_workspace", prepare_and_replace)
+        monkeypatch.setattr(kanban_dispatch_lane_application, "_workspace", prepare_and_replace)
         calls = []
         result = dispatcher.dispatch_once(store, spawn_fn=lambda *args, **kwargs: calls.append(args[0].id), max_spawn=1)
         assert result.spawned == [] and calls == []
@@ -93,12 +94,13 @@ def test_operator_reclaim_during_workspace_preparation_fences_old_spawn(pg_profi
 def test_lease_renews_during_wait_without_retaining_pool_connection(pg_profiles, monkeypatch):
     from sqlalchemy import func, select
     from hermes_db.domains.kanban.postgres import dispatch as coordination
+    import hermes_cli.kanban_storage_dispatch as coordination_application
     from hermes_db.tables.kanban_dispatch import dispatch_leases
     from tests.waiting import wait_until
     monkeypatch.setattr(coordination, "LEASE_SECONDS", 2)
     monkeypatch.setattr(coordination, "RENEW_SECONDS", .1)
     with pg_profiles("one"), kbc.connect_closing() as store:
-        renew = coordination.DispatchLease.renew
+        renew = coordination_application.DispatchLease.renew
         observed = []
 
         def scoped_renew(lease):
@@ -106,7 +108,7 @@ def test_lease_renews_during_wait_without_retaining_pool_connection(pg_profiles,
             observed.append(get_hermes_home())
             renew(lease)
 
-        monkeypatch.setattr(coordination.DispatchLease, "renew", scoped_renew)
+        monkeypatch.setattr(coordination_application.DispatchLease, "renew", scoped_renew)
         with hold_dispatch_lease(store) as lease:
             with store.read() as conn:
                 initial_deadline = conn.scalar(select(dispatch_leases.c.lease_until).where(

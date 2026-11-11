@@ -100,10 +100,11 @@ def test_pg_import_persists_complete_graph_history_files_and_separate_generation
 
 
 def test_pg_import_rolls_back_board_graph_and_its_exclusive_stage(pg_profiles, tmp_path, monkeypatch):
-    from hermes_db.integration.transfer import kanban as core
+    from hermes_db.domains.kanban.postgres import transfer as core
+    import hermes_db.domains.kanban.postgres.transfer as core_application_transfer
     archive, _parent, _child, _run = make_archive(pg_profiles, tmp_path)
     with pg_profiles("two") as home:
-        original, calls = core.insert_import_row, []
+        original, calls = core_application_transfer.insert_import_row, []
 
         def fail(*args, **kwargs):
             value = original(*args, **kwargs)
@@ -129,7 +130,8 @@ def test_original_import_job_recovers_without_reimporting_graph(pg_profiles, tmp
     from hermes_db.errors import StorageBusyError, UnknownCommitError
     from hermes_cli.db_domains import acquire_profile_domain
     from hermes_db.domains.kanban.postgres import files
-    from hermes_db.integration.transfer import kanban as publication
+    import hermes_cli.kanban_storage_files as files_application
+    from hermes_cli import kanban_storage_transfer as publication
     from hermes_db.tables.kanban_file_jobs import file_jobs
     from hermes_db.core.values import decode_text
     archive, parent, child, _run = make_archive(pg_profiles, tmp_path)
@@ -161,8 +163,8 @@ def test_original_import_job_recovers_without_reimporting_graph(pg_profiles, tmp
         with pytest.raises(StorageBusyError, match="pending"):
             with kbc.connect_closing(board="recover"):
                 pytest.fail("unpublished Board must not open")
-        assert not files.run_job(resource, board_id)["files_pending"]
-        assert not files.run_job(resource, board_id)["files_pending"]
+        assert not files_application.run_job(resource, board_id)["files_pending"]
+        assert not files_application.run_job(resource, board_id)["files_pending"]
         assert not stage.exists()
         with kbc.connect_closing(board="recover") as store:
             assert store.board_id == board_id and len(kb.list_tasks(store)) == 2

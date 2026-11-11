@@ -1,12 +1,10 @@
 """Kanban completion workflow; original connection, fence and off-connection effect boundaries are preserved."""
 from hermes_db.domains.kanban import rules as _storage_shared_1_
 from hermes_db.domains.kanban import rules as _storage_shared_1
-from pathlib import Path
 import time
-from hermes_db.errors import UnknownCommitError
 from hermes_db.domains.kanban.postgres.files import insert_attachment
 from hermes_db.domains.kanban.postgres.catalog import _unsatisfied
-from hermes_db.domains.kanban.postgres.effects import enqueue, hook_step, after_commit
+from hermes_db.domains.kanban.postgres.effects import enqueue, hook_step
 from hermes_db.domains.kanban.postgres import repository as repo, runs as run_repo
 from sqlalchemy import select, func
 from hermes_db.tables.kanban import tasks, runs
@@ -17,27 +15,6 @@ SNAPSHOT_FIELDS = ('status', 'current_run_id', 'claim_lock', 'worker_pid', 'work
 def _matches(task, captured):
     return task is not None and all(task[field] == captured[field] for field in SNAPSHOT_FIELDS)
 
-def _prepare_files(store, task_id, metadata):
-
-    if not isinstance(metadata, dict):
-        return ([], [])
-    from hermes_db.domains.kanban.postgres.files import prepare_directory
-    directory = prepare_directory(store, store.files.task_attachments_dir(task_id))
-    try:
-        store.files.persist_scratch_completion_artifacts(store, task_id, metadata, attachment_dir=directory)
-    except Exception:
-        from hermes_db.domains.kanban.postgres.files import discard_empty_generation
-        discard_empty_generation(store, directory)
-        raise
-    staged = [Path(value) for value in metadata.pop('_staged_artifacts', [])]
-    try:
-        from hermes_db.domains.kanban.postgres.workspaces import canonical_path
-        rows = [dict(filename=path.name, stored_path=str(path), size=path.stat().st_size, file_key=canonical_path(path)) for path in staged]
-    except Exception:
-        if staged:
-            store.files.discard_staged_copies(staged, staged[0].parent)
-        raise
-    return (staged, rows)
 
 def _close_completed(conn, store, task, result, summary, metadata):
 
@@ -76,63 +53,7 @@ def _write_completion(conn, store, captured, expected_run_id, result, summary, m
     store.command_result(conn, True)
     return (run_id, handoff, effect_id)
 
-def _prepare_completion(store, task_id, result, summary, metadata, created_cards, expected_run_id, force):
 
-    with store.write() as conn:
-        task = repo.get(conn, store, task_id)
-        if _unsatisfied(conn, store, task_id):
-            store.command_result(conn, False)
-            return None
-        if task is None or task['status'] not in {'running', 'ready', 'blocked', 'review'}:
-            store.command_result(conn, False)
-            return None
-        if expected_run_id is not None and task['current_run_id'] != int(expected_run_id):
-            store.command_result(conn, False)
-            return None
-    cards = tuple(created_cards or ())
-    verified = store._gate_created_cards(task_id, cards, summary or result)
-    store._gate_empty_completion(task_id, result=result, summary=summary)
-    if expected_run_id is None and (not force) and store.processes.claim_is_live(task):
-        raise store.result_values.live_claim_error(task_id)
-    prepared = prepare(store, task, expected_run_id, metadata)
-    if prepared is False:
-        return None
-    if prepared is not None and (not prepared[1]['ok']):
-        with store.write() as conn:
-            current = repo.get(conn, store, task_id)
-            if _matches(current, task):
-                record(conn, store, current, prepared)
-            store.command_result(conn, False)
-        return None
-    metadata = store.files.merge_completion_prose_artifacts(store, task_id, metadata, summary=summary, result=result)
-    metadata = dict(metadata) if isinstance(metadata, dict) else metadata
-    return (task, verified, metadata, prepared)
-
-def complete_task(store, task_id, *, result=None, summary=None, metadata=None, created_cards=None, expected_run_id=None, fire_lifecycle_hook=True, force=False):
-
-    preparation = _prepare_completion(store, task_id, result, summary, metadata, created_cards, expected_run_id, force)
-    if preparation is None:
-        return False
-    task, verified, metadata, prepared = preparation
-    from hermes_db.domains.kanban.postgres.files import local_files_lock
-    with local_files_lock(store.scope.profile_home):
-        staged, rows = _prepare_files(store, task_id, metadata)
-        durable = False
-        try:
-            with store.write() as conn:
-                completed = _write_completion(conn, store, task, expected_run_id, result, summary, metadata, verified, prepared, rows, fire_lifecycle_hook)
-            durable = completed is not None
-        except UnknownCommitError:
-            durable = True
-            raise
-        finally:
-            if staged and (not durable):
-                from hermes_db.domains.kanban.postgres.files import discard_copies
-                discard_copies(store, staged)
-    if completed is None:
-        return False
-    after_commit(store, completed[2])
-    return True
 
 def verify_on_connection(conn, store, task_id, claimed_ids):
     ordered = list(dict.fromkeys(str(value).strip() for value in claimed_ids if str(value).strip()))
@@ -212,26 +133,6 @@ def _flag_phantom_prose_refs(store, task_id, run_id, summary, result, verified_c
 def snapshot(task):
     return tuple(task[key] for key in ('current_run_id', 'status', 'completion_contract', 'assignee'))
 
-def prepare(store, task, expected_run_id, metadata):
-
-    contract = task['completion_contract']
-    if not contract or contract == 'local-only':
-        return None
-    if expected_run_id is not None and task['current_run_id'] != expected_run_id:
-        return False
-    published_pr = metadata.get('published_pr') if isinstance(metadata, dict) else None
-    match = _storage_shared_1_._PR.fullmatch(published_pr) if isinstance(published_pr, str) else None
-    captured = snapshot(task)
-    if match and contract == match[1]:
-        with store.write() as conn:
-            current = repo.get(conn, store, task['id'])
-            if current is None or snapshot(current) != captured:
-                return False
-            repo.task_update(conn, store, task['id'], completion_contract=published_pr)
-        task['completion_contract'] = contract = published_pr
-        captured = snapshot(task)
-    receipt = store.files.collect_acceptance(contract, published_pr, assignee=task['assignee'])
-    return (captured, receipt)
 
 def record(conn, store, task, prepared):
     if prepared is None:
@@ -245,7 +146,40 @@ def record(conn, store, task, prepared):
         repo.task_update(conn, store, task['id'], last_failure_error=detail)
     return receipt['ok']
 
-def edit_result(store, task_id, *, title, body, priority, result, summary, metadata, board):
+
+def capture_completion(store, task_id, expected_run_id):
+    with store.write() as conn:
+        task = repo.get(conn, store, task_id)
+        if _unsatisfied(conn, store, task_id):
+            store.command_result(conn, False)
+            return None
+        if task is None or task['status'] not in {'running', 'ready', 'blocked', 'review'}:
+            store.command_result(conn, False)
+            return None
+        if expected_run_id is not None and task['current_run_id'] != int(expected_run_id):
+            store.command_result(conn, False)
+            return None
+    return task
+
+
+def record_failed_acceptance(store, task_id, task, prepared):
+    with store.write() as conn:
+        current = repo.get(conn, store, task_id)
+        if _matches(current, task):
+            record(conn, store, current, prepared)
+        store.command_result(conn, False)
+
+
+def publish_completion_contract(store, task, captured, published_pr):
+    with store.write() as conn:
+        current = repo.get(conn, store, task['id'])
+        if current is None or snapshot(current) != captured:
+            return False
+        repo.task_update(conn, store, task['id'], completion_contract=published_pr)
+    return True
+
+
+def write_completed_result(store, task_id, *, title, body, priority, result, summary, metadata, board):
 
     values = {name: value for name, value in (('title', title), ('body', body), ('priority', priority), ('result', result)) if value is not None}
     changed = list(values) + ['summary'] + (['metadata'] if metadata is not None else [])
@@ -253,7 +187,7 @@ def edit_result(store, task_id, *, title, body, priority, result, summary, metad
     with store.write() as conn:
         task = repo.get(conn, store, task_id)
         if task is None or task['status'] != 'done':
-            return False
+            return False, changed
         repo.task_update(conn, store, task_id, **values)
         if priority is not None:
             repo.event(conn, store, task_id, 'reprioritized', {'priority': priority})
@@ -267,5 +201,4 @@ def edit_result(store, task_id, *, title, body, priority, result, summary, metad
             run_repo.update_run(conn, store, run_id, **updates)
         fields = ['result', 'summary'] + (['metadata'] if metadata is not None else [])
         repo.event(conn, store, task_id, 'edited', {'fields': fields, 'result_len': len(result) if result else 0, 'summary': _storage_shared_1._first_line(handoff, 400) or None}, run_id)
-    store.notify_task_updated(task_id, changed, board=board)
-    return True
+    return True, changed

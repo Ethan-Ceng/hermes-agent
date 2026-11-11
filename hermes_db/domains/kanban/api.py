@@ -90,10 +90,6 @@ class BoardResource(DomainResource):
     def _operation_scope(self):
         return self.operation_scope(self)
 
-    def _cleanup_workspace(self, task_id):
-        from hermes_db.domains.kanban.postgres.workspaces import _cleanup_workspace
-        with self._operation_scope():
-            return _cleanup_workspace(self, task_id)
 
     def _flag_phantom_prose_refs(self, task_id, run_id, summary, result, verified_cards):
         from hermes_db.domains.kanban.postgres.completion import _flag_phantom_prose_refs
@@ -130,30 +126,14 @@ class BoardResource(DomainResource):
         with self._operation_scope():
             return list_tasks(self, assignee=assignee, status=status, tenant=tenant, session_id=session_id, include_archived=include_archived, limit=limit, order_by=order_by, workflow_template_id=workflow_template_id, current_step_key=current_step_key)
 
-    def notify_task_updated(self, task_id, changed_fields, *, board=None):
-        from hermes_db.domains.kanban.postgres.catalog import notify_task_updated
-        with self._operation_scope():
-            return notify_task_updated(self, task_id, changed_fields, board=board)
 
     def recompute_ready(self, failure_limit=None):
         from hermes_db.domains.kanban.postgres.catalog import recompute_ready
         with self._operation_scope():
             return recompute_ready(self, failure_limit)
 
-    def check_respawn_guard(self, task_id, *, lane='ready'):
-        from hermes_db.domains.kanban.postgres.dispatch import check_respawn_guard
-        with self._operation_scope():
-            return check_respawn_guard(self, task_id, lane=lane)
 
-    def _set_worker_pid(self, task_id, pid, *, run_id=None, claim_lock=None):
-        from hermes_db.domains.kanban.postgres.dispatch import _set_worker_pid
-        with self._operation_scope():
-            return _set_worker_pid(self, task_id, pid, run_id=run_id, claim_lock=claim_lock)
 
-    def set_workspace_path(self, task_id, path):
-        from hermes_db.domains.kanban.postgres.workspaces import set_workspace_path
-        with self._operation_scope():
-            return set_workspace_path(self, task_id, path)
 
     def set_branch_name(self, task_id, branch_name):
         from hermes_db.domains.kanban.postgres.workspaces import set_branch_name

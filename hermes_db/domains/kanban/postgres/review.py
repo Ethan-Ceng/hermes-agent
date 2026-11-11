@@ -3,9 +3,8 @@ from hermes_db.domains.kanban import rules as _storage_shared_1_
 from hermes_db.domains.kanban import rules as _storage_shared_1
 import time
 from sqlalchemy import select
-from hermes_db.errors import UnknownCommitError
 from hermes_db.domains.kanban.postgres.claims import _close_dangling
-from hermes_db.domains.kanban.postgres.completion import _matches, _prepare_files
+from hermes_db.domains.kanban.postgres.completion import _matches
 from hermes_db.domains.kanban.postgres.files import insert_attachment
 from hermes_db.domains.kanban.postgres.catalog import _unsatisfied
 from hermes_db.domains.kanban.postgres import repository as repo, runs as run_repo
@@ -29,28 +28,6 @@ def _prior_reviewer(conn, store, task_id):
     reviewer = (_latest(conn, store, task_id, 'changes_requested', run_id) or {}).get('reviewer')
     return reviewer if isinstance(reviewer, str) and reviewer.strip() else False
 
-def _prepare_review(store, task_id, reviewer, expected_run_id, force):
-
-    with store.read() as conn:
-        if _unsatisfied(conn, store, task_id):
-            return 'parent dependencies are not satisfied'
-        task = repo.get(conn, store, task_id)
-        if task is None:
-            return 'task not found'
-        if reviewer is None:
-            reviewer = _prior_reviewer(conn, store, task_id)
-        if reviewer is False:
-            return 're-review has no durable reviewer provenance (the latest changes_requested event is missing or malformed); pass reviewer= explicitly'
-        reviewer = _storage_shared_1._canonical_assignee(reviewer)
-        run = run_repo.get(conn, store, task['current_run_id']) if task['current_run_id'] is not None else None
-        implementer = run['profile'] if run is not None else None
-        if implementer is None and task['assignee'] != reviewer:
-            implementer = task['assignee']
-    if expected_run_id is None and (not force) and store.processes.claim_is_live(task):
-        return "task is running under a live claim; pass expected_run_id (worker ownership) or force=True (explicit operator override) instead of clearing the live run's claim"
-    if task['status'] not in {'running', 'ready'} or (expected_run_id is not None and task['current_run_id'] != int(expected_run_id)):
-        return 'task is not in running/ready (or expected_run_id did not match the current run)'
-    return (task, reviewer, implementer)
 
 def _write_review(conn, store, task, reviewer, implementer, summary, metadata, rows):
 
@@ -74,34 +51,6 @@ def _write_review(conn, store, task, reviewer, implementer, summary, metadata, r
     repo.event(conn, store, task_id, 'review_requested', payload, run_id)
     return True
 
-def request_review(store, task_id, *, summary=None, metadata=None, reviewer=None, expected_run_id=None, force=False, with_reason=False):
-
-    preparation = _prepare_review(store, task_id, reviewer, expected_run_id, force)
-    if isinstance(preparation, str):
-        return (False, preparation) if with_reason else False
-    task, reviewer, implementer = preparation
-    summary, metadata = (_storage_shared_1_.redact_review_value(summary), _storage_shared_1_.redact_review_value(metadata))
-    metadata = store.files.merge_completion_prose_artifacts(store, task_id, metadata, summary=summary, result=None)
-    metadata = dict(metadata) if isinstance(metadata, dict) else metadata
-    from hermes_db.domains.kanban.postgres.files import local_files_lock
-    with local_files_lock(store.scope.profile_home):
-        staged, rows = _prepare_files(store, task_id, metadata)
-        durable = False
-        try:
-            with store.write() as conn:
-                completed = _write_review(conn, store, task, reviewer, implementer, summary, metadata, rows)
-                reason = None if completed else 'task changed during review handoff'
-                store.command_result(conn, (completed, reason) if with_reason else completed)
-            durable = completed
-        except UnknownCommitError:
-            durable = True
-            raise
-        finally:
-            if staged and (not durable):
-                from hermes_db.domains.kanban.postgres.files import discard_copies
-                discard_copies(store, staged)
-    reason = None if durable else 'task changed during review handoff'
-    return (durable, reason) if with_reason else durable
 
 def request_changes(store, task_id, *, reason, expected_run_id=None):
 
@@ -155,3 +104,22 @@ def reopen_review_task(store, task_id):
         repo.event(conn, store, task_id, 'review_reopened', payload if payload != {'status': 'ready'} else None)
         store.command_result(conn, True)
     return True
+
+
+def capture_review(store, task_id, reviewer):
+    with store.read() as conn:
+        if _unsatisfied(conn, store, task_id):
+            return 'parent dependencies are not satisfied'
+        task = repo.get(conn, store, task_id)
+        if task is None:
+            return 'task not found'
+        if reviewer is None:
+            reviewer = _prior_reviewer(conn, store, task_id)
+        if reviewer is False:
+            return 're-review has no durable reviewer provenance (the latest changes_requested event is missing or malformed); pass reviewer= explicitly'
+        reviewer = _storage_shared_1._canonical_assignee(reviewer)
+        run = run_repo.get(conn, store, task['current_run_id']) if task['current_run_id'] is not None else None
+        implementer = run['profile'] if run is not None else None
+        if implementer is None and task['assignee'] != reviewer:
+            implementer = task['assignee']
+    return task, reviewer, implementer

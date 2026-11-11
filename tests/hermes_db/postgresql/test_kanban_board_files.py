@@ -33,6 +33,7 @@ def test_archive_intent_recovers_interruption_before_allowing_slug_reuse(pg_prof
     from contextlib import contextmanager
     from hermes_db.errors import StorageBusyError, UnknownCommitError
     from hermes_db.domains.kanban.postgres import files
+    import hermes_cli.kanban_storage_files as files_application
     with pg_profiles("one"):
         kb.create_board("interrupted", name="Kept name")
         with kbc.connect_closing(board="interrupted") as store:
@@ -74,7 +75,7 @@ def test_hard_delete_preserves_shared_content_and_fences_new_references(pg_profi
     from hermes_cli import kanban_db_workspace as workspace
     from hermes_db.errors import StorageBusyError
     from hermes_cli.db_domains import acquire_profile_domain
-    from hermes_db.domains.kanban.postgres import files, files as cleanup
+    from hermes_cli import kanban_storage_files as files_application, kanban_storage_files as cleanup
     with pg_profiles("one"):
         kb.create_board("victim")
         kb.create_board("survivor")
@@ -108,8 +109,8 @@ def test_hard_delete_preserves_shared_content_and_fences_new_references(pg_profi
 
             monkeypatch.setattr(cleanup.shutil, "rmtree", remove)
             with acquire_profile_domain("kanban_tasks") as resource:
-                assert not files.run_job(resource, victim.board_id)["files_pending"]
-                assert not files.run_job(resource, victim.board_id)["files_pending"]
+                assert not files_application.run_job(resource, victim.board_id)["files_pending"]
+                assert not files_application.run_job(resource, victim.board_id)["files_pending"]
             assert fenced == [True]
             assert not directory.exists() and new_config.is_file()
             assert kb.get_task(survivor, fresh).workspace_path is None

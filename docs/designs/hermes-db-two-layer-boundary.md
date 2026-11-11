@@ -2,7 +2,7 @@
 
 ## 文档状态
 
-- 状态：`IMPLEMENTING`；2026-11-11用户授权按既有20项计划实施。Task1–12已验证，12/20；Task12完成Kanban owner/Worker/RPC应用拥有者分层，下一项Task13，最终验证及独立审查尚未完成。
+- 状态：`IMPLEMENTING`；2026-11-11用户授权按既有20项计划实施。Task1–13已验证，13/20；Task13完成Kanban事务与文件应用编排分层，下一项Task14，最终验证及独立审查尚未完成。
 - 日期：2026-11-10；设计基准：`0d8782ba8adb168a86abb6a8e338591d70d03428`。
 - 隔离目录：D:/AI/hermes-db-packages；实施分支refactor/hermes-db-two-layer-boundary。正式D:/AI/hermes-agent仍在90a2987e8c，未切换。
 - 依据：[持久层精简设计](hermes-db-persistence-scope.md)、[已完成实施账本](../plans/hermes-db-persistence-scope-plan.md)、[逐项映射及固定锚点](hermes-db-persistence-scope-map.json)、[统一后端设计](unified-database-backends.md)。本设计不改写这些工作的历史验收。
@@ -225,3 +225,5 @@ RPC codec在kanban_storage_wire.py，Worker proxy在agent/runtime_kanban_storage
 dashboard通过既有kanban_db模块读取实际已消费的decorator，不增加facade定义、私有API白名单或旧路径shim。
 
 2026-11-11用户验证范围修订：本轮是分层拆分，既有PG改造已深度验收，因此后续采用与分层直接相关的关键合同和新载荷冒烟，取消目录级全量/重复旧业务深测；不把旧成功算成本轮结果。实现范围、固定资源、数据隔离和最终独立审查不变。实际验收范围以计划“验证策略修订”和Task16冻结清单为准，不宣称全系统重新验收。
+
+Kanban事务/文件边界：`hermes_cli/kanban_storage_<workflow>.py`拥有Profile策略、Worker/租约线程、文件准备/发布/清理和post-commit通知。领域`postgres`模块保留具体SQL、快照、CAS、约束、回执及原短事务文件栅栏；应用仍在原连接/锁位置调用。动态读取点位于`kanban_storage_application._KANBAN_MODULES[(topic, operation)]`；测试patch按真实定义迁移。逻辑归档文件入口是`hermes_cli.kanban_storage_transfer`，业务快照/图写入是`hermes_db.domains.kanban.postgres.transfer`。

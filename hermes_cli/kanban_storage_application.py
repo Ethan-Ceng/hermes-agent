@@ -274,7 +274,7 @@ class KanbanFiles:
             return _write_metadata_file(board, name=name, description=description, icon=icon, color=color, archived=archived, default_workdir=default_workdir, project_id=project_id)
 
     def finish_import(self, store, row):
-        from hermes_db.integration.transfer.kanban import finish_import
+        from hermes_cli.kanban_storage_transfer import finish_import
         with self._context.activate():
             return finish_import(store, row)
 
@@ -359,34 +359,125 @@ def count_notify_subs(*, board=None, notifier_profiles=None, include_unowned=Fal
             include_unowned=include_unowned, platform=platform, chat_id=chat_id, thread_id=thread_id)
 
 
-_KANBAN_MODULES = {'archive': 'hermes_db.domains.kanban.postgres.catalog',
- 'artifacts': 'hermes_db.domains.kanban.postgres.files',
- 'claims': 'hermes_db.domains.kanban.postgres.claims',
- 'completion': 'hermes_db.domains.kanban.postgres.completion',
- 'completion_guards': 'hermes_db.domains.kanban.postgres.completion',
- 'crash_sweeps': 'hermes_db.domains.kanban.postgres.maintenance',
- 'dashboard': 'hermes_db.domains.kanban.postgres.catalog',
- 'diagnostic_snapshot': 'hermes_db.domains.kanban.postgres.catalog',
- 'dispatch': 'hermes_db.domains.kanban.postgres.dispatch',
- 'dispatch_lane': 'hermes_db.domains.kanban.postgres.dispatch',
- 'dispatch_queries': 'hermes_db.domains.kanban.postgres.dispatch',
- 'events': 'hermes_db.domains.kanban.postgres.catalog',
- 'failures': 'hermes_db.domains.kanban.postgres.runs',
- 'graph': 'hermes_db.domains.kanban.postgres.catalog',
- 'lease_sweeps': 'hermes_db.domains.kanban.postgres.maintenance',
- 'notify': 'hermes_db.domains.kanban.postgres.notify',
- 'owner_recovery': 'hermes_db.domains.kanban.postgres.owners',
- 'queries': 'hermes_db.domains.kanban.postgres.catalog',
- 'reopen': 'hermes_db.domains.kanban.postgres.catalog',
- 'review': 'hermes_db.domains.kanban.postgres.review',
- 'runs': 'hermes_db.domains.kanban.postgres.runs',
- 'runtime_sweeps': 'hermes_db.domains.kanban.postgres.maintenance',
- 'swarm': 'hermes_db.domains.kanban.postgres.swarm',
- 'tasks': 'hermes_db.domains.kanban.postgres.catalog',
- 'terminal_workers': 'hermes_db.domains.kanban.postgres.maintenance',
- 'transitions': 'hermes_db.domains.kanban.postgres.claims',
- 'worker_identity': 'hermes_db.domains.kanban.postgres.dispatch',
- 'workspaces': 'hermes_db.domains.kanban.postgres.workspaces'}
+_KANBAN_MODULES = {
+    ('archive', 'archive_task'): 'hermes_cli.kanban_storage_catalog',
+    ('artifacts', 'add_attachment'): 'hermes_cli.kanban_storage_files',
+    ('artifacts', 'delete_attachment'): 'hermes_cli.kanban_storage_files',
+    ('artifacts', 'get_attachment'): 'hermes_db.domains.kanban.postgres.files',
+    ('artifacts', 'list_attachments'): 'hermes_db.domains.kanban.postgres.files',
+    ('artifacts', 'store_attachment_bytes'): 'hermes_cli.kanban_storage_files',
+    ('boards', 'board_exists'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('boards', 'create_board'): 'hermes_cli.kanban_storage_catalog',
+    ('boards', 'list_boards'): 'hermes_cli.kanban_storage_catalog',
+    ('boards', 'read_board_metadata'): 'hermes_cli.kanban_storage_catalog',
+    ('boards', 'remove_board'): 'hermes_cli.kanban_storage_catalog',
+    ('boards', 'write_board_metadata'): 'hermes_cli.kanban_storage_catalog',
+    ('claims', 'claim_review_task'): 'hermes_cli.kanban_storage_claims',
+    ('claims', 'claim_task'): 'hermes_cli.kanban_storage_claims',
+    ('claims', 'heartbeat_claim'): 'hermes_cli.kanban_storage_claims',
+    ('claims', 'heartbeat_worker'): 'hermes_db.domains.kanban.postgres.claims',
+    ('claims', 'reclaim_task'): 'hermes_cli.kanban_storage_claims',
+    ('completion', 'complete_task'): 'hermes_cli.kanban_storage_completion',
+    ('completion_guards', '_flag_phantom_prose_refs'): 'hermes_db.domains.kanban.postgres.completion',
+    ('completion_guards', '_gate_created_cards'): 'hermes_db.domains.kanban.postgres.completion',
+    ('completion_guards', '_gate_empty_completion'): 'hermes_db.domains.kanban.postgres.completion',
+    ('completion_guards', '_scan_prose_for_phantom_ids'): 'hermes_db.domains.kanban.postgres.completion',
+    ('completion_guards', '_verify_created_cards'): 'hermes_db.domains.kanban.postgres.completion',
+    ('crash_sweeps', 'detect_crashed_workers'): 'hermes_cli.kanban_storage_maintenance',
+    ('dashboard', '_parents_blocking_ready'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('dashboard', '_set_status_direct'): 'hermes_cli.kanban_storage_catalog',
+    ('diagnostic_snapshot', 'diagnostic_snapshot'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('dispatch', 'dispatch_once'): 'hermes_cli.kanban_storage_dispatch',
+    ('dispatch_lane', '_dispatch_lane_task'): 'hermes_cli.kanban_storage_dispatch',
+    ('dispatch_queries', '_apply_default_assignee'): 'hermes_db.domains.kanban.postgres.dispatch',
+    ('dispatch_queries', '_count_other_running'): 'hermes_db.domains.kanban.postgres.dispatch',
+    ('dispatch_queries', '_has_spawnable'): 'hermes_cli.kanban_storage_dispatch',
+    ('dispatch_queries', '_lane_rows'): 'hermes_db.domains.kanban.postgres.dispatch',
+    ('dispatch_queries', '_running_per_profile'): 'hermes_db.domains.kanban.postgres.dispatch',
+    ('dispatch_queries', 'check_respawn_guard'): 'hermes_cli.kanban_storage_dispatch',
+    ('dispatch_queries', 'count_running_tasks'): 'hermes_db.domains.kanban.postgres.dispatch',
+    ('events', '_append_event'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('failures', '_clear_failure_counter'): 'hermes_db.domains.kanban.postgres.runs',
+    ('failures', '_record_task_failure'): 'hermes_db.domains.kanban.postgres.runs',
+    ('graph', 'child_ids'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('graph', 'decompose_triage_task'): 'hermes_cli.kanban_storage_catalog',
+    ('graph', 'link_tasks'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('graph', 'parent_ids'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('graph', 'recompute_ready'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('graph', 'specify_triage_task'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('graph', 'task_graph_context'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('graph', 'task_graph_contexts'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('graph', 'unlink_tasks'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('graph', 'unsatisfied_parents'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('lease_sweeps', 'reconcile_orphaned_running'): 'hermes_cli.kanban_storage_maintenance',
+    ('lease_sweeps', 'release_stale_claims'): 'hermes_cli.kanban_storage_maintenance',
+    ('notify', 'add_notify_sub'): 'hermes_db.domains.kanban.postgres.notify',
+    ('notify', 'advance_notify_cursor'): 'hermes_db.domains.kanban.postgres.notify',
+    ('notify', 'claim_unseen_events_for_sub'): 'hermes_db.domains.kanban.postgres.notify',
+    ('notify', 'list_notify_subs'): 'hermes_db.domains.kanban.postgres.notify',
+    ('notify', 'purge_stale_done_notify_subs'): 'hermes_db.domains.kanban.postgres.notify',
+    ('notify', 'record_notify_ping'): 'hermes_db.domains.kanban.postgres.notify',
+    ('notify', 'remove_notify_sub'): 'hermes_db.domains.kanban.postgres.notify',
+    ('notify', 'retarget_notify_subs'): 'hermes_db.domains.kanban.postgres.notify',
+    ('notify', 'rewind_notify_cursor'): 'hermes_db.domains.kanban.postgres.notify',
+    ('notify', 'unseen_events_for_sub'): 'hermes_db.domains.kanban.postgres.notify',
+    ('owner_recovery', '_latest_run_event'): 'hermes_db.domains.kanban.postgres.owners',
+    ('owner_recovery', '_owner_receipt'): 'hermes_db.domains.kanban.postgres.owners',
+    ('owner_recovery', '_task_owner_state'): 'hermes_db.domains.kanban.postgres.owners',
+    ('queries', 'active_worker_rows'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('queries', 'board_rollups'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('queries', 'board_status_counts'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('queries', 'events_after'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('queries', 'latest_event_id'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('queries', 'tasks_by_ids'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('reopen', 'invalidate_descendants_for_parent_reopen'): 'hermes_cli.kanban_storage_catalog',
+    ('review', 'reopen_review_task'): 'hermes_db.domains.kanban.postgres.review',
+    ('review', 'request_changes'): 'hermes_db.domains.kanban.postgres.review',
+    ('review', 'request_review'): 'hermes_cli.kanban_storage_review',
+    ('runs', '_retry_status_for_run'): 'hermes_db.domains.kanban.postgres.runs',
+    ('runs', 'current_run_started_ats'): 'hermes_db.domains.kanban.postgres.runs',
+    ('runs', 'get_run'): 'hermes_db.domains.kanban.postgres.runs',
+    ('runs', 'goal_run_status'): 'hermes_db.domains.kanban.postgres.runs',
+    ('runs', 'latest_run'): 'hermes_db.domains.kanban.postgres.runs',
+    ('runs', 'latest_summaries'): 'hermes_db.domains.kanban.postgres.runs',
+    ('runs', 'latest_summary'): 'hermes_db.domains.kanban.postgres.runs',
+    ('runs', 'list_runs'): 'hermes_db.domains.kanban.postgres.runs',
+    ('runs', 'recent_profile_completions'): 'hermes_db.domains.kanban.postgres.runs',
+    ('runtime_sweeps', 'detect_stale_running'): 'hermes_cli.kanban_storage_maintenance',
+    ('runtime_sweeps', 'enforce_max_runtime'): 'hermes_cli.kanban_storage_maintenance',
+    ('swarm', 'create_swarm'): 'hermes_cli.kanban_storage_swarm',
+    ('tasks', 'add_comment'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('tasks', 'assign_task'): 'hermes_cli.kanban_storage_catalog',
+    ('tasks', 'board_stats'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('tasks', 'create_task'): 'hermes_cli.kanban_storage_catalog',
+    ('tasks', 'delete_archived_task'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('tasks', 'delete_task'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('tasks', 'edit_task'): 'hermes_cli.kanban_storage_catalog',
+    ('tasks', 'gc_events'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('tasks', 'get_task'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('tasks', 'known_assignees'): 'hermes_cli.kanban_storage_catalog',
+    ('tasks', 'list_comments'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('tasks', 'list_comments_after'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('tasks', 'list_events'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('tasks', 'list_tasks'): 'hermes_db.domains.kanban.postgres.catalog',
+    ('tasks', 'notify_task_updated'): 'hermes_cli.kanban_storage_catalog',
+    ('tasks', 'set_model_override'): 'hermes_cli.kanban_storage_catalog',
+    ('tasks', 'set_reasoning_effort'): 'hermes_cli.kanban_storage_catalog',
+    ('terminal_workers', 'reap_terminal_workers'): 'hermes_cli.kanban_storage_maintenance',
+    ('transitions', 'block_task'): 'hermes_cli.kanban_storage_claims',
+    ('transitions', 'promote_task'): 'hermes_db.domains.kanban.postgres.claims',
+    ('transitions', 'schedule_task'): 'hermes_db.domains.kanban.postgres.claims',
+    ('transitions', 'unblock_task'): 'hermes_db.domains.kanban.postgres.claims',
+    ('worker_identity', '_set_worker_pid'): 'hermes_cli.kanban_storage_dispatch',
+    ('worker_identity', 'adopt_worker_pid'): 'hermes_cli.kanban_storage_dispatch',
+    ('workspaces', '_cleanup_workspace'): 'hermes_cli.kanban_storage_workspaces',
+    ('workspaces', '_has_active_children'): 'hermes_db.domains.kanban.postgres.workspaces',
+    ('workspaces', '_is_terminal_task'): 'hermes_db.domains.kanban.postgres.workspaces',
+    ('workspaces', '_workspace_in_use_by_other'): 'hermes_cli.kanban_storage_workspaces',
+    ('workspaces', 'gc_archived_workspaces'): 'hermes_cli.kanban_storage_workspaces',
+    ('workspaces', 'set_branch_name'): 'hermes_db.domains.kanban.postgres.workspaces',
+    ('workspaces', 'set_workspace_path'): 'hermes_cli.kanban_storage_workspaces',
+}
 
 def domain_operation(topic):
     def decorate(sqlite_operation):
@@ -398,7 +489,7 @@ def domain_operation(topic):
             if isinstance(store, DomainResource):
                 if not isinstance(store, BoardResource) or store.settings.backend != "postgresql":
                     raise StorageConfigurationError("Kanban operations require the selected Board store")
-                module = import_module(_KANBAN_MODULES[topic])
+                module = import_module(_KANBAN_MODULES[(topic, sqlite_operation.__name__)])
                 with store._operation_scope():
                     return getattr(module, sqlite_operation.__name__)(store, *args, **kwargs)
             return sqlite_operation(store, *args, **kwargs)
@@ -410,7 +501,7 @@ def profile_operation(sqlite_operation):
     def operation(*args, **kwargs):
         from hermes_cli.db_setup import storage_backend
         if storage_backend() == "postgresql":
-            from hermes_db.domains.kanban.postgres import catalog as kanban_boards
+            kanban_boards = import_module(_KANBAN_MODULES[("boards", sqlite_operation.__name__)])
             from hermes_cli.db_domains import acquire_profile_domain
             with acquire_profile_domain("kanban_tasks") as resource:
                 return getattr(kanban_boards, sqlite_operation.__name__)(resource, *args, **kwargs)
@@ -433,7 +524,7 @@ def owner_scoped_operation(file_operation):
 def connect(board=None):
     from hermes_cli import kanban_db as kb
     from hermes_cli.db_domains import acquire_profile_domain
-    from hermes_db.domains.kanban.postgres.catalog import resolve_board
+    from hermes_cli.kanban_storage_catalog import resolve_board
     slug = kb._explicit_board_slug(board) or kb.get_current_board()
     with acquire_profile_domain("kanban_tasks") as resource:
         board_id = resolve_board(resource, slug)

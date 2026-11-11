@@ -134,3 +134,8 @@ def board_operation_scope(store):
     from hermes_cli.db_setup import _owning_profile
     with _owning_profile(store.scope.profile_home), board_files(store):
         yield
+
+
+def canonical_path(path):
+    from hermes_db.domains.kanban.rules import _path_key
+    return os.path.normcase(_path_key(Path(path).expanduser().resolve(strict=False))) if path else None

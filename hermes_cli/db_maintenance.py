@@ -11,15 +11,15 @@ def maintain_profile(profile_home=None):
         if storage_backend(home) == "sqlite":
             return {"backend": "sqlite"}
         from hermes_cli.db_domains import acquire_profile_domain
-        from hermes_db.domains.kanban.postgres.maintenance import replay_files, terminal_workspaces, pending_workspaces
+        from hermes_cli.kanban_storage_maintenance import replay_files, terminal_workspaces, pending_workspaces
         with acquire_profile_domain("kanban_tasks", profile_home=home) as resource:
-            from hermes_db.domains.kanban.postgres.effects import drain
+            from hermes_cli.kanban_storage_effects import drain
             drain(resource)
             pending_workspaces(resource)
-            from hermes_db.domains.kanban.postgres.files import reconcile
+            from hermes_cli.kanban_storage_files import reconcile
             reconcile(resource)
             result = {"backend": "postgresql", "file_jobs": replay_files(resource), "workspaces": terminal_workspaces(resource)}
-            from hermes_db.domains.kanban.postgres.files import reclaim
+            from hermes_cli.kanban_storage_files import reclaim
             result["upload_chunks"] = reclaim(resource)
         _attachments(home)
         result["expired_plugin_records"] = _plugins(home)

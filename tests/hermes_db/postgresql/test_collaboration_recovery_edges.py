@@ -97,7 +97,7 @@ def test_old_raw_cleanup_token_reconciles_or_preserves_canonical_live_reference(
     from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
     from hermes_db.tables.kanban_artifacts import attachments, blobs
     from hermes_db.domains.kanban.postgres import repository as repo
-    from hermes_db.domains.kanban.postgres.files import reconcile
+    from hermes_cli.kanban_storage_files import reconcile
     from hermes_cli.kanban_storage_owner import board_files
     from hermes_db.errors import StorageBusyError
     from hermes_db.core.values import encode_text
@@ -142,6 +142,7 @@ def test_phantom_warning_lost_commit_ack_replays_once_and_drains_following_phase
     from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
     from hermes_db.errors import UnknownCommitError
     from hermes_db.domains.kanban.postgres import completion as kanban_completion, effects as kanban_effects
+    import hermes_cli.kanban_storage_effects as kanban_effects_application
     from hermes_db.domains.kanban.postgres import repository as repo
     from hermes_db.tables.kanban_effects import effects
     with pg_profiles("review-phantom-replay"), kbc.connect_closing() as board:
@@ -168,10 +169,10 @@ def test_phantom_warning_lost_commit_ack_replays_once_and_drains_following_phase
             patch.setattr(repo, "event", observed_event)
             patch.setattr(engine.dialect, "do_commit", lose_warning_ack)
             with pytest.raises(UnknownCommitError):
-                kanban_effects.drain(board)
+                kanban_effects_application.drain(board)
         with board.write() as conn:
             conn.execute(effects.update().where(effects.c.store_id == board.scope.require_store_id()).values(expires_at=0))
-        kanban_effects.drain(board)
+        kanban_effects_application.drain(board)
         assert kb.get_task(board, child).status == "ready"
         assert len([row for row in kb.list_events(board, parent) if row.kind == "suspected_hallucinated_references"]) == 1
         with board.read() as conn:

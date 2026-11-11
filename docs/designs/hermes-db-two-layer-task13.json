@@ -1,0 +1,1032 @@
+{
+  "task": 13,
+  "status": "completed",
+  "parent_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+  "mapping_refs_verified": 11,
+  "validation_scope": "User lean policy:post-change Native optional-driver contract on both hosts and five direct PG workflow contracts,plus structural/boundary checks;no expanded directory regression or repeated baseline suite.",
+  "required_pending": [],
+  "deleted_tests": [],
+  "untracked_preserved": [
+    "owned/SOUL.md",
+    "target/SOUL.md"
+  ],
+  "partial_implementation": {
+    "modules": [
+      "effects",
+      "workspaces",
+      "completion",
+      "review",
+      "claims",
+      "dispatch",
+      "files",
+      "maintenance",
+      "catalog",
+      "swarm",
+      "transfer"
+    ],
+    "files": [
+      "hermes_cli/db_maintenance.py",
+      "hermes_cli/kanban_storage_application.py",
+      "hermes_cli/kanban_storage_catalog.py",
+      "hermes_cli/kanban_storage_claims.py",
+      "hermes_cli/kanban_storage_completion.py",
+      "hermes_cli/kanban_storage_dispatch.py",
+      "hermes_cli/kanban_storage_effects.py",
+      "hermes_cli/kanban_storage_files.py",
+      "hermes_cli/kanban_storage_maintenance.py",
+      "hermes_cli/kanban_storage_owner.py",
+      "hermes_cli/kanban_storage_review.py",
+      "hermes_cli/kanban_storage_swarm.py",
+      "hermes_cli/kanban_storage_transfer.py",
+      "hermes_cli/kanban_storage_workspaces.py",
+      "hermes_cli/kanban_transfer.py",
+      "hermes_db/domains/kanban/api.py",
+      "hermes_db/domains/kanban/postgres/catalog.py",
+      "hermes_db/domains/kanban/postgres/claims.py",
+      "hermes_db/domains/kanban/postgres/completion.py",
+      "hermes_db/domains/kanban/postgres/dispatch.py",
+      "hermes_db/domains/kanban/postgres/effects.py",
+      "hermes_db/domains/kanban/postgres/files.py",
+      "hermes_db/domains/kanban/postgres/maintenance.py",
+      "hermes_db/domains/kanban/postgres/review.py",
+      "hermes_db/domains/kanban/postgres/swarm.py",
+      "hermes_db/domains/kanban/postgres/transfer.py",
+      "hermes_db/domains/kanban/postgres/workspaces.py",
+      "tests/hermes_db/postgresql/test_collaboration_recovery_edges.py",
+      "tests/hermes_db/postgresql/test_kanban_board_files.py",
+      "tests/hermes_db/postgresql/test_kanban_dashboard.py",
+      "tests/hermes_db/postgresql/test_kanban_dispatch.py",
+      "tests/hermes_db/postgresql/test_kanban_transfer.py"
+    ],
+    "status": "completed",
+    "preserved": "Original effect phase/claim writes remain separate short transactions. Cleanup reservations retain same Connection/files lock/token/active-user tests before original external removal. Completion/review capture,acceptance CAS and result edits remain concrete business operations. App retains original file lock,staging,durable/UnknownCommit cleanup and post-commit notification positions. Claim facts are resolved at the original pre-write position;SQL CAS/receipt/hook-intent writes stay business-owned. Process termination stays between original capture and fenced recheck. Post-commit effects run only after the original successful committed transition."
+  },
+  "preflight_findings": [
+    {
+      "kind": "generation input",
+      "finding": "canonical_path owner override missing in initial consumer route generator;assertion failed before edits",
+      "resolution": "route to actual app owner"
+    },
+    {
+      "kind": "generation scope",
+      "finding": "unrelated delivery domain_operation encountered after actual import rewrites",
+      "resolution": "close only existing Kanban topics;117 keys have actual definitions"
+    },
+    {
+      "kind": "static F821",
+      "finding": "kanban_boards import absent in extracted attachment generation snapshot",
+      "resolution": "business table import restored;F821 exit0"
+    },
+    {
+      "kind": "manual source inspection",
+      "finding": "removed import left db_files alias missing;reap helper call left an unreachable return",
+      "resolution": "explicit business files import and dead return removed before functional validation"
+    }
+  ],
+  "validation_failures": [
+    {
+      "batch": "first static",
+      "exit_code": 1,
+      "failed_checks": [
+        "footguns",
+        "db-boundaries",
+        "ruff",
+        "health"
+      ],
+      "resolution": "Preserved strict private UTF-8 marker protocol with producer-verified comments; removed redundant top-level imports/unused extracted locals;fixed test alias scope;added specific pure status contract consumer review."
+    },
+    {
+      "batch": "first PG five workflows",
+      "exit_code": 1,
+      "passed": 23,
+      "failed": 5,
+      "failed_files": 2,
+      "causes": [
+        "Missed module-object _workspace patch",
+        "Transfer call name corrupted by substring replacement",
+        "Three removed-module imports used as monkeypatch module objects"
+      ],
+      "resolution": "Use actual concrete application patch owner;restore db._commit_graph;split SQL failure patch and file publication patch to real definitions."
+    }
+  ],
+  "source_audit": {
+    "task": 13,
+    "parent_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+    "map_refs": 11,
+    "fixed_resources": 65,
+    "db_modules": 354,
+    "root_entries": 11,
+    "revisions": 31,
+    "table_modules": 29,
+    "production_SQL_literal_delta": 0,
+    "query_root_removed": [
+      "select(tasks.c.id)"
+    ],
+    "query_root_added": [],
+    "preserved_tests": [
+      {
+        "path": "tests/hermes_db/postgresql/test_collaboration_recovery_edges.py",
+        "existing_tests": 7,
+        "existing_assertions": 20,
+        "removed_tests": []
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_kanban_board_files.py",
+        "existing_tests": 3,
+        "existing_assertions": 18,
+        "removed_tests": []
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_kanban_dashboard.py",
+        "existing_tests": 5,
+        "existing_assertions": 27,
+        "removed_tests": []
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_kanban_dispatch.py",
+        "existing_tests": 7,
+        "existing_assertions": 33,
+        "removed_tests": []
+      },
+      {
+        "path": "tests/hermes_db/postgresql/test_kanban_transfer.py",
+        "existing_tests": 6,
+        "existing_assertions": 45,
+        "removed_tests": []
+      }
+    ],
+    "changed_python_blobs": [
+      [
+        "hermes_cli/db_maintenance.py",
+        "581591459d67504177c5808b4bf0dac444bff4ba7e091a40400bd4f3b17e98d7"
+      ],
+      [
+        "hermes_cli/kanban_storage_application.py",
+        "c9b0121e35d8f744cb6b5578fa263fbe2046fc3e93c2c172b0473ccdfab74001"
+      ],
+      [
+        "hermes_cli/kanban_storage_catalog.py",
+        "5d3a28981def5583ea9cc10fb59187c3bf36aa701e9c0ba73c6c699a36e43581"
+      ],
+      [
+        "hermes_cli/kanban_storage_claims.py",
+        "d385fad64fc9ed56a5538fb5917d2aebbe5b10fff6a07303a14b9d834214a62f"
+      ],
+      [
+        "hermes_cli/kanban_storage_completion.py",
+        "6f901200fe84f0f823099084a2409f4e7f31f3cd82796a78fa435140c31e16c5"
+      ],
+      [
+        "hermes_cli/kanban_storage_dispatch.py",
+        "f1847b6aca105f11c1b1c6be9e51fb9d45e6abaa1eda2c8d06189e3fd03ca5e4"
+      ],
+      [
+        "hermes_cli/kanban_storage_effects.py",
+        "7519f7d217240fbf407390d4f2f05ebefaa5157ff94e145c1f157d7656e14ec6"
+      ],
+      [
+        "hermes_cli/kanban_storage_files.py",
+        "25dcfd1c097148c485defef3ceaeeec9842129195c7ecfd1280eb14f1ff37323"
+      ],
+      [
+        "hermes_cli/kanban_storage_maintenance.py",
+        "e77b829465e8a06b126464151f7d7f7bf5f5df9896c83969cd9599265710ec7b"
+      ],
+      [
+        "hermes_cli/kanban_storage_owner.py",
+        "38117314a58da382a0a32faabf98819e402e7e17d16e04bfcb79ee45f6b8b660"
+      ],
+      [
+        "hermes_cli/kanban_storage_review.py",
+        "a28fa1916f9d6f90efa7c05aae4615e6adb78d0d3ac41c815e4a1080fe9ca036"
+      ],
+      [
+        "hermes_cli/kanban_storage_swarm.py",
+        "567850347eabab39236dcd8ff8c6d279d00d8e6bf51d43363ce88e658fa045b4"
+      ],
+      [
+        "hermes_cli/kanban_storage_transfer.py",
+        "b7f4885a13a5d66b0a13a69786039918214dfbf4adf8369cbade578099cc6a7c"
+      ],
+      [
+        "hermes_cli/kanban_storage_workspaces.py",
+        "aa8f722e98c84f9f2b11da73abd6b450c3ba87331c7d4b3b8e46605d3b2dd82e"
+      ],
+      [
+        "hermes_cli/kanban_transfer.py",
+        "4417e0ee66934521506922ff08e2eef04a94f12c69b60a27cd523ca69672067c"
+      ],
+      [
+        "hermes_db/domains/kanban/api.py",
+        "d70e30695c823692956db33bc3f01a4d497e088f0c0fb8ef5d27da926eceb9e4"
+      ],
+      [
+        "hermes_db/domains/kanban/postgres/catalog.py",
+        "d98ade030ff96b5f460316297e3a7e82b679486682ef41405f8ce444187bc950"
+      ],
+      [
+        "hermes_db/domains/kanban/postgres/claims.py",
+        "f21279865d99cfd95eaefce11d1fe2099858af27344e7ccfddb507603db5eb4b"
+      ],
+      [
+        "hermes_db/domains/kanban/postgres/completion.py",
+        "127d11338b4ec7d922cb7ba86016b6171ede435f1ed01d8a8eb1b35ed53dba86"
+      ],
+      [
+        "hermes_db/domains/kanban/postgres/dispatch.py",
+        "2825c14ca323096328cc8039c1f7c316be6a4f56d74d525c3a8dd9aa53f00b7d"
+      ],
+      [
+        "hermes_db/domains/kanban/postgres/effects.py",
+        "87526c27731d6bf0f9425506a8e4e690ab08cace197c94e291cdef9a380438f6"
+      ],
+      [
+        "hermes_db/domains/kanban/postgres/files.py",
+        "92871d867a792e2e6c7668d95f25a23509cb6dde97397d0ef22769ba099801ac"
+      ],
+      [
+        "hermes_db/domains/kanban/postgres/maintenance.py",
+        "c2b1ac830ed4e3885f998cf20cb8c059971f286103a922608585f419fb9d2c71"
+      ],
+      [
+        "hermes_db/domains/kanban/postgres/review.py",
+        "e42df73b34f2a90598eb22f6b08ca5fe86d87f804c2515c05dc84ea42ae612ea"
+      ],
+      [
+        "hermes_db/domains/kanban/postgres/swarm.py",
+        "2bb683eeac488af04491fd779914775b49e1e42a3ee97dcc312011084e2041f9"
+      ],
+      [
+        "hermes_db/domains/kanban/postgres/transfer.py",
+        "3c4837e70bf8fba101fdb724d79116279875f57b20f26205790ab2183df14b24"
+      ],
+      [
+        "hermes_db/domains/kanban/postgres/workspaces.py",
+        "7551ac602f64175f82f21a877031b36dd4d170a2e761bdd68f0df514eb7c9e75"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_collaboration_recovery_edges.py",
+        "7109f851220431008a7cafb719af2abf4f568f281b80b84272f7a8a7dd491e47"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_kanban_board_files.py",
+        "b1a826ac8f1c9a507d1b71dcb8c5147115faf9d23796f847d8e9d156dd1f711d"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_kanban_dashboard.py",
+        "ba0f23233b4842d80c6826752ed1030ebdd64adad6a6354ebc40163fdd5679ae"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_kanban_dispatch.py",
+        "2b646c9a1466cc8620c333700bcd34570513e0824f4dc7e4f5bc91127cbdf6c2"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_kanban_transfer.py",
+        "92c70df47d88eb0878198c2a49570ad261cd8e87b8f1375f7fd9de421b64da55"
+      ]
+    ],
+    "changed_python_blob_sha256": "94fd0943e7b3cc713e0dc6129e478d3ec71cf10745b4314b9f9cb5292866fdf9",
+    "layer_checks": "Workflow files contain no raw SQL constructors/Connection.execute. Business PG modules contain no process/file/hook/Profile policy capability reads.",
+    "unchanged_business_algorithms": [
+      "catalog._append_event",
+      "catalog._decomposed_child",
+      "catalog._delete",
+      "catalog._descendants",
+      "catalog._initial_state",
+      "catalog._lookup",
+      "catalog._parents_blocking_ready",
+      "catalog._promote",
+      "catalog._registry_lock",
+      "catalog._save",
+      "catalog._scope",
+      "catalog._sort",
+      "catalog._transition",
+      "catalog._unsatisfied",
+      "catalog._would_cycle",
+      "catalog.active_worker_rows",
+      "catalog.add_comment",
+      "catalog.board_exists",
+      "catalog.board_rollups",
+      "catalog.board_stats",
+      "catalog.board_status_counts",
+      "catalog.child_ids",
+      "catalog.delete_archived_task",
+      "catalog.delete_task",
+      "catalog.diagnostic_snapshot",
+      "catalog.events_after",
+      "catalog.gc_events",
+      "catalog.get_task",
+      "catalog.invalidate",
+      "catalog.latest_event_id",
+      "catalog.link_tasks",
+      "catalog.list_comments",
+      "catalog.list_comments_after",
+      "catalog.list_events",
+      "catalog.list_tasks",
+      "catalog.parent_ids",
+      "catalog.recompute_ready",
+      "catalog.specify_triage_task",
+      "catalog.task_graph_context",
+      "catalog.task_graph_contexts",
+      "catalog.tasks_by_ids",
+      "catalog.unlink_tasks",
+      "catalog.unsatisfied_parents",
+      "claims._classify_blocked",
+      "claims._close_dangling",
+      "claims._promotion_error",
+      "claims._reject_parents",
+      "claims.heartbeat_worker",
+      "claims.promote_task",
+      "claims.schedule_task",
+      "claims.unblock_task",
+      "completion._audit",
+      "completion._close_completed",
+      "completion._flag_phantom_prose_refs",
+      "completion._gate_created_cards",
+      "completion._gate_empty_completion",
+      "completion._matches",
+      "completion._phantom_ids",
+      "completion._scan_prose_for_phantom_ids",
+      "completion._verify_created_cards",
+      "completion._write_completion",
+      "completion.record",
+      "completion.snapshot",
+      "completion.verify_on_connection",
+      "dispatch._apply_default_assignee",
+      "dispatch._count_other_running",
+      "dispatch._guard_history",
+      "dispatch._key",
+      "dispatch._lane_rows",
+      "dispatch._now",
+      "dispatch._running_per_profile",
+      "dispatch.count_running_tasks",
+      "dispatch.diagnostic",
+      "effects._claim",
+      "effects._key",
+      "effects.enqueue",
+      "effects.hook_step",
+      "files._blob_key",
+      "files._id",
+      "files._references",
+      "files.get_attachment",
+      "files.guard_reference",
+      "files.insert_attachment",
+      "files.job_key",
+      "files.list_attachments",
+      "files.lock_blob",
+      "files.lock_files",
+      "files.pending_delete",
+      "files.record",
+      "files.require_settled_slug",
+      "files.set_job_state",
+      "files.under_root",
+      "maintenance._charge",
+      "maintenance._close",
+      "maintenance._elapsed",
+      "maintenance._violation_streak",
+      "maintenance.finish",
+      "review._changes_error",
+      "review._latest",
+      "review._prior_reviewer",
+      "review._write_review",
+      "review.reopen_review_task",
+      "review.request_changes",
+      "swarm._blackboard",
+      "swarm._existing",
+      "workspaces._active_children",
+      "workspaces._finish",
+      "workspaces._has_active_children",
+      "workspaces._is_terminal_task",
+      "workspaces._reserve",
+      "workspaces.guard_live_task",
+      "workspaces.guard_parent_link",
+      "workspaces.key_for_task",
+      "workspaces.live_references",
+      "workspaces.lock_path",
+      "workspaces.path_scope",
+      "workspaces.reference_scope",
+      "workspaces.register",
+      "workspaces.set_branch_name",
+      "DispatchLease.acquire",
+      "DispatchLease.validate",
+      "DispatchLease.check",
+      "DispatchLease.renew",
+      "DispatchLease.release",
+      "DispatchPermit.for_assignee",
+      "DispatchPermit.admit",
+      "BoardResource.write",
+      "BoardResource.command_result",
+      "BoardResource._operation_scope",
+      "BoardResource._record_task_failure",
+      "BoardResource.get_task",
+      "BoardResource.latest_run",
+      "BoardResource.list_tasks",
+      "BoardResource.recompute_ready",
+      "BoardResource.set_branch_name"
+    ],
+    "idempotency_query_reuse": "One duplicate select(tasks.c.id) from swarm root now calls catalog.existing_live_task on the same supplied Connection,with identical predicate/order/limit."
+  },
+  "latest_required_verification": [
+    {
+      "record_file": "native-win-ff283d75005345ba84a6a600b7d55536.log.json",
+      "completed_mtime_ns": 1794404027427262100,
+      "label": "native-win",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "067e6fd92640f86f3da6600d0b14b4757193901c29104955c286dd4bf5cfea31",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_kanban_sqlite_optional_drivers.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 1 files, 1 tests passed, 0 failed (100% complete) in 2.5s (4 workers) ==="
+      ]
+    },
+    {
+      "record_file": "native-linux-988ea10d3e804630abf9ad8fc86a543e.log.json",
+      "completed_mtime_ns": 1794404034315822700,
+      "label": "native-linux",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "067e6fd92640f86f3da6600d0b14b4757193901c29104955c286dd4bf5cfea31",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_kanban_sqlite_optional_drivers.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 1 files, 1 tests passed, 0 failed (100% complete) in 6.2s (4 workers) ==="
+      ]
+    },
+    {
+      "record_file": "pg-linux-ba20f7b8be6c468489e6c8286fd7f625.log.json",
+      "completed_mtime_ns": 1794404279055568700,
+      "label": "pg-linux",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "067e6fd92640f86f3da6600d0b14b4757193901c29104955c286dd4bf5cfea31",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/postgresql/test_kanban_dispatch.py",
+        "tests/hermes_db/postgresql/test_kanban_completion.py",
+        "tests/hermes_db/postgresql/test_kanban_transfer.py",
+        "tests/hermes_db/postgresql/test_kanban_workspaces.py",
+        "tests/hermes_db/postgresql/test_kanban_worker_e2e.py",
+        "-j",
+        "1",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra",
+        "-m",
+        "integration",
+        "--postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 5 files, 28 tests passed, 0 failed (100% complete) in 244.0s (1 workers) ==="
+      ]
+    },
+    {
+      "record_file": "static-32ca3da96cce446bae5b08e77268770f.log.json",
+      "completed_mtime_ns": 1794404275288291000,
+      "label": "static",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "067e6fd92640f86f3da6600d0b14b4757193901c29104955c286dd4bf5cfea31",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/check",
+        "--staged",
+        "--base",
+        "0d8782ba8a"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "scripts/check: 16 checks, ok"
+      ]
+    },
+    {
+      "record_file": "db-boundary-68e57345d00048ad8e08067ed057a72d.log.json",
+      "completed_mtime_ns": 1794404279576799500,
+      "label": "db-boundary",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "067e6fd92640f86f3da6600d0b14b4757193901c29104955c286dd4bf5cfea31",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/hermes_db_boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "hermes_db boundaries: 8975 resolved imports, 0 violations"
+      ]
+    },
+    {
+      "record_file": "plugin-boundary-04624080218c4d3fad0da844a5a4bf0c.log.json",
+      "completed_mtime_ns": 1794404316124732700,
+      "label": "plugin-boundary",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "067e6fd92640f86f3da6600d0b14b4757193901c29104955c286dd4bf5cfea31",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "module_to_core: 842",
+        "core_to_module: 26"
+      ]
+    },
+    {
+      "record_file": "contracts-28096745bb564d7180e5952c18413554.log.json",
+      "completed_mtime_ns": 1794404318616915800,
+      "label": "contracts",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "067e6fd92640f86f3da6600d0b14b4757193901c29104955c286dd4bf5cfea31",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/gen_gateway_contracts.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": []
+    },
+    {
+      "record_file": "whitespace-6abe8c74e36e44a59da786d0535848d7.log.json",
+      "completed_mtime_ns": 1794404319019499700,
+      "label": "whitespace",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "067e6fd92640f86f3da6600d0b14b4757193901c29104955c286dd4bf5cfea31",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=D:/AI/hermes-db-packages",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": []
+    }
+  ],
+  "attempts": [
+    {
+      "record_file": "native-win-69baba99ca6f4ba586cdcb7b2f3ee228.log.json",
+      "completed_mtime_ns": 1794403610105791800,
+      "label": "native-win",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "c95a0e72dfcfcda7bc593b2ebe915ad53d9d42ce0d6731bcf66ca6ca3f9d952c",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_kanban_sqlite_optional_drivers.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 1 files, 1 tests passed, 0 failed (100% complete) in 2.9s (4 workers) ==="
+      ]
+    },
+    {
+      "record_file": "native-linux-ed260256b2124237beedc5e8e46db700.log.json",
+      "completed_mtime_ns": 1794403617597584800,
+      "label": "native-linux",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "c95a0e72dfcfcda7bc593b2ebe915ad53d9d42ce0d6731bcf66ca6ca3f9d952c",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_kanban_sqlite_optional_drivers.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 1 files, 1 tests passed, 0 failed (100% complete) in 6.6s (4 workers) ==="
+      ]
+    },
+    {
+      "record_file": "static-42e370bbf1fb4e8eb738c4cdc1057fee.log.json",
+      "completed_mtime_ns": 1794403691250322700,
+      "label": "static",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "c95a0e72dfcfcda7bc593b2ebe915ad53d9d42ce0d6731bcf66ca6ca3f9d952c",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/check",
+        "--staged",
+        "--base",
+        "0d8782ba8a"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 1,
+      "summary": [
+        "hermes_db boundaries: 8977 resolved imports, 2 violations",
+        "scripts/check: 16 checks, FAILED: footguns, db-boundaries, ruff, health"
+      ]
+    },
+    {
+      "record_file": "pg-linux-1a6fc4983e1b4807954b57b251db3d11.log.json",
+      "completed_mtime_ns": 1794403820140942700,
+      "label": "pg-linux",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "c95a0e72dfcfcda7bc593b2ebe915ad53d9d42ce0d6731bcf66ca6ca3f9d952c",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/postgresql/test_kanban_dispatch.py",
+        "tests/hermes_db/postgresql/test_kanban_completion.py",
+        "tests/hermes_db/postgresql/test_kanban_transfer.py",
+        "tests/hermes_db/postgresql/test_kanban_workspaces.py",
+        "tests/hermes_db/postgresql/test_kanban_worker_e2e.py",
+        "-j",
+        "1",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra",
+        "-m",
+        "integration",
+        "--postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 1,
+      "summary": [
+        "=== Summary: 5 files, 23 tests passed, 5 failed; FAILED: 2 of 5 files (100% complete) in 201.7s (1 workers) ==="
+      ]
+    },
+    {
+      "record_file": "native-win-ff283d75005345ba84a6a600b7d55536.log.json",
+      "completed_mtime_ns": 1794404027427262100,
+      "label": "native-win",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "067e6fd92640f86f3da6600d0b14b4757193901c29104955c286dd4bf5cfea31",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_kanban_sqlite_optional_drivers.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 1 files, 1 tests passed, 0 failed (100% complete) in 2.5s (4 workers) ==="
+      ]
+    },
+    {
+      "record_file": "native-linux-988ea10d3e804630abf9ad8fc86a543e.log.json",
+      "completed_mtime_ns": 1794404034315822700,
+      "label": "native-linux",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "067e6fd92640f86f3da6600d0b14b4757193901c29104955c286dd4bf5cfea31",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/contracts/test_kanban_sqlite_optional_drivers.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 1 files, 1 tests passed, 0 failed (100% complete) in 6.2s (4 workers) ==="
+      ]
+    },
+    {
+      "record_file": "static-32ca3da96cce446bae5b08e77268770f.log.json",
+      "completed_mtime_ns": 1794404275288291000,
+      "label": "static",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "067e6fd92640f86f3da6600d0b14b4757193901c29104955c286dd4bf5cfea31",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/check",
+        "--staged",
+        "--base",
+        "0d8782ba8a"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "scripts/check: 16 checks, ok"
+      ]
+    },
+    {
+      "record_file": "pg-linux-ba20f7b8be6c468489e6c8286fd7f625.log.json",
+      "completed_mtime_ns": 1794404279055568700,
+      "label": "pg-linux",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "067e6fd92640f86f3da6600d0b14b4757193901c29104955c286dd4bf5cfea31",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/postgresql/test_kanban_dispatch.py",
+        "tests/hermes_db/postgresql/test_kanban_completion.py",
+        "tests/hermes_db/postgresql/test_kanban_transfer.py",
+        "tests/hermes_db/postgresql/test_kanban_workspaces.py",
+        "tests/hermes_db/postgresql/test_kanban_worker_e2e.py",
+        "-j",
+        "1",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra",
+        "-m",
+        "integration",
+        "--postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 5 files, 28 tests passed, 0 failed (100% complete) in 244.0s (1 workers) ==="
+      ]
+    },
+    {
+      "record_file": "db-boundary-68e57345d00048ad8e08067ed057a72d.log.json",
+      "completed_mtime_ns": 1794404279576799500,
+      "label": "db-boundary",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "067e6fd92640f86f3da6600d0b14b4757193901c29104955c286dd4bf5cfea31",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/hermes_db_boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "hermes_db boundaries: 8975 resolved imports, 0 violations"
+      ]
+    },
+    {
+      "record_file": "plugin-boundary-04624080218c4d3fad0da844a5a4bf0c.log.json",
+      "completed_mtime_ns": 1794404316124732700,
+      "label": "plugin-boundary",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "067e6fd92640f86f3da6600d0b14b4757193901c29104955c286dd4bf5cfea31",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "module_to_core: 842",
+        "core_to_module: 26"
+      ]
+    },
+    {
+      "record_file": "contracts-28096745bb564d7180e5952c18413554.log.json",
+      "completed_mtime_ns": 1794404318616915800,
+      "label": "contracts",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "067e6fd92640f86f3da6600d0b14b4757193901c29104955c286dd4bf5cfea31",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/gen_gateway_contracts.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": []
+    },
+    {
+      "record_file": "whitespace-6abe8c74e36e44a59da786d0535848d7.log.json",
+      "completed_mtime_ns": 1794404319019499700,
+      "label": "whitespace",
+      "source_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+      "dirty_diff_sha256": "067e6fd92640f86f3da6600d0b14b4757193901c29104955c286dd4bf5cfea31",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=D:/AI/hermes-db-packages",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": []
+    }
+  ],
+  "unverified": [
+    "Final frozen payloads and final independent code review remain Tasks17–20.",
+    "Previous unified Task24,seven non-WSL evidence gaps and eight Windows baseline issues remain independent."
+  ],
+  "source_equivalence_notes": [
+    "All production SQL literals unchanged. One identical idempotency SELECT in swarm is shared through catalog.existing_live_task on the same Connection.",
+    "135 retained business functions/lease predicates/permit admission/BoardResource write-receipt methods have identical AST.",
+    "28 existing changed-file tests and all143 normal assertions retained;no tests deleted.",
+    "Strict private UTF-8 marker behavior preserved;Windows footgun comments cite verified original writers."
+  ]
+}

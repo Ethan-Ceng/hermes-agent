@@ -3,9 +3,6 @@ from hermes_db.domains.kanban import rules as _storage_shared_1
 from hermes_db.errors import StorageConfigurationError, StorageError, StorageBusyError
 import logging
 from functools import partial
-from hermes_db.domains.kanban.postgres.claims import _claim
-from contextlib import contextmanager
-from threading import Event
 import uuid
 from sqlalchemy import BigInteger, cast, delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
@@ -17,101 +14,11 @@ from hermes_db.domains.kanban.postgres import repository as repo, runs as run_re
 from hermes_db.tables.kanban import tasks, comments, events, runs
 from hermes_db.core.values import encode_text, decode_text
 
-def dispatch_once(store, *, spawn_fn=None, ttl_seconds=None, dry_run=False, max_spawn=None, max_in_progress=None, failure_limit=2, stale_timeout_seconds=0, board=None, default_assignee=None, max_in_progress_per_profile=None, reconcile_orphans=True):
-
-    if board is not None and board != store.slug:
-        raise StorageConfigurationError('Dispatcher Board must match its owning resource')
-    with hold_dispatch_lease(store) as lease:
-        if lease is None:
-            result = store.result_values.dispatch_result(skipped_locked=True)
-        else:
-            permit = DispatchPermit(lease, max_spawn, max_in_progress)
-            result = store.processes.dispatch_once_locked(store, spawn_fn=spawn_fn, ttl_seconds=ttl_seconds, dry_run=dry_run, max_spawn=max_spawn, max_in_progress=max_in_progress, failure_limit=failure_limit, stale_timeout_seconds=stale_timeout_seconds, board=store.slug, default_assignee=default_assignee, max_in_progress_per_profile=max_in_progress_per_profile, reconcile_orphans=reconcile_orphans, dispatch_permit=permit)
-            lease.check()
-    store.observers.fire_dispatch_tick_hook(result, board=store.slug, dry_run=dry_run)
-    return result
 logger = logging.getLogger('hermes_cli.kanban_db')
 
-def _guard(store, task_id, assignee, result, lane, dry_run, cap, running):
 
-    exists = store.processes.profile_exists_fn()
-    if exists is not None and (not exists(assignee)):
-        result.skipped_nonspawnable.append(task_id)
-        if not dry_run:
-            diagnostic(store, task_id, 'skipped_nonspawnable', {'assignee': assignee}, once=True)
-        return False
-    if cap is not None and running.get(assignee, 0) >= cap:
-        result.skipped_per_profile_capped.append((task_id, assignee, running.get(assignee, 0)))
-        return False
-    reason = store.check_respawn_guard(task_id, lane=lane)
-    if reason is not None:
-        result.respawn_guarded.append((task_id, reason))
-        if not dry_run:
-            diagnostic(store, task_id, 'respawn_guarded', {'reason': reason})
-        return False
-    return True
 
-def _workspace(store, claimed):
-    if claimed.workspace_kind == 'worktree':
-        path, branch = store.files.resolve_worktree_workspace(claimed, board=store.slug)
-        store.set_branch_name(claimed.id, branch or (claimed.branch_name or '').strip() or f'wt/{claimed.id}')
-    else:
-        path = store.files.resolve_workspace(claimed, board=store.slug)
-    store.set_workspace_path(claimed.id, str(path))
-    store.files.maybe_emit_scratch_tip(store, claimed.id, claimed.workspace_kind)
-    return str(path)
 
-def _spawn_failure(store, task, error, result, failure_limit, *, workspace=False):
-
-    from tools.process_registry import RestartSafeScopeUnavailable
-    infrastructure = isinstance(error, RestartSafeScopeUnavailable)
-    message = f'workspace: {error}' if workspace else str(error)
-    if store._record_task_failure(task.id, message, outcome='spawn_failed', failure_limit=failure_limit, release_claim=True, end_run=True, infrastructure=infrastructure, expected_run_id=task.current_run_id):
-        result.auto_blocked.append(task.id)
-
-def _dispatch_lane_task(store, row, assignee, result, *, lane, dry_run, ttl_seconds, board, failure_limit, spawn_fn, per_profile_cap, per_profile_running, dispatch_permit=None):
-
-    if dispatch_permit is None:
-        raise StorageConfigurationError('Automatic Kanban claims require a dispatch lease')
-    task_id = row['id']
-    dispatch_permit.lease.check()
-    if not _guard(store, task_id, assignee, result, lane, dry_run, per_profile_cap, per_profile_running):
-        return False
-    if dry_run:
-        result.spawned.append((task_id, assignee, ''))
-    else:
-        permit = dispatch_permit.for_assignee(assignee, per_profile_cap)
-        task = _claim(store, task_id, lane, ttl_seconds, None, dispatch_permit=permit)
-        if task is None:
-            return False
-        try:
-            workspace = _workspace(store, task)
-        except StorageError:
-            raise
-        except Exception as error:
-            logger.exception('kanban: workspace preparation failed for task %s', task.id)
-            _spawn_failure(store, task, error, result, failure_limit, workspace=True)
-            return False
-        if lane == 'review':
-            task.skills = list(dict.fromkeys([*(task.skills or []), 'sdlc-review']))
-        if not permit.before_spawn(store, task, ttl_seconds):
-            return False
-        try:
-            spawn = spawn_fn or partial(store.processes.default_spawn, board_owner=store.codec.board_reference(store))
-            pid = store.processes.call_spawn_fn(spawn, task, workspace, store.slug)
-        except StorageError:
-            raise
-        except Exception as error:
-            logger.exception('kanban: worker spawn failed for task %s', task.id)
-            _spawn_failure(store, task, error, result, failure_limit)
-            return False
-        if pid:
-            store._set_worker_pid(task.id, int(pid), run_id=task.current_run_id, claim_lock=task.claim_lock)
-        store.observers.fire_worker_spawned_hook(store, task, workspace, pid, board=store.slug)
-        result.spawned.append((task.id, task.assignee or '', workspace))
-    if per_profile_cap is not None and assignee:
-        per_profile_running[assignee] = per_profile_running.get(assignee, 0) + 1
-    return True
 LEASE_SECONDS = 60
 RENEW_SECONDS = 10
 
@@ -126,7 +33,6 @@ class DispatchLease:
     def __init__(self, store):
         self.store = store
         self.token = uuid.uuid4().hex
-        self.stopping = Event()
         self.error = None
 
     def acquire(self):
@@ -153,42 +59,11 @@ class DispatchLease:
             if changed != 1:
                 raise StorageBusyError('Kanban dispatch lease was lost during a tick')
 
-    def _keep_alive(self):
-        while not self.stopping.wait(RENEW_SECONDS):
-            try:
-                self.renew()
-            except StorageError as error:
-                self.error = error
-                return
-
     def release(self):
         with DomainResource.write(self.store) as conn:
             conn.execute(delete(leases).where(_key(self.store), leases.c.token == self.token))
 
-def _finish_tick(lease, thread):
-    lease.stopping.set()
-    thread.join()
-    lease.release()
 
-@contextmanager
-def hold_dispatch_lease(store):
-    from agent.memory_provider import spawn_context_thread
-    lease = DispatchLease(store)
-    if not lease.acquire():
-        yield None
-        return
-    thread = spawn_context_thread(lease._keep_alive, name='kanban-dispatch-lease', daemon=True)
-    thread.start()
-    try:
-        yield lease
-    except BaseException as primary:
-        try:
-            _finish_tick(lease, thread)
-        except StorageError as cleanup:
-            primary.add_note(f'Dispatch lease release failed ({type(cleanup).__name__}); ownership expires by database time')
-        raise
-    else:
-        _finish_tick(lease, thread)
 
 @dataclass(frozen=True)
 class DispatchPermit:
@@ -217,17 +92,6 @@ class DispatchPermit:
             return conn.scalar(board_counts.where(tasks.c.assignee == encode_text(self.assignee))) < self.per_profile_cap
         return True
 
-    def before_spawn(self, store, claimed, ttl_seconds):
-
-        with store.write() as conn:
-            self.lease.validate(conn, lock=True)
-            task = repo.get(conn, store, claimed.id)
-            if task is None or task['status'] != 'running' or task['current_run_id'] != claimed.current_run_id or (task['claim_lock'] != claimed.claim_lock):
-                return False
-            expires = int(time.time()) + store.policy.resolve_claim_ttl_seconds(ttl_seconds)
-            repo.task_update(conn, store, claimed.id, claim_expires=expires)
-            run_repo.update_run(conn, store, claimed.current_run_id, claim_expires=expires)
-        return True
 
 def _running_per_profile(store):
     with store.read() as conn:
@@ -245,11 +109,6 @@ def _lane_rows(store, status):
     with store.read() as conn:
         return [repo.decode_record(row) for row in conn.execute(select(tasks.c.id, tasks.c.assignee).where(repo.scope(tasks, store), tasks.c.status == status.encode(), tasks.c.claim_lock.is_(None)).order_by(tasks.c.priority.desc(), tasks.c.created_at.asc().nulls_first(), tasks.c.id)).mappings()]
 
-def _has_spawnable(store, status):
-
-    rows = _lane_rows(store, status)
-    exists = store.processes.profile_exists_fn()
-    return any(row['assignee'] is not None and (exists is None or exists(row['assignee'])) for row in rows)
 
 def _apply_default_assignee(store, task_id, assignee, *, dry_run):
     if dry_run:
@@ -283,23 +142,28 @@ def _guard_history(conn, store, task_id, now):
     comment_rows = [(row['created_at'], repo.decode_record(row)) for row in conn.execute(select(comments).where(repo.key(store, task_id, comments), comments.c.created_at >= pr_cutoff)).mappings()]
     return (successes, event_rows, comment_rows)
 
-def check_respawn_guard(store, task_id, *, lane='ready'):
-    now = int(time.time())
-    with store.read() as conn:
-        task = repo.get(conn, store, task_id)
-        if task is None:
-            return None
-        latest = conn.execute(select(runs).where(repo.key(store, task_id, runs), runs.c.ended_at.is_not(None)).order_by(runs.c.ended_at.desc(), runs.c.id.desc()).limit(1)).mappings().one_or_none()
-        handled, reason = store.policy.respawn_primary_guard(task['last_failure_error'], repo.decode_record(latest) if latest else None, lane, now)
-        if handled:
-            return reason
-        history = _guard_history(conn, store, task_id, now)
-    return store.policy.respawn_history_guard(*history)
 
-def _set_worker_pid(store, task_id, pid, *, run_id=None, claim_lock=None):
+def spawn_candidate(conn, store, claimed, lease):
+    lease.validate(conn, lock=True)
+    task = repo.get(conn, store, claimed.id)
+    return task is not None and task['status'] == 'running' and task['current_run_id'] == claimed.current_run_id and task['claim_lock'] == claimed.claim_lock
 
-    from hermes_db.domains.kanban.rules import UNVERIFIED_WORKER_FINGERPRINT
-    fingerprint = store.processes.process_fingerprint(int(pid)) or UNVERIFIED_WORKER_FINGERPRINT
+
+def refresh_spawn_claim(conn, store, claimed, expires):
+    repo.task_update(conn, store, claimed.id, claim_expires=expires)
+    run_repo.update_run(conn, store, claimed.current_run_id, claim_expires=expires)
+
+
+def respawn_candidate(conn, store, task_id):
+    task = repo.get(conn, store, task_id)
+    if task is None:
+        return None, None
+    latest = conn.execute(select(runs).where(repo.key(store, task_id, runs), runs.c.ended_at.is_not(None)).order_by(runs.c.ended_at.desc(), runs.c.id.desc()).limit(1)).mappings().one_or_none()
+    return task, repo.decode_record(latest) if latest else None
+
+
+
+def set_worker_fingerprint(store, task_id, pid, fingerprint, *, run_id=None, claim_lock=None):
     with store.write() as conn:
         task = repo.get(conn, store, task_id)
         if task is None:
@@ -314,17 +178,15 @@ def _set_worker_pid(store, task_id, pid, *, run_id=None, claim_lock=None):
             run_repo.update_run(conn, store, run_id, worker_pid=int(pid), worker_started_at=fingerprint)
         repo.event(conn, store, task_id, 'spawned', {'pid': int(pid), 'started_at': fingerprint}, run_id)
 
-def adopt_worker_pid(store, task_id, run_id, pid):
+
+def adoption_candidate(conn, store, task_id, run_id):
+    task = repo.get(conn, store, task_id)
+    if task is None or task['status'] != 'running' or task['current_run_id'] != int(run_id):
+        return None
+    return task
 
 
-    from hermes_db.domains.kanban.rules import UNVERIFIED_WORKER_FINGERPRINT
-    fingerprint = store.processes.process_fingerprint(int(pid)) or UNVERIFIED_WORKER_FINGERPRINT
-    with store.write() as conn:
-        task = repo.get(conn, store, task_id)
-        if task is None or task['status'] != 'running' or task['current_run_id'] != int(run_id):
-            return False
-        if task['worker_pid'] is None and (task['claim_lock'] or '').startswith(store.processes.host_prefix()):
-            repo.task_update(conn, store, task_id, worker_pid=int(pid), worker_started_at=fingerprint)
-            run_repo.update_run(conn, store, run_id, worker_pid=int(pid), worker_started_at=fingerprint)
-            repo.event(conn, store, task_id, 'worker_registered', {'pid': int(pid), 'started_at': fingerprint}, int(run_id))
-    return True
+def register_adopted_worker(conn, store, task_id, run_id, pid, fingerprint):
+    repo.task_update(conn, store, task_id, worker_pid=int(pid), worker_started_at=fingerprint)
+    run_repo.update_run(conn, store, run_id, worker_pid=int(pid), worker_started_at=fingerprint)
+    repo.event(conn, store, task_id, 'worker_registered', {'pid': int(pid), 'started_at': fingerprint}, int(run_id))

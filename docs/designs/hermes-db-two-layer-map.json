@@ -120,7 +120,7 @@
     {
       "id": 13,
       "title": "拆开Kanban事务工作流与文件归档编排",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         10,
         12
@@ -339,6 +339,66 @@
     {
       "path": "hermes_db/domains/kanban/owner.py",
       "task": 12,
+      "layer": "business"
+    },
+    {
+      "path": "hermes_cli/kanban_storage_effects.py",
+      "task": 13,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_cli/kanban_storage_workspaces.py",
+      "task": 13,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_cli/kanban_storage_completion.py",
+      "task": 13,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_cli/kanban_storage_review.py",
+      "task": 13,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_cli/kanban_storage_catalog.py",
+      "task": 13,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_cli/kanban_storage_claims.py",
+      "task": 13,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_cli/kanban_storage_dispatch.py",
+      "task": 13,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_cli/kanban_storage_files.py",
+      "task": 13,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_cli/kanban_storage_maintenance.py",
+      "task": 13,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_cli/kanban_storage_swarm.py",
+      "task": 13,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_cli/kanban_storage_transfer.py",
+      "task": 13,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_db/domains/kanban/postgres/transfer.py",
+      "task": 13,
       "layer": "business"
     }
   ],
@@ -1301,7 +1361,7 @@
     "entries": [
       {
         "path": "hermes-db-two-layer-map/sources-db.json",
-        "sha256": "e55bb45307c470fef8f34f372405899505a140e44385907815dd58029fd2f682",
+        "sha256": "3c20e5865a5112ab4b36ffb0959e25057179f7e2f9fe818c01b083ef09206122",
         "items": 359
       }
     ],
@@ -1688,5 +1748,23 @@
     "effective_tasks": "Task13–20;Task12 already-running batches finish and remain actual evidence",
     "retained": "20 implementation tasks and per-task commits,current source freeze/new PM payloads,critical real contracts,independent final review",
     "retired_requirement": "Repeated whole-business and directory-level regression beyond direct layering risk"
+  },
+  "task12_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+  "task13_adjustment": {
+    "status": "completed",
+    "parent_commit": "72d2d16ac05a47e4eeaae75aea9ce2a42544121c",
+    "validation": "User lean policy:post-change Native optional-driver contract on both hosts and five direct PG workflow contracts,plus structural/boundary checks;no expanded directory regression or repeated baseline suite.",
+    "scope": "Read current workflow,capability and actual IO partitions. Preserve original transaction/file/process fences;move actual orchestration and keep named SQL/query operations business-owned.",
+    "actual_readpoint_refinements": [
+      "Primary symbol routes are not an exhaustive IO list:effect queue replay/claim phase orchestration,workspace canonical_path/cleanup helpers and complete_task/edit_result callers also move with their actual effects.",
+      "Original concrete SQL snippets become named business queries/commands;app orchestration uses existing resources at the original lock/transaction positions. No generic SQL translator,reflective proxy,registration layer or old-path shim.",
+      "Canonical filesystem identity is owned by existing kanban_storage_owner;its definition stays usable without PG driver imports.",
+      "Business BoardResource convenience methods that perform app workflows will be removed and real callers rewired to concrete app operations;pure DB/DTO and permission/scope contracts remain.",
+      "Existing closed topic dispatch refined to concrete (topic,operation) keys;117 real consumed operations route directly to their definition,without new registry API or re-export modules.",
+      "_prepare_rows resolves attachment filesystem identities and therefore belongs to application;SQL table/column validation,scrub_runtime and graph insert stay business-owned.",
+      "DispatchLease SQL predicates and DispatchPermit.admit stay business-owned;application concrete subclasses own the original keepalive Event/thread and claim-TTL policy call."
+    ],
+    "source_hash": "94fd0943e7b3cc713e0dc6129e478d3ec71cf10745b4314b9f9cb5292866fdf9",
+    "actual_db_modules": 354
   }
 }

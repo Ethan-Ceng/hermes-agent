@@ -1,50 +1,21 @@
-"""Kanban transfer workflow; original connection, fence and off-connection effect boundaries are preserved."""
-from hermes_db.domains.kanban import rules as _storage_shared_1
+"""Application PG logical archive files, authorized staging, publication and recovery."""
 import hashlib
 import json
-from pathlib import Path, PurePosixPath
+import logging
+import re
 import shutil
 import tempfile
 import time
-from sqlalchemy import select, LargeBinary, update
-from hermes_cli.kanban_storage_owner import BoardFiles, _path
-from hermes_db.domains.kanban.postgres import repository as repo
-from hermes_db.tables.kanban import tasks, links, comments, events, runs, kanban_boards
-from hermes_db.tables.kanban_artifacts import attachments
+from pathlib import Path, PurePosixPath
 from uuid import uuid4
-from hermes_db.domains.kanban.api import BoardResource
+from hermes_db.domains.kanban import rules as _storage_shared_1
 from hermes_db.errors import StorageConfigurationError, UnknownCommitError
-from hermes_db.domains.kanban.postgres import catalog as boards, files
-from hermes_db.domains.kanban.postgres.workspaces import canonical_path
-from hermes_db.tables.kanban_file_jobs import file_jobs
-from hermes_db.core.values import encode_text
-import logging
-from hermes_db.domains.kanban.postgres.files import job_key, lock_files
-import re
-FORMAT_VERSION = 2
-TABLES = {'tasks': tasks, 'task_links': links, 'task_comments': comments, 'task_events': events, 'task_runs': runs, 'task_attachments': attachments}
-LOCAL_TASK_FIELDS = ('claim_lock', 'claim_expires', 'worker_pid', 'worker_started_at', 'current_run_id', 'last_heartbeat_at', 'session_id', 'project_id', 'last_failure_error', 'workspace_path', 'branch_name')
+from hermes_cli.kanban_storage_owner import BoardFiles, _path, canonical_path
+from hermes_cli import kanban_storage_files as files
+from hermes_db.domains.kanban.postgres import transfer as db
+logger = logging.getLogger('hermes_cli.kanban_storage_transfer')
 
-def snapshot(store):
-    result = {}
-    with store.read() as conn:
-        for name, table in TABLES.items():
-            columns = [column for column in table.columns if column.name not in {'store_id', 'board_id', 'path_key'}]
-            result[name] = [repo.decode_record(row) for row in conn.execute(select(*columns).where(repo.scope(table, store))).mappings()]
-    return result
 
-def scrub_runtime(tables):
-    for task in tables['tasks']:
-        for field in LOCAL_TASK_FIELDS:
-            task[field] = None
-        task['consecutive_failures'] = 0
-        if task['status'] == 'running':
-            task['status'] = 'ready'
-    for run in tables['task_runs']:
-        for field in ('claim_lock', 'claim_expires', 'worker_pid', 'worker_started_at', 'last_heartbeat_at'):
-            run[field] = None
-        if run['status'] == 'running':
-            run.update(status='released', outcome=run['outcome'] or 'reclaimed', ended_at=run['ended_at'] or int(time.time()))
 
 def copy_registered_file(source, target):
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -55,6 +26,7 @@ def copy_registered_file(source, target):
         for chunk in iter(lambda: copied.read(1024 * 1024), b''):
             digest.update(chunk)
     return {'size': target.stat().st_size, 'sha256': digest.hexdigest()}
+
 
 def _attachments(tables, root, staged, include):
     from hermes_cli.kanban_transfer_values import reanchor_tables
@@ -77,6 +49,7 @@ def _attachments(tables, root, staged, include):
     reanchor_tables(tables, mapping)
     return (proofs, [])
 
+
 def export_board(board, output_path, *, include_attachments=True, include_logs=False):
     from hermes_cli import kanban_db as kb, kanban_db_connect as kbc
     from hermes_cli.archive_safe import copy_regular_files, make_targz
@@ -86,9 +59,9 @@ def export_board(board, output_path, *, include_attachments=True, include_logs=F
     base = str(Path(output_path).expanduser()).removesuffix('.tar.gz').removesuffix('.tgz')
     Path(base).parent.mkdir(parents=True, exist_ok=True)
     with kbc.connect_closing(board=slug) as store:
-        tables = snapshot(store)
+        tables = db.snapshot(store)
         frame = BoardFiles(store.scope.profile_home, store.board_id, store.slug)
-    scrub_runtime(tables)
+    db.scrub_runtime(tables)
     with tempfile.TemporaryDirectory() as temporary:
         staged = Path(temporary) / slug
         staged.mkdir()
@@ -97,56 +70,25 @@ def export_board(board, output_path, *, include_attachments=True, include_logs=F
         metadata.pop('db_path', None)
         metadata.update(default_workdir=None, project_id=None)
         _write_json(staged / 'board.json', metadata)
-        _write_json(staged / 'data.json', {'format_version': FORMAT_VERSION, 'tables': tables})
+        _write_json(staged / 'data.json', {'format_version': db.FORMAT_VERSION, 'tables': tables})
         logs = copy_regular_files(_path(frame, None, 'logs'), staged / 'logs') if include_logs else 0
-        manifest = dict(format=ARCHIVE_FORMAT, format_version=FORMAT_VERSION, backend='postgresql', board=slug, board_name=metadata.get('name') or slug, exported_at=int(time.time()), hermes_version=get_version_info().base_version, includes={'attachments': bool(include_attachments), 'logs': bool(include_logs)}, files=proofs, counts={**{name: len(rows) for name, rows in tables.items()}, 'attachment_files': len(proofs), 'log_files': logs})
+        manifest = dict(format=ARCHIVE_FORMAT, format_version=db.FORMAT_VERSION, backend='postgresql', board=slug, board_name=metadata.get('name') or slug, exported_at=int(time.time()), hermes_version=get_version_info().base_version, includes={'attachments': bool(include_attachments), 'logs': bool(include_logs)}, files=proofs, counts={**{name: len(rows) for name, rows in tables.items()}, 'attachment_files': len(proofs), 'log_files': logs})
         _write_json(staged / 'manifest.json', manifest)
         archive = make_targz(base, temporary, slug)
     return dict(board=slug, archive=archive, size=Path(archive).stat().st_size, counts=manifest['counts'], warnings=warnings)
 
+
 def compensate_stage(stage, root, primary):
-    from hermes_db.domains.kanban.postgres.files import _remove_directory
+    from hermes_cli.kanban_storage_files import _remove_directory
     try:
         _remove_directory(stage, parent=root)
     except (OSError, StorageConfigurationError) as error:
         primary.add_note(f'Private import stage cleanup failed ({type(error).__name__}); retain the original stage for reconciliation')
 
-def insert_import_row(conn, store, table, row, *, returning=False):
-    values = {name: encode_text(value) if isinstance(table.c[name].type, LargeBinary) else value for name, value in row.items()}
-    statement = table.insert().values(**repo.owner(store), **values)
-    return conn.scalar(statement.returning(table.c.id)) if returning else conn.execute(statement)
-
-def _insert_rows(conn, store, tables, parked):
-    for row in tables['tasks']:
-        insert_import_row(conn, store, TABLES['tasks'], row)
-    run_ids = {}
-    for original in sorted(tables['task_runs'], key=lambda row: row['id']):
-        row = dict(original)
-        old = row.pop('id')
-        run_ids[old] = insert_import_row(conn, store, TABLES['task_runs'], row, returning=True)
-    for name in ('task_links', 'task_comments', 'task_attachments', 'task_events'):
-        for original in sorted(tables[name], key=lambda row: row.get('id', 0)):
-            row = {name: value for name, value in original.items() if name != 'id'}
-            if name == 'task_events' and row['run_id'] is not None:
-                if row['run_id'] not in run_ids:
-                    raise ValueError('Board archive event references an unknown run')
-                row['run_id'] = run_ids[row['run_id']]
-            insert_import_row(conn, store, TABLES[name], row)
-    for row in tables['tasks']:
-        repo.event(conn, store, row['id'], 'imported', {'board': store.slug, 'parked': row['id'] in parked})
-
-def _target_slug(conn, resource, requested):
-    stem = requested[:58].rstrip('-_') or 'board'
-    candidate, suffix = (requested, 2)
-    while True:
-        pending = conn.scalar(select(file_jobs.c.board_id).where(file_jobs.c.store_id == resource.scope.require_store_id(), file_jobs.c.slug == candidate, file_jobs.c.state == 'pending').limit(1))
-        if candidate != 'default' and boards._lookup(conn, resource, candidate) is None and (pending is None):
-            return candidate
-        candidate, suffix = (f'{stem}-{suffix}', suffix + 1)
 
 def _prepare_rows(tables, fields):
     from hermes_cli.kanban_transfer_values import reanchor_tables
-    scrub_runtime(tables)
+    db.scrub_runtime(tables)
     parked = set()
     for task in tables['tasks']:
         if task['workspace_kind'] in {'dir', 'worktree'} and task['status'] in {'ready', 'running', 'todo', 'scheduled'}:
@@ -161,6 +103,7 @@ def _prepare_rows(tables, fields):
         mapping[original] = row['stored_path']
     reanchor_tables(tables, mapping)
     return parked
+
 
 def _stage(extracted, resource, board_id):
     from hermes_cli.archive_safe import copy_regular_files
@@ -184,19 +127,6 @@ def _stage(extracted, resource, board_id):
         compensate_stage(stage, root, primary)
         raise
 
-def _commit_graph(resource, requested, board_id, stage, tables, fields, parked):
-    with resource.write() as conn:
-        files.lock_files(conn, resource)
-        boards._registry_lock(conn, resource)
-        target = _target_slug(conn, resource, requested)
-        boards._save(conn, resource, target, None, True, new_board_id=board_id)
-        board = BoardResource(resource, board_id, target)
-        try:
-            conn.execute(file_jobs.insert().values(store_id=resource.scope.require_store_id(), board_id=board_id, slug=target, action='import', state='pending', created_at=int(time.time()), stage_root=encode_text(str(stage)), **{name: encode_text(value) for name, value in fields.items()}))
-            _insert_rows(conn, board, tables, parked)
-        finally:
-            board.close()
-    return target
 
 def _import(extracted, requested, *, activate):
     from hermes_cli import kanban_db as kb
@@ -212,7 +142,7 @@ def _import(extracted, requested, *, activate):
         with files.local_files_lock(resource.scope.profile_home):
             stage = _stage(extracted, resource, board_id)
             try:
-                target = _commit_graph(resource, requested, board_id, stage, tables, fields, parked)
+                target = db._commit_graph(resource, requested, board_id, stage, tables, fields, parked)
             except UnknownCommitError as error:
                 error.add_note(f'Board import {board_id} may be committed; retain its original stage and inspect the file job')
                 raise
@@ -229,6 +159,7 @@ def _import(extracted, requested, *, activate):
     counts['task_events'] += len(tables['tasks'])
     return dict(board=target, requested_board=requested, renamed=target != requested, name=metadata.get('name') or target, path=str(kb.board_dir(target)), db_path=None, backend='postgresql', board_id=board_id, source={name: manifest.get(name) for name in ('board', 'exported_at', 'hermes_version')}, counts=counts, attachments_restored=len(tables['task_attachments']), tasks_parked=len(parked), warnings=warnings, activated=bool(activate))
 
+
 def import_board(archive_path, slug=None, *, activate=False):
     from hermes_cli.archive_safe import archive_root_dirs, safe_extract_targz
     archive = Path(archive_path).expanduser()
@@ -240,7 +171,7 @@ def import_board(archive_path, slug=None, *, activate=False):
         staging = Path(temporary)
         safe_extract_targz(archive, staging)
         return _import(staging / root, slug, activate=activate)
-logger = logging.getLogger('hermes_db.integration.transfer.kanban')
+
 
 def _publish(source, target, board_id, proofs):
     if not source.is_dir():
@@ -265,6 +196,7 @@ def _publish(source, target, board_id, proofs):
         if actual != expected:
             raise ValueError('Imported content fingerprint mismatch; preserve the stage and target for reconciliation')
 
+
 def _configuration(row, metadata):
     from utils import atomic_json_write
     home = Path(row['owner_home'])
@@ -274,7 +206,7 @@ def _configuration(row, metadata):
     marker = directory / '.import-id'
     if directory.exists():
         if marker.exists():
-            if marker.read_text(encoding='utf-8') != row['board_id']:
+            if marker.read_text(encoding='utf-8') != row['board_id']:  # windows-footgun: ok -- Private .import-id is written below with UTF-8; preserve exact generation marker comparison.
                 raise StorageConfigurationError('Imported Board configuration belongs to another generation')
         elif any(directory.iterdir()):
             raise StorageConfigurationError('Imported Board configuration directory already contains unrelated files')
@@ -287,8 +219,9 @@ def _configuration(row, metadata):
     atomic_json_write(directory / 'board.json', clean, indent=2)
     return directory
 
+
 def _cleanup_stage(row):
-    from hermes_db.domains.kanban.postgres.files import _remove_directory
+    from hermes_cli.kanban_storage_files import _remove_directory
     if not row['stage_root']:
         return False
     try:
@@ -298,17 +231,6 @@ def _cleanup_stage(row):
         logger.warning('Imported Board %s is active; private stage cleanup is pending: %s', row['slug'], error)
         return True
 
-def _activate(store, row):
-    from hermes_db.domains.kanban.postgres.catalog import _registry_lock
-    with store.write() as conn:
-        lock_files(conn, store)
-        _registry_lock(conn, store)
-        condition = (kanban_boards.c.store_id == store.scope.require_store_id()) & (kanban_boards.c.board_id == row['board_id'])
-        current = conn.execute(select(kanban_boards).where(condition).with_for_update()).mappings().one_or_none()
-        if current is None:
-            raise StorageConfigurationError('Imported Board generation no longer exists')
-        conn.execute(update(kanban_boards).where(condition).values(archived=0))
-        conn.execute(update(file_jobs).where(job_key(store, row['board_id'])).values(state='done'))
 
 def finish_import(store, row):
     directory = Path(row['owner_home']) / 'kanban' / 'boards' / row['slug']
@@ -317,26 +239,26 @@ def finish_import(store, row):
         expected_parent = Path(row['owner_home']) / 'kanban' / 'imports'
         if not stage.is_relative_to(expected_parent) or stage.resolve() != stage or stage == expected_parent:
             raise StorageConfigurationError('Private Board import stage escaped its owning directory')
-        from hermes_db.domains.kanban.postgres.maintenance import owns_import_stage
+        from hermes_cli.kanban_storage_maintenance import owns_import_stage
         if not owns_import_stage(store, stage):
             raise StorageConfigurationError('Private import stage belongs to another database dataset')
         manifest, _tables, metadata = read_archive(stage, private_stage=True)
         for name in ('attachments', 'logs'):
             _publish(stage / name, row[name + '_root'], row['board_id'], manifest['files'])
         directory = _configuration(row, metadata)
-        _activate(store, row)
+        db._activate(store, row)
     pending = _cleanup_stage(row)
     if not pending and row['stage_root'] is not None:
-        with store.write() as conn:
-            lock_files(conn, store)
-            conn.execute(update(file_jobs).where(job_key(store, row['board_id']), file_jobs.c.action == 'import', file_jobs.c.state == 'done').values(stage_root=None))
+        db.clear_import_stage(store, row)
     return {'new_path': str(directory), 'files_pending': False, 'stage_cleanup_pending': pending}
+
 
 def _json(path):
     try:
         return json.loads(path.read_text(encoding='utf-8-sig'))
     except (OSError, ValueError) as error:
         raise ValueError(f'Cannot read Board archive {path.name}') from error
+
 
 def member_path(root, member):
     if not isinstance(member, str) or '\\' in member or ':' in member or any(part in {'', '.', '..'} for part in member.split('/')) or PurePosixPath(member).is_absolute():
@@ -346,6 +268,7 @@ def member_path(root, member):
         raise ValueError('Board archive member escapes its root')
     return path
 
+
 def fingerprint(path):
     digest, size = (hashlib.sha256(), 0)
     with path.open('rb') as source:
@@ -354,63 +277,16 @@ def fingerprint(path):
             size += len(chunk)
     return {'size': size, 'sha256': digest.hexdigest()}
 
-def _rows(tables):
-    from sqlalchemy import BigInteger
-    if not isinstance(tables, dict) or set(tables) != set(TABLES):
-        raise ValueError('Board archive must contain all supported data tables')
-    for name, table in TABLES.items():
-        columns = {column.name: column for column in table.columns if column.name not in {'store_id', 'board_id', 'path_key'}}
-        if not isinstance(tables[name], list):
-            raise ValueError('Board archive table must contain rows')
-        for row in tables[name]:
-            if not isinstance(row, dict) or set(row) != set(columns):
-                raise ValueError(f'Board archive {name} has unsupported columns')
-            for key, column in columns.items():
-                value = row[key]
-                valid = value is None and column.nullable
-                valid = valid or (type(value) is int if isinstance(column.type, BigInteger) else isinstance(value, str))
-                if not valid:
-                    raise ValueError(f'Board archive {name}.{key} has an invalid value')
-        identities = [(row['parent_id'], row['child_id']) if name == 'task_links' else row['id'] for row in tables[name]]
-        if len(set(identities)) != len(identities):
-            raise ValueError(f'Board archive {name} contains duplicate identities')
 
 def _validate_proof(member, proof):
     if not member.startswith('attachments/') or not isinstance(proof, dict) or set(proof) != {'size', 'sha256'} or (type(proof['size']) is not int) or (proof['size'] < 0) or (not isinstance(proof['sha256'], str)) or (re.fullmatch('[0-9a-f]{64}', proof['sha256']) is None):
         raise ValueError('Invalid Board archive attachment fingerprint')
 
-def _graph(tables):
-    from collections import deque
-    from hermes_cli.kanban_workflow import DEFAULT_STATUSES as VALID_STATUSES
-    from hermes_db.domains.kanban.rules import VALID_WORKSPACE_KINDS
-    tasks = {row['id']: row for row in tables['tasks']}
-    incoming = dict.fromkeys(tasks, 0)
-    children = {key: [] for key in tasks}
-    for row in tasks.values():
-        if row['status'] not in VALID_STATUSES or row['workspace_kind'] not in VALID_WORKSPACE_KINDS:
-            raise ValueError('Board archive contains an unsupported task status or workspace kind')
-    for edge in tables['task_links']:
-        parent, child = (edge['parent_id'], edge['child_id'])
-        if parent not in tasks or child not in tasks:
-            raise ValueError('Board archive dependency references an unknown task')
-        incoming[child] += 1
-        children[parent].append(child)
-    ready = deque((key for key, count in incoming.items() if count == 0))
-    visited = 0
-    while ready:
-        parent = ready.popleft()
-        visited += 1
-        for child in children[parent]:
-            incoming[child] -= 1
-            if incoming[child] == 0:
-                ready.append(child)
-    if visited != len(tasks):
-        raise ValueError('Board archive dependency graph contains a cycle')
 
 def read_archive(root, *, private_stage=False):
     from hermes_cli.kanban_transfer import ARCHIVE_FORMAT
     manifest = _json(root / 'manifest.json')
-    if not isinstance(manifest, dict) or manifest.get('format') != ARCHIVE_FORMAT or type(manifest.get('format_version')) is not int or (manifest['format_version'] != FORMAT_VERSION) or (manifest.get('backend') != 'postgresql'):
+    if not isinstance(manifest, dict) or manifest.get('format') != ARCHIVE_FORMAT or type(manifest.get('format_version')) is not int or (manifest['format_version'] != db.FORMAT_VERSION) or (manifest.get('backend') != 'postgresql'):
         raise ValueError('PostgreSQL imports require a PG v2 Board archive; cross-backend migration is unsupported')
     allowed = {'manifest.json', 'board.json', 'data.json', 'attachments', 'logs'}
     if private_stage:
@@ -418,11 +294,11 @@ def read_archive(root, *, private_stage=False):
     if any(path.name not in allowed for path in root.iterdir()):
         raise ValueError('Unexpected member in PG Board archive')
     data = _json(root / 'data.json')
-    if not isinstance(data, dict) or set(data) != {'format_version', 'tables'} or type(data['format_version']) is not int or (data['format_version'] != FORMAT_VERSION):
+    if not isinstance(data, dict) or set(data) != {'format_version', 'tables'} or type(data['format_version']) is not int or (data['format_version'] != db.FORMAT_VERSION):
         raise ValueError('Unsupported Board archive data format')
     tables = data['tables']
-    _rows(tables)
-    _graph(tables)
+    db._rows(tables)
+    db._graph(tables)
     proofs = manifest.get('files')
     members = {row['stored_path'] for row in tables['task_attachments']}
     if not isinstance(proofs, dict) or set(proofs) != members:

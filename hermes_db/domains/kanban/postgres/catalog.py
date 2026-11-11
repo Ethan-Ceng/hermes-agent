@@ -7,8 +7,7 @@ from sqlalchemy.dialects.postgresql import insert
 from hermes_db.tables.kanban import kanban_boards as boards, kanban_board_names as names, kanban_board_locks as locks, tasks, comments, events, links, runs
 import json
 import time
-from pathlib import Path
-from hermes_db.domains.kanban.postgres import repository as repo, workspaces, runs as run_repo
+from hermes_db.domains.kanban.postgres import repository as repo, runs as run_repo
 from hermes_db.core.values import encode_text, decode_text
 
 def _scope(table, store):
@@ -21,12 +20,6 @@ def _registry_lock(conn, store):
 def _lookup(conn, store, slug):
     return conn.execute(select(boards).join(names, and_(boards.c.store_id == names.c.store_id, boards.c.board_id == names.c.board_id)).where(_scope(boards, store), names.c.slug == slug)).mappings().one_or_none()
 
-def _metadata(row, slug, files):
-    meta = files.read_metadata_file(slug)
-    meta['db_path'] = None
-    if row is not None:
-        meta['archived'] = bool(row['archived'])
-    return meta
 
 def _save(conn, store, slug, row, archived, *, new_board_id=None):
     if row is None:
@@ -38,32 +31,7 @@ def _save(conn, store, slug, row, archived, *, new_board_id=None):
         conn.execute(update(boards).where(_scope(boards, store), boards.c.board_id == board_id).values(archived=int(archived)))
     return board_id
 
-def resolve_board(store, slug):
-    with store.read() as conn:
-        row = _lookup(conn, store, slug)
-    if row is None and slug == 'default':
-        create_board(store, slug)
-        with store.read() as conn:
-            row = _lookup(conn, store, slug)
-    if row is None:
-        raise ValueError(f'kanban board {slug!r} does not exist; create it with `hermes kanban boards create {slug}`')
-    if row['archived']:
-        from hermes_db.tables.kanban_file_jobs import file_jobs
-        from hermes_db.errors import StorageBusyError
-        with store.read() as conn:
-            importing = conn.scalar(select(file_jobs.c.board_id).where(file_jobs.c.store_id == store.scope.require_store_id(), file_jobs.c.board_id == row['board_id'], file_jobs.c.action == 'import', file_jobs.c.state != 'done'))
-        if importing is not None:
-            raise StorageBusyError('Board import files are pending; resume the original file job before opening the Board')
-    if row['archived']:
-        raise ValueError(f'kanban board {slug!r} is archived; refusing to recreate its database')
-    return row['board_id']
 
-def read_board_metadata(store, board=None):
-
-    slug = _storage_shared_1._slug_or_default(board)
-    with store.read() as conn:
-        row = _lookup(conn, store, slug)
-    return _metadata(row, slug, store.files)
 
 def board_exists(store, board=None):
 
@@ -71,131 +39,11 @@ def board_exists(store, board=None):
     with store.read() as conn:
         return slug == _storage_shared_1.DEFAULT_BOARD or _lookup(conn, store, slug) is not None
 
-def write_board_metadata(store, board, *, name=None, description=None, icon=None, color=None, archived=None, default_workdir=None, project_id=None):
 
-    store.mutation_guard()
-    slug = _storage_shared_1._slug_or_default(board)
-    values = dict(name=name, description=description, icon=icon, color=color, archived=archived, default_workdir=default_workdir, project_id=project_id)
-    with store.write() as conn:
-        from hermes_db.domains.kanban.postgres.files import lock_files, local_files_lock, require_settled_slug
-        lock_files(conn, store)
-        _registry_lock(conn, store)
-        require_settled_slug(conn, store, slug)
-        row = _lookup(conn, store, slug)
-        if row is not None and row['archived'] and (archived is False):
-            raise ValueError('Recreate an archived Board with create_board; its old generation is immutable')
-        if row is not None:
-            conn.execute(select(boards).where(_scope(boards, store), boards.c.board_id == row['board_id']).with_for_update()).one()
-        state = bool(row['archived']) if row is not None and archived is None else bool(archived)
-        _save(conn, store, slug, row, state)
-    with local_files_lock(store.scope.profile_home):
-        store.files.write_metadata_file(slug, **values)
-        return read_board_metadata(store, slug)
 
-def create_board(store, slug, *, name=None, description=None, icon=None, color=None, default_workdir=None, project_id=None):
 
-    store.mutation_guard()
-    slug = _storage_shared_1._require_slug(slug)
-    with store.write() as conn:
-        from hermes_db.domains.kanban.postgres.files import lock_files, local_files_lock, require_settled_slug
-        lock_files(conn, store)
-        _registry_lock(conn, store)
-        require_settled_slug(conn, store, slug)
-        row = _lookup(conn, store, slug)
-        if row is not None and row['archived']:
-            row = None
-        board_id = _save(conn, store, slug, row, False)
-    with local_files_lock(store.scope.profile_home):
-        with store.read() as conn:
-            current = _lookup(conn, store, slug)
-        if current is None or current['archived'] or current['board_id'] != board_id:
-            raise ValueError('Board generation was retired before its file configuration could be written')
-        store.files.write_metadata_file(slug, name=name, description=description, icon=icon, color=color, default_workdir=default_workdir, project_id=project_id, archived=False)
-        return read_board_metadata(store, slug)
 
-def list_boards(store, *, include_archived=True):
-    with store.read() as conn:
-        slugs = list(conn.scalars(select(names.c.slug).where(_scope(names, store)).order_by(names.c.slug)))
-        rows = [('default', _lookup(conn, store, 'default'))]
-        for slug in slugs:
-            if slug == 'default':
-                continue
-            row = _lookup(conn, store, slug)
-            if include_archived or not row['archived']:
-                rows.append((slug, row))
-    return [_metadata(row, slug, store.files) for slug, row in rows]
 
-def remove_board(store, slug, *, archive=True):
-
-    from hermes_db.domains.kanban.postgres import files
-    store.mutation_guard()
-    slug = _storage_shared_1._require_slug(slug)
-    if slug == 'default':
-        raise ValueError("the 'default' board cannot be removed")
-    with store.read() as conn:
-        captured = _lookup(conn, store, slug)
-    if captured is None:
-        pending = files.pending_delete(store, slug) if not archive else None
-        if pending is not None:
-            return {'slug': slug, 'action': 'deleted', **files.run_job(store, pending)}
-        raise ValueError(f'board {slug!r} does not exist')
-    files.settle_import_stage(store, captured['board_id'])
-    prepared = files.prepare(store, captured)
-    with store.write() as conn:
-        files.lock_files(conn, store)
-        _registry_lock(conn, store)
-        row = _lookup(conn, store, slug)
-        if row is None or row['board_id'] != captured['board_id']:
-            raise ValueError('Board generation changed before retirement')
-        condition = and_(_scope(boards, store), boards.c.board_id == row['board_id'])
-        conn.execute(select(boards).where(condition).with_for_update()).one()
-        files.record(conn, store, row, prepared, archive=archive)
-        conn.execute(update(boards).where(condition).values(archived=1) if archive else delete(boards).where(condition))
-    if store.policy.get_current_board() == slug:
-        store.policy.clear_current_board()
-    result = files.run_job(store, row['board_id'])
-    return {'slug': slug, 'action': 'archived' if archive else 'deleted', **result}
-
-def _workspace(store, fields):
-
-    kind = fields.get('workspace_kind')
-    project_id = fields.get('project_id')
-    meta = store.files.read_board_metadata(store.slug)
-    if project_id is None and kind != 'scratch':
-        project_id = (meta.get('project_id') or '').strip() or None
-    if kind is None:
-        kind = 'scratch'
-    if kind not in _storage_shared_1.VALID_WORKSPACE_KINDS:
-        raise ValueError(f'workspace_kind must be one of {sorted(_storage_shared_1.VALID_WORKSPACE_KINDS)}, got {kind!r}')
-    branch = str(fields['branch_name']).strip() or None if fields.get('branch_name') is not None else None
-    if branch and kind != 'worktree':
-        raise ValueError('branch_name is only valid for worktree workspaces')
-    project_id, project, project_repo, kind = store.policy.resolve_project_link(store, project_id, fields.get('project_source_task_id'), kind, fields.get('workspace_path'))
-    path = fields.get('workspace_path')
-    if path is None and project_repo is None and (kind in {'dir', 'worktree'}):
-        path = meta.get('default_workdir') or None
-    return (dict(project_id=project_id, workspace_kind=kind, workspace_path=path, branch_name=branch), project, project_repo)
-
-def prepare(store, fields):
-
-    from hermes_db.domains.kanban.rules import validate_contract
-    title = fields['title']
-    if not title or not title.strip():
-        raise ValueError('title is required')
-    if fields.get('board') is not None and _storage_shared_1._require_slug(fields['board']) != store.slug:
-        raise ValueError('task Board must match its acquired Board resource')
-    initial = fields.get('initial_status', 'running')
-    if initial not in _storage_shared_1.VALID_INITIAL_STATUSES:
-        raise ValueError(f'initial_status must be one of {sorted(_storage_shared_1.VALID_INITIAL_STATUSES)}')
-    model, provider = _storage_shared_1._validate_model_override(fields.get('model_override'), fields.get('provider_override'))
-    skills = store.policy.normalize_task_skills(fields.get('skills'))
-    values = {name: fields.get(name) for name in ('body', 'created_by', 'tenant', 'session_id', 'idempotency_key')}
-    values.update(title=title.strip(), assignee=_storage_shared_1._canonical_assignee(fields.get('assignee')), priority=fields.get('priority', 0), model_override=model, provider_override=provider, reasoning_effort=_storage_shared_1.normalize_reasoning_effort(fields.get('reasoning_effort')), skills=json.dumps(skills) if skills is not None else None, goal_mode=int(bool(fields.get('goal_mode'))), completion_contract=validate_contract(fields.get('completion_contract')))
-    values.update({name: _storage_shared_1._opt_int(fields.get(name)) for name in ('max_runtime_seconds', 'max_retries', 'goal_max_turns')})
-    workspace, project, project_repo = _workspace(store, fields)
-    values.update(workspace)
-    path_keys = (workspaces.canonical_path(workspace['workspace_path']), workspaces.canonical_path(Path(project_repo) / '.worktrees') if project_repo is not None else None)
-    return (values, project, project_repo, path_keys)
 
 def _initial_state(conn, store, parents, fields, values):
     rows = {pid: repo.get(conn, store, pid) for pid in parents}
@@ -210,57 +58,8 @@ def _initial_state(conn, store, parents, fields, values):
         return ('triage', rows)
     return ('todo' if any(row['status'] != 'done' for row in rows.values()) else 'ready', rows)
 
-def _insert(conn, store, values, project, project_repo, path_keys):
 
-    for _attempt in range(2):
-        task_id = _storage_shared_1._new_task_id()
-        candidate = dict(values, id=task_id)
-        path_key = path_keys[0]
-        if project is not None and values['workspace_kind'] == 'worktree':
-            if project_repo is not None:
-                candidate['workspace_path'] = str(Path(project_repo) / '.worktrees' / task_id)
-                path_key = str(Path(path_keys[1]) / task_id)
-            candidate['branch_name'] = candidate['branch_name'] or store.policy.project_branch_name(project, task_id, values['title'])
-        inserted = conn.scalar(insert(tasks).values(**repo.owner(store), **repo.encode_task(candidate)).on_conflict_do_nothing(index_elements=[tasks.c.store_id, tasks.c.board_id, tasks.c.id]).returning(tasks.c.id))
-        if inserted is not None:
-            workspaces.register(conn, store, task_id, path_key)
-            return (task_id, candidate)
-    raise ValueError('could not allocate a unique Kanban task ID')
 
-def insert_prepared(conn, store, fields, values, project, project_repo, path_keys):
-    parents = tuple(pid for pid in fields.get('parents', ()) if pid)
-    values = dict(values, created_at=int(time.time()))
-    values['status'], parent_rows = _initial_state(conn, store, parents, fields, values)
-    creator = fields.get('creator_task_id')
-    if creator and values['session_id'] is None:
-        origin = repo.get(conn, store, creator)
-        values['session_id'] = origin['session_id'] if origin else None
-    task_id, values = _insert(conn, store, values, project, project_repo, path_keys)
-    for pid in parents:
-        repo.link(conn, store, pid, task_id)
-    payload = {name: values.get(name) for name in ('assignee', 'status', 'tenant', 'workspace_kind', 'workspace_path', 'branch_name', 'project_id', 'model_override', 'provider_override')}
-    payload.update(parents=list(parents), creator_task_id=creator, skills=json.loads(values['skills']) if values['skills'] else None, goal_mode=bool(values['goal_mode']) or None)
-    repo.event(conn, store, task_id, 'created', payload)
-    if values['status'] == 'blocked':
-        repo.event(conn, store, task_id, 'blocked', {'reason': 'initial_status', 'status': 'blocked', 'actor': values['created_by'] or 'user'})
-    gating = [pid for pid, row in parent_rows.items() if row['status'] not in {'done', 'archived'}]
-    if values['status'] == 'todo' and gating:
-        repo.event(conn, store, task_id, 'dependency_wait', {'reason': 'parent_not_done', 'parent': gating[0]})
-    from hermes_db.domains.kanban.postgres.notify import inherit
-    inherit(conn, store, task_id, [creator] if creator else (), created_at=values['created_at'])
-    inherit(conn, store, task_id, parents, created_at=values['created_at'])
-    return task_id
-
-def create_task(store, **fields):
-    values, project, project_repo, path_keys = prepare(store, fields)
-    fields['parents'] = tuple(fields.get('parents', ()))
-    with store.write() as conn:
-        idempotency = fields.get('idempotency_key')
-        if idempotency:
-            existing = conn.scalar(select(tasks.c.id).where(repo.scope(tasks, store), tasks.c.idempotency_key == encode_text(idempotency), tasks.c.status != b'archived').order_by(tasks.c.created_at.desc(), tasks.c.id.desc()).limit(1))
-            if existing is not None:
-                return store.command_result(conn, decode_text(existing))
-        return store.command_result(conn, insert_prepared(conn, store, fields, values, project, project_repo, path_keys))
 
 def get_task(store, task_id):
 
@@ -292,72 +91,11 @@ def list_tasks(store, *, assignee=None, status=None, tenant=None, session_id=Non
     with store.read() as conn:
         return [store.result_values.task(repo.decode_task(row)) for row in conn.execute(query.order_by(*_sort(order_by))).mappings()]
 
-def notify_task_updated(store, task_id, changed_fields, *, board=None):
 
-    if store.observers.kanban_observer_consumed('on_kanban_task_updated'):
-        task = get_task(store, task_id)
-        store.observers.fire_kanban_lifecycle_hook('on_kanban_task_updated', task_id, board=board or store.slug, assignee=task.assignee if task else None, run_id=task.current_run_id if task else None, changed_fields=list(changed_fields))
 
-def assign_task(store, task_id, profile):
 
-    profile = _storage_shared_1._canonical_assignee(profile)
-    with store.write() as conn:
-        row = repo.get(conn, store, task_id)
-        if row is None:
-            return False
-        if row['claim_lock'] is not None and row['status'] == 'running':
-            from hermes_cli.kanban_errors import TaskAlreadyClaimedError
-            raise TaskAlreadyClaimedError(f'cannot reassign {task_id}: currently running (claimed). Wait for completion or reclaim the stale lock first.')
-        values = {'assignee': profile}
-        if row['assignee'] != profile:
-            values.update(consecutive_failures=0, last_failure_error=None)
-        repo.task_update(conn, store, task_id, **values)
-        repo.event(conn, store, task_id, 'assigned', {'assignee': profile, 'from': row['assignee']})
-    store.notify_task_updated(task_id, ('assignee',))
-    return True
 
-def _override(store, task_id, values, kind, payload, archived_msg):
 
-    with store.write() as conn:
-        row = repo.get(conn, store, task_id)
-        if row is None:
-            return False
-        if row['status'] == 'archived':
-            raise RuntimeError(f'{archived_msg} on archived task {task_id}')
-        repo.task_update(conn, store, task_id, **values)
-        repo.event(conn, store, task_id, kind, payload)
-    store.notify_task_updated(task_id, tuple(values))
-    return True
-
-def set_model_override(store, task_id, model, provider=None):
-    from hermes_db.domains.kanban.rules import _validate_model_override
-    model, provider = _validate_model_override(model, provider)
-    return _override(store, task_id, {'model_override': model, 'provider_override': provider}, 'model_override_set', {'model': model, 'provider': provider}, 'cannot set model override')
-
-def set_reasoning_effort(store, task_id, effort):
-    from hermes_db.domains.kanban.rules import normalize_reasoning_effort
-    effort = normalize_reasoning_effort(effort)
-    return _override(store, task_id, {'reasoning_effort': effort}, 'reasoning_effort_set', {'reasoning_effort': effort}, 'cannot set reasoning effort')
-
-def edit_task(store, task_id, *, title=None, body=None, priority=None, result=None, summary=None, metadata=None, board=None):
-
-    if result is not None:
-        from hermes_db.domains.kanban.postgres.completion import edit_result
-        return edit_result(store, task_id, title=title, body=body, priority=priority, result=result, summary=summary, metadata=metadata, board=board)
-    values = {name: value for name, value in (('title', title), ('body', body), ('priority', priority)) if value is not None}
-    if not values:
-        return False
-    with store.write() as conn:
-        if repo.get(conn, store, task_id) is None:
-            return False
-        repo.task_update(conn, store, task_id, **values)
-        if priority is not None:
-            repo.event(conn, store, task_id, 'reprioritized', {'priority': priority})
-        changed = [name for name in values if name != 'priority']
-        if changed:
-            repo.event(conn, store, task_id, 'edited', {'fields': changed})
-    store.notify_task_updated(task_id, list(values), board=board)
-    return True
 
 def add_comment(store, task_id, author, body):
     if not body or not body.strip():
@@ -418,11 +156,6 @@ def board_stats(store):
     now = int(time.time())
     return dict(by_status=by_status, by_assignee=by_assignee, oldest_ready_age_seconds=now - oldest if oldest is not None else None, now=now)
 
-def known_assignees(store):
-
-    on_disk = set(store.policy.list_profiles_on_disk())
-    counts = board_stats(store)['by_assignee']
-    return [{'name': name, 'on_disk': name in on_disk, 'counts': counts.get(name, {})} for name in sorted(on_disk | set(counts))]
 
 def gc_events(store, *, older_than_seconds=30 * 24 * 3600):
     from hermes_db.domains.kanban.rules import _retention_seconds
@@ -496,19 +229,6 @@ def _transition(conn, store, task_id, new_status):
         result['terminations'].extend(retracted['terminations'])
     return (effective, result)
 
-def _set_status_direct(store, task_id, new_status):
-
-    if new_status not in _storage_shared_1_.DEFAULT_STATUSES:
-        raise ValueError('unknown task status')
-    with store.write() as conn:
-        changed = _transition(conn, store, task_id, new_status)
-    if changed is None:
-        return False
-    effective, result = changed
-    terminate(store, result)
-    if effective in {'done', 'ready', 'review'}:
-        store.recompute_ready()
-    return True
 
 def diagnostic_snapshot(store, task_id=None, *, task_ids=None):
     condition = repo.key(store, task_id) if task_id is not None else repo.scope(tasks, store) & (tasks.c.status != b'archived')
@@ -539,23 +259,6 @@ def _append_event(store, task_id, kind, payload=None, *, run_id=None):
     with store.write() as conn:
         repo.event(conn, store, task_id, kind, payload, run_id)
 
-def archive_task(store, task_id, *, signal_fn=None):
-
-    with store.write() as conn:
-        row = repo.get(conn, store, task_id)
-        if row is None or row['status'] == 'archived':
-            return False
-        repo.task_update(conn, store, task_id, status='archived', claim_lock=None, claim_expires=None, worker_pid=None, worker_started_at=None)
-        run_id = run_repo.close_run(conn, store, row, outcome='reclaimed', status='reclaimed', summary='task archived with run still active')
-        repo.event(conn, store, task_id, 'archived', None, run_id)
-        store.command_result(conn, True)
-    if row['status'] == 'running':
-        termination = store.processes.terminate_reclaimed_worker(row['worker_pid'], row['claim_lock'], signal_fn=signal_fn, started_at=row['worker_started_at'])
-        with store.write() as conn:
-            repo.event(conn, store, task_id, 'archive_worker_termination', termination, run_id)
-    store.recompute_ready()
-    store._cleanup_workspace(task_id)
-    return True
 
 def parent_ids(store, task_id):
     with store.read() as conn:
@@ -690,37 +393,6 @@ def _decomposed_child(conn, store, root, child, author, now, path_key):
     inherit(conn, store, task_id, (root['id'],), created_at=now)
     return task_id
 
-def decompose_triage_task(store, task_id, *, root_assignee, children, author=None, auto_promote=True):
-    from hermes_db.domains.kanban.rules import _canonical_assignee
-    from hermes_db.domains.kanban.rules import _validate_children_graph
-    if not children:
-        return None
-    root_assignee = _canonical_assignee(root_assignee)
-    _validate_children_graph(children)
-    from hermes_db.domains.kanban.postgres.workspaces import canonical_path
-    path_keys = [canonical_path(child.get('workspace_path')) for child in children]
-    with store.write() as conn:
-        root = repo.get(conn, store, task_id)
-        if root is None or root['status'] != 'triage' or any(row['kind'] == 'decomposed' for row in repo.history(conn, store, task_id)):
-            return None
-        now = int(time.time())
-        ids = [_decomposed_child(conn, store, root, child, author, now, path_keys[index]) for index, child in enumerate(children)]
-        for idx, child in enumerate(children):
-            for parent_idx in child.get('parents') or []:
-                repo.link(conn, store, ids[parent_idx], ids[idx])
-                repo.event(conn, store, ids[idx], 'linked', {'parent': ids[parent_idx], 'child': ids[idx]})
-        for child_id in ids:
-            repo.link(conn, store, child_id, task_id)
-        values = {'status': 'todo'}
-        if root_assignee is not None:
-            values['assignee'] = root_assignee
-        repo.task_update(conn, store, task_id, **values)
-        if author and author.strip():
-            repo.comment(conn, store, task_id, author.strip(), 'Decomposed into ' + ', '.join(ids) + '. Root will wake when all children complete.', now)
-        repo.event(conn, store, task_id, 'decomposed', {'child_ids': ids, 'root_assignee': root_assignee})
-    if auto_promote:
-        recompute_ready(store)
-    return ids
 
 def _descendants(conn, store, task_id):
     seen, pending = (set(), list(repo.linked_ids(conn, store, task_id, parents=False)))
@@ -754,13 +426,173 @@ def invalidate(conn, store, task_id, *, author):
         invalidated.append(entry)
     return {'invalidated': invalidated, 'terminations': terminations}
 
-def terminate(store, result):
 
-    for pid, lock, birth in result['terminations']:
-        store.processes.terminate_reclaimed_worker(pid, lock, started_at=birth)
+def lookup_board(store, slug):
+    with store.read() as conn:
+        return _lookup(conn, store, slug)
 
-def invalidate_descendants_for_parent_reopen(store, task_id, *, author):
+
+def pending_board_import(store, board_id):
+    from hermes_db.tables.kanban_file_jobs import file_jobs
+    with store.read() as conn:
+        return conn.scalar(select(file_jobs.c.board_id).where(file_jobs.c.store_id == store.scope.require_store_id(), file_jobs.c.board_id == board_id, file_jobs.c.action == 'import', file_jobs.c.state != 'done'))
+
+
+
+def update_board_metadata_row(store, slug, archived):
+    with store.write() as conn:
+        from hermes_db.domains.kanban.postgres.files import lock_files, require_settled_slug
+        lock_files(conn, store)
+        _registry_lock(conn, store)
+        require_settled_slug(conn, store, slug)
+        row = _lookup(conn, store, slug)
+        if row is not None and row['archived'] and (archived is False):
+            raise ValueError('Recreate an archived Board with create_board; its old generation is immutable')
+        if row is not None:
+            conn.execute(select(boards).where(_scope(boards, store), boards.c.board_id == row['board_id']).with_for_update()).one()
+        state = bool(row['archived']) if row is not None and archived is None else bool(archived)
+        _save(conn, store, slug, row, state)
+
+
+def create_board_row(store, slug):
+    with store.write() as conn:
+        from hermes_db.domains.kanban.postgres.files import lock_files, require_settled_slug
+        lock_files(conn, store)
+        _registry_lock(conn, store)
+        require_settled_slug(conn, store, slug)
+        row = _lookup(conn, store, slug)
+        if row is not None and row['archived']:
+            row = None
+        board_id = _save(conn, store, slug, row, False)
+    return board_id
+
+
+def board_metadata_rows(store, include_archived):
+    with store.read() as conn:
+        slugs = list(conn.scalars(select(names.c.slug).where(_scope(names, store)).order_by(names.c.slug)))
+        rows = [('default', _lookup(conn, store, 'default'))]
+        for slug in slugs:
+            if slug == 'default':
+                continue
+            row = _lookup(conn, store, slug)
+            if include_archived or not row['archived']:
+                rows.append((slug, row))
+    return rows
+
+
+def retire_board_row(store, slug, captured, prepared, archive):
+    from hermes_db.domains.kanban.postgres import files
+    with store.write() as conn:
+        files.lock_files(conn, store)
+        _registry_lock(conn, store)
+        row = _lookup(conn, store, slug)
+        if row is None or row['board_id'] != captured['board_id']:
+            raise ValueError('Board generation changed before retirement')
+        condition = and_(_scope(boards, store), boards.c.board_id == row['board_id'])
+        conn.execute(select(boards).where(condition).with_for_update()).one()
+        files.record(conn, store, row, prepared, archive=archive)
+        conn.execute(update(boards).where(condition).values(archived=1) if archive else delete(boards).where(condition))
+    return row
+
+
+def assign_task_row(store, task_id, profile):
+    with store.write() as conn:
+        row = repo.get(conn, store, task_id)
+        if row is None:
+            return False
+        if row['claim_lock'] is not None and row['status'] == 'running':
+            from hermes_cli.kanban_errors import TaskAlreadyClaimedError
+            raise TaskAlreadyClaimedError(f'cannot reassign {task_id}: currently running (claimed). Wait for completion or reclaim the stale lock first.')
+        values = {'assignee': profile}
+        if row['assignee'] != profile:
+            values.update(consecutive_failures=0, last_failure_error=None)
+        repo.task_update(conn, store, task_id, **values)
+        repo.event(conn, store, task_id, 'assigned', {'assignee': profile, 'from': row['assignee']})
+    return True
+
+
+def override_task_row(store, task_id, values, kind, payload, archived_msg):
+    with store.write() as conn:
+        row = repo.get(conn, store, task_id)
+        if row is None:
+            return False
+        if row['status'] == 'archived':
+            raise RuntimeError(f'{archived_msg} on archived task {task_id}')
+        repo.task_update(conn, store, task_id, **values)
+        repo.event(conn, store, task_id, kind, payload)
+    return True
+
+
+def edit_task_row(store, task_id, values, priority):
+    with store.write() as conn:
+        if repo.get(conn, store, task_id) is None:
+            return False
+        repo.task_update(conn, store, task_id, **values)
+        if priority is not None:
+            repo.event(conn, store, task_id, 'reprioritized', {'priority': priority})
+        changed = [name for name in values if name != 'priority']
+        if changed:
+            repo.event(conn, store, task_id, 'edited', {'fields': changed})
+    return True
+
+
+def transition_task(store, task_id, new_status):
+    with store.write() as conn:
+        changed = _transition(conn, store, task_id, new_status)
+    return changed
+
+
+def archive_task_row(store, task_id):
+    with store.write() as conn:
+        row = repo.get(conn, store, task_id)
+        if row is None or row['status'] == 'archived':
+            return None
+        repo.task_update(conn, store, task_id, status='archived', claim_lock=None, claim_expires=None, worker_pid=None, worker_started_at=None)
+        run_id = run_repo.close_run(conn, store, row, outcome='reclaimed', status='reclaimed', summary='task archived with run still active')
+        repo.event(conn, store, task_id, 'archived', None, run_id)
+        store.command_result(conn, True)
+    return (row, run_id)
+
+
+def decompose_task_rows(store, task_id, root_assignee, children, author, path_keys):
+    with store.write() as conn:
+        root = repo.get(conn, store, task_id)
+        if root is None or root['status'] != 'triage' or any(row['kind'] == 'decomposed' for row in repo.history(conn, store, task_id)):
+            return None
+        now = int(time.time())
+        ids = [_decomposed_child(conn, store, root, child, author, now, path_keys[index]) for index, child in enumerate(children)]
+        for idx, child in enumerate(children):
+            for parent_idx in child.get('parents') or []:
+                repo.link(conn, store, ids[parent_idx], ids[idx])
+                repo.event(conn, store, ids[idx], 'linked', {'parent': ids[parent_idx], 'child': ids[idx]})
+        for child_id in ids:
+            repo.link(conn, store, child_id, task_id)
+        values = {'status': 'todo'}
+        if root_assignee is not None:
+            values['assignee'] = root_assignee
+        repo.task_update(conn, store, task_id, **values)
+        if author and author.strip():
+            repo.comment(conn, store, task_id, author.strip(), 'Decomposed into ' + ', '.join(ids) + '. Root will wake when all children complete.', now)
+        repo.event(conn, store, task_id, 'decomposed', {'child_ids': ids, 'root_assignee': root_assignee})
+    return ids
+
+
+def invalidate_descendant_rows(store, task_id, author):
     with store.write() as conn:
         result = invalidate(conn, store, task_id, author=author)
-    terminate(store, result)
     return result
+
+
+def insert_task_candidate(conn, store, candidate):
+    inserted = conn.scalar(insert(tasks).values(**repo.owner(store), **repo.encode_task(candidate)).on_conflict_do_nothing(index_elements=[tasks.c.store_id, tasks.c.board_id, tasks.c.id]).returning(tasks.c.id))
+    return inserted
+
+
+def existing_live_task(conn, store, idempotency):
+    existing = conn.scalar(select(tasks.c.id).where(repo.scope(tasks, store), tasks.c.idempotency_key == encode_text(idempotency), tasks.c.status != b'archived').order_by(tasks.c.created_at.desc(), tasks.c.id.desc()).limit(1))
+    return existing
+
+
+def record_archive_termination(store, task_id, termination, run_id):
+    with store.write() as conn:
+        repo.event(conn, store, task_id, 'archive_worker_termination', termination, run_id)
