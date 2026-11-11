@@ -179,7 +179,7 @@
     {
       "id": 18,
       "title": "执行双主机完整Native与消费者验收",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         17
       ]
@@ -1924,5 +1924,15 @@
     "all_probe_exit_codes": 0,
     "tracked_files_each": 23998,
     "source_driver_mismatches": 0
+  },
+  "task18_acceptance": {
+    "status": "completed",
+    "source_tip": "e3898db77144cded81d64a1a750f6c2d9a31eefa",
+    "groups": 7,
+    "windows_passed": 63,
+    "linux_passed": 69,
+    "windows_linux_only_skips": 2,
+    "all_exit_codes": 0,
+    "posttest_hash_mismatches": 0
   }
 }
