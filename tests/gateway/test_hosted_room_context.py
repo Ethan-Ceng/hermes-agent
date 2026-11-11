@@ -135,10 +135,14 @@ def test_context_is_bounded(room_db: Path):
             room_db, room_id=ROOM_ID, event_id="c", purpose="", notes="x" * (context.MAX_NOTES_BYTES + 1))
 
 
-def test_settings_reads_seek_an_index_even_on_a_store_made_before_it(room_db: Path):
+def test_explicit_upgrade_restores_index_for_settings_reads(room_db: Path):
     with closing(sqlite3.connect(room_db)) as conn, conn:
         conn.execute("DROP INDEX IF EXISTS idx_hosted_room_events_kind")
 
+    from hermes_db.errors import StorageSchemaError
+    with pytest.raises(StorageSchemaError):
+        context.room_context(room_db, room_id=ROOM_ID)
+    hosted_rooms._initialize_connection(room_db).close()
     context.set_room_context(room_db, room_id=ROOM_ID, event_id="ctx-1", purpose="Ship it", notes="")
 
     with closing(sqlite3.connect(room_db)) as conn:

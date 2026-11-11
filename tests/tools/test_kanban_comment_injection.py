@@ -67,6 +67,7 @@ def test_noop_without_worker_env(worker_home, monkeypatch):
 
 
 def test_seed_then_inject_new_comment(worker_home, monkeypatch):
+    kbc.init_db()
     conn = kbc.connect()
     try:
         tid = kb.create_task(conn, title="live task")
@@ -101,6 +102,7 @@ def test_seed_then_inject_new_comment(worker_home, monkeypatch):
 
 
 def test_skips_own_authored_comments(worker_home, monkeypatch):
+    kbc.init_db()
     conn = kbc.connect()
     try:
         tid = kb.create_task(conn, title="echo guard")
@@ -131,6 +133,7 @@ def test_delegated_child_in_worker_process_neither_receives_nor_consumes_notes(w
     shared watermark (which would make the worker miss them) (#112817)."""
     from agent.delegation_context import delegated_child_context
 
+    kbc.init_db()
     conn = kbc.connect()
     try:
         tid = kb.create_task(conn, title="live task")
@@ -165,6 +168,7 @@ def test_skips_own_authored_comments_without_env_profile(worker_home, monkeypatc
     injection filter resolves the worker's identity the same way the persisted
     write side does (env → ``HERMES_HOME``-derived active profile), so a worker's
     own notes can never steer its live turn as fake operator messages."""
+    kbc.init_db()
     conn = kbc.connect()
     try:
         tid = kb.create_task(conn, title="identity echo guard")

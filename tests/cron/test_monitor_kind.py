@@ -28,6 +28,9 @@ import sys
 import pytest
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture
 def hermes_env(tmp_path, monkeypatch, cron_owner):
     """Isolate HERMES_HOME for each test so jobs/scripts/snapshots don't leak."""
@@ -283,6 +286,7 @@ def test_bidi_monitor_output_is_sanitized_before_agent(hermes_env, monkeypatch):
     assert "Alice Work" in observed["prompts"][0]
 
 
+@pytest.mark.platforms("posix")
 def test_monitor_script_uses_configured_interpreter(hermes_env, monkeypatch):
     """A monitor script uses the same job-level interpreter as `script`."""
     import stat

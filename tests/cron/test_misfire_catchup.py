@@ -20,6 +20,9 @@ from cron.scheduler_provider import (
 )
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture()
 def tmp_cron_dir(tmp_path, monkeypatch):
     """Redirect cron storage to a temp directory."""

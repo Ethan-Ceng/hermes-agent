@@ -25,6 +25,7 @@ def _fresh_db(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setattr(dl, "_db_path", lambda: home / "state.db")
+    dl.initialize()
     yield
 
 

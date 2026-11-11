@@ -6,6 +6,9 @@ import time
 import pytest
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture(autouse=True)
 def _isolated_cancels(monkeypatch, tmp_path):
     """Point the marker store at a scratch home so a cancel can never see a real profile."""

@@ -27,6 +27,9 @@ from tests.gateway.relay.fake_connector import FakeConnector, proxy_403
 CHAT = "C0REPORTS"
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture
 def live_relay(monkeypatch):
     """A provisioned, connected relay adapter on a gateway loop thread."""

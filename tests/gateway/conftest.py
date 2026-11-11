@@ -725,6 +725,10 @@ def hosted_owner(tmp_path, monkeypatch):
             return replace(original({**data, 'source': 'gui', 'platform': 'desktop'}), source='bot_room', platform='bot_room')
         return original(data)
     monkeypatch.setattr(session_policy, 'restore_policy', restore)
+    from hermes_cli.db_profile_schema import initialize_new_profile_storage
+    from pathlib import Path
+    from hermes_state import _default_db_path
+    initialize_new_profile_storage(Path(_default_db_path()).parent)
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     agent = SimpleNamespace(interrupted=False)
     agent.interrupt = lambda: setattr(agent, 'interrupted', True)
@@ -733,11 +737,13 @@ def hosted_owner(tmp_path, monkeypatch):
     loop = asyncio.new_event_loop()
     thread = threading.Thread(target=loop.run_forever)
     thread.start()
-    authority = asyncio.run_coroutine_threadsafe(initialize_session_authority(runner, profile_id='owned', instance_id='first'), loop).result()
-    monkeypatch.setattr(authority, '_schedule', lambda ref: None)
-    principal = SessionActor('durable-room-owner', 'owned', frozenset({'session:create', 'session:read', 'session:submit', 'session:control', 'session:approve'}), 'room-worker')
-    yield authority, loop, principal, agent
-    loop.call_soon_threadsafe(loop.stop)
-    thread.join()
-    loop.close()
-    store._db.close()
+    try:
+        authority = asyncio.run_coroutine_threadsafe(initialize_session_authority(runner, profile_id='owned', instance_id='first'), loop).result(10)
+        monkeypatch.setattr(authority, '_schedule', lambda ref: None)
+        principal = SessionActor('durable-room-owner', 'owned', frozenset({'session:create', 'session:read', 'session:submit', 'session:control', 'session:approve'}), 'room-worker')
+        yield authority, loop, principal, agent
+    finally:
+        loop.call_soon_threadsafe(loop.stop)
+        thread.join()
+        loop.close()
+        store._db.close()

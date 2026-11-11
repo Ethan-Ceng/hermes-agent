@@ -6,10 +6,14 @@ running gateway (whose live relay adapter owns that delivery) rather than
 execute in-process and hit the native standalone fallback.
 """
 
+import pytest
 import json
 from unittest.mock import patch
 
 from tools import cronjob_tools
+
+
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
 
 
 class _Resp:

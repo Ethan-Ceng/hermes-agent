@@ -9,7 +9,7 @@ possibly-completed send.
 
 from __future__ import annotations
 
-from hermes_cli.db_sqlite_policy import initialize_profile_sqlite
+from hermes_cli.db_sqlite_policy import initialize_profile_sqlite, open_ready_profile_sqlite
 
 import json
 import logging
@@ -144,25 +144,45 @@ def _initialize_schema(conn: sqlite3.Connection) -> None:
     )
 
 
-def _connect() -> sqlite3.Connection:
-    # Late imports: a scheduler daemon that outlives an on-disk upgrade already has the OLD
-    # ``hermes_cli.sqlite_util`` / ``cron.jobs`` cached, so new names must be resolved at call time,
-    # not at import time (the guarantee cron/ledger.py used to carry, see e24c8499).
-    from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
+def _sqlite_path() -> Path:
     from hermes_cli.db_setup import storage_backend
     from hermes_db.errors import StorageConfigurationError
 
     if storage_backend() == "postgresql":
         raise StorageConfigurationError("Cron native SQLite delivery connections are unavailable in PostgreSQL mode; use delivery operations")
+    return _path()
 
-    path = _path()
-    conn = initialize_profile_sqlite(path, db_label="cron/deliveries.db", synchronous_full=True, initialize=_initialize_schema)
+
+def _schema_ready(conn: sqlite3.Connection) -> bool:
+    schemas = conn.execute(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name IN ('deliveries', 'delivery_tombstones')"
+    ).fetchall()
+    columns = {info[1] for info in conn.execute("PRAGMA table_info(deliveries)")}
+    return len(schemas) == 2 and all("'unknown'" not in row[0] or "'suppressed'" in row[0] for row in schemas) and "for_failure" in columns
+
+
+def _connect() -> sqlite3.Connection:
+    path = _sqlite_path()
+    conn = open_ready_profile_sqlite(path, db_label="cron/deliveries.db", synchronous_full=True, ready=_schema_ready)
+    _tighten_permissions(path)
+    return conn
+
+
+def initialize() -> None:
+    """Create or upgrade this SQLite store from an explicit lifecycle entry."""
+    from cron.jobs import _ensure_cron_dir
+
+    path = _sqlite_path()
+    _ensure_cron_dir(path.parent)
+    initialize_profile_sqlite(path, db_label="cron/deliveries.db", synchronous_full=True, initialize=_initialize_schema).close()
+    _tighten_permissions(path)
+
+
+def _tighten_permissions(path: Path) -> None:
     try:
         path.chmod(0o600)
     except OSError:
         pass
-    return conn
-
 
 @contextmanager
 def _transaction() -> Iterator[sqlite3.Connection]:
@@ -219,6 +239,8 @@ def enqueue(
 
 @domain_operation("delivery", domain="cron_deliveries")
 def get_status(execution_id: str) -> Optional[dict]:
+    if not (_path()).exists():
+        return None
     with _transaction() as conn:
         row = conn.execute(
             "SELECT * FROM deliveries WHERE execution_id=?", (str(execution_id),)
@@ -243,6 +265,8 @@ def get_status(execution_id: str) -> Optional[dict]:
 @domain_operation("delivery", domain="cron_deliveries")
 def claim_next() -> Optional[dict]:
     """Atomically claim one pending send before touching the transport."""
+    if not (_path()).exists():
+        return None
     pid = os.getpid()
     started = _process_start_time(pid)
     with _transaction() as conn:
@@ -303,6 +327,8 @@ def recover_abandoned() -> int:
     The firer settled long ago against a ``queued`` row, so each fenced row's outcome is written
     back here (job ``delivery_failed`` + error, ledger ``failed``) instead of leaving the run at
     ``delivery_queued`` forever."""
+    if not (_path()).exists():
+        return 0
     fenced: list[tuple[Optional[str], str]] = []
     with _transaction() as conn:
         rows = conn.execute(

@@ -12,10 +12,7 @@ import pytest
 from agent.portal_tags import reset_conversation_context, set_conversation_context
 from hermes_cli import lifecycle
 from hermes_cli.observability import relay_shared_metrics
-from tests.hermes_cli.test_relay_shared_metrics_runtime import (
-    _stored_values,
-    direct_runtime,
-)
+from tests.hermes_cli.test_relay_shared_metrics_runtime import _stored_values
 
 SECRET = "acme-internal-secret-v2"
 PUBLIC = "anthropic/claude-sonnet-4"
@@ -35,7 +32,7 @@ def _all_rows(home) -> list[tuple[str, dict]]:
     root = home / "telemetry" / "shared_metrics"
     if not (root / "metrics.sqlite3").exists():
         return []
-    store = SharedMetricsStore(root / "metrics.sqlite3", root / "outbox")
+    store = SharedMetricsStore.create(root / "metrics.sqlite3", root / "outbox")
     return [(c["metric_name"], c["dimensions"]) for c in store.counter_snapshot()]
 
 
@@ -273,6 +270,8 @@ def test_gateway_switch_reports_the_configured_route_not_the_switch_default(
 def test_multiplexed_gateway_switch_records_in_the_owning_profile(direct_runtime, tmp_path):
     home_b = tmp_path / "profiles" / "b"
     home_b.mkdir(parents=True)
+    from hermes_cli.observability.shared_metrics import SharedMetricsStore
+    SharedMetricsStore.create(profile_home=home_b)
     cfg = home_b / "config.yaml"
     cfg.write_text(f"model:\n  provider: openrouter\n  default: {PUBLIC}\n")
     _gateway_switch(_gateway_runner(multiplex_home=home_b), cfg)

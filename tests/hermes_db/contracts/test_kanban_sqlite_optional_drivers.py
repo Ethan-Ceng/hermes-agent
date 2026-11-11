@@ -17,6 +17,7 @@ class RejectPostgres(importlib.abc.MetaPathFinder):
             raise AssertionError('SQLite attempted optional PostgreSQL import: ' + fullname)
 sys.meta_path.insert(0, RejectPostgres())
 from hermes_cli import kanban_db as kb, kanban_db_connect as kbc, kanban_db_workspace as workspace
+kbc.init_db()
 with kbc.connect_closing() as store:
     task = kb.create_task(store, title='SQLite standalone')
     directory = kb.workspaces_root() / task

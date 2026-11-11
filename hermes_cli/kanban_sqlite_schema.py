@@ -208,3 +208,38 @@ CREATE INDEX IF NOT EXISTS idx_runs_status           ON task_runs(status);
 CREATE INDEX IF NOT EXISTS idx_attachments_task      ON task_attachments(task_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_notify_task           ON kanban_notify_subs(task_id);
 """
+
+
+# Current columns produced by explicit init_db. The readiness contract checks this
+# inventory against SQLite's explicit schema migration in tests.
+DECLARED_COLUMNS = {
+    'kanban_notify_subs': (
+        "task_id platform chat_id thread_id user_id user_id_alt chat_type notifier_profile "
+        "delivery_mode delivery_metadata created_at last_event_id last_ping_event_id"
+    ),
+    'task_attachments': (
+        "id task_id filename stored_path content_type size uploaded_by created_at"
+    ),
+    'task_comments': (
+        "id task_id author body created_at"
+    ),
+    'task_events': (
+        "id task_id run_id kind payload created_at"
+    ),
+    'task_links': (
+        "parent_id child_id"
+    ),
+    'task_runs': (
+        "id task_id profile step_key status claim_lock claim_expires worker_pid worker_started_at "
+        "max_runtime_seconds last_heartbeat_at started_at ended_at outcome summary metadata error"
+    ),
+    'tasks': (
+        "id title body assignee status priority created_by created_at started_at completed_at "
+        "workspace_kind workspace_path branch_name project_id claim_lock claim_expires tenant "
+        "result idempotency_key consecutive_failures worker_pid worker_started_at "
+        "last_failure_error max_runtime_seconds last_heartbeat_at current_run_id "
+        "workflow_template_id current_step_key skills model_override provider_override "
+        "reasoning_effort max_retries goal_mode goal_max_turns session_id block_kind "
+        "block_recurrences completion_contract"
+    ),
+}

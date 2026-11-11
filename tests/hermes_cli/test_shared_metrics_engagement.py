@@ -13,11 +13,8 @@ from hermes_cli import lifecycle
 from hermes_cli.observability import relay_shared_metrics
 from hermes_cli.observability import shared_metrics_engagement as engagement
 from hermes_cli.observability.shared_metrics import SharedMetricsStore
-from tests.hermes_cli.test_relay_shared_metrics_runtime import (
-    _join_export_workers,
-    _stored_values,
-    direct_runtime,
-)
+from tests.hermes_cli.metrics_runtime_fixtures import _join_export_workers
+from tests.hermes_cli.test_relay_shared_metrics_runtime import _stored_values
 
 PUBLIC = "anthropic/claude-sonnet-4"
 OTHER = "openai/gpt-5"
@@ -131,7 +128,7 @@ def test_a_late_interaction_never_reopens_a_closed_day():
     assert {r[3] for r in next_day} == {"2026-09-28"}
 
 
-def test_collection_off_writes_no_engagement_state(direct_runtime, tmp_path, clock, monkeypatch):
+def test_collection_off_writes_no_engagement_state(uninitialized_runtime, tmp_path, clock, monkeypatch):
     monkeypatch.setattr("hermes_cli.config.read_raw_config_readonly", dict)
     _turn("s1", "t1", clock=clock, at=DAY1)
     clock["now"] = DAY1 + 86_400
@@ -304,6 +301,10 @@ def test_active_profiles_are_counted_once_per_host_day_on_the_root_profiles_row(
     (root / "profiles").mkdir(parents=True)
     (root / "config.yaml").write_text(f"telemetry:\n  shared_metrics:\n    enabled: {str(root_collects).lower()}\n")
     a, b = root / "profiles" / "a", root / "profiles" / "b"
+    for home in (a, b):
+        SharedMetricsStore.create(profile_home=home)
+    if root_collects:
+        SharedMetricsStore.create(profile_home=root)
     resource = {"architecture": "x86_64", "hermes_version": "0.0.0", "install_method": "git", "os_family": "linux"}
     for home, at in ((a, 0), (b, 60), (a, 120), (a, 86_400)):
         clock["now"] = DAY1 + at

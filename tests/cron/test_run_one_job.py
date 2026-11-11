@@ -15,6 +15,9 @@ import pytest
 import cron.scheduler as s
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 def _patch_pipeline(monkeypatch, *, success=True, output="out", final="final response",
                     error=None, silent_marker_in=None):
     """Patch the job pipeline primitives and record the call order."""

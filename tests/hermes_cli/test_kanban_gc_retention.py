@@ -16,6 +16,8 @@ from hermes_cli import kanban_ops
 def board(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    from hermes_cli.kanban_db_connect import init_db
+    init_db()
     return tmp_path
 
 def _done_task_with_old_event(conn):

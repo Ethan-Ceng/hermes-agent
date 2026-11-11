@@ -368,6 +368,8 @@ def test_dispatcher_grants_only_the_assigned_worker_scope(tmp_path, monkeypatch)
     monkeypatch.setenv("HOME", str(tmp_path))
     db = tmp_path / "board.db"
     monkeypatch.setenv("HERMES_KANBAN_DB", str(db))
+    from hermes_cli.kanban_db_connect import init_db
+    init_db(db)
     conn = connect(db)
     tid = kb.create_task(conn, title="assigned child", assignee="default")
     kb.claim_task(conn, tid)

@@ -46,6 +46,9 @@ def _target_app(adapter):
 async def _linked_home(tmp_path: Path, **runtime):
     """A real target API adapter on loopback and a home room with one member on it; ``runtime``
     overrides the home driver's timings."""
+    from hermes_cli.db_profile_schema import initialize_new_profile_storage
+    from hermes_constants import get_hermes_home
+    initialize_new_profile_storage(get_hermes_home())
     target = APIServerAdapter(
         PlatformConfig(enabled=True, extra={"key": "target-peer-key-1234567890"})
     )
@@ -156,10 +159,13 @@ def _lose_first_reply(monkeypatch, *, arrives: bool = True, down: threading.Even
 
 async def _peer_task(home, statuses=driver.TERMINAL_STATUSES, *, timeout: float = 20.0):
     """Wait for the peer member's room turn to reach one of ``statuses`` (by default, settle)."""
+    def find_task():
+        return next((task for status in statuses
+                     for task in driver.list_tasks(home.db_path, room_id="room-1", status=status)
+                     if task["payload"].get("target_member_id") == "member-peer"), None)
+
     return await async_wait_until(
-        lambda: next((task for status in statuses
-                      for task in driver.list_tasks(home.db_path, room_id="room-1", status=status)
-                      if task["payload"].get("target_member_id") == "member-peer"), None),
+        lambda: asyncio.to_thread(find_task),
         timeout=timeout, what=f"peer turn reaching {statuses}")
 
 
@@ -191,9 +197,11 @@ async def test_lost_admission_reply_and_refused_replay_run_the_turn_once(
 
 async def _member_replies(home, *, timeout: float = 20.0):
     """Wait until the settled turn's reply is published to the room (the next room cycle)."""
+    def replies():
+        return [event for event in home._events("room-1") if event["kind"] == "message.member"]
+
     return await async_wait_until(
-        lambda: [event for event in home._events("room-1") if event["kind"] == "message.member"],
-        timeout=timeout, what="peer reply publication")
+        lambda: asyncio.to_thread(replies), timeout=timeout, what="peer reply publication")
 
 
 async def _retry_past_backoff(home, task_id: str):

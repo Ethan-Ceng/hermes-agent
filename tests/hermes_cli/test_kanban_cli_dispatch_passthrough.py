@@ -26,6 +26,8 @@ def isolated_kanban_home(monkeypatch):
     for mod in list(sys.modules.keys()):
         if mod.startswith("hermes_cli") or mod.startswith("hermes_state") or mod == "hermes_constants":
             del sys.modules[mod]
+    from hermes_cli.kanban_db_connect import init_db
+    init_db()
     yield test_home
 
 

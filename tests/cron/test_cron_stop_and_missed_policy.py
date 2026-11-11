@@ -13,6 +13,9 @@ import pytest
 from cron import jobs
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture
 def home(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
@@ -136,8 +139,10 @@ def test_catch_up_rejects_non_boolean(home):
 # --- ledger schema --------------------------------------------------------------------------
 
 
-def test_a_pre_existing_ledger_is_widened_without_losing_rows(home):
-    db = home / "cron" / "executions.db"
+def test_a_pre_existing_ledger_is_widened_without_losing_rows(home, monkeypatch):
+    from cron import executions
+    db = home / "cron" / "legacy-executions.db"
+    monkeypatch.setattr(executions, "EXECUTIONS_FILE", db)
     db.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(db)
     conn.execute(
@@ -155,6 +160,7 @@ def test_a_pre_existing_ledger_is_widened_without_losing_rows(home):
 
     from cron.executions import record_missed_occurrences
 
+    executions.initialize()
     record_missed_occurrences("j1", count=2, first_instant=None, detail="test")
     assert sorted(r["status"] for r in _ledger("j1")) == ["completed", "missed"]
 

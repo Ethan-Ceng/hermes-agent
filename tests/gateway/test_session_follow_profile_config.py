@@ -24,9 +24,11 @@ def _owner(home):
     from gateway.session_controls import AuthorityConnection
     import hermes_state_runtime as rt
     from hermes_state import SessionDB
-    SessionDB(home / 'state.db').close()
+    from hermes_cli.db_profile_schema import initialize_new_profile_storage
+    initialize_new_profile_storage(home)
+    db = SessionDB.open_existing(home / 'state.db')
     store = SessionStore(home / 'sessions', GatewayConfig())
-    db = store._db
+    store._db = db
     runner = SimpleNamespace(session_store=store, _session_db=db, adapters={}, _draining=False,
                              _evict_cached_agent=lambda route: None, _cached_agent_for=lambda route: None,
                              _handle_message=None)

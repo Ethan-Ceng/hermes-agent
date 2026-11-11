@@ -14,6 +14,7 @@ from hermes_cli import projects_db as pdb
 
 @pytest.fixture
 def kanban_conn(tmp_path):
+    kbc.init_db(tmp_path / "kanban.db")
     c = kbc.connect(db_path=tmp_path / "kanban.db")
     try:
         yield c
@@ -22,6 +23,7 @@ def kanban_conn(tmp_path):
 
 
 def _make_project(name="Web App", repo="/tmp/webapp"):
+    pdb.initialize_projects()
     with pdb.connect_closing() as pc:
         pid = pdb.create_project(pc, name=name, folders=[repo])
         return pdb.get_project(pc, pid)

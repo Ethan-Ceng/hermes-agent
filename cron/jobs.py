@@ -1943,8 +1943,8 @@ def create_job(
         if value is not None:
             job[key] = value
 
-    with _jobs_lock():
-        save_jobs(load_jobs() + [job])
+    from cron.storage_lifecycle import publish_job_record
+    publish_job_record(job)
     return job
 
 

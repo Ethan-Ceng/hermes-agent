@@ -111,6 +111,7 @@ def project_create(name: str, path: Optional[str] = None, task_id: Optional[str]
     if folder:
         folder = os.path.abspath(os.path.expanduser(folder))
     try:
+        pdb.initialize_new_projects()
         with pdb.connect_closing() as conn:
             existing = pdb.find_by_primary_path(conn, folder) if folder else None
             if existing is not None:

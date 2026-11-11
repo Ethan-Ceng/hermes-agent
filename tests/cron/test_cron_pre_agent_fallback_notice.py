@@ -5,7 +5,11 @@ otherwise live only in the scheduler log. Drives the real ``run_job`` path with 
 from unittest.mock import MagicMock, patch
 
 from hermes_cli.auth import AuthError
-from tests.cron.test_scheduler import _run_owned_job
+from tests.cron.owner_execution import run_owned_job
+
+import pytest
+
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
 
 _JOB = {"id": "fb-test", "name": "fb test", "prompt": "hello", "model": None, "provider": None,
         "provider_snapshot": None, "base_url": None}
@@ -36,7 +40,7 @@ def _run(tmp_path, *, response: str, primary_fails: bool):
          patch("run_agent.AIAgent") as agent_cls:
         agent_cls.return_value.run_conversation.return_value = {"final_response": response}
         # Cron turns execute inside the gateway owner: drive the production owner bridge.
-        success, _output, final, error = _run_owned_job(dict(_JOB), tmp_path, fake_db)
+        success, _output, final, error = run_owned_job(dict(_JOB), tmp_path, fake_db)
     return success, final, error, agent_cls.call_args.kwargs
 
 

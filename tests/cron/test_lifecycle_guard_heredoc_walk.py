@@ -11,6 +11,9 @@ import pytest
 from cron.lifecycle_guard import contains_gateway_lifecycle_command_or_referenced_script as guard
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 def _big_file(tmp_path):
     path = tmp_path / "big_blob.bin"
     path.write_bytes(b"\0" * (2 * 1024 * 1024))
@@ -19,15 +22,15 @@ def _big_file(tmp_path):
 
 def test_inert_heredoc_body_path_not_walked_as_script(tmp_path):
     big = _big_file(tmp_path)
-    command = f"python3 - <<'PY'\nfrom pathlib import Path\nprint(Path('{big}').stat().st_size)\nPY"
+    command = f"python3 - <<'PY'\nfrom pathlib import Path\nprint(Path('{big.as_posix()}').stat().st_size)\nPY"
     assert guard(command, cwd=str(tmp_path)) is False
 
 
 def test_prefixed_inert_heredoc_body_path_not_walked_as_script(tmp_path):
     big = _big_file(tmp_path)
     command = (
-        f"cd {tmp_path} && python3 - <<'PY'\n"
-        f"from pathlib import Path\nprint(Path('{big}').stat().st_size)\nPY"
+        f"cd {tmp_path.as_posix()} && python3 - <<'PY'\n"
+        f"from pathlib import Path\nprint(Path('{big.as_posix()}').stat().st_size)\nPY"
     )
     assert guard(command, cwd=str(tmp_path)) is False
 
@@ -40,7 +43,7 @@ def test_allowlisted_name_function_heredoc_stays_visible(tmp_path):
 def test_unquoted_heredoc_body_path_still_walked(tmp_path):
     """An expansion-capable body is not provably inert: the walk still sees it and fails closed."""
     big = _big_file(tmp_path)
-    assert guard(f"cat > /tmp/x <<EOF\n{big}\nEOF", cwd=str(tmp_path)) is True
+    assert guard(f"cat > /tmp/x <<EOF\n{big.as_posix()}\nEOF", cwd=str(tmp_path)) is True
 
 
 def test_inert_heredoc_body_script_path_still_read(tmp_path):
@@ -48,7 +51,7 @@ def test_inert_heredoc_body_script_path_still_read(tmp_path):
     Python body is still handed to ``os.system`` at runtime, so its contents must still be read."""
     script = tmp_path / "restart.sh"
     script.write_text("#!/bin/sh\nhermes gateway restart\n", encoding="utf-8")
-    command = f"python3 - <<'PY'\nimport os\nos.system('{script}')\nPY"
+    command = f"python3 - <<'PY'\nimport os\nos.system('{script.as_posix()}')\nPY"
     assert guard(command, cwd=str(tmp_path)) is True
 
 
@@ -73,12 +76,12 @@ def test_mentioned_data_file_that_cannot_be_scanned_is_not_a_verdict(tmp_path, m
 
     try:
         for data in (minified, notes, db):
-            command = f"cd {tmp_path} && python3 - <<'PY'\nt = open('{data}', encoding='utf-8').read()\nPY"
+            command = f"cd {tmp_path.as_posix()} && python3 - <<'PY'\nt = open('{data.as_posix()}', encoding='utf-8').read()\nPY"
             assert guard(command, cwd=str(tmp_path), read_remote_script=remote) is False, data.name
         assert remote_misses  # the notes table was walked and its misses were bounded, not fatal
-        unsafe, refusal = lifecycle_guard.scan_gateway_lifecycle(f"bash {minified}")
+        unsafe, refusal = lifecycle_guard.scan_gateway_lifecycle(f"bash {minified.as_posix()}")
         assert unsafe is True and "budget" in refusal
-        unsafe, refusal = lifecycle_guard.scan_gateway_lifecycle(f"bash {db}")
+        unsafe, refusal = lifecycle_guard.scan_gateway_lifecycle(f"bash {db.as_posix()}")
         assert unsafe is True and "SQLite" in refusal
     finally:
         conn.close()
@@ -91,7 +94,7 @@ def test_mentioned_script_with_lifecycle_command_still_blocks(tmp_path):
 
     script = tmp_path / "restart.sh"
     script.write_text("#!/bin/sh\nhermes gateway restart\n", encoding="utf-8")
-    command = f"cd {tmp_path} && python3 - <<'PY'\nimport os\nos.system('{script}')\nPY"
+    command = f"cd {tmp_path.as_posix()} && python3 - <<'PY'\nimport os\nos.system('{script.as_posix()}')\nPY"
     assert lifecycle_guard.scan_gateway_lifecycle(command, cwd=str(tmp_path)) == (True, None)
 
 

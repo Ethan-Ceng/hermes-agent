@@ -6,6 +6,7 @@ discovering profile's registry overlay, so another profile's job sees the name b
 """
 
 from __future__ import annotations
+import pytest
 
 import asyncio
 import json
@@ -14,6 +15,9 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import cron.jobs as cron_jobs
+
+
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
 
 
 def _run_owned_job(job, tmp_path):
@@ -25,6 +29,8 @@ def _run_owned_job(job, tmp_path):
     ref = SessionRef("test-profile", "cron-owner-session")
     admission_id = "cron-owner-admission"
     request_id = "cron-owner-request"
+    from hermes_state import SessionDB
+    SessionDB(tmp_path / "state.db").close()
     db = acquire(tmp_path / "state.db")
     db.create_session(ref.session_id, source="cron")
     authority = SimpleNamespace(

@@ -78,6 +78,7 @@ def run_env(monkeypatch, tmp_path):
     state: dict = {"send": send_calls, "marked": [], "saved": [], "finished": []}
     from cron import delivery_queue
     monkeypatch.setattr(delivery_queue, "DELIVERY_DB", home / "cron" / "deliveries.db")
+    delivery_queue.initialize()
 
     def drain(*, for_failure):
         assert send_calls == [], "delivery must wait for the gateway drain"

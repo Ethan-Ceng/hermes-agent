@@ -348,11 +348,32 @@ def local_authority_gateway_id() -> str:
     return _actor_id(f"install:{install_id}", "authority_gateway_id")
 
 
-def _store_ready(conn: sqlite3.Connection, db_path: Path) -> bool:
-    """The store can serve rooms once its schema is current and the pre-isolation import has run."""
+def _room_ready(conn: sqlite3.Connection, db_path: Path) -> bool:
+    """Preserve main room schema and settled-import checks for room operations."""
     from gateway.hosted_rooms_legacy_import import settled
 
     return _schema_is_current(conn) and settled(conn, db_path)
+
+
+def _store_ready(conn: sqlite3.Connection, db_path: Path) -> bool:
+    """Explicit initialization prepares the complete room schema and its components."""
+    return _room_ready(conn, db_path) and _components_ready(conn)
+
+
+def _components_ready(conn: sqlite3.Connection) -> bool:
+    from gateway import hosted_room_driver, hosted_room_policy_checkpoint, hosted_room_work_storage
+    from gateway.hosted_room_attachments import HostedRoomAttachmentStore
+    from gateway.hosted_room_replicas import _replica_schema_ready
+    from gateway.hosted_rooms_gateway_import import HANDOFF_TABLE
+
+    return (
+        _replica_schema_ready(conn)
+        and hosted_room_driver._schema_ready(conn)
+        and HostedRoomAttachmentStore._schema_ready(conn)
+        and hosted_room_policy_checkpoint._schema_ready(conn)
+        and hosted_room_work_storage.schema_ready(conn)
+        and table_exists(conn, HANDOFF_TABLE)
+    )
 
 
 def _initialize_store(conn: sqlite3.Connection, db_path: Path) -> None:
@@ -361,10 +382,22 @@ def _initialize_store(conn: sqlite3.Connection, db_path: Path) -> None:
 
     _initialize_schema(conn)
     import_legacy_rooms(conn, db_path)
+    from gateway import hosted_room_driver, hosted_room_work_records
+    from gateway.hosted_room_replicas import _initialize_replica_schema
+    from gateway.hosted_room_attachments import HostedRoomAttachmentStore
+    from gateway.hosted_room_policy_checkpoint import initialize_schema as initialize_policy_schema
+
+    _initialize_replica_schema(conn)
+    hosted_room_driver.initialize(conn)
+    HostedRoomAttachmentStore._initialize(conn)
+    initialize_policy_schema(conn)
+    hosted_room_work_records.initialize(conn)
+    from gateway.hosted_rooms_gateway_import import initialize_handoff_schema
+    initialize_handoff_schema(conn)
 
 
-def _connect(db_path: DbPath) -> sqlite3.Connection:
-    """Open the shared room store; ``initialize`` carries the path so the one-shot import can find it."""
+def _initialize_connection(db_path: DbPath) -> sqlite3.Connection:
+    """Create or upgrade the shared room store at its explicit create/import entry."""
     assert_sqlite_location(db_path)
     path = Path(db_path)
     return connect(
@@ -372,18 +405,23 @@ def _connect(db_path: DbPath) -> sqlite3.Connection:
         initialize=partial(_initialize_store, db_path=path), lock_retries=_JOURNAL_MODE_LOCK_RETRIES)
 
 
-def _read_connection(db_path: DbPath) -> sqlite3.Connection:
-    """Open the room store without steady-state journal or migration writes."""
+def _open_room_store(db_path: DbPath, *, wal: bool) -> sqlite3.Connection:
+    from hermes_cli.db_sqlite_policy import open_ready_profile_sqlite
+
     assert_sqlite_location(db_path)
     path = Path(db_path)
-    if not path.is_file():
-        _connect(path).close()
-    conn = open_sqlite(path)
-    if not _store_ready(conn, path):
-        conn.close()
-        _connect(path).close()
-        conn = open_sqlite(path)
-    return conn
+    return open_ready_profile_sqlite(
+        path, db_label="shared-state.db (hosted_rooms)", ready=partial(_room_ready, db_path=path),
+        busy_timeout_ms=10_000, foreign_keys=True, wal=wal, wal_lock_retries=_JOURNAL_MODE_LOCK_RETRIES,
+    )
+
+
+def _connect(db_path: DbPath) -> sqlite3.Connection:
+    return _open_room_store(db_path, wal=True)
+
+
+def _read_connection(db_path: DbPath) -> sqlite3.Connection:
+    return _open_room_store(db_path, wal=False)
 
 
 _transaction = partial(transaction, _connect, immediate=False)
@@ -508,6 +546,9 @@ def _prune_disbanded_rooms_locked(
 @room_operation("room_retention")
 def prune_disbanded_rooms(db_path: DbPath, *, now: float | None = None) -> int:
     """Purge deleted Group Chat payloads while reserving their identities."""
+    assert_sqlite_location(db_path)
+    if not _room_store_declared(db_path):
+        return 0
     with _transaction(db_path, immediate=True) as conn:
         return _prune_disbanded_rooms_locked(conn, now=_now(now))
 
@@ -526,6 +567,9 @@ def room_has_peer_obligations(db_path: DbPath, *, room_id: Any, now: float | Non
 @room_operation("room_links")
 def list_room_link_records(db_path: DbPath) -> list[dict[str, Any]]:
     """Return private RoomLink records without logging or formatting grants."""
+    assert_sqlite_location(db_path)
+    if not _room_store_declared(db_path):
+        return []
     with _transaction(db_path) as conn:
         rows = conn.execute("""SELECT room_id, member_id, target_url, target_profile, grant,
                       catalog_json, cancellation_scope_id, trace_id,
@@ -955,7 +999,7 @@ def create_room(
     normalized_members, members_json = _validate_members(members)
     authority_gateway_id = _actor_id(authority_gateway_id, "authority_gateway_id")
     now = _now(now)
-    with _transaction(db_path, immediate=True) as conn:
+    with transaction(_initialize_connection, db_path, immediate=True) as conn:
         if admit is not None:
             admit(conn)
         if _is_retired(conn, room_id):
@@ -997,6 +1041,9 @@ def list_rooms(
     """Return one bounded read-only page ordered by most recent change."""
     limit = _bounded_limit(limit, MAX_ROOM_LIST_LIMIT)
     offset = _non_negative(offset, "offset")
+    assert_sqlite_location(db_path)
+    if not _room_store_declared(db_path):
+        return []
     with closing(_read_connection(db_path)) as conn:
         rows = conn.execute(
             f"""SELECT {_ROOM_COLUMNS} FROM hosted_rooms WHERE disbanded_at IS NULL OR ?
@@ -1090,12 +1137,17 @@ def append_event(
     return {**_event_from_row(row), "actor": normalized_actor}
 
 
+def _room_store_declared(db_path: DbPath) -> bool:
+    """A session-only file has no room domain until its explicit first room creation."""
+    return _probe(Path(db_path), "hosted_rooms", "SELECT 1", (), "Hosted room store is unavailable")
+
+
 def _probe(path: Path, table: str, query: str, params: tuple[Any, ...], unavailable: str) -> bool:
     """Non-blocking existence probe: short timeout, no schema creation or migration."""
     if not path.is_file():
         return False
     try:
-        with closing(sqlite3.connect(path, timeout=0.05)) as conn:
+        with closing(sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=0.05)) as conn:
             table_row = conn.execute(
                 f"SELECT 1 FROM sqlite_master WHERE type='table' AND name='{table}' LIMIT 1").fetchone()
             return table_row is not None and conn.execute(query, params).fetchone() is not None

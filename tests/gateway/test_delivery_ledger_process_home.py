@@ -61,6 +61,7 @@ def launch_home(request, tmp_path, monkeypatch):
         # A default gateway run in the foreground has no HERMES_HOME at all.
         monkeypatch.delenv("HERMES_HOME", raising=False)
         monkeypatch.setattr(hermes_constants, "_get_platform_default_hermes_home", lambda: root)
+    dl.initialize()
     return root
 
 

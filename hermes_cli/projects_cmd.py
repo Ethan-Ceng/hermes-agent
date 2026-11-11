@@ -73,7 +73,14 @@ def projects_command(args: argparse.Namespace) -> int:
     if handler is None:
         print(f"Unknown project action: {action}", file=sys.stderr)
         return 1
-    return handler(args)
+    from hermes_db.errors import StorageSchemaError
+
+    try:
+        if action == "create":
+            pdb.initialize_new_projects()
+        return handler(args)
+    except StorageSchemaError as exc:
+        return _err(str(exc))
 
 
 def _err(message: str) -> int:

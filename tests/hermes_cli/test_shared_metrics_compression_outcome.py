@@ -59,7 +59,7 @@ def test_benched_attempt_when_aborted_keeps_failed_other_class(monkeypatch):
 
 def test_committed_fallback_row_validates_against_the_package_schema(tmp_path):
     jsonschema = pytest.importorskip("jsonschema")
-    store = SharedMetricsStore(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
+    store = SharedMetricsStore.create(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
     fields = compression_fields(
         trigger="auto", outcome="success", tokens_before=80_000, context_length=100_000,
         failure_class="summary_generation_failed",

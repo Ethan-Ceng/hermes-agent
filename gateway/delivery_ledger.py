@@ -12,7 +12,7 @@ best-effort: ledger failures must never block a send; callers wrap every call in
 
 from __future__ import annotations
 
-from hermes_cli.db_sqlite_policy import initialize_profile_sqlite
+from hermes_cli.db_sqlite_policy import initialize_profile_sqlite, open_ready_profile_sqlite
 from gateway.delivery_rules import MAX_ATTEMPTS, STALE_AFTER_SECONDS, _RETENTION_SECONDS, _MAX_ROWS, RECOVERED_MARKER, RECONNECTED_MARKER, FLOOD_MARKER, _RUNTIME_RETRYABLE_ERRORS, _RETRY_BACKOFF_SECONDS, FLOOD_ERROR_PREFIX, FLOOD_RETRY_DEFAULT_SECONDS, FLOOD_RETRY_CAP_SECONDS, FLOOD_RETRY_SLACK_SECONDS, _RAW_FLOOD_RE, _raw_flood_wait, is_reconnect_only, is_flood_error, flood_wait_seconds, flood_retry_delay, _failed_stamp, flood_not_before, retry_not_before, _claimed_row
 
 import hashlib
@@ -38,13 +38,21 @@ def _db_path():
     return get_process_hermes_home() / "state.db"
 
 
-def _connect() -> sqlite3.Connection:
-    from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
+def _schema_ready(conn: sqlite3.Connection) -> bool:
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(delivery_obligations)")}
+    return {"obligation_id", "session_key", "state", "adapter_profile"} <= columns
 
-    # Shared state.db: SessionDB owns the durable PRAGMA set; this opener keeps the plain-tuple rows
-    # and the 10 s busy timeout it always had.
-    return initialize_profile_sqlite(_db_path(), db_label="state.db (delivery_ledger)", busy_timeout_ms=10_000,
-                   row_factory=None, initialize=_initialize_schema)
+
+def initialize(db_path=None) -> None:
+    """Create delivery metadata during explicit Profile setup, retaining the supplied owner path."""
+    path = _db_path() if db_path is None else db_path
+    initialize_profile_sqlite(path, db_label="state.db (delivery_ledger)", busy_timeout_ms=10_000,
+                              row_factory=None, initialize=_initialize_schema).close()
+
+
+def _connect() -> sqlite3.Connection:
+    return open_ready_profile_sqlite(_db_path(), db_label="state.db (delivery_ledger)",
+                                     busy_timeout_ms=10_000, row_factory=None, ready=_schema_ready)
 
 
 def _initialize_schema(conn: sqlite3.Connection) -> None:

@@ -289,11 +289,13 @@ def test_slug_collision_creates_a_new_board(kanban_root, tmp_path):
 
 
 def test_import_never_targets_the_default_board(kanban_root, tmp_path):
+    kb.init_db(board="default")
     with kbc.connect_closing(board="default") as conn:
         kb.create_task(conn, title="exported default task")
     archive = kt.export_board("default", str(tmp_path / "default"))["archive"]
 
     kanban_root("target")
+    kb.init_db(board="default")
     with kbc.connect_closing(board="default") as conn:
         kb.create_task(conn, title="local default task")
 

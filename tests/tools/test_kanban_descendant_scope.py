@@ -17,6 +17,8 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def _worker_board(tmp_path, monkeypatch):
     db = tmp_path / "assigned.db"
+    from hermes_cli.kanban_db_connect import init_db as initialize_board_store
+    initialize_board_store(db)
     conn = connect(db)
     own, foreign = [kb.create_task(conn, title=title) for title in ("own", "foreign")]
     for tid in (own, foreign):
@@ -144,7 +146,10 @@ def test_child_shell_can_write_a_kanban_board_outside_its_lineage_root(tmp_path,
     monkeypatch.delenv("HERMES_DELEGATED_CHILD_CONTEXT", raising=False)
     for key in ("HERMES_KANBAN_DB", "HERMES_KANBAN_BOARD", "HERMES_KANBAN_TASK", "HERMES_KANBAN_HOME"):
         monkeypatch.delenv(key, raising=False)
-    connect(kb.kanban_db_path()).close()  # the owner initializes the lineage board
+    from hermes_cli.kanban_db_connect import init_db as initialize_board_store
+    initialize_board_store(kb.kanban_db_path())
+    connect(kb.kanban_db_path()).close()  # the owner prepares both independent stores
+    initialize_board_store(scratch_home / "kanban.db")
     script = tmp_path / "repro.py"
     script.write_text(
         "import os, sys, json\n"

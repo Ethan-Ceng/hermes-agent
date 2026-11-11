@@ -170,6 +170,7 @@ def test_domain_and_cli_review_handoffs_redact_before_persistence(
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setenv("HERMES_HOME", str(home))
+    kb.init_db()
     secret = "ghp_" + "R" * 40
 
     with kbc.connect() as conn:
@@ -238,6 +239,7 @@ def test_cli_reopen_review_is_transition_first_and_redacts_reason(
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setenv("HERMES_HOME", str(home))
+    kb.init_db()
     secret = "ghp_" + "Q" * 40
     with kbc.connect() as conn:
         invalid_id = kb.create_task(conn, title="not review", assignee="builder")

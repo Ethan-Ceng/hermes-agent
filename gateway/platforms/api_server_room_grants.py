@@ -1,5 +1,6 @@
 """RoomLink room-member grants and capability HTTP handlers."""
 
+from pathlib import Path
 import asyncio
 import sqlite3
 import time
@@ -177,8 +178,10 @@ def _issue_invitation(self, body: dict[str, Any], profile: str) -> dict[str, Any
         execution_policy_digest=execution_policy["policy_digest"], issued_at=time.time(),
         ttl_seconds=ttl, status_ttl_seconds=status_ttl)
     claims = decode_room_grant(self._room_grant_secret(), token, permission="status")
-    hosted_rooms.reserve_peer_room(
-        hosted_rooms.default_db_path(), claims=claims, expires_at=_hard_expiry(claims))
+    path = hosted_rooms.default_db_path()
+    if isinstance(path, Path) and not path.exists():
+        hosted_rooms._initialize_connection(path).close()
+    hosted_rooms.reserve_peer_room(path, claims=claims, expires_at=_hard_expiry(claims))
     return {"grant": token, "target_profile": profile, "catalog": catalog,
             "expires_at": float(claims["expires_at"]), "status_expires_at": float(claims["status_expires_at"])}
 

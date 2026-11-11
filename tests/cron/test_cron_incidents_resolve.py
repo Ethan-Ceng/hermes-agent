@@ -16,6 +16,7 @@ import cron.scheduler as sched
 
 def _point_db(monkeypatch, tmp_path):
     monkeypatch.setattr(incidents, "EXECUTIONS_FILE", tmp_path / "cron" / "executions.db")
+    incidents.initialize()
     return incidents
 
 

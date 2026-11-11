@@ -17,6 +17,10 @@ loaded), `timezone` (pin the cron expression's wall clock to an IANA zone; absen
 zone), `grace_minutes` (override the catch-up window; `0` = never catch up, cron only),
 multi-platform delivery.
 
+Native ledger Schema creation and upgrades belong to explicit Profile setup, domain creation
+and `hermes db upgrade` via `cron.storage_lifecycle`. Ordinary ticks, ledger reads and writes
+open existing stores and check readiness. A synthetic job in a test needs explicit ledger setup.
+
 Hardening invariants — each guards a real failure; don't weaken without answering for it:
 - **Inactivity watchdog** on cron agent sessions (`_cron_inactivity_seconds()`): default 600s idle,
   `HERMES_CRON_TIMEOUT` overrides, `0` = unlimited. It is idle time, not wall-clock — a stalled

@@ -68,6 +68,9 @@ def _target_app(adapter):
 async def test_in_process_scoped_transport_contract_finishes_headlessly(
     tmp_path: Path,
 ):
+    from hermes_cli.db_profile_schema import initialize_new_profile_storage
+    from hermes_constants import get_hermes_home
+    initialize_new_profile_storage(get_hermes_home())
     target = APIServerAdapter(
         PlatformConfig(enabled=True, extra={"key": "target-peer-key-1234567890"})
     )

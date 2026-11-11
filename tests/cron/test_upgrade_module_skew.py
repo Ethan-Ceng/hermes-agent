@@ -49,6 +49,9 @@ assert unclaimed_pending_slot(job, now) == stale
 """
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.mark.parametrize("store", ["notepad", "incidents", "executions", "delivery_queue"])
 def test_lazy_cron_stores_import_against_pre_upgrade_sqlite_util(store):
     repo_root = Path(__file__).resolve().parents[2]

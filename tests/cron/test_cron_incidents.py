@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import pytest
 from datetime import timedelta
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -16,11 +17,16 @@ import cron.scheduler as sched
 from hermes_time import now as _hermes_now
 
 
+
+
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
 def _point_db(monkeypatch, tmp_path):
     """Point the incident store at a throwaway executions.db (same file shape
     the scheduler uses). ``cron.executions.EXECUTIONS_FILE`` stays None so the
     incident store falls back to its own override."""
     monkeypatch.setattr(incidents, "EXECUTIONS_FILE", tmp_path / "cron" / "executions.db")
+    incidents.initialize()
     return incidents
 
 

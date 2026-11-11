@@ -87,6 +87,13 @@ Docs: https://hermes-agent.nousresearch.com/docs/user-guide/messaging/
 hermes sessions list|browse|rename ID TITLE|delete ID|export OUT|prune|stats
 ```
 
+### Database lifecycle
+
+`hermes db status` checks the selected session dataset. `hermes db upgrade` explicitly prepares
+or upgrades the selected Profile stores. Stop the owning gateway before upgrading a live
+Profile or its shared room store. Kanban uses `hermes kanban init` and `hermes kanban repair`.
+Ordinary startup and store acquisition check readiness without running Schema DDL.
+
 ### Cron / Webhooks
 
 ```

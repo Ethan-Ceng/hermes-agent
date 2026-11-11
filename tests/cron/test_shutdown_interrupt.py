@@ -18,6 +18,9 @@ from unittest.mock import patch
 import pytest
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture(autouse=True)
 def _reset_scheduler_state():
     """Every test starts from a clean slate and leaves one behind, since

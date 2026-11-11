@@ -13,6 +13,7 @@ def test_review_rollback_retains_preexisting_attachment(tmp_path, monkeypatch, m
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setenv("HERMES_HOME", str(home))
+    kbc.init_db()
     with kbc.connect_closing() as store:
         tid = kb.create_task(store, title="proof", assignee="author", workspace_kind="scratch")
         path = kb.workspaces_root() / tid

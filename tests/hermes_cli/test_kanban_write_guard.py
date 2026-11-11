@@ -16,6 +16,7 @@ def test_connect_succeeds_under_test_home(tmp_path, monkeypatch):
     home = tmp_path / "hermes_home"
     home.mkdir()
     monkeypatch.setenv("HERMES_HOME", str(home))
+    kbc.init_db(db_path=kanban_db.kanban_db_path())
     conn = kbc.connect()
     try:
         assert str(kanban_db.kanban_db_path()).startswith(str(home))

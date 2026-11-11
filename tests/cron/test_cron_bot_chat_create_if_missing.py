@@ -38,6 +38,8 @@ def test_cron_bot_chat_delivery_creates_the_missing_bot_chat_and_admits(tmp_path
                    OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url, PYTHONUNBUFFERED='1')
         monkeypatch.setenv('HERMES_HOME', str(home))
         monkeypatch.setattr(Path, 'home', lambda: user)
+        from hermes_cli.db_profile_schema import initialize_new_profile_storage
+        initialize_new_profile_storage(home)
         with daemon(root, home, env, barrier=False):
             from cron.scheduler_delivery import _deliver_to_bot_chat
             job = {'id': 'digest', 'name': 'Digest', 'execution_id': 'run-1'}

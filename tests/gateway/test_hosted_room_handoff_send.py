@@ -79,6 +79,7 @@ def test_a_room_handed_to_the_gateway_takes_sends_and_wakes_its_members(tmp_path
     local = hosted_rooms.local_authority_gateway_id()
     hosted_rooms.create_room(source, room_id="room-desk", name="Desk", members=MEMBERS,
                              authority_gateway_id=local)
+    hosted_rooms._initialize_connection(target).close()
     assert import_standalone_rooms(target) == 1
     # The stores every room the shipped import handed over is in (#145960's report): nothing to migrate.
     assert _authority(source, "room-desk") == (handoff_gateway_id(), 2)

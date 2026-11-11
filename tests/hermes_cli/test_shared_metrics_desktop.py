@@ -23,7 +23,7 @@ TODAY = "2026-09-27"
 
 
 @pytest.fixture
-def marks(tmp_path, monkeypatch):
+def uninitialized_marks(tmp_path, monkeypatch):
     captured: list[tuple[str, dict]] = []
     policy = {"on": True}
     home = tmp_path / "home"
@@ -104,8 +104,8 @@ def test_turning_collection_off_drops_the_onboarding_latches(marks):
     assert not latches.exists()
 
 
-def test_disabled_profile_records_nothing_and_leaves_no_latch(marks):
-    marks.policy["on"] = False
+def test_disabled_profile_records_nothing_and_leaves_no_latch(uninitialized_marks):
+    uninitialized_marks.policy["on"] = False
     _rpc("shared_metrics.desktop_feature_use", area="projects")
     _rpc("shared_metrics.desktop_friction", kind="renderer_crash", detail="crash")
     _rpc("shared_metrics.desktop_onboarding", step="consent", event="completed")
@@ -114,11 +114,12 @@ def test_disabled_profile_records_nothing_and_leaves_no_latch(marks):
                  modes=[{"mode": "sessions", "active_ms": 60_000, "messages_sent": 3}])
 
     assert daily["result"] == {"recorded": False}  # never "settled" into another profile's off switch
-    assert marks.rows == []
+    assert uninitialized_marks.rows == []
     assert desktop._daily == {}
-    assert not (marks.home / "telemetry").exists()
+    assert not (uninitialized_marks.home / "telemetry").exists()
 
-    marks.policy["on"] = True  # the earlier calls claimed nothing, so opting in later still counts
+    SharedMetricsStore.create(profile_home=uninitialized_marks.home)
+    uninitialized_marks.policy["on"] = True  # the earlier calls claimed nothing, so opting in later still counts
     _rpc("shared_metrics.desktop_feature_use", area="projects")
     assert [dims["area"] for _, dims, _ in _stored(contract.DESKTOP_FEATURE_USE_METRIC)] == ["projects"]
 
@@ -214,3 +215,9 @@ def test_v3_schema_accepts_exactly_the_desktop_contract_values():
         dims = by_name[metric]["properties"]["dimensions"]["properties"]
         assert {f: set(spec["enum"]) for f, spec in dims.items() if "enum" in spec} == {
             f: set(values) for f, values in contract._COUNTER_DIMENSION_VALUES[metric].items()}
+
+
+@pytest.fixture
+def marks(uninitialized_marks):
+    SharedMetricsStore.create(profile_home=uninitialized_marks.home)
+    return uninitialized_marks

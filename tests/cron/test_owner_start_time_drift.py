@@ -20,6 +20,7 @@ def _ledger(monkeypatch, tmp_path):
     import gateway.status
 
     monkeypatch.setattr(executions_mod, "EXECUTIONS_FILE", tmp_path / "cron" / "executions.db")
+    executions_mod.initialize()
     # The owner process exists for every row in this module; only the fingerprint decides.
     monkeypatch.setattr(gateway.status, "_pid_exists", lambda pid: True)
 

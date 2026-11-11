@@ -62,6 +62,31 @@ _SCHEMA_DDL = (
        WHERE kind='message.user'""",
 )
 
+_ROUTER_CLAIMS_DDL = """CREATE TABLE IF NOT EXISTS hosted_room_router_claims (
+    room_id TEXT NOT NULL, discussion_event_id TEXT NOT NULL, owner TEXT NOT NULL, expires_at REAL NOT NULL,
+    PRIMARY KEY(room_id, discussion_event_id))"""
+
+def initialize_schema(conn: sqlite3.Connection) -> None:
+    for ddl in _SCHEMA_DDL:
+        conn.execute(ddl)
+    conn.execute(_ROUTER_CLAIMS_DDL)
+
+
+def _schema_ready(conn: sqlite3.Connection) -> bool:
+    tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    return {
+        "hosted_room_policy_capacity",
+        "hosted_room_policy_cursors",
+        "hosted_room_policy_threads",
+        "hosted_room_policy_events",
+        "hosted_room_policy_watermarks",
+        "hosted_room_policy_publications",
+        "hosted_room_policy_transcript",
+        "hosted_room_policy_transcript_state",
+        "hosted_room_router_claims",
+    } <= tables
+
+
 _ROOM_EVENT_COLUMNS = hosted_rooms._EVENT_COLUMNS
 _DELETE_ACTIVE_EVENTS_SQL = ("DELETE FROM hosted_room_policy_events WHERE room_id=? AND discussion_event_id=?")
 _TRANSCRIPT_EVENTS_SQL = f"""WITH transcript_events(seq) AS (
@@ -117,8 +142,6 @@ class HostedRoomPolicyCheckpoint:
         # LIMIT also reads one overflow sentinel; keep its parameter inside SQLite's integer range.
         capacity = min(2**63 - 2, max(MAX_ACTIVE_POLICY_EVENTS, max_active_events))
         with self._transaction() as conn:
-            for ddl in _SCHEMA_DDL:
-                conn.execute(ddl)
             # Preserve replay capacity across restarts with a lower scheduling budget.
             conn.execute("""INSERT INTO hosted_room_policy_capacity(singleton, max_active_events)
                 VALUES (1, ?) ON CONFLICT(singleton) DO UPDATE SET
@@ -132,9 +155,12 @@ class HostedRoomPolicyCheckpoint:
         from hermes_db.domains.rooms.api import assert_sqlite_location
         assert_sqlite_location(self.db_path)
         # Late import: a gateway that outlives an on-disk upgrade has the OLD sqlite_util cached.
-        from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
+        from hermes_cli.db_sqlite_policy import open_ready_profile_sqlite
 
-        return open_db(self.db_path, db_label="shared-state.db (room policy checkpoint)", busy_timeout_ms=10_000)
+        return open_ready_profile_sqlite(
+            self.db_path, db_label="shared-state.db (room policy checkpoint)", busy_timeout_ms=10_000,
+            ready=_schema_ready,
+        )
 
     def _transaction(self):
         from hermes_db.infra.backends.sqlite.transactions import transaction

@@ -19,7 +19,7 @@ import threading
 import time
 from dataclasses import dataclass
 from dataclasses import field
-from hermes_cli.kanban_sqlite_schema import SCHEMA_SQL
+from hermes_cli.kanban_sqlite_schema import SCHEMA_SQL, DECLARED_COLUMNS
 from agent.deadline import poll_until
 from hermes_db.infra.backends.sqlite.schema import add_column_if_missing as _add_column_if_missing
 from pathlib import Path
@@ -58,6 +58,14 @@ def _resolve_busy_timeout_ms() -> int:
 
 
 def _sqlite_connect(path: Path) -> sqlite3.Connection:
+    return _tracked_connection(path, path)
+
+
+def _sqlite_connect_existing(path: Path) -> sqlite3.Connection:
+    return _tracked_connection(path.resolve().as_uri() + "?mode=rw", path, uri=True)
+
+
+def _tracked_connection(location, tracking_path: Path, **options) -> sqlite3.Connection:
     """Open a Kanban SQLite connection via ``connect_tracked``: while registered,
     byte-level probes of the file are refused because an ``open()``/``close()``
     would cancel this process's POSIX advisory locks (see ``sqlite_safe_read``)."""
@@ -65,10 +73,12 @@ def _sqlite_connect(path: Path) -> sqlite3.Connection:
 
     busy_timeout_ms = _resolve_busy_timeout_ms()
     conn = connect_tracked(
-        path,
+        location,
+        tracking_path=tracking_path,
         connect_fn=sqlite3.connect,
         isolation_level=None,
         timeout=busy_timeout_ms / 1000.0,
+        **options,
     )
     try:
         # Explicit PRAGMA (besides connect(timeout=)) so it is observable and
@@ -505,6 +515,17 @@ def _probe_for_corruption(resolved: Path) -> tuple[Optional[list[str]], Optional
     return messages, f"integrity_check returned {messages[0] if messages else '<no row>'!r}"
 
 
+def _check_existing_db_health(path: Path) -> None:
+    """Preserve corruption refusal and backups while leaving repair to the explicit lifecycle."""
+    resolved = path.resolve()
+    if _missing_or_empty(resolved) or str(resolved) in _INITIALIZED_PATHS:
+        return
+    _messages, reason = _probe_for_corruption(resolved)
+    if reason is not None:
+        backup = _backup_corrupt_db(resolved)
+        raise KanbanDbCorruptError(resolved, backup, reason)
+
+
 def _guard_existing_db_is_healthy(path: Path) -> None:
     """Run ``PRAGMA integrity_check`` on an existing non-empty DB file.
 
@@ -623,7 +644,7 @@ def _schema_is_present(conn: sqlite3.Connection) -> bool:
     """Whether an open connection actually sees the kanban schema. ``tasks`` is
     the sentinel (SCHEMA_SQL always creates it; SQLite loses tables
     all-or-nothing), so one ``sqlite_master`` lookup on the resident page 1
-    suffices — cheap by design, it runs on every steady-state connect()."""
+    suffices for the descendant read-only connection guard."""
     try:
         row = conn.execute(
             "SELECT 1 FROM sqlite_master WHERE type='table' AND name='tasks' LIMIT 1"
@@ -635,13 +656,20 @@ def _schema_is_present(conn: sqlite3.Connection) -> bool:
     return row is not None
 
 
-def _open_configured(path: Path, under_lock) -> tuple[sqlite3.Connection, Any]:
+def _schema_ready(conn: sqlite3.Connection) -> bool:
+    for table, names in DECLARED_COLUMNS.items():
+        if not set(names.split()) <= _column_names(conn, table):
+            return False
+    return not any(_table_has_drifted(conn, table) for table in _REBUILD_SPECS)
+
+
+def _open_configured(path: Path, under_lock, open_connection) -> tuple[sqlite3.Connection, Any]:
     """Open ``path`` with the kanban PRAGMA set, then run ``under_lock(conn)``.
     WAL activation and ``under_lock`` share the ``_INIT_LOCK`` critical section:
     WAL setup can take an exclusive lock while SQLite creates sidecars for a
     fresh DB, and concurrent gateway startup threads must not race before
     ``_INITIALIZED_PATHS`` is populated. Closed if anything raises."""
-    conn = _sqlite_connect(path)
+    conn = open_connection(path)
     try:
         conn.row_factory = sqlite3.Row
         conn.text_factory = _kb._lossy_text
@@ -718,13 +746,17 @@ def _refuse_dead_board_resurrection(path: Path, board: Optional[str]) -> None:
         raise ValueError(f"kanban board {slug!r} does not exist; create it with `hermes kanban boards create {slug}`")
 
 
+def _open_checked_existing(path: Path):
+    if str(path.resolve()) in _INITIALIZED_PATHS:
+        return _open_configured(path, _schema_ready, _sqlite_connect_existing)
+    with _cross_process_init_lock(path):
+        _validate_sqlite_header(path)
+        _check_existing_db_health(path)
+        return _open_configured(path, _schema_ready, _sqlite_connect_existing)
+
+
 def connect(db_path: Optional[Path] = None, *, board: Optional[str] = None) -> sqlite3.Connection:
-    """Open (and initialize if needed) the kanban DB. WAL is (re)enabled on
-    every connection so a re-created file stays robust; the first connection
-    per path auto-runs :func:`init_db`, later ones skip via
-    ``_INITIALIZED_PATHS``. Path: explicit ``db_path``, else ``board``, else
-    :func:`kanban_db_path` (``HERMES_KANBAN_DB`` -> ``HERMES_KANBAN_BOARD`` ->
-    ``<root>/kanban/current`` -> ``default``)."""
+    """Open an initialized board with its established WAL and file-generation policy."""
     from hermes_db.integration.kanban_worker import connect_worker_board
     worker = connect_worker_board(db_path, board=board)
     if worker is not None:
@@ -745,55 +777,18 @@ def connect(db_path: Optional[Path] = None, *, board: Optional[str] = None) -> s
             conn.close()
             raise PermissionError("Kanban descendants require an initialized board; ask its owner to initialize it")
         return conn
+    from hermes_db.errors import StorageSchemaError
+
     _refuse_dead_board_resurrection(path, board)
-    path.parent.mkdir(parents=True, exist_ok=True)
-
-    # Fast path: once THIS process has initialized this path, skip the
-    # cross-process init lock. Taking it on every connect let a single stalled
-    # holder (e.g. an external `hermes kanban list` mid-integrity-probe) block
-    # the gateway dispatcher's next-tick connect() forever, and steady-state has
-    # nothing for it to protect (no schema/migration writes).
-    resolved = str(path.resolve())
-    if resolved in _INITIALIZED_PATHS:
-        conn, schema_present = _open_configured(path, _schema_is_present)
-        if schema_present:
-            return conn
-        # Cache says "initialized", file says otherwise: it was deleted or
-        # replaced under a live process and the open silently recreated an empty
-        # DB. Left alone, every query fails with "no such table: tasks" for the
-        # rest of the process's life. Drop the stale entry and re-init.
+    if not path.is_file():
+        raise StorageSchemaError("Kanban store is missing. Run `hermes kanban init` or create the board explicitly.")
+    from hermes_state import preflight_db_writability
+    preflight_db_writability(path, db_label=f"kanban.db ({path.name})")
+    conn, ready = _open_checked_existing(path)
+    if not ready:
         conn.close()
-        with _INIT_LOCK:
-            # Drop the stale cache entry and fall through to the full init path, which re-runs the header
-            # and integrity probes and the schema script under the cross-process lock. See #83445.
-            _INITIALIZED_PATHS.discard(resolved)
-        _kb._log.warning(
-            "kanban DB %s lost its schema after this process initialized it "
-            "(deleted or replaced externally); re-initializing.",
-            path,
-        )
-
-    with _cross_process_init_lock(path):
-        # Read-only file/sidecar preflight first, so a stray read-only kanban.db
-        # fails actionably instead of "attempt to write a readonly database".
-        # See #12508.
-        from hermes_state import preflight_db_writability
-        preflight_db_writability(path, db_label=f"kanban.db ({path.name})")
-        # Cheap byte-level header check before any sqlite connection, then the
-        # full integrity probe (cached per path via _INITIALIZED_PATHS).
-        _validate_sqlite_header(path)
-        _guard_existing_db_is_healthy(path)
-        resolved = str(path.resolve())
-
-        def _init_if_needed(conn: sqlite3.Connection) -> None:
-            # Idempotent; runs under _INIT_LOCK so same-process dispatcher
-            # threads can't race the ALTER TABLE pass with stale PRAGMA snapshots.
-            if resolved not in _INITIALIZED_PATHS:
-                conn.executescript(SCHEMA_SQL)
-                _migrate_add_optional_columns(conn)
-                _INITIALIZED_PATHS.add(resolved)
-
-        conn, _ = _open_configured(path, _init_if_needed)
+        raise StorageSchemaError("Kanban schema is behind. Run `hermes kanban init` or `hermes kanban repair`.")
+    _INITIALIZED_PATHS.add(str(path.resolve()))
     return conn
 
 
@@ -814,23 +809,50 @@ def connect_closing(db_path: Optional[Path] = None, *, board: Optional[str] = No
             conn.close()
 
 
-def init_db(db_path: Optional[Path] = None, *, board: Optional[str] = None) -> Path:
-    """Create the schema if it doesn't exist; return the path used. Unlike
-    :func:`connect`'s cached first-time auto-init, this always re-runs the
-    migration pass — callers that know the on-disk schema may have drifted
-    (tests writing legacy event kinds, external upgrades) use it to force it."""
+def initialize_new_board(db_path: Optional[Path] = None, *, board: Optional[str] = None) -> None:
+    """Prepare a missing native board for an explicit task-creation request."""
     from hermes_cli.db_setup import storage_backend
+
+    if storage_backend() == "sqlite":
+        path = db_path if db_path is not None else _kb.kanban_db_path(board=board)
+        if not path.exists():
+            init_db(path, board=board)
+
+
+def init_db(db_path: Optional[Path] = None, *, board: Optional[str] = None) -> Path:
+    """Explicitly create or upgrade a board with the existing initialization lock order."""
+    from hermes_cli.db_setup import storage_backend
+
     if storage_backend() == "postgresql":
         with connect(board=board) as resource:
             return f"postgresql:{resource.scope.require_store_id()}/{resource.board_id}"
     path = db_path if db_path is not None else _kb.kanban_db_path(board=board)
     _refuse_dead_board_resurrection(path, board)
     path.parent.mkdir(parents=True, exist_ok=True)
-    # Clear the cache entry so connect() re-runs schema + migrations.
     with _INIT_LOCK:
         _INITIALIZED_PATHS.discard(str(path.resolve()))
-    with contextlib.closing(connect(path)):
-        pass
+    with _cross_process_init_lock(path):
+        # Read-only file/sidecar preflight first, so a stray read-only kanban.db
+        # fails actionably instead of "attempt to write a readonly database".
+        # See #12508.
+        from hermes_state import preflight_db_writability
+        preflight_db_writability(path, db_label=f"kanban.db ({path.name})")
+        # Cheap byte-level header check before any sqlite connection, then the
+        # full integrity probe (cached per path via _INITIALIZED_PATHS).
+        _validate_sqlite_header(path)
+        _guard_existing_db_is_healthy(path)
+        resolved = str(path.resolve())
+
+        def _init_if_needed(conn: sqlite3.Connection) -> None:
+            # Idempotent; runs under _INIT_LOCK so same-process dispatcher
+            # threads can't race the ALTER TABLE pass with stale PRAGMA snapshots.
+            if resolved not in _INITIALIZED_PATHS:
+                conn.executescript(SCHEMA_SQL)
+                _migrate_add_optional_columns(conn)
+                _INITIALIZED_PATHS.add(resolved)
+
+        conn, _ = _open_configured(path, _init_if_needed, _sqlite_connect)
+    conn.close()
     return path
 
 

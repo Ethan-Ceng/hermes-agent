@@ -20,7 +20,7 @@ from functools import partial
 from typing import Any, Callable, Literal, get_args
 from hermes_db.domains.rooms.api import room_operation, assert_sqlite_location
 
-from gateway.hosted_rooms_common import DbPath, connect, fenced_update, table_columns, transaction
+from gateway.hosted_rooms_common import DbPath, fenced_update, table_columns, transaction
 from hermes_db.domains.rooms.rules import bounded_int, canonical_json, compact_json, identifier, text
 
 TerminalStatus = Literal["settled", "failed"]
@@ -177,28 +177,41 @@ def _migrate_task_status_constraint(conn: sqlite3.Connection) -> None:
     conn.execute(_TASK_INDEX_SQL.format(if_not_exists=""))
 
 
+def _schema_ready(conn: sqlite3.Connection) -> bool:
+    tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    if {"hosted_room_driver_leases", "hosted_room_driver_tasks"} <= tables:
+        _validate_schema(conn)
+    if not _schema_objects_exist(conn):
+        return False
+    row = conn.execute(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name='hosted_room_driver_tasks'").fetchone()
+    sql = str(row[0] or "").lower() if row else ""
+    return "'stopping'" in sql and "'deferred'" in sql
+
+
+def initialize(conn: sqlite3.Connection) -> None:
+    """Run the existing task constraint migration under the caller's explicit initialization transaction."""
+    if _schema_objects_exist(conn):
+        if not _schema_ready(conn):
+            _migrate_task_status_constraint(conn)
+        _validate_schema(conn)
+    else:
+        _initialize_schema(conn)
+
+
 def _connect(db_path: DbPath) -> sqlite3.Connection:
-    """Open the store; existing tables are validated (after the status-constraint migration when needed).
-    The driver schema never shipped, so an incompatible draft fails closed in ``_validate_schema``."""
+    from hermes_cli.db_sqlite_policy import open_ready_profile_sqlite
+
     assert_sqlite_location(db_path)
-    existing: list[bool] = []
-    def ready(conn: sqlite3.Connection) -> bool:
-        existing.append(_schema_objects_exist(conn))
-        if not existing[0]:
-            return False
-        row = conn.execute(
-            "SELECT sql FROM sqlite_master WHERE type='table' AND name='hosted_room_driver_tasks'").fetchone()
-        sql = str(row[0] or "").lower() if row else ""
-        return "'stopping'" in sql and "'deferred'" in sql  # task-status CHECK already covers the current states
-    conn = connect(
-        db_path, db_label="state.db (hosted_room_driver)", ready=ready,
-        initialize=lambda conn: (_migrate_task_status_constraint if existing[0] else _initialize_schema)(conn))
-    if existing[0]:
-        try:
-            _validate_schema(conn)
-        except Exception:
-            conn.close()
-            raise
+    conn = open_ready_profile_sqlite(
+        db_path, db_label="state.db (hosted_room_driver)", ready=_schema_ready,
+        busy_timeout_ms=10_000, foreign_keys=True,
+    )
+    try:
+        _validate_schema(conn)
+    except BaseException:
+        conn.close()
+        raise
     return conn
 
 

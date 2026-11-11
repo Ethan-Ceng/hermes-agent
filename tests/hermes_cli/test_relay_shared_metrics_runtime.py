@@ -15,256 +15,9 @@ import pytest
 from hermes_cli import lifecycle, plugins
 from agent import relay_runtime
 from hermes_cli.observability import relay_shared_metrics
-from hermes_cli.plugins import PluginManager
-
-
-class _Request:
-    def __init__(self, headers: dict[str, Any], content: dict[str, Any]) -> None:
-        self.headers = headers
-        self.content = content
-
-
-class _ToolExecutionResult:
-    def __init__(self, result: Any, annotation: Any = None) -> None:
-        self.result = result
-        self.annotation = annotation
-
-
-class _Relay:
-    def __init__(self) -> None:
-        self.events: list[tuple[Any, ...]] = []
-        self._callbacks: dict[str, Any] = {}
-        self._starts: dict[Any, dict[str, Any]] = {}
-        self._tool_starts: dict[Any, dict[str, Any]] = {}
-        self._scope_starts: dict[Any, dict[str, Any]] = {}
-        self._scope = contextvars.ContextVar("relay_scope", default=None)
-        self._scope_stack = contextvars.ContextVar("relay_scope_stack", default=None)
-        self._scope_serial = 0
-        self.ScopeType = SimpleNamespace(
-            Agent="agent", Function="function", Tool="tool"
-        )
-        self.LLMRequest = _Request
-        self.ToolExecutionResult = _ToolExecutionResult
-        self.scope = SimpleNamespace(
-            push=self._scope_push,
-            pop=self._scope_pop,
-            event=self._scope_event,
-        )
-        self.llm = SimpleNamespace(call=self._llm_call, call_end=self._llm_call_end)
-        self.tools = SimpleNamespace(call=self._tool_call, call_end=self._tool_call_end)
-        self.subscribers = SimpleNamespace(
-            register=self._register,
-            deregister=self._deregister,
-            flush=self._flush,
-        )
-        self.get_scope_stack = self._get_scope_stack
-
-    def _scope_push(self, name: str, scope_type: Any, **kwargs: Any) -> Any:
-        self._scope_serial += 1
-        handle = ("scope", name, self._scope_serial)
-        stack = self._scope_stack.get()
-        if stack is None:
-            stack = []
-            self._scope_stack.set(stack)
-        stack.append(handle)
-        self._scope.set(handle)
-        self.events.append(("scope.push", name, scope_type, kwargs))
-        if scope_type == self.ScopeType.Function:
-            self._scope_starts[handle] = kwargs
-            event = SimpleNamespace(
-                kind="scope",
-                category="function",
-                name=name,
-                scope_category="start",
-                category_profile=None,
-                metadata=kwargs.get("metadata"),
-                data=kwargs.get("input"),
-            )
-            for callback in list(self._callbacks.values()):
-                callback(event)
-        return handle
-
-    def _scope_pop(self, handle: Any, **kwargs: Any) -> None:
-        stack = self._scope_stack.get()
-        if not stack or stack[-1] != handle:
-            current = stack[-1] if stack else None
-            self.events.append(("scope.pop.rejected", handle, current))
-            raise RuntimeError("scope handle is not at the top of the stack")
-        stack.pop()
-        self._scope.set(stack[-1] if stack else None)
-        self.events.append(("scope.pop", handle, kwargs))
-        start = self._scope_starts.pop(handle, None)
-        if start is not None:
-            event = SimpleNamespace(
-                kind="scope",
-                category="function",
-                name=handle[1],
-                scope_category="end",
-                category_profile=None,
-                metadata={
-                    **(start.get("metadata") or {}),
-                    **(kwargs.get("metadata") or {}),
-                },
-                data=kwargs.get("output"),
-            )
-            for callback in list(self._callbacks.values()):
-                callback(event)
-
-    def _scope_event(self, name: str, **kwargs: Any) -> None:
-        self.events.append(("scope.event", name, kwargs))
-        event = SimpleNamespace(
-            kind="mark",
-            category=None,
-            name=name,
-            scope_category=None,
-            category_profile=None,
-            metadata=kwargs.get("metadata"),
-            data=kwargs.get("data"),
-        )
-        for callback in list(self._callbacks.values()):
-            callback(event)
-
-    def _get_scope_stack(self) -> Any:
-        stack = self._scope_stack.get()
-        current = stack[-1] if stack else None
-        self._scope.set(current)
-        self.events.append(("scope.sync", current))
-        return current
-
-    def _llm_call(
-        self,
-        name: str,
-        request: _Request,
-        **kwargs: Any,
-    ) -> Any:
-        handle = ("llm", name, len(self._starts))
-        self._starts[handle] = kwargs
-        self.events.append(("llm.call", name, request.content, kwargs))
-        return handle
-
-    def _llm_call_end(
-        self,
-        handle: Any,
-        response: dict[str, Any],
-        **kwargs: Any,
-    ) -> None:
-        start = self._starts.pop(handle)
-        self.events.append(("llm.call_end", handle, response, kwargs))
-        event = SimpleNamespace(
-            kind="scope",
-            category="llm",
-            name=handle[1],
-            scope_category="end",
-            category_profile={"model_name": start["model_name"]},
-            metadata={
-                **start["metadata"],
-                **kwargs["metadata"],
-                "otel.status_code": "OK",
-            },
-            data=response,
-        )
-        for callback in list(self._callbacks.values()):
-            callback(event)
-
-    def _tool_call(
-        self,
-        name: str,
-        args: dict[str, Any],
-        **kwargs: Any,
-    ) -> Any:
-        handle = ("tool", name, len(self._tool_starts))
-        self._tool_starts[handle] = kwargs
-        self.events.append(("tool.call", name, args, kwargs))
-        return handle
-
-    def _tool_call_end(
-        self,
-        handle: Any,
-        result: _ToolExecutionResult,
-        **kwargs: Any,
-    ) -> None:
-        assert isinstance(result, _ToolExecutionResult)
-        payload = result.result
-        start = self._tool_starts.pop(handle)
-        self.events.append(("tool.call_end", handle, payload, kwargs))
-        event = SimpleNamespace(
-            kind="scope",
-            category="tool",
-            name=handle[1],
-            scope_category="end",
-            category_profile={},
-            metadata={
-                **start["metadata"],
-                **kwargs["metadata"],
-                "otel.status_code": "OK",
-            },
-            data=payload,
-        )
-        for callback in list(self._callbacks.values()):
-            callback(event)
-
-    def _register(self, name: str, callback: Any) -> None:
-        self._callbacks[name] = callback
-        self.events.append(("subscribers.register", name))
-
-    def _deregister(self, name: str) -> None:
-        self._callbacks.pop(name, None)
-        self.events.append(("subscribers.deregister", name))
-
-    def _flush(self) -> None:
-        self.events.append(("subscribers.flush",))
-
-
-_EXPORT_WORKER = "hermes-shared-metrics-flush"
-
-
-def _join_export_workers() -> None:
-    """Task/session exports run on a background worker; wait for it before reading the store."""
-    while workers := [t for t in threading.enumerate() if t.name == _EXPORT_WORKER]:
-        for worker in workers:
-            worker.join(timeout=10)
-            assert not worker.is_alive()
-
-
-@pytest.fixture
-def direct_runtime(tmp_path, monkeypatch):
-    fake = _Relay()
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
-    monkeypatch.setattr(relay_runtime, "_load_nemo_relay", lambda: fake)
-    monkeypatch.setattr(
-        "hermes_cli.config.read_raw_config_readonly",
-        lambda: {"telemetry": {"shared_metrics": {"enabled": True}}},
-    )
-    relay_shared_metrics._reset_for_tests()
-    relay_runtime._reset_for_tests()
-    _mgr = PluginManager()
-    # Pin as discovered: hook queries lazy-discover plugins (#64178), and
-    # this test's contract is a runtime with ZERO plugins loaded.
-    _mgr._discovered = True
-    monkeypatch.setattr(plugins, "_plugin_manager", _mgr)
-    yield fake
-    relay_shared_metrics._reset_for_tests()
-    relay_runtime._reset_for_tests()
-
-
-@pytest.fixture
-def real_binding_runtime(tmp_path, monkeypatch):
-    relay = pytest.importorskip("nemo_relay")
-    if getattr(relay, "_native", None) is None:
-        pytest.skip("NeMo Relay native binding is unavailable on this platform")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
-    monkeypatch.setattr(
-        "hermes_cli.config.read_raw_config_readonly",
-        lambda: {"telemetry": {"shared_metrics": {"enabled": True}}},
-    )
-    relay_shared_metrics._reset_for_tests()
-    relay_runtime._reset_for_tests()
-    _mgr = PluginManager()
-    _mgr._discovered = True  # see direct_runtime fixture (#64178)
-    monkeypatch.setattr(plugins, "_plugin_manager", _mgr)
-    yield relay
-    relay_shared_metrics._reset_for_tests()
-    relay_runtime._reset_for_tests()
+from tests.hermes_cli.metrics_runtime_fixtures import (
+    _Relay, _join_export_workers,
+)
 
 
 def test_direct_runtime_records_without_enabling_a_plugin(direct_runtime, tmp_path):
@@ -1273,6 +1026,7 @@ def test_disabling_shared_metrics_stops_collection_and_shutdown_export(
     fake = _Relay()
     profile = tmp_path / "profile"
     policy = {"enabled": True}
+    SharedMetricsStore.create(profile_home=profile)
     monkeypatch.setenv("HERMES_HOME", str(profile))
     monkeypatch.setattr(relay_runtime, "_load_nemo_relay", lambda: fake)
     monkeypatch.setattr(
@@ -2576,6 +2330,8 @@ def test_background_flush_runs_under_the_finishing_turns_profile(
         lambda self: seen.append(get_hermes_home()),
     )
     profile_home = tmp_path / "other-profile"
+    from hermes_cli.observability.shared_metrics import SharedMetricsStore
+    SharedMetricsStore.create(profile_home=profile_home)
     token = set_hermes_home_override(profile_home)
     try:
         _finish_desktop_task("s1", "t1")
@@ -2944,7 +2700,7 @@ def test_milestone_install_age_is_the_subscriber_profile_not_the_relay_thread(tm
     monkeypatch.setenv("HERMES_HOME", str(launch))
     token = set_hermes_home_override(str(other))
     try:
-        subscriber = SharedMetricsSubscriber(SharedMetricsStore(), "1.0")
+        subscriber = SharedMetricsSubscriber(SharedMetricsStore.create(), "1.0")
     finally:
         reset_hermes_home_override(token)
     subscriber._record_milestones("hermes.setup.completed", {"provider": "nous", "surface": "cli"})

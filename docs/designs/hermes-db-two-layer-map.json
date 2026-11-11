@@ -65,7 +65,7 @@
     {
       "id": 7,
       "title": "建立SQLite会话显式生命周期和普通打开",
-      "status": "in_progress",
+      "status": "completed",
       "dependencies": [
         4,
         5,
@@ -75,7 +75,7 @@
     {
       "id": 8,
       "title": "闭合其他SQLite领域的首次创建与无DDL打开",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         7
       ]
@@ -272,6 +272,24 @@
       "path": "tests/tui_gateway/test_remote_cwd_shape.py",
       "task": 4,
       "layer": "test"
+    },
+    {
+      "path": "cron/storage_lifecycle.py",
+      "task": 8,
+      "layer": "application",
+      "status": "completed"
+    },
+    {
+      "path": "hermes_cli/db_profile_schema.py",
+      "task": 8,
+      "layer": "application",
+      "status": "completed"
+    },
+    {
+      "path": "hermes_cli/config_choices.py",
+      "task": 8,
+      "layer": "application",
+      "status": "completed"
     }
   ],
   "new_behavior_tests": [
@@ -348,6 +366,17 @@
       "task": 4,
       "contract": "Separate process rejects application/PG imports, reads real SQLite data through the concrete resource and closes in-flight readers on return after shutdown.",
       "status": "in_progress"
+    },
+    {
+      "path": "tests/hermes_db/contracts/test_sqlite_domain_lifecycle.py",
+      "task": 8,
+      "status": "completed",
+      "contract": "Real explicit lifecycle, zero-DDL ordinary operations, interrupted creation publication refusal, component-owned readiness, explicit corruption repair and real RoomLink invitation first-create/repeat trace.",
+      "actual_files": [
+        "tests/hermes_db/contracts/test_sqlite_domain_lifecycle.py",
+        "tests/hermes_cli/test_kanban_open_lifecycle.py",
+        "tests/gateway/test_session_group_peers.py"
+      ]
     }
   ],
   "fixed_anchors": {
@@ -1224,7 +1253,7 @@
     "external_sources": [
       {
         "path": "hermes-db-two-layer-map/sources-native.json",
-        "sha256": "a7e13659e5ce630a863256617234a81d0871904cf17990727247bf18adaffb49",
+        "sha256": "329e0294cdff2f12e01d0ec5f848d237965a39ed15a5e4d35057dd2cccf8ce49",
         "items": 141
       }
     ],
@@ -1440,5 +1469,27 @@
     "dashboard_contract": "Old Dashboard read/startup DDL is removed. Views report 503 with the explicit upgrade or doctor remedy. Historical transaction, integrity, lock authority and data preservation assertions now exercise the explicit operation. Gateway lock purpose remains the established cross-version record.",
     "consumer_closure": "Keep normal close, failure, retry, plugin background scan, roster and mixed backend assertions. Move fault injection to the actual open_existing method. Temporary databases are explicitly initialized in their test setup; the PG-only test children still reject any SQLite connection."
   },
-  "task7_evidence": "docs/designs/hermes-db-two-layer-task7.json"
+  "task7_evidence": "docs/designs/hermes-db-two-layer-task7.json",
+  "task7_commit": "3daa6acb55ed518939cc7f023d7708141779fa9e",
+  "task8_adjustment": {
+    "status": "completed",
+    "mapping_scope": "20 mapped source files, 106 candidate inventory entries. Count actual stores and lifecycle consumers, including app tests and config-selected native-only paths.",
+    "actual_work": "Introduced mode=rw technical and Profile-policy open entries. Added explicit Cron job publication and Profile creation/upgrade owners. Projects uses named creation/setup. Main Rooms explicit create initializes native component schema; ordinary callbacks validate. Kanban original init locks/migrations now belong to init_db. Metrics uses explicit create and ready-only ordinary constructor. Gateway handoff/router Schema stays with business owners and file authorization operations stay at the original application owner.",
+    "expanded_failures": "All diagnostic failures retained in the plan and Task8 evidence. No required scope removed.",
+    "extra_consumers": [
+      "hermes_cli/db_profile_schema.py",
+      "cron/storage_lifecycle.py",
+      "hermes_cli/observability/shared_metrics.py",
+      "tui_gateway/hosted_room_router_call.py",
+      "tui_gateway/methods_groups.py",
+      "tui_gateway/methods_projects.py",
+      "tools/project_tools.py",
+      "tools/kanban_tools.py",
+      "gateway/platforms/api_server_room_grants.py"
+    ],
+    "api_scope": "First RoomLink invitation is explicit Room-domain creation in Task8. Dedicated Response/Run auxiliary stores retain their existing Task15 primary mapping and require the planned SDK/OwnedApiStore lifecycle closure there.",
+    "final_validation": "Windows434 union3894pass/99skip. Linux188 full1766pass/2skip. Latest eight-file contracts both22pass. All exit0. Static16, boundaries, generated contracts and whitespace exit0.",
+    "source_hash": "d9cb72035a92b75455ec56de1fadab398c22d5d612f6d8a47a2d9d603e85c912"
+  },
+  "task8_evidence": "docs/designs/hermes-db-two-layer-task8.json"
 }

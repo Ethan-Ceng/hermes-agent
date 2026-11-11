@@ -14,10 +14,7 @@ from hermes_cli.observability import relay_shared_metrics
 from hermes_cli.observability import shared_metrics_contract as contract
 from hermes_cli.observability import shared_metrics_efficiency as eff
 from hermes_cli.observability.shared_metrics_model import record_model_friction
-from tests.hermes_cli.test_relay_shared_metrics_runtime import (
-    _stored_values,
-    direct_runtime,
-)
+from tests.hermes_cli.test_relay_shared_metrics_runtime import _stored_values
 
 
 def _flush() -> None:
@@ -213,7 +210,7 @@ def test_prompt_rebuild_names_a_model_switch_apart_from_other_rebuilds(monkeypat
     assert causes == ["model_switch", "system_prompt_rebuild", "system_prompt_rebuild"]
 
 
-def test_nothing_is_recorded_while_disabled(direct_runtime, tmp_path, monkeypatch):
+def test_nothing_is_recorded_while_disabled(uninitialized_runtime, tmp_path, monkeypatch):
     monkeypatch.setattr("hermes_cli.config.read_raw_config_readonly", dict)
     agent = _agent()
     eff.note_tool_result(agent, "terminal", "c1", "x" * 10, "x" * 10)

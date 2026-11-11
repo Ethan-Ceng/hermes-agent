@@ -6,6 +6,7 @@ import stat
 import pytest
 from concurrent.futures import ThreadPoolExecutor
 
+from gateway import hosted_rooms
 from gateway.hosted_room_links import (
     load_room_links,
     make_stored_link,
@@ -26,6 +27,7 @@ def _catalog(installation="install-peer"):
 
 def test_room_link_store_is_private_transactional_and_upserted(tmp_path):
     path = tmp_path / "state.db"
+    hosted_rooms._initialize_connection(path).close()
     first = make_stored_link(
         room_id="room-1",
         member_id="member-1",
@@ -56,6 +58,7 @@ def test_room_link_store_is_private_transactional_and_upserted(tmp_path):
 @pytest.mark.platforms("posix")
 def test_room_link_store_has_owner_only_mode(tmp_path):
     path = tmp_path / "state.db"
+    hosted_rooms._initialize_connection(path).close()
     save_room_link(path, make_stored_link(
         room_id="room", member_id="member", target_url="https://peer.example.test",
         target_profile="default", grant="grant", catalog=_catalog(),
@@ -66,6 +69,7 @@ def test_room_link_store_has_owner_only_mode(tmp_path):
 
 def test_room_link_store_keeps_distinct_room_member_routes(tmp_path):
     path = tmp_path / "state.db"
+    hosted_rooms._initialize_connection(path).close()
     for member in ("member-a", "member-b"):
         save_room_link(
             path,
@@ -88,6 +92,7 @@ def test_room_link_store_keeps_distinct_room_member_routes(tmp_path):
 
 def test_concurrent_room_link_registrations_do_not_lose_updates(tmp_path):
     path = tmp_path / "state.db"
+    hosted_rooms._initialize_connection(path).close()
 
     def store(index):
         save_room_link(

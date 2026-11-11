@@ -11,6 +11,8 @@ These tests cover the delivery half that now lives in tui_gateway/server.py:
 unsubscribe) and ``_format_kanban_event_text``.
 """
 
+import pytest
+
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -25,11 +27,20 @@ from tui_gateway.server import (
 SESSION_KEY = "tui-session-key-1"
 
 
+@pytest.fixture(autouse=True)
+def session_store():
+    from hermes_state import SessionDB
+    from tui_gateway.server import _launch_state_db_path
+
+    SessionDB(_launch_state_db_path()).close()
+
+
 def _session(key: str = SESSION_KEY) -> dict:
     return {"session_key": key}
 
 
 def _create_subscribed_task(*, chat_id: str = SESSION_KEY, platform: str = "tui"):
+    kbc.init_db()
     conn = kbc.connect()
     try:
         tid = kb.create_task(conn, title="notify tui", assignee="worker")
@@ -57,6 +68,7 @@ def _sub_rows(tid: str) -> list:
 
 class TestCollectKanbanNotifications:
     def test_zero_sub_board_is_never_opened_writable(self):
+        kbc.init_db()
         conn = kbc.connect()
         conn.close()
         kb.create_board("second-board")

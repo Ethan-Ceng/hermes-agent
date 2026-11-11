@@ -1,9 +1,13 @@
 """An in-gateway firer that gives up on a canonical run records its own attempt as given up."""
+import pytest
 from contextlib import asynccontextmanager
 import json
 
 from cron import executions, jobs, scheduler, scheduler_authority
 from hermes_cli import gateway_client
+
+
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
 
 
 def test_given_up_fire_leaves_its_attempt_recoverable_not_running(tmp_path, monkeypatch):

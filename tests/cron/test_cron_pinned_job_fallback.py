@@ -25,6 +25,9 @@ from cron.scheduler import _CronJobConfig, _resolve_job_runtime
 from hermes_cli.auth import AuthError
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 def _run_owned_job(job, tmp_path):
     """Run the job through the production owner bridge (cron turns execute inside the gateway
     owner, which lends its canonical store); returns run_job's ``(success, output, final,
@@ -35,6 +38,8 @@ def _run_owned_job(job, tmp_path):
 
     ref = SessionRef("test-profile", "cron-owner-session")
     admission_id = "cron-owner-admission"
+    from hermes_state import SessionDB
+    SessionDB(tmp_path / "state.db").close()
     db = acquire(tmp_path / "state.db")
     db.create_session(ref.session_id, source="cron")
     authority = SimpleNamespace(

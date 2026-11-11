@@ -119,6 +119,7 @@ def test_direct_prompt_to_peer_reserved_group_is_rejected_until_revoke(
         "target_profile": "reviewer",
         "issued_at": now,
     }
+    hosted_rooms._initialize_connection(hosted_rooms.default_db_path()).close()
     hosted_rooms.reserve_peer_room(
         hosted_rooms.default_db_path(),
         claims=claims,

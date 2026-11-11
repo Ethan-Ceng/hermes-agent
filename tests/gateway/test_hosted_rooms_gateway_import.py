@@ -15,6 +15,7 @@ def _stores(tmp_path: Path) -> tuple[Path, Path]:
     source, target = tmp_path / "shared-state.db", tmp_path / "state.db"
     with sqlite3.connect(target) as conn:  # the gateway's SessionDB table the owner claim lives in
         conn.execute("CREATE TABLE state_meta (key TEXT PRIMARY KEY, value TEXT)")
+    hosted_rooms._initialize_connection(target).close()
     return source, target
 
 
@@ -111,6 +112,7 @@ def test_gateway_startup_takes_over_the_standalone_rooms(tmp_path, monkeypatch):
     source = tmp_path / "shared-state.db"
     _standalone_room(source, "old-room")
     db = SessionDB(db_path=tmp_path / "state.db")
+    hosted_rooms._initialize_connection(db.db_path).close()
     try:
         authority = SimpleNamespace(db=db, epoch=begin_runtime_epoch(db, instance_id="first"),
                                     profile_id=str(tmp_path), runner=None)

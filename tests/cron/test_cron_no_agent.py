@@ -15,6 +15,9 @@ from __future__ import annotations
 import pytest
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture
 def hermes_env(tmp_path, monkeypatch):
     """Isolate HERMES_HOME for each test so jobs/scripts don't leak."""
@@ -292,6 +295,7 @@ def test_agent_job_provider_classification_unchanged(error, expected):
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.platforms("posix")
 def test_run_job_no_agent_uses_configured_interpreter(hermes_env):
     """A no-agent job's script must run through the configured interpreter.
 

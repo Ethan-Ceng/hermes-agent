@@ -47,6 +47,7 @@ class _TrackingConnection:
 
 def _point_ledger(monkeypatch, tmp_path):
     monkeypatch.setattr(dl, "_db_path", lambda: tmp_path / "state.db")
+    dl.initialize()
     return dl
 
 

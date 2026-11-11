@@ -17,6 +17,7 @@ from tui_gateway import server
 
 
 def _subscribed_task(chat_id: str) -> str:
+    kbc.init_db()
     conn = kbc.connect()
     try:
         tid = kb.create_task(conn, title="stray sub", assignee="worker")

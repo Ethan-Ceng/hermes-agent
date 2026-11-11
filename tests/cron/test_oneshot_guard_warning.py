@@ -23,6 +23,9 @@ from cron.jobs import (
     _hermes_now,
 )
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture()
 def temp_home(tmp_path, monkeypatch):
     """Redirect cron storage to a temp dir (same pattern as the sibling

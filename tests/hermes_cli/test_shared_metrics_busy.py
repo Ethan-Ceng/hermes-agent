@@ -159,6 +159,8 @@ def test_day_row_reports_each_profiles_peak_of_chats_running_at_once(tmp_path, m
     monkeypatch.setattr(busy, "_now", lambda: clock["now"])
     monkeypatch.setattr(engagement, "_now", lambda: clock["now"])
     a, b = tmp_path / "a", tmp_path / "b"
+    for home in (a, b):
+        SharedMetricsStore.create(profile_home=home)
     running: list[str] = []
     runner = SimpleNamespace(_active_work_count=lambda: len(running),
                              _running_agent_items=lambda: [(key, object()) for key in running])
@@ -312,6 +314,7 @@ def test_a_closing_day_keeps_a_peak_reached_just_before_midnight(tmp_path, monke
     monkeypatch.setattr(busy, "_now", lambda: clock["now"])
     monkeypatch.setattr(engagement, "_now", lambda: clock["now"])
     home = tmp_path / "a"
+    SharedMetricsStore.create(profile_home=home)
 
     def boundary(keys):
         token = set_hermes_home_override(str(home))
@@ -335,6 +338,8 @@ def test_a_closing_day_keeps_a_peak_reached_just_before_midnight(tmp_path, monke
 async def _real_runner(monkeypatch):
     """Real GatewayRunner busy dispatch, real DiscordAdapter, real authority over a real SessionDB;
     the drain is not scheduled, so a queued row waits until the test runs or cancels it."""
+    from hermes_state import SessionDB
+    SessionDB().close()
     from gateway.config import GatewayConfig, PlatformConfig
     from gateway.platforms.base import SendResult
     from gateway.run import GatewayRunner

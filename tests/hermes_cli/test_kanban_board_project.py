@@ -35,6 +35,7 @@ def fresh_home(tmp_path, monkeypatch):
     except Exception:
         pass
     kb._INITIALIZED_PATHS.clear()
+    pdb.initialize_projects()
     return home
 
 

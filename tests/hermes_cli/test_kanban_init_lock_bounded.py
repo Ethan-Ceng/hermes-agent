@@ -58,6 +58,7 @@ def test_initialized_path_connect_skips_init_lock(kanban_home):
     """A connect to an already-initialized path must not block on the init lock."""
     db_path = kb.kanban_db_path(board="default")
     # Initialize once.
+    kb.init_db()
     kbc.connect().close()
     assert str(db_path.resolve()) in kb._INITIALIZED_PATHS
 
@@ -73,7 +74,7 @@ def test_initialized_path_connect_skips_init_lock(kanban_home):
         t.join(timeout=5)
 
 
-def test_first_init_connect_is_bounded_when_lock_held(kanban_home, monkeypatch):
+def test_explicit_first_init_is_bounded_when_lock_held(kanban_home, monkeypatch):
     """First-init connect must time out the cross-process lock and proceed,
     not hang forever, when another holder owns it."""
     monkeypatch.setattr(kbc, "_INIT_LOCK_TIMEOUT_SECONDS", 0.6)
@@ -82,7 +83,8 @@ def test_first_init_connect_is_bounded_when_lock_held(kanban_home, monkeypatch):
     release, t = _hold_init_lock(db_path)
     try:
         start = time.monotonic()
-        conn = kbc.connect()  # path NOT yet initialized — must take the bounded path
+        kb.init_db()  # explicit creation takes the existing bounded initialization lock
+        conn = kbc.connect()
         conn.close()
         elapsed = time.monotonic() - start
         # Proceeded within roughly the timeout window (not unbounded).

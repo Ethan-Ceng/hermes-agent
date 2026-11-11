@@ -1,10 +1,14 @@
 """Receipt recovery: a ``missing`` admission is a definite non-admission (booked failed, never a
 pause), and a verified terminal receipt lifts the pause its own ``CronExecutionUnknown`` caused."""
+import pytest
 from contextlib import asynccontextmanager
 import json
 
 from cron import executions, jobs, scheduler, scheduler_authority
 from hermes_cli import gateway_client
+
+
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
 
 
 def _peer(monkeypatch, answer):

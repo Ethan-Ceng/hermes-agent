@@ -182,7 +182,7 @@ def test_receipt_is_recorded_only_on_a_day_the_sender_can_ever_send(marks, monke
     monkeypatch.setattr(store_module, "_utc_now", lambda: clock["now"])
     monkeypatch.setattr("hermes_cli.config.read_raw_config_readonly",
                         lambda: {"telemetry": {"shared_metrics": {"enabled": True, "send": True}}})
-    store = store_module.SharedMetricsStore()
+    store = store_module.SharedMetricsStore.create()
 
     def observe(send=True):
         with store._connection() as connection, write_txn(connection):

@@ -10,6 +10,9 @@ from cron.scheduler_delivery import _deliver_result
 from gateway.config import GatewayConfig, Platform, PlatformConfig
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture
 def loop_thread():
     loop = asyncio.new_event_loop()
@@ -35,6 +38,7 @@ def loop_thread():
 def test_warning_policy_at_real_transport_boundary(tmp_path, monkeypatch, loop_thread, lane, setting, for_failure):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     monkeypatch.setattr(delivery_queue, "DELIVERY_DB", tmp_path / "delivery.db")
+    delivery_queue.initialize()
     config_text = "cron: {wrap_response: false}\n"
     if setting is not None:
         config_text += f"display: {{suppress_warning_notifications: {str(setting).lower()}}}\n"

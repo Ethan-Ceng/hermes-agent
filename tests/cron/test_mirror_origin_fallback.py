@@ -33,6 +33,9 @@ from cron.scheduler import _deliver_result, _resolve_delivery_targets
 from cron.scheduler_delivery import _target_mirror_eligible
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture(autouse=True)
 def _home_channel(monkeypatch):
     monkeypatch.setenv("SLACK_HOME_CHANNEL", "D0HOME")
@@ -159,6 +162,9 @@ class TestFallbackMirrorEndToEnd:
             "platforms:\n  slack:\n    enabled: true\n    token: xoxb-test\n"
         )
         monkeypatch.setenv("HERMES_HOME", str(home))
+        from hermes_state import SessionDB
+        monkeypatch.setattr("hermes_state.DEFAULT_DB_PATH", home / "state.db")
+        SessionDB(home / "state.db").close()
 
         send_calls = []
 

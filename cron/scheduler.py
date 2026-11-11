@@ -1831,14 +1831,10 @@ def _open_cron_session_db(job: dict):
     Canonical runs borrow the owner's exact store and fail closed on acquisition
     errors. Only the legacy non-owner helper path may return no session store.
     """
-    # Initialize the SQLite session store so cron job messages are persisted and discoverable via
-    # session_search (same pattern as gateway/run.py) — only now, after every early-return path (wake-gate,
-    # prompt validation, drift skip) has passed, so a gated run never opens state.db just to abandon the
-    # handle (#96290). Bounded with its own timeout (separate from HERMES_CRON_TIMEOUT, which only watches
-    # the agent's run_conversation below): SessionDB.__init__ opens/migrates state.db synchronously and has
-    # no timeout of its own against a wedged sqlite3.connect (e.g. a stale flock left by a crashed sibling
-    # process). An unbounded hang here would wedge the job's worker thread, so the init is bounded and a
-    # timeout proceeds without a session store instead of blocking the run forever.
+    # Borrow the owning session store after the wake gate, prompt validation and drift checks.
+    # Acquisition checks the installed schema. Profile setup and `hermes db upgrade` own DDL.
+    # Bound acquisition separately from the conversation watchdog so a wedged connector cannot
+    # pin this worker indefinitely. Canonical runs fail closed when the owner store is unavailable.
     from gateway.session_cron import current_execution
     owner = current_execution()
     from agent.runtime_session_store import WorkerPersistenceError, is_worker_process

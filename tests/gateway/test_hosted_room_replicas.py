@@ -20,7 +20,9 @@ def _authority_db(tmp_path, name="authority.db"):
 
 
 def _replica_db(tmp_path, name="replica.db"):
-    return tmp_path / name
+    path = tmp_path / name
+    replicas.initialize_replicas(path)
+    return path
 
 
 def _seed_room(db, *, gateway_id=AUTH_A, n_events=3, room_id="room-1"):

@@ -9,6 +9,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.mark.platforms("posix")
 @pytest.mark.live_system_guard_bypass
 @pytest.mark.parametrize("trigger", ["cancel", "timeout"])
@@ -386,6 +389,7 @@ def _run_claimed_job_with_mid_run_action(
     # alerts inline through the same stubbed door.
     from cron import delivery_queue
     monkeypatch.setattr(delivery_queue, "DELIVERY_DB", tmp_path / "cron" / "deliveries.db")
+    delivery_queue.initialize()
     real_enqueue = delivery_queue.enqueue
 
     def _enqueue_then_drain(*args, **kwargs):

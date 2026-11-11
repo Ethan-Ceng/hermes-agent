@@ -14,14 +14,13 @@ from hermes_cli.observability.shared_metrics import SharedMetricsStore
 from hermes_cli.observability.shared_metrics_connectors import tool_batch_fields
 
 from tests.hermes_cli.test_relay_shared_metrics import _schema_validator
-from tests.hermes_cli import test_relay_shared_metrics_runtime as runtime_tests
 
 _RESOURCE = {"architecture": "x86_64", "hermes_version": "0.0.0", "install_method": "git", "os_family": "linux"}
 _ROUTE = {"model": "m", "provider": "openrouter"}
 @pytest.fixture
-def fake_relay(tmp_path, monkeypatch):
-    """The runtime tests' fake Relay, so lifecycle hooks drive the real metrics runtime."""
-    yield from runtime_tests.direct_runtime.__wrapped__(tmp_path, monkeypatch)
+def fake_relay(direct_runtime):
+    """The shared fake Relay drives the real metrics runtime lifecycle."""
+    return direct_runtime
 
 
 _BASE = {"session_id": "s1", "task_id": "t1", "turn_id": "turn-1", "api_request_id": "r1", "platform": "cli"}
@@ -248,7 +247,7 @@ def test_entries_report_their_own_post_even_under_the_executor_suppression(monke
 
 def test_a_package_with_each_new_row_validates_against_the_v4_schema(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
-    store = SharedMetricsStore()
+    store = SharedMetricsStore.create()
     store.record_counter(contract.TOOL_SEARCH_METRIC,
                          {"hits_bucket": "3_to_5", "outcome": "hits", "scope": "both"}, _RESOURCE)
     store.record_counter(contract.TOOL_BATCH_METRIC,

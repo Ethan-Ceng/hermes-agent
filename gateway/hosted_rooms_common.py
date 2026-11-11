@@ -8,7 +8,7 @@ logic lives once. Must stay a leaf: never import a hosted_room* module (import c
 
 from __future__ import annotations
 
-from hermes_cli.db_sqlite_policy import initialize_profile_sqlite
+from hermes_cli.db_sqlite_policy import initialize_profile_sqlite, open_existing_profile_sqlite
 
 import json
 import math
@@ -43,9 +43,7 @@ DbPath = Path | str | RoomStoreRef
 
 def open_sqlite(path: DbPath, *, timeout: float = 10) -> sqlite3.Connection:
     """Row-factory connection with foreign keys on; no journal or schema work (steady-state readers)."""
-    from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
-
-    return open_db(path, db_label="shared-state.db", busy_timeout_ms=int(timeout * 1000), wal=False,
+    return open_existing_profile_sqlite(path, db_label="shared-state.db", busy_timeout_ms=int(timeout * 1000), wal=False,
                    foreign_keys=True)
 
 
@@ -67,9 +65,6 @@ def connect(
             except Exception:
                 conn.rollback()
                 raise
-    # Late import: a gateway that outlives an on-disk upgrade has the OLD sqlite_util cached.
-    from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
-
     return initialize_profile_sqlite(db_path, db_label=db_label, busy_timeout_ms=10_000, foreign_keys=True,
                    wal_lock_retries=lock_retries, initialize=_initialize)
 

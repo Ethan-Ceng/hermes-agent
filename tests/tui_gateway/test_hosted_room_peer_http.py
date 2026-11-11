@@ -13,6 +13,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
 
 import pytest
 
+from gateway import hosted_rooms
+
 from tui_gateway.hosted_room_peer_http import (
     MAX_PEER_ERROR_RESPONSE_BYTES,
     MAX_PEER_RESPONSE_BYTES,
@@ -196,6 +198,7 @@ def test_scoped_peer_runs_client_stops_exact_run(peer_server):
 
 def test_remote_run_receipt_survives_home_restart(peer_server, tmp_path):
     db = tmp_path / "state.db"
+    hosted_rooms._initialize_connection(db).close()
     first = PeerRunsHTTPClient(
         base_url=peer_server,
         api_key="",
@@ -232,6 +235,7 @@ def test_remote_run_receipt_survives_home_restart(peer_server, tmp_path):
 
 def test_remote_run_receipt_does_not_cross_authority_epochs(tmp_path):
     db = tmp_path / "state.db"
+    hosted_rooms._initialize_connection(db).close()
     old = PeerRunsHTTPClient(
         base_url="https://peer.example.test",
         api_key="",
@@ -269,6 +273,7 @@ def test_remote_run_receipt_does_not_cross_authority_epochs(tmp_path):
 
 
 def test_ambiguous_admission_replays_the_identical_idempotency_key(tmp_path):
+    hosted_rooms._initialize_connection(tmp_path / 'state.db').close()
     client = PeerRunsHTTPClient(
         base_url="https://peer.example.test",
         api_key="",
@@ -311,6 +316,7 @@ def test_ambiguous_admission_replays_the_identical_idempotency_key(tmp_path):
 
 def test_ambiguous_admission_recovery_is_bounded_and_backed_off(tmp_path):
     now = [0.0]
+    hosted_rooms._initialize_connection(tmp_path / 'state.db').close()
     client = PeerRunsHTTPClient(
         base_url="https://peer.example.test",
         api_key="",
@@ -466,6 +472,7 @@ def test_invalid_room_dispatch_http_403_is_definitively_not_admitted(monkeypatch
 
 
 def test_capability_mismatch_requires_reauthorization_without_retry(tmp_path):
+    hosted_rooms._initialize_connection(tmp_path / 'state.db').close()
     client = PeerRunsHTTPClient(
         base_url="https://peer.example.test",
         api_key="",
@@ -620,6 +627,7 @@ def test_peer_success_and_error_reads_are_bounded(monkeypatch):
 
 def test_real_http_drip_cannot_extend_the_whole_response_deadline():
     stopped = threading.Event()
+    body_started = threading.Event()
 
     class DripPeer(BaseHTTPRequestHandler):
         def do_GET(self):
@@ -632,6 +640,7 @@ def test_real_http_drip_cannot_extend_the_whole_response_deadline():
                 try:
                     self.wfile.write(bytes([byte]))
                     self.wfile.flush()
+                    body_started.set()
                 except OSError:
                     break
                 if stopped.wait(0.02):
@@ -652,7 +661,7 @@ def test_real_http_drip_cannot_extend_the_whole_response_deadline():
             timeout_seconds=2.0,
         )
         started = time.monotonic()
-        with pytest.raises(PeerRunsHTTPError, match="time budget") as caught:
+        with pytest.raises(PeerRunsHTTPError) as caught:
             client._request("/drip")
         elapsed = time.monotonic() - started
     finally:
@@ -661,11 +670,23 @@ def test_real_http_drip_cannot_extend_the_whole_response_deadline():
         server.server_close()
         thread.join(timeout=2)
 
-    assert elapsed < 6.0
+    from tui_gateway.hosted_room_peer_http import _PeerResponseDeadlineExceeded
+
+    assert body_started.is_set()
+    assert client.timeout_seconds * 0.9 <= elapsed < 6.0
     assert caught.value.retryable is True
+    # The socket's remaining budget can expire before the next monotonic loop check.
+    messages = {
+        _PeerResponseDeadlineExceeded: "time budget",
+        TimeoutError: "endpoint is unreachable",
+    }
+    cause_type = type(caught.value.__cause__)
+    assert cause_type in messages
+    assert messages[cause_type] in str(caught.value)
 
 
 def test_peer_approval_sends_the_exact_request_id(peer_server, tmp_path):
+    hosted_rooms._initialize_connection(tmp_path / 'state.db').close()
     client = PeerRunsHTTPClient(
         base_url=peer_server,
         api_key="",

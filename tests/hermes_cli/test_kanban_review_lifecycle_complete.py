@@ -24,6 +24,7 @@ from hermes_cli import kanban_diagnostics as kd
 
 @pytest.fixture
 def conn(tmp_path: Path):
+    kbc.init_db(tmp_path / "kanban.db")
     db = kbc.connect(tmp_path / "kanban.db")
     try:
         yield db

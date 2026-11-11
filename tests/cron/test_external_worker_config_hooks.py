@@ -19,6 +19,9 @@ HOOK_CMD = "echo cron-hook-fired"
 OUTBOUND_URL = "https://hooks.example.test/cron"
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture
 def homes(tmp_path, monkeypatch):
     """A launch home with no hooks config and a profile home declaring both hook kinds."""
@@ -41,6 +44,8 @@ def homes(tmp_path, monkeypatch):
         encoding="utf-8",
     )
     (profile / ".env").write_text("CRON_HOOK_SECRET=profile-secret\n", encoding="utf-8")
+    from hermes_cli.db_profile_schema import initialize_new_profile_storage
+    initialize_new_profile_storage(profile)
     yield launch, profile
     from agent import outbound_webhooks
     from agent import shell_hooks
@@ -73,7 +78,7 @@ def test_worker_registers_owning_profile_config_hooks(homes, tmp_path, monkeypat
     assert scheduler._run_external_worker_payload(payload, tmp_path / "exec-1.ready") is True
     # Registered under the OWNING profile's home key, not the launch home's.
     profile_key = hermes_home_key(profile)
-    assert any(home == profile_key and event == "on_session_start" and command == HOOK_CMD
+    assert any(hermes_home_key(home) == profile_key and event == "on_session_start" and command == HOOK_CMD
                for home, event, _matcher, command in shell_hooks._registered)
-    assert any(home == profile_key and event == "on_session_end" and url == OUTBOUND_URL
+    assert any(hermes_home_key(home) == profile_key and event == "on_session_end" and url == OUTBOUND_URL
                for home, event, url in outbound_webhooks._registered)

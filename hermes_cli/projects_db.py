@@ -1,12 +1,11 @@
 """Per-profile first-class Project store.
 
-The schema is small and additive: column additions go through ``add_column_if_missing`` so
-opening an old DB is always safe.
+Explicit setup creates or upgrades the additive Schema. Connections check that it is ready.
 """
 
 from __future__ import annotations
 
-from hermes_cli.db_sqlite_policy import initialize_profile_sqlite
+from hermes_cli.db_sqlite_policy import initialize_profile_sqlite, open_ready_profile_sqlite
 
 import contextlib
 import os
@@ -19,7 +18,6 @@ from pathlib import Path
 from typing import Iterable, List, Optional
 
 from hermes_db.infra.backends.sqlite.schema import add_column_if_missing as _add_column_if_missing
-from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
 from hermes_db.infra.backends.sqlite.transactions import write_txn
 from hermes_constants import get_hermes_home
 from hermes_db.domains.projects.api import domain_operation
@@ -77,9 +75,7 @@ CREATE TABLE IF NOT EXISTS discovered_repos (
 
 # Deterministic branch slug: lowercase, separators collapsed, capped.
 _BRANCH_SAFE_RE = re.compile(r"[^a-z0-9._-]+")
-_INITIALIZED_PATHS: set[str] = set()
-# TEXT columns added to `projects` after v1; re-applied idempotently on every open so a legacy DB
-# upgrades in place.
+# TEXT columns added to `projects` after v1. Explicit upgrade adds them in place.
 _OPTIONAL_PROJECT_COLUMNS = ("board_slug", "primary_path", "icon", "color")
 # Nullable TEXT columns that may be absent from a legacy row.
 _OPTIONAL_ROW_FIELDS = ("description", "icon", "color", "board_slug", "primary_path")
@@ -91,32 +87,61 @@ def _now() -> int:
     return int(time.time())
 
 
-def connect(db_path: Optional[Path] = None, *, profile_home: Optional[Path] = None):
-    """Open the selected Projects store; callers use named project operations.
+def _path_for_scope(db_path, profile_home, scope) -> Path:
+    if db_path is not None:
+        return Path(db_path)
+    return projects_db_path() if profile_home is None else scope.profile_home / "projects.db"
 
-    WAL with DELETE fallback for network filesystems (``hermes_state`` helper). Schema init is
-    idempotent (``CREATE TABLE IF NOT EXISTS`` + additive migrations) and cached per-path per-process.
-    """
+
+def _schema_ready(conn: sqlite3.Connection) -> bool:
+    tables = conn.execute(
+        "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN "
+        "('projects', 'project_folders', 'project_meta', 'discovered_repos')"
+    ).fetchone()[0]
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(projects)")}
+    return tables == 4 and set(_OPTIONAL_PROJECT_COLUMNS) <= columns
+
+
+def _initialize_schema(conn: sqlite3.Connection) -> None:
+    if _schema_ready(conn):
+        return
+    conn.executescript(SCHEMA_SQL)
+    cols = {row["name"] for row in conn.execute("PRAGMA table_info(projects)")}
+    for col in _OPTIONAL_PROJECT_COLUMNS:
+        if col not in cols:
+            _add_column_if_missing(conn, "projects", col, f"{col} TEXT")
+
+
+def initialize_projects(db_path: Optional[Path] = None, *, profile_home: Optional[Path] = None) -> None:
+    """Initialize the selected SQLite Projects dataset during explicit creation or upgrade."""
+    from hermes_cli.db_setup import resolve_db_configuration
+
+    settings, scope = resolve_db_configuration(profile_home)
+    if settings.backend == "sqlite":
+        path = _path_for_scope(db_path, profile_home, scope)
+        initialize_profile_sqlite(path, db_label="projects.db", foreign_keys=True, initialize=_initialize_schema).close()
+
+
+def initialize_new_projects(db_path: Optional[Path] = None, *, profile_home: Optional[Path] = None) -> None:
+    """Prepare the first Projects dataset for an explicit project-creation request."""
+    from hermes_cli.db_setup import resolve_db_configuration
+
+    settings, scope = resolve_db_configuration(profile_home)
+    path = _path_for_scope(db_path, profile_home, scope)
+    if settings.backend == "sqlite" and not path.exists():
+        initialize_projects(path, profile_home=scope.profile_home)
+
+
+def connect(db_path: Optional[Path] = None, *, profile_home: Optional[Path] = None):
+    """Open a ready Projects store for named project operations."""
     from hermes_cli.db_setup import resolve_db_configuration
     from hermes_cli.db_domains import acquire_domain
 
     settings, scope = resolve_db_configuration(profile_home)
     if settings.backend == "postgresql":
         return acquire_domain("projects", settings, scope)
-    path = db_path if db_path is not None else (projects_db_path() if profile_home is None else scope.profile_home / "projects.db")
-    resolved = str(path.resolve())
-
-    def _initialize(conn: sqlite3.Connection) -> None:
-        if resolved in _INITIALIZED_PATHS:
-            return
-        conn.executescript(SCHEMA_SQL)
-        cols = {row["name"] for row in conn.execute("PRAGMA table_info(projects)")}
-        for col in _OPTIONAL_PROJECT_COLUMNS:
-            if col not in cols:
-                _add_column_if_missing(conn, "projects", col, f"{col} TEXT")
-        _INITIALIZED_PATHS.add(resolved)
-
-    return initialize_profile_sqlite(path, db_label="projects.db", foreign_keys=True, initialize=_initialize)
+    path = _path_for_scope(db_path, profile_home, scope)
+    return open_ready_profile_sqlite(path, db_label="projects.db", foreign_keys=True, ready=_schema_ready)
 
 
 @contextlib.contextmanager

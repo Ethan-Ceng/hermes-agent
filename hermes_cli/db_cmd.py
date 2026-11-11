@@ -11,9 +11,10 @@ def run_db_command(args):
     try:
         settings, scope = resolve_db_configuration()
         if settings.backend == "sqlite":
-            from hermes_cli.db_session_schema import sqlite_session_schema_status, upgrade_sqlite_session_schema
+            from hermes_cli.db_session_schema import sqlite_session_schema_status
+            from hermes_cli.db_profile_schema import upgrade_sqlite_profile_storage
 
-            operation = {"status": sqlite_session_schema_status, "upgrade": upgrade_sqlite_session_schema}[args.db_action]
+            operation = {"status": sqlite_session_schema_status, "upgrade": upgrade_sqlite_profile_storage}[args.db_action]
             result = operation(scope)
         else:
             from hermes_db.schema import schema_status, upgrade_schema

@@ -16,9 +16,13 @@ is set. We patch `cron.scheduler.tick` (both tickers import it locally as
 `cron_tick`, so the module-attribute patch is observed) and assert the loop
 drives it and stops promptly.
 """
+import pytest
 import threading
 import time
 from unittest.mock import patch
+
+
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
 
 
 def _wait_until(predicate, timeout=10.0, interval=0.005):

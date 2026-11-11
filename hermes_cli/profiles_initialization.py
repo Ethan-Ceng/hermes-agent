@@ -64,8 +64,8 @@ def finish_profile_layout(profile_dir: Path, *, no_skills: bool, clone_all: bool
 
     from hermes_cli.profile_storage import fork_storage_identity
     fork_storage_identity(profile_dir)
-    from hermes_cli.db_session_schema import initialize_new_profile_sessions
-    initialize_new_profile_sessions(profile_dir)
+    from hermes_cli.db_profile_schema import initialize_new_profile_storage
+    initialize_new_profile_storage(profile_dir)
 
     # Description last, so a partial-create failure doesn't strand a description file.
     if description and description.strip():

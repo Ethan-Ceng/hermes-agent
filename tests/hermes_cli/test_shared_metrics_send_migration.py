@@ -46,7 +46,7 @@ def _schema_version(db_path):
 
 @pytest.fixture
 def store(tmp_path):
-    return SharedMetricsStore(
+    return SharedMetricsStore.create(
         database_path=tmp_path / "metrics.sqlite3",
         outbox_directory=tmp_path / "outbox",
     )
@@ -149,7 +149,7 @@ class TestUpgradeFromPreSendDatabase:
         return path
 
     def test_upgrade_preserves_every_row(self, legacy_db, tmp_path):
-        SharedMetricsStore(
+        SharedMetricsStore.create(
             database_path=legacy_db, outbox_directory=tmp_path / "outbox"
         )
         connection = sqlite3.connect(legacy_db)
@@ -168,21 +168,21 @@ class TestUpgradeFromPreSendDatabase:
         ]
 
     def test_upgrade_adds_the_send_columns(self, legacy_db, tmp_path):
-        SharedMetricsStore(
+        SharedMetricsStore.create(
             database_path=legacy_db, outbox_directory=tmp_path / "outbox"
         )
         assert SEND_COLUMNS <= _columns(legacy_db)
 
     def test_upgrade_does_not_move_the_schema_version(self, legacy_db, tmp_path):
         """Bumping would make older builds refuse the same file."""
-        SharedMetricsStore(
+        SharedMetricsStore.create(
             database_path=legacy_db, outbox_directory=tmp_path / "outbox"
         )
         assert _schema_version(legacy_db) == "2"
 
     def test_migration_is_idempotent(self, legacy_db, tmp_path):
         for _ in range(3):
-            SharedMetricsStore(
+            SharedMetricsStore.create(
                 database_path=legacy_db, outbox_directory=tmp_path / "outbox"
             )
         columns = [
@@ -195,7 +195,7 @@ class TestUpgradeFromPreSendDatabase:
 
     def test_queries_written_before_this_change_still_work(self, legacy_db, tmp_path):
         """The shipped export query selects named columns; it must be unaffected."""
-        SharedMetricsStore(
+        SharedMetricsStore.create(
             database_path=legacy_db, outbox_directory=tmp_path / "outbox"
         )
         connection = sqlite3.connect(legacy_db)

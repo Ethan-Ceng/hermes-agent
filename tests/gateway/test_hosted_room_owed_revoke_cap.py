@@ -26,6 +26,7 @@ def _fill(db, *, expires_at):
 
 def test_at_the_ceiling_an_expired_row_makes_room(tmp_path):
     db, now = tmp_path / "state.db", time.time()
+    hosted_rooms._initialize_connection(db).close()
     _fill(db, expires_at=now - 1)
     _owe(db, _grant(now + 3600, "live"), member="new")
     assert [member for member, *_ in _rows(db)] == ["new"]

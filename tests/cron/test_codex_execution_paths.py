@@ -1,3 +1,4 @@
+import pytest
 import asyncio
 import json
 import sys
@@ -11,6 +12,9 @@ sys.modules.setdefault("fal_client", types.SimpleNamespace())
 import run_agent
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 def _run_owned_job(job, tmp_path):
     """Exercise the production owner bridge with an isolated canonical store."""
     from gateway.session_contract import SessionRef
@@ -20,6 +24,8 @@ def _run_owned_job(job, tmp_path):
     ref = SessionRef("test-profile", "cron-owner-session")
     admission_id = "cron-owner-admission"
     request_id = "cron-owner-request"
+    from hermes_state import SessionDB
+    SessionDB(tmp_path / "state.db").close()
     db = acquire(tmp_path / "state.db")
     db.create_session(ref.session_id, source="cron")
     authority = SimpleNamespace(

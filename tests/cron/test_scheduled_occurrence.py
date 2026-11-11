@@ -42,6 +42,9 @@ else:
 """
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 def _fire(home, mode):
     env = {k: v for k, v in os.environ.items()
            if not k.startswith(('HERMES_', '_HERMES_'))
@@ -75,6 +78,8 @@ def test_completed_occurrence_survives_restart_and_prestamp_rollback(tmp_path, m
     snapshot = json.dumps({'jobs': [job]})
     store = cron / 'jobs.json'
     store.write_text(snapshot)
+    from hermes_cli.db_profile_schema import initialize_new_profile_storage
+    initialize_new_profile_storage(home)
     _fire(home, mode)
     assert effect.read_text().splitlines() == ['effect']
     store.write_text(snapshot)  # no last_dispatch stamp, no post-completion fields
@@ -114,6 +119,7 @@ def test_ledger_migration_and_completion_identity(tmp_path, monkeypatch):
         conn.execute("INSERT INTO executions VALUES "
                      "('legacy','job','builtin','old',-1,NULL,'completed',"
                      "'2026-01-01T00:00:00Z',NULL,NULL,NULL)")
+    executions.initialize()
     slot = '2026-01-01T00:00:00+00:00'
     job = {'id': 'job'}
     assert not completed_occurrence(job, slot)
@@ -133,6 +139,8 @@ def test_ledger_migration_and_completion_identity(tmp_path, monkeypatch):
 
     # Provider capture is before next_run_at advances; adoption cannot lose identity.
     with jobs.use_cron_store(tmp_path / 'cron'):
+        from cron import incidents
+        incidents.initialize()
         stored = jobs.create_job(prompt='test', schedule='every 4h')
         rows = jobs.load_jobs()
         rows[0]['next_run_at'] = slot
@@ -167,6 +175,7 @@ def test_completion_before_occurrence_does_not_prove_slot_completed(tmp_path, mo
     from cron.occurrences import completed_occurrence
 
     monkeypatch.setattr(executions, 'EXECUTIONS_FILE', tmp_path / 'executions.db')
+    executions.initialize()
     slot = '2026-01-05T00:00:00+00:00'
     monkeypatch.setattr(executions, '_hermes_now', lambda: datetime(2026, 1, 1, tzinfo=UTC))
     poisoned = executions.create_execution('job', source='control', scheduled_instant=slot)
@@ -192,8 +201,11 @@ def test_completed_occurrence_skip_names_job_slot_and_row(tmp_path, monkeypatch,
     from hermes_time import now
 
     monkeypatch.setattr(executions, 'EXECUTIONS_FILE', tmp_path / 'executions.db')
+    executions.initialize()
     slot = (now() - timedelta(minutes=2)).isoformat()
     with jobs.use_cron_store(tmp_path / 'cron'):
+        from cron import incidents
+        incidents.initialize()
         stored = jobs.create_job(prompt='test', schedule='every 4h')
         rows = jobs.load_jobs()
         rows[0]['next_run_at'] = slot

@@ -5,6 +5,7 @@ agent resource finalizer stops returning after the model turn has ended.
 """
 
 from __future__ import annotations
+import pytest
 
 import threading
 import time
@@ -23,6 +24,9 @@ _RUNTIME = {
     "provider": "openrouter",
     "api_mode": "chat_completions",
 }
+
+
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
 
 
 @contextmanager

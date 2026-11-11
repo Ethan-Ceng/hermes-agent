@@ -15,6 +15,9 @@ ROOM_ID = "room-cron"
 MEMBERS = [{"member_id": f"m-{p}", "profile": p, "handle": p} for p in ("alpha", "beta")]
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 def _create(db):
     hosted_rooms.create_room(
         db, room_id=ROOM_ID, name="Feed", members=MEMBERS,
@@ -88,6 +91,7 @@ def test_named_profile_target_reaches_a_room_the_root_gateway_imported(room_stor
     root_store = hosted_rooms.default_db_path().with_name("state.db")
     with closing(sqlite3.connect(root_store)) as conn, conn:  # the root gateway's SessionDB owner table
         conn.execute("CREATE TABLE state_meta (key TEXT PRIMARY KEY, value TEXT)")
+    hosted_rooms._initialize_connection(root_store).close()
     assert import_standalone_rooms(root_store) == 1
     research = get_hermes_home() / "profiles" / "research"
     research.mkdir(parents=True)

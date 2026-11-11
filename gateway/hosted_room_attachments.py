@@ -152,13 +152,7 @@ class HostedRoomAttachmentStore(AttachmentContent):
         with _STARTED_LOCK:
             if self._startup_key() in _STARTED:
                 return
-            conn = self._connect()
-            try:
-                conn.execute("BEGIN IMMEDIATE")
-                self._initialize(conn)
-                conn.commit()
-            finally:
-                conn.close()
+            self._connect().close()
             self.reconcile_room_events()
             self.prune()
             _STARTED.add(self._startup_key())
@@ -172,7 +166,17 @@ class HostedRoomAttachmentStore(AttachmentContent):
         return str(self.db_path.resolve()), str(self.root.resolve()), info.st_dev, info.st_ino
 
 
-    def _initialize(self, conn: sqlite3.Connection) -> None:
+    @staticmethod
+    def _schema_ready(conn: sqlite3.Connection) -> bool:
+        columns = {row[1] for row in conn.execute("PRAGMA table_info(hosted_room_attachments)")}
+        tables = conn.execute(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' "
+            "AND name IN ('hosted_room_attachment_blobs', 'hosted_room_attachments')"
+        ).fetchone()[0]
+        return tables == 2 and {"catalog_name", "viewer_access", "recipient_member_ids_json"} <= columns
+
+    @staticmethod
+    def _initialize(conn: sqlite3.Connection) -> None:
         conn.execute(
             """CREATE TABLE IF NOT EXISTS hosted_room_attachment_blobs (
                 blob_id TEXT PRIMARY KEY,
@@ -236,19 +240,13 @@ class HostedRoomAttachmentStore(AttachmentContent):
 
     def _connect(self) -> sqlite3.Connection:
         from hermes_db.domains.rooms.api import assert_sqlite_location
-        assert_sqlite_location(self.db_path)
-        from hermes_cli.db_sqlite_policy import apply_wal_with_fallback
+        from hermes_cli.db_sqlite_policy import open_ready_profile_sqlite
 
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        conn = sqlite3.connect(self.db_path, timeout=10)
-        conn.row_factory = sqlite3.Row
-        try:
-            apply_wal_with_fallback(conn, db_label="state.db (hosted room attachments)")
-            conn.execute("PRAGMA foreign_keys=ON")
-        except Exception:
-            conn.close()
-            raise
-        return conn
+        assert_sqlite_location(self.db_path)
+        return open_ready_profile_sqlite(
+            self.db_path, db_label="state.db (hosted room attachments)", ready=self._schema_ready,
+            busy_timeout_ms=10_000, foreign_keys=True,
+        )
 
     @contextmanager
     def _transaction(self, *, immediate: bool = False) -> Iterator[sqlite3.Connection]:

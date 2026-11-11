@@ -62,7 +62,8 @@ def _create_pre_actor_database(path) -> None:
         conn.close()
 
 
-def _read_legacy_state(path: str) -> tuple[str, int]:
+def _upgrade_and_read_legacy_state(path: str) -> tuple[str, int]:
+    rooms._initialize_connection(path).close()
     state = rooms.room_state(path, room_id="room-1")
     return state["authority_gateway_id"], state["latest_seq"]
 
@@ -995,6 +996,7 @@ def test_peer_reservation_rejects_stale_or_conflicting_authority(tmp_path):
         "authority_gateway_id": "gateway-current",
         "authority_epoch": 2,
     }
+    rooms._initialize_connection(db).close()
     rooms.reserve_peer_room(db, claims=current, expires_at=300, now=100)
 
     with pytest.raises(rooms.AuthorityConflictError, match="authority changed"):
@@ -1067,6 +1069,7 @@ def test_pre_actor_draft_database_migrates_with_explicit_legacy_identity(tmp_pat
     db = tmp_path / "state.db"
     _create_pre_actor_database(db)
 
+    rooms._initialize_connection(db).close()
     replay = rooms.read_events(db, room_id="room-1")
     assert replay["events"][0]["actor"] == {"kind": "system", "id": "legacy"}
     state = rooms.room_state(db, room_id="room-1")
@@ -1094,6 +1097,7 @@ def test_migration_reserves_existing_disbanded_room_id_before_pruning(tmp_path):
         conn.execute("UPDATE hosted_rooms SET disbanded_at=20 WHERE room_id='room-1'")
         conn.commit()
 
+    rooms._initialize_connection(db).close()
     assert (
         rooms.prune_disbanded_rooms(
             db,
@@ -1160,7 +1164,7 @@ def test_draft_schema_migration_is_safe_across_processes(tmp_path):
     _create_pre_actor_database(db)
 
     with ProcessPoolExecutor(max_workers=4) as pool:
-        results = list(pool.map(_read_legacy_state, [str(db)] * 4))
+        results = list(pool.map(_upgrade_and_read_legacy_state, [str(db)] * 4))
 
     assert results == [("legacy", 1)] * 4
     replay = rooms.read_events(db, room_id="room-1")
@@ -1205,6 +1209,7 @@ def test_legacy_remote_run_receipt_migrates_without_current_lineage_access(
         "task_id": "task-1",
         "execution_generation": 1,
     }
+    rooms._initialize_connection(db).close()
     assert rooms.remote_run_receipt(db, record=current) is None
     legacy = rooms.list_remote_run_receipts(db)
     assert legacy[0]["home_install_id"] == "legacy"
@@ -1234,12 +1239,13 @@ def test_interrupted_draft_schema_migration_rolls_back_atomically(
 
     monkeypatch.setattr(rooms, "_initialize_schema", interrupt_after_first_alter)
     with pytest.raises(RuntimeError, match="simulated migration interruption"):
-        rooms.list_rooms(db)
+        rooms._initialize_connection(db).close()
     with sqlite3.connect(db) as conn:
         columns = {row[1] for row in conn.execute("PRAGMA table_info(hosted_rooms)")}
     assert "authority_gateway_id" not in columns
 
     monkeypatch.setattr(rooms, "_initialize_schema", original)
+    rooms._initialize_connection(db).close()
     assert rooms.room_state(db, room_id="room-1")["authority_gateway_id"] == "legacy"
 
 
@@ -1340,6 +1346,7 @@ def test_upgrade_keeps_rooms_from_before_the_shared_state_db_split(tmp_path):
     )
 
     store = tmp_path / "shared-state.db"
+    rooms._initialize_connection(store).close()
 
     assert [room["room_id"] for room in rooms.list_rooms(store)] == ["room-1"]
     assert rooms.room_state(store, room_id="room-1")["latest_seq"] == 1
@@ -1373,18 +1380,18 @@ def test_legacy_import_is_a_one_shot_and_skips_driver_liveness_state(tmp_path):
     )
 
     store = tmp_path / "shared-state.db"
+    rooms._initialize_connection(store).close()
     assert [room["room_id"] for room in rooms.list_rooms(store)] == ["room-1"]
     with sqlite3.connect(store) as conn:
         # Durable work follows the room across; the lease is liveness state and stays behind.
         assert conn.execute("SELECT COUNT(*) FROM hosted_room_driver_tasks").fetchone()[0] == 1
-        assert conn.execute(
-            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='hosted_room_driver_leases'"
-        ).fetchone()[0] == 0
+        assert conn.execute("SELECT COUNT(*) FROM hosted_room_driver_leases").fetchone()[0] == 0
 
     # Forcing a second import (marker cleared) must not replace what this store already owns.
     rooms.rename_room(store, room_id="room-1", event_id="rename-1", name="Renamed", now=12)
     with sqlite3.connect(store) as conn:
         conn.execute("DELETE FROM hosted_room_legacy_imports")
+    rooms._initialize_connection(store).close()
     assert rooms.room_state(store, room_id="room-1")["name"] == "Renamed"
 
     # And the record of the import is what keeps a purge from being undone by a later open.
@@ -1410,6 +1417,7 @@ def test_legacy_import_skips_a_room_this_store_already_owns_as_a_unit(tmp_path):
     _append(own, room_id="same", event_id="own-1", kind="message.user", actor=USER, payload={"text": "s"}, now=11)
     own.rename(tmp_path / "shared-state.db")
     store = tmp_path / "shared-state.db"
+    rooms._initialize_connection(store).close()
 
     assert [event["event_id"] for event in rooms.read_events(store, room_id="same")["events"]] == ["own-1"]
     _append(store, room_id="same", event_id="own-2", kind="message.user", actor=USER, payload={"text": "t"}, now=30)
@@ -1425,7 +1433,7 @@ def test_legacy_import_reads_layouts_from_before_the_actor_and_authority_columns
     _create_pre_actor_database(str(tmp_path / "state.db"))
     store = tmp_path / "shared-state.db"
 
-    assert _read_legacy_state(str(store)) == ("legacy", 1)
+    assert _upgrade_and_read_legacy_state(str(store)) == ("legacy", 1)
     assert [event["event_id"] for event in rooms.read_events(store, room_id="room-1")["events"]] == ["legacy-event"]
     with sqlite3.connect(store) as conn:
         assert conn.execute("SELECT rooms FROM hosted_room_legacy_imports").fetchone() == (1,)
@@ -1439,6 +1447,7 @@ def test_unreadable_legacy_store_is_reported_once_per_process(tmp_path, caplog):
 
     with caplog.at_level(logging.WARNING, logger="gateway.hosted_rooms_legacy_import"):
         for _ in range(4):
+            rooms._initialize_connection(store).close()
             assert rooms.list_rooms(store) == []
     assert len([record for record in caplog.records if "could not import" in record.message]) == 1
     with sqlite3.connect(store) as conn:

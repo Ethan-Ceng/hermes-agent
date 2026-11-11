@@ -144,6 +144,17 @@ telemetry or widen its payload.
 
 ## Migrations and optional features
 
+Native Profile creation and setup explicitly prepare their session, delivery, Projects,
+Cron and room-handoff schemas through `hermes_cli.db_profile_schema`. `hermes db upgrade`
+checks both the Profile and shared-room root maintenance reservations before upgrading
+those stores. Kanban retains its HOME-anchored shared Board location and its explicit
+`hermes kanban init` and `hermes kanban repair` lifecycle.
+
+Explicit project, job, room and task creation can prepare a missing native dataset.
+An existing dataset is checked before ordinary queries and writes. A schema mismatch
+requires the corresponding explicit upgrade. Enabling shared metrics prepares its
+selected metrics store, while ordinary runtime collection opens the existing store.
+
 Ordinary startup checks readiness and performs no DDL. `hermes db upgrade`
 explicitly upgrades the selected schema. Append a revision rather than editing
 an already shipped historical revision. Current domain tables and capabilities

@@ -11,6 +11,7 @@ from hermes_cli.kanban_swarm import (
 
 
 def test_create_swarm_builds_parallel_workers_verifier_and_synthesizer(tmp_path):
+    kbc.init_db(tmp_path / 'kanban.db')
     conn = kbc.connect(tmp_path / "kanban.db")
     try:
         created = create_swarm(
@@ -53,6 +54,7 @@ def test_create_swarm_graph_is_atomic_and_rolls_back_partial_build(
     tmp_path, monkeypatch: pytest.MonkeyPatch
 ):
     db_path = tmp_path / "kanban.db"
+    kbc.init_db(db_path)
     writer = kbc.connect(db_path)
     reader = kbc.connect(db_path)
     original_create = kb.create_task
@@ -137,6 +139,7 @@ def test_plain_write_txn_nesting_raises_and_allow_nested_composes(tmp_path):
     and an outer rollback discards the inner work without any post-commit
     side effects having fired (the workspace directory survives).
     """
+    kbc.init_db(tmp_path / 'kanban.db')
     conn = kbc.connect(tmp_path / "kanban.db")
     try:
         workspace = tmp_path / "scratch-ws"
@@ -178,6 +181,7 @@ def test_plain_write_txn_nesting_raises_and_allow_nested_composes(tmp_path):
 
 
 def test_swarm_blackboard_merges_structured_updates(tmp_path):
+    kbc.init_db(tmp_path / 'kanban.db')
     conn = kbc.connect(tmp_path / "kanban.db")
     try:
         created = create_swarm(
@@ -212,6 +216,7 @@ def test_swarm_blackboard_merges_structured_updates(tmp_path):
 
 
 def test_swarm_verifier_and_synthesis_are_dependency_gated(tmp_path):
+    kbc.init_db(tmp_path / 'kanban.db')
     conn = kbc.connect(tmp_path / "kanban.db")
     try:
         created = create_swarm(

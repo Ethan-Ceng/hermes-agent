@@ -37,6 +37,7 @@ def executions(monkeypatch, tmp_path):
     monkeypatch.setattr(
         executions_mod, "EXECUTIONS_FILE", tmp_path / "cron" / "executions.db"
     )
+    executions_mod.initialize()
     return executions_mod
 
 

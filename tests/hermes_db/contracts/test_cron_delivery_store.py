@@ -21,4 +21,5 @@ def test_sqlite_delivery_contract(tmp_path, monkeypatch):
     from cron import delivery_queue as queue
     monkeypatch.setattr(queue, "DELIVERY_DB", tmp_path / "deliveries.db")
     monkeypatch.setattr(queue, "MAX_TERMINAL_DELIVERIES", 0)
+    queue.initialize()
     exercise_delivery_contract(queue)

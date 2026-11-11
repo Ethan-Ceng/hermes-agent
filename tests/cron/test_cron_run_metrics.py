@@ -10,6 +10,9 @@ from hermes_cli.observability import shared_metrics_contract as contract
 from hermes_cli.observability import shared_metrics_gateway as smg
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture
 def cron_rows(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
@@ -70,7 +73,7 @@ def test_a_stopped_run_row_validates_against_the_package_schema(tmp_path):
     jsonschema = pytest.importorskip("jsonschema")
     schema = Path(__file__).resolve().parents[2] / "hermes_cli/observability/schemas/hermes.shared_metrics.v4.schema.json"
     resource = {"architecture": "x86_64", "hermes_version": "test", "install_method": "git", "os_family": "linux"}
-    store = SharedMetricsStore(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
+    store = SharedMetricsStore.create(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
     store.record_counter(
         contract.CRON_RUN_METRIC, smg.cron_run_fields(outcome="cancelled", delivery_kind="local", seconds=3), resource)
 

@@ -12,6 +12,7 @@ def test_pending_delivery_is_claimed_and_sent_once(tmp_path, monkeypatch):
     import cron.delivery_queue as queue
 
     monkeypatch.setattr(queue, "DELIVERY_DB", tmp_path / "deliveries.db")
+    queue.initialize()
     queue.enqueue("exec-1", {"id": "job-1"}, "brief")
     send = Mock(return_value=None)
 
@@ -34,6 +35,7 @@ def test_pending_deliveries_are_claimed_in_instant_order_across_dst_fall_back(
     import cron.delivery_queue as queue
 
     monkeypatch.setattr(queue, "DELIVERY_DB", tmp_path / "deliveries.db")
+    queue.initialize()
     new_york = ZoneInfo("America/New_York")
     monkeypatch.setattr(
         queue, "_hermes_now", lambda: datetime(2026, 11, 1, 1, 50, tzinfo=new_york, fold=0)
@@ -52,6 +54,7 @@ def test_terminal_delivery_retention_is_bounded(tmp_path, monkeypatch):
     import cron.delivery_queue as queue
 
     monkeypatch.setattr(queue, "DELIVERY_DB", tmp_path / "deliveries.db")
+    queue.initialize()
     monkeypatch.setattr(queue, "MAX_TERMINAL_DELIVERIES", 2, raising=False)
     for index in range(4):
         execution_id = f"exec-{index}"
@@ -80,6 +83,7 @@ def test_failure_delivery_lane_survives_durable_handoff(tmp_path, monkeypatch):
     import cron.delivery_queue as queue
 
     monkeypatch.setattr(queue, "DELIVERY_DB", tmp_path / "deliveries.db")
+    queue.initialize()
     queue.enqueue(
         "exec-failure",
         {"id": "job-failure", "failure_deliver": "local"},
@@ -116,6 +120,7 @@ def test_legacy_queue_schema_adds_failure_lane_before_enqueue(tmp_path, monkeypa
                )"""
         )
     monkeypatch.setattr(queue, "DELIVERY_DB", db)
+    queue.initialize()
 
     queue.enqueue(
         "exec-migrated",
@@ -133,6 +138,7 @@ def test_wait_timeout_marks_inflight_delivery_unknown_without_retry(
     import cron.delivery_queue as queue
 
     monkeypatch.setattr(queue, "DELIVERY_DB", tmp_path / "deliveries.db")
+    queue.initialize()
     queue.enqueue("exec-inflight", {"id": "job-inflight"}, "result")
     assert queue.claim_next() is not None
 
@@ -156,6 +162,7 @@ def test_dead_delivery_owner_becomes_unknown_and_is_not_retried(
     import cron.delivery_queue as queue
 
     monkeypatch.setattr(queue, "DELIVERY_DB", tmp_path / "deliveries.db")
+    queue.initialize()
     queue.enqueue("exec-1", {"id": "job-1"}, "brief")
     assert queue.claim_next() is not None
     monkeypatch.setattr(queue, "_PROCESS_ID", "replacement-gateway")
@@ -174,6 +181,7 @@ def test_delivery_failure_is_terminal_not_retried_and_redacted(
     import cron.delivery_queue as queue
 
     monkeypatch.setattr(queue, "DELIVERY_DB", tmp_path / "deliveries.db")
+    queue.initialize()
     queue.enqueue("exec-1", {"id": "job-1"}, "brief")
     send = Mock(return_value="request failed: https://example.test/?token=TOKEN123")
 
@@ -195,6 +203,7 @@ def test_wait_timeout_leaves_unclaimed_delivery_queued_for_next_gateway(
     import cron.delivery_queue as queue
 
     monkeypatch.setattr(queue, "DELIVERY_DB", tmp_path / "deliveries.db")
+    queue.initialize()
     job = {"id": "job-3", "deliver": "origin"}
 
     error = queue.enqueue_and_wait("exec-3", job, "result", timeout=0)
@@ -216,6 +225,7 @@ def test_same_gateway_recovers_terminalization_failure_without_resending(
     import cron.delivery_queue as queue
 
     monkeypatch.setattr(queue, "DELIVERY_DB", tmp_path / "deliveries.db")
+    queue.initialize()
     queue.enqueue("exec-4", {"id": "job-4"}, "result")
     send = Mock(return_value=None)
     original_finish = queue._finish

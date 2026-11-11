@@ -139,7 +139,7 @@ def test_days_since_install_bucket(monkeypatch, tmp_path, age_s, bucket):
 
 def test_feature_adoption_latches_once_per_install(tmp_path):
     resource = {"hermes_version": "1.0.0", "os_family": "linux", "architecture": "x86_64", "install_method": "git"}
-    store = SharedMetricsStore(tmp_path / "m.sqlite3", tmp_path / "outbox")
+    store = SharedMetricsStore.create(tmp_path / "m.sqlite3", tmp_path / "outbox")
     assert store.record_feature_adoption("memory", "same_day", resource) is True
     again = SharedMetricsStore(tmp_path / "m.sqlite3", tmp_path / "outbox")
     assert again.record_feature_adoption("memory", "1d_to_7d", resource) is False
@@ -550,7 +550,7 @@ def test_record_config_saved_needs_a_surface_and_collection(marks, monkeypatch):
 
 def test_store_counts_feature_disabled_once_per_day(tmp_path):
     resource = {"hermes_version": "1.0.0", "os_family": "linux", "architecture": "x86_64", "install_method": "git"}
-    store = SharedMetricsStore(tmp_path / "m.sqlite3", tmp_path / "outbox")
+    store = SharedMetricsStore.create(tmp_path / "m.sqlite3", tmp_path / "outbox")
     dims = {"event": "disabled", "kind": "toolset", "name": "memory", "surface": "cli_tools"}
     assert store.record_counter_once_per_day(contract.FEATURE_DISABLED_METRIC, dims, resource) is True
     assert store.record_counter_once_per_day(

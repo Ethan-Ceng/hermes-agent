@@ -6,6 +6,9 @@ import pytest
 from cron import jobs
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.mark.parametrize("catch_up", [True, False])
 def test_missed_policy_preserves_grace_and_manual(tmp_path, monkeypatch, catch_up):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))

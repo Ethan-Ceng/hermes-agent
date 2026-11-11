@@ -19,11 +19,15 @@ from gateway.config import GatewayConfig, Platform
 from gateway.platforms.base import SendResult
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture(autouse=True)
 def _fresh_ledger(tmp_path, monkeypatch):
     home = tmp_path / "hermes"
     home.mkdir()
     monkeypatch.setattr(dl, "_db_path", lambda: home / "state.db")
+    dl.initialize()
     monkeypatch.setattr(dl, "ledger_enabled", lambda config=None: True)
     monkeypatch.setattr(sd, "_maybe_mirror_cron_delivery", lambda *a, **k: None)
 

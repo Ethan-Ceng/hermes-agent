@@ -30,6 +30,7 @@ def _peer_service(db: Path, peer: _FakePeerClient, *, grant="signed.room.grant")
         target_install_id="install-peer", target_profile="reviewer", capability_digest=catalog.catalog_digest,
         execution_policy_digest=catalog.execution_policy.policy_digest,
         cancellation_scope_id="cancel-room-1", trace_id="trace-room-1", grant=grant)
+    hosted_rooms._initialize_connection(db).close()
     service = HostedRoomService(_server(), db_path=db)
     service.register_peer_route(
         room_id="room-1", member_id="member-peer", route=route, client=peer,

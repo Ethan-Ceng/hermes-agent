@@ -1,6 +1,5 @@
 """Tests for cron/scheduler.py — origin resolution, delivery routing, and error logging."""
 
-import asyncio
 import contextlib
 import contextvars
 import itertools
@@ -23,55 +22,14 @@ from cron.scheduler import (
 )
 from cron.scheduler_delivery import _resolve_origin, _send_media_via_adapter
 from tools.env_passthrough import clear_env_passthrough
+from tests.cron.owner_execution import run_owned_job
 
 
-def _run_owned_job(job, tmp_path, db=None):
-    """Run the production owner bridge, preserving each test's agent/DB probes."""
-    from gateway.session_contract import SessionRef
-    from gateway.session_cron import current_execution, execute
-    from hermes_state_registry import acquire, release
 
-    ref = SessionRef("test-profile", "canonical-cron-session")
-    admission_id = "cron-owner-admission"
-    request_id = "cron-owner-request"
-    owns_db = db is None
-    if owns_db:
-        db = acquire(tmp_path / "state.db")
-        db.create_session(ref.session_id, source="cron")
-    else:
-        db.db_path = str(tmp_path / "state.db")
-    authority = SimpleNamespace(
-        db=db,
-        sessions={ref.session_id: SimpleNamespace(source=SimpleNamespace(user_id="cron-owner"))},
-        pending_results={},
-    )
-    row = {
-        "admission_id": admission_id, "request_id": request_id,
-        "principal_id": "cron-owner", "payload": {"text": ""},
-    }
-    policy = SimpleNamespace(request_json=json.dumps({
-        "cron_job": job, "extra_prompt": None, "request_id": request_id,
-    }))
 
-    async def run():
-        previous = current_execution()
-        try:
-            await execute(authority, ref, row, policy)
-        except RuntimeError as exc:
-            saved = authority.pending_results.get(admission_id)
-            if saved is None:
-                raise
-            assert str(exc) == saved["result"]["cron_result"][3]
-        assert current_execution() is previous
-        assert authority._cron_cancellations == {}
-        return tuple(authority.pending_results[admission_id]["result"]["cron_result"])
 
-    try:
-        return asyncio.run(run())
-    finally:
-        if owns_db:
-            release(db)
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
 
 def test_cron_cleanup_worker_inherits_caller_contextvars():
     """Profile-scoped secrets must remain visible during threaded cleanup."""
@@ -570,7 +528,7 @@ class TestRunJobSessionPersistence:
             mock_agent.run_conversation.return_value = {"final_response": "ok"}
             mock_agent_cls.return_value = mock_agent
 
-            success, output, final_response, error = _run_owned_job(job, tmp_path, fake_db)
+            success, output, final_response, error = run_owned_job(job, tmp_path, fake_db)
 
         assert success is True
         assert error is None
@@ -639,7 +597,7 @@ class TestRunJobSessionPersistence:
 
             mock_agent.close.side_effect = close_agent
             mock_agent_cls.return_value = mock_agent
-            success, *_ = _run_owned_job(job, tmp_path, fake_db)
+            success, *_ = run_owned_job(job, tmp_path, fake_db)
 
         assert success is True
         assert fake_db.end_session.call_count == 1
@@ -699,7 +657,7 @@ class TestRunJobSessionPersistence:
             "prompt": "hello",
         }
         with self._run_job_patches(tmp_path) as (fake_db, mock_agent_cls):
-            _run_owned_job(job, tmp_path, fake_db)
+            run_owned_job(job, tmp_path, fake_db)
 
         kwargs = mock_agent_cls.call_args.kwargs
         assert kwargs["skip_memory"] is False
@@ -800,7 +758,7 @@ class TestRunJobSessionPersistence:
                  },
              ), \
              patch("run_agent.AIAgent", FakeAgent):
-            success, output, final_response, error = _run_owned_job(job, tmp_path, fake_db)
+            success, output, final_response, error = run_owned_job(job, tmp_path, fake_db)
 
         assert success is True
         assert error is None
@@ -860,7 +818,7 @@ class TestRunJobSessionPersistence:
                  },
              ), \
              patch("run_agent.AIAgent", FakeAgent):
-            success, output, final_response, error = _run_owned_job(job, tmp_path, fake_db)
+            success, output, final_response, error = run_owned_job(job, tmp_path, fake_db)
 
         assert success is True
         assert error is None
@@ -947,7 +905,7 @@ class TestRunJobSessionPersistence:
             mock_agent = MagicMock()
             mock_agent.run_conversation.return_value = {"final_response": "ok"}
             mock_agent_cls.return_value = mock_agent
-            success, _output, _final, error = _run_owned_job(job, tmp_path, fake_db)
+            success, _output, _final, error = run_owned_job(job, tmp_path, fake_db)
 
         assert success is True
         assert error is None
@@ -1006,7 +964,7 @@ class TestRunJobSessionPersistence:
              ), \
              patch("run_agent.AIAgent", FakeAgent):
             for job in jobs:
-                success, output, final_response, error = _run_owned_job(job, tmp_path, fake_db)
+                success, output, final_response, error = run_owned_job(job, tmp_path, fake_db)
                 assert success is True
                 assert error is None
                 assert final_response == "ok"
@@ -1061,7 +1019,7 @@ class TestRunJobConfigEnvVarExpansion:
             mock_agent = MagicMock()
             mock_agent.run_conversation.return_value = {"final_response": "ok"}
             mock_agent_cls.return_value = mock_agent
-            success, _, _, error = _run_owned_job(job, tmp_path, fake_db)
+            success, _, _, error = run_owned_job(job, tmp_path, fake_db)
 
         assert success is True
         assert error is None
@@ -1125,7 +1083,7 @@ class TestRunJobConfigEnvVarExpansion:
             mock_agent = MagicMock()
             mock_agent.run_conversation.return_value = {"final_response": "ok"}
             mock_agent_cls.return_value = mock_agent
-            success, _, _, error = _run_owned_job(job, tmp_path, fake_db)
+            success, _, _, error = run_owned_job(job, tmp_path, fake_db)
 
         assert success is True, error
         assert error is None
@@ -1177,7 +1135,7 @@ class TestRunJobConfigEnvVarExpansion:
             mock_agent = MagicMock()
             mock_agent.run_conversation.return_value = {"final_response": "ok"}
             mock_agent_cls.return_value = mock_agent
-            success, _, _, error = _run_owned_job(job, tmp_path, fake_db)
+            success, _, _, error = run_owned_job(job, tmp_path, fake_db)
 
         assert success is True
         assert error is None
@@ -1223,7 +1181,7 @@ class TestRunJobModelResolution:
             mock_agent = MagicMock()
             mock_agent.run_conversation.return_value = {"final_response": "ok"}
             mock_agent_cls.return_value = mock_agent
-            success, _, _, error = _run_owned_job(job, tmp_path, fake_db)
+            success, _, _, error = run_owned_job(job, tmp_path, fake_db)
 
         assert success is True
         assert error is None
@@ -1245,7 +1203,7 @@ class TestRunJobModelResolution:
              patch("hermes_cli.runtime_provider.resolve_runtime_provider",
                    return_value=self._RUNTIME), \
              patch("run_agent.AIAgent") as mock_agent_cls:
-            success, _, _, error = _run_owned_job(job, tmp_path, fake_db)
+            success, _, _, error = run_owned_job(job, tmp_path, fake_db)
 
         assert success is False
         assert error is not None
@@ -1277,7 +1235,7 @@ class TestRunJobModelResolution:
             mock_agent = MagicMock()
             mock_agent.run_conversation.return_value = {"final_response": "ok"}
             mock_agent_cls.return_value = mock_agent
-            success, _, _, error = _run_owned_job(job, tmp_path, fake_db)
+            success, _, _, error = run_owned_job(job, tmp_path, fake_db)
 
         assert success is True
         assert error is None
@@ -1302,7 +1260,7 @@ class TestRunJobModelResolution:
             mock_agent = MagicMock()
             mock_agent.run_conversation.return_value = {"final_response": "ok"}
             mock_agent_cls.return_value = mock_agent
-            success, _, _, error = _run_owned_job(job, tmp_path, fake_db)
+            success, _, _, error = run_owned_job(job, tmp_path, fake_db)
 
         assert success is False
         assert "Hermes stopped because your settings file" in error
@@ -1355,7 +1313,7 @@ class TestRunJobSkillBacked:
             mock_agent_cls.return_value = mock_agent
 
             try:
-                success, _output, final_response, error = _run_owned_job(job, tmp_path, fake_db)
+                success, _output, final_response, error = run_owned_job(job, tmp_path, fake_db)
             finally:
                 clear_env_passthrough()
 
@@ -1578,7 +1536,7 @@ class TestRunJobWakeGate:
         with patch.object(sched_script, "_run_job_script",
                           return_value=(True, '{"wakeAgent": false}')), \
              patch("run_agent.AIAgent") as agent_cls:
-            success, _doc, final, err = _run_owned_job(self._make_job(), tmp_path)
+            success, _doc, final, err = run_owned_job(self._make_job(), tmp_path)
 
         assert success is True
         assert err is None
@@ -1599,7 +1557,7 @@ class TestRunJobWakeGate:
         with patch.object(sched_script, "_run_job_script",
                           return_value=(True, script_output)), \
              patch("run_agent.AIAgent", return_value=agent) as agent_cls:
-            success, _doc, _final, err = _run_owned_job(self._make_job(), tmp_path)
+            success, _doc, _final, err = run_owned_job(self._make_job(), tmp_path)
 
         agent_cls.assert_called_once()
         # The script output should be visible in the prompt passed to
@@ -1719,7 +1677,7 @@ class TestParallelTick:
     def _isolate_tick_lock(self, tmp_path):
         """Point the tick file lock at a per-test temp dir to avoid lock contention."""
         lock_dir = tmp_path / "cron"
-        lock_dir.mkdir()
+        lock_dir.mkdir(exist_ok=True)
         lock_file = lock_dir / ".tick.lock"
         with patch("cron.scheduler._get_lock_paths", return_value=(lock_dir, lock_file)):
             yield

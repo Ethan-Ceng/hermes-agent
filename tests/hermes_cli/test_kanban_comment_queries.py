@@ -38,6 +38,7 @@ def fresh_home(tmp_path, monkeypatch):
 
 
 def test_list_comments_after_cursor(fresh_home):
+    kbc.init_db()
     conn = kbc.connect()
     try:
         tid = kb.create_task(conn, title="chat")

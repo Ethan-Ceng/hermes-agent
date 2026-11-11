@@ -167,6 +167,7 @@ def test_two_workers_on_one_store_make_one_router_call(tmp_path, answers):
 
 
 def test_a_router_claim_left_by_a_dead_worker_expires(tmp_path):
+    hosted_rooms._initialize_connection(tmp_path / "state.db").close()
     now = [1000.0]
     key, asked = (ROOM_ID, "user:m1"), []
     dead = router_call.RouterCalls(tmp_path / "state.db", clock=lambda: now[0])

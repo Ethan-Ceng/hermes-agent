@@ -69,7 +69,7 @@
       "hermes_cli/kanban_db_connect.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep native schema SQL, connect/creation, Board generation and existing canonical workflows; route ordinary opens to checked resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "d0572e70831e78b2890e3dd66c9ab56c4d6ed6077ef29b88b23c1fe99d506f1c",
@@ -114,7 +114,10 @@
       "_execute_boundary_with_retry",
       "_main_db_file",
       "write_txn"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "hermes_cli/kanban_db_connect.py": "40266e7c4ac7d8ca4b827e3da53cca12f6c42b5090375fb1e815e861bddd7a61"
+    }
   },
   {
     "source": "hermes_cli/projects_db.py",
@@ -125,7 +128,7 @@
       "hermes_cli/projects_db.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Preserve project schema/DTO and explicitly initialize first dataset; application constructor extraction task11.",
     "symbol_routes": {},
     "baseline_abi_sha256": "8f42e48397705cc1c18202bd06aafd92687f121f34d0a169fad4c2397a2b0f8d",
@@ -163,7 +166,10 @@
       "list_discovered_repos",
       "project_for_path",
       "branch_name_for"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "hermes_cli/projects_db.py": "89e3b7d0ab4b5464e796f5692dba696ef90163335c81ae5fa6213234da57a264"
+    }
   },
   {
     "source": "hermes_cli/sqlite_util.py",
@@ -3011,7 +3017,7 @@
       "cron/delivery_queue.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Explicit first-create/upgrade versus ordinary connection for native Cron stores; later task11 moves application callbacks.",
     "symbol_routes": {},
     "baseline_abi_sha256": "b49ea770a20f4c013d6293724b8f433978e9e7e1113082a236f9e8ae8fb0184e",
@@ -3031,7 +3037,10 @@
       "drain",
       "_terminalize_wait_timeout",
       "enqueue_and_wait"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "cron/delivery_queue.py": "7280458d1702e69fdb8c1b161ba504b3fa744346c244e6f589efe1d06b6dd874"
+    }
   },
   {
     "source": "cron/executions.py",
@@ -3042,7 +3051,7 @@
       "cron/executions.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Explicit first-create/upgrade versus ordinary connection for native Cron stores; later task11 moves application callbacks.",
     "symbol_routes": {},
     "baseline_abi_sha256": "a1594ca13c0008d4a6ed073714624f1752ab4557e59d3bf19c6b3856800b34af",
@@ -3084,7 +3093,10 @@
       "live_executions",
       "latest_executions",
       "completed_occurrence_rows"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "cron/executions.py": "433dfb026139cfce60de3f7c1cf44f27989082dcaf7967b6b312a02b0bab180d"
+    }
   },
   {
     "source": "cron/incidents.py",
@@ -3095,7 +3107,7 @@
       "cron/incidents.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Explicit first-create/upgrade versus ordinary connection for native Cron stores; later task11 moves application callbacks.",
     "symbol_routes": {},
     "baseline_abi_sha256": "10557376a4ee9073e00883469af4f480656f56bf44c374cc0fbe4c921ab8c8c2",
@@ -3117,7 +3129,10 @@
       "list_incidents",
       "get_incident",
       "count_incidents"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "cron/incidents.py": "83f707ffbe23037e7ef01c772aa226a88cac66f8cc142e7c7bbf4ab6d3f7bf2f"
+    }
   },
   {
     "source": "cron/notepad.py",
@@ -3128,7 +3143,7 @@
       "cron/notepad.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Explicit first-create/upgrade versus ordinary connection for native Cron stores; later task11 moves application callbacks.",
     "symbol_routes": {},
     "baseline_abi_sha256": "426bdf0c7ff6001af302c493b019013bbe04b4562577faf6cb77b996024b14b0",
@@ -3145,7 +3160,10 @@
       "clear_notepad",
       "render_notepad_section",
       "clear_removed_job"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "cron/notepad.py": "db379441e4f332b06d631e86dbe5b558401c189e909caa6c48f72e6a500fc641"
+    }
   },
   {
     "source": "cron/scheduler.py",
@@ -3156,7 +3174,7 @@
       "cron/scheduler.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Explicit first-create/upgrade versus ordinary connection for native Cron stores; later task11 moves application callbacks.",
     "symbol_routes": {},
     "baseline_abi_sha256": "fb0c76fde9558afbcb90e3ae6a8057ba4e934813a903bfef2ec21d5736d00a41",
@@ -3287,7 +3305,10 @@
       "_process_due_job",
       "_submit_with_guard",
       "_sweep_mcp_orphans_when_all_done"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "cron/scheduler.py": "02cc792a89d72d9c6768129fd6d753f0da17c507801e0db0d03a1d0c517ec2e9"
+    }
   },
   {
     "source": "gateway/delivery_ledger.py",
@@ -3298,7 +3319,7 @@
       "gateway/delivery_ledger.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Native schema belongs to business; ordinary connection has no DDL; application behavior closes in task14.",
     "symbol_routes": {},
     "baseline_abi_sha256": "e16ac017eb48e7b6a89b9b62291f2b1f62e099fdcf76a22b51524c01917ee25c",
@@ -3323,7 +3344,10 @@
       "pending_retries",
       "_prune_unlocked",
       "ledger_enabled"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "gateway/delivery_ledger.py": "874df0e440d1679b038877a55784611b2247a39142c9157c6724d1495a66dbde"
+    }
   },
   {
     "source": "gateway/hosted_room_attachments.py",
@@ -3334,7 +3358,7 @@
       "gateway/hosted_room_attachments.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Native schema belongs to business; ordinary connection has no DDL; application behavior closes in task14.",
     "symbol_routes": {},
     "baseline_abi_sha256": "d52ef2663d22dbad984056d289d8746840736bdcc08157e31d4b93c8927e8ebd",
@@ -3345,7 +3369,10 @@
       "HostedRoomAttachmentStore",
       "_owner_event",
       "retain_message_attachments"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "gateway/hosted_room_attachments.py": "c485841fbf46cddd89038d44f90c62acdb71466de22b00634e63104c1c156d9f"
+    }
   },
   {
     "source": "gateway/hosted_room_driver.py",
@@ -3356,7 +3383,7 @@
       "gateway/hosted_room_driver.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Native schema belongs to business; ordinary connection has no DDL; application behavior closes in task14.",
     "symbol_routes": {},
     "baseline_abi_sha256": "c376f66d7305f8bc73087975bfff4ad550467c330fa0ac16be83e5a24fd0263f",
@@ -3403,7 +3430,10 @@
       "list_tasks",
       "prune_published_terminal_tasks",
       "get_task_for_turn"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "gateway/hosted_room_driver.py": "2d2d6f74f700651c9695db19728d484bfe79a155b10a73a5d4c966932ed0c741"
+    }
   },
   {
     "source": "gateway/hosted_room_policy_checkpoint.py",
@@ -3414,7 +3444,7 @@
       "gateway/hosted_room_policy_checkpoint.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Native schema belongs to business; ordinary connection has no DDL; application behavior closes in task14.",
     "symbol_routes": {},
     "baseline_abi_sha256": "46fc62552b778c98fce5a0fef1f4123764e76773cbfb114dc2a54806e7f7ec50",
@@ -3422,7 +3452,10 @@
       "_require_room",
       "_settled_message",
       "HostedRoomPolicyCheckpoint"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "gateway/hosted_room_policy_checkpoint.py": "eb307a871d5b51fd4c480924d273bfb8bbd378773bbc9a26e629838eeb2afd18"
+    }
   },
   {
     "source": "gateway/hosted_room_replicas.py",
@@ -3433,7 +3466,7 @@
       "gateway/hosted_room_replicas.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Native schema belongs to business; ordinary connection has no DDL; application behavior closes in task14.",
     "symbol_routes": {},
     "baseline_abi_sha256": "aaa01b0ca8714679cf466a5c3e49ec687e75d887a78b27bb952c3a931fda2051",
@@ -3447,7 +3480,10 @@
       "replica_state",
       "promote_replica",
       "demote_room"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "gateway/hosted_room_replicas.py": "5742a18dcea27167e6d7dde2974f6e657c1ffb8f2e2f929e72e838691e1010de"
+    }
   },
   {
     "source": "gateway/hosted_room_work_records.py",
@@ -3458,7 +3494,7 @@
       "gateway/hosted_room_work_records.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Native schema belongs to business; ordinary connection has no DDL; application behavior closes in task14.",
     "symbol_routes": {},
     "baseline_abi_sha256": "00acdcaf0b8c195c07f77a7e72984bbdcb5483cca7fcc3b97e511a76c169b31b",
@@ -3477,7 +3513,10 @@
       "delivery_status",
       "acknowledge",
       "_passive_write"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "gateway/hosted_room_work_records.py": "385970c938c83259a0678f4a81fcad969242e566699828c42f299d54464ec6ca"
+    }
   },
   {
     "source": "gateway/hosted_room_work_storage.py",
@@ -3488,7 +3527,7 @@
       "gateway/hosted_room_work_storage.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Native schema belongs to business; ordinary connection has no DDL; application behavior closes in task14.",
     "symbol_routes": {},
     "baseline_abi_sha256": "fd429c8b1253022757366d9a5d2a5afec0b1bf99d9f3567d90a5d66eaa56d5f4",
@@ -3502,7 +3541,10 @@
       "validate_stored_locked",
       "save_locked",
       "_invalid_guards"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "gateway/hosted_room_work_storage.py": "c4aa9b50b4d21fe4b1ad485586d0616d150155062312a0cf21890bc89875061d"
+    }
   },
   {
     "source": "gateway/hosted_rooms.py",
@@ -3513,7 +3555,7 @@
       "gateway/hosted_rooms.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Native schema belongs to business; ordinary connection has no DDL; application behavior closes in task14.",
     "symbol_routes": {},
     "baseline_abi_sha256": "ad2f3c31ea9833d200d14f4cb41ed9902d31a57751af8fdde4f12ac1a0a98be6",
@@ -3579,7 +3621,10 @@
       "_disband_replay",
       "disband_room",
       "read_events"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "gateway/hosted_rooms.py": "177d477e4238406645dde452ec2c45002bed99e029ed0d8c98f99e570f5282b5"
+    }
   },
   {
     "source": "gateway/hosted_rooms_common.py",
@@ -3590,7 +3635,7 @@
       "gateway/hosted_rooms_common.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Native schema belongs to business; ordinary connection has no DDL; application behavior closes in task14.",
     "symbol_routes": {},
     "baseline_abi_sha256": "2110619ed0a5c99d22bda9d80becbedd756786d8e53dc6548d567ccf74aeecb4",
@@ -3601,7 +3646,10 @@
       "table_exists",
       "table_columns",
       "transaction"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "gateway/hosted_rooms_common.py": "a9a2460cb0f5d308402fe472241a74bb5ae65f01e8e2301dc9a10d953fdc5921"
+    }
   },
   {
     "source": "gateway/hosted_rooms_gateway_import.py",
@@ -3612,9 +3660,18 @@
       "gateway/hosted_rooms_gateway_import.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Native schema belongs to business; ordinary connection has no DDL; application behavior closes in task14.",
-    "symbol_routes": {},
+    "symbol_routes": {
+      "_ensure_handoff_table": {
+        "target": "gateway/hosted_rooms_gateway_import.py",
+        "target_symbol": "initialize_handoff_schema",
+        "task": 8,
+        "action": "rename",
+        "status": "completed",
+        "constraint": "Original DDL unchanged, invoked by explicit Room schema initialization. Ordinary handoff operations only validate."
+      }
+    },
     "baseline_abi_sha256": "0749b883b6687ddd56e5f51ada3297e724763b3d0a8a4b0121e175f4c243839b",
     "symbol_names": [
       "handoff_gateway_id",
@@ -3627,7 +3684,10 @@
       "_claim",
       "import_standalone_rooms",
       "import_after_ready"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "gateway/hosted_rooms_gateway_import.py": "513414b5df891618819dde3ece1a62d703420be5d08db517fcb32b4e615b489b"
+    }
   },
   {
     "source": "gateway/hosted_rooms_legacy_import.py",
@@ -3638,7 +3698,7 @@
       "gateway/hosted_rooms_legacy_import.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Native schema belongs to business; ordinary connection has no DDL; application behavior closes in task14.",
     "symbol_routes": {},
     "baseline_abi_sha256": "47809a4786307679c0c6cfe24bf279ea669482cb23d5408d2730dfa6e2661796",
@@ -3648,7 +3708,10 @@
       "_select_expressions",
       "_copy_rows",
       "import_legacy_rooms"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "gateway/hosted_rooms_legacy_import.py": "8bfecc2e2f0547335263b21ab9fde53bccea8b4b4e161ffd3dd87ce53ae84738"
+    }
   },
   {
     "source": "gateway/lifecycle_ledger.py",
@@ -3659,7 +3722,7 @@
       "gateway/lifecycle_ledger.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Native schema belongs to business; ordinary connection has no DDL; application behavior closes in task14.",
     "symbol_routes": {},
     "baseline_abi_sha256": "b6c044ef788cab4a874cd04e3033b6f63c42eeb5ea88255ec7a0b2d9ed30a1a6",
@@ -3684,7 +3747,10 @@
       "run_deferred_integrity_check",
       "mark_exited",
       "read_prior_exit_label"
-    ]
+    ],
+    "implemented_target_sha256": {
+      "gateway/lifecycle_ledger.py": "613f36f2a96b3c9d60c01dd7513cabc739366289fe404f8e51c87a20b0f8564e"
+    }
   },
   {
     "source": "gateway/platforms/api_server_response_store.py",
@@ -4696,11 +4762,14 @@
       "hermes_cli/kanban_sqlite_schema.py"
     ],
     "task": 8,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep native schema SQL, connect/creation, Board generation and existing canonical workflows; route ordinary opens to checked resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "implemented_target_sha256": {
+      "hermes_cli/kanban_sqlite_schema.py": "8d85573e0549e6ba7f4def9b70b2de5bd7964ba1af962604c43b08af3e6619bb"
+    }
   },
   {
     "source": "hermes_cli/kanban_swarm.py",

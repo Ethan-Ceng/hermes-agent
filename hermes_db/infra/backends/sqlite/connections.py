@@ -3,10 +3,28 @@ from __future__ import annotations
 
 import sqlite3
 import time
+from functools import partial
 from pathlib import Path
 
-def open_db(
-    path: Path | str,
+def _connect_create(path: Path | str, **options) -> sqlite3.Connection:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return sqlite3.connect(path, **options)
+
+
+def open_db(path: Path | str, **options) -> sqlite3.Connection:
+    """Open an explicitly creatable SQLite file with the selected connection policy."""
+    return _open_configured(partial(_connect_create, path), **options)
+
+
+def open_existing_db(path: Path | str, **options) -> sqlite3.Connection:
+    """Open an existing file without creating a database when the path vanishes."""
+    uri = Path(path).resolve().as_uri() + "?mode=rw"
+    return _open_configured(partial(sqlite3.connect, uri, uri=True), **options)
+
+
+def _open_configured(
+    connect,
     *,
     db_label: str,
     busy_timeout_ms: int = 5000,
@@ -19,7 +37,7 @@ def open_db(
     journal_mode: str = "wal",
     repair_hint: str = "upgrade the linked SQLite runtime",
 ) -> sqlite3.Connection:
-    """Open ``path`` (parent created), apply the PRAGMA set, apply resolved options; closed if anything raises.
+    """Apply the selected PRAGMAs and close the connection if configuration fails.
 
     ``busy_timeout_ms`` is the single busy knob: it is passed as ``connect(timeout=)`` AND set as the
     explicit PRAGMA so it is observable. ``wal=True`` goes through ``apply_wal_with_fallback`` — the
@@ -30,10 +48,8 @@ def open_db(
     """
     from hermes_db.infra.backends.sqlite.wal import apply_wal_with_fallback
 
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
     # Resolved at call time: fd-leak tests patch ``sqlite3.connect`` through the caller's module.
-    conn = sqlite3.connect(path, timeout=busy_timeout_ms / 1000, check_same_thread=check_same_thread)
+    conn = connect(timeout=busy_timeout_ms / 1000, check_same_thread=check_same_thread)
     try:
         conn.row_factory = row_factory
         conn.execute(f"PRAGMA busy_timeout={int(busy_timeout_ms)}")

@@ -32,6 +32,9 @@ from cron.jobs import get_due_jobs, load_jobs, save_jobs
 FIXED_NOW = datetime(2026, 6, 22, 12, 0, 0, tzinfo=UTC)
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture()
 def cron_store(tmp_path, monkeypatch):
     """Redirect cron storage to a temp dir, pin the clock, start with no degraded store."""

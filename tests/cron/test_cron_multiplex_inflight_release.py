@@ -9,11 +9,15 @@ shutdown drain plus ``hermes.cron.jobs.running`` saw phantom work.
 """
 
 from __future__ import annotations
+import pytest
 
 import concurrent.futures
 
 import cron.scheduler as sched
 from hermes_constants import reset_hermes_home_override, set_hermes_home_override
+
+
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
 
 
 class _Scope:
@@ -36,6 +40,8 @@ def test_pool_worker_release_clears_the_ticked_profiles_claim(tmp_path):
     launch_home, profile_b = tmp_path / "launch", tmp_path / "profile-b"
     launch_home.mkdir()
     profile_b.mkdir()
+    from cron.storage_lifecycle import initialize_cron_stores
+    initialize_cron_stores(profile_b)
     job = {"id": "daily-brief", "name": "daily-brief", "schedule": {"kind": "interval"}}
     ran_in = {}
 

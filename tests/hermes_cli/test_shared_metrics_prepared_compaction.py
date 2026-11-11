@@ -40,7 +40,7 @@ def test_snapshot_reports_prepare_ahead_and_older_snapshots_still_package(tmp_pa
     current = collect_install_snapshot({})
     assert current["compression_prepare_ahead"] == "off", "absent reads off, as the agent's default"
 
-    store = SharedMetricsStore(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
+    store = SharedMetricsStore.create(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
     before_upgrade = {k: v for k, v in current.items() if k != "compression_prepare_ahead"}
     store.record_counter(contract.INSTALL_SNAPSHOT_METRIC, before_upgrade, RESOURCE)
     store.record_counter(contract.INSTALL_SNAPSHOT_METRIC, {**current, "compression_prepare_ahead": "on"}, RESOURCE)

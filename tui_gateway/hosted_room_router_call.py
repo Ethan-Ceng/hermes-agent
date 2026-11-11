@@ -82,9 +82,6 @@ def ask_router(*, root: Path, db_path: Path, room: Mapping[str, Any], discussion
     return picked
 
 
-_CLAIMS_DDL = """CREATE TABLE IF NOT EXISTS hosted_room_router_claims (
-    room_id TEXT NOT NULL, discussion_event_id TEXT NOT NULL, owner TEXT NOT NULL, expires_at REAL NOT NULL,
-    PRIMARY KEY(room_id, discussion_event_id))"""
 # A claim outlives any router call (``auxiliary.group_router.timeout``, 20 s by default); one left by a
 # crashed worker expires and the next preparation asks again.
 
@@ -111,11 +108,15 @@ class RouterCalls(RouterCallLifecycle):
     def _transaction(self):
         from hermes_db.domains.rooms.api import assert_sqlite_location
         assert_sqlite_location(self._db_path)
-        from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
+        from hermes_cli.db_sqlite_policy import open_ready_profile_sqlite
         from hermes_db.infra.backends.sqlite.transactions import transaction
 
-        conn = open_db(self._db_path, db_label="shared-state.db (room router claims)", busy_timeout_ms=10_000)
-        conn.execute(_CLAIMS_DDL)
+        from gateway.hosted_rooms_common import table_exists
+
+        conn = open_ready_profile_sqlite(
+            self._db_path, db_label="shared-state.db (room router claims)", busy_timeout_ms=10_000,
+            ready=lambda conn: table_exists(conn, "hosted_room_router_claims"),
+        )
         return transaction(conn, immediate=True)
 
     def _claim(self, key: tuple[str, str]) -> bool:

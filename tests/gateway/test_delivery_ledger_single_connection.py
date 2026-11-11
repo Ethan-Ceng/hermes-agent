@@ -15,20 +15,22 @@ from gateway import delivery_ledger as dl
 def test_recording_a_reply_does_not_open_a_second_connection(tmp_path, monkeypatch):
     db = tmp_path / "state.db"
     monkeypatch.setattr(dl, "_db_path", lambda: db)
+    dl.initialize()
     real_connect = sqlite3.connect
     opened: list[str] = []
 
     def counting_connect(*args, **kwargs):
-        target = args[0] if args else kwargs.get("database")
+        connection = real_connect(*args, **kwargs)
+        target = connection.execute("PRAGMA database_list").fetchone()[2]
         # Only the ledger's own database counts: unrelated sqlite users in the
         # process (other modules, background threads) must not move the tally.
         if Path(str(target)).resolve() == db.resolve():
             opened.append(str(target))
-        return real_connect(*args, **kwargs)
+        return connection
 
     monkeypatch.setattr(sqlite3, "connect", counting_connect)
     dl.record_obligation(obligation_id="ob-warm", session_key="s", platform="p", chat_id="c",
-                         thread_id=None, content="warm-up (schema)")
+                         thread_id=None, content="warm-up")
     opened.clear()
 
     dl.record_obligation(obligation_id="ob-1", session_key="s", platform="p", chat_id="c",

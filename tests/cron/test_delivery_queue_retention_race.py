@@ -1,8 +1,12 @@
 """A delivery must stay terminal when retention races a repeated enqueue."""
 
+import pytest
 import sqlite3
 import subprocess
 import sys
+
+
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
 
 
 def test_enqueue_during_retention_never_recreates_delivered_request(tmp_path, monkeypatch):
@@ -11,6 +15,7 @@ def test_enqueue_during_retention_never_recreates_delivered_request(tmp_path, mo
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     db = tmp_path / "deliveries.db"
     monkeypatch.setattr(queue, "DELIVERY_DB", db)
+    queue.initialize()
     queue.enqueue("execution", {"id": "job"}, "original")
     sends = []
     assert queue.drain(lambda *args: sends.append(args)) == 1

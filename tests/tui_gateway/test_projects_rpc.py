@@ -14,6 +14,14 @@ from hermes_constants import reset_hermes_home_override, set_hermes_home_overrid
 from tui_gateway import server
 
 
+@pytest.fixture
+def initialized_projects_store():
+    from hermes_cli import projects_db
+    from hermes_state import SessionDB
+    SessionDB().close()
+    projects_db.initialize_projects()
+
+
 def _call(method, params=None):
     handler = server._methods[method]
     resp = handler(1, params or {})
@@ -162,6 +170,7 @@ def test_delete_removes_project(tmp_path):
 
 
 
+@pytest.mark.usefixtures("initialized_projects_store")
 def test_record_repos_persists_and_shows_zero_session_repo(tmp_path):
     repo = tmp_path / "fresh-repo"
     repo.mkdir()
@@ -174,6 +183,7 @@ def test_record_repos_persists_and_shows_zero_session_repo(tmp_path):
     assert by_label["fresh-repo"]["sessions"] == 0
 
 
+@pytest.mark.usefixtures("initialized_projects_store")
 def test_scan_time_is_not_treated_as_session_activity(tmp_path):
     """A scanned repo with no sessions must not rank as recently active.
 
@@ -206,6 +216,7 @@ def test_scan_time_is_not_treated_as_session_activity(tmp_path):
     assert active["last_active"] > idle["last_active"]
 
 
+@pytest.mark.usefixtures("initialized_projects_store")
 def test_remote_scan_failure_merges_instead_of_replacing_cache(tmp_path, monkeypatch):
     """A backend scan that can't fully walk its roots must NOT wipe the cache.
 
@@ -260,6 +271,7 @@ def test_remote_scan_failure_merges_instead_of_replacing_cache(tmp_path, monkeyp
     assert seed in joined
 
 
+@pytest.mark.usefixtures("initialized_projects_store")
 def test_remote_scan_missing_root_does_not_wipe_cache(tmp_path):
     """A configured discovery root missing on disk must NOT wipe the cache.
 
@@ -305,6 +317,7 @@ def test_remote_scan_missing_root_does_not_wipe_cache(tmp_path):
     assert seed in joined
 
 
+@pytest.mark.usefixtures("initialized_projects_store")
 def test_remote_scan_full_authoritative_replaces_cache(tmp_path):
     """Only a fully-walked scan may replace the stale cache."""
     from hermes_cli import projects_db as pdb
@@ -445,6 +458,7 @@ def test_home_container_dirs_are_never_a_workspace(tmp_path):
     assert not server._is_repo_junk(str(workspace))
 
 
+@pytest.mark.usefixtures("initialized_projects_store")
 def test_disabled_discovery_clears_cache_and_rejects_new_scan(monkeypatch, tmp_path):
     repo = tmp_path / "cached-repo"
     repo.mkdir()
@@ -484,6 +498,7 @@ def test_disabled_discovery_clears_cache_and_rejects_new_scan(monkeypatch, tmp_p
     assert any(item["root"] == str(session_repo) for item in result["repos"])
 
 
+@pytest.mark.usefixtures("initialized_projects_store")
 def test_nondefault_policy_rejects_stale_or_legacy_results(monkeypatch, tmp_path):
     root = tmp_path / "allowed"
     root.mkdir()
@@ -706,6 +721,9 @@ def test_record_repos_writes_to_the_requested_profiles_projects_db(monkeypatch, 
     """The scan cache is per-profile: a scoped write must not land on launch."""
     launch_home = _profile_dir(tmp_path, "launch")
     coder_home = _profile_dir(tmp_path, "coder")
+    from hermes_cli import projects_db
+    for home in (launch_home, coder_home):
+        projects_db.initialize_projects(profile_home=home)
     launch_repo = tmp_path / "repos" / "launch-scan"
     coder_repo = tmp_path / "repos" / "coder-scan"
     launch_repo.mkdir(parents=True)

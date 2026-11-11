@@ -83,20 +83,26 @@ def _fenced_ids(source: Path, handoff_id: str) -> set[str]:
     """Fenced live rooms not yet recorded as handed over."""
     from gateway.hosted_rooms import _transaction
     with _transaction(source, immediate=True) as conn:
-        _ensure_handoff_table(conn)
+        from gateway.hosted_rooms_common import table_exists
+        from hermes_db.domains.rooms.rules import HostedRoomError
+        if not table_exists(conn, HANDOFF_TABLE):
+            raise HostedRoomError("Room handoff schema is behind. Run `hermes db upgrade` for this profile.")
         return {str(row[0]) for row in conn.execute(
             f"SELECT room_id FROM hosted_rooms WHERE authority_gateway_id=? AND disbanded_at IS NULL"
             f" AND room_id NOT IN (SELECT room_id FROM {HANDOFF_TABLE})", (handoff_id,))}
 
 
-def _ensure_handoff_table(conn) -> None:
+def initialize_handoff_schema(conn) -> None:
     conn.execute(f"CREATE TABLE IF NOT EXISTS {HANDOFF_TABLE} (room_id TEXT PRIMARY KEY, handed_at REAL NOT NULL)")
 
 
 def _record_handoff(source: Path, room_ids: set[str], now: float) -> None:
     from gateway.hosted_rooms import _transaction
     with _transaction(source, immediate=True) as conn:
-        _ensure_handoff_table(conn)
+        from gateway.hosted_rooms_common import table_exists
+        from hermes_db.domains.rooms.rules import HostedRoomError
+        if not table_exists(conn, HANDOFF_TABLE):
+            raise HostedRoomError("Room handoff schema is behind. Run `hermes db upgrade` for this profile.")
         conn.executemany(f"INSERT OR IGNORE INTO {HANDOFF_TABLE} (room_id, handed_at) VALUES (?, ?)",
                          [(room_id, now) for room_id in sorted(room_ids)])
 
@@ -131,6 +137,7 @@ def import_standalone_rooms(target_db: Path, *, runtime_epoch: int | None = None
     """
     import sqlite3
     from hermes_db.domains.rooms.rules import HostedRoomError
+    from hermes_db.errors import StorageSchemaError
     from gateway.hosted_rooms import _transaction, local_authority_gateway_id
     from hermes_db.domains.rooms.rules import clock
     from gateway.hosted_rooms_legacy_import import _copy_rows
@@ -158,7 +165,7 @@ def import_standalone_rooms(target_db: Path, *, runtime_epoch: int | None = None
             for room_id in sorted(missing):
                 _claim(conn, room_id, local_id, handoff_id, owner, now)
         _record_handoff(source, fenced, now)
-    except (OSError, sqlite3.Error, HostedRoomError, RuntimeStoreError) as exc:
+    except (OSError, sqlite3.Error, HostedRoomError, RuntimeStoreError, StorageSchemaError) as exc:
         logger.warning("hosted rooms: could not import the standalone Group Chats from %s (%s); "
                        "will retry on the next start", source, exc)
         return 0

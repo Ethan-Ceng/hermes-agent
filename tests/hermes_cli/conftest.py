@@ -187,3 +187,66 @@ def probe_root(tmp_path):
     """
     (tmp_path / "hermes_bootstrap.py").write_text("", encoding="utf-8")
     return tmp_path
+
+
+@pytest.fixture
+def uninitialized_runtime(tmp_path, monkeypatch):
+    from agent import relay_runtime
+    from hermes_cli import plugins
+    from hermes_cli.observability import relay_shared_metrics
+    from hermes_cli.plugins import PluginManager
+    from tests.hermes_cli.metrics_runtime_fixtures import _Relay
+    fake = _Relay()
+    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setattr(relay_runtime, "_load_nemo_relay", lambda: fake)
+    monkeypatch.setattr(
+        "hermes_cli.config.read_raw_config_readonly",
+        lambda: {"telemetry": {"shared_metrics": {"enabled": True}}},
+    )
+    relay_shared_metrics._reset_for_tests()
+    relay_runtime._reset_for_tests()
+    _mgr = PluginManager()
+    # Pin as discovered: hook queries lazy-discover plugins (#64178), and
+    # this test's contract is a runtime with ZERO plugins loaded.
+    _mgr._discovered = True
+    monkeypatch.setattr(plugins, "_plugin_manager", _mgr)
+    yield fake
+    relay_shared_metrics._reset_for_tests()
+    relay_runtime._reset_for_tests()
+
+
+
+@pytest.fixture
+def real_binding_runtime(tmp_path, monkeypatch):
+    from agent import relay_runtime
+    from hermes_cli import plugins
+    from hermes_cli.observability import relay_shared_metrics
+    from hermes_cli.plugins import PluginManager
+    relay = pytest.importorskip("nemo_relay")
+    if getattr(relay, "_native", None) is None:
+        pytest.skip("NeMo Relay native binding is unavailable on this platform")
+    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
+    from hermes_cli.observability.shared_metrics import SharedMetricsStore
+    SharedMetricsStore.create(profile_home=tmp_path / "hermes-home")
+    monkeypatch.setattr(
+        "hermes_cli.config.read_raw_config_readonly",
+        lambda: {"telemetry": {"shared_metrics": {"enabled": True}}},
+    )
+    relay_shared_metrics._reset_for_tests()
+    relay_runtime._reset_for_tests()
+    _mgr = PluginManager()
+    _mgr._discovered = True  # see direct_runtime fixture (#64178)
+    monkeypatch.setattr(plugins, "_plugin_manager", _mgr)
+    yield relay
+    relay_shared_metrics._reset_for_tests()
+    relay_runtime._reset_for_tests()
+
+
+
+@pytest.fixture
+def direct_runtime(uninitialized_runtime):
+    from hermes_constants import get_hermes_home
+    from hermes_cli.observability.shared_metrics import SharedMetricsStore
+
+    SharedMetricsStore.create(profile_home=get_hermes_home())
+    return uninitialized_runtime

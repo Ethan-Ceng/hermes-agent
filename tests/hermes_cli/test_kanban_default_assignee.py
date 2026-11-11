@@ -20,6 +20,8 @@ def isolated_kanban_home(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(test_home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     from hermes_cli import kanban_db
+    from hermes_cli.kanban_db_connect import init_db
+    init_db()
     yield kanban_db, test_home
 
 

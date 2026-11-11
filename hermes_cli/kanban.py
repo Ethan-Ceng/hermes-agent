@@ -361,6 +361,9 @@ def _cmd_create(args: argparse.Namespace) -> int:
     if max_retries is not None and max_retries < 1:
         return _err(f"kanban: --max-retries must be >= 1 (got {max_retries}); "
                     "use 1 to trip on the first failure.", 2)
+    from agent.runtime_session_store import is_worker_process
+    if not is_worker_process():
+        kbc.initialize_new_board()
     with kbc.connect_closing() as conn:
         task_id = kb.create_task(
             conn, title=args.title, body=body, assignee=args.assignee,
@@ -400,6 +403,9 @@ def _cmd_swarm(args: argparse.Namespace) -> int:
         return _err(f"kanban swarm: {exc}", 2)
     if not workers:
         return _err("kanban swarm: at least one --worker is required", 2)
+    from agent.runtime_session_store import is_worker_process
+    if not is_worker_process():
+        kbc.initialize_new_board()
     with kbc.connect_closing() as conn:
         created = ks.create_swarm(
             conn, goal=args.goal, workers=workers, verifier_assignee=args.verifier,

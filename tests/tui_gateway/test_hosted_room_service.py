@@ -1136,6 +1136,7 @@ def test_registered_peer_route_rehydrates_after_service_restart(tmp_path: Path):
         trace_id="trace-room-1",
         grant="signed.room.grant",
     )
+    hosted_rooms._initialize_connection(db).close()
     first = HostedRoomService(_server(), db_path=db)
     first.register_peer_route(
         room_id="room-1",
@@ -1159,6 +1160,7 @@ def test_one_corrupt_stored_route_does_not_hide_healthy_peers(tmp_path: Path):
     catalog = GatewayRoomCatalog.from_mapping(
         catalog_mapping(target_profile="default", installation_id="install-peer", persistent_process=True)
     )
+    hosted_rooms._initialize_connection(db).close()
     service = HostedRoomService(_server(), db_path=db)
     for room_id, member_id in (("room-good", "member-good"), ("room-bad", "member-bad")):
         route = PeerMemberRoute(
@@ -1215,6 +1217,7 @@ def test_unpublished_roomlink_v1_route_is_quarantined_for_reinvitation(
         trace_id="trace-room-1",
         grant="legacy-v1-grant",
     )
+    hosted_rooms._initialize_connection(db).close()
     service = HostedRoomService(_server(), db_path=db)
     service.register_peer_route(
         room_id="room-1",
@@ -1324,6 +1327,7 @@ def test_room_route_revocation_is_remote_first_and_removes_local_state(
         grant="signed.room.grant",
     )
     peer = _FakePeerClient()
+    hosted_rooms._initialize_connection(db).close()
     service = HostedRoomService(_server(), db_path=db)
     service.register_peer_route(
         room_id="room-1",
@@ -1357,6 +1361,7 @@ def test_failed_remote_revocation_preserves_route_for_retry(tmp_path: Path):
         trace_id="trace-room-1",
         grant="signed.room.grant",
     )
+    hosted_rooms._initialize_connection(db).close()
     service = HostedRoomService(_server(), db_path=db)
     service.register_peer_route(
         room_id="room-1",
@@ -1391,6 +1396,7 @@ def test_expired_remote_grant_no_longer_blocks_room_cleanup(tmp_path: Path):
         trace_id="trace-room-1",
         grant="expired.room.grant",
     )
+    hosted_rooms._initialize_connection(db).close()
     service = HostedRoomService(_server(), db_path=db)
     service.register_peer_route(
         room_id="room-1",
@@ -1423,6 +1429,7 @@ def test_expired_grant_surfaces_needs_reauthorization_without_secret(
         trace_id="trace-room-1",
         grant="signed.room.grant",
     )
+    hosted_rooms._initialize_connection(db).close()
     service = HostedRoomService(_server(), db_path=db)
     service.register_peer_route(
         room_id="room-1",
@@ -1522,6 +1529,7 @@ def test_not_admitted_dispatch_persists_unavailable_route_until_success(
         grant="signed.room.grant",
     )
     peer = _NotAdmittedPeerClient()
+    hosted_rooms._initialize_connection(db).close()
     service = HostedRoomService(_server(), db_path=db)
     service.register_peer_route(
         room_id="room-1",
@@ -1646,6 +1654,7 @@ def test_dispatch_refresh_persists_before_remote_admission(tmp_path: Path):
     )
     peer = _RefreshingPeerClient(new_grant)
     db = tmp_path / "state.db"
+    hosted_rooms._initialize_connection(db).close()
     service = HostedRoomService(_server(), db_path=db)
     service.register_peer_route(
         room_id="room-1",
@@ -1869,6 +1878,7 @@ def test_peer_recovery_replays_the_same_execution_generation(tmp_path: Path):
         grant="signed.room.grant",
     )
     peer = _RecoveringPeerClient()
+    hosted_rooms._initialize_connection(db).close()
     service = HostedRoomService(_server(), db_path=db)
     service.register_peer_route(
         room_id="room-1",

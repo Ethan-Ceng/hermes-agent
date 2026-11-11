@@ -32,6 +32,9 @@ WEEKDAY_9AM = "0 9 * * 1-5"
 DAILY_9AM = "0 9 * * *"
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture
 def la_profile(monkeypatch):
     """Configure the profile zone the way production does: ``HERMES_TIMEZONE`` + cache reset."""

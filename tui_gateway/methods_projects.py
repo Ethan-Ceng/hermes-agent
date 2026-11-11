@@ -33,6 +33,8 @@ def _projects_method(name: str):
         def handler(rid, params: dict) -> dict:
             try:
                 from hermes_cli import projects_db as pdb
+                if name == "projects.create":
+                    pdb.initialize_new_projects()
                 with pdb.connect_closing() as conn:
                     return fn(rid, params, pdb, conn)
             except _NoProject:

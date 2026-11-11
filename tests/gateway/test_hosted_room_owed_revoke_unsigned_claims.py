@@ -17,6 +17,7 @@ gateway, linked_peer = gateway_fixture, linked_peer_fixture
 
 def test_a_full_member_refuses_instead_of_dropping_a_grant(tmp_path):
     db, now = tmp_path / "state.db", time.time()
+    hosted_rooms._initialize_connection(db).close()
     for index in range(hosted_rooms.MAX_OWED_REVOKES_PER_MEMBER):
         _owe(db, _grant(now + 86400 + index, f"forged{index}"))  # claims to outlive the real one
     before = _rows(db)

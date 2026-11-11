@@ -32,6 +32,9 @@ from cron.jobs import (
 # parse_duration
 # =========================================================================
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 class TestParseDuration:
     def test_minutes(self):
         assert parse_duration("30m") == 30
@@ -1221,8 +1224,6 @@ class TestGetDueJobs:
         }
 
 
-
-
 class TestMarkJobRunConcurrency:
     """Regression tests for concurrent parallel job state writes.
 
@@ -1594,8 +1595,6 @@ class TestLateEnvRepointScopesStore:
 # =========================================================================
 # UTF-8 BOM on jobs.json (Windows Notepad / PowerShell 5.1)
 # =========================================================================
-
-
 
 class TestJobsJsonUtf8Bom:
     """jobs.json readers must accept a leading UTF-8 BOM.

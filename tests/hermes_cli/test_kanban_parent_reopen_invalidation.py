@@ -28,6 +28,7 @@ from hermes_cli import kanban_db_dispatch as kbd
 
 @pytest.fixture
 def conn(tmp_path: Path):
+    kbc.init_db(tmp_path / "kanban.db")
     db = kbc.connect(tmp_path / "kanban.db")
     try:
         yield db
@@ -108,6 +109,7 @@ def test_running_descendant_event_precedes_termination_via_reclaim_helper(
     def fake_terminate(pid, claim_lock, started_at=None, **kwargs):
         # The audit trail must already be durable when the kill fires:
         # standalone calls commit before terminating.
+        kbc.init_db(tmp_path / "kanban.db")
         side = kbc.connect(tmp_path / "kanban.db")
         try:
             kinds = [e.kind for e in kb.list_events(side, child_id)]

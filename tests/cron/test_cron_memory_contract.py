@@ -47,7 +47,11 @@ from __future__ import annotations
 import contextlib
 from unittest.mock import MagicMock, patch
 
-from tests.cron.test_scheduler import _run_owned_job
+from tests.cron.owner_execution import run_owned_job
+
+import pytest
+
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
 
 @contextlib.contextmanager
 def _run_job_patches(tmp_path):
@@ -106,7 +110,7 @@ class TestCronMemoryContractOff:
             "enabled_toolsets": ["memory", "file"],
         }
         with _run_job_patches(tmp_path) as (fake_db, agent_cls):
-            _run_owned_job(job, tmp_path, fake_db)
+            run_owned_job(job, tmp_path, fake_db)
         kwargs = agent_cls.call_args.kwargs
         assert "memory" in (kwargs["disabled_toolsets"] or []), (
             "config.yaml agent.disabled_toolsets must propagate 'memory' into "

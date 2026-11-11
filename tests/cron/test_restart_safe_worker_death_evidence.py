@@ -8,6 +8,9 @@ import time
 import pytest
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.mark.parametrize("manual", [False, True])
 @pytest.mark.parametrize(
     "death", ["hard_exit", "payload_exception", "concurrent_recovery",
@@ -24,6 +27,8 @@ def test_adopted_worker_failure_is_visible(tmp_path, monkeypatch, manual, death)
     home.mkdir()
     monkeypatch.setenv("HERMES_HOME", str(home))
     monkeypatch.setattr(executions, "EXECUTIONS_FILE", home / "cron" / "executions.db")
+    from cron.storage_lifecycle import initialize_cron_stores
+    initialize_cron_stores(home)
     monkeypatch.setattr(scheduler, "load_config_readonly", dict)
     if death == "concurrent_recovery":
         terminalize = scheduler.terminalize_dead_owner
@@ -144,6 +149,7 @@ def test_terminalizer_refuses_an_attempt_whose_worker_is_still_alive(
     from cron import executions
 
     monkeypatch.setattr(executions, "EXECUTIONS_FILE", tmp_path / "executions.db")
+    executions.initialize()
 
     script = (
         "import sys, time\n"

@@ -21,7 +21,7 @@ from hermes_cli.observability.shared_metrics_sender import SharedMetricsSender
 from types import SimpleNamespace
 day = datetime(2026,8,10,tzinfo=UTC)
 native._utc_now = lambda:day
-store = SharedMetricsStore()
+store = SharedMetricsStore.create()
 store.reconcile_send_consent(True, now=day-timedelta(days=1))
 store.record_counter(CLIENT_ACTIVE_METRIC, {}, dict(hermes_version='test',os_family='windows',architecture='x86_64',install_method='git'))
 assert len(store.create_and_export_package()) == 1

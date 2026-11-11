@@ -12,12 +12,12 @@ from hermes_db.domains.rooms.replication_rules import MAX_REPLICA_EVENT_BYTES, M
 
 import json
 import sqlite3
-from contextlib import closing, contextmanager
+from contextlib import contextmanager
 from functools import partial
 from typing import Any, Iterator
 
 from hermes_db.domains.rooms.rules import MAX_ACTOR_ID_CHARS, HostedRoomError, RoomConflictError, _actor_json, _payload_json, _room_id, _validate_identifier, _validate_members, _validate_room_name
-from gateway.hosted_rooms import _connect, _transaction, local_authority_gateway_id
+from gateway.hosted_rooms import _initialize_connection, _transaction, local_authority_gateway_id
 from gateway.hosted_rooms_common import DbPath
 from hermes_db.domains.rooms.rules import bounded_int, clock, utf8_len
 from hermes_db.domains.rooms.api import room_operation
@@ -47,15 +47,26 @@ def _initialize_replica_schema(conn: sqlite3.Connection) -> None:
         )""")
 
 
+def _replica_schema_ready(conn: sqlite3.Connection) -> bool:
+    from gateway.hosted_rooms_common import table_exists
+
+    return all(table_exists(conn, name) for name in ("hosted_room_replicas", "hosted_room_replica_events"))
+
+
+def initialize_replicas(db_path: DbPath) -> None:
+    """Create the replica target's declared room schema before importing a page."""
+    _initialize_connection(db_path).close()
+
+
 @contextmanager
 def _replica_transaction(db_path: DbPath) -> Iterator[sqlite3.Connection]:
-    """Ensure the replica schema (own autocommit connection), then open an IMMEDIATE transaction. The DDL is
-    deliberately re-run inside the transaction: that double init is the established statement order."""
-    with closing(_connect(db_path)) as conn, conn:
-        _initialize_replica_schema(conn)
+    from hermes_db.errors import StorageSchemaError
+
     with _transaction(db_path, immediate=True) as conn:
-        _initialize_replica_schema(conn)
+        if not _replica_schema_ready(conn):
+            raise StorageSchemaError("Room replica schema is behind. Run `hermes db upgrade` for this profile.")
         yield conn
+
 
 
 

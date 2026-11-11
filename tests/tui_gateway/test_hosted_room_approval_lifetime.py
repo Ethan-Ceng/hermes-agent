@@ -113,6 +113,7 @@ def test_peer_approval_is_scoped_visible_and_resolvable(tmp_path: Path, monkeypa
         grant="signed.room.grant",
     )
     peer = _ApprovalPeerClient()
+    hosted_rooms._initialize_connection(db).close()
     service = HostedRoomService(_server(), db_path=db)
     service.register_peer_route(
         room_id="room-1",

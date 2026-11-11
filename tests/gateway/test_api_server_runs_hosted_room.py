@@ -25,6 +25,11 @@ from tools import approval_gateway_wait
 
 @pytest.fixture
 def auth_adapter():
+    from hermes_cli.db_profile_schema import initialize_new_profile_storage
+    from hermes_constants import get_hermes_home
+    initialize_new_profile_storage(get_hermes_home())
+    from gateway import hosted_rooms
+    hosted_rooms._initialize_connection(hosted_rooms.default_db_path()).close()
     return _make_adapter(api_key="sk-secret")
 
 
@@ -677,7 +682,7 @@ class TestHostedRoomRuns:
                     },
                 )
                 started_body = await started.json()
-                assert started.status == 202
+                assert started.status == 202, await started.text()
                 run_id = started_body["run_id"]
                 for _ in range(40):
                     status = await cli.get(

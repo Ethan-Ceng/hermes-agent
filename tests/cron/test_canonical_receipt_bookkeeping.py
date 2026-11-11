@@ -8,6 +8,9 @@ from cron import jobs, executions, scheduler_authority
 from hermes_cli import gateway_client
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 def peer(monkeypatch, call):
     class Peer:
         async def rpc(self, method, **params):
@@ -123,6 +126,8 @@ def test_recovered_receipt_books_the_same_failure_verdicts_as_the_firer(tmp_path
     receipt recovery must not book the same result green (ok / delivery_queued -> ok)."""
     with jobs.use_cron_store(tmp_path / 'cron'):
         monkeypatch.setattr('cron.delivery_queue.DELIVERY_DB', tmp_path / 'deliveries.db')
+        from cron import delivery_queue
+        delivery_queue.initialize()
         job = jobs.create_job(prompt='report', schedule='every 1h', deliver='telegram:1')
         execution = executions.create_execution(job['id'], source='test')
         executions.mark_execution_running(execution['id'])

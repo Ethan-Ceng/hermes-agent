@@ -68,7 +68,7 @@ def _zero_plugin_runtimes(monkeypatch) -> None:
 
 
 @pytest.fixture
-def metrics_home(tmp_path, monkeypatch):
+def uninitialized_metrics_home(tmp_path, monkeypatch):
     """Real NeMo Relay runtime over a temp HERMES_HOME; ``policy['on']`` is the opt-in answer."""
     _require_native_relay()
     home = tmp_path / "hermes-home"
@@ -171,10 +171,10 @@ def test_orphaned_slash_worker_writes_the_open_sessions_summary(metrics_home, mo
     assert "hermes.session.count" in _metric_names(home)
 
 
-def test_graceful_exit_with_collection_off_creates_no_store(metrics_home, monkeypatch):
+def test_graceful_exit_with_collection_off_creates_no_store(uninitialized_metrics_home, monkeypatch):
     import gateway.run as gateway_run
 
-    home, policy = metrics_home
+    home, policy = uninitialized_metrics_home
     policy["on"] = False
     _finished_task_in_open_session()
 
@@ -188,6 +188,9 @@ def test_graceful_exit_with_collection_off_creates_no_store(metrics_home, monkey
 def _write_policy(home: Path, **policy) -> None:
     config = home / "config.yaml"
     config.write_text(json.dumps({"telemetry": {"shared_metrics": policy}}))
+    if policy.get("enabled") is True:
+        from hermes_cli.observability.shared_metrics import SharedMetricsStore
+        SharedMetricsStore.create(profile_home=home)
     later = time.time() + 5  # a rewrite inside one mtime tick must still read as a change
     os.utime(config, (later, later))
 
@@ -303,7 +306,7 @@ def test_graceful_exit_drains_the_root_profiles_deferred_host_count(tmp_path, mo
     _write_policy(root, enabled=True, send=False)
     monkeypatch.setenv("HERMES_HOME", str(profile))
     resource = {"architecture": "x86_64", "hermes_version": "0.0.0", "install_method": "git", "os_family": "linux"}
-    profile_store = SharedMetricsStore(_store(profile), _store(profile).parent / "outbox")
+    profile_store = SharedMetricsStore.create(_store(profile), _store(profile).parent / "outbox")
     engagement._root_store(root)  # the store exists; another process now holds its write lock
     holder = sqlite3.connect(_store(root), isolation_level=None)
     holder.execute("BEGIN IMMEDIATE")
@@ -322,3 +325,12 @@ def test_graceful_exit_drains_the_root_profiles_deferred_host_count(tmp_path, mo
     root_state = wait_until(lambda: _engagement_state(root), what="the root's deferred host count")
     assert root_state["owner"] is True and len(root_state["profiles"]) == 1
     assert _engagement_state(profile) == profile_state  # the profile's own store never got the root's row
+
+
+@pytest.fixture
+def metrics_home(uninitialized_metrics_home):
+    from hermes_cli.observability.shared_metrics import SharedMetricsStore
+
+    home, _policy = uninitialized_metrics_home
+    SharedMetricsStore.create(profile_home=home)
+    return uninitialized_metrics_home

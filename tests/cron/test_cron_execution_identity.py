@@ -1,4 +1,5 @@
 """Plugins can tell which cron execution they run inside (#130722)."""
+import pytest
 import json
 import os
 import subprocess
@@ -41,6 +42,9 @@ print(json.dumps({"outside": ctx.current_cron_execution(), "profile": ctx.profil
 '''
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 def test_tool_hook_in_a_ticked_job_sees_its_execution_and_none_outside(tmp_path):
     from hermes_time import now
 
@@ -54,7 +58,8 @@ def test_tool_hook_in_a_ticked_job_sees_its_execution_and_none_outside(tmp_path)
         write_hermes_home(home, srv.base_url,
                           extra_config="plugins:\n  enabled: [cron-identity-probe]\n")
         note.write_text("hello\n")
-        (home / "cron").mkdir()
+        from hermes_cli.db_profile_schema import initialize_new_profile_storage
+        initialize_new_profile_storage(home)
         (home / "cron" / "jobs.json").write_text(json.dumps({"jobs": [{
             "id": "probe", "name": "identity probe", "prompt": "read the note",
             "schedule": {"kind": "interval", "minutes": 240},

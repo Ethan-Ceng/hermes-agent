@@ -7,6 +7,9 @@ from cron import delivery_queue, scheduler
 from cron.scheduler_delivery import _deliver_result
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture(autouse=True)
 def configured_transport():
     from gateway.config import GatewayConfig, Platform, PlatformConfig
@@ -20,6 +23,7 @@ def configured_transport():
 def test_failure_queue_settles_without_claiming_a_suppressed_send(tmp_path, monkeypatch, suppress):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     monkeypatch.setattr(delivery_queue, "DELIVERY_DB", tmp_path / "queue.db")
+    delivery_queue.initialize()
     (tmp_path / "config.yaml").write_text("display: {suppress_warning_notifications: false}\n")
     job = {"id": "fixture", "name": "fixture", "deliver": "telegram:chat", "execution_id": "run"}
     delivery_queue.enqueue("run", job, "arbitrary diagnostic", for_failure=True)
@@ -45,6 +49,7 @@ def test_success_content_and_explicit_destination_override_survive(tmp_path, mon
 def test_mixed_target_queue_is_not_reported_wholly_suppressed(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     monkeypatch.setattr(delivery_queue, "DELIVERY_DB", tmp_path / "queue.db")
+    delivery_queue.initialize()
     (tmp_path / "config.yaml").write_text("display:\n  suppress_warning_notifications: true\n  platforms:\n    telegram:\n      suppress_warning_notifications: false\n")
     job = {"id": "fixture", "deliver": ["slack:muted", "telegram:allowed"]}
     delivery_queue.enqueue("mixed", job, "diagnostic", for_failure=True)

@@ -17,11 +17,16 @@ from unittest.mock import Mock
 import pytest
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture
 def execution_ledger(tmp_path, monkeypatch):
     from cron import executions
 
     monkeypatch.setattr(executions, "EXECUTIONS_FILE", tmp_path / "executions.db")
+    from cron.storage_lifecycle import initialize_cron_stores
+    initialize_cron_stores()
     return executions
 
 
@@ -284,6 +289,7 @@ def _stub_external_worker_launch(scheduler, monkeypatch):
     return spawned, payloads, handoff, get
 
 
+@pytest.mark.platforms("linux")
 def test_scoped_wrapper_exit_without_user_bus_names_the_cause_and_invalidates_probe(
     tmp_path, monkeypatch
 ):

@@ -76,7 +76,7 @@ def server():
 
 @pytest.fixture
 def store(tmp_path):
-    built = SharedMetricsStore(
+    built = SharedMetricsStore.create(
         database_path=tmp_path / "metrics.sqlite3",
         outbox_directory=tmp_path / "outbox",
     )

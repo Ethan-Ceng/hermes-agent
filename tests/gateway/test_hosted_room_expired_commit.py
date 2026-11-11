@@ -5,6 +5,8 @@ from gateway.hosted_room_attachments import HostedRoomAttachmentStore, Attachmen
 
 def test_expired_upload_cannot_be_committed_without_pruning(tmp_path):
     now = [100.0]
+    from gateway import hosted_rooms
+    hosted_rooms._initialize_connection(tmp_path / 'state.db').close()
     store = HostedRoomAttachmentStore(tmp_path / 'state.db', clock=lambda: now[0])
     uploaded = store.put(room_id='room', upload_id='upload', kind='file', name='a.txt', mime='text/plain', data=b'bytes')
     manifest = [{key: uploaded[key] for key in ('attachment_id', 'kind', 'name', 'size', 'mime')}]

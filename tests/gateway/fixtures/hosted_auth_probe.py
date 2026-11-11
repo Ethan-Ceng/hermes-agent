@@ -178,6 +178,9 @@ def probe(tmp_path):
     # The named profile's gateway runs beside the host: `gateway.standalone: true` is the opt-out
     # (`multiplex_profiles: false` is retired and rewritten to true at boot).
     (target / 'config.yaml').write_text(json.dumps(cfg | {'gateway': {'standalone': True}}))
+    from hermes_cli.db_profile_schema import initialize_new_profile_storage
+    for profile_home in (home, target):
+        initialize_new_profile_storage(profile_home)
     env = child_env() | dict(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home),
         PYTHONPATH=str(root), OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=base, PYTHONUNBUFFERED='1')
     members = [{'member_id': 'one', 'profile': 'default', 'handle': 'one'},

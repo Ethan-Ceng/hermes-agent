@@ -107,6 +107,8 @@ class _SourceTask:
         self.homes = {'other': str(tmp_path / 'profiles' / 'other')}
         monkeypatch.setattr(gateway.run, '_load_gateway_config', lambda: {'hosted_rooms': {'profiles': self.homes}})
         self.db = db = SessionDB(tmp_path / 'state.db')
+        from gateway import hosted_rooms
+        hosted_rooms._initialize_connection(db.db_path).close()
         self.authority = SimpleNamespace(db=db, profile_id=str(tmp_path), epoch=begin_runtime_epoch(db, instance_id='test'))
         self.service = CanonicalHostedRoomService(self.authority, None)
         self.service.authorize_room('alice', 'room', create=True)

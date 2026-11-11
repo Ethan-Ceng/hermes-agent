@@ -12,6 +12,7 @@ from hermes_cli import kanban_db_connect as kbc
 def test_completed_decomposition_survives_retriage(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    kbc.init_db()
     with kbc.connect_closing() as conn:
         prerequisite = kb.create_task(conn, title="prerequisite", tenant="business-a")
         root = kb.create_task(conn, title="root", triage=True, tenant="business-a", parents=[prerequisite])
@@ -41,6 +42,7 @@ def test_parent_tenant_is_inherited_at_creation_boundary(tmp_path, monkeypatch):
     monkeypatch.delenv("HERMES_TENANT", raising=False)
     monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
     from tools.kanban_tools import _handle_create
+    kbc.init_db()
     with kbc.connect_closing() as conn:
         unscoped = kb.create_task(conn, title="unscoped")
         parent = kb.create_task(conn, title="parent", tenant="business-a")

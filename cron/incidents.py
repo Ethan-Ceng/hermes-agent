@@ -12,7 +12,7 @@ the operator (``alerted_at`` = when the latest one did; the scheduler withholds 
 
 from __future__ import annotations
 
-from hermes_cli.db_sqlite_policy import initialize_profile_sqlite
+from hermes_cli.db_sqlite_policy import initialize_profile_sqlite, open_ready_profile_sqlite
 
 import hashlib
 import re
@@ -63,22 +63,31 @@ def _db_path() -> Path:
     return get_hermes_home().resolve() / "cron" / "executions.db"
 
 
-def _connect() -> sqlite3.Connection:
-    # Late imports: a scheduler daemon that outlives an on-disk upgrade already has the OLD
-    # ``hermes_cli.sqlite_util`` / ``cron.jobs`` cached, so new names must be resolved at call time,
-    # not at import time (the guarantee cron/ledger.py used to carry, see e24c8499).
-    from cron.jobs import _ensure_cron_dir
-    from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
+def _sqlite_path() -> Path:
     from hermes_cli.db_setup import storage_backend
     from hermes_db.errors import StorageConfigurationError
 
     if storage_backend() == "postgresql":
-        raise StorageConfigurationError("Cron native SQLite connections are unavailable in PostgreSQL mode; use incident operations")
+        raise StorageConfigurationError("Cron native SQLite incidents connections are unavailable in PostgreSQL mode; use incident operations")
+    return _db_path()
 
-    path = _db_path()
+
+def _schema_ready(conn: sqlite3.Connection) -> bool:
+    columns = {info[1] for info in conn.execute("PRAGMA table_info(cron_incidents)")}
+    return {"id", "job_id", "state", "alerted_at", "error"} <= columns
+
+
+def _connect() -> sqlite3.Connection:
+    return open_ready_profile_sqlite(_sqlite_path(), db_label="cron/executions.db", synchronous_full=True, ready=_schema_ready)
+
+
+def initialize() -> None:
+    """Create or upgrade this SQLite store from an explicit lifecycle entry."""
+    from cron.jobs import _ensure_cron_dir
+
+    path = _sqlite_path()
     _ensure_cron_dir(path.parent)
-    return initialize_profile_sqlite(path, db_label="cron/executions.db", synchronous_full=True, initialize=_initialize_schema)
-
+    initialize_profile_sqlite(path, db_label="cron/executions.db", synchronous_full=True, initialize=_initialize_schema).close()
 
 def _initialize_schema(conn: sqlite3.Connection) -> None:
     from hermes_db.infra.backends.sqlite.schema import add_column_if_missing
@@ -275,6 +284,8 @@ def _state_filter(state: Optional[str]) -> tuple[str, tuple]:
 @domain_operation("incidents")
 def list_incidents(state: Optional[str] = None) -> list[dict[str, Any]]:
     """Return incidents, newest-activity first, optionally filtered by state."""
+    if not (_db_path()).exists():
+        return []
     if state is not None and state not in INCIDENT_STATES:
         return []
     where, params = _state_filter(state)
@@ -290,6 +301,8 @@ def list_incidents(state: Optional[str] = None) -> list[dict[str, Any]]:
 
 @domain_operation("incidents")
 def get_incident(incident_id: str) -> Optional[dict[str, Any]]:
+    if not (_db_path()).exists():
+        return None
     with _transaction() as conn:
         row = conn.execute(
             "SELECT * FROM cron_incidents WHERE id=?", (incident_id,)
@@ -299,6 +312,8 @@ def get_incident(incident_id: str) -> Optional[dict[str, Any]]:
 
 @domain_operation("incidents")
 def count_incidents(state: Optional[str] = None) -> int:
+    if not (_db_path()).exists():
+        return 0
     if state is not None and state not in INCIDENT_STATES:
         return 0
     where, params = _state_filter(state)

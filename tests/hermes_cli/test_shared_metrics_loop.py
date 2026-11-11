@@ -12,7 +12,6 @@ from hermes_cli.observability import relay_shared_metrics
 from hermes_cli.observability import shared_metrics_loop as loop
 from hermes_cli.observability.shared_metrics import SharedMetricsStore
 from hermes_constants import reset_hermes_home_override, set_hermes_home_override
-from tests.hermes_cli.test_relay_shared_metrics_runtime import direct_runtime
 
 _LOOP_METRICS = {
     "hermes.memory.op.count", "hermes.curator.run.count", "hermes.delegation.run.count",
@@ -148,6 +147,7 @@ def test_async_curator_pass_records_in_the_profile_that_started_it(home, tmp_pat
 
     owner = tmp_path / "owner-profile"
     owner.mkdir()
+    SharedMetricsStore.create(profile_home=owner)
     done = threading.Event()
     token = set_hermes_home_override(owner)  # the review thread does not inherit this binding
     try:

@@ -32,6 +32,9 @@ S.tick(verbose=False, sync=True)
 """
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture
 def slot_env(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
@@ -49,6 +52,8 @@ def slot_env(tmp_path, monkeypatch):
     monkeypatch.setattr(J, "JOBS_FILE", home / "cron" / "jobs.json")
     monkeypatch.setattr(J, "OUTPUT_DIR", home / "cron" / "output")
     monkeypatch.setattr(E, "EXECUTIONS_FILE", home / "cron" / "executions.db")
+    from cron.storage_lifecycle import initialize_cron_stores
+    initialize_cron_stores(home)
     monkeypatch.setattr(S, "_hermes_home", home)
     S._running_job_ids.clear()
     S._running_since.clear()
@@ -56,7 +61,7 @@ def slot_env(tmp_path, monkeypatch):
 
     counter = home / "fires.txt"
     (home / "scripts" / "fire.sh").write_text(
-        f"#!/bin/sh\necho fired >> {counter}\necho fired\n", encoding="utf-8")
+        f"#!/bin/sh\necho fired >> {counter.as_posix()}\necho fired\n", encoding="utf-8")
     (home / "scripts" / "fire.sh").chmod(0o755)
     job = J.create_job(prompt=None, schedule="every 1h", name="slot", script="fire.sh",
                        no_agent=True, deliver="local")

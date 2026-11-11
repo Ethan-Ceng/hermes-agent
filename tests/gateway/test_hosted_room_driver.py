@@ -93,6 +93,7 @@ def _admit(db, identity, clock, *, payload=None):
 
 
 def _open_driver_schema(path: str) -> int:
+    rooms._initialize_connection(path).close()
     return len(driver.list_tasks(path, room_id="room-1"))
 
 
@@ -889,7 +890,7 @@ def test_prune_removes_only_old_published_terminal_tasks(db):
 
     with sqlite3.connect(db) as conn:
         conn.execute(
-            """CREATE TABLE hosted_room_policy_publications (
+            """CREATE TABLE IF NOT EXISTS hosted_room_policy_publications (
                 room_id TEXT NOT NULL,
                 task_id TEXT NOT NULL,
                 kind TEXT NOT NULL,
@@ -1009,6 +1010,7 @@ def test_pre_stopping_schema_is_migrated_without_losing_tasks(db):
                )"""
         )
 
+    rooms._initialize_connection(db).close()
     assert driver.get_task(db, identity)["status"] == "queued"
     lease = _lease(db, clock)
     attempt = driver.start_task(
@@ -1062,6 +1064,7 @@ def test_pre_deferred_schema_is_migrated_without_losing_tasks(db):
                )"""
         )
 
+    rooms._initialize_connection(db).close()
     assert driver.get_task(db, identity)["status"] == "queued"
     with sqlite3.connect(db) as conn:
         table_sql = conn.execute(

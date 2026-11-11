@@ -15,6 +15,9 @@ import cron.scheduler as S
 from cron import scheduler_authority
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture
 def cron_home(tmp_path, monkeypatch):
     home = tmp_path / "home"
@@ -26,6 +29,8 @@ def cron_home(tmp_path, monkeypatch):
     monkeypatch.setattr(J, "JOBS_FILE", home / "cron" / "jobs.json")
     monkeypatch.setattr(J, "OUTPUT_DIR", home / "cron" / "output")
     monkeypatch.setattr(S, "_hermes_home", home)
+    from cron.storage_lifecycle import initialize_cron_stores
+    initialize_cron_stores(home)
     monkeypatch.setattr(S, "_sweep_mcp_orphans", lambda: None)
     S._running_job_ids.clear()
     return home
@@ -159,7 +164,7 @@ def test_headless_receipt_recovery_never_connects_or_spawns(cron_home, monkeypat
 def test_no_agent_jobs_still_fire_without_a_gateway(cron_home, monkeypatch):
     counter = cron_home / "fires.txt"
     script = cron_home / "scripts" / "fire.sh"
-    script.write_text(f"#!/bin/sh\necho fired >> {counter}\necho fired\n", encoding="utf-8")
+    script.write_text(f"#!/bin/sh\necho fired >> {counter.as_posix()}\necho fired\n", encoding="utf-8")
     script.chmod(0o755)
     monkeypatch.setattr(
         scheduler_authority, "reconcile_pending",

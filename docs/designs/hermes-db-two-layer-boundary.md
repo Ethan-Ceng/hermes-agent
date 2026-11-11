@@ -2,9 +2,9 @@
 
 ## 文档状态
 
-- 状态：`IMPLEMENTING`；2026-11-11用户授权按既有20项计划实施。Task1新鲜基准、Task2 PG基础设施和Task3 SQLite公共机制已通过，3/20；后续分层与最终验证/独立审查尚未完成。
+- 状态：`IMPLEMENTING`；2026-11-11用户授权按既有20项计划实施。Task1–8已验证，8/20；Task8完成其他Native SQLite显式生命周期与消费者闭合，下一项Task9，最终验证及独立审查尚未完成。
 - 日期：2026-11-10；设计基准：`0d8782ba8adb168a86abb6a8e338591d70d03428`。
-- 隔离目录：D:/AI/hermes-db-packages；当前分支refactor/hermes-db-persistence-scope。正式D:/AI/hermes-agent仍在90a2987e8c，未切换。
+- 隔离目录：D:/AI/hermes-db-packages；实施分支refactor/hermes-db-two-layer-boundary。正式D:/AI/hermes-agent仍在90a2987e8c，未切换。
 - 依据：[持久层精简设计](hermes-db-persistence-scope.md)、[已完成实施账本](../plans/hermes-db-persistence-scope-plan.md)、[逐项映射及固定锚点](hermes-db-persistence-scope-map.json)、[统一后端设计](unified-database-backends.md)。本设计不改写这些工作的历史验收。
 
 ## 背景与目标
@@ -159,7 +159,7 @@ SQLite保留各原生存储的真实版本演进。实施必须将连接获取�
 4. 完成SQLite业务适配与底层连接/Schema责任拆分；未完成该项不能声称两后端都完成分层。
 5. 更新边界规则、活动文档/skills/AGENTS、动态表和patch点，删除空的旧内部路径；冻结当前载荷重新完整验收与独立审查。
 
-这五项是设计推进顺序，不是已授权实施的Task完成记录。逐项映射和可恢复实施计划已准备，全部Task pending；目标实施分支refactor/hermes-db-two-layer-boundary，尚未创建；保留0d8782ba8a的已完成精简恢复点。
+这五项是设计推进顺序。实际Task状态、命令和本地恢复提交以实施计划为准；当前已完成7/20并进入Task8，保留0d8782ba8a的既有精简基准。
 
 ## 风险与验证
 

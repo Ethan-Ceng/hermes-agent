@@ -4,6 +4,7 @@ from __future__ import annotations
 import sqlite3
 import sys
 import time
+from pathlib import Path
 
 from hermes_db.infra.backends.sqlite import connections, wal
 from hermes_db.infra.backends.sqlite.schema import initialize_database
@@ -90,11 +91,20 @@ def apply_database_pragmas(conn, *, db_label="state.db"):
     wal.apply_database_pragmas(conn, pragmas=capture_database_pragmas(), db_label=db_label)
 
 
-def open_profile_sqlite(path, *, db_label, busy_timeout_ms=5000, wal=True, foreign_keys=False,
-                        synchronous_full=False, row_factory=sqlite3.Row, check_same_thread=True, wal_lock_retries=1):
-    """Apply application WAL policy to a technical connection without Schema initialization."""
-    conn = connections.open_db(path, db_label=db_label, busy_timeout_ms=busy_timeout_ms, wal=False,
-                               row_factory=row_factory, check_same_thread=check_same_thread)
+def open_profile_sqlite(path, **options):
+    """Apply Profile policy to an explicitly creatable SQLite path."""
+    return _open_profile_sqlite(connections.open_db, path, **options)
+
+
+def open_existing_profile_sqlite(path, **options):
+    """Apply Profile policy to a connection that cannot create a new file."""
+    return _open_profile_sqlite(connections.open_existing_db, path, **options)
+
+
+def _open_profile_sqlite(connect, path, *, db_label, busy_timeout_ms=5000, wal=True, foreign_keys=False,
+                         synchronous_full=False, row_factory=sqlite3.Row, check_same_thread=True, wal_lock_retries=1):
+    conn = connect(path, db_label=db_label, busy_timeout_ms=busy_timeout_ms, wal=False,
+                   row_factory=row_factory, check_same_thread=check_same_thread)
     try:
         if wal:
             for attempt in range(wal_lock_retries):
@@ -115,6 +125,22 @@ def open_profile_sqlite(path, *, db_label, busy_timeout_ms=5000, wal=True, forei
     return conn
 
 
+def open_ready_profile_sqlite(path, *, db_label, ready, **options):
+    """Open a managed dataset and check its declared schema without running DDL."""
+    from hermes_db.errors import StorageSchemaError
+
+    if not Path(path).is_file():
+        raise StorageSchemaError(f"{db_label} is missing. Run `hermes db upgrade` for this profile.")
+    conn = open_existing_profile_sqlite(path, db_label=db_label, **options)
+    try:
+        if not ready(conn):
+            raise StorageSchemaError(f"{db_label} schema is behind. Run `hermes db upgrade` for this profile.")
+    except BaseException:
+        conn.close()
+        raise
+    return conn
+
+
 def initialize_profile_sqlite(path, *, initialize, **options):
-    """Explicit business creation/upgrade composition; ordinary opens use open_profile_sqlite."""
+    """Explicit business creation/upgrade composition; ordinary opens use open_ready_profile_sqlite."""
     return initialize_database(open_profile_sqlite(path, **options), initialize)

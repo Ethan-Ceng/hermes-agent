@@ -28,7 +28,7 @@ import cron.jobs as cron_jobs
 from cron.scheduler import run_job
 import cron.scheduler as sched
 
-pytestmark = pytest.mark.usefixtures("cron_owner")
+pytestmark = pytest.mark.usefixtures("cron_owner", "initialized_cron_profiles")
 
 
 _RUNTIME = {
@@ -37,6 +37,8 @@ _RUNTIME = {
     "provider": "openrouter",
     "api_mode": "chat_completions",
 }
+
+
 
 
 def _job(**overrides):

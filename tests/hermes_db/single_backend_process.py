@@ -23,8 +23,8 @@ def main():
         saved = {} if role == "write" else json.loads(manifest.read_text(encoding="utf-8"))
         with _owning_profile(home):
             if backend == "sqlite" and role == "write":
-                from hermes_cli.db_session_schema import initialize_new_profile_sessions
-                initialize_new_profile_sessions(home)
+                from hermes_cli.db_profile_schema import initialize_new_profile_storage
+                initialize_new_profile_storage(home)
             completed = []
             for domain in DOMAINS:
                 domain(home, label, role, saved)

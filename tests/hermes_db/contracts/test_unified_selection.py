@@ -57,10 +57,10 @@ class NoPostgres(importlib.abc.MetaPathFinder):
             raise ImportError('PG dependencies deliberately unavailable')
 sys.meta_path.insert(0, NoPostgres())
 from pathlib import Path
-from hermes_cli.db_session_schema import initialize_new_profile_sessions
+from hermes_cli.db_profile_schema import initialize_new_profile_storage
 from hermes_cli.db_setup import open_profile_db, storage_backend
 assert storage_backend(sys.argv[1]) == 'sqlite'
-initialize_new_profile_sessions(Path(sys.argv[1]))
+initialize_new_profile_storage(Path(sys.argv[1]))
 with open_profile_db(sys.argv[1]) as db:
     db.sessions.create_session('independent', source='cli')
     db.sessions.append_message('independent', role='user', content='persisted')

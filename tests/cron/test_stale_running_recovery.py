@@ -23,6 +23,7 @@ from cron.executions import _hermes_now, _transaction, recover_interrupted_execu
 @pytest.fixture(autouse=True)
 def _ledger(monkeypatch, tmp_path):
     monkeypatch.setattr(executions_mod, "EXECUTIONS_FILE", tmp_path / "cron" / "executions.db")
+    executions_mod.initialize()
     # The owner is alive for every row in this module; the bound alone decides.
     monkeypatch.setattr(executions_mod, "_owner_is_live", lambda pid, started_at: True)
 

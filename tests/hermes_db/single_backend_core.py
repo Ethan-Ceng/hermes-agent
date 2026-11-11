@@ -100,7 +100,7 @@ def rooms(home, label, role, saved):
 def metrics(home, label, role, saved):
     from hermes_cli.observability.shared_metrics import SharedMetricsStore
     from hermes_cli.observability.shared_metrics_contract import CLIENT_ACTIVE_METRIC, client_resource
-    store = SharedMetricsStore()
+    store = SharedMetricsStore.create() if role == "write" else SharedMetricsStore()
     if role == "write":
         resource = client_resource("0.0.0", os_name="", architecture="", install_method="git")
         store.record_counter(CLIENT_ACTIVE_METRIC, {}, resource)

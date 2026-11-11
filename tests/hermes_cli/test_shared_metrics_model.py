@@ -7,10 +7,7 @@ from types import SimpleNamespace
 
 from hermes_cli import lifecycle
 from hermes_cli.observability import relay_shared_metrics
-from tests.hermes_cli.test_relay_shared_metrics_runtime import (
-    _stored_values,
-    direct_runtime,
-)
+from tests.hermes_cli.test_relay_shared_metrics_runtime import _stored_values
 
 
 def _flush() -> None:

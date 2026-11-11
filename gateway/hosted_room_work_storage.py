@@ -8,6 +8,24 @@ from gateway.hosted_rooms_common import table_exists
 
 
 
+def schema_ready(conn) -> bool:
+    from gateway import hosted_room_work_records as work
+
+    tables = (work.SOURCE_TABLE, work.PENDING_TABLE, INVALID_TABLE)
+    for table in tables:
+        columns = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+        if not set(retained_fields(table) + ["disposition"]) <= columns:
+            return False
+    expected = {"trg_work_pending_outcome_v2", "trg_work_authority_transition_v2"}
+    for table in tables[:2]:
+        expected.update(f"trg_{table}_{suffix}" for suffix in (
+            "budget_v4_insert", "budget_v4_update", "immutable_v2", "delete_v2", "replace_v2",
+        ))
+    expected.update(f"trg_work_invalid_{op}" for op in ("insert", "update", "delete"))
+    actual = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='trigger'")}
+    return expected <= actual
+
+
 def initialize(conn):
     if not conn.in_transaction:
         # Reserve the writer before schema reads. A deferred SAVEPOINT can lose

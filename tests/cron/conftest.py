@@ -97,6 +97,11 @@ def owner_execution_runner():
     def run(job, *, extra_prompt=None, cancel_event=None, execution_id=None):
         from cron.scheduler import _get_hermes_home
 
+        from hermes_state import SessionDB
+
+        from cron.storage_lifecycle import initialize_cron_stores
+        initialize_cron_stores(_get_hermes_home())
+        SessionDB(_get_hermes_home() / "state.db").close()
         db = acquire(_get_hermes_home() / "state.db")
         identity = uuid4().hex
         ref = SessionRef("test-profile", "cron-" + identity)
@@ -138,3 +143,12 @@ def cron_owner(monkeypatch):
     run = owner_execution_runner()
     monkeypatch.setattr("cron.scheduler_authority.run_canonical_job", run)
     return run
+
+
+@pytest.fixture
+def initialized_cron_profiles(tmp_path):
+    """Explicit scheduler datasets before tests inject runtime faults or synthetic jobs."""
+    from cron.storage_lifecycle import initialize_cron_stores
+
+    initialize_cron_stores()
+    initialize_cron_stores(tmp_path)

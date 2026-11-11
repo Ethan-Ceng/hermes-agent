@@ -56,6 +56,11 @@ def initialize(conn: sqlite3.Connection) -> None:
     storage.initialize(conn)
 
 
+def _require_schema(conn: sqlite3.Connection) -> None:
+    if not storage.schema_ready(conn):
+        raise WorkRecordError("Room work schema is behind. Run `hermes db upgrade` for this profile.")
+
+
 def _budget(conn, table, proposed):
     total_sql, count_sql = storage.usage_sql((SOURCE_TABLE, PENDING_TABLE, storage.INVALID_TABLE))
     total, count = conn.execute(f"SELECT {total_sql}, {count_sql}").fetchone()
@@ -154,7 +159,7 @@ def capture(db_path, *, room_id: str, local_gateway_id: str, through_seq: int | 
 
 
 def capture_locked(conn, *, room_id, local_gateway_id, through_seq=None):
-    initialize(conn)
+    _require_schema(conn)
     room = conn.execute("SELECT * FROM hosted_rooms WHERE room_id=?", (room_id,)).fetchone()
     if (room is None or room["authority_gateway_id"] != local_gateway_id or room["disbanded_at"] is not None):
         raise WorkRecordError("work record source is unavailable")
@@ -208,7 +213,7 @@ def capture_locked(conn, *, room_id, local_gateway_id, through_seq=None):
 
 def prepare_delivery_locked(conn, *, room_id, target_install_id, route_generation, local_gateway_id, through_seq):
     """Freeze a source view now; expose it only after its history is acknowledged."""
-    initialize(conn)
+    _require_schema(conn)
     current = conn.execute("SELECT authority_gateway_id,authority_epoch FROM hosted_rooms WHERE room_id=?", (room_id,)).fetchone()
     if current is None or current["authority_gateway_id"] != local_gateway_id:
         raise WorkRecordError("work record source is unavailable")
@@ -243,7 +248,7 @@ def prepare_delivery_locked(conn, *, room_id, target_install_id, route_generatio
 
 
 def delivery_status_locked(conn, *, room_id, target_install_id, route_generation, record, status):
-    initialize(conn)
+    _require_schema(conn)
     row = conn.execute(f"SELECT * FROM {PENDING_TABLE} WHERE room_id=? AND target_install_id=? "
                        "AND producer_gateway_id=? AND producer_epoch=? AND disposition='current'",
                        (room_id, target_install_id, record["authority"]["gateway_id"], record["authority"]["epoch"])).fetchone()

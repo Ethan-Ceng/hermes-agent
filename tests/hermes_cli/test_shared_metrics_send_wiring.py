@@ -35,7 +35,7 @@ class RealBackedStore:
     def __init__(self, tmp_path):
         from hermes_cli.observability.shared_metrics import SharedMetricsStore
 
-        self._real = SharedMetricsStore(
+        self._real = SharedMetricsStore.create(
             database_path=tmp_path / "m.db", outbox_directory=tmp_path / "o"
         )
         self.exported = 0
@@ -315,7 +315,7 @@ class TestConsentWindows:
             "hermes_constants.get_hermes_home", lambda: home
         )
         root = home / "telemetry" / "shared_metrics"
-        store = SharedMetricsStore(
+        store = SharedMetricsStore.create(
             database_path=root / "metrics.sqlite3",
             outbox_directory=root / "outbox",
         )

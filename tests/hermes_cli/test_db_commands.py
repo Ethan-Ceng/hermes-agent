@@ -26,17 +26,20 @@ def test_top_level_cli_reaches_db_commands():
     assert callable(args.func)
 
 
-def test_sqlite_status_does_not_open_or_upgrade_a_database(tmp_path, monkeypatch, capsys):
+def test_sqlite_status_reports_missing_until_explicit_upgrade(tmp_path, monkeypatch, capsys):
     from hermes_cli import db_setup
 
-    monkeypatch.setattr(db_setup, "resolve_db_configuration", lambda: (DatabaseSettings(), DatabaseScope(tmp_path)))
+    monkeypatch.setattr(db_setup, "resolve_db_configuration", lambda profile_home=None: (DatabaseSettings(), DatabaseScope(tmp_path)))
     args = _parse("db", "status")
-    assert args.func(args) == 0
-    assert json.loads(capsys.readouterr().out)["backend"] == "sqlite"
-    args = _parse("db", "upgrade")
     assert args.func(args) == 1
-    assert "for PostgreSQL" in capsys.readouterr().err
+    report = json.loads(capsys.readouterr().out)
+    assert report["backend"] == "sqlite"
+    assert report["ready"] is False
     assert not (tmp_path / "state.db").exists()
+    args = _parse("db", "upgrade")
+    assert args.func(args) == 0
+    assert json.loads(capsys.readouterr().out)["ready"] is True
+    assert (tmp_path / "state.db").exists()
 
 
 @pytest.mark.parametrize("action", ["status", "upgrade"])

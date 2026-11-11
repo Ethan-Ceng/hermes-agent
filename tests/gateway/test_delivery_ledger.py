@@ -31,6 +31,7 @@ def _fresh_db(tmp_path, monkeypatch):
 
 
 def _record(oid="ob-1", session_key="agent:main:slack:channel:C1", **kw):
+    dl.initialize()
     dl.record_obligation(
         obligation_id=oid,
         session_key=session_key,

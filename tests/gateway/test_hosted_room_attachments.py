@@ -51,6 +51,7 @@ def _manifest(*attachments):
 
 
 def test_store_is_private_atomic_deduplicated_and_upload_idempotent(tmp_path):
+    hosted_rooms._initialize_connection(tmp_path / 'state.db').close()
     store = HostedRoomAttachmentStore(tmp_path / "state.db")
 
     first = _put(store)
@@ -78,6 +79,7 @@ def test_orphan_sweep_serializes_with_concurrent_canonical_blob_commit(
     tmp_path,
     monkeypatch,
 ):
+    hosted_rooms._initialize_connection(tmp_path / 'state.db').close()
     store = HostedRoomAttachmentStore(tmp_path / "state.db")
     entered_sweep = threading.Event()
     release_sweep = threading.Event()
@@ -124,6 +126,7 @@ def test_orphan_sweep_serializes_with_concurrent_canonical_blob_commit(
 
 
 def test_upload_id_conflict_and_manifest_metadata_conflict_fail_closed(tmp_path):
+    hosted_rooms._initialize_connection(tmp_path / 'state.db').close()
     store = HostedRoomAttachmentStore(tmp_path / "state.db")
     attachment = _put(store)
 
@@ -145,6 +148,7 @@ def test_failed_replay_rolls_back_only_attachments_transitioned_by_that_attempt(
     tmp_path,
 ):
     db = tmp_path / "state.db"
+    hosted_rooms._initialize_connection(db).close()
     store = HostedRoomAttachmentStore(db)
     committed = _put(store, upload_id="already-committed")
     new_upload = _put(store, upload_id="new-upload", data=PNG + b"new")
@@ -189,6 +193,7 @@ def test_failed_replay_rolls_back_only_attachments_transitioned_by_that_attempt(
 
 
 def test_image_pdf_text_and_binary_round_trip_with_frozen_recipients(tmp_path):
+    hosted_rooms._initialize_connection(tmp_path / 'state.db').close()
     store = HostedRoomAttachmentStore(tmp_path / "state.db")
     image = _put(store)
     pdf = _put(
@@ -260,6 +265,7 @@ def test_image_pdf_text_and_binary_round_trip_with_frozen_recipients(tmp_path):
     ],
 )
 def test_mime_mismatches_are_rejected(tmp_path, kind, mime, data):
+    hosted_rooms._initialize_connection(tmp_path / 'state.db').close()
     store = HostedRoomAttachmentStore(tmp_path / "state.db")
 
     with pytest.raises(AttachmentError, match="MIME|mime|kind|bytes"):
@@ -289,6 +295,7 @@ def test_mime_mismatches_are_rejected(tmp_path, kind, mime, data):
 def test_generic_zip_container_formats_are_accepted_as_opaque_files(
     tmp_path, name, mime
 ):
+    hosted_rooms._initialize_connection(tmp_path / 'state.db').close()
     store = HostedRoomAttachmentStore(tmp_path / "state.db")
     container = b"PK\x03\x04" + b"opaque-container-payload"
 
@@ -338,6 +345,7 @@ def test_task_manifest_has_independent_count_and_byte_budgets():
 
 def test_uncommitted_expiry_and_disband_grace_release_deduplicated_blob(tmp_path):
     now = [100.0]
+    hosted_rooms._initialize_connection(tmp_path / 'state.db').close()
     store = HostedRoomAttachmentStore(tmp_path / "state.db", clock=lambda: now[0])
     first = _put(store)
     second = _put(store, upload_id="upload-2")
@@ -368,6 +376,7 @@ def test_uncommitted_expiry_and_disband_grace_release_deduplicated_blob(tmp_path
 
 def test_new_upload_reclaims_expired_uncommitted_quota_without_restart(tmp_path):
     now = [100.0]
+    hosted_rooms._initialize_connection(tmp_path / 'state.db').close()
     store = HostedRoomAttachmentStore(
         tmp_path / "state.db",
         clock=lambda: now[0],
@@ -383,6 +392,7 @@ def test_new_upload_reclaims_expired_uncommitted_quota_without_restart(tmp_path)
 
 
 def test_integrity_check_rejects_tampering_and_symlink_replacement(tmp_path):
+    hosted_rooms._initialize_connection(tmp_path / 'state.db').close()
     store = HostedRoomAttachmentStore(tmp_path / "state.db")
     attachment = _put(store)
     store.commit_message(
@@ -416,6 +426,7 @@ def test_integrity_check_rejects_tampering_and_symlink_replacement(tmp_path):
 
 
 def test_room_and_gateway_quotas_are_bounded(tmp_path):
+    hosted_rooms._initialize_connection(tmp_path / 'room.db').close()
     room_limited = HostedRoomAttachmentStore(
         tmp_path / "room.db", room_quota_bytes=len(PNG)
     )
@@ -423,6 +434,7 @@ def test_room_and_gateway_quotas_are_bounded(tmp_path):
     with pytest.raises(AttachmentQuotaError, match="room"):
         _put(room_limited, upload_id="upload-2")
 
+    hosted_rooms._initialize_connection(tmp_path / 'gateway.db').close()
     gateway_limited = HostedRoomAttachmentStore(
         tmp_path / "gateway.db", gateway_quota_bytes=len(PNG)
     )
@@ -440,6 +452,7 @@ def test_base64_decoder_is_bounded_and_rejects_data_urls():
 
 def test_metadata_database_never_contains_blob_bytes_or_paths(tmp_path):
     db = tmp_path / "state.db"
+    hosted_rooms._initialize_connection(db).close()
     store = HostedRoomAttachmentStore(db)
     attachment = _put(store)
     store.commit_message(
@@ -471,6 +484,7 @@ def test_restart_reconciles_event_commit_and_expires_abandoned_commit(tmp_path):
         authority_gateway_id="gateway-a",
         now=now[0],
     )
+    hosted_rooms._initialize_connection(db).close()
     store = HostedRoomAttachmentStore(db, clock=lambda: now[0])
     retained = _put(store, upload_id="retained")
     abandoned = _put(store, upload_id="abandoned", data=PNG + b"other")
@@ -528,6 +542,7 @@ def test_attachment_reads_take_no_write_lock_and_repeat_no_startup(tmp_path):
     import time
 
     db = tmp_path / "state.db"
+    hosted_rooms._initialize_connection(db).close()
     store = HostedRoomAttachmentStore(db)
     item = _put(store)
     store.commit_message(room_id="room-1", event_id="event-1", manifest=_manifest(item),

@@ -31,6 +31,8 @@ def isolated_kanban_home_with_profiles(monkeypatch):
     # The module purge above discards the conftest's memory-sample neutralizer;
     # re-apply it so the host's live memory pressure cannot cap this tick.
     monkeypatch.setattr(kanban_db_dispatch, "_system_memory_sample", dict)
+    from hermes_cli.kanban_db_connect import init_db
+    init_db()
     yield kanban_db
 
 

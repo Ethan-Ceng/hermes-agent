@@ -16,6 +16,9 @@ import pytest
 from cron import executions, jobs, scheduler, scheduler_authority
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 @pytest.fixture
 def store(tmp_path):
     with jobs.use_cron_store(tmp_path / "cron"):

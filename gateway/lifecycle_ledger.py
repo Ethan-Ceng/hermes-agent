@@ -258,7 +258,7 @@ def check_state_db_integrity(home: Optional[Path] = None, *, deadline_s: Optiona
         except (TypeError, ValueError):
             deadline_at = None
     try:
-        with closing(sqlite3.connect(str(path))) as conn:
+        with closing(sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True)) as conn:
             _install_integrity_check_lease(conn, deadline_at=deadline_at)
             row = conn.execute("PRAGMA quick_check(1)").fetchone()
     except Exception as exc:
@@ -276,7 +276,7 @@ def _state_db_journal_mode(path: Path) -> Optional[str]:
     try:
         from hermes_db.infra.backends.sqlite.wal import _on_disk_journal_mode
 
-        with closing(sqlite3.connect(str(path), timeout=1.0)) as conn:
+        with closing(sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=1.0)) as conn:
             return _on_disk_journal_mode(conn) or None
     except Exception:
         logger.debug("Could not read state.db journal mode", exc_info=True)

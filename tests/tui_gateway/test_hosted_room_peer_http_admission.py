@@ -5,6 +5,7 @@ import urllib.error
 
 import pytest
 
+from gateway import hosted_rooms
 from tests.tui_gateway import test_hosted_room_peer_http as peer_http
 from tui_gateway.hosted_room_peer_http import PeerRunsHTTPClient, PeerRunsHTTPError
 
@@ -23,6 +24,7 @@ _REFUSED = PeerRunsHTTPError("peer endpoint refused the replay", retryable=True,
 def test_an_uncertain_admission_stays_uncertain_through_a_failed_replay(tmp_path, method, first, replay):
     """The identical replay of an uncertain admission can fail without proving the first request
     was not admitted: the attempt stays uncertain, and recovery then backs off."""
+    hosted_rooms._initialize_connection(tmp_path / "state.db").close()
     client = PeerRunsHTTPClient(base_url="https://peer.example.test", api_key="",
                                 receipt_db_path=tmp_path / "state.db", clock=lambda: 0.0)
     requests = []
@@ -78,6 +80,7 @@ def test_first_idempotency_conflict_replays_only_the_same_frozen_request(tmp_pat
         return self._json({"run_id": "retained-run", "status": "started", "replayed": True}, 202)
 
     monkeypatch.setattr(peer_http.FakePeer, "do_POST", do_POST)
+    hosted_rooms._initialize_connection(tmp_path / "state.db").close()
     client = PeerRunsHTTPClient(base_url=peer_server, api_key="",
                                 receipt_db_path=tmp_path / "state.db")
     result = client.dispatch(dispatch=peer_http._dispatch(), grant="signed.room.grant")

@@ -1,6 +1,8 @@
 """Production coordinator for same-gateway hosted Discussion rooms."""
 
 from __future__ import annotations
+
+from functools import cached_property
 from hermes_db.domains.rooms import rules as _storage_shared_1
 
 import contextlib
@@ -184,11 +186,6 @@ class HostedRoomService:
         # lock: nothing is called while holding it, so Desktop's room status never waits behind a
         # room's preparation, which holds ``_policy_lock`` across its log and checkpoint work.
         self._state_lock = threading.Lock()
-        self.policy_checkpoint = HostedRoomPolicyCheckpoint(
-            self.db_path,
-            # Every Continue grants one more budget, so one discussion's projection holds up to that many.
-            max_active_events=(1 + 2 * discussion.MAX_DISCUSSION_MEMBERS * self.discussion_limits.max_rounds + 2)
-            * (router.MAX_DISCUSSION_CONTINUES + 1))
         self.rpc = self._make_rpc(server)
         self._link_load_error = None
         self._peer_route_status: dict[tuple[str, str], str] = {}
@@ -227,6 +224,15 @@ class HostedRoomService:
             poll_interval_seconds=_HOSTED_ROOM_IDLE_FALLBACK_SECONDS,
             active_poll_interval_seconds=_HOSTED_ROOM_ACTIVE_POLL_SECONDS,
             turn_timeout_seconds=_hosted_room_turn_timeout_seconds())
+
+    @cached_property
+    def policy_checkpoint(self) -> HostedRoomPolicyCheckpoint:
+        return HostedRoomPolicyCheckpoint(
+            self.db_path,
+            # Every Continue grants one more budget, so one discussion's projection holds up to that many.
+            max_active_events=(1 + 2 * discussion.MAX_DISCUSSION_MEMBERS * self.discussion_limits.max_rounds + 2)
+            * (router.MAX_DISCUSSION_CONTINUES + 1))
+
 
     def _make_rpc(self, server):
         return HostedRoomServerRPC(server, db_path=self.db_path)

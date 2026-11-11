@@ -90,11 +90,11 @@ def _integrity_messages(db_path: Path) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
-# Narrow auto-repair in the connect-time guard
+# Narrow repair during explicit initialization
 # ---------------------------------------------------------------------------
 
-def test_connect_auto_repairs_index_only_corruption(tmp_path):
-    """Index-only integrity errors are REINDEXed and connect proceeds."""
+def test_explicit_initialization_repairs_index_only_corruption(tmp_path):
+    """Explicit initialization REINDEXes index-only errors before an ordinary connection."""
     db_path = tmp_path / "kanban.db"
     _build_board_db(db_path)
     _corrupt_index(db_path, "idx_tasks_status")
@@ -104,6 +104,7 @@ def test_connect_auto_repairs_index_only_corruption(tmp_path):
     assert any(m.startswith("wrong # of entries in index") for m in messages)
     assert kbc._repairable_index_names(messages) == ["idx_tasks_status"]
 
+    kb.init_db(db_path=db_path)
     conn = kbc.connect(db_path=db_path)
     try:
         # DB is clean again and data survived.

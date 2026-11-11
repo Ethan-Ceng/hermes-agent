@@ -20,6 +20,7 @@ from cron.executions import _transaction, create_execution, mark_execution_runni
 @pytest.fixture(autouse=True)
 def _ledger(monkeypatch, tmp_path):
     monkeypatch.setattr(executions_mod, "EXECUTIONS_FILE", tmp_path / "cron" / "executions.db")
+    executions_mod.initialize()
 
 
 def _progress_at(execution_id: str):

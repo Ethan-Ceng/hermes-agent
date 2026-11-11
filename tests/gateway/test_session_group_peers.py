@@ -34,6 +34,8 @@ def gateway(tmp_path, monkeypatch):
     home.mkdir()
     monkeypatch.setenv('HERMES_HOME', str(home))
     monkeypatch.delenv('HERMES_ROOM_LINK_URL', raising=False)
+    from hermes_cli.db_profile_schema import initialize_new_profile_storage
+    initialize_new_profile_storage(home)
     db = SessionDB(home / 'state.db')
     adapter = APIServerAdapter(PlatformConfig(enabled=True, extra={'key': 'target-gateway-api-key'}))
     adapter._run_idempotency_store.close()
@@ -859,3 +861,30 @@ async def test_a_refresh_of_the_previous_grant_never_writes_over_a_re_seat(gatew
     assert sent['grant'] not in (expiring, *reseated)  # this turn still goes out on its renewal
     stored, = hosted_room_links.load_room_links(gateway.db.db_path)
     assert service.peer_routes[key].grant == stored.grant == reseated[0]
+
+
+@pytest.mark.asyncio
+async def test_first_invitation_creates_coordination_store_and_repeat_uses_no_ddl(
+    gateway, linked_peer, monkeypatch,
+):
+    import re
+    import sqlite3
+
+    room = linked_peer[3]
+    path = hosted_rooms.default_db_path()
+    assert not path.exists()
+    first = await invite(gateway, room)
+    assert first['grant'] and path.exists()
+    ddl = []
+    connect = sqlite3.connect
+
+    def traced(*args, **kwargs):
+        conn = connect(*args, **kwargs)
+        conn.set_trace_callback(lambda sql: ddl.append(sql) if re.match(
+            r"\s*(CREATE|ALTER|DROP|REINDEX|VACUUM)\b", sql, re.IGNORECASE) else None)
+        return conn
+
+    monkeypatch.setattr(sqlite3, 'connect', traced)
+    second = await invite(gateway, room)
+    assert second['grant'] != first['grant']
+    assert ddl == []

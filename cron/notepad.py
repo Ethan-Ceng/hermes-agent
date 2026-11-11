@@ -9,7 +9,7 @@ the store untouched — the notepad is prompt-injected each run. Write path is t
 
 from __future__ import annotations
 
-from hermes_cli.db_sqlite_policy import initialize_profile_sqlite
+from hermes_cli.db_sqlite_policy import initialize_profile_sqlite, open_ready_profile_sqlite
 
 import logging
 import sqlite3
@@ -40,22 +40,31 @@ def _current_notepad_file() -> Path:
     return NOTEPAD_FILE or (get_hermes_home().resolve() / "cron" / "notepad.db")
 
 
-def _connect() -> sqlite3.Connection:
-    # Late imports: a scheduler daemon that outlives an on-disk upgrade already has the OLD
-    # ``hermes_cli.sqlite_util`` / ``cron.jobs`` cached, so new names must be resolved at call time,
-    # not at import time (the guarantee cron/ledger.py used to carry, see e24c8499).
-    from cron.jobs import _ensure_cron_dir
-    from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
+def _sqlite_path() -> Path:
     from hermes_cli.db_setup import storage_backend
     from hermes_db.errors import StorageConfigurationError
 
     if storage_backend() == "postgresql":
         raise StorageConfigurationError("Cron native SQLite notepad connections are unavailable in PostgreSQL mode; use notepad operations")
+    return _current_notepad_file()
 
-    path = _current_notepad_file()
+
+def _schema_ready(conn: sqlite3.Connection) -> bool:
+    columns = {info[1] for info in conn.execute("PRAGMA table_info(cron_notepad)")}
+    return {"job_id", "key", "value", "updated_at"} <= columns
+
+
+def _connect() -> sqlite3.Connection:
+    return open_ready_profile_sqlite(_sqlite_path(), db_label="cron/notepad.db", ready=_schema_ready)
+
+
+def initialize() -> None:
+    """Create or upgrade this SQLite store from an explicit lifecycle entry."""
+    from cron.jobs import _ensure_cron_dir
+
+    path = _sqlite_path()
     _ensure_cron_dir(path.parent)
-    return initialize_profile_sqlite(path, db_label="cron/notepad.db", initialize=_initialize_schema)
-
+    initialize_profile_sqlite(path, db_label="cron/notepad.db", initialize=_initialize_schema).close()
 
 def _initialize_schema(conn: sqlite3.Connection) -> None:
     conn.execute(
@@ -120,6 +129,8 @@ def set_note(job_id: str, key: str, value: str) -> dict[str, Any]:
 
 @domain_operation("notepad", domain="cron_notepad")
 def get_note(job_id: str, key: str) -> Optional[str]:
+    if not (_current_notepad_file()).exists():
+        return None
     with _transaction() as conn:
         row = conn.execute(
             "SELECT value FROM cron_notepad WHERE job_id=? AND key=?",
@@ -141,6 +152,8 @@ def delete_note(job_id: str, key: str) -> bool:
 @domain_operation("notepad", domain="cron_notepad")
 def list_notes(job_id: str) -> list[dict[str, Any]]:
     """All entries for one job, sorted by key."""
+    if not (_current_notepad_file()).exists():
+        return []
     with _transaction() as conn:
         rows = conn.execute(
             "SELECT job_id, key, value, updated_at FROM cron_notepad "

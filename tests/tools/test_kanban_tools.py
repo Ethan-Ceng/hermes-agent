@@ -756,6 +756,7 @@ def test_create_explicit_scratch_ignores_ambient_board_project(
 
     repo = tmp_path / "repo"
     repo.mkdir()
+    pdb.initialize_projects()
     with pdb.connect_closing() as pconn:
         project_id = pdb.create_project(pconn, name="Ambient", primary_path=str(repo))
     kb.write_board_metadata("default", project_id=project_id)
@@ -1282,6 +1283,8 @@ def test_create_respects_auto_subscribe_on_create_false(monkeypatch, worker_env,
     monkeypatch.setenv("HERMES_SESSION_CHAT_ID", "channel-1")
 
     from tools import kanban_tools as kt
+    from hermes_cli.kanban_db_connect import init_db
+    init_db()
     out = kt._handle_create({
         "title": "no sub gated",
         "assignee": "peer",

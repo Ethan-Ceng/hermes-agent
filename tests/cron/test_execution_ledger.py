@@ -14,6 +14,7 @@ def _point_ledger(monkeypatch, tmp_path):
     from cron import executions
 
     monkeypatch.setattr(executions, "EXECUTIONS_FILE", tmp_path / "cron" / "executions.db")
+    executions.initialize()
     return executions
 
 
@@ -142,8 +143,10 @@ def test_execution_ledger_follows_the_current_profile_home(monkeypatch, tmp_path
     monkeypatch.setattr(executions, "EXECUTIONS_FILE", None)
     monkeypatch.setattr(executions, "get_hermes_home", lambda: current_home["path"])
 
+    executions.initialize()
     default_row = executions.create_execution("default-job", source="builtin")
     current_home["path"] = tmp_path / "worker"
+    executions.initialize()
     worker_row = executions.create_execution("worker-job", source="builtin")
 
     assert executions.list_executions() == [worker_row]
@@ -198,7 +201,9 @@ def test_recently_finished_long_running_execution_survives_retention(
 
 
 def test_corrupt_store_fails_closed_without_overwrite(monkeypatch, tmp_path):
-    executions = _point_ledger(monkeypatch, tmp_path)
+    from cron import executions
+
+    monkeypatch.setattr(executions, "EXECUTIONS_FILE", tmp_path / "cron" / "executions.db")
     executions.EXECUTIONS_FILE.parent.mkdir(parents=True)
     executions.EXECUTIONS_FILE.write_bytes(b"not a sqlite database")
 
@@ -258,8 +263,8 @@ def test_restart_marks_interrupted_execution_unknown_without_requeue(tmp_path):
         [
             sys.executable,
             "-c",
-            "from cron.executions import create_execution, mark_execution_running; "
-            "r=create_execution('restart-job', source='builtin'); "
+            "from cron.executions import initialize, create_execution, mark_execution_running; "
+            "initialize(); r=create_execution('restart-job', source='builtin'); "
             "mark_execution_running(r['id']); print(r['id'])",
         ],
         cwd=repo,
@@ -483,6 +488,8 @@ def test_job_listing_exposes_latest_execution(monkeypatch, tmp_path):
     monkeypatch.setattr(jobs, "OUTPUT_DIR", tmp_path / "cron" / "output")
     executions = _point_ledger(monkeypatch, tmp_path)
 
+    from cron import incidents
+    incidents.initialize()
     job = jobs.create_job(prompt="audit me", schedule="every 1h", name="audit")
     record = executions.create_execution(job["id"], source="builtin")
     executions.mark_execution_running(record["id"])

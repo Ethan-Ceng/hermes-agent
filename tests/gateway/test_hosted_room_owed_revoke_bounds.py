@@ -29,6 +29,7 @@ def _owe(db, grant, *, member="peer", room="ended", expires_at=None):
 
 def test_an_owed_revoke_lives_no_longer_than_the_longest_signed_horizon(tmp_path):
     db, now = tmp_path / "state.db", time.time()
+    hosted_rooms._initialize_connection(db).close()
     _owe(db, _grant(now + 10**9, "forever"))  # an unsigned payload claiming 30 years
     (_member, expires_at, _attempts), = _rows(db)
     assert expires_at <= now + hosted_rooms.MAX_OWED_REVOKE_SECONDS + 60
@@ -36,6 +37,7 @@ def test_an_owed_revoke_lives_no_longer_than_the_longest_signed_horizon(tmp_path
 
 def test_repeated_and_many_grants_for_one_member_keep_a_few_rows(tmp_path):
     db, now = tmp_path / "state.db", time.time()
+    hosted_rooms._initialize_connection(db).close()
     same = _grant(now + 3600, "same")
     for _ in range(5):
         _owe(db, same)
@@ -52,6 +54,7 @@ def test_repeated_and_many_grants_for_one_member_keep_a_few_rows(tmp_path):
 
 def test_an_owed_revoke_is_retried_until_its_grant_expires(tmp_path):
     db, now = tmp_path / "state.db", time.time()
+    hosted_rooms._initialize_connection(db).close()
     _owe(db, _grant(now + 30 * 86400, "unreachable"))
     for attempt in range(200):
         owed, = hosted_rooms.due_room_grant_revokes(db, limit=5, now=now + attempt + 1)

@@ -3266,16 +3266,6 @@ def _exit_if_key_managed(key: str, action: str) -> None:
         sys.exit(1)
 
 
-def _touch_skin_file(key: str, value: Any) -> None:
-    """``display.skin`` set means "apply NOW": bump the skin file's mtime so the gateway watcher's
-    (name, mtime) signature moves even when the name is unchanged. Best-effort."""
-    if key == "display.skin" and isinstance(value, str) and value:
-        try:
-            skin_file = get_hermes_home() / "skins" / f"{value}.yaml"
-            if skin_file.exists():
-                skin_file.touch()
-        except Exception:
-            pass
 
 
 def _exit_invalid(msg: str) -> None:
@@ -3426,10 +3416,8 @@ def set_config_value(key: str, value: str, force: bool = False):
     if env_var and key != "terminal.cwd":
         save_env_value(env_var, _terminal_env_value(value))
 
-    _touch_skin_file(key, value)
-    if key == "display.language":
-        from agent.i18n import reset_language_cache
-        reset_language_cache()
+    from hermes_cli.config_choices import apply_written_setting
+    apply_written_setting(key, value, get_hermes_home())
 
     # Mask the echoed value when the (possibly nested) key is credential-shaped, e.g.
     # ``model.api_key`` (lowercase, so it misses the .env routing above).

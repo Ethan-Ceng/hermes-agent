@@ -11,6 +11,7 @@ These tests exercise the full run_job path (real imports, mocked AIAgent +
 resolve_runtime_provider against a temp HERMES_HOME) and the job-store pin helpers.
 """
 
+import pytest
 import asyncio
 import json
 import sys
@@ -22,6 +23,9 @@ from unittest.mock import MagicMock, patch
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 def _run_owned_job(job, tmp_path):
     """Exercise the production owner bridge with an isolated canonical store."""
     from gateway.session_contract import SessionRef
@@ -31,6 +35,8 @@ def _run_owned_job(job, tmp_path):
     ref = SessionRef("test-profile", "cron-owner-session")
     admission_id = "cron-owner-admission"
     request_id = "cron-owner-request"
+    from hermes_state import SessionDB
+    SessionDB(tmp_path / "state.db").close()
     db = acquire(tmp_path / "state.db")
     db.create_session(ref.session_id, source="cron")
     authority = SimpleNamespace(

@@ -12,6 +12,9 @@ from cron.scheduler_bookkeeping import finish_interrupted_run
 from hermes_cli import gateway_client
 
 
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
+
+
 def _ownership_lost(job, fire, journal):
     scheduler._record_fire_ownership_lost(job, None, fire)
 

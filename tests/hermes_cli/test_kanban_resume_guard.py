@@ -155,7 +155,8 @@ def test_startup_resume_ordinary_session_still_works(tmp_path):
 
 # ── mid-chat /resume ─────────────────────────────────────────────────
 
-def test_midchat_resume_refuses_kanban_target(tmp_path):
+def test_midchat_resume_refuses_kanban_target(tmp_path, monkeypatch):
+    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     db = _db(tmp_path, source="cli", session_id="chat-1")
     db.create_session("worker-1", "kanban")
     db.append_message("worker-1", "user", "task work")

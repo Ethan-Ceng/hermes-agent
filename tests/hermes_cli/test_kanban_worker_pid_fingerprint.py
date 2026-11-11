@@ -20,6 +20,7 @@ from hermes_cli import kanban_db_dispatch as kbd
 def board(tmp_path, monkeypatch):
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     monkeypatch.setenv("HERMES_KANBAN_CRASH_GRACE_SECONDS", "0")
+    kbc.init_db(tmp_path / "kanban.db")
     conn = kbc.connect(tmp_path / "kanban.db")
     try:
         yield conn

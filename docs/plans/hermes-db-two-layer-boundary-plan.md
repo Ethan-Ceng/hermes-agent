@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`IMPLEMENTING`；阶段：SQLite其他业务领域显式生命周期；当前实施任务：Task8待启动；完成：7 / 20；阻塞：无；日期2026-11-11。
+- 整体状态：`IMPLEMENTING`；阶段：SQLite其他业务领域显式生命周期；当前实施任务：Task8已完成，下一项Task9；完成：8 / 20；阻塞：无；日期2026-11-11。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 范围与可判定边界
@@ -610,7 +610,7 @@ Windows、WSL三文件各15项通过，完整 Native 分别224文件1757通过/1
 
 ## Task 8：闭合其他SQLite领域的首次创建与无DDL打开
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -665,11 +665,49 @@ Windows、WSL三文件各15项通过，完整 Native 分别224文件1757通过/1
 
 ### 执行结果
 
-未实施；planning不计完成。
+2026-11-11启动：Task7实际commit 3daa6acb55ed518939cc7f023d7708141779fa9e。11个映射引用对应7个物理分区，working/HEAD逐字节核对通过。Task7提交后工作区无已跟踪改动。Task8先对实际受管库创建入口、普通读取/写入与动态patch做定向审计，先录入冷启动真实SQL trace红测。已有SQL、跨进程初始化锁、文件栅栏和业务调用顺序继续保持。
+
 
 ### 验证证据
 
-未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
+当前保持in_progress。初始三项真实生命周期红测0pass/3fail。分离Cron/Projects/Rooms、Kanban和Metrics后的Windows必需4文件4项exit0，WSL必需4文件及新增2文件合计9项exit0。当前更多变更仍需最新复验。扩展Cron全目录实际179文件1212pass/334fail/61skip、exit1，69个失败文件已逐项列入本地AST/fixture整改索引；没有删减批次来获得通过。已确认部分测试直接把路径/作业字典作为数据准备，仍依赖普通获取建库，还有未验证的原因需继续检查。Task7 owner-transport测试fixture在更广Cron消费中的缺库也需同步，作为本Task跨依赖消费闭合记录。静态中间批次health0阻塞/0advisory，但Ruff集合字面量1项失败。当前不计Task8完成。
+
+第二轮完整Cron仍为exit1，179文件1336pass/209fail/62skip、53个失败文件。9文件重点组223pass/0fail/5skip。后续4文件77pass/1fail，独立router claim租约测试缺少显式数据准备已补，需复验。扩展受影响消费者大批次仍在运行，保留原批次范围。继续核对合成作业、覆盖路径、SessionDB owner seam和指标首次创建fixture，未删业务断言。
+
+后续同范围完整批次依次为179文件1454pass/88fail/3error/62skip，181文件1585pass/13fail/3error/65skip，188文件1674pass/1fail/24error/65skip，均exit1。最后一轮24项error及1fail来自Notepad导入别名替换误伤，已恢复正确别名，完整188文件正在复验。WSL同源186文件1643pass/3fail/24error/2skip、exit1，另两项Linux消费者首次daemon/Board数据准备已修正，尚须最新完整复验。
+
+房间/指标/剩余Cron定向5文件124pass/0fail、exit0。附件、replica、handoff、ledger另外7文件正在验证。广域消费者诊断批次已到99.9%，实际范围仍固定，93个失败文件进入整改索引；初轮时间较长，出现1200秒文件timeout，保留失败及源码变化期间的诊断身份，不能计为最终验收。静态第二轮Ruff通过、health45项fixture导入重定义，已将fixture直接迁到现有tests/hermes_cli/conftest.py并同步全部实际读取点，等待最新静态复验。当前Task8仍in_progress，未创建实现commit。
+
+
+
+所有当前批次保持诊断/局部验证身份，命令与环境见对应安全控制器的.log.json。Task8实现尚未完整通过，不能计为completed。
+
+
+2026-11-11后续恢复记录。Windows188文件完整中间组1699pass/0fail/65skip、exit0，日志native-win-494e3148b7fe428d818526cd8956945f。此后有生产及fixture修改，最终必须重新完整复验。第一次广域245文件实际1784pass/377fail/141error/33skip、exit1（3613.8秒）；第二次245文件2065pass/214fail/22error/34skip、exit1（1236.0秒）。两批完整保留，不缩减其范围。
+
+已确认executions与incidents共享executions.db，显式首建必须在任何Schema写入前记录整组缺失物理路径，再初始化该路径的全部领域。普通重复job创建SQL trace已加入验收。普通Kanban冷打开保留原只读损坏检查、错误身份、备份和锁序；REINDEX仍通过原显式初始化/修复算法，新增3项生命周期合同exit0。原自动重建/升级/修复测试改接明确生命周期，文件消失/空替换后先验证普通打开拒绝，再保留原Schema、数据和恢复断言，没有删除测试。
+
+共享hosted_owner fixture实际读取_default_db_path，并非sessions_dir对应路径，现按真实默认路径显式准备，且失败也关闭事件循环。原timeout相关5文件34pass/0fail、exit0。指标关闭时的无telemetry目录断言原样保留，未初始化和显式启用fixture分别提供实际前置条件。31文件Kanban中间组240pass/39fail/1error/2skip，4文件专用迁移/修复组59pass/5fail/2skip，均exit1；已继续修正pytest导入、async插入缩进、显式修复调用及准确patch读取点。最新静态和完整Native/消费者复验仍未全部通过。Task8持续in_progress，恢复提交仍3daa6acb55ed518939cc7f023d7708141779fa9e。
+
+最新整改后32文件Kanban完整重点组283pass/0fail/2skip、exit0，包含原31文件全部业务断言及迁出主题模块的3项WAL合同。文件拆分用于符合既有规模限制，没有删除测试。完整245消费者及188 Native双宿主仍在复验。新增db_commands消费者发现上轮SQLite升级拒绝断言未同步，现保留status缺库无文件断言，接通显式upgrade并同步配置解析patch签名；八文件20项Windows exit0。中间一次误写不存在文件名导致runner exit2和后续旧断言/签名失败全部保留。静态16check已通过一轮，空白EOF失败已修正，最新全部门禁待完成。65个固定资源working/staged/HEAD、11映射引用、业务DDL字面量无变化、369/11/31/29以及正式目录HEAD/clean核对通过。Task8仍in_progress。
+
+
+后续完整结果保持失败记录。246文件2186pass/102fail/14error/34skip、exit1，失败29文件；针对性17文件132pass/26fail/1skip、29文件232pass/48fail/1skip均exit1。房间共享fixture、HTTP回执、直接保留库及指标关闭/多Profile首次准备继续同步，正常恢复构造保持checked open。发现真实API首次成员邀请先保留房间再建领域的遗漏，已在该显式创建入口初始化缺失协调库，未改原grant或reserve算法，添加真实首邀和重复无DDL合同。两次导入遗漏失败也完整保留并修正。后续7文件61pass/1fail、5文件56pass/5fail和3文件28pass/1fail仍exit1，最后一项为双网关异步恢复终态等待，正在定向定位。
+
+Windows188完整最新组1701pass/0fail/65skip，必需扩展八文件Windows及WSL各20pass/0fail，16check与全部边界/合同/空白exit0。WSL188完整1762pass/2fail/2skip、exit1，分别为真实gateway restart启动等待和SDK后台导出10秒join；同两文件在无其他Linux全批次时95pass/0fail、exit0。没有增加skip、超时或删除断言。原188范围正在两worker完整重跑，消费者范围已扩到251文件，全部必需完整exit0仍待完成。Task8保持in_progress，完成7/20。
+
+
+最新WSL原188文件完整批次1764pass/0fail/2skip、exit0（879.7秒、两worker）。Windows251文件完整两次分别2344pass/2fail/34skip、2345pass/1fail/34skip，exit1。共享owner fixture缺Projects的前置条件已修正并去掉重复准备，四文件43pass/0fail；剩余HTTP滴流测试与传输源码的AST/字节均核对与0d8782基准一致。底层剩余socket预算可在下一次monotonic检查前触发TimeoutError，原固定文案断言没有区分这两种实际异常链。该测试现保留真实滴流、重试和上限断言，新增响应体已开始、实际耗时下限、异常链类型及各类型对应原错误身份核验。HTTP生产算法未修改，整批验收范围仍为251文件，须重新完整exit0。前面双网关临时诊断已去除，最后单文件4pass/0fail、完整251中的双网关也4pass/0fail，原间歇等待失败继续保留记录。
+
+
+补充状态一致性回归先红（5pass/1fail，重试未拒绝），修正publish_job_record在原jobs锁前以现有_connect分别校验四个存储后，四文件130pass/0fail/1skip。两个只准备executions的真实Worker/发生槽fixture因共用路径暴露12fail，补齐明确准备后两文件17pass/0fail。普通Room连接重复检查全部组件会使主表查询依赖尚未获取的附件等组件；真实缺附件表回归先红（6pass/1fail），现在恢复主表原_schema_is_current/settled检查，显式完整初始化仍检查全部组件，各组件在自身实际获取时校验。原SQL未改。
+
+双网关捕获到deferred/同一代次1/实际执行1次、recovery probe endpoint unreachable。测试原来在真实HTTP事件循环执行同步SQLite轮询，现把轮询与消息读取送入asyncio.to_thread，保留原20秒等待及同一回执/一次执行断言，临时诊断已去除。两文件5pass/0fail。最新大批次仍为过程中诊断，存在旧fixture与旧同步轮询的失败，恢复点仍3daa6acb55ed518939cc7f023d7708141779fa9e。Task8未完成，后续须稳定源码下全部必需完整exit0及最新静态。
+
+
+最终结算。Windows434文件完整并集3894pass/0fail/99平台skip，包含原188 Native与251消费者全部选择范围，其中2个辅助入口没有独立测试case。WSL188完整1766pass/0fail/2平台skip。最新Windows/WSL八文件各22pass/0fail，全部实际exit0。最新16check、DB边界、插件边界、生成契约和空白均exit0。业务DDL字面量delta为0，固定65资源working/staged/HEAD、31 revisions、29表模块、root11校验通过。DB当前369为中间数，最终359预算仍待后续Task闭合。3项WAL测试的原业务assert AST逐项一致，没有删除测试。最后仅清理一个未使用导入，其余Python字节及业务AST一致，清理后两主机22项合同通过。源码hash d9cb72035a92b75455ec56de1fadab398c22d5d612f6d8a47a2d9d603e85c912。
+
+展开命令、解释器/cwd/源码身份、失败/整改/skip和未验证项见[Task8证据](../designs/hermes-db-two-layer-task8.json)。普通资源获取只检查已有Schema，首次创建与升级由实际应用生命周期拥有者执行。原统一Task24、七项非WSL缺证和Windows八项Profile基准问题独立保留。正式目录HEAD90a2987e8c且clean，只读核对通过。Task8验证完成后立即创建本地commit，实际hash在Task9启动记录，8/20。
 
 ## Task 9：迁出Sessions与Runtime应用装配
 
@@ -1381,14 +1419,14 @@ Windows独立发行组使用同根Windows实际路径、其PG父解释器及私�
 
 ### 当前执行结果
 
-- 当前实施：Task1–7已验证，7/20；Task7本地提交后立即进入Task8。
+- 当前实施：Task1–8已验证，8/20；Task8本地提交后立即进入Task9。
 - Task1–7证据见各Task及对应诊断记录。最终完整冻结批次、SDK及独立审查尚未完成。
 - 规划结构/基准/本地链接及文档静态自检：实际命令与结果写入下方准备记录。
 - 代码审查：本轮尚未执行；旧APPROVED只属于已完成持久层职责精简。
 
 ### 未通过项目与最终状态
 
-当前为`IMPLEMENTING`，Task1–3已完成、Task4仍须完整门禁，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
+当前为`IMPLEMENTING`，Task1–8已完成，下一项Task9，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
 
 ## 规划准备记录与恢复
 

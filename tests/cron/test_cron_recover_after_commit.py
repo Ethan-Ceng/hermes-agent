@@ -4,12 +4,16 @@ The firer's ``submit`` raised after the admission row committed (a lost answer /
 past the commit). ``recover`` found the run, but the firer re-raised anyway: CronExecutionUnknown
 paused the job and gave up a run the owner then completed. Real SessionAuthority over SQLite.
 """
+import pytest
 import asyncio
 
 from cron import executions, jobs, scheduler
 from gateway import session_cron
 from hermes_state_runtime import claim_session_input, settle_session_input
 from tests.cron.test_cron_recovery import _owner
+
+
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
 
 
 def test_submit_error_after_commit_observes_the_admitted_run(tmp_path, monkeypatch):

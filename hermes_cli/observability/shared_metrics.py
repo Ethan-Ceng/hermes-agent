@@ -196,17 +196,45 @@ class SharedMetricsStore(MetricsPolicy, MetricsExport):
     def __init__(
         self, database_path: Path | None = None, outbox_directory: Path | None = None, *, profile_home=None
     ) -> None:
+        self._configure(database_path, outbox_directory, profile_home)
+        from hermes_db.errors import StorageSchemaError
+
+        if not self.database_path.is_file():
+            raise StorageSchemaError("Metrics store is missing. Enable shared metrics or run `hermes db upgrade`.")
+        with self._connection() as connection:
+            if not self._schema_ready(connection):
+                raise StorageSchemaError("Metrics schema is behind. Run `hermes db upgrade` for this profile.")
+
+    def _configure(self, database_path, outbox_directory, profile_home) -> None:
         self.profile_home = Path(profile_home) if profile_home is not None else get_hermes_home()
         root = self.profile_home / "telemetry" / "shared_metrics"
         self.database_path = database_path or root / "metrics.sqlite3"
         self.outbox_directory = outbox_directory or root / "outbox"
-        _ensure_private(self.database_path.parent, 0o700)
-        _ensure_private(self.outbox_directory, 0o700)
-        _ensure_private(self.database_path, 0o600)
-        self._ensure_schema()
         self._deferred: list[Callable[[sqlite3.Connection], None]] = []
         self._deferred_lock = threading.Lock()
         self._drain_at_exit = False
+
+    @classmethod
+    def create(cls, database_path=None, outbox_directory=None, *, profile_home=None):
+        """Explicitly create or upgrade a selected metrics dataset."""
+        store = cls.__new__(cls, database_path, outbox_directory, profile_home=profile_home)
+        if not isinstance(store, cls):
+            return store
+        store._configure(database_path, outbox_directory, profile_home)
+        _ensure_private(store.database_path.parent, 0o700)
+        _ensure_private(store.outbox_directory, 0o700)
+        _ensure_private(store.database_path, 0o600)
+        store._ensure_schema()
+        return store
+
+    @staticmethod
+    def _schema_ready(connection: sqlite3.Connection) -> bool:
+        tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        if not {"telemetry_state", "counter_aggregates", "package_outbox", "send_consent_windows", "consent_marks"} <= tables:
+            return False
+        row = connection.execute("SELECT value FROM telemetry_state WHERE key='schema_version'").fetchone()
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(package_outbox)")}
+        return row is not None and str(row[0]) == _STORE_SCHEMA_VERSION and {name for name, _ in _SEND_COLUMNS} <= columns
 
     def reconcile_send_consent(self, send_enabled, *, now=None):
         from .shared_metrics_storage import reconcile_sqlite
@@ -461,7 +489,9 @@ class SharedMetricsStore(MetricsPolicy, MetricsExport):
     ) -> Iterator[sqlite3.Connection]:
         from .shared_metrics_storage import assert_sqlite
         assert_sqlite(self.profile_home)
-        connection = sqlite3.connect(self.database_path, timeout=busy_timeout_ms / 1000)
+        connection = sqlite3.connect(
+            self.database_path.resolve().as_uri() + "?mode=rw", uri=True, timeout=busy_timeout_ms / 1000,
+        )
         try:
             connection.row_factory = sqlite3.Row
             connection.execute(f"PRAGMA busy_timeout={busy_timeout_ms}")

@@ -27,6 +27,7 @@ def deferred(tmp_path, monkeypatch):
     def build(member_home):
         member_home.mkdir(parents=True, exist_ok=True)
         db = SessionDB(root / 'state.db')
+        hosted_rooms._initialize_connection(db.db_path).close()
         dbs.append(db)
         authority = SimpleNamespace(db=db, profile_id=str(root), epoch=begin_runtime_epoch(db, instance_id='test'))
         service = CanonicalHostedRoomService(authority, None)

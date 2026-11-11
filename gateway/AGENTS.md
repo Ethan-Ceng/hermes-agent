@@ -3,6 +3,11 @@
 Applies on top of the root `AGENTS.md`. Long-form: `website/docs/developer-guide/gateway-internals.md`.
 New platform adapter: follow `gateway/platforms/ADDING_A_PLATFORM.md` step by step.
 
+Native room Schema work is explicit through `hosted_rooms._initialize_connection` at Profile
+setup/upgrade and first domain creation. Service boot, Driver/checkpoint/attachment acquisition
+and ordinary operations check existing stores. Attachment authorization, pins and file fences
+keep their original business transaction and lock order.
+
 ## Shape
 
 `gateway/run.py` is the facade; phases live in `run_*.py` (startup, adapters, inbound, turn, busy,

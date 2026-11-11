@@ -1,4 +1,5 @@
 """Receipt reconciliation keeps its journal while a live foreign firer still owns the ledger row."""
+import pytest
 from contextlib import asynccontextmanager
 import json
 import os
@@ -6,6 +7,9 @@ import subprocess
 import sys
 
 from cron import executions, jobs, scheduler_authority
+
+
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
 
 
 def test_live_firer_journal_survives_until_its_execution_can_settle(tmp_path, monkeypatch):

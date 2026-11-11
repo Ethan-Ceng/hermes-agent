@@ -19,11 +19,12 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 @pytest.fixture
 def notepad(monkeypatch, tmp_path):
-    import cron.notepad as notepad_mod
+    from cron import notepad as notepad_mod
 
     monkeypatch.setattr(
         notepad_mod, "NOTEPAD_FILE", tmp_path / "cron" / "notepad.db"
     )
+    notepad_mod.initialize()
     return notepad_mod
 
 
@@ -90,9 +91,11 @@ class TestNotepadCrud:
         assert notepad.list_notes("job-1") == []
         assert notepad.get_note("job-2", "a") == "keep"
 
-    def test_clear_notepad_noop_without_db_file(self, notepad):
+    def test_clear_notepad_noop_without_db_file(self, tmp_path, monkeypatch):
         """Clearing a job that never used the notepad must not create the DB
         (remove_job calls clear_notepad unconditionally)."""
+        from cron import notepad
+        monkeypatch.setattr(notepad, "NOTEPAD_FILE", tmp_path / "unused-notepad.db")
         assert notepad.clear_notepad("never-used") == 0
         assert not notepad.NOTEPAD_FILE.exists()
 
@@ -103,7 +106,7 @@ class TestNotepadProfileIsolation:
             reset_hermes_home_override,
             set_hermes_home_override,
         )
-        import cron.notepad as notepad_mod
+        from cron import notepad as notepad_mod
 
         profile_a = tmp_path / "profile-a"
         profile_b = tmp_path / "profile-b"
@@ -116,6 +119,7 @@ class TestNotepadProfileIsolation:
 
         runtime_token = set_hermes_home_override(profile_b)
         try:
+            notepad_mod.initialize()
             notepad_mod.set_note("job-1", "cursor", "page=7")
         finally:
             reset_hermes_home_override(runtime_token)

@@ -1,4 +1,5 @@
 """Terminal owner receipts recover delivery without replay or double bookkeeping."""
+import pytest
 import asyncio
 import json
 from types import SimpleNamespace
@@ -10,6 +11,9 @@ from gateway.session_authority import SessionAuthority
 from gateway.config import GatewayConfig
 from hermes_state import SessionDB
 from hermes_state_runtime import begin_runtime_epoch, claim_session_input, settle_session_input
+
+
+pytestmark = pytest.mark.usefixtures("initialized_cron_profiles")
 
 
 def test_lost_ack_reconciles_frozen_delivery_once(tmp_path, monkeypatch):

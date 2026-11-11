@@ -640,6 +640,11 @@ def _passthrough(
             (spec if isinstance(spec, str) else spec[0]):
             (params_in.get(spec) if isinstance(spec, str) else spec[1](params_in))
             for spec in params}
+        if name == "groups.replicate":
+            from hermes_db.domains.rooms.api import is_postgresql_location
+            from pathlib import Path
+            if not is_postgresql_location(db_path) and not Path(db_path).is_file():
+                _import(module).initialize_replicas(db_path)
         result = getattr(_import(module), fn_name)(db_path, **kwargs)
         return _ok(rid, {wrap: result} if wrap else result)
     handler.__doc__ = doc

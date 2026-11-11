@@ -167,7 +167,7 @@ def _record_client_active_in_process(
 def test_model_call_counter_survives_restart_and_exports_only_new_deltas(tmp_path):
     database_path = tmp_path / "metrics.sqlite3"
     outbox_directory = tmp_path / "outbox"
-    store = SharedMetricsStore(database_path, outbox_directory)
+    store = SharedMetricsStore.create(database_path, outbox_directory)
     store.record_model_call(_dimensions(), _resource())
     store.record_model_call(_dimensions(), _resource())
 
@@ -210,7 +210,7 @@ def test_model_call_counter_survives_restart_and_exports_only_new_deltas(tmp_pat
 def test_v2_package_preserves_pending_v1_model_counters(tmp_path):
     database_path = tmp_path / "metrics.sqlite3"
     outbox_directory = tmp_path / "outbox"
-    store = SharedMetricsStore(database_path, outbox_directory)
+    store = SharedMetricsStore.create(database_path, outbox_directory)
     period_start = shared_metrics_module._utc_now().date().isoformat()
     legacy_dimensions_json = json.dumps(
         _legacy_dimensions(),
@@ -279,7 +279,7 @@ def test_v2_package_preserves_pending_v1_model_counters(tmp_path):
 def test_v1_outbox_package_exports_unchanged_after_upgrade(tmp_path):
     database_path = tmp_path / "metrics.sqlite3"
     outbox_directory = tmp_path / "outbox"
-    store = SharedMetricsStore(database_path, outbox_directory)
+    store = SharedMetricsStore.create(database_path, outbox_directory)
     package_id = str(uuid.uuid4())
     payload = {
         "schema_version": "hermes.shared_metrics.v1",
@@ -340,7 +340,7 @@ def test_due_export_runs_once_per_utc_day_and_catches_up_pending_deltas(
 ):
     current_time = datetime(2026, 7, 28, 9, tzinfo=UTC)
     monkeypatch.setattr(shared_metrics_module, "_utc_now", lambda: current_time)
-    store = SharedMetricsStore(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
+    store = SharedMetricsStore.create(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
 
     store.record_model_call(_dimensions(), _resource())
     assert len(store.create_and_export_package_if_due()) == 1
@@ -378,7 +378,7 @@ def test_client_active_uses_a_transactional_rolling_24_hour_latch(
 ):
     database_path = tmp_path / "metrics.sqlite3"
     outbox_directory = tmp_path / "outbox"
-    store = SharedMetricsStore(database_path, outbox_directory)
+    store = SharedMetricsStore.create(database_path, outbox_directory)
     now = datetime(2026, 7, 22, 10, 0, tzinfo=UTC)
     monkeypatch.setattr(shared_metrics_module, "_utc_now", lambda: now)
 
@@ -409,7 +409,7 @@ def test_client_active_recovers_from_an_invalid_latch_and_creates_identity(
     monkeypatch,
 ):
     database_path = tmp_path / "metrics.sqlite3"
-    store = SharedMetricsStore(database_path, tmp_path / "outbox")
+    store = SharedMetricsStore.create(database_path, tmp_path / "outbox")
     with sqlite3.connect(database_path) as connection:
         connection.execute(
             "INSERT INTO telemetry_state(key, value) VALUES (?, ?)",
@@ -435,7 +435,7 @@ def test_client_active_rebases_a_future_latch_without_double_counting(
     monkeypatch,
 ):
     database_path = tmp_path / "metrics.sqlite3"
-    store = SharedMetricsStore(database_path, tmp_path / "outbox")
+    store = SharedMetricsStore.create(database_path, tmp_path / "outbox")
     now = datetime(2026, 7, 22, 10, 0, tzinfo=UTC)
     monkeypatch.setattr(shared_metrics_module, "_utc_now", lambda: now)
 
@@ -460,7 +460,7 @@ def test_client_active_rebases_a_future_latch_without_double_counting(
 
 
 def test_client_active_package_uses_empty_dimensions_and_stable_install_id(tmp_path):
-    store = SharedMetricsStore(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
+    store = SharedMetricsStore.create(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
 
     assert store.record_client_active(_resource())
     [package_path] = store.create_and_export_package()
@@ -482,14 +482,14 @@ def test_deleting_local_metrics_state_resets_install_identity(tmp_path):
     root = tmp_path / "shared-metrics"
     database_path = root / "metrics.sqlite3"
     outbox_directory = root / "outbox"
-    first = SharedMetricsStore(database_path, outbox_directory)
+    first = SharedMetricsStore.create(database_path, outbox_directory)
     assert first.record_client_active(_resource())
     [first_package_path] = first.create_and_export_package()
     first_package = json.loads(first_package_path.read_text(encoding="utf-8"))
 
     shutil.rmtree(root)
 
-    reset = SharedMetricsStore(database_path, outbox_directory)
+    reset = SharedMetricsStore.create(database_path, outbox_directory)
     assert reset.record_client_active(_resource())
     [reset_package_path] = reset.create_and_export_package()
     reset_package = json.loads(reset_package_path.read_text(encoding="utf-8"))
@@ -996,7 +996,7 @@ def test_store_rejects_an_unsupported_schema_version(tmp_path):
         )
 
     with pytest.raises(RuntimeError, match="Unsupported shared-metrics store schema"):
-        SharedMetricsStore(database_path, tmp_path / "outbox")
+        SharedMetricsStore.create(database_path, tmp_path / "outbox")
 
     with sqlite3.connect(database_path) as connection:
         [schema_version] = connection.execute(
@@ -1059,7 +1059,7 @@ def test_store_migrates_v1_counters_with_unknown_client_dimensions(tmp_path):
             ),
         )
 
-    store = SharedMetricsStore(database_path, outbox_directory)
+    store = SharedMetricsStore.create(database_path, outbox_directory)
 
     [counter] = store.counter_snapshot()
     assert counter["resource"] == _resource(
@@ -1077,7 +1077,7 @@ def test_store_migrates_v1_counters_with_unknown_client_dimensions(tmp_path):
     assert package["metrics"][0]["value"] == 2
 
 def test_pending_metrics_keep_the_client_resource_recorded_at_event_time(tmp_path):
-    store = SharedMetricsStore(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
+    store = SharedMetricsStore.create(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
     resource_a = _resource("version-a", architecture="arm64", install_method="pip")
     resource_b = _resource("version-a", os_family="macos")
     store.record_model_call(_dimensions(), resource_a)
@@ -1095,7 +1095,7 @@ def test_pending_metrics_keep_the_client_resource_recorded_at_event_time(tmp_pat
     assert all(package["metrics"][0]["value"] == 1 for package in packages)
 
 def test_store_exports_task_started_and_terminal_counters(tmp_path):
-    store = SharedMetricsStore(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
+    store = SharedMetricsStore.create(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
     store.record_counter(
         "hermes.task_run.started",
         {"entrypoint": "interactive", "execution_surface": "cli"},
@@ -1131,7 +1131,7 @@ def test_store_exports_task_started_and_terminal_counters(tmp_path):
     }
 
 def test_v2_task_and_tool_rows_recorded_before_an_upgrade_still_package(tmp_path):
-    store = SharedMetricsStore(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
+    store = SharedMetricsStore.create(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
     store.record_counter("hermes.task_run.finished", {
         "duration_bucket": "1s_to_5s", "end_reason": "completed", "entrypoint": "interactive",
         "execution_surface": "cli", "model_call_count_bucket": "1", "outcome": "success",
@@ -1155,7 +1155,7 @@ def test_failure_class_rows_validate_and_v3_rows_still_drain(tmp_path, monkeypat
     a closed name before it is stored, and rows counted before the upgrade (v3 shape) still package."""
     from hermes_cli.observability.shared_metrics_fields import compression_fields
 
-    store = SharedMetricsStore(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
+    store = SharedMetricsStore.create(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
     legacy = {
         "hermes.compression.count": {"context_fill_bucket": "lt_50", "outcome": "failed", "trigger": "auto"},
         "hermes.memory.op.count": {"op": "add", "origin": "foreground", "outcome": "failed", "provider": "builtin"},
@@ -1189,7 +1189,7 @@ def test_failure_class_rows_validate_and_v3_rows_still_drain(tmp_path, monkeypat
 
 
 def test_sent_package_keeps_its_file_but_not_a_second_copy_in_the_database(tmp_path):
-    store = SharedMetricsStore(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
+    store = SharedMetricsStore.create(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
     store.record_model_call(_dimensions(), _resource())
     [sent_path] = store.create_and_export_package()
     with sqlite3.connect(store.database_path) as connection:
@@ -1205,7 +1205,7 @@ def test_sent_package_keeps_its_file_but_not_a_second_copy_in_the_database(tmp_p
 
 
 def test_package_schema_rejects_unknown_fields(tmp_path):
-    store = SharedMetricsStore(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
+    store = SharedMetricsStore.create(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
     store.record_model_call(_dimensions(), _resource())
     [package_path] = store.create_and_export_package()
     package = json.loads(package_path.read_text(encoding="utf-8"))
@@ -1217,7 +1217,7 @@ def test_package_schema_rejects_unknown_fields(tmp_path):
         _schema_validator().validate(invalid_package)
 
 def test_store_does_not_record_the_retired_model_metric(tmp_path):
-    store = SharedMetricsStore(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
+    store = SharedMetricsStore.create(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
 
     with pytest.raises(ValueError, match="Unsupported shared metric"):
         store.record_counter(
@@ -1230,7 +1230,7 @@ def test_store_does_not_record_the_retired_model_metric(tmp_path):
 
 
 def test_store_rejects_dimensions_outside_the_metric_contract(tmp_path):
-    store = SharedMetricsStore(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
+    store = SharedMetricsStore.create(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
 
     with pytest.raises(ValueError, match="Unsupported dimensions"):
         store.record_counter(
@@ -1242,7 +1242,7 @@ def test_store_rejects_dimensions_outside_the_metric_contract(tmp_path):
     assert store.counter_snapshot() == []
 
 def test_store_rejects_client_resources_outside_the_contract(tmp_path):
-    store = SharedMetricsStore(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
+    store = SharedMetricsStore.create(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
 
     with pytest.raises(ValueError, match="Unsupported shared-metrics client resource"):
         store.record_model_call(
@@ -1258,7 +1258,7 @@ def test_store_rejects_client_resources_outside_the_contract(tmp_path):
 def test_package_builder_rejects_tampered_dimensions(tmp_path):
     database_path = tmp_path / "metrics.sqlite3"
     outbox_directory = tmp_path / "outbox"
-    store = SharedMetricsStore(database_path, outbox_directory)
+    store = SharedMetricsStore.create(database_path, outbox_directory)
     store.record_model_call(_dimensions(), _resource())
     with sqlite3.connect(database_path) as connection:
         connection.execute(
@@ -1285,7 +1285,7 @@ def test_a_saved_row_naming_a_retired_tool_or_toolset_still_packages(tmp_path, m
     # A stable release recorded these names before core dropped them; v4 only adds values, so the
     # row exports as recorded instead of re-bucketing (or, with no bucket, being left out).
     database_path = tmp_path / "metrics.sqlite3"
-    store = SharedMetricsStore(database_path, tmp_path / "outbox")
+    store = SharedMetricsStore.create(database_path, tmp_path / "outbox")
     store.record_model_call(_dimensions(), _resource())
     with sqlite3.connect(database_path) as connection:
         connection.execute(
@@ -1304,7 +1304,7 @@ def test_a_saved_row_naming_a_retired_tool_or_toolset_still_packages(tmp_path, m
 def test_package_builder_rejects_tampered_client_resources(tmp_path):
     database_path = tmp_path / "metrics.sqlite3"
     outbox_directory = tmp_path / "outbox"
-    store = SharedMetricsStore(database_path, outbox_directory)
+    store = SharedMetricsStore.create(database_path, outbox_directory)
     store.record_model_call(_dimensions(), _resource())
     with sqlite3.connect(database_path) as connection:
         connection.execute(
@@ -1330,7 +1330,7 @@ def test_package_builder_buckets_values_that_drifted_out_of_the_catalog(tmp_path
 
     database_path = tmp_path / "metrics.sqlite3"
     outbox_directory = tmp_path / "outbox"
-    store = SharedMetricsStore(database_path, outbox_directory)
+    store = SharedMetricsStore.create(database_path, outbox_directory)
     # Recording process: the plugin was a catalog entry, so the row passes record-time
     # validation and is persisted under its real name.
     monkeypatch.setattr(catalog_module, "plugin_catalog_names", lambda: frozenset({"later-removed-plugin"}))
@@ -1365,7 +1365,7 @@ def test_package_builder_settles_rows_an_earlier_build_stored_with_retired_value
 
     database_path = tmp_path / "metrics.sqlite3"
     outbox_directory = tmp_path / "outbox"
-    store = SharedMetricsStore(database_path, outbox_directory)
+    store = SharedMetricsStore.create(database_path, outbox_directory)
     store.record_model_call(_dimensions(), _resource())
     for dims in ({"toolset": "file", "used": "yes"}, {"toolset": "terminal", "used": "yes"}):
         store.record_counter(TOOL_ENABLED_UNUSED_METRIC, dims, _resource())
@@ -1395,7 +1395,7 @@ def test_package_builder_settles_rows_an_earlier_build_stored_with_retired_value
 def test_retention_prunes_only_expired_exported_history(tmp_path):
     database_path = tmp_path / "metrics.sqlite3"
     outbox_directory = tmp_path / "outbox"
-    store = SharedMetricsStore(database_path, outbox_directory)
+    store = SharedMetricsStore.create(database_path, outbox_directory)
 
     store.record_model_call(_dimensions(), _resource("expired-version"))
     [expired_path] = store.create_and_export_package()
@@ -1452,7 +1452,7 @@ def test_retention_prunes_only_expired_exported_history(tmp_path):
 
 
 def test_retention_failure_does_not_fail_a_committed_export(tmp_path, monkeypatch):
-    store = SharedMetricsStore(
+    store = SharedMetricsStore.create(
         tmp_path / "metrics.sqlite3",
         tmp_path / "outbox",
     )
@@ -1474,7 +1474,7 @@ def test_file_export_failure_retries_committed_outbox_without_duplicate_delta(
 ):
     database_path = tmp_path / "metrics.sqlite3"
     outbox_directory = tmp_path / "outbox"
-    store = SharedMetricsStore(database_path, outbox_directory)
+    store = SharedMetricsStore.create(database_path, outbox_directory)
     store.record_model_call(_dimensions(), _resource())
 
     def fail_write(*_args, **_kwargs):
@@ -1505,7 +1505,7 @@ def test_file_export_failure_retries_committed_outbox_without_duplicate_delta(
 def test_package_export_does_not_chase_concurrent_updates(tmp_path, monkeypatch):
     database_path = tmp_path / "metrics.sqlite3"
     outbox_directory = tmp_path / "outbox"
-    store = SharedMetricsStore(database_path, outbox_directory)
+    store = SharedMetricsStore.create(database_path, outbox_directory)
     store.record_model_call(_dimensions(), _resource())
     original_create = store._create_package
     create_calls = 0
@@ -1537,7 +1537,7 @@ def test_package_export_does_not_chase_concurrent_updates(tmp_path, monkeypatch)
 def test_concurrent_package_builders_commit_one_delta(tmp_path):
     database_path = tmp_path / "metrics.sqlite3"
     outbox_directory = tmp_path / "outbox"
-    store = SharedMetricsStore(database_path, outbox_directory)
+    store = SharedMetricsStore.create(database_path, outbox_directory)
     store.record_model_call(_dimensions(), _resource())
     ready = threading.Barrier(2)
 
@@ -1571,7 +1571,7 @@ def test_concurrent_package_builders_commit_one_delta(tmp_path):
 def test_concurrent_due_exports_create_one_daily_package(tmp_path):
     database_path = tmp_path / "metrics.sqlite3"
     outbox_directory = tmp_path / "outbox"
-    store = SharedMetricsStore(database_path, outbox_directory)
+    store = SharedMetricsStore.create(database_path, outbox_directory)
     store.record_model_call(_dimensions(), _resource())
     ready = threading.Barrier(8)
 
@@ -1603,7 +1603,7 @@ def test_concurrent_due_exports_create_one_daily_package(tmp_path):
 def test_concurrent_model_call_updates_are_transactional(tmp_path):
     database_path = tmp_path / "metrics.sqlite3"
     outbox_directory = tmp_path / "outbox"
-    SharedMetricsStore(database_path, outbox_directory)
+    SharedMetricsStore.create(database_path, outbox_directory)
 
     def record_calls(count: int) -> int:
         store = SharedMetricsStore(database_path, outbox_directory)
@@ -1629,6 +1629,7 @@ def test_concurrent_model_call_updates_are_transactional(tmp_path):
 def test_cross_process_model_call_updates_are_transactional(tmp_path):
     database_path = tmp_path / "metrics.sqlite3"
     outbox_directory = tmp_path / "outbox"
+    SharedMetricsStore.create(database_path, outbox_directory)
     context = mp.get_context("spawn")
     start_barrier = context.Barrier(2)
     processes = [
@@ -1653,7 +1654,7 @@ def test_cross_process_model_call_updates_are_transactional(tmp_path):
 def test_a_write_the_busy_store_cannot_take_is_deferred_not_lost(tmp_path):
     """Another writer holding the store past the short busy timeout: the caller returns at once and the
     increment lands with the next write (or the exit drain), never raised or dropped."""
-    store = SharedMetricsStore(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
+    store = SharedMetricsStore.create(tmp_path / "metrics.sqlite3", tmp_path / "outbox")
     blocker = sqlite3.connect(tmp_path / "metrics.sqlite3")
     blocker.execute("BEGIN IMMEDIATE")
     try:
@@ -1669,6 +1670,7 @@ def test_a_write_the_busy_store_cannot_take_is_deferred_not_lost(tmp_path):
 def test_cross_process_client_active_attempts_record_one_install(tmp_path):
     database_path = tmp_path / "metrics.sqlite3"
     outbox_directory = tmp_path / "outbox"
+    SharedMetricsStore.create(database_path, outbox_directory)
     context = mp.get_context("spawn")
     start_barrier = context.Barrier(2)
     processes = [
@@ -1702,7 +1704,7 @@ def test_schema_initialization_waits_for_an_existing_writer(tmp_path):
 
     with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(
-            SharedMetricsStore,
+            SharedMetricsStore.create,
             database_path,
             outbox_directory,
         )
@@ -1721,7 +1723,7 @@ def test_schema_initialization_waits_for_an_existing_writer(tmp_path):
 def test_store_and_export_are_owner_only(tmp_path):
     database_path = tmp_path / "private-store" / "metrics.sqlite3"
     outbox_directory = tmp_path / "private-outbox"
-    store = SharedMetricsStore(database_path, outbox_directory)
+    store = SharedMetricsStore.create(database_path, outbox_directory)
     store.record_model_call(_dimensions(), _resource())
     [package_path] = store.create_and_export_package()
 

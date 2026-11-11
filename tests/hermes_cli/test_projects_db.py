@@ -11,6 +11,7 @@ from hermes_cli import projects_db as pdb
 
 @pytest.fixture
 def conn(tmp_path):
+    pdb.initialize_projects(db_path=tmp_path / "projects.db")
     c = pdb.connect(db_path=tmp_path / "projects.db")
     try:
         yield c
@@ -127,6 +128,8 @@ def test_find_by_primary_path(conn):
 
 def test_per_profile_isolation(tmp_path):
     # Two distinct DB paths stand in for two profiles' HERMES_HOME.
+    pdb.initialize_projects(db_path=tmp_path / "a" / "projects.db")
+    pdb.initialize_projects(db_path=tmp_path / "b" / "projects.db")
     a = pdb.connect(db_path=tmp_path / "a" / "projects.db")
     b = pdb.connect(db_path=tmp_path / "b" / "projects.db")
     try:

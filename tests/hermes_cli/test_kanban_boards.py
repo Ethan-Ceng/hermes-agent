@@ -231,10 +231,12 @@ class TestConnectionIsolation:
         kb.create_board("alpha")
         kb.create_board("beta")
 
+        kbc.init_db(board='alpha')
         with kbc.connect(board="alpha") as conn:
             kb.create_task(conn, title="alpha-task-1", assignee="dev")
             kb.create_task(conn, title="alpha-task-2", assignee="dev")
 
+        kbc.init_db(board='beta')
         with kbc.connect(board="beta") as conn:
             kb.create_task(conn, title="beta-only", assignee="dev")
 
@@ -242,6 +244,7 @@ class TestConnectionIsolation:
             a = kb.list_tasks(conn)
         with kbc.connect(board="beta") as conn:
             b = kb.list_tasks(conn)
+        kbc.init_db(board='default')
         with kbc.connect(board="default") as conn:
             d = kb.list_tasks(conn)
 

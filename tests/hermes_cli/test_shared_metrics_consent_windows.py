@@ -37,7 +37,7 @@ def dt(days=0, hours=0):
 
 @pytest.fixture
 def store(tmp_path):
-    return SharedMetricsStore(
+    return SharedMetricsStore.create(
         database_path=tmp_path / "m.db", outbox_directory=tmp_path / "o"
     )
 

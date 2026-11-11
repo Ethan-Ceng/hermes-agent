@@ -7,7 +7,7 @@ to match the claim-time fingerprint is not proof of death. Terminal states are i
 
 from __future__ import annotations
 
-from hermes_cli.db_sqlite_policy import initialize_profile_sqlite
+from hermes_cli.db_sqlite_policy import initialize_profile_sqlite, open_ready_profile_sqlite
 
 import logging
 import math
@@ -51,22 +51,34 @@ _PROCESS_ID = uuid.uuid4().hex
 
 # --- executions ledger --------------------------------------------------------------------------
 
-def _connect() -> sqlite3.Connection:
-    # Late imports: a scheduler daemon that outlives an on-disk upgrade already has the OLD
-    # ``hermes_cli.sqlite_util`` / ``cron.jobs`` cached, so new names must be resolved at call time,
-    # not at import time (the guarantee cron/ledger.py used to carry, see e24c8499).
-    from cron.jobs import _ensure_cron_dir
-    from hermes_cli.db_sqlite_policy import open_profile_sqlite as open_db
+def _sqlite_path() -> Path:
     from hermes_cli.db_setup import storage_backend
     from hermes_db.errors import StorageConfigurationError
 
     if storage_backend() == "postgresql":
-        raise StorageConfigurationError("Cron native SQLite connections are unavailable in PostgreSQL mode; use execution operations")
+        raise StorageConfigurationError("Cron native SQLite executions connections are unavailable in PostgreSQL mode; use execution operations")
+    return EXECUTIONS_FILE or (get_hermes_home().resolve() / "cron" / "executions.db")
 
-    path = EXECUTIONS_FILE or (get_hermes_home().resolve() / "cron" / "executions.db")
+
+def _schema_ready(conn: sqlite3.Connection) -> bool:
+    row = conn.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='executions'").fetchone()
+    columns = {info[1] for info in conn.execute("PRAGMA table_info(executions)")}
+    return bool(row and ("'unknown'" not in row[0] or "'missed'" in row[0]) and {
+        "handoff_pending", "handoff_started_at", "delivery_outcome", "scheduled_instant", "progress_at",
+    } <= columns)
+
+
+def _connect() -> sqlite3.Connection:
+    return open_ready_profile_sqlite(_sqlite_path(), db_label="cron/executions.db", synchronous_full=True, ready=_schema_ready)
+
+
+def initialize() -> None:
+    """Create or upgrade this SQLite store from an explicit lifecycle entry."""
+    from cron.jobs import _ensure_cron_dir
+
+    path = _sqlite_path()
     _ensure_cron_dir(path.parent)
-    return initialize_profile_sqlite(path, db_label="cron/executions.db", synchronous_full=True, initialize=_initialize_schema)
-
+    initialize_profile_sqlite(path, db_label="cron/executions.db", synchronous_full=True, initialize=_initialize_schema).close()
 
 def _initialize_schema(conn: sqlite3.Connection) -> None:
     from hermes_db.infra.backends.sqlite.schema import add_column_if_missing
@@ -511,6 +523,8 @@ def recover_interrupted_executions() -> int:
     """Mark abandoned attempts unknown without scheduling retries: rows whose owner is provably
     dead, plus rows whose live owner holds a claim older than the derived stale bound (the
     process is not killed)."""
+    if not (EXECUTIONS_FILE or (get_hermes_home().resolve() / "cron" / "executions.db")).exists():
+        return 0
     now = _hermes_now().isoformat()
     changed = 0
     recovered: list[dict[str, Any]] = []
@@ -665,6 +679,8 @@ def list_executions(
     *, job_id: Optional[str] = None, limit: int = 50, before_claimed_at: Optional[str] = None,
 ) -> list[dict[str, Any]]:
     """Return indexed, newest-first execution history with cursor pagination."""
+    if not (EXECUTIONS_FILE or (get_hermes_home().resolve() / "cron" / "executions.db")).exists():
+        return []
     clauses: list[str] = []
     params: list[Any] = []
     if job_id is not None:
@@ -690,6 +706,8 @@ def list_executions(
 @domain_operation("executions")
 def get_execution(execution_id: str) -> Optional[dict[str, Any]]:
     """Return one exact execution attempt, or ``None`` when it is absent."""
+    if not (EXECUTIONS_FILE or (get_hermes_home().resolve() / "cron" / "executions.db")).exists():
+        return None
     with _transaction() as conn:
         row = conn.execute(
             "SELECT * FROM executions WHERE id=?",
@@ -711,6 +729,8 @@ def live_inflight_execution(job_id: str) -> Optional[dict[str, Any]]:
     heartbeat yet stays owned, while a run whose process died (watchdog kill, crash) does not.
     Read-only — unlike ``recover_interrupted_executions`` it never rewrites a row.
     """
+    if not (EXECUTIONS_FILE or (get_hermes_home().resolve() / "cron" / "executions.db")).exists():
+        return None
     # A ``missed`` row is the due scan's note about skipped slots, not an attempt: one booked while
     # a long run is still live (machine slept through its next slots) must not hide that run.
     with _transaction() as conn:
@@ -762,6 +782,8 @@ def live_executions(job_ids: list[str]) -> dict[str, dict[str, Any]]:
 @domain_operation("executions")
 def latest_executions(job_ids: list[str]) -> dict[str, dict[str, Any]]:
     """Load latest execution for many jobs in one query."""
+    if not (EXECUTIONS_FILE or (get_hermes_home().resolve() / "cron" / "executions.db")).exists():
+        return {}
     clean = [str(job_id) for job_id in dict.fromkeys(job_ids) if job_id]
     if not clean:
         return {}

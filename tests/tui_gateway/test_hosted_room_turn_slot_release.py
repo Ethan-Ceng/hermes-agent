@@ -55,6 +55,8 @@ def _session(source: str, lease: _Lease):
 
 
 def _turn_env(monkeypatch, tmp_path) -> None:
+    from hermes_state import SessionDB
+    SessionDB(server._launch_state_db_path()).close()
     patch_server_thread(monkeypatch, server, _InlineThread)
     monkeypatch.setattr(server, "_emit", lambda event_type, sid, payload=None: None)
     monkeypatch.setattr(server, "_wire_callbacks", lambda sid: None)
