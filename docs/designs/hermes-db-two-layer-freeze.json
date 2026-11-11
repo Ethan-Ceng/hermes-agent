@@ -1,6 +1,6 @@
 {
   "task": 17,
-  "status": "completed",
+  "status": "superseded_after_independent_major_R1",
   "source_tip": "e3898db77144cded81d64a1a750f6c2d9a31eefa",
   "source_tree": "24f7523ff32af1c8ee1f04ed92499ff63c2007e8",
   "archive_sha256": "743f6d0ce34827f994f7cd631204300933e0fb7550523a111f8124dbafcef763",
@@ -509,5 +509,8 @@
       "mismatches": 0
     }
   },
-  "runtime_source_current_git_equivalent": true
+  "runtime_source_current_git_equivalent": true,
+  "not_current_acceptance": true,
+  "initial_manifest": "docs/designs/hermes-db-two-layer-freeze-initial.json",
+  "required_next": "New source commit,unique v2 roots,fivefreshPM builds,all final lean batches and independent re-review."
 }

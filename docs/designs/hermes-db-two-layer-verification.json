@@ -131,9 +131,10 @@
         "tests/hermes_db/postgresql/test_backend_dataset_selection.py",
         "tests/hermes_db/postgresql/test_distribution_initialization.py",
         "tests/hermes_db/postgresql/test_matrix_sdk_flows.py",
-        "tests/hermes_db/postgresql/test_matrix_close.py"
+        "tests/hermes_db/postgresql/test_matrix_close.py",
+        "tests/hermes_db/postgresql/test_kanban_decompose_boundary.py"
       ],
-      "reason": "Fixture-owned random schema;generic infra,real COMMIT-after-ACK-loss,locks/rollback,independent Profile datasets,0030→0031/repeatedupgrade,installedPG full business newPID/multiscope with allSQLite connections rejected,real SDK/close.",
+      "reason": "Fixture-owned random schema;generic infra,real COMMIT-after-ACK-loss,locks/rollback,independent Profile datasets,0030→0031/repeatedupgrade,installedPG full business newPID/multiscope with allSQLite connections rejected,real SDK/close. Independent review R1:rejected decomposition must preserve manual-review todo state/events;explicit approval still promotes.",
       "required_options": [
         "--postgres-test-config",
         "--hermes-distribution-source",
@@ -152,7 +153,8 @@
         "tests/hermes_db/postgresql/test_backend_dataset_selection.py": "82ac87e25900009367220c5b47a55aea487e1023c07d04d7e7e48dc990065efd",
         "tests/hermes_db/postgresql/test_distribution_initialization.py": "dce6d90accf1f25ecbbfc3e83fe05c12430fef4e9e67e94819cbc80426f4bdd2",
         "tests/hermes_db/postgresql/test_matrix_sdk_flows.py": "e72762e8a351727594475b795bff2a471483a320806f726a6135554fafed167c",
-        "tests/hermes_db/postgresql/test_matrix_close.py": "4a4deebf8da23b09f3a17b4b4de74b2218e3ecec5376b952afd1ffe2dd7a07d5"
+        "tests/hermes_db/postgresql/test_matrix_close.py": "4a4deebf8da23b09f3a17b4b4de74b2218e3ecec5376b952afd1ffe2dd7a07d5",
+        "tests/hermes_db/postgresql/test_kanban_decompose_boundary.py": "c1d7700675e97b965591483bdbbac618af777bc53f8a1a330c78f041aa668d85"
       },
       "workers": 1,
       "runner": "scripts/run_tests.sh",
@@ -165,5 +167,6 @@
     "Seven non-WSL platform evidence gaps",
     "Eight historical Windows baseline issues"
   ],
-  "optional_historical_deep_suites": "Not mandatory and not claimed as rerun;all original tests/assertions retained."
+  "optional_historical_deep_suites": "Not mandatory and not claimed as rerun;all original tests/assertions retained.",
+  "review_remediation": "R1 adds one direct real-PG behavior contract.Whole10group scope retained;no old directory-level deep reruns."
 }

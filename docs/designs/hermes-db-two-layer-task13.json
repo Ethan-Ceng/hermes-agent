@@ -1028,5 +1028,8 @@
     "135 retained business functions/lease predicates/permit admission/BoardResource write-receipt methods have identical AST.",
     "28 existing changed-file tests and all143 normal assertions retained;no tests deleted.",
     "Strict private UTF-8 marker behavior preserved;Windows footgun comments cite verified original writers."
-  ]
+  ],
+  "independent_review_erratum": {
+    "R1": "Task20 independent reviewer found extracted SQL early return no longer exited application decompose wrapper.Original135-method/SQL proofs did not cover this wrapper outcome.Fix and direct regression tracked in Task20;initial results preserved."
+  }
 }

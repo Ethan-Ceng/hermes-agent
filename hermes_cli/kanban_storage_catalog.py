@@ -291,6 +291,8 @@ def decompose_triage_task(store, task_id, *, root_assignee, children, author=Non
     from hermes_cli.kanban_storage_owner import canonical_path
     path_keys = [canonical_path(child.get('workspace_path')) for child in children]
     ids = db.decompose_task_rows(store, task_id, root_assignee, children, author, path_keys)
+    if ids is None:
+        return None
     if auto_promote:
         db.recompute_ready(store)
     return ids

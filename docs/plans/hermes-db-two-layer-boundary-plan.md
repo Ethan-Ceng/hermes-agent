@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`IMPLEMENTING`；阶段：最终验证与独立代码审查；当前实施任务：Task20；完成：19 / 20；阻塞：无；日期2026-11-12。
+- 整体状态：`VERIFYING`；阶段：Task20 R1整改后重新冻结；当前实施任务：Task17（复验）；完成：16 / 20；阻塞：无；日期2026-11-12。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 验证策略修订：按本轮分层风险精简（2026-11-11用户指示）
@@ -1255,7 +1255,7 @@ Native3文件两端各31passed，PG2文件6passed；恢复混合断言与最严�
 
 ## Task 17：冻结最终源码并创建全新独立PM载荷
 
-状态：completed
+状态：in_progress
 
 ### 目标
 
@@ -1291,6 +1291,8 @@ Native3文件两端各31passed，PG2文件6passed；恢复混合断言与最严�
 
 ### 执行结果
 
+2026-11-12 Task20独立初审发现major R1；以下旧完成记录属于初版SOURCE_TIP e3898db771，仅历史保留。整改源必须在全新v2根重新完成本Task；不能以旧158passed代替。
+
 启动：Task16本地commite3898db77144cded81d64a1a750f6c2d9a31eefa作为唯一SOURCE_TIP。同一archive先导出Windows source/test-driver，全tracked哈希逐项核对；Linux独立导出及5个全新PM载荷尚待真实exit0。
 
 ### 验证证据
@@ -1302,7 +1304,7 @@ Windows2/Linux3全新PM环境全部实际exit0；5个独立解释器安装身份
 
 ## Task 18：执行双主机分层关键合同与消费者冒烟
 
-状态：completed
+状态：pending
 
 ### 目标
 
@@ -1337,6 +1339,8 @@ Windows2/Linux3全新PM环境全部实际exit0；5个独立解释器安装身份
 
 ### 执行结果
 
+2026-11-12 Task20独立初审发现major R1；以下旧完成记录属于初版SOURCE_TIP e3898db771，仅历史保留。整改源必须在全新v2根重新完成本Task；不能以旧158passed代替。
+
 启动：Task17实际commit8456ec7d728031d0d4c475e26d58d7483b745925；17/20。继续唯一SOURCE_TIP e3898db77144cded81d64a1a750f6c2d9a31eefa，本Task运行native_layer/native_consumers/sqlite_payload双端及sqlite_matrix_payload Linux；发行/PG组留Task19，全部使用冻结driver/新解释器。
 
 ### 验证证据
@@ -1348,7 +1352,7 @@ Windows2/Linux3全新PM环境全部实际exit0；5个独立解释器安装身份
 
 ## Task 19：执行PG、发行与SDK分层关键验证
 
-状态：completed
+状态：pending
 
 ### 目标
 
@@ -1383,6 +1387,8 @@ Windows2/Linux3全新PM环境全部实际exit0；5个独立解释器安装身份
 当前精简PG/发行/SDK/迁移与关键恢复清单实际exit0、同源hash可核对，未验证平台及未重跑的旧深度业务验收均具名独立。 所有必需失败/阻塞清零或在本Task保持未完成；立即记录本地恢复commit。
 
 ### 执行结果
+
+2026-11-12 Task20独立初审发现major R1；以下旧完成记录属于初版SOURCE_TIP e3898db771，仅历史保留。整改源必须在全新v2根重新完成本Task；不能以旧158passed代替。
 
 启动：Task18实际commitbcfdeaaff9c4d293139f6dbd934a15e4b07eb6f1；18/20。唯一SOURCE_TIP e3898db77144cded81d64a1a750f6c2d9a31eefa及全部新载荷保持不变，执行distribution两端和pg_layer Linux全部完整精简文件，显式传独立source/解释器及私有fixture路径。
 
@@ -1431,24 +1437,27 @@ Windows发行1文件3passed/1Linux-only SDK skip；Linux发行1文件4passed，P
 
 ### 执行结果
 
-未实施；planning不计完成。
+启动：Task19实际commitc24e694e03200f5eaa60a3225f42a961d4c89fa1；19/20。verification-before-completion已逐条核对1–19Task/规划checkpoint、全部10冻结批次完整输出及hash、5freshPM载荷、当前Git运行源/测试/lock等价、11分区hash/65固定资源与正式目录HEAD/clean；均通过。状态REVIEWING，独立审查尚待，不宣称READY_TO_MERGE。
 
 ### 验证证据
 
-未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
+verification-before-completion：当前Git全部运行Python/测试/pyproject/uv.lock逐字节与唯一SOURCE_TIP相同；10冻结完整批次全exit0，158passed/3真实平台skip；测试后5个新解释器再核对依赖/安装身份均exit0；11映射hash/65固定资源/规划与Task1–19祖先/正式HEAD90a2987且clean全部通过。实际命令、解释器/cwd/home/runtime/源码身份见[Task20证据](../designs/hermes-db-two-layer-task20.json)。独立只读Reviewer任务/root/final_two_layer_review正在审查；最终元数据静态门禁仍在运行，不能READY_TO_MERGE。
+
+
+独立初审结论CHANGES_REQUIRED，R1真实PG红灯后只加ids is None提前return，focused1passed。原子成功分解兼容合同/新冻结全量精简组/独立复审尚待。初审报告与失败保留，Task17–19重置为复验，当前16/20；这是补齐必需验收，未缩减范围。
 
 ## 最终冻结与分层关键验证命令
 
-Task17由Task16最后运行代码commit计算唯一SOURCE_TIP；保存Git tree、archive SHA256、全tracked/生产/测试hash及PM参数，source和test-driver分别从同一archive导出。以下固定的最终根与测试参数只用于该唯一冻结；若需要重新冻结使用新的独占根并更新全部记录，禁止覆写或混合旧成功结果。
+初版Task17取Task16运行代码commit；R1整改后Task17取整改运行代码检查点commit作为新的唯一SOURCE_TIP，旧快照另存*-initial.json。保存Git tree、archive SHA256、全tracked/生产/测试hash及PM参数，source和test-driver分别从同一archive导出。以下固定的最终根与测试参数只用于该唯一冻结；若需要重新冻结使用新的独占根并更新全部记录，禁止覆写或混合旧成功结果。
 
-- Windows最终根：D:/AI/hermes-db-packages/.build/two-layer-acceptance-final；source、test-driver、env-sqlite、env-postgresql在该根下。
-- Linux最终根：/var/tmp/hermes-db-two-layer-acceptance-final；同上并增加env-sqlite-matrix。
+- Windows最终根：D:/AI/hermes-db-packages/.build/two-layer-acceptance-final-v2；source、test-driver、env-sqlite、env-postgresql在该根下。
+- Linux最终根：/var/tmp/hermes-db-two-layer-acceptance-final-v2；同上并增加env-sqlite-matrix。
 - 所有环境由冻结source自身PM建立；两端dev/test。Windows extras为空或postgresql,messaging；Linux为空、postgresql,messaging,matrix或matrix。PM CLI默认frozen，本轮不使用--resolve或raw pip/uv。
 - 冻结导出与5个构建的实际执行协议如下；全部输出通过Invoke-SafeBatch或等价的安全控制器捕获。Task17将实际source tip/tree/hash/路径与展开命令写入docs/designs/hermes-db-two-layer-freeze.json，不使用旧载荷。
 
 ```powershell
-$FreezeRoot='D:/AI/hermes-db-packages/.build/two-layer-acceptance-final'
-$Archive='D:/AI/hermes-db-packages/.build/two-layer-acceptance-final.tar'
+$FreezeRoot='D:/AI/hermes-db-packages/.build/two-layer-acceptance-final-v2'
+$Archive='D:/AI/hermes-db-packages/.build/two-layer-acceptance-final-v2.tar'
 if (Test-Path -LiteralPath $FreezeRoot) { throw 'Frozen root already exists; choose a new exclusive root and update the manifest/commands' }
 $ValidationSourceCommit=(git -c safe.directory=D:/AI/hermes-db-packages rev-parse HEAD).Trim()
 git -c safe.directory=D:/AI/hermes-db-packages archive --format=tar --output=$Archive $ValidationSourceCommit
@@ -1464,10 +1473,10 @@ Pop-Location
 Linux独立导出同一archive，再运行冻结源自身PM（通过安全控制器保存完整argv/exitcode；HOME/RUNTIME在PM启动前绑定）：
 
 ```powershell
-wsl.exe -d Ubuntu-26.04 -- /usr/bin/python3 -c 'import sys,tarfile; from pathlib import Path; root=Path(sys.argv[2]); assert not root.exists(); root.mkdir(); [(root/name).mkdir() for name in ("source","test-driver")]; bundle=tarfile.open(sys.argv[1]); [bundle.extractall(root/name,filter="data") for name in ("source","test-driver")]; bundle.close()' /mnt/d/AI/hermes-db-packages/.build/two-layer-acceptance-final.tar /var/tmp/hermes-db-two-layer-acceptance-final
-wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-two-layer-acceptance-final/source -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-two-layer-acceptance-final/pm-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime /var/tmp/hermes-db-two-layer-dev/env/bin/python -m pm.build_env --source /var/tmp/hermes-db-two-layer-acceptance-final/source --out /var/tmp/hermes-db-two-layer-acceptance-final/env-sqlite --group dev --group test
-wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-two-layer-acceptance-final/source -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-two-layer-acceptance-final/pm-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime /var/tmp/hermes-db-two-layer-dev/env/bin/python -m pm.build_env --source /var/tmp/hermes-db-two-layer-acceptance-final/source --out /var/tmp/hermes-db-two-layer-acceptance-final/env-postgresql --group dev --group test --extra postgresql --extra messaging --extra matrix
-wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-two-layer-acceptance-final/source -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-two-layer-acceptance-final/pm-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime /var/tmp/hermes-db-two-layer-dev/env/bin/python -m pm.build_env --source /var/tmp/hermes-db-two-layer-acceptance-final/source --out /var/tmp/hermes-db-two-layer-acceptance-final/env-sqlite-matrix --group dev --group test --extra matrix
+wsl.exe -d Ubuntu-26.04 -- /usr/bin/python3 -c 'import sys,tarfile; from pathlib import Path; root=Path(sys.argv[2]); assert not root.exists(); root.mkdir(); [(root/name).mkdir() for name in ("source","test-driver")]; bundle=tarfile.open(sys.argv[1]); [bundle.extractall(root/name,filter="data") for name in ("source","test-driver")]; bundle.close()' /mnt/d/AI/hermes-db-packages/.build/two-layer-acceptance-final-v2.tar /var/tmp/hermes-db-two-layer-acceptance-final-v2
+wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-two-layer-acceptance-final-v2/source -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-two-layer-acceptance-final-v2/pm-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime /var/tmp/hermes-db-two-layer-task5-dev/env/bin/python -m pm.build_env --source /var/tmp/hermes-db-two-layer-acceptance-final-v2/source --out /var/tmp/hermes-db-two-layer-acceptance-final-v2/env-sqlite --group dev --group test
+wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-two-layer-acceptance-final-v2/source -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-two-layer-acceptance-final-v2/pm-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime /var/tmp/hermes-db-two-layer-task5-dev/env/bin/python -m pm.build_env --source /var/tmp/hermes-db-two-layer-acceptance-final-v2/source --out /var/tmp/hermes-db-two-layer-acceptance-final-v2/env-postgresql --group dev --group test --extra postgresql --extra messaging --extra matrix
+wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-two-layer-acceptance-final-v2/source -- /usr/bin/env HERMES_HOME=/var/tmp/hermes-db-two-layer-acceptance-final-v2/pm-profile HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime /var/tmp/hermes-db-two-layer-task5-dev/env/bin/python -m pm.build_env --source /var/tmp/hermes-db-two-layer-acceptance-final-v2/source --out /var/tmp/hermes-db-two-layer-acceptance-final-v2/env-sqlite-matrix --group dev --group test --extra matrix
 ```
 
 
@@ -1502,16 +1511,21 @@ wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-two-layer-acceptance-final/sourc
 
 ### 当前执行结果
 
-- 当前实施：Task1–19已验证，19/20；Task19本地提交后进入Task20。
-- Task1–7证据见各Task及对应诊断记录。最终完整冻结批次、SDK及独立审查尚未完成。
+- 当前实施：Task1–16已完成；Task20独立初审发现major R1并红灯复现，最小修正后本地focused1passed。Task17–19重新冻结/复验，当前16/20。初版记录保留于*-initial.json和初审报告。
+- 初版精简冻结验证（已被R1失效，不能算整改源结果）：10完整命令均exit0，Windows66passed/3Linux-only skips，Linux92passed/0skip，总158passed。PG7文件19passed；SDK、独立发行及纯SQLite实际读写/新PID均使用5个全新PM载荷。
+- 冻结source/test-driver两端各23998文件hash0差异；当前Git全部Python/测试/lock逐字节等价，固定65资源/DB340/root11/31/29保留。
+- 本轮Task20独立初审CHANGES_REQUIRED，仅R1一项major；整改后须独立复审APPROVED，旧结果不能作为整改源批准。
+- Task1–19证据见各Task及对应诊断记录。当前精简冻结批次、SDK与5个全新PM载荷均已实际通过；Task20独立审查尚未完成。
 - 规划结构/基准/本地链接及文档静态自检：实际命令与结果写入下方准备记录。
-- 代码审查：本轮尚未执行；旧APPROVED只属于已完成持久层职责精简。
+- 代码审查：本轮独立初审CHANGES_REQUIRED，原始报告及R1证据已保存；整改源独立复审尚待，不能READY_TO_MERGE。
 
 ### 未通过项目与最终状态
 
-当前为`IMPLEMENTING`，Task1–19已完成，下一项Task20，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
+当前为`VERIFYING`，Task1–16已完成；Task20独立初审major R1已作最小修正，Task17–19须用v2新源/新载荷重验，独立复审仍待，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
 
 ## 规划准备记录与恢复
+
+以下保留规划阶段原始记录。当前恢复入口是文首进度及Task20，不重新从Task1实施；规划数字/未创建分支的描述只指2026-11-10。
 
 2026-11-10只在隔离checkout读取源码/Git/已有测试和真实SDK协议并准备文档；没有导入应用、连接业务数据库、初始化PM环境、创建实施分支或提交。已有隔离PM解释器仅执行标准库/Git/AST自检；实际SDK检查只读mautrix0.21.1的create/start/upgrade协议。
 
