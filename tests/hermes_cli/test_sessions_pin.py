@@ -54,7 +54,7 @@ def _run(monkeypatch, capsys, argv_tail, db):
         assert kwargs.get("read_only", False) == (argv_tail[0] == "pinned")
         return db
 
-    monkeypatch.setattr(hermes_state, "SessionDB", open_db)
+    monkeypatch.setattr(hermes_state.SessionDB, "open_existing", open_db)
     monkeypatch.setattr(sys, "argv", ["hermes", "sessions", *argv_tail])
     try:
         main_mod.main()

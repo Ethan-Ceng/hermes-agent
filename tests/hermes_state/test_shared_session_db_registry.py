@@ -26,6 +26,7 @@ from pathlib import Path
 import pytest
 
 import hermes_state_registry as registry
+from hermes_state import SessionDB
 
 
 @pytest.fixture(autouse=True)
@@ -64,6 +65,7 @@ class TestInodeReplacement:
         generation; the first two keep a working handle and their
         releases tear down only their own generation."""
         db_path = tmp_path / "state.db"
+        SessionDB(db_path).close()
 
         a = registry.acquire(db_path)
         b = registry.acquire(db_path)
@@ -122,6 +124,7 @@ class TestInodeReplacement:
         generation — the retired one is never lent again, even while it
         still has live holders."""
         db_path = tmp_path / "state.db"
+        SessionDB(db_path).close()
         first = registry.acquire(db_path)
 
         _replace_file_preserving_schema(db_path, db_path)
@@ -138,6 +141,7 @@ class TestInodeReplacement:
         """Replacement-open failure must not leave a closed stale object
         as the registry's authority for the path."""
         db_path = tmp_path / "state.db"
+        SessionDB(db_path).close()
         old = registry.acquire(db_path)
 
         _replace_file_preserving_schema(db_path, db_path)
@@ -172,9 +176,7 @@ class TestInodeReplacement:
 
 
 def _make_session_db(path):
-    from hermes_state import SessionDB
-
-    return SessionDB(db_path=Path(path))
+    return SessionDB.open_existing(db_path=Path(path))
 
 
 def stats_live_for(path: Path):
@@ -296,6 +298,7 @@ class TestTeardownOutsideLock:
     def test_equivalent_path_spellings_share_generation(self, tmp_path):
         """Registry identity is the resolved file, not caller spelling."""
         db_path = tmp_path / "nested" / "state.db"
+        SessionDB(db_path).close()
         equivalent = tmp_path / "nested" / ".." / "nested" / "state.db"
 
         first = registry.acquire(db_path)
@@ -309,6 +312,7 @@ class TestTeardownOutsideLock:
         read-pool drain) must run OUTSIDE the registry lock — otherwise
         one state.db's close stalls acquisition for every other."""
         db_path = tmp_path / "state.db"
+        SessionDB(db_path).close()
         db = registry.acquire(db_path)
 
         teardown_entered = threading.Event()
@@ -353,6 +357,7 @@ class TestTeardownOutsideLock:
         """Hammer acquire/release from multiple threads — teardown
         contention must not deadlock or corrupt refcounts."""
         db_path = tmp_path / "state.db"
+        SessionDB(db_path).close()
         errors = []
 
         def _worker(n):
@@ -395,6 +400,7 @@ class TestLifecycleBarrier:
     def test_maintenance_borrow_pins_connection_until_scope_exits(self, tmp_path):
         """Maintenance gets a temporary holder, not an unpinned snapshot."""
         db_path = tmp_path / "state.db"
+        SessionDB(db_path).close()
         db = registry.acquire(db_path)
 
         with registry.borrow_live_shared_session_dbs() as borrowed:
@@ -412,6 +418,7 @@ class TestLegacyCloseSemantics:
         pre-registry close paths stay balanced — while never tearing down
         the connection other holders still use."""
         db_path = tmp_path / "state.db"
+        SessionDB(db_path).close()
         a = registry.acquire(db_path)
         b = registry.acquire(db_path)
         assert a is b
@@ -431,6 +438,7 @@ class TestLegacyCloseSemantics:
         cleanup idiom) must return its reference — the exact leak class
         the 4-angle review flagged."""
         db_path = tmp_path / "state.db"
+        SessionDB(db_path).close()
         for _ in range(5):
             db = registry.acquire(db_path)
             db.close()
@@ -446,6 +454,7 @@ class TestAcquireSingleFlight:
         """Two threads acquiring a cold path concurrently must end up
         sharing ONE generation, with the loser's instance torn down."""
         db_path = tmp_path / "state.db"
+        SessionDB(db_path).close()
         real_open = registry._open_session_db
         gate = threading.Event()
         opened = []
@@ -537,6 +546,7 @@ class TestMultiGenerationTeardownBarrier:
     def _two_generations(self, tmp_path, monkeypatch):
         """Acquire a generation, replace the file identity, acquire its successor."""
         db_path = tmp_path / "state.db"
+        SessionDB(db_path).close()
         old = registry.acquire(db_path)
         _replace_file_preserving_schema(db_path, db_path)
         current = registry.acquire(db_path)
@@ -630,6 +640,7 @@ class TestMultiGenerationTeardownBarrier:
     def test_failed_teardown_still_settles_the_barrier(self, tmp_path, monkeypatch):
         """A raising close must not strand the path barrier forever."""
         db_path = tmp_path / "state.db"
+        SessionDB(db_path).close()
         db = registry.acquire(db_path)
         resolved = Path(db_path).resolve()
         real_teardown = registry._teardown
@@ -653,6 +664,8 @@ class TestCloseAllUnder:
     def test_closes_connections_inside_directory_only(self, tmp_path):
         profile_dir = tmp_path / "profiles" / "work"
         profile_dir.mkdir(parents=True)
+        SessionDB(profile_dir / "state.db").close()
+        SessionDB(tmp_path / "other" / "state.db").close()
         inside = registry.acquire(profile_dir / "state.db")
         outside = registry.acquire(tmp_path / "other" / "state.db")
         assert inside._connections._conn is not None
@@ -679,6 +692,7 @@ class TestCloseAllUnder:
         """Final release admits teardown before close; rmtree still needs that wait."""
         profile_dir = tmp_path / "profiles" / "work"
         profile_dir.mkdir(parents=True)
+        SessionDB(profile_dir / "state.db").close()
         db = registry.acquire(profile_dir / "state.db")
         entered, resume = TestMultiGenerationTeardownBarrier._pause_teardown_of(
             monkeypatch, db

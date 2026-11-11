@@ -1,12 +1,7 @@
-"""Contract tests for schema_read_probe_statements().
+"""Validate that ordinary readiness SELECTs cover every declared table and column.
 
-Read-only SessionDB opens skip _reconcile_columns() by design, so dashboard
-read paths heal stale stores via a probe-then-writable-reopen dance in
-``hermes_cli.web_server_sessions._open_session_db_at_path``. These tests pin the
-probe's contract: it is DERIVED from SCHEMA_SQL (any column added there is
-covered automatically — the previous hand-written probe went stale within
-days) and it must fail at prepare time on a store missing any declared
-column or table.
+Compare them against SQLite's interpretation of SCHEMA_SQL on a scratch store.
+Ordinary opens use the generated column declarations and never execute scratch DDL.
 """
 
 import sqlite3
@@ -24,11 +19,7 @@ def _fresh_schema_conn() -> sqlite3.Connection:
 
 class TestSchemaReadProbeStatements:
     def test_probes_cover_every_declared_column(self):
-        """Invariant: every column SCHEMA_SQL declares appears in a probe.
-
-        This is the anti-staleness contract — a column added to SCHEMA_SQL
-        must be probed without anyone remembering to update a list.
-        """
+        """Schema additions must update the generated read probe declarations."""
         expected = SessionSchemaMixin._parse_schema_columns(SCHEMA_SQL)
         statements = schema_read_probe_statements()
         by_table = {}

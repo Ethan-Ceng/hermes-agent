@@ -33,6 +33,9 @@ try:
     settings,scope=resolve_db_configuration(home)
     report['backend']=settings.backend
     assert settings.backend==expected
+    if expected=='sqlite' and action=='write':
+        from hermes_cli.db_session_schema import initialize_new_profile_sessions
+        initialize_new_profile_sessions(home)
     with open_session_store(db_path=home/'state.db') as store:
         ids=('sqlite-marker','pg-marker')
         report['before_visible']=[sid for sid in ids if store.get_session(sid) is not None]

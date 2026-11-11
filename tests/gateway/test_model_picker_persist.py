@@ -266,7 +266,7 @@ def _make_store_runner(adapter, sessions_dir, monkeypatch):
     def _no_sqlite(*_a, **_k):
         raise RuntimeError("SQLite disabled in test")
 
-    monkeypatch.setattr(hermes_state, "SessionDB", _no_sqlite)
+    monkeypatch.setattr(hermes_state.SessionDB, "open_existing", _no_sqlite)
     runner = _make_runner(adapter)
     runner.session_store = SessionStore(sessions_dir=sessions_dir, config=GatewayConfig())
     return runner

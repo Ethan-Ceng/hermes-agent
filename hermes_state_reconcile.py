@@ -1,10 +1,4 @@
-"""Additive state.db schema drift: detection, the one-shot browse reconcile, and explicit repair.
-
-Drift (a declared table/column missing) is not corruption. Browsing catches an unowned store up
-once, additive DDL only (:func:`reconcile_drift_for_browse`); ``hermes sessions repair`` reconciles
-a protected snapshot so failed DDL never leaves the store partly upgraded or escalates into FTS
-surgery (:func:`repair_declarative_schema`). Neither runs while a gateway owns the store.
-"""
+"""Detect SQLite declarative drift and reconcile it during explicit upgrade or repair."""
 import contextlib
 import logging
 import os
@@ -95,22 +89,9 @@ def _reconcile_locked(path, backup, report):
         report.update(repaired=True, strategy='reconcile_declarative_schema')
 
 
-# Browse-time reconcile (#140315). A store whose tables/columns lag SCHEMA_SQL is not corrupt:
-# a writable open would catch it up, but an idle profile with no gateway never gets one, so every
-# read-only surface (sidebar, /api/sessions/<id>/messages?profile=) lost its whole history.
-# Catch it up ONCE, additive DDL only, in one short transaction, and only while holding that
-# profile's gateway runtime lock. When a gateway owns the store it is the only writer: refuse
-# by name with the remedy instead of becoming a second one.
-#
-# The full integrity scan is read-only and scales with file size, so it runs BEFORE the lock, on the
-# same 3 s budget (BROWSE_INTEGRITY_BUDGET_S); a gateway booting meanwhile simply takes the lock. A
-# store too large to verify and catch up in that budget is refused with a retryable 503 that names
-# `hermes sessions repair` (repair_declarative_schema: same additive catch-up, no time limit). The
-# scan is tied to the file's (size, mtime) signature: if the store changed by the time the lock is
-# held, the scan no longer vouches for it and nothing is written. Under the lock only the cheap drift
-# re-check and the DDL run, cut off by BROWSE_RECONCILE_BUDGET_S (a sqlite progress handler; the DDL
-# rolls back). Busy waiting does not run the progress handler, so each connection's busy timeout is
-# capped at the remaining budget. Gateway boot waits this budget out (gateway.run_bootstrap).
+# Keep the existing bounded reconciliation and lock protocol for explicit upgrades.
+# Integrity is checked outside gateway.lock. Recheck the image signature under
+# the lock before applying additive DDL in one short transaction.
 BROWSE_RECONCILE_BUDGET_S = 3.0
 BROWSE_INTEGRITY_BUDGET_S = BROWSE_RECONCILE_BUDGET_S
 _BUDGET_PROGRESS_OPS = 1000
@@ -145,14 +126,14 @@ def _owner_remedy(home: Path) -> tuple[str, str]:
     from gateway.status import _profile_label_for_home  # never raises: None when unknown
     label = _profile_label_for_home(home)
     if label and label != 'default':
-        return label, f'hermes -p {label} gateway restart'
-    return label or str(home), 'hermes gateway restart'
+        return label, f'hermes -p {label} gateway stop'
+    return label or str(home), 'hermes gateway stop'
 
 
-def _owning_gateway_restart(home: Path) -> str:
-    """Restart command for the gateway that holds *home*'s lock. A multiplexer launched from another
+def _owning_gateway_stop(home: Path) -> str:
+    """Stop command for the gateway that holds *home*'s lock. A multiplexer launched from another
     home (usually the default) records that home in ``hermes_home``; `hermes -p <named> gateway
-    restart` is refused there ("Manage the host gateway instead"), so name the owner's own command."""
+    stop` is refused there ("Manage the host gateway instead"), so name the owner's own command."""
     from gateway.runtime_ownership import canonical_home
     from gateway.status import _read_gateway_lock_record
     record = _read_gateway_lock_record(canonical_home(home) / 'gateway.lock') or {}
@@ -391,8 +372,8 @@ def _verify_clean_before_lock(path: Path, too_slow):
     return signature
 
 
-def reconcile_drift_for_browse(path: Path) -> bool:
-    """Catch a lagging store up for a read-only browse; True when DDL ran, False when already current.
+def reconcile_declarative_drift(path: Path) -> bool:
+    """Catch a lagging store up during explicit upgrade; True when DDL ran, False when already current.
 
     Raises :class:`DeclarativeDriftError` (``owned=True`` when a running gateway owns the store)
     with a user-facing detail naming the drift and the remedy, and :class:`CorruptStoreError`
@@ -415,12 +396,12 @@ def reconcile_drift_for_browse(path: Path) -> bool:
     label, _ = _owner_remedy(home)
 
     def owned(drift, holder=None):
-        restart = 'hermes gateway restart' if holder else _owning_gateway_restart(home)
+        stop = 'hermes gateway stop' if holder else _owning_gateway_stop(home)
         who = f' ({holder})' if holder else ''
         return DeclarativeDriftError(
             f"Session store for profile '{label}' is behind this Hermes version ({drift}), and a "
-            f'running gateway owns it{who}, so browsing will not write to it. Restart that gateway '
-            f'(`{restart}`) to bring the store up to date.', owned=True)
+            f'running gateway owns it{who}, so the upgrade requires exclusive access. Stop that gateway '
+            f'(`{stop}`) and retry the upgrade.', owned=True)
 
     def too_slow():
         # A gateway that booted while browse was verifying the store is the real answer: name it.
@@ -430,7 +411,7 @@ def reconcile_drift_for_browse(path: Path) -> bool:
         # running. The repair path has no time limit.
         return DeclarativeDriftError(
             f"Session store for profile '{label}' is behind this Hermes version ({reason}) and is too "
-            f'large to verify and update within {BROWSE_RECONCILE_BUDGET_S:.0f}s while browsing. Your '
+            f'large to verify and update within {BROWSE_RECONCILE_BUDGET_S:.0f}s during the bounded upgrade. Your '
             f'history is untouched: nothing was changed and the list was not cleared. Run '
             f'`{_repair_command(home)}` to bring it up to date (it has no time limit), then reload.')
 
@@ -459,12 +440,12 @@ def reconcile_drift_for_browse(path: Path) -> bool:
                     # Written since the scan (a gateway that came and went): the scan no longer
                     # vouches for these bytes. Refuse; the next browse scans the new state.
                     raise DeclarativeDriftError(
-                        f"Session store for profile '{label}' changed while browsing verified it "
+                        f"Session store for profile '{label}' changed during upgrade verification "
                         f'({reason}); nothing was changed. Retry in a moment; the list was not cleared.')
                 def not_writable(why):
                     return DeclarativeDriftError(
                         f"Session store for profile '{label}' is behind this Hermes version ({reason}), "
-                        f'but {why} is not writable by this user, so browsing cannot add the missing '
+                        f'but {why} is not writable by this user, so the upgrade cannot add the missing '
                         f'tables/columns; nothing was changed. Fix the permissions, then reload.')
                 # The shared column reconciler logs a readonly ALTER failure and continues, so check
                 # first: the file plus its directory (SQLite creates its journal/WAL beside it).
@@ -493,7 +474,7 @@ def reconcile_drift_for_browse(path: Path) -> bool:
             f"Session store for profile '{label}' is behind this Hermes version and could not be "
             f'caught up ({after}). Run `hermes sessions repair` for that profile.')
     logging.getLogger(__name__).warning(
-        'state.db at %s lagged SCHEMA_SQL (%s); added the missing tables/columns for browsing', path, reason)
+        'state.db at %s lagged SCHEMA_SQL (%s); added the missing tables/columns during upgrade', path, reason)
     return True
 
 

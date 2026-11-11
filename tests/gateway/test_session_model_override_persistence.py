@@ -50,12 +50,12 @@ def _make_source() -> SessionSource:
 def store_factory(tmp_path, monkeypatch):
     """Build SessionStores over a shared sessions dir, without SQLite."""
 
-    def _raise():
+    def _raise(**_kwargs):
         raise RuntimeError("SQLite disabled in test")
 
     import hermes_state
 
-    monkeypatch.setattr(hermes_state, "SessionDB", _raise)
+    monkeypatch.setattr(hermes_state.SessionDB, "open_existing", _raise)
 
     def _make() -> SessionStore:
         store = SessionStore(sessions_dir=tmp_path, config=GatewayConfig())

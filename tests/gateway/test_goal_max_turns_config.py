@@ -57,6 +57,8 @@ async def test_gateway_goal_uses_goals_max_turns_from_full_config(tmp_path, monk
     home.mkdir()
     (home / "config.yaml").write_text("goals:\n  max_turns: 7\n", encoding="utf-8")
     monkeypatch.setenv("HERMES_HOME", str(home))
+    from hermes_state import SessionDB
+    SessionDB(home / "state.db").close()
     goals._DB_CACHE.clear()
     # Pre-warm from sync context: the /goal handler runs on the event loop,
     # where a cold cache only waits the bounded bootstrap window — under CI
@@ -96,19 +98,19 @@ async def test_goal_command_slow_db_init_still_persists(tmp_path, monkeypatch):
     monkeypatch.setattr(goals, "_DB_BOOTSTRAP_INIT_WAIT_S", 0.2)
     INIT_S = 0.8  # past the shrunk init window
 
-    real_session_db = hermes_state.SessionDB
+    real_open = hermes_state.SessionDB.open_existing
 
-    class _SlowSessionDB(real_session_db):
-        def __init__(self, *a, **k):
-            time.sleep(INIT_S)
-            super().__init__(*a, **k)
+    def slow_open(*args, **kwargs):
+        time.sleep(INIT_S)  # health: allow HX013 -- Slow open must exceed the configured init wait in this regression.
+        return real_open(*args, **kwargs)
 
-    monkeypatch.setattr(hermes_state, "SessionDB", _SlowSessionDB)
+    monkeypatch.setattr(hermes_state.SessionDB, "open_existing", slow_open)
 
     home = tmp_path / ".hermes"
     home.mkdir()
     (home / "config.yaml").write_text("goals:\n  max_turns: 7\n", encoding="utf-8")
     monkeypatch.setenv("HERMES_HOME", str(home))
+    hermes_state.SessionDB(home / "state.db").close()
     goals._DB_CACHE.clear()
 
     runner = _make_runner()

@@ -597,12 +597,13 @@ def test_profiles_list_opens_session_db_read_only(home, monkeypatch):
     seen = []
     Real = hermes_state.SessionDB
 
-    class Spy(Real):
-        def __init__(self, *args, **kwargs):
-            seen.append(kwargs)
-            super().__init__(*args, **kwargs)
+    real_open = Real.open_existing
 
-    monkeypatch.setattr(hermes_state, "SessionDB", Spy)
+    def spy(*args, **kwargs):
+        seen.append(kwargs)
+        return real_open(*args, **kwargs)
+
+    monkeypatch.setattr(Real, "open_existing", spy)
 
     row = _row(_profiles({}), "default")
     assert row["canonical_session"]["preview"]

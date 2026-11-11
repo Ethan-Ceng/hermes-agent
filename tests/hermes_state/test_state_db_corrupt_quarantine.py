@@ -217,6 +217,7 @@ class TestSharedRegistry:
     ):
         registry = _clean_registry
         path = tmp_path / "state.db"
+        SessionDB(path).close()
         holder_a = registry.acquire(path)
         holder_b = registry.acquire(path)
         assert holder_a is holder_b

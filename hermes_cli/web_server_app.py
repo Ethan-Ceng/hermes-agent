@@ -28,7 +28,7 @@ def _unlink_pty_markers(app: FastAPI) -> None:
 @asynccontextmanager
 async def standalone_lifespan(app: "FastAPI"):
     from hermes_cli.web_server import (
-        _eager_reconcile_own_session_db, _warm_gateway_module,
+        _probe_own_session_db, _warm_gateway_module,
         _start_desktop_cron_ticker, _dashboard_selftest_loop,
         _auto_archive_ticker_loop, _terminate_desktop_managed_gateway,
     )
@@ -42,21 +42,11 @@ async def standalone_lifespan(app: "FastAPI"):
     # module globals) so they bind to the running loop, not the import-time one.
     app.state.chat_argv_lock = asyncio.Lock()
 
-    # Bring state.db schema current BEFORE the first session-list poll
-    # (#79531/#80037): a store left behind by `hermes update` otherwise 500s
-    # every poll until its owner completes schema reconciliation.
-    # Off-thread so a locked store never delays the socket (Desktop
-    # ready-probe times out at 10s, GH-73083). NOT a daemon, and joined at
-    # shutdown: its sqlite connection must be closed by the thread that is
-    # stepping it. A daemon copy that outlived the lifespan had its
-    # connection closed from the main thread mid-probe (pytest's leaked-DB
-    # sweep) and segfaulted the interpreter. The worker is time-bounded by
-    # SessionDB's lock patience, so the join cannot hang shutdown.
-    eager_reconcile_thread = threading.Thread(
-        target=_eager_reconcile_own_session_db,
-        name="statedb-eager-reconcile",
-    )
-    eager_reconcile_thread.start()
+    # Probe off-thread so a busy store never delays the Dashboard socket. Join the
+    # probe at shutdown so its connection closes on the owning thread.
+    from agent.memory_provider import spawn_context_thread
+    session_probe_thread = spawn_context_thread(_probe_own_session_db, name="statedb-readiness", daemon=False)
+    session_probe_thread.start()
 
     # Import hermes_cli.gateway *before* the yield: on Windows + 3.11 the
     # import holds the GIL, so run_in_executor still froze the loop 15-22s and
@@ -176,7 +166,7 @@ async def standalone_lifespan(app: "FastAPI"):
         pty_reaper_task.cancel()
         selftest_task.cancel()
         auto_archive_task.cancel()
-        eager_reconcile_thread.join()
+        session_probe_thread.join()
         await PTY_REGISTRY.close_all()
 
         # PtySession.close() removes markers owned by live registry sessions.

@@ -2,6 +2,7 @@
 
 import pytest
 
+from hermes_cli.db_session_schema import initialize_new_profile_sessions
 from hermes_cli.db_setup import open_profile_db, resolve_db_configuration
 from hermes_db.errors import StorageConfigurationError, StorageUnavailableError
 
@@ -59,6 +60,7 @@ def test_default_sqlite_entry_consumes_config_and_owns_its_home(tmp_path):
     home = tmp_path / "sqlite"
     home.mkdir()
     (home / "config.yaml").write_text("storage: {backend: sqlite}\n", encoding="utf-8")
+    initialize_new_profile_sessions(home)
     with open_profile_db(home) as db:
         assert db.scope.profile_home == home.resolve()
         db.sessions.create_session("s", source="cli")
@@ -73,6 +75,7 @@ def test_deferred_sqlite_reads_remain_bound_to_the_owning_profile(tmp_path):
     home.mkdir()
     (home / "config.yaml").write_text("sessions: {max_resume_messages: 1}\n", encoding="utf-8")
     caller_home = get_hermes_home()
+    initialize_new_profile_sessions(home)
     with open_profile_db(home) as db:
         db.sessions.create_session("s", source="cli")
         db.sessions.append_message("s", role="user", content="one")

@@ -106,24 +106,24 @@ class TestSidebarFailedLoad:
     ):
         home = profiles_on_disk["worker"]
         _seed_session(home, "worker-chat")
-        from hermes_cli import web_server_sessions as sessions_mod
+        import hermes_state_schema
 
         monkeypatch.setattr(
-            sessions_mod,
-            "_session_db_read_probe_statements",
+            hermes_state_schema,
+            "schema_read_probe_statements",
             lambda: ('SELECT "sessions"."not_a_real_column" FROM "sessions" LIMIT 0',),
         )
         import hermes_state
 
         writable_opens = []
-        real_init = hermes_state.SessionDB.__init__
+        real_open = hermes_state.SessionDB.open_existing
 
-        def counting_init(self, *args, **kwargs):
+        def counting_open(*args, **kwargs):
             if not kwargs.get("read_only", False):
                 writable_opens.append(1)
-            return real_init(self, *args, **kwargs)
+            return real_open(*args, **kwargs)
 
-        monkeypatch.setattr(hermes_state.SessionDB, "__init__", counting_init)
+        monkeypatch.setattr(hermes_state.SessionDB, "open_existing", counting_open)
         real_list = hermes_state.SessionDB.list_sessions_rich
 
         def list_then_miss(self, *args, **kwargs):

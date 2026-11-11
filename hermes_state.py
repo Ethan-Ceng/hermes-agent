@@ -434,21 +434,41 @@ class SessionDB(
 
 
     def __init__(self, db_path: Path | None = None, read_only: bool = False):
-        self.db_path = db_path or _default_db_path()
-        _ensure_test_isolation(self.db_path)  # before any connection/pragma/mkdir
+        """Explicitly create or upgrade a writer, or inspect a store for recovery."""
+        opener = self._open_read_only if read_only else self._open_writer
+        path = db_path or _default_db_path()
+        _ensure_test_isolation(path)
+        self._initialize(path, read_only, opener)
+
+    @classmethod
+    def open_existing(cls, db_path: Path | None = None, read_only: bool = False):
+        """Open an initialized store without creating or migrating its schema."""
+        from hermes_db.errors import StorageSchemaError
+
+        path = db_path or _default_db_path()
+        _ensure_test_isolation(path)
+        if not path.is_file():
+            message = "Session store is missing. Run `hermes db upgrade` for this profile."
+            _set_last_init_error(message)
+            raise StorageSchemaError(message)
+        db = cls.__new__(cls)
+        db._initialize(path, read_only, db._open_existing)
+        return db
+
+    def _initialize(self, db_path, read_only, opener):
+        self.db_path = db_path
         self.read_only = read_only
         # Keep only the opening call site, never a frame (which pins caller locals).
-        self._creation_site = "unknown"
-        caller = None
         try:
-            caller = sys._getframe(1)
-            self._creation_site = (
-                f"{caller.f_globals.get('__name__', '?')}.{caller.f_code.co_name}:{caller.f_lineno}"
-            )
-        except Exception:
-            pass  # Diagnostic metadata must not prevent opening the database.
-        finally:
-            del caller
+            caller = sys._getframe(1).f_back
+        except PermissionError:
+            # A host audit hook may deny frame diagnostics without denying storage.
+            caller = None
+        self._creation_site = (
+            f"{caller.f_globals.get('__name__', '?')}.{caller.f_code.co_name}:{caller.f_lineno}"
+            if caller is not None else "unknown"
+        )
+        del caller
         self._connections = SQLiteConnections(
             self.db_path, read_only=read_only, read_uri=read_only_db_uri(self.db_path),
             pragmas=capture_database_pragmas(), creation_site=self._creation_site,
@@ -471,11 +491,7 @@ class SessionDB(
         self._shared_registry_owned = False
         initialization_complete = False
         try:
-            if read_only:
-                self._open_read_only()
-            else:
-                self._connections.prepare_writer()
-                self._open_writer()
+            opener()
             identity_error = self._connections._record_db_file_identity(
                 read_attempts=_READ_ONLY_IOERR_RETRY_ATTEMPTS,
                 read_backoff=_READ_ONLY_IOERR_RETRY_BACKOFF_S,
@@ -499,11 +515,32 @@ class SessionDB(
                 # for the suite-level leak sweep in tests/conftest.py.
                 _register_test_instance(self)
 
+    def _open_existing(self) -> None:
+        try:
+            if self.read_only:
+                self._open_read_only(self._check_existing_schema)
+                return
+            preflight_db_writability(self.db_path, db_label="state.db")
+            refuse_deleted_wal_generation(self.db_path, message=_DELETED_WAL_GENERATION_MSG)
+            self._connections._conn = conn = self._connections.connect_existing_writer()
+            self._check_existing_schema(conn)
+            self._probe_readable_fts(conn.cursor())
+            db_session_schema.configure_session_writer(self._connections, conn)
+        except sqlite3.DatabaseError as exc:
+            if note_storage_error(self.db_path, exc) or is_malformed_db_error(exc):
+                raise StateDbCorruptError(
+                    "Session store database disk image is malformed. Run `hermes doctor` for this profile."
+                ) from exc
+            raise
+        self._ensure_db_file_generation()
+        self._connections.hold_wal_guard()
+
     def _open_writer(self) -> None:
         """Writable open: preflight, zero-byte quarantine, connect + schema (one in-place repair of a
         malformed sqlite_master), generation stamp."""
         # Never materialize a deleted/archived named profile's home: a multiplexer or Desktop backend
         # still holding the profile's route would otherwise re-scaffold it on the next turn (#94590).
+        self._connections.prepare_writer()
         mkdir_under_hermes_home(self.db_path.parent)
         try:
             # Serialize zero-byte check, quarantine, connect and schema commit so concurrent
@@ -547,23 +584,19 @@ class SessionDB(
         self._ensure_db_file_generation()
         self._connections.hold_wal_guard()
 
-    def _open_read_only(self) -> None:
+    def _open_read_only(self, check_schema=None) -> None:
         """Read-only attach for cross-profile aggregation: no schema init, NO write
         lock (sidebar polling never contends with that profile's backend); the DB
         must exist. FTS flags are probed with SELECTs only, and the connection is
-        closed on ANY probe failure (malformed schema raises DatabaseError) so a
-        leaked tracked connection cannot block the forensic backup the writable heal takes next."""
+        closed on any probe failure so it cannot block an explicit repair."""
         for attempt in range(_READ_ONLY_IOERR_RETRY_ATTEMPTS + 1):
             try:
                 self._connections._conn = conn = self._connections._connect_read_only(timeout=_READ_BUSY_TIMEOUT_S)
                 try:
                     apply_database_pragmas(conn, db_label="state.db")
-                    cursor = conn.cursor()
-                    self._fts_enabled = self._fts_table_probe(cursor, "messages_fts") is True
-                    if self._fts_enabled:
-                        self._trigram_available = (
-                            self._fts_table_probe(cursor, "messages_fts_trigram") is True
-                        )
+                    if check_schema is not None:
+                        check_schema(conn)
+                    self._probe_readable_fts(conn.cursor())
                 except BaseException:
                     self._connections._conn = None
                     self._connections._close_connection_quietly(conn)
@@ -701,7 +734,13 @@ class SessionDB(
             "flight — reopening (teardown/worker race, #94736)", self.db_path, context,
         )
         try:
-            self._connections._conn = db_session_schema.open_session_writer(self._connections)
+            self._connections._conn = conn = self._connections.connect_existing_writer()
+            try:
+                db_session_schema.configure_session_writer(self._connections, conn)
+            except BaseException:
+                self._connections._conn = None
+                self._connections._close_connection_quietly(conn)
+                raise
         except Exception as exc:
             raise sqlite3.OperationalError(
                 f"state.db connection was closed while a {context} was still "

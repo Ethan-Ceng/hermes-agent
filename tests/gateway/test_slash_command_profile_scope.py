@@ -84,7 +84,7 @@ async def test_insights_opens_session_db_under_the_routed_home(
         def format_gateway(self, report):
             return "ok"
 
-    monkeypatch.setattr(hermes_state, "SessionDB", _RecordingDB)
+    monkeypatch.setattr(hermes_state.SessionDB, "open_existing", _RecordingDB)
     monkeypatch.setattr(insights_mod, "InsightsEngine", _Engine)
 
     with _profile_runtime_scope(profile_home):

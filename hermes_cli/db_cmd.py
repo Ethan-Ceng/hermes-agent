@@ -6,14 +6,15 @@ import sys
 
 def run_db_command(args):
     from hermes_cli.db_setup import resolve_db_configuration
-    from hermes_db.errors import StorageConfigurationError, StorageError
+    from hermes_db.errors import StorageError
 
     try:
         settings, scope = resolve_db_configuration()
         if settings.backend == "sqlite":
-            if args.db_action != "status":
-                raise StorageConfigurationError("db upgrade is for PostgreSQL; SQLite schema management remains with SessionDB")
-            result = {"backend": "sqlite", "profile_home": str(scope.profile_home), "managed_by": "SessionDB"}
+            from hermes_cli.db_session_schema import sqlite_session_schema_status, upgrade_sqlite_session_schema
+
+            operation = {"status": sqlite_session_schema_status, "upgrade": upgrade_sqlite_session_schema}[args.db_action]
+            result = operation(scope)
         else:
             from hermes_db.schema import schema_status, upgrade_schema
 

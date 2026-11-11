@@ -514,19 +514,107 @@ def open_session_writer(resource) -> sqlite3.Connection:
     isolation_level=None: explicit BEGIN IMMEDIATE."""
     conn = resource.connect_writer()
     try:
-        conn.row_factory = sqlite3.Row
-        mode = apply_wal_with_fallback(conn, db_label="state.db")
-        # "wal" is also the *assumed* mode when the on-disk probe was blocked by a concurrent opener
-        # (#86515): the lock-free mode=ro read pool needs a confirmed WAL header, so confirm it here.
-        # Unknown -> reads queue on the writer lock (slow but correct) instead of racing SQLITE_BUSY
-        # on a file that may really be in rollback-journal mode.
-        resource._wal_active = mode == "wal" and _on_disk_journal_mode(conn) == "wal"
-        # Existing WAL/SHM files may predate the main-file hardening;
-        # normalize any sidecars that became visible during WAL setup.
-        _secure_state_db_files(resource.db_path)
-        apply_database_pragmas(conn, db_label="state.db")
-        conn.execute("PRAGMA foreign_keys=ON")
+        configure_session_writer(resource, conn)
     except BaseException:
         resource._close_connection_quietly(conn)
         raise
     return conn
+
+
+def configure_session_writer(resource, conn) -> None:
+    """Configure an already-open writer after any readiness probe."""
+    conn.row_factory = sqlite3.Row
+    mode = apply_wal_with_fallback(conn, db_label="state.db")
+    # "wal" is also the *assumed* mode when the on-disk probe was blocked by a concurrent opener
+    # (#86515): the lock-free mode=ro read pool needs a confirmed WAL header, so confirm it here.
+    # Unknown -> reads queue on the writer lock (slow but correct) instead of racing SQLITE_BUSY
+    # on a file that may really be in rollback-journal mode.
+    resource._wal_active = mode == "wal" and _on_disk_journal_mode(conn) == "wal"
+    # Existing WAL/SHM files may predate the main-file hardening;
+    # normalize any sidecars that became visible during WAL setup.
+    _secure_state_db_files(resource.db_path)
+    apply_database_pragmas(conn, db_label="state.db")
+    conn.execute("PRAGMA foreign_keys=ON")
+
+
+def initialize_new_profile_sessions(profile_home: Path) -> None:
+    """Seed only the missing SQLite dataset during an explicit Profile setup."""
+    from hermes_cli.db_scope import bind_profile_home
+    from hermes_cli.db_sessions import _owner_only
+    from hermes_cli.db_setup import storage_backend
+    from hermes_db.scope import DatabaseScope
+    from hermes_state import SessionDB
+
+    _owner_only()
+    path = profile_home / "state.db"
+    if not path.exists() and storage_backend(profile_home) == "sqlite":
+        with bind_profile_home(DatabaseScope(profile_home)), SessionDB(path):
+            pass
+
+
+def sqlite_session_schema_status(scope) -> dict:
+    from hermes_cli.db_scope import bind_profile_home
+    from hermes_db.errors import StorageSchemaError
+    from hermes_state import SessionDB
+    from hermes_state_common import SCHEMA_VERSION
+
+    result = {"backend": "sqlite", "profile_home": str(scope.profile_home),
+              "required_revision": SCHEMA_VERSION, "ready": False}
+    try:
+        with bind_profile_home(scope), SessionDB.open_existing(scope.profile_home / "state.db", read_only=True):
+            result.update(ready=True, revision=SCHEMA_VERSION)
+    except StorageSchemaError as exc:
+        result["detail"] = str(exc)
+    except (sqlite3.DatabaseError, UnicodeDecodeError):
+        result["detail"] = "Session store is unavailable. Run `hermes doctor` for this profile."
+    return result
+
+
+def upgrade_sqlite_session_schema(scope) -> dict:
+    from gateway.runtime_ownership import OwnershipConflict, exclusive_maintenance
+    from hermes_cli.db_scope import bind_profile_home
+    from hermes_db.errors import StorageSchemaError
+    from hermes_state import SessionDB
+    from hermes_state_reconcile import DeclarativeDriftError, reconcile_declarative_drift
+
+    path = scope.profile_home / "state.db"
+    try:
+        with bind_profile_home(scope):
+            if path.exists():
+                _check_sqlite_upgrade_source(path)
+                reconcile_declarative_drift(path)
+            with exclusive_maintenance([scope.profile_home], purpose="db_upgrade"):
+                if path.exists():
+                    _check_sqlite_upgrade_source(path)
+                with SessionDB(path):
+                    pass
+                return sqlite_session_schema_status(scope)
+    except DeclarativeDriftError as exc:
+        raise StorageSchemaError(str(exc)) from None
+    except OwnershipConflict:
+        raise StorageSchemaError("Stop this profile's gateway before running `hermes db upgrade`.") from None
+    except (sqlite3.DatabaseError, UnicodeDecodeError):
+        raise StorageSchemaError("Could not upgrade the session store. Run `hermes doctor` for this profile.") from None
+
+
+def _check_sqlite_upgrade_source(path: Path) -> None:
+    """Refuse an incompatible image before a legacy constructor could change it."""
+    from contextlib import closing
+
+    from hermes_db.errors import StorageSchemaError
+    from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
+    from hermes_state_common import SCHEMA_VERSION
+    from hermes_state_reconcile import _require_history_tables
+
+    with closing(connect_tracked(path.resolve().as_uri() + "?mode=ro", uri=True, tracking_path=path)) as conn:
+        try:
+            _require_history_tables(conn)
+        except RuntimeError:
+            raise StorageSchemaError(
+                "Session store history tables are missing. Run `hermes sessions recover` "
+                "or `hermes doctor` for this profile."
+            ) from None
+        if conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='schema_version'").fetchone():
+            row = conn.execute("SELECT version FROM schema_version LIMIT 1").fetchone()
+            if row and isinstance(row[0], int) and row[0] > SCHEMA_VERSION:
+                raise StorageSchemaError("Session store schema is newer than this Hermes release.")

@@ -240,16 +240,13 @@ def _latest_profile_session_rows(db):
 
 def _profile_session_fields(row, profile_path):
     """Attach last_session / worker_session / canonical_session to a roster row. The DB is a
-    read-only attach (a writable ``SessionDB()`` waits up to 20s for the write lock + runs DDL
-    and stalled the 5s roster poll); no/unreadable DB -> every field None (the readers swallow)."""
+    read-only attach. Missing or unavailable storage leaves the session fields empty."""
     def _read() -> dict:
         db_path = Path(profile_path) / "state.db"
         db = None
         from hermes_cli.db_setup import open_profile_sessions, storage_backend
-        if storage_backend(Path(profile_path)) == "postgresql":
+        if storage_backend(Path(profile_path)) == "postgresql" or _try(db_path.exists, False):
             db = _try(lambda: open_profile_sessions(Path(profile_path), read_only=True), None)
-        elif _try(db_path.exists, False):
-            db = _try(lambda: _lazy("hermes_state", "SessionDB")(db_path=db_path, read_only=True), None)
         try:
             last, worker = _latest_profile_session_rows(db)
             # Resolved server-side on every listing so no client carries a session pointer.

@@ -23,7 +23,7 @@ def test_sessions_delete_accepts_unique_id_prefix(monkeypatch, capsys):
         def close(self):
             captured["closed"] = True
 
-    monkeypatch.setattr(hermes_state, "SessionDB", lambda *args, **kwargs: FakeDB())
+    monkeypatch.setattr(hermes_state.SessionDB, "open_existing", lambda *args, **kwargs: FakeDB())
     monkeypatch.setattr(
         sys,
         "argv",
@@ -56,7 +56,7 @@ def test_sessions_delete_with_unfinished_turn_points_to_discard(tmp_path, monkey
     if status == 'unknown':
         rt.claim_session_input(db, epoch=epoch, session_id='s1')
         rt.recover_session_inputs(db, epoch=rt.begin_runtime_epoch(db, instance_id='b'))
-    monkeypatch.setattr(hermes_state, 'SessionDB', lambda *args, **kwargs: db)
+    monkeypatch.setattr(hermes_state.SessionDB, 'open_existing', lambda *args, **kwargs: db)
     monkeypatch.setattr(sys, 'argv', ['hermes', 'sessions', 'delete', 's1', '--yes'])
     with pytest.raises(SystemExit) as exited:
         main_mod.main()
@@ -122,7 +122,7 @@ def _run_prune(monkeypatch, capsys, argv_tail, candidates=None, skipped_open=0, 
         def close(self):
             pass
 
-    monkeypatch.setattr(hermes_state, "SessionDB", lambda *args, **kwargs: FakeDB())
+    monkeypatch.setattr(hermes_state.SessionDB, "open_existing", lambda *args, **kwargs: FakeDB())
     monkeypatch.setattr(
         sys, "argv", ["hermes", "sessions", sub, *argv_tail]
     )

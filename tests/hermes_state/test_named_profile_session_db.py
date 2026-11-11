@@ -64,6 +64,7 @@ def test_open_profile_session_db_returns_profile_handle(homes):
     root, profile = homes
     from tui_gateway import server
 
+    SessionDB(profile / "state.db").close()
     db = server._open_profile_session_db(str(profile))
     try:
         db.create_session("20260820_tui_worker", "tui", profile_name="worker")
@@ -96,7 +97,7 @@ def test_open_profile_session_db_does_not_fallback_on_open_failure(homes, monkey
     def boom_db(**_kwargs):
         raise Boom("profile store unavailable")
 
-    monkeypatch.setattr("hermes_state.SessionDB", boom_db)
+    monkeypatch.setattr(hermes_state.SessionDB, "open_existing", boom_db)
     with pytest.raises(RuntimeError, match="profile session store unavailable") as ei:
         server._open_profile_session_db(str(profile))
     assert isinstance(ei.value.__cause__, Boom)
@@ -243,6 +244,7 @@ def test_bot_capability_rebuild_stays_on_the_profile_store(homes, monkeypatch):
     from tui_gateway import server
 
     launch = SessionDB(db_path=root / "state.db")
+    SessionDB(profile / "state.db").close()
     profile_db = server._open_profile_session_db(str(profile))
     homes_seen = _stub_rebuild_env(monkeypatch, server, launch)
     monkeypatch.setattr(server, "_session_cwd", lambda _s: str(root))
@@ -284,6 +286,7 @@ def test_reset_session_agent_stays_on_the_profile_store(homes, monkeypatch):
     from tui_gateway import server
 
     launch = SessionDB(db_path=root / "state.db")
+    SessionDB(profile / "state.db").close()
     profile_db = server._open_profile_session_db(str(profile))
     homes_seen = _stub_rebuild_env(monkeypatch, server, launch)
     monkeypatch.setattr(server, "_load_show_reasoning", lambda: False)

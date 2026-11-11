@@ -116,18 +116,14 @@ class _FakeSessionDB:
 
 
 def _install_fake_session_db(plugin_api, fake_db):
-    """Inject a fake SessionDB so ``scan_sessions`` finds it via its local import.
+    """Inject fake rows at the ordinary SessionDB opening seam."""
+    from hermes_state import SessionDB
 
-    Uses the monkeypatch stashed on ``plugin_api`` by the fixture, so the
-    ``sys.modules['hermes_state']`` swap is auto-restored at test teardown
-    and cannot leak into unrelated tests in the same process.
-    """
-    fake_module = type(sys)("hermes_state")
     def open_fake(**kwargs):
-        fake_db.db_path = kwargs['db_path']
+        fake_db.db_path = kwargs["db_path"]
         return fake_db
-    fake_module.SessionDB = open_fake
-    plugin_api._test_monkeypatch.setitem(sys.modules, "hermes_state", fake_module)
+
+    plugin_api._test_monkeypatch.setattr(SessionDB, "open_existing", open_fake)
 
 
 def test_scan_sessions_default_scans_all_history_not_first_200(plugin_api):
@@ -322,14 +318,14 @@ def test_scan_sessions_never_opens_a_writable_session_db(plugin_api, tmp_path, m
     seed.close()
 
     writable_opens = []
-    real_init = SessionDB.__init__
+    real_open = SessionDB.open_existing
 
-    def spy(self, *args, **kwargs):
+    def spy(*args, **kwargs):
         if not kwargs.get("read_only"):
             writable_opens.append(kwargs)
-        return real_init(self, *args, **kwargs)
+        return real_open(*args, **kwargs)
 
-    monkeypatch.setattr(SessionDB, "__init__", spy)
+    monkeypatch.setattr(SessionDB, "open_existing", spy)
 
     result = plugin_api.scan_sessions()
 

@@ -24,6 +24,8 @@ backend = sys.argv[3]
 package = Path(hermes_db.__file__).resolve()
 assert package.is_relative_to(source.resolve() / 'hermes_db'), package
 if backend == 'sqlite':
+    from hermes_cli.db_session_schema import initialize_new_profile_sessions
+    initialize_new_profile_sessions(home)
     with acquire_db(DatabaseSettings(), DatabaseScope(home)) as handle:
         handle.sessions.create_session('installed', 'cli')
         handle.sessions.append_message('installed', 'user', 'installed history')

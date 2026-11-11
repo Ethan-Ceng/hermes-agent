@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`IMPLEMENTING`；阶段：PG迁移执行与业务Schema状态已拆分；下一实施任务：Task7；完成：6 / 20；阻塞：无；日期2026-11-11。
+- 整体状态：`IMPLEMENTING`；阶段：SQLite其他业务领域显式生命周期；当前实施任务：Task8待启动；完成：7 / 20；阻塞：无；日期2026-11-11。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 范围与可判定边界
@@ -132,6 +132,7 @@ function Check-Storage {
 | 2026-11-11 | IMPLEMENTING | Task4完成；下一项Task5 | 两端完整Native、105消费者与资源合同exit0，4/20 |
 | 2026-11-11 | IMPLEMENTING | Task5完成；下一项Task6 | 后端/业务/应用获取拆分，两端合同、真实PG及静态exit0，5/20 |
 | 2026-11-11 | IMPLEMENTING | Task6完成；下一项Task7 | PG执行/业务就绪分离，双主机新发行载荷及真实PG前向重开exit0，6/20 |
+| 2026-11-11 | IMPLEMENTING | Task7完成；下一项Task8 | Native完整批次与显式SQLite升级、无PG载荷验证exit0，7/20 |
 
 ## 任务依赖总表
 
@@ -143,7 +144,7 @@ function Check-Storage {
 | 4 | 分离SessionDB连接状态、池与关闭语义 | 3 | completed |
 | 5 | 拆开数据源选择和业务资源获取 | 2,3,4 | completed |
 | 6 | 分离PG迁移执行与业务Schema就绪判断 | 5 | completed |
-| 7 | 建立SQLite会话显式生命周期和普通打开 | 4,5,6 | pending |
+| 7 | 建立SQLite会话显式生命周期和普通打开 | 4,5,6 | in_progress |
 | 8 | 闭合其他SQLite领域的首次创建与无DDL打开 | 7 | pending |
 | 9 | 迁出Sessions与Runtime应用装配 | 5,6,7,8 | pending |
 | 10 | 拆开Profile和媒体回收的存储与应用职责 | 9 | pending |
@@ -555,7 +556,7 @@ Linux PG新载荷PM成功后，首次-I探针启动收到WSL 0x8007274c、exit-1
 
 ## Task 7：建立SQLite会话显式生命周期和普通打开
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -599,11 +600,13 @@ SQLite会话的普通服务打开与显式创建/升级成为不同真实入口�
 
 ### 执行结果
 
-未实施；planning不计完成。
+2026-11-11启动：Task6实际恢复commit为4767f5939ed685b84764a78667ef8138fbbcdaad，11个working/committed分区hash已复核，当前6/20。db_session_schema.py在Task4已承接应用文件/连接策略，本Task继续扩展真实生命周期而非再建重名模块。先建立无DDL实际trace、缺库不创建和现有CLI显式upgrade红测；分类普通服务、显式创建/修复/归档检查消费者，保留原Schema/FTS算法及真实代次保护。普通写连接使用mode=rw抵御exists检查后路径消失，不能隐式补建。
+
+Task7普通 open_existing 使用 mode=rw/mode=ro 和声明列/版本 SELECT。SessionDB 构造和受保护的旧库补齐保留为显式生命周期，首次 Profile 建库在发布前执行。Dashboard/TUI启动和观察获取转到普通入口。锁、错误、数据、FTS显式算法和关闭语义保留。未删除测试，Dashboard旧自动触发断言改为显式入口，已有完整业务断言保留。
 
 ### 验证证据
 
-未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
+Windows、WSL三文件各15项通过，完整 Native 分别224文件1757通过/147平台skip、224文件1888通过/16平台skip，均实际exit0。WSL新PM本地源码快照和最终暂存版本的差异仅显式锁冲突 stop 提示和对应测试，后者在当前源码完整应用两文件42项exit0。静态16check、DB/插件边界、生成契约、空白、65个固定资源与映射分区校验exit0。独立无PG SQLite载荷5项和真实随机Schema混合Profile批次7项exit0。展开命令、解释器、cwd、Git身份、具名skip及历史失败见[Task7证据](../designs/hermes-db-two-layer-task7.json)及[调试记录](../debug/hermes-db-task7-sqlite-open.md)。DB当前369/root11，最终359、最终冻结验收、独立审查未验证。Task7实际提交hash在Task8启动记录。
 
 ## Task 8：闭合其他SQLite领域的首次创建与无DDL打开
 
@@ -1378,8 +1381,8 @@ Windows独立发行组使用同根Windows实际路径、其PG父解释器及私�
 
 ### 当前执行结果
 
-- 当前实施：Task1–6已验证，6/20；Task6本地提交后立即进入Task7。
-- Task1–3证据见各Task；Task4诊断/整改进行中。最终完整冻结批次、SDK及独立审查尚未完成。
+- 当前实施：Task1–7已验证，7/20；Task7本地提交后立即进入Task8。
+- Task1–7证据见各Task及对应诊断记录。最终完整冻结批次、SDK及独立审查尚未完成。
 - 规划结构/基准/本地链接及文档静态自检：实际命令与结果写入下方准备记录。
 - 代码审查：本轮尚未执行；旧APPROVED只属于已完成持久层职责精简。
 

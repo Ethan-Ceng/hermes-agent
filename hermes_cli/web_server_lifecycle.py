@@ -176,27 +176,18 @@ def _resolve_restart_drain_timeout() -> float:
         return DEFAULT_GATEWAY_RESTART_DRAIN_TIMEOUT
 
 
-def _eager_reconcile_own_session_db() -> None:
-    """Bring this process's own state.db schema current at startup — read-only first.
+def _probe_own_session_db() -> None:
+    """Check the launch profile's session store before the first Dashboard poll."""
+    from fastapi import HTTPException
+    from hermes_cli.web_server_sessions import _open_session_db_for_profile
+    from hermes_db.access import release_session_store
+    from hermes_db.errors import StorageError
 
-    The dashboard is a view layer; the gateway owns the writer. A healthy store
-    must never see a second writable ``SessionDB`` from this process (its
-    close-time checkpoint and a possible FTS rebuild in ``_init_fts`` are the
-    two-writer corruption vector, #107688 / #100896). Access-mode semantics
-    (no bootstrap of a missing store; one additive catch-up of a store that lags
-    SCHEMA_SQL, only while no gateway owns it, #79531 / #140315) live in the routers' own-store opener,
-    :func:`hermes_cli.web_server_sessions._open_session_db_at_path`. Never
-    raises: an unfixable store still gets the per-poll read-probe heal.
-    """
     try:
-        from hermes_cli.web_server_sessions import _open_session_db_for_profile
-        from hermes_db.access import release_session_store as release_or_close
-
-        release_or_close(_open_session_db_for_profile(None, read_only=True))
-    except Exception as exc:
+        release_session_store(_open_session_db_for_profile(None, read_only=True))
+    except (HTTPException, StorageError, OSError) as exc:
         _log.warning(
-            "startup schema reconcile of state.db failed (%s); session "
-            "reads will report the store unavailable until owner recovery", exc,
+            "startup readiness check of state.db failed (%s); session reads will report the reason", exc,
         )
 
 

@@ -58,7 +58,7 @@ def _holder_cmdline(pid: int) -> str:
     argv = _read_proc_argv(pid)
     return " ".join(argv)[:120] if argv else "<cmdline unavailable>"
 
-# schema_read_probe_statements() cache (parses SCHEMA_SQL in an in-memory DB; once per process).
+# Cache the SELECT text once per process.
 _READ_PROBE_STATEMENTS: Optional[tuple] = None
 
 # Trigram triggers need the trigram tokenizer (SQLite >= 3.34); without it _ensure_fts_schema
@@ -167,25 +167,115 @@ def _q(ident: str) -> str:
     return '"' + ident.replace('"', '""') + '"'
 
 
+# Columns from PRAGMA table_info on SCHEMA_SQL. Keep in sync with
+# test_schema_read_probe: a cold ordinary open cannot execute even in-memory DDL.
+_DECLARED_READ_COLUMNS = {
+    "async_delegations": (
+        "delegation_id origin_session origin_ui_session_id parent_session_id state dispatched_at "
+        "completed_at updated_at event_json result_json delivery_state delivery_attempts "
+        "delivered_at owner_pid owner_started_at task_json owner_execution_id delivery_claim "
+        "delivery_claimed_at origin_session_id"
+    ),
+    "compression_locks": "session_id holder acquired_at expires_at",
+    "conversation_generations": "source session_key generation",
+    "gateway_heartbeats": "backend_id pid started_at last_heartbeat profile host",
+    "gateway_hygiene_state": "session_key failure_streak",
+    "gateway_routing": "scope session_key entry_json updated_at",
+    "messages": (
+        "id session_id role content tool_call_id tool_calls tool_name effect_disposition timestamp "
+        "token_count finish_reason reasoning reasoning_content reasoning_details "
+        "codex_reasoning_items codex_message_items platform_message_id observed _compressed_summary "
+        "active compacted api_content display_kind display_metadata display_identity display_order "
+        "message_uid absorbed_message_uids tool_call_uids tool_call_uid"
+    ),
+    "runtime_epoch": "singleton epoch instance_id",
+    "schema_version": "version",
+    "session_admissions": (
+        "seq admission_id request_id principal_id target_session_id lineage_json payload_json "
+        "payload_digest intent status outcome owner_epoch generation"
+    ),
+    "session_model_usage": (
+        "session_id model billing_provider billing_base_url billing_mode task api_call_count "
+        "input_tokens output_tokens cache_read_tokens cache_write_tokens reasoning_tokens "
+        "estimated_cost_usd actual_cost_usd cost_status cost_source first_seen last_seen"
+    ),
+    "session_turn_leases": "conversation_id holder acquired_at expires_at",
+    "sessions": (
+        "id runtime_revision runtime_generation source created_source user_id session_key chat_id "
+        "chat_type thread_id display_name origin_json expiry_finalized model model_config "
+        "system_prompt system_prompt_hash parent_session_id started_at ended_at end_reason "
+        "message_count tool_call_count input_tokens output_tokens cache_read_tokens "
+        "cache_write_tokens reasoning_tokens cwd git_branch git_repo_root git_metadata_generation "
+        "billing_provider billing_base_url billing_mode estimated_cost_usd actual_cost_usd "
+        "cost_status cost_source pricing_version title title_source last_activity_at "
+        "last_activity_description last_activity_provenance api_call_count handoff_state "
+        "handoff_platform handoff_error compression_failure_cooldown_until "
+        "compression_failure_error compression_fallback_streak compression_ineffective_count "
+        "compression_recovery_deadline compression_overload_streak profile_name transport_profile "
+        "rewind_count archived auto_archived pinned hidden last_read_at tool_names "
+        "transcript_revision"
+    ),
+    "state_meta": "key value",
+    "system_prompts": "hash prompt",
+    "worker_executions": "execution_id session_id kind owner_epoch generation status adoption_digest last_sequence",
+    "worker_receipts": "execution_id sequence payload_digest result_json",
+}
+
+
 def schema_read_probe_statements() -> tuple:
-    """SELECT statements that fail iff a live store is behind SCHEMA_SQL. Read-only opens skip
-    ``_reconcile_columns()`` (no DDL against another profile's live DB), so healing callers
-    run these afterwards: a missing table/column raises at prepare time. Derived from
-    SCHEMA_SQL (a hand-maintained list went stale within days). Columns are
-    table-qualified: an unqualified double-quoted identifier that fails to resolve silently
-    degrades to a string literal (SQLite misfeature) and would pass on the stale store."""
+    """Prepare a qualified SELECT for every declared table and column."""
     global _READ_PROBE_STATEMENTS
     if _READ_PROBE_STATEMENTS is None:
-        tables = SessionSchemaMixin._parse_schema_columns(SCHEMA_SQL)
         _READ_PROBE_STATEMENTS = tuple(
-            "SELECT {} FROM {} LIMIT 0".format(", ".join(f"{_q(table)}.{_q(col)}" for col in cols), _q(table))
-            for table, cols in sorted(tables.items())
+            "SELECT {} FROM {} LIMIT 0".format(
+                ", ".join(f"{_q(table)}.{_q(col)}" for col in columns.split()), _q(table),
+            )
+            for table, columns in _DECLARED_READ_COLUMNS.items()
         )
     return _READ_PROBE_STATEMENTS
 
 
 class SessionSchemaMixin:
     """See module docstring — mixin for SessionDB (Schema cluster)."""
+
+    def _check_existing_schema(self, conn: sqlite3.Connection) -> None:
+        from hermes_db.errors import StorageSchemaError
+        from hermes_state_reconcile import _require_history_tables, is_declarative_drift_error
+
+        try:
+            for statement in schema_read_probe_statements():
+                conn.execute(statement)
+        except sqlite3.OperationalError as exc:
+            if not is_declarative_drift_error(exc):
+                raise
+            try:
+                _require_history_tables(conn)
+            except RuntimeError:
+                raise StorageSchemaError(
+                    "Session store history tables are missing. Run `hermes sessions recover` "
+                    "or `hermes doctor` for this profile."
+                ) from exc
+            raise StorageSchemaError(
+                f"Session store is behind this Hermes version ({exc}). Run `hermes db upgrade` for this profile."
+            ) from exc
+        row = conn.execute("SELECT version FROM schema_version LIMIT 1").fetchone()
+        version = row[0] if row else None
+        if version != SCHEMA_VERSION:
+            if isinstance(version, int) and version > SCHEMA_VERSION:
+                raise StorageSchemaError("Session store schema is newer than this Hermes release.")
+            raise StorageSchemaError(
+                f"Session store is behind this Hermes version (expected {SCHEMA_VERSION}). "
+                "Run `hermes db upgrade` for this profile."
+            )
+        self._fts_stale = conn.execute(
+            "SELECT 1 FROM state_meta WHERE key = ? LIMIT 1", (FTS_STALE_KEY,),
+        ).fetchone() is not None
+
+    def _probe_readable_fts(self, cursor: sqlite3.Cursor) -> None:
+        self._fts_enabled = not self._fts_stale and self._fts_table_probe(cursor, "messages_fts") is True
+        self._trigram_available = self._fts_enabled and self._fts_table_probe(
+            cursor, "messages_fts_trigram",
+        ) is True
 
     def _dedupe_legacy_system_prompts(self, cursor: sqlite3.Cursor) -> None:
         """Move inline prompt snapshots into the shared content-addressed table. Any

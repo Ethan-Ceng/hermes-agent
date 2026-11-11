@@ -142,6 +142,7 @@ def open_profile_sessions(profile_home: Path | None = None, *, read_only=False):
     settings, scope = resolve_db_configuration(profile_home)
     if read_only and settings.backend == "sqlite":
         from hermes_state import SessionDB
-        return SessionDB(db_path=scope.profile_home / "state.db", read_only=True)
+        with _owning_profile(scope.profile_home):
+            return SessionDB.open_existing(db_path=scope.profile_home / "state.db", read_only=True)
     with _owning_profile(scope.profile_home):
         return SessionResource(acquire_db(settings, scope))

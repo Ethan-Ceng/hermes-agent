@@ -70,7 +70,7 @@ _log = logging.getLogger(__name__)
 from hermes_cli.web_server_lifecycle import (
     PORT_IN_USE_EXIT_CODE,
     _dashboard_forwarded_allow_ips,
-    _eager_reconcile_own_session_db,
+    _probe_own_session_db,
     _maybe_open_browser,
     _port_bind_conflict,
     _read_bound_port,

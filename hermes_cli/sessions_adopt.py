@@ -29,7 +29,7 @@ def adoptable_sessions(path) -> list[dict]:
     from hermes_state_local_migration import LEGACY_LOCAL_SOURCES, LEGACY_PREFIX, not_client_labels, validate_legacy_row
     from hermes_state_runtime import RuntimeStoreError
 
-    db = SessionDB(db_path=path, read_only=True)
+    db = SessionDB.open_existing(db_path=path, read_only=True)
     try:
         # Local surfaces' labels, or any label a client app chose (not a platform, automation or
         # foreign writer): validate_legacy_row judges each row; the filter keeps cron/subagent bulk out.

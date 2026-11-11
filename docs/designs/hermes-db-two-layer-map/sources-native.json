@@ -8,7 +8,7 @@
       "hermes_cli/db_cmd.py"
     ],
     "task": 7,
-    "status": "pending",
+    "status": "completed",
     "reason": "Existing setup/status/upgrade UX gains actual SQLite explicit lifecycle; Profile and secrets remain application-owned.",
     "symbol_routes": {},
     "baseline_abi_sha256": "e7b25c61c4ebaebeac12dd616f76308fbe3f4d9a70aae0b3a63e0d7b37dc4786",
@@ -25,7 +25,7 @@
       "hermes_cli/db_parser.py"
     ],
     "task": 7,
-    "status": "pending",
+    "status": "completed",
     "reason": "Existing setup/status/upgrade UX gains actual SQLite explicit lifecycle; Profile and secrets remain application-owned.",
     "symbol_routes": {},
     "baseline_abi_sha256": "d0649e290947cae515021ddf9325683bdb392e2161a587c752981ca18b1e4a3e",
@@ -43,7 +43,7 @@
       "hermes_cli/db_setup.py"
     ],
     "task": 7,
-    "status": "pending",
+    "status": "completed",
     "reason": "Existing setup/status/upgrade UX gains actual SQLite explicit lifecycle; Profile and secrets remain application-owned.",
     "symbol_routes": {},
     "baseline_abi_sha256": "bc76d1ebcf0005896f56380f49bb5eb6b1d3dd69047d6fb59efebd84643ff957",
@@ -2309,7 +2309,7 @@
       "hermes_state_schema.py"
     ],
     "task": 7,
-    "status": "pending",
+    "status": "completed",
     "reason": "Keep real migration/FTS algorithms and SQL; invoke through explicit lifecycle/readiness and never move frozen PG helpers.",
     "symbol_routes": {},
     "baseline_abi_sha256": "aed8b9a4407d31745be4e30d2b3a7ac2377e79c127f808eb99a8c4e464024936",

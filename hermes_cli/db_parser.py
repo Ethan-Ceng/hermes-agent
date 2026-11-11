@@ -10,6 +10,10 @@ def _dispatch(args):
 def build_db_parser(subparsers):
     parser = subparsers.add_parser("db", help="Inspect or explicitly upgrade session storage schema")
     commands = parser.add_subparsers(dest="db_action", required=True)
-    for name in ("status", "upgrade"):
-        command = commands.add_parser(name, help=f"{name.capitalize()} the selected profile's session database schema")
+    descriptions = {
+        "status": "Check whether the selected profile's session database is ready",
+        "upgrade": "Explicitly create or upgrade the selected profile's session database",
+    }
+    for name, description in descriptions.items():
+        command = commands.add_parser(name, help=description)
         command.set_defaults(func=_dispatch)

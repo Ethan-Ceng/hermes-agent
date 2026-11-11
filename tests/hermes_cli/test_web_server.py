@@ -399,7 +399,7 @@ class TestWebServerEndpoints:
         response = self.client.get("/api/sessions?limit=50&offset=0")
 
         assert response.status_code == 503
-        assert "not initialized" in response.json()["detail"]
+        assert "hermes db upgrade" in response.json()["detail"]
         assert set(get_hermes_home().glob("state.db*")) == before
 
     def test_startup_eager_reconcile_is_read_only_on_a_healthy_store(self, monkeypatch):
@@ -407,7 +407,7 @@ class TestWebServerEndpoints:
 
         The gateway owns the writer; a second writable SessionDB from the
         dashboard (close-time checkpoint, possible FTS rebuild) is the
-        two-writer corruption vector. Only the stale-schema heal may write.
+        two-writer corruption vector.
         """
         import hermes_state
         from hermes_constants import get_hermes_home
@@ -416,15 +416,15 @@ class TestWebServerEndpoints:
         SessionDB(db_path=get_hermes_home() / "state.db").close()
 
         writable_opens = []
-        real_init = SessionDB.__init__
+        real_open = SessionDB.open_existing
 
-        def spy(self, *args, **kwargs):
+        def spy(*args, **kwargs):
             if not kwargs.get("read_only"):
                 writable_opens.append(kwargs)
-            return real_init(self, *args, **kwargs)
+            return real_open(*args, **kwargs)
 
-        monkeypatch.setattr(hermes_state.SessionDB, "__init__", spy)
-        _web_server_lifecycle._eager_reconcile_own_session_db()
+        monkeypatch.setattr(hermes_state.SessionDB, "open_existing", spy)
+        _web_server_lifecycle._probe_own_session_db()
 
         assert writable_opens == []
 
@@ -438,9 +438,9 @@ class TestWebServerEndpoints:
         def boom(*args, **kwargs):
             raise sqlite3_module.OperationalError("database is locked")
 
-        monkeypatch.setattr(hermes_state, "SessionDB", boom)
+        monkeypatch.setattr(hermes_state.SessionDB, "open_existing", boom)
         # Must swallow — reads report unavailable until owner recovery.
-        _web_server_lifecycle._eager_reconcile_own_session_db()
+        _web_server_lifecycle._probe_own_session_db()
 
     def test_failed_schema_probes_never_escalate_reads(self, monkeypatch):
         from fastapi import HTTPException
@@ -451,12 +451,12 @@ class TestWebServerEndpoints:
         seed = SessionDB(db_path=db_path)
         seed.create_session("unfixable", source="cli")
         seed.close()
-        monkeypatch.setattr(
-            _web_server_sessions, "_session_db_read_probe_statements",
-            lambda: ('SELECT "sessions"."not_a_real_column" FROM "sessions" LIMIT 0',))
+        import hermes_state_schema
+        monkeypatch.setattr(hermes_state_schema, "schema_read_probe_statements",
+                            lambda: ('SELECT "sessions"."not_a_real_column" FROM "sessions" LIMIT 0',))
         before = db_path.read_bytes()
         for _ in range(2):
-            with pytest.raises(HTTPException, match="schema") as caught:
+            with pytest.raises(HTTPException, match="hermes db upgrade") as caught:
                 _web_server_sessions._open_session_db_for_profile(None, read_only=True)
             assert caught.value.status_code == 503
             assert db_path.read_bytes() == before
@@ -477,7 +477,7 @@ class TestWebServerEndpoints:
             opens.append(kwargs.get("read_only", False))
             raise sqlite3.DatabaseError("database disk image is malformed")
 
-        monkeypatch.setattr(hermes_state, "SessionDB", corrupt_open)
+        monkeypatch.setattr(hermes_state.SessionDB, "open_existing", corrupt_open)
 
         from fastapi import HTTPException
         with pytest.raises(HTTPException, match="corrupt"):
@@ -497,7 +497,7 @@ class TestWebServerEndpoints:
             opens.append(kwargs.get("read_only", False))
             raise UnicodeDecodeError("utf-8", b"\x81", 0, 1, "invalid start byte")
 
-        monkeypatch.setattr(hermes_state, "SessionDB", corrupt_open)
+        monkeypatch.setattr(hermes_state.SessionDB, "open_existing", corrupt_open)
         with pytest.raises(HTTPException, match="corrupt"):
             _web_server_sessions._open_session_db_at_path(db_path, read_only=True)
         assert opens == [True]

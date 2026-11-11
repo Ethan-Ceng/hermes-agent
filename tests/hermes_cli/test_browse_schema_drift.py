@@ -1,12 +1,4 @@
-"""A store that lags SCHEMA_SQL must stay browsable (#140315).
-
-#106742 added four tables and three columns to SCHEMA_SQL under schema_version 31. A named
-profile whose state.db had not been opened writable since the update lost its whole session
-list on every read-only surface: the browse probe hit ``no such table`` and answered 503
-"schema is unavailable or corrupt", and an idle profile never got the writable open that would
-have caught it up. These tests build the real pre-merge shape from the pre-#106742 SCHEMA_SQL
-(trimmed to what that release declared) and browse it through the real read-only path.
-"""
+"""Dashboard readiness and the explicit upgrade's declarative drift protections."""
 from __future__ import annotations
 
 import sqlite3
@@ -16,7 +8,11 @@ import pytest
 from fastapi import HTTPException
 
 from hermes_cli.web_server_sessions import _open_session_db_at_path
+from hermes_cli.db_session_schema import upgrade_sqlite_session_schema
+from hermes_db.errors import StorageSchemaError
+from hermes_db.scope import DatabaseScope
 from hermes_state import SessionDB
+from hermes_state_reconcile import CorruptStoreError, DeclarativeDriftError, reconcile_declarative_drift
 from hermes_state_common import SCHEMA_VERSION
 
 _ADDED_TABLES = ("runtime_epoch", "session_admissions", "worker_executions", "worker_receipts")
@@ -54,8 +50,14 @@ def _profile_home(tmp_path, name="scribe"):
     return home
 
 
-def test_unowned_lagging_store_browses_after_one_reconcile(tmp_path):
+def test_unowned_lagging_store_browses_after_explicit_upgrade(tmp_path):
     path = _pre_merge_store(_profile_home(tmp_path) / "state.db")
+
+    before = path.read_bytes()
+    with pytest.raises(HTTPException, match="hermes db upgrade"):
+        _open_session_db_at_path(path, read_only=True)
+    assert path.read_bytes() == before
+    assert upgrade_sqlite_session_schema(DatabaseScope(path.parent))["ready"]
 
     db = _open_session_db_at_path(path, read_only=True)
     try:
@@ -81,15 +83,13 @@ def test_owned_lagging_store_is_not_written_and_names_the_remedy(tmp_path):
     owner = ProfileOwnership()  # what a running gateway holds on its profile
     owner.reserve([home])
     try:
-        with pytest.raises(HTTPException) as caught:
+        with pytest.raises(HTTPException, match="hermes db upgrade") as caught:
             _open_session_db_at_path(path, read_only=True)
+        assert caught.value.status_code == 503
+        with pytest.raises(StorageSchemaError, match="running gateway owns it"):
+            upgrade_sqlite_session_schema(DatabaseScope(home))
     finally:
         owner.close()
-    assert caught.value.status_code == 503
-    detail = str(caught.value.detail)
-    assert "running gateway owns it" in detail
-    assert "gateway restart" in detail
-    assert "corrupt" not in detail
     assert path.read_bytes() == before
     assert not set(_ADDED_TABLES) & _tables(path)
 
@@ -144,7 +144,7 @@ def test_version_bump_migration_is_additive_and_idempotent(tmp_path):
 
     # A browse-reconciled store (still stamped 31) also upgrades cleanly on the owner's open.
     other = _pre_merge_store(tmp_path / "other.db")
-    _open_session_db_at_path(other, read_only=True).close()
+    assert reconcile_declarative_drift(other)
     with SessionDB(db_path=other) as db:
         assert db._connections._conn.execute("SELECT version FROM schema_version").fetchone()[0] == SCHEMA_VERSION
 
@@ -165,6 +165,9 @@ def test_messages_route_for_lagging_profile(monkeypatch, tmp_path):
     client = TestClient(app)
     client.headers[_SESSION_HEADER_NAME] = _SESSION_TOKEN
 
+    response = client.get("/api/sessions/kept/messages?profile=scribe")
+    assert response.status_code == 503 and "hermes db upgrade" in response.json()["detail"]
+    assert upgrade_sqlite_session_schema(DatabaseScope(home))["ready"]
     response = client.get("/api/sessions/kept/messages?profile=scribe")
     assert response.status_code == 200, response.text
     assert [m["content"] for m in response.json()["messages"]] == ["history survives"]
@@ -217,7 +220,7 @@ def _owned(home):
 
 
 @pytest.mark.parametrize("missing_column", ["archived", "pinned", "last_activity_at"])
-def test_session_list_reconciles_once_only_when_unowned(own_store_client, missing_column):
+def test_session_list_requires_explicit_upgrade(own_store_client, missing_column):
     client, path = own_store_client
     _drop_session_column(path, missing_column)
 
@@ -229,20 +232,21 @@ def test_session_list_reconciles_once_only_when_unowned(own_store_client, missin
     finally:
         owner.close()
     assert response.status_code == 503
-    assert "gateway owns it" in response.json()["detail"]
+    assert "hermes db upgrade" in response.json()["detail"]
     # A failed read is a retryable failed load naming the drift, never an empty list.
     assert "behind this Hermes version" in sidebar["errors"][0]["error"]
     assert "sessions" not in sidebar["recents"] and sidebar["recents"]["failed"] is True
     assert path.read_bytes() == before
     assert missing_column not in _session_columns(path)
 
+    assert upgrade_sqlite_session_schema(DatabaseScope(path.parent))["ready"]
     response = client.get("/api/sessions?limit=50&offset=0")
     assert response.status_code == 200
     assert [row["id"] for row in response.json()["sessions"]] == ["stale-schema"]
     assert missing_column in _session_columns(path)
 
 
-def test_startup_eager_reconcile_heals_only_an_unowned_stale_store(own_store_client):
+def test_startup_probe_leaves_stale_store_untouched(own_store_client):
     """After `hermes update` an old-schema store must not fail every poll (#79531/#80037); the
     dashboard is never a second writer while a gateway owns it (#107688)."""
     from hermes_cli import web_server_lifecycle
@@ -251,12 +255,16 @@ def test_startup_eager_reconcile_heals_only_an_unowned_stale_store(own_store_cli
     _drop_session_column(path, "last_read_at")
     owner = _owned(path.parent)
     try:
-        web_server_lifecycle._eager_reconcile_own_session_db()
+        web_server_lifecycle._probe_own_session_db()
     finally:
         owner.close()
     assert "last_read_at" not in _session_columns(path)
 
-    web_server_lifecycle._eager_reconcile_own_session_db()
+    before = path.read_bytes()
+    web_server_lifecycle._probe_own_session_db()
+    assert path.read_bytes() == before
+    assert "last_read_at" not in _session_columns(path)
+    assert upgrade_sqlite_session_schema(DatabaseScope(path.parent))["ready"]
     assert "last_read_at" in _session_columns(path)
 
 
@@ -301,10 +309,8 @@ def test_corrupt_non_root_page_plus_drift_is_not_written(tmp_path):
         assert conn.execute("PRAGMA quick_check").fetchone()[0] != "ok"
     before = _file_state(path)
 
-    with pytest.raises(HTTPException) as caught:
-        _open_session_db_at_path(path, read_only=True).close()
-    assert caught.value.status_code == 503
-    assert caught.value.detail["error"] == "state_db_corrupt"
+    with pytest.raises(CorruptStoreError):
+        reconcile_declarative_drift(path)
     assert _file_state(path) == before
     assert "last_read_at" not in _session_columns(path)
 
@@ -321,10 +327,10 @@ def test_concurrent_browses_without_a_gateway_all_succeed(tmp_path):
     def browse():
         barrier.wait()
         try:
-            _open_session_db_at_path(path, read_only=True).close()
+            reconcile_declarative_drift(path)
             results.append("200")
-        except HTTPException as exc:
-            results.append(f"{exc.status_code} {exc.detail}")
+        except DeclarativeDriftError as exc:
+            results.append(str(exc))
 
     threads = [threading.Thread(target=browse) for _ in range(8)]
     for t in threads:
@@ -338,16 +344,15 @@ def test_concurrent_browses_without_a_gateway_all_succeed(tmp_path):
 _PROC_BROWSE = r'''
 import sys, time
 from pathlib import Path
-from fastapi import HTTPException
-from hermes_cli.web_server_sessions import _open_session_db_at_path
+from hermes_state_reconcile import DeclarativeDriftError, reconcile_declarative_drift
 go = float(sys.argv[2])
 while time.time() < go:
     time.sleep(0.0005)
 try:
-    _open_session_db_at_path(Path(sys.argv[1]), read_only=True).close()
+    reconcile_declarative_drift(Path(sys.argv[1]))
     print("RESULT 200")
-except HTTPException as exc:
-    print("RESULT", exc.status_code, exc.detail)
+except DeclarativeDriftError as exc:
+    print("RESULT", 503, str(exc))
 '''
 
 
@@ -400,13 +405,12 @@ def test_stuck_maintenance_holder_gets_busy_retry_not_a_gateway_remedy(tmp_path)
     holder = _hold(home, 30, BROWSE_RECONCILE_PURPOSE)
     try:
         before = _file_state(path)
-        with pytest.raises(HTTPException) as caught:
-            _open_session_db_at_path(path, read_only=True)
+        with pytest.raises(DeclarativeDriftError) as caught:
+            reconcile_declarative_drift(path)
     finally:
         holder.kill()
         holder.wait()
-    detail = str(caught.value.detail)
-    assert caught.value.status_code == 503
+    detail = str(caught.value)
     assert "Retry" in detail
     assert "gateway" not in detail.lower()
     assert _file_state(path) == before
@@ -507,7 +511,7 @@ def test_gateway_boot_waits_while_the_holder_has_not_published_its_record(tmp_pa
         holder.wait()
 
 
-_SLOW_BROWSE = '\nimport json, os, sqlite3, sys, time\nfrom pathlib import Path\nimport hermes_db.infra.backends.sqlite.safe_read as ssr\nfrom fastapi import HTTPException\nfrom hermes_cli.web_server_sessions import _open_session_db_at_path\n\nphase = sys.argv[2]\noriginal = ssr.connect_tracked\n\nclass SlowConnection:\n    """A real sqlite connection whose VM runs slowly (stand-in for a cold multi-GB disk). The\n    slowdown is installed here, whether or not the code under test sets its own progress handler,\n    and chains to that handler when it does."""\n    def __init__(self, conn):\n        self._conn = conn\n        self.set_progress_handler(None, 0)\n    def __getattr__(self, name):\n        return getattr(self._conn, name)\n    def set_progress_handler(self, handler, n):\n        def slow():\n            time.sleep(0.01)\n            return handler() if handler is not None else 0\n        return self._conn.set_progress_handler(slow, 5)\n    def close(self):\n        return self._conn.close()\n\ndef holding_lock():\n    """Only connections opened while THIS process holds gateway.lock are slowed."""\n    lock = Path(sys.argv[1]).with_name("gateway.lock")\n    try:\n        return json.loads(lock.read_text()).get("pid") == os.getpid()\n    except (OSError, ValueError):\n        return False\n\ndef slowed(path, *a, **kw):\n    conn = original(path, *a, **kw)\n    read_only = "mode=ro" in str(path)\n    if holding_lock() and (phase == "integrity") == read_only:\n        print("slowed", flush=True)  # this process holds gateway.lock and the slow phase begins\n        return SlowConnection(conn)\n    return conn\n\nssr.connect_tracked = slowed\nstarted = time.monotonic()\nprint("started", flush=True)\ntry:\n    _open_session_db_at_path(Path(sys.argv[1]), read_only=True).close()\n    print("RESULT 200", time.monotonic() - started, flush=True)\nexcept HTTPException as exc:\n    print("RESULT", exc.status_code, time.monotonic() - started, exc.detail, flush=True)\n'
+_SLOW_BROWSE = '\nimport json, os, sqlite3, sys, time\nfrom pathlib import Path\nimport hermes_db.infra.backends.sqlite.safe_read as ssr\nfrom hermes_state_reconcile import DeclarativeDriftError, reconcile_declarative_drift\n\nphase = sys.argv[2]\noriginal = ssr.connect_tracked\nphase_started = None\n\nclass SlowConnection:\n    """A real sqlite connection whose VM runs slowly (stand-in for a cold multi-GB disk). The\n    slowdown is installed here, whether or not the code under test sets its own progress handler,\n    and chains to that handler when it does."""\n    def __init__(self, conn):\n        self._conn = conn\n        self.set_progress_handler(None, 0)\n    def __getattr__(self, name):\n        return getattr(self._conn, name)\n    def set_progress_handler(self, handler, n):\n        def slow():\n            time.sleep(0.01)\n            return handler() if handler is not None else 0\n        return self._conn.set_progress_handler(slow, 5)\n    def close(self):\n        return self._conn.close()\n\ndef holding_lock():\n    """Only connections opened while THIS process holds gateway.lock are slowed."""\n    lock = Path(sys.argv[1]).with_name("gateway.lock")\n    try:\n        return json.loads(lock.read_text()).get("pid") == os.getpid()\n    except (OSError, ValueError):\n        return False\n\ndef slowed(path, *a, **kw):\n    global phase_started\n    conn = original(path, *a, **kw)\n    read_only = "mode=ro" in str(path)\n    if holding_lock() and (phase == "integrity") == read_only:\n        if phase_started is None:\n            phase_started = time.monotonic()\n            print("slowed", flush=True)\n        return SlowConnection(conn)\n    return conn\n\nssr.connect_tracked = slowed\nstarted = time.monotonic()\nprint("started", flush=True)\ntry:\n    reconcile_declarative_drift(Path(sys.argv[1]))\n    print("RESULT 200", time.monotonic() - (phase_started or started), flush=True)\nexcept DeclarativeDriftError as exc:\n    print("RESULT", 503, time.monotonic() - (phase_started or started), str(exc), flush=True)\n'
 
 
 @pytest.mark.platforms("linux", "macos")
@@ -576,10 +580,8 @@ def test_equal_cardinality_corrupt_index_plus_drift_is_not_written(tmp_path):
         assert conn.execute("PRAGMA integrity_check").fetchone()[0] != "ok"
     before = _file_state(path)
 
-    with pytest.raises(HTTPException) as caught:
-        _open_session_db_at_path(path, read_only=True).close()
-    assert caught.value.status_code == 503
-    assert caught.value.detail["error"] == "state_db_corrupt"
+    with pytest.raises(CorruptStoreError):
+        reconcile_declarative_drift(path)
     assert _file_state(path) == before
     assert "last_read_at" not in _session_columns(path)
 
@@ -596,11 +598,10 @@ def test_failed_column_reconcile_rolls_back_every_addition(tmp_path):
         conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
     before = _file_state(path)
 
-    with pytest.raises(HTTPException) as caught:
-        _open_session_db_at_path(path, read_only=True).close()
-    assert caught.value.status_code == 503
-    assert "system_prompts.prompt" in str(caught.value.detail)
-    assert "nothing was changed" in str(caught.value.detail)
+    with pytest.raises(DeclarativeDriftError) as caught:
+        reconcile_declarative_drift(path)
+    assert "system_prompts.prompt" in str(caught.value)
+    assert "nothing was changed" in str(caught.value)
     assert _file_state(path) == before
     assert "last_read_at" not in _session_columns(path)
 
@@ -631,12 +632,12 @@ def test_integrity_scan_runs_before_the_lock_is_taken(tmp_path, monkeypatch):
         return original(p, budget)
 
     monkeypatch.setattr(reconcile, "_integrity_problem", spy)
-    _open_session_db_at_path(path, read_only=True).close()
+    reconcile_declarative_drift(path)
     assert lock_free_during_scan == [True]
     assert "last_read_at" in _session_columns(path)
 
 
-_SLOW_SCAN_BROWSE = '\nimport sys, time\nfrom pathlib import Path\nimport hermes_db.infra.backends.sqlite.safe_read as ssr\nfrom fastapi import HTTPException\nfrom hermes_cli.web_server_sessions import _open_session_db_at_path\n\noriginal = ssr.connect_tracked\n\nclass SlowScan:\n    """A real read-only connection whose integrity scan runs slowly (a cold multi-GB store)."""\n    def __init__(self, conn):\n        self._conn = conn\n    def __getattr__(self, name):\n        return getattr(self._conn, name)\n    def execute(self, sql, *a):\n        if sql.startswith("PRAGMA integrity_check"):\n            time.sleep(float(sys.argv[2]))\n        return self._conn.execute(sql, *a)\n    def close(self):\n        return self._conn.close()\n\ndef slowed(path, *a, **kw):\n    conn = original(path, *a, **kw)\n    return SlowScan(conn) if "mode=ro" in str(path) else conn\n\nssr.connect_tracked = slowed\nprint("started", flush=True)\ntry:\n    _open_session_db_at_path(Path(sys.argv[1]), read_only=True).close()\n    print("RESULT 200", flush=True)\nexcept HTTPException as exc:\n    print("RESULT", exc.status_code, exc.detail, flush=True)\n'
+_SLOW_SCAN_BROWSE = '\nimport sys, time\nfrom pathlib import Path\nimport hermes_db.infra.backends.sqlite.safe_read as ssr\nfrom hermes_state_reconcile import DeclarativeDriftError, reconcile_declarative_drift\n\noriginal = ssr.connect_tracked\n\nclass SlowScan:\n    """A real read-only connection whose integrity scan runs slowly (a cold multi-GB store)."""\n    def __init__(self, conn):\n        self._conn = conn\n    def __getattr__(self, name):\n        return getattr(self._conn, name)\n    def execute(self, sql, *a):\n        if sql.startswith("PRAGMA integrity_check"):\n            time.sleep(float(sys.argv[2]))\n        return self._conn.execute(sql, *a)\n    def close(self):\n        return self._conn.close()\n\ndef slowed(path, *a, **kw):\n    conn = original(path, *a, **kw)\n    return SlowScan(conn) if "mode=ro" in str(path) else conn\n\nssr.connect_tracked = slowed\nprint("started", flush=True)\ntry:\n    reconcile_declarative_drift(Path(sys.argv[1]))\n    print("RESULT 200", flush=True)\nexcept DeclarativeDriftError as exc:\n    print("RESULT", 503, str(exc), flush=True)\n'
 
 
 @pytest.mark.platforms("linux", "macos")
@@ -710,10 +711,9 @@ def test_slow_integrity_scan_is_bounded_and_not_repeated_on_every_poll(tmp_path,
     real_scan = reconcile._integrity_problem
     monkeypatch.setattr(reconcile, "_integrity_problem", lambda p, b: scans.append(1) or real_scan(p, b))
     for _ in range(3):
-        with pytest.raises(HTTPException) as caught:
-            _open_session_db_at_path(path, read_only=True)
-        assert caught.value.status_code == 503
-        assert "nothing was changed" in caught.value.detail
+        with pytest.raises(DeclarativeDriftError) as caught:
+            reconcile_declarative_drift(path)
+        assert "nothing was changed" in str(caught.value)
     assert scans == [1]
     assert _file_state(path) == before
 
@@ -735,12 +735,11 @@ def test_unopenable_lock_on_lagging_store_is_a_named_503(tmp_path):
     lock.chmod(0)
     before = _file_state(path)
     try:
-        with pytest.raises(HTTPException) as caught:
-            _open_session_db_at_path(path, read_only=True)
+        with pytest.raises(DeclarativeDriftError) as caught:
+            reconcile_declarative_drift(path)
     finally:
         lock.chmod(0o600)
-    assert caught.value.status_code == 503
-    detail = str(caught.value.detail)
+    detail = str(caught.value)
     assert "foreign_stale_lock" in detail and "nothing was changed" in detail
     assert _file_state(path) == before
 
@@ -789,10 +788,9 @@ def test_budget_refusal_on_unowned_store_names_repair_not_a_gateway(tmp_path, mo
     monkeypatch.setattr(ssr, "connect_tracked", lambda p, *a, **kw: (
         _SlowProgress(original(p, *a, **kw)) if "mode=ro" in str(p) else original(p, *a, **kw)))
     monkeypatch.setattr(reconcile, "BROWSE_INTEGRITY_BUDGET_S", 0.3)
-    with pytest.raises(HTTPException) as caught:
-        _open_session_db_at_path(path, read_only=True)
-    assert caught.value.status_code == 503
-    detail = caught.value.detail
+    with pytest.raises(DeclarativeDriftError) as caught:
+        reconcile_declarative_drift(path)
+    detail = str(caught.value)
     assert "Run `hermes -p scribe sessions repair` to bring it up to date (it has no time limit)" in detail
     assert "Your history is untouched" in detail
     assert "gateway" not in detail.lower()
@@ -807,7 +805,7 @@ def test_budget_refusal_on_unowned_store_names_repair_not_a_gateway(tmp_path, mo
     report = repair_declarative_schema(path, backup=False)
     assert report["repaired"], report
     reconcile._scan_too_slow.clear()
-    _open_session_db_at_path(path, read_only=True).close()
+    reconcile_declarative_drift(path)
     assert "last_read_at" in _session_columns(path)
 
 
@@ -838,14 +836,13 @@ def test_legacy_gateway_holding_the_store_without_a_lock_is_not_written(tmp_path
     try:
         assert legacy.stdout.readline().strip() == "holding"
         assert not (home / "gateway.lock").exists() or not (home / "gateway.lock").read_text()
-        with pytest.raises(HTTPException) as caught:
-            _open_session_db_at_path(path, read_only=True)
+        with pytest.raises(DeclarativeDriftError) as caught:
+            reconcile_declarative_drift(path)
     finally:
         legacy.kill()
         legacy.wait()
-    assert caught.value.status_code == 503
-    assert "running gateway owns it" in caught.value.detail
-    assert f"PID {legacy.pid}" in caught.value.detail
+    assert "running gateway owns it" in str(caught.value)
+    assert f"PID {legacy.pid}" in str(caught.value)
     assert _file_state(path) == before
     assert "last_read_at" not in _session_columns(path)
 
@@ -863,7 +860,7 @@ time.sleep(60)
 
 @pytest.mark.platforms("linux", "macos")
 @pytest.mark.spawns_gateway_lookalike
-def test_owned_refusal_names_the_owning_multiplexers_restart(tmp_path):
+def test_owned_refusal_names_the_owning_multiplexers_stop(tmp_path):
     """alt-glitch W2: when the default multiplexer owns a named profile's lock, `hermes -p NAME gateway
     restart` is refused ("Manage the host gateway instead"). Name the owner's own restart command,
     from the lock record's hermes_home."""
@@ -877,15 +874,15 @@ def test_owned_refusal_names_the_owning_multiplexers_restart(tmp_path):
                             env=os.environ, stdout=subprocess.PIPE, text=True)
     try:
         assert host.stdout.readline().strip() == "held"
-        with pytest.raises(HTTPException) as caught:
-            _open_session_db_at_path(path, read_only=True)
+        with pytest.raises(DeclarativeDriftError) as caught:
+            reconcile_declarative_drift(path)
     finally:
         host.kill()
         host.wait()
-    detail = caught.value.detail
-    assert caught.value.status_code == 503 and "running gateway owns it" in detail
-    assert "`hermes gateway restart`" in detail
-    assert "-p scribe gateway restart" not in detail
+    detail = str(caught.value)
+    assert "running gateway owns it" in detail
+    assert "`hermes gateway stop`" in detail
+    assert "-p scribe gateway stop" not in detail
 
 
 @pytest.mark.platforms("linux", "macos")
@@ -900,12 +897,11 @@ def test_read_only_lagging_store_gets_a_permissions_message(tmp_path):
     before = _file_state(path)
     path.chmod(0o444)
     try:
-        with pytest.raises(HTTPException) as caught:
-            _open_session_db_at_path(path, read_only=True)
+        with pytest.raises(DeclarativeDriftError) as caught:
+            reconcile_declarative_drift(path)
     finally:
         path.chmod(0o600)
-    detail = str(caught.value.detail)
-    assert caught.value.status_code == 503
+    detail = str(caught.value)
     assert "not writable" in detail and str(path) in detail
     assert "nothing was changed" in detail
     assert "restart" not in detail.lower()

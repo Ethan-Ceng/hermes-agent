@@ -22,6 +22,9 @@ def main():
         manifest = home / "business-ids.json"
         saved = {} if role == "write" else json.loads(manifest.read_text(encoding="utf-8"))
         with _owning_profile(home):
+            if backend == "sqlite" and role == "write":
+                from hermes_cli.db_session_schema import initialize_new_profile_sessions
+                initialize_new_profile_sessions(home)
             completed = []
             for domain in DOMAINS:
                 domain(home, label, role, saved)

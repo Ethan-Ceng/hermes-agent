@@ -122,7 +122,7 @@ class TestSessionStoreLoudFailure:
                 "live-system guard: test attempted to open production state.db"
             )
 
-        monkeypatch.setattr(hermes_state, "SessionDB", _boom)
+        monkeypatch.setattr(SessionDB, "open_existing", _boom)
         with pytest.raises(RuntimeError, match="live-system guard"):
             SessionStore(sessions_dir=tmp_path, config=GatewayConfig())
 
@@ -134,7 +134,7 @@ class TestSessionStoreLoudFailure:
         def _boom(*args, **kwargs):
             raise RuntimeError("disk on fire")
 
-        monkeypatch.setattr(hermes_state, "SessionDB", _boom)
+        monkeypatch.setattr(SessionDB, "open_existing", _boom)
         store = SessionStore(sessions_dir=tmp_path, config=GatewayConfig())
         assert store._db is None
 

@@ -315,7 +315,7 @@ def test_recovered_db_rows_survive_fallback_structural_save(monkeypatch, tmp_pat
         encoding="utf-8",
     )
 
-    real_session_db = hermes_state.SessionDB
+    real_open = hermes_state.SessionDB.open_existing
     calls = 0
 
     def fail_once_session_db(*args, **kwargs):
@@ -323,9 +323,9 @@ def test_recovered_db_rows_survive_fallback_structural_save(monkeypatch, tmp_pat
         calls += 1
         if calls == 1:
             raise OSError("temporary open failure")
-        return real_session_db(db_path=db_path)
+        return real_open(db_path=db_path)
 
-    monkeypatch.setattr(hermes_state, "SessionDB", fail_once_session_db)
+    monkeypatch.setattr(hermes_state.SessionDB, "open_existing", fail_once_session_db)
     monkeypatch.setattr(hermes_state, "_default_db_path", lambda: db_path)
     store = SessionStore(
         sessions_dir,

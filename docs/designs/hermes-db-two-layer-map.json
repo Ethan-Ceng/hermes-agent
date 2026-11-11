@@ -65,7 +65,7 @@
     {
       "id": 7,
       "title": "建立SQLite会话显式生命周期和普通打开",
-      "status": "pending",
+      "status": "in_progress",
       "dependencies": [
         4,
         5,
@@ -1224,7 +1224,7 @@
     "external_sources": [
       {
         "path": "hermes-db-two-layer-map/sources-native.json",
-        "sha256": "b546974ee3eff4d9e8b4f825594ad95b314a19b44d482695f7a8345f6d4e10e7",
+        "sha256": "a7e13659e5ce630a863256617234a81d0871904cf17990727247bf18adaffb49",
         "items": 141
       }
     ],
@@ -1253,7 +1253,7 @@
     "domain_boundaries": [
       {
         "path": "hermes-db-two-layer-map/boundaries.json",
-        "sha256": "0c2ccec441b080a6069a1cb66ba4231ff134c637d67beb6af2b1572fed2a6e07",
+        "sha256": "6c9660947d0ac3bc1a629a0e5980171bc46aeb0a14159cc1b9efc640350f7b00",
         "items": 67,
         "field": "domain_boundaries"
       }
@@ -1261,7 +1261,7 @@
     "native_patch_seams": [
       {
         "path": "hermes-db-two-layer-map/boundaries.json",
-        "sha256": "0c2ccec441b080a6069a1cb66ba4231ff134c637d67beb6af2b1572fed2a6e07",
+        "sha256": "6c9660947d0ac3bc1a629a0e5980171bc46aeb0a14159cc1b9efc640350f7b00",
         "items": 29,
         "field": "native_patch_seams"
       }
@@ -1269,7 +1269,7 @@
     "sqlite_lifecycle_candidates": [
       {
         "path": "hermes-db-two-layer-map/boundaries.json",
-        "sha256": "0c2ccec441b080a6069a1cb66ba4231ff134c637d67beb6af2b1572fed2a6e07",
+        "sha256": "6c9660947d0ac3bc1a629a0e5980171bc46aeb0a14159cc1b9efc640350f7b00",
         "items": 106,
         "field": "sqlite_lifecycle_candidates"
       }
@@ -1277,7 +1277,7 @@
     "domain_io_sites": [
       {
         "path": "hermes-db-two-layer-map/boundaries.json",
-        "sha256": "0c2ccec441b080a6069a1cb66ba4231ff134c637d67beb6af2b1572fed2a6e07",
+        "sha256": "6c9660947d0ac3bc1a629a0e5980171bc46aeb0a14159cc1b9efc640350f7b00",
         "items": 69,
         "field": "domain_io_sites"
       }
@@ -1285,7 +1285,7 @@
     "non_python_consumer_files": [
       {
         "path": "hermes-db-two-layer-map/boundaries.json",
-        "sha256": "0c2ccec441b080a6069a1cb66ba4231ff134c637d67beb6af2b1572fed2a6e07",
+        "sha256": "6c9660947d0ac3bc1a629a0e5980171bc46aeb0a14159cc1b9efc640350f7b00",
         "items": 58,
         "field": "non_python_consumer_files"
       }
@@ -1430,5 +1430,15 @@
     "fixed_resources": "No changes to all61+4, historical versions, Alembic env or metadata identity. Technical table enumeration is reused from both readiness and unversioned-schema refusal.",
     "payload_gate": "Build new independent Task6 source+PM payloads on both hosts, including pure SQLite and Linux SDK payload, with explicit test options. No payload-dependent skip can substitute for required distribution behavior."
   },
-  "task6_evidence": "docs/designs/hermes-db-two-layer-task6.json"
+  "task6_evidence": "docs/designs/hermes-db-two-layer-task6.json",
+  "task6_commit": "4767f5939ed685b84764a78667ef8138fbbcdaad",
+  "task7_adjustment": {
+    "status": "completed",
+    "constructor_contract": "SessionDB constructor stays the explicit writable create/upgrade and read-only recovery inspection entry. open_existing checks canonical history, revision and declared columns before preparing an existing writer with mode=rw. Shared registry, app scopes, CLI, Dashboard and dynamic TUI roster route to open_existing.",
+    "ordinary_probe": "The previous declared-column probe executed SCHEMA_SQL on :memory: when its cache was cold. The generated column inventory is validated against SQLite on scratch only in explicit/test flows. Ordinary SELECT and PRAGMA probes have no DDL on any SQLite connection.",
+    "explicit_owner": "Application setup and staged new-Profile creation initialize only a missing selected SQLite dataset. Explicit db upgrade uses the existing bounded declarative reconciliation and ordinary gateway exclusion before the full SessionDB lifecycle. Snapshot and forensic repair paths remain explicit.",
+    "dashboard_contract": "Old Dashboard read/startup DDL is removed. Views report 503 with the explicit upgrade or doctor remedy. Historical transaction, integrity, lock authority and data preservation assertions now exercise the explicit operation. Gateway lock purpose remains the established cross-version record.",
+    "consumer_closure": "Keep normal close, failure, retry, plugin background scan, roster and mixed backend assertions. Move fault injection to the actual open_existing method. Temporary databases are explicitly initialized in their test setup; the PG-only test children still reject any SQLite connection."
+  },
+  "task7_evidence": "docs/designs/hermes-db-two-layer-task7.json"
 }

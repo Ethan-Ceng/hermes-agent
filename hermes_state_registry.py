@@ -102,7 +102,7 @@ def _open_session_db(path: Path) -> SessionDB:
     """Construct the SessionDB for *path* (call-time import avoids cycles; tests patch this)."""
     from hermes_state import SessionDB
 
-    return SessionDB(db_path=path)
+    return SessionDB.open_existing(db_path=path)
 
 
 def _teardown(db: SessionDB) -> None:
@@ -196,7 +196,7 @@ def acquire(db_path: Optional[Path] = None) -> SessionDB:
     """Return the shared SessionDB for *db_path*, incrementing its refcount. If the file was
     replaced (different inode) since the generation opened, that generation is RETIRED
     but stays alive for its holders, and a fresh one is opened in its place. Raises
-    whatever ``SessionDB.__init__`` raises; on a replacement-open failure the registry
+    whatever ``SessionDB.open_existing`` raises; on a replacement-open failure the registry
     holds NO entry for the path."""
     from hermes_state import _default_db_path
 

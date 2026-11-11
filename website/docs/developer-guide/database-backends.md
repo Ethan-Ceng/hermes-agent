@@ -91,6 +91,10 @@ SQLite technical connections, transactions, WAL, lock guards and runtime inspect
 `hermes_db/infra/backends/sqlite/`. They accept resolved options and never initialize business
 Schema during ordinary `open_db`. `hermes_cli/db_sqlite_policy.py` captures Profile WAL settings
 and composes explicit `initialize_profile_sqlite` calls with the existing business algorithms.
+Session acquisitions use `SessionDB.open_existing`, which checks version and declared columns
+with SELECTs. Named Profile creation and first setup initialize a missing SQLite session store.
+For an older store, run `hermes db status` and `hermes db upgrade` for that profile before
+starting its gateway. If the store is damaged, use `hermes doctor` to diagnose it.
 
 SQLite retains its native implementations. Domain adapters select PG before a
 SQLite file-existence check or connection. There is no general SQLite SQL

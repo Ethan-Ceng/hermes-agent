@@ -171,7 +171,7 @@ def advise(home: Optional[Path] = None) -> Optional[Advice]:
     estimate_ok = True
     try:
         from hermes_state import SessionDB
-        db = SessionDB(db_path=_home(home) / "state.db", read_only=True)
+        db = SessionDB.open_existing(db_path=_home(home) / "state.db", read_only=True)
         try:
             where, params = db._prune_where(retention, None, {}, whole_lineages=True)
             prunable, total = tuple(db._read_one(

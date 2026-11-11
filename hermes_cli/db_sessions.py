@@ -28,7 +28,8 @@ def acquire_sessions(db_path=None):
     settings, scope = resolve_db_configuration(path.resolve().parent)
     if settings.backend == "sqlite":
         from hermes_state_registry import acquire
-        return acquire(None if db_path is None else path)
+        with bind_profile_home(scope):
+            return acquire(None if db_path is None else path)
     return SessionResource(acquire_db(settings, scope))
 
 
@@ -40,7 +41,8 @@ def open_session_store(db_path=None, *, read_only=False):
     settings, scope = resolve_db_configuration(path.resolve().parent)
     if settings.backend == "sqlite":
         from hermes_state import SessionDB
-        return SessionDB(db_path=None if db_path is None else path, read_only=read_only)
+        with bind_profile_home(scope):
+            return SessionDB.open_existing(db_path=None if db_path is None else path, read_only=read_only)
     return SessionResource(acquire_db(settings, scope))
 
 

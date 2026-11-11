@@ -659,6 +659,14 @@ class SQLiteConnections:
         return generation._connect_tracked_db(str(self.db_path), check_same_thread=False,
                                    timeout=1.0, isolation_level=None)
 
+    def connect_existing_writer(self):
+        self.prepare_writer()
+        uri = self.db_path.resolve().as_uri() + "?mode=rw"
+        return generation._connect_tracked_db(
+            uri, tracking_path=self.db_path, uri=True, check_same_thread=False,
+            timeout=1.0, isolation_level=None,
+        )
+
     @contextmanager
     def write_transaction(self):
         """Caller holds the resource lock and has checked business/generation guards."""

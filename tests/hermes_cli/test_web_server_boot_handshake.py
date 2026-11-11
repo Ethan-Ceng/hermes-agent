@@ -67,7 +67,7 @@ def test_lifespan_enters_and_exits_as_an_async_context_manager(monkeypatch):
     (Starlette's deprecated path)."""
     entered: list[bool] = []
     monkeypatch.setattr(web_server_mod, "_warm_gateway_module", lambda: None)
-    monkeypatch.setattr(web_server_mod, "_eager_reconcile_own_session_db", lambda: None)
+    monkeypatch.setattr(web_server_mod, "_probe_own_session_db", lambda: None)
 
     async def _run() -> None:
         async with web_server_mod.app_lifespan(web_server_mod.app):
@@ -119,7 +119,7 @@ def test_lifespan_shutdown_joins_statedb_reconcile_worker(monkeypatch):
         finished.set()
 
     monkeypatch.setattr(web_server_mod, "_warm_gateway_module", lambda: None)
-    monkeypatch.setattr(web_server_mod, "_eager_reconcile_own_session_db", slow_reconcile)
+    monkeypatch.setattr(web_server_mod, "_probe_own_session_db", slow_reconcile)
 
     before = time.perf_counter()
     with TestClient(web_server_mod.app, raise_server_exceptions=False):

@@ -62,6 +62,8 @@ from hermes_cli.db_setup import _owning_profile
 from hermes_cli.db_sessions import open_session_store
 root=pathlib.Path(sys.argv[1]); target=root/'target'; target.mkdir()
 for home in (root,target): atomic_config_write(home/'config.yaml',{'storage':{'backend':'sqlite'}})
+from hermes_cli.db_session_schema import initialize_new_profile_sessions
+initialize_new_profile_sessions(root)
 with _owning_profile(root):
  db=open_session_store(root/'state.db')
  db.create_session('history','cli',session_key='agent:gone:cli:chat',profile_name='gone')
@@ -99,6 +101,8 @@ def test_pg_source_to_sqlite_room_target_uses_only_selected_target(postgres_test
         'schema': pg.schema, 'store_id': 'source', 'pool_size': 2, 'max_overflow': 0, 'connection_budget': 2}}})
     (source / '.env').write_text('HERMES_POSTGRES_DSN=' + json.dumps(pg.dsn) + '\n')
     atomic_config_write(target / 'config.yaml', {'storage': {'backend': 'sqlite'}})
+    from hermes_cli.db_session_schema import initialize_new_profile_sessions
+    initialize_new_profile_sessions(target)
     monkeypatch.setattr(rooms, 'local_authority_gateway_id', lambda: 'review-gateway')
     references = []
     for home in (source, target):
