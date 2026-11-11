@@ -1554,7 +1554,7 @@ wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-two-layer-acceptance-final-v2/so
 
 ### 最终状态
 
-READY_TO_MERGE；20/20已完成。本地Task20完成commit及实际hash随后写入恢复receipt；不执行合并或部署。
+READY_TO_MERGE；20/20已完成。本地Task20完成commit：`9d268564da1998f5c3c5a5327ce23cb79a33f3e1`；实际hash已由独立文档receipt记录，不执行合并或部署。
 
 ## 规划准备记录与恢复
 
@@ -1570,3 +1570,7 @@ READY_TO_MERGE；20/20已完成。本地Task20完成commit及实际hash随后写
 - 使用PowerShell Language.Parser静态解析计划内7个PowerShell代码块：0语法错误，未执行代码块；powershell-check.json。
 - 首轮`PM Python scripts/check --staged --base 0d8782ba8a`真实exit1，仅blob-size失败：单个生成映射4184 KiB超过500 KiB。已按源码/Native/生产与测试消费者/边界分区，并保留实际决策、源码及ABIhash、所有消费者文件/行号/provider集合；可由Git重建的完整AST/45160读取点保留ignored .build。所有分区均低于500 KiB，不修改allowlist。初轮日志planning-static-first-failed.log。整改后实际运行`D:/AI/hermes-db-packages/.build/package-layout/test-env/Scripts/python.exe scripts/check --staged --base 0d8782ba8a`：exit0，16 checks, ok；完整结果在planning-static-final.log及带实际退出码的planning-static-final.json。
 - 实施分支未创建、规划提交未创建、20项未实施；未创建本轮开发/最终PM载荷或连接业务数据库。正式目录只读核对仍90a2987e8c且clean；当前隔离HEAD仍0d8782ba8a，既有生产/测试/旧规划历史未改。
+
+### 最终本地恢复点
+
+Task20完成commit：`9d268564da1998f5c3c5a5327ce23cb79a33f3e1`；唯一运行SOURCE_TIP：`0aa4f5973542615cd044ec748313c8c4b9c988be`。记录完成后再次用Git批量对象核对当前全部运行Python/测试/pyproject/uv.lock与v2冻结源一致，20Task状态/11分区hash/65固定资源及正式HEAD90a2987且clean通过；仅保留原owned/与target/未跟踪目录。此后只有记录本hash的文档receipt，无运行代码、测试或依赖变化。

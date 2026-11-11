@@ -867,7 +867,12 @@
     }
   ],
   "unhandled_findings": [],
-  "completion_commit": "Recorded immediately after the localTask20completion commit in a docs receipt;no circular selfhash.",
+  "completion_commit": {
+    "hash": "9d268564da1998f5c3c5a5327ce23cb79a33f3e1",
+    "branch": "refactor/hermes-db-two-layer-boundary",
+    "source_tip": "0aa4f5973542615cd044ec748313c8c4b9c988be",
+    "meaning": "Actual local Task20 completion checkpoint;this later receipt only records its real hash,without changing runtime/tests/dependencies."
+  },
   "final_delivery": {
     "scope": "This two-layer refactor only;not whole-system acceptance.",
     "passed": 159,
@@ -895,5 +900,17 @@
       "stop/restart formalHermes"
     ],
     "initial_failure_history_retained": true
+  },
+  "post_completion_verification": {
+    "verified_utc": "2026-11-11T17:54:27.884028+00:00",
+    "current_runtime_test_and_lock_git_match_frozen": true,
+    "all20tasks_completed": true,
+    "11mapping_hashes_and65fixed_assets_unchanged": true,
+    "formal_head_unchanged_clean": true,
+    "only_original_user_untracked_files": [
+      "?? owned/",
+      "?? target/"
+    ],
+    "no_remaining_sessions_required": true
   }
 }
