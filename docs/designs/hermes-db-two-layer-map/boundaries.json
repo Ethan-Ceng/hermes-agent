@@ -9,7 +9,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/cron/postgres/executions.py",
@@ -25,7 +26,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/kanban/api.py",
@@ -41,7 +43,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/kanban/postgres/catalog.py",
@@ -136,7 +139,8 @@
           ],
           "line": 757
         }
-      ]
+      ],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/kanban/postgres/claims.py",
@@ -171,7 +175,8 @@
           ],
           "line": 91
         }
-      ]
+      ],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/kanban/postgres/completion.py",
@@ -201,7 +206,8 @@
           ],
           "line": 215
         }
-      ]
+      ],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/kanban/postgres/dispatch.py",
@@ -287,7 +293,8 @@
           ],
           "line": 317
         }
-      ]
+      ],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/kanban/postgres/effects.py",
@@ -300,7 +307,8 @@
           ],
           "line": 39
         }
-      ]
+      ],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/kanban/postgres/files.py",
@@ -356,7 +364,8 @@
           ],
           "line": 453
         }
-      ]
+      ],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/kanban/postgres/maintenance.py",
@@ -445,7 +454,8 @@
           ],
           "line": 254
         }
-      ]
+      ],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/kanban/postgres/review.py",
@@ -465,7 +475,8 @@
           ],
           "line": 77
         }
-      ]
+      ],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/kanban/postgres/runs.py",
@@ -476,7 +487,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/kanban/postgres/swarm.py",
@@ -502,7 +514,8 @@
           ],
           "line": 63
         }
-      ]
+      ],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/kanban/postgres/workspaces.py",
@@ -541,7 +554,8 @@
           ],
           "line": 142
         }
-      ]
+      ],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/kanban/rules.py",
@@ -557,7 +571,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/metrics/api.py",
@@ -568,7 +583,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/metrics/policy.py",
@@ -629,7 +645,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/metrics/postgres/outbox.py",
@@ -640,7 +657,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/metrics/postgres/records.py",
@@ -656,7 +674,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/metrics/sending.py",
@@ -667,7 +686,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/plugin_storage/discord/api.py",
@@ -678,7 +698,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/plugin_storage/discord/postgres/operations/recovery.py",
@@ -699,7 +720,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/plugin_storage/matrix/api.py",
@@ -715,7 +737,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/plugin_storage/records/api.py",
@@ -726,7 +749,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/plugin_storage/records/postgres/store.py",
@@ -737,7 +761,8 @@
           "alias": "contract"
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/plugin_storage/retain/api.py",
@@ -753,7 +778,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/rooms/api.py",
@@ -779,7 +805,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/rooms/driver_rules.py",
@@ -790,7 +817,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/rooms/postgres/lifecycle.py",
@@ -801,7 +829,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/rooms/postgres/policy.py",
@@ -812,7 +841,8 @@
           "alias": "_storage_shared_2"
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/runtime/postgres/context.py",
@@ -825,7 +855,8 @@
           ],
           "line": 18
         }
-      ]
+      ],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/runtime/postgres/media.py",
@@ -844,7 +875,8 @@
           ],
           "line": 30
         }
-      ]
+      ],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/runtime/postgres/operations/api.py",
@@ -855,7 +887,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/runtime/postgres/operations/deliveries.py",
@@ -866,7 +899,8 @@
           "alias": "policy"
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/runtime/postgres/operations/local_sessions.py",
@@ -877,7 +911,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/runtime/postgres/operations/terminal_boundary.py",
@@ -893,7 +928,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/runtime/postgres/operations/worker_delegations.py",
@@ -904,7 +940,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/runtime/postgres/operations/worker_handlers.py",
@@ -915,7 +952,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py",
@@ -936,7 +974,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/runtime/postgres/operations/worker_metrics.py",
@@ -957,7 +996,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/runtime/postgres/policy.py",
@@ -970,7 +1010,8 @@
           ],
           "line": 33
         }
-      ]
+      ],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/runtime/receipts.py",
@@ -986,7 +1027,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/runtime/values.py",
@@ -1032,7 +1074,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/codec.py",
@@ -1138,7 +1181,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/coverage.py",
@@ -1219,7 +1263,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/import_rules.py",
@@ -1230,7 +1275,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/catalog.py",
@@ -1259,7 +1305,8 @@
           ],
           "line": 129
         }
-      ]
+      ],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/history.py",
@@ -1290,7 +1337,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/lifecycle.py",
@@ -1352,7 +1400,8 @@
           ],
           "line": 413
         }
-      ]
+      ],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/messages.py",
@@ -1376,7 +1425,8 @@
           ],
           "line": 232
         }
-      ]
+      ],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/operations/compression_publish.py",
@@ -1392,7 +1442,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/operations/gateway_rekey.py",
@@ -1403,7 +1454,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/operations/imports.py",
@@ -1414,7 +1466,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/operations/messages.py",
@@ -1455,7 +1508,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/operations/mutation_transcript.py",
@@ -1471,7 +1525,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/operations/rewrites.py",
@@ -1492,7 +1547,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/operations/transcript_repair.py",
@@ -1558,7 +1614,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/queries/archive_refs.py",
@@ -1569,7 +1626,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/queries/media.py",
@@ -1580,7 +1638,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/queries/session_queries.py",
@@ -1596,7 +1655,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/support/archive_projection.py",
@@ -1607,7 +1667,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/support/compression_coverage.py",
@@ -1658,7 +1719,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/support/message_preview.py",
@@ -1704,7 +1766,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/postgres/support/usage_writer.py",
@@ -1715,7 +1778,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/rewind.py",
@@ -1776,7 +1840,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/sessions/rules.py",
@@ -1797,7 +1862,8 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     },
     {
       "path": "hermes_db/domains/verification/api.py",
@@ -1828,154 +1894,184 @@
           "alias": null
         }
       ],
-      "application_capability_calls": []
+      "application_capability_calls": [],
+      "reviewed_in": 16
     }
   ],
   "native_patch_seams": [
     {
       "source": "tests/agent/test_compression_concurrent_fork.py",
       "line": 1140,
-      "attribute": "_execute_write"
+      "attribute": "_execute_write",
+      "reviewed_in": 16
     },
     {
       "source": "tests/agent/test_compression_concurrent_fork.py",
       "line": 2004,
-      "attribute": "_execute_write"
+      "attribute": "_execute_write",
+      "reviewed_in": 16
     },
     {
       "source": "tests/agent/test_compression_concurrent_fork.py",
       "line": 2009,
-      "attribute": "_execute_write"
+      "attribute": "_execute_write",
+      "reviewed_in": 16
     },
     {
       "source": "tests/agent/test_compression_concurrent_fork.py",
       "line": 2075,
-      "attribute": "_execute_write"
+      "attribute": "_execute_write",
+      "reviewed_in": 16
     },
     {
       "source": "tests/gateway/test_authority_listing_loop_turns.py",
       "line": 60,
-      "attribute": "_read_ctx"
+      "attribute": "_read_ctx",
+      "reviewed_in": 16
     },
     {
       "source": "tests/gateway/test_bot_roster_fleet.py",
       "line": 179,
-      "attribute": "_read_ctx"
+      "attribute": "_read_ctx",
+      "reviewed_in": 16
     },
     {
       "source": "tests/gateway/test_hosted_rooms.py",
       "line": 181,
-      "attribute": "apply_wal_with_fallback"
+      "attribute": "apply_wal_with_fallback",
+      "reviewed_in": 16
     },
     {
       "source": "tests/gateway/test_hosted_rooms.py",
       "line": 200,
-      "attribute": "apply_wal_with_fallback"
+      "attribute": "apply_wal_with_fallback",
+      "reviewed_in": 16
     },
     {
       "source": "tests/gateway/test_local_session_lineage.py",
       "line": 74,
-      "attribute": "_execute_write"
+      "attribute": "_execute_write",
+      "reviewed_in": 16
     },
     {
       "source": "tests/gateway/test_local_session_lineage.py",
       "line": 77,
-      "attribute": "_execute_write"
+      "attribute": "_execute_write",
+      "reviewed_in": 16
     },
     {
       "source": "tests/gateway/test_local_session_orphan_end.py",
       "line": 288,
-      "attribute": "_read_ctx"
+      "attribute": "_read_ctx",
+      "reviewed_in": 16
     },
     {
       "source": "tests/gateway/test_local_session_recovery.py",
       "line": 50,
-      "attribute": "_execute_write"
+      "attribute": "_execute_write",
+      "reviewed_in": 16
     },
     {
       "source": "tests/gateway/test_local_session_recovery.py",
       "line": 53,
-      "attribute": "_execute_write"
+      "attribute": "_execute_write",
+      "reviewed_in": 16
     },
     {
       "source": "tests/gateway/test_owner_loop_writes_create_api.py",
       "line": 50,
-      "attribute": "_execute_write"
+      "attribute": "_execute_write",
+      "reviewed_in": 16
     },
     {
       "source": "tests/gateway/test_session_mutation_model_busy.py",
       "line": 220,
-      "attribute": "_execute_write"
+      "attribute": "_execute_write",
+      "reviewed_in": 16
     },
     {
       "source": "tests/gateway/test_session_stored_reads_bounds.py",
       "line": 40,
-      "attribute": "_read_ctx"
+      "attribute": "_read_ctx",
+      "reviewed_in": 16
     },
     {
       "source": "tests/hermes_cli/test_browse_schema_drift.py",
       "line": 790,
-      "attribute": "connect_tracked"
+      "attribute": "connect_tracked",
+      "reviewed_in": 16
     },
     {
       "source": "tests/hermes_cli/test_browse_schema_drift.py",
       "line": 873,
-      "attribute": "connect_tracked"
+      "attribute": "connect_tracked",
+      "reviewed_in": 16
     },
     {
       "source": "tests/hermes_cli/test_browse_schema_drift.py",
       "line": 887,
-      "attribute": "connect_tracked"
+      "attribute": "connect_tracked",
+      "reviewed_in": 16
     },
     {
       "source": "tests/hermes_cli/test_session_handoff.py",
       "line": 117,
-      "attribute": "_read_ctx"
+      "attribute": "_read_ctx",
+      "reviewed_in": 16
     },
     {
       "source": "tests/hermes_cli/test_session_timeline.py",
       "line": 207,
-      "attribute": "_read_ctx"
+      "attribute": "_read_ctx",
+      "reviewed_in": 16
     },
     {
       "source": "tests/hermes_cli/test_sqlite_util_canonical.py",
       "line": 101,
-      "attribute": "open_db"
+      "attribute": "open_db",
+      "reviewed_in": 16
     },
     {
       "source": "tests/hermes_cli/test_sqlite_util_canonical.py",
       "line": 103,
-      "attribute": "open_db"
+      "attribute": "open_db",
+      "reviewed_in": 16
     },
     {
       "source": "tests/hermes_cli/test_sqlite_util_canonical.py",
       "line": 130,
-      "attribute": "apply_wal_with_fallback"
+      "attribute": "apply_wal_with_fallback",
+      "reviewed_in": 16
     },
     {
       "source": "tests/hermes_state/test_hermes_state.py",
       "line": 202,
-      "attribute": "_init_schema"
+      "attribute": "_init_schema",
+      "reviewed_in": 16
     },
     {
       "source": "tests/hermes_state/test_ledger_delete_consistency.py",
       "line": 298,
-      "attribute": "_read_ctx"
+      "attribute": "_read_ctx",
+      "reviewed_in": 16
     },
     {
       "source": "tests/hermes_state/test_session_db_read_conn_pool.py",
       "line": 758,
-      "attribute": "_open_writer"
+      "attribute": "_open_writer",
+      "reviewed_in": 16
     },
     {
       "source": "tests/hermes_state/test_state_db_malformed_repair.py",
       "line": 82,
-      "attribute": "apply_wal_with_fallback"
+      "attribute": "apply_wal_with_fallback",
+      "reviewed_in": 16
     },
     {
       "source": "tests/perf_guards/test_pattern_b_scaling.py",
       "line": 56,
-      "attribute": "_read_ctx"
+      "attribute": "_read_ctx",
+      "reviewed_in": 16
     }
   ],
   "sqlite_lifecycle_candidates": [
@@ -1990,7 +2086,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "agent/transcript_repair.py",
@@ -2027,7 +2125,9 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "agent/verification_evidence.py",
@@ -2072,7 +2172,9 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "cron/delivery_queue.py",
@@ -2109,7 +2211,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "cron/executions.py",
@@ -2162,7 +2265,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "cron/incidents.py",
@@ -2199,7 +2303,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "cron/notepad.py",
@@ -2228,7 +2333,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "cron/scheduler.py",
@@ -2241,7 +2347,8 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "gateway/delivery_ledger.py",
@@ -2266,7 +2373,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "gateway/hosted_room_attachments.py",
@@ -2327,7 +2435,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "gateway/hosted_room_driver.py",
@@ -2396,7 +2505,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "gateway/hosted_room_policy_checkpoint.py",
@@ -2509,7 +2619,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "gateway/hosted_room_replicas.py",
@@ -2546,7 +2657,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "gateway/hosted_room_work_records.py",
@@ -2559,7 +2671,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "gateway/hosted_room_work_storage.py",
@@ -2604,7 +2717,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "gateway/hosted_rooms.py",
@@ -2749,7 +2863,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "gateway/hosted_rooms_common.py",
@@ -2802,7 +2917,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "gateway/hosted_rooms_gateway_import.py",
@@ -2815,7 +2931,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "gateway/hosted_rooms_legacy_import.py",
@@ -2848,7 +2965,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "gateway/lifecycle_ledger.py",
@@ -2869,7 +2987,8 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "gateway/platforms/api_server_response_store.py",
@@ -2918,7 +3037,8 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "gateway/platforms/api_server_run_idempotency.py",
@@ -2939,7 +3059,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "gateway/readiness.py",
@@ -2952,7 +3073,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "gateway/run_idle_exit.py",
@@ -2965,7 +3088,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "gateway/session_kanban.py",
@@ -2986,7 +3111,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "gateway/session_kanban_policy.py",
@@ -2999,7 +3126,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_cli/approvals_suggest.py",
@@ -3024,7 +3153,9 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_cli/backup.py",
@@ -3037,7 +3168,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_cli/backup_restore.py",
@@ -3074,7 +3207,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_cli/backup_sqlite.py",
@@ -3111,7 +3246,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_cli/browser_connect.py",
@@ -3128,7 +3265,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_cli/config_defaults.py",
@@ -3141,7 +3280,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_cli/data_cleanup_holders.py",
@@ -3154,7 +3295,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_cli/doctor_state.py",
@@ -3175,7 +3318,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_cli/install_state.py",
@@ -3188,7 +3333,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_cli/kanban_db.py",
@@ -3553,7 +3700,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/kanban_db_connect.py",
@@ -3714,7 +3862,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/kanban_db_context.py",
@@ -3735,7 +3884,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/kanban_db_dispatch.py",
@@ -3852,7 +4002,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/kanban_db_failure.py",
@@ -3865,7 +4016,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/kanban_db_graph.py",
@@ -3890,7 +4042,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/kanban_db_notify.py",
@@ -3955,7 +4108,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/kanban_db_runs.py",
@@ -3988,7 +4142,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/kanban_db_workspace.py",
@@ -4061,7 +4216,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/kanban_owner_recovery.py",
@@ -4074,7 +4230,8 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/kanban_sqlite_schema.py",
@@ -4147,7 +4304,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/kanban_swarm.py",
@@ -4176,7 +4334,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/kanban_transfer.py",
@@ -4209,7 +4368,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/observability/shared_metrics.py",
@@ -4278,7 +4438,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/observability/shared_metrics_sender.py",
@@ -4295,7 +4456,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/observability/shared_metrics_snapshot.py",
@@ -4308,7 +4470,8 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/projects_db.py",
@@ -4453,7 +4616,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/session_lost_and_found.py",
@@ -4510,7 +4674,9 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_cli/session_recovery.py",
@@ -4659,7 +4825,9 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_cli/sessions_cmd_journal_mode.py",
@@ -4672,7 +4840,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_cli/sqlite_runtime.py",
@@ -4685,7 +4855,8 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/sqlite_safe_read.py",
@@ -4742,7 +4913,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/sqlite_util.py",
@@ -4783,7 +4955,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_cli/update_downgrade_guard.py",
@@ -4804,7 +4977,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_cli/worktree_ops.py",
@@ -4821,7 +4996,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_db/backends/sqlite/plugin_storage.py",
@@ -4846,7 +5023,8 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0001_session_storage.py",
@@ -5027,7 +5205,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0002_search_projection.py",
@@ -5056,7 +5235,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0003_archive_refs.py",
@@ -5069,7 +5249,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0005_verification.py",
@@ -5098,7 +5279,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0006_projects.py",
@@ -5135,7 +5317,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0007_cron_executions.py",
@@ -5160,7 +5343,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0008_cron_delivery.py",
@@ -5185,7 +5369,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0009_cron_notepad.py",
@@ -5202,7 +5387,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0010_kanban_tasks.py",
@@ -5219,7 +5405,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0011_kanban_runs.py",
@@ -5236,7 +5423,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0012_kanban_artifacts.py",
@@ -5257,7 +5445,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0013_kanban_dispatch.py",
@@ -5270,7 +5459,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0014_kanban_commands.py",
@@ -5283,7 +5473,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0015_kanban_workspaces.py",
@@ -5304,7 +5495,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0016_kanban_notify.py",
@@ -5317,7 +5509,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0017_kanban_file_jobs.py",
@@ -5334,7 +5527,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0019_room_events.py",
@@ -5383,7 +5577,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0020_room_runs.py",
@@ -5420,7 +5615,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0021_room_policy.py",
@@ -5457,7 +5653,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0022_room_attachments.py",
@@ -5494,7 +5691,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0023_metrics.py",
@@ -5531,7 +5729,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0024_plugins.py",
@@ -5552,7 +5751,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0025_discord_recovery.py",
@@ -5581,7 +5781,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0026_retain_queue.py",
@@ -5598,7 +5799,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0027_matrix_crypto.py",
@@ -5623,7 +5825,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0028_kanban_effects.py",
@@ -5636,7 +5839,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/migrations/versions/0030_room_revoke_debts.py",
@@ -5649,7 +5853,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_state.py",
@@ -5714,7 +5919,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_state_common.py",
@@ -5987,7 +6193,9 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_state_dbfile.py",
@@ -6016,7 +6224,8 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_state_holders.py",
@@ -6029,7 +6238,9 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_state_registry.py",
@@ -6042,7 +6253,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_state_repair.py",
@@ -6115,7 +6328,9 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_state_schema.py",
@@ -6180,7 +6395,8 @@
           "category": "ddl"
         }
       ],
-      "status": "completed"
+      "status": "completed",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_state_telegram.py",
@@ -6201,7 +6417,9 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "hermes_state_wal.py",
@@ -6274,7 +6492,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "plugins/kanban/dashboard/plugin_api.py",
@@ -6323,7 +6542,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "plugins/memory/retaindb/__init__.py",
@@ -6352,7 +6572,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "plugins/platforms/discord/recovery.py",
@@ -6385,7 +6606,8 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "plugins/plugin_storage.py",
@@ -6402,7 +6624,8 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "pending",
+      "reviewed_in": 16
     },
     {
       "source": "tools/async_delegation.py",
@@ -6427,7 +6650,9 @@
           "category": "ddl"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "tools/browser_real_profile_logins.py",
@@ -6440,7 +6665,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "tools/read_extract.py",
@@ -6453,7 +6680,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "tools/tool_result_storage.py",
@@ -6466,7 +6695,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "source": "tui_gateway/hosted_room_router_call.py",
@@ -6483,7 +6714,9 @@
           "category": "connect"
         }
       ],
-      "status": "pending"
+      "status": "completed",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     }
   ],
   "domain_io_sites": [
@@ -6493,7 +6726,8 @@
       "symbol": "_prepare_files",
       "call": "path.stat",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6501,7 +6735,8 @@
       "symbol": "prepare_directory",
       "call": "directory.mkdir",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6509,7 +6744,8 @@
       "symbol": "finish",
       "call": "path.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6517,7 +6753,8 @@
       "symbol": "finish",
       "call": "path.is_dir",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6525,7 +6762,8 @@
       "symbol": "finish",
       "call": "path.unlink",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6533,7 +6771,8 @@
       "symbol": "_sweep_generation",
       "call": "directory.iterdir",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6541,7 +6780,8 @@
       "symbol": "_remove_directory",
       "call": "path.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6549,7 +6789,8 @@
       "symbol": "_archive_files",
       "call": "boards_root.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6557,7 +6798,8 @@
       "symbol": "_archive_files",
       "call": "source.mkdir",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6565,7 +6807,8 @@
       "symbol": "_add_attachment",
       "call": "Path(stored_path).expanduser().resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6573,7 +6816,8 @@
       "symbol": "_store_attachment_bytes",
       "call": "path.write_bytes",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6581,7 +6825,8 @@
       "symbol": "prepare_directory",
       "call": "directory.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6589,7 +6834,8 @@
       "symbol": "discard_empty_generation",
       "call": "marker.is_file",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6597,7 +6843,8 @@
       "symbol": "discard_empty_generation",
       "call": "marker.unlink",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6605,7 +6852,8 @@
       "symbol": "discard_empty_generation",
       "call": "directory.rmdir",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6613,7 +6861,8 @@
       "symbol": "_sweep_generation",
       "call": "marker.unlink",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6621,7 +6870,8 @@
       "symbol": "_sweep_generation",
       "call": "directory.rmdir",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6629,7 +6879,8 @@
       "symbol": "_completed",
       "call": "marker.is_file",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6637,7 +6888,8 @@
       "symbol": "reclaim",
       "call": "base.is_dir",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6645,7 +6897,8 @@
       "symbol": "_remove_directory",
       "call": "shutil.rmtree",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6653,7 +6906,8 @@
       "symbol": "prepare",
       "call": "data.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6661,7 +6915,8 @@
       "symbol": "_archive_files",
       "call": "target.parent.mkdir",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6669,7 +6924,8 @@
       "symbol": "_read_job",
       "call": "Path(row['owner_home']).resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6677,7 +6933,8 @@
       "symbol": "discard_empty_generation",
       "call": "directory.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6685,7 +6942,8 @@
       "symbol": "_sweep_generation",
       "call": "directory.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6693,7 +6951,8 @@
       "symbol": "_sweep_generation",
       "call": "marker.read_text",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6701,7 +6960,8 @@
       "symbol": "_completed",
       "call": "Path(owner['profile_home']).resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6709,7 +6969,8 @@
       "symbol": "_completed",
       "call": "marker.read_text",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6717,7 +6978,8 @@
       "symbol": "_remove_directory",
       "call": "path.is_dir",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6725,7 +6987,8 @@
       "symbol": "prepare",
       "call": "root.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6733,7 +6996,8 @@
       "symbol": "_archive_files",
       "call": "target.mkdir",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6741,7 +7005,8 @@
       "symbol": "_archive_files",
       "call": "metadata_path.read_text",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6749,7 +7014,8 @@
       "symbol": "_store_attachment_bytes",
       "call": "path.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6757,7 +7023,8 @@
       "symbol": "_store_attachment_bytes",
       "call": "path.unlink",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6765,7 +7032,8 @@
       "symbol": "discard_empty_generation",
       "call": "marker.read_text",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6773,7 +7041,8 @@
       "symbol": "discard_empty_generation",
       "call": "directory.iterdir",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6781,7 +7050,8 @@
       "symbol": "_sweep_generation",
       "call": "path.is_file",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6789,7 +7059,8 @@
       "symbol": "_sweep_generation",
       "call": "path.unlink",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6797,7 +7068,8 @@
       "symbol": "reclaim",
       "call": "root.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6805,7 +7077,8 @@
       "symbol": "reclaim",
       "call": "path.is_file",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6813,7 +7086,8 @@
       "symbol": "reclaim",
       "call": "path.read_text",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6821,7 +7095,8 @@
       "symbol": "prepare",
       "call": "data.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6829,7 +7104,8 @@
       "symbol": "prepare",
       "call": "Path(override).expanduser().resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6837,7 +7113,8 @@
       "symbol": "reclaim",
       "call": "chunk.unlink",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6845,7 +7122,8 @@
       "symbol": "_remove_directory",
       "call": "parent.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6853,7 +7131,8 @@
       "symbol": "prepare",
       "call": "home.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6861,7 +7140,8 @@
       "symbol": "_archive_files",
       "call": "path.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6869,7 +7149,8 @@
       "symbol": "_remove_directory",
       "call": "parent.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6877,7 +7158,8 @@
       "symbol": "prepare",
       "call": "home.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -6885,7 +7167,8 @@
       "symbol": "_archive_files",
       "call": "path.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/maintenance.py",
@@ -6893,7 +7176,8 @@
       "symbol": "_orphan_imports",
       "call": "root.is_dir",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/maintenance.py",
@@ -6901,7 +7185,8 @@
       "symbol": "_orphan_imports",
       "call": "root.iterdir",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/maintenance.py",
@@ -6909,7 +7194,8 @@
       "symbol": "owns_import_stage",
       "call": "marker.is_file",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/maintenance.py",
@@ -6917,7 +7203,8 @@
       "symbol": "owns_import_stage",
       "call": "marker.read_text",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/workspaces.py",
@@ -6925,7 +7212,8 @@
       "symbol": "_workspace_in_use_by_other",
       "call": "Path(path).expanduser().resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/workspaces.py",
@@ -6933,7 +7221,8 @@
       "symbol": "resume_pending",
       "call": "path.resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/workspaces.py",
@@ -6941,7 +7230,8 @@
       "symbol": "gc_archived_workspaces",
       "call": "path.is_dir",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/workspaces.py",
@@ -6949,7 +7239,8 @@
       "symbol": "canonical_path",
       "call": "Path(path).expanduser().resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/kanban/postgres/workspaces.py",
@@ -6957,7 +7248,8 @@
       "symbol": "_workspace_in_use_by_other",
       "call": "Path(other).expanduser().resolve",
       "task": 13,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/metrics/package_exports.py",
@@ -6965,7 +7257,8 @@
       "symbol": "_ensure_private",
       "call": "path.mkdir",
       "task": 11,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/metrics/postgres/store.py",
@@ -6973,7 +7266,8 @@
       "symbol": "PostgresMetricsStore._prune_expired_history",
       "call": "(self.outbox_directory / f'{package_id}.json').unlink",
       "task": 11,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/rooms/attachments/files.py",
@@ -6981,7 +7275,8 @@
       "symbol": "replay_cleanup",
       "call": "store._blob_path(blob_id).unlink",
       "task": 14,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/rooms/attachments/files.py",
@@ -6989,7 +7284,8 @@
       "symbol": "sweep_locked",
       "call": "store.blob_root.iterdir",
       "task": 14,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/rooms/attachments/files.py",
@@ -6997,7 +7293,8 @@
       "symbol": "sweep_locked",
       "call": "quarantine.unlink",
       "task": 14,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/rooms/attachments/files.py",
@@ -7005,7 +7302,8 @@
       "symbol": "sweep_locked",
       "call": "os.replace",
       "task": 14,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/rooms/attachments/files.py",
@@ -7013,7 +7311,8 @@
       "symbol": "AttachmentContent._open_blob",
       "call": "os.open",
       "task": 14,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/sessions/postgres/support/retired_files.py",
@@ -7021,7 +7320,8 @@
       "symbol": "remove",
       "call": "Path(sessions_dir).resolve",
       "task": 9,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/sessions/postgres/support/retired_files.py",
@@ -7029,7 +7329,8 @@
       "symbol": "remove",
       "call": "target.unlink",
       "task": 9,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     },
     {
       "source": "hermes_db/domains/sessions/postgres/support/retired_files.py",
@@ -7037,7 +7338,8 @@
       "symbol": "remove",
       "call": "target.resolve",
       "task": 9,
-      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences."
+      "rule": "Classify actual filesystem I/O versus value-only path operation; move real effects to the application owner, preserve original fences.",
+      "reviewed_in": 16
     }
   ],
   "non_python_consumer_files": [
@@ -7048,8 +7350,10 @@
       ],
       "classification": "active_consumer_review",
       "task": 16,
-      "status": "pending",
-      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable"
+      "status": "completed",
+      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "apps/shared/src/gateway-contract.openrpc.json",
@@ -7058,38 +7362,46 @@
       ],
       "classification": "active_consumer_review",
       "task": 16,
-      "status": "pending",
-      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable"
+      "status": "completed",
+      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/debug/postgresql-insert-counts.md",
       "lines": [
         10
       ],
-      "classification": "active_consumer_review",
+      "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable"
+      "status": "completed",
+      "rule": "Dated debug records are historical failure/recovery evidence,not active import guidance;preserve bytes and provenance.",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/debug/unified-database-final-regressions.md",
       "lines": [
         127
       ],
-      "classification": "active_consumer_review",
+      "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable"
+      "status": "completed",
+      "rule": "Dated debug records are historical failure/recovery evidence,not active import guidance;preserve bytes and provenance.",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/debug/unified-database-merge-legacy-display.md",
       "lines": [
         11
       ],
-      "classification": "active_consumer_review",
+      "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable"
+      "status": "completed",
+      "rule": "Dated debug records are historical failure/recovery evidence,not active import guidance;preserve bytes and provenance.",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/designs/hermes-db-package-baseline.json",
@@ -7520,8 +7832,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/designs/hermes-db-package-baseline.md",
@@ -7533,8 +7847,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/designs/hermes-db-package-final-freeze.json",
@@ -8167,8 +8483,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/designs/hermes-db-package-layout.md",
@@ -8181,8 +8499,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/designs/hermes-db-package-map.json",
@@ -9532,8 +9852,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/designs/hermes-db-package-reference-baseline.json",
@@ -11631,8 +11953,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/designs/hermes-db-persistence-scope-freeze.json",
@@ -12276,8 +12600,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/designs/hermes-db-persistence-scope-map.json",
@@ -12430,8 +12756,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/designs/hermes-db-persistence-scope.md",
@@ -12441,8 +12769,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/designs/multi-user-web-chat.md",
@@ -12451,8 +12781,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/designs/postgresql-session-storage.md",
@@ -12463,8 +12795,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/designs/postgresql-storage-code-layout.md",
@@ -12486,8 +12820,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/designs/sqlite-postgresql-research.md",
@@ -12498,8 +12834,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/designs/unified-database-backends.md",
@@ -12515,8 +12853,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/designs/unified-database-matrix-protocol.md",
@@ -12525,8 +12865,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/plans/hermes-db-package-layout-plan.md",
@@ -12676,8 +13018,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/plans/hermes-db-persistence-scope-plan.md",
@@ -12727,8 +13071,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/plans/postgresql-session-storage-contracts.md",
@@ -12737,8 +13083,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/plans/postgresql-session-storage-plan.md",
@@ -12863,8 +13211,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/plans/unified-database-backends-plan.md",
@@ -13030,8 +13380,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/hermes-db-package-layout-review.md",
@@ -13040,8 +13392,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/hermes-db-persistence-scope-review.md",
@@ -13053,8 +13407,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/postgresql-core-review.md",
@@ -13069,8 +13425,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/postgresql-initialization-review.md",
@@ -13079,8 +13437,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/postgresql-insert-counts-review.md",
@@ -13090,8 +13450,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/postgresql-session-storage-review.md",
@@ -13106,8 +13468,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/postgresql-surface-projections-review.md",
@@ -13117,8 +13481,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/unified-database-collaboration-followup-review.md",
@@ -13129,8 +13495,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/unified-database-collaboration-review.md",
@@ -13145,8 +13513,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/unified-database-cron-consumers-followup-review.md",
@@ -13155,8 +13525,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/unified-database-foundation-operations-followup-review.md",
@@ -13172,8 +13544,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/unified-database-foundation-operations-review.md",
@@ -13187,8 +13561,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/unified-database-matrix-followup-review.md",
@@ -13203,8 +13579,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/unified-database-matrix-supervisor-followup-review.md",
@@ -13216,8 +13594,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/unified-database-merge-collaboration-review.md",
@@ -13233,8 +13613,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/unified-database-merge-foundation-review.md",
@@ -13254,8 +13636,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/unified-database-merge-plugins-review.md",
@@ -13285,8 +13669,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/unified-database-metrics-worker-snapshot-followup-review.md",
@@ -13298,8 +13684,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/unified-database-native-late-failures-review.md",
@@ -13308,8 +13696,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/unified-database-plugins-acceptance-review.md",
@@ -13319,8 +13709,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/unified-database-plugins-final-candidate-review.md",
@@ -13335,8 +13727,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/unified-database-retaindb-worker-boundary-review.md",
@@ -13347,8 +13741,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/unified-database-worker-metrics-implementation-review.md",
@@ -13357,8 +13753,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/unified-database-worker-metrics-protocol-review.md",
@@ -13368,8 +13766,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/worker-domain-consumers-review.md",
@@ -13381,8 +13781,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "docs/reviews/worker-domain-first-fix-review.md",
@@ -13393,8 +13795,10 @@
       ],
       "classification": "historical_evidence_keep",
       "task": 16,
-      "status": "pending",
-      "rule": "Keep actual past commands/hash evidence"
+      "status": "completed",
+      "rule": "Keep actual past commands/hash evidence",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "hermes_db/domains/README.md",
@@ -13403,8 +13807,10 @@
       ],
       "classification": "active_consumer_review",
       "task": 16,
-      "status": "pending",
-      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable"
+      "status": "completed",
+      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "scripts/boundary_lint_baseline.json",
@@ -13427,8 +13833,10 @@
       ],
       "classification": "active_consumer_review",
       "task": 16,
-      "status": "pending",
-      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable"
+      "status": "completed",
+      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "scripts/hermes_db_boundary_rules.json",
@@ -14242,8 +14650,10 @@
       ],
       "classification": "active_consumer_review",
       "task": 16,
-      "status": "pending",
-      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable"
+      "status": "completed",
+      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "website/docs/developer-guide/codebase-ownership.md",
@@ -14252,8 +14662,10 @@
       ],
       "classification": "active_consumer_review",
       "task": 16,
-      "status": "pending",
-      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable"
+      "status": "completed",
+      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "website/docs/developer-guide/database-backends.md",
@@ -14284,8 +14696,10 @@
       ],
       "classification": "active_consumer_review",
       "task": 16,
-      "status": "pending",
-      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable"
+      "status": "completed",
+      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "website/docs/developer-guide/session-storage.md",
@@ -14297,8 +14711,10 @@
       ],
       "classification": "active_consumer_review",
       "task": 16,
-      "status": "pending",
-      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable"
+      "status": "completed",
+      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     },
     {
       "path": "website/docs/user-guide/postgresql-session-storage.md",
@@ -14307,8 +14723,10 @@
       ],
       "classification": "active_consumer_review",
       "task": 16,
-      "status": "pending",
-      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable"
+      "status": "completed",
+      "rule": "Update actual moved module/symbol paths in same implementation task; verify wire/type build if applicable",
+      "reviewed_in": 16,
+      "evidence": "docs/designs/hermes-db-two-layer-task16.json"
     }
   ]
 }

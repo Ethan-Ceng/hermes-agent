@@ -20,7 +20,7 @@ from typing import Any, Dict, Iterator, List, Optional
 
 from hermes_constants import get_hermes_home
 from hermes_time import now as _hermes_now
-from hermes_db.domains.cron.api import domain_operation
+from cron.storage_application import domain_operation
 from hermes_db.errors import StorageError
 
 logger = logging.getLogger(__name__)

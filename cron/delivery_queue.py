@@ -26,7 +26,7 @@ from agent.redact import redact_sensitive_text
 from cron.executions import _owner_is_live, _process_start_time
 from hermes_constants import get_hermes_home
 from hermes_time import now as _hermes_now
-from hermes_db.domains.cron.api import domain_operation
+from cron.storage_application import domain_operation
 
 logger = logging.getLogger(__name__)
 

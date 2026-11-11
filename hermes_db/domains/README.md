@@ -23,7 +23,7 @@ Register PG support only when the actual adapter and explicit migration exist.
 reports supported modules, missing tables and `full_system_ready` separately from
 readiness of currently implemented modules. An unsupported or uninitialized domain
 fails explicitly. Opening a resource never creates tables. New tables use
-`scoped_table`/`scoped_fk` and the shared schema translation; revisions 0001–0004
+`scoped_table`/`scoped_fk` and the shared schema translation; all 31 revisions through 0031
 remain frozen. Domain migrations are added alongside their actual implementation,
 not as placeholder tables or empty revisions.
 
@@ -89,6 +89,6 @@ remain classified and immutable. Authority changes freeze old producer scopes.
 Policy cursors, bounded transcripts, terminal publication references and router
 claims also persist on Core. Opaque projection identities use bytes; indexed
 event query keys do not enter event identity. Model waits hold no connection and
-prepared answers retain their captured authority/log fences. Attachment
-publication remains a separate integration task; these contracts alone do not
-establish full rooms or system readiness.
+prepared answers retain their captured authority/log fences. Attachment publication and authorized file reads belong to Gateway application owners;business metadata and claim SQL borrow the original connection. These contracts do not establish full system readiness.
+
+Application composition is outside this package. `api.py` retains business DTO/resources only;Cron dispatch is `cron.storage_application`,Verification is `agent.verification_storage`,plugin acquisition is the published `plugins.plugin_storage`. Use the actual definition as the test patch seam. Ordinary opens never initialize Schema.

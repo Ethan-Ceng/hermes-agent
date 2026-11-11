@@ -25,7 +25,7 @@ in SQLite mode.
 | Existing facade and selected domain adapter | Preserve public business inputs, records and errors |
 | `hermes_db/domains/` | Business resources, captured scope and named persistence operations |
 | `hermes_db/core/` | Driver-free values and the business capability catalog |
-| `hermes_db/integration/` | Store composition, profile binding and cross-domain coordination |
+| Application owners in `hermes_cli/`, `agent/`, `gateway/`, `cron/`, and the published plugin facade | Profile/secret resolution, concrete store composition, Worker/RPC, events and file workflows |
 | `hermes_db/domains/<domain>/postgres/queries/` | Core statements, scoped predicates and lossless row conversion |
 | `hermes_db/domains/<domain>/postgres/operations/` | Locks, quotas, state transitions, receipts and multi-step transactions |
 | `hermes_db/tables/` | Shared current Core metadata, composite keys and scope-preserving foreign keys |
@@ -50,13 +50,13 @@ outbox. Projects shares slug and path rules with the native implementation in
 workflow modules where they have distinct responsibilities.
 
 PG sessions use explicit catalog, messages, history, lifecycle and usage components,
-plus profile transfer coordination. `hermes_db/integration/session_composition.py`
+plus profile transfer coordination. `hermes_cli/db_sessions.py`
 binds them to one captured context; transactions, deferred accounting, close state
 and transcript snapshot pins retain the same resource identity. Native and PG
 share pure transcript, search and validation rules.
 
 Runtime admissions, local history, policy, workers and media borrow that session
-context through `hermes_db/integration/runtime_composition.py`. Writes retain the
+context through `hermes_cli/db_runtime.py`. Writes retain the
 profile binding; runtime reads reuse session snapshot pins and close state. The
 delegation ledger keeps its additional store fence on the same Connection.
 
@@ -64,7 +64,7 @@ Kanban persistence lives in named workflows directly under
 `hermes_db/domains/kanban/postgres/`: catalog/DAG retraction, claims, review,
 completion, dispatch, runs, files, workspaces, notifications, owners and
 maintenance. Profile/Board transfer and application callbacks are composed under
-`hermes_db/integration/`. Shared scoped statements and run evidence stay separate to preserve
+`hermes_cli/kanban_storage_<workflow>.py`. Shared scoped statements and run evidence stay separate to preserve
 a one-way import graph; receipts, effects and swarm retain their own lifecycle.
 
 Rooms use lifecycle, ownership, grants, tasks, work, policy and replication
@@ -73,16 +73,16 @@ owner; file gates, authorization snapshots and content I/O retain separate
 composition so no database connection spans byte I/O.
 
 Cron process identity, active-send tracking, profile-bound clocks and post-commit
-observers are supplied by `hermes_db/integration/cron_application.py`; its SQL
+observers are supplied by `cron/storage_application.py`; its SQL
 workflows keep their existing connection and lock ownership. RetainDB's HTTP
-client/thread coordination lives in `hermes_db/integration/retain_transport.py`,
+client/thread coordination lives in `plugins/memory/retaindb/transport.py`,
 while durable queue transitions remain in its domain. Hosted media decoding,
 retirement collection and API image compaction are composed at the owning profile.
 
 `scripts/hermes_db_boundary_lint.py`, included in `scripts/check`, enforces the
 infrastructure/domain/composition direction. Its review registry grants specific
 symbols to named consumers: shared values and pure policy, Agent transcript
-semantics, API dispatch and Native SQLite bridges have separate reasons. A new
+semantics and pure value rules have separate reasons. Business API files have no application-dispatch exemption;direct file/network/process effects and driver construction are rejected. A new
 helper needs review; approving one symbol does not approve the rest of its module.
 Native facades cannot be imported by lower PG workflows. Historical migrations
 remain frozen and do not receive runtime dependency permissions.
@@ -217,3 +217,13 @@ checks its supported installation, migration and business surfaces. Skips due
 to absent explicit installation arguments are not evidence of a passing release
 artifact. Record failures, platform coverage, exact commands and recovery points
 in the implementation plan, followed by final verification and independent review.
+
+## Explicit lifecycle and SDK resources
+
+`hermes_db/infra/` owns resolved source selection,connections,pools,transactions,technical errors and migration execution. Business modules own Schema resources and named queries. Application owners select the Profile and supply actual resource/connection providers. Ordinary acquisition validates installed versions and executes no DDL.
+
+Profile creation and `hermes db upgrade` provision Native session,domain,API and configured portable plugin resources. Portable plugin enablement initializes its owned dataset;opening `plugin_store()` only checks it. Existing plugin datasets require explicit upgrade. Matrix uses its real SDK upgrade table only during platform setup or `hermes matrix db upgrade`;ordinary crypto open checks the SDK version/tables without registering upgrades. Discord and RetainDB expose their own explicit `db status`/`db upgrade` lifecycles and preserve legacy local recovery data.
+
+Session and Runtime composition lives in `hermes_cli/db_sessions.py` and `db_runtime.py`;archive/media file workflows use `db_archive_files.py` and `db_media_retirement.py`. Kanban workflows live under `hermes_cli/kanban_storage_*.py`;Rooms file/authorization coordinators live under `gateway/hosted_room_attachment_*.py`,and TUI owns router lifecycle. Cron dispatch is in `cron/storage_application.py`,Verification dispatch in `agent/verification_storage.py`. Published `plugins.plugin_storage` captures plugin scope/Worker selection;Matrix actor/executor lifecycle belongs to `hermes_cli/db_matrix_runtime.py`. Business SQL remains in its named domain and borrows the original transaction connection.
+
+Changing backends selects an independent dataset:it performs no copy,dual write,back-migration or failure fallback,and does not replace a running session or its prompt cache. Historical migrations stay unchanged;the current chain remains0031 with31 revisions and29 table modules.

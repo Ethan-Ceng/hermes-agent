@@ -1,0 +1,169 @@
+{
+  "scope": "2026-11-12 user lean final acceptance for two-layer refactor;not a rerun of historical PG deep acceptance.",
+  "groups": {
+    "native_layer": {
+      "payload": "postgresql",
+      "hosts": [
+        "windows",
+        "linux"
+      ],
+      "files": [
+        "tests/scripts/test_hermes_db_boundary_lint.py",
+        "tests/hermes_db/contracts/test_infra_independence.py",
+        "tests/hermes_db/contracts/test_infra_resource_ownership.py",
+        "tests/hermes_db/contracts/test_api_resource_selection.py",
+        "tests/hermes_db/contracts/test_api_run_resource_selection.py",
+        "tests/gateway/test_api_sqlite_schema_lifecycle.py",
+        "tests/plugins/test_plugin_schema_lifecycle.py",
+        "tests/hermes_db/contracts/test_matrix_close.py"
+      ],
+      "reason": "Layer direction,technical isolation,resolved ownership,API acquisition,explicit Native schema and actual SDK close protocol;Windows SDK close remains a genuine Linux-only skip.",
+      "file_sha256": {
+        "tests/scripts/test_hermes_db_boundary_lint.py": "afcd549981789ca8f11b783fe8b7806f44519730130968108ae7e6d63c4780f5",
+        "tests/hermes_db/contracts/test_infra_independence.py": "b78b18c6fe64ba9d2135af256e73d07317bdcc0dd6e682d84a2e791ded838191",
+        "tests/hermes_db/contracts/test_infra_resource_ownership.py": "f2e265ffeb6151dc138a684b3ce28e7dd291ad53f15c9dfe5feb3d41cea63c90",
+        "tests/hermes_db/contracts/test_api_resource_selection.py": "d2eb294221d6112bdd5700ce490baaea830f304525fdef0fc740968ded980770",
+        "tests/hermes_db/contracts/test_api_run_resource_selection.py": "27d6163cf832275cd08a1621ded9bb341e34311c1edec06f19325153e81e1a49",
+        "tests/gateway/test_api_sqlite_schema_lifecycle.py": "79684b752eef3b04a2787a605b3358e9a48c5f6d7c7a1dead66d3277cc32c5ff",
+        "tests/plugins/test_plugin_schema_lifecycle.py": "937b8ac182d7be015d45552ffd2549caa3ff132cb4880e32f792fbecce89e2f4",
+        "tests/hermes_db/contracts/test_matrix_close.py": "82599d173ba931338f37ab56e494342a3d3e70e87b76eb938f871d73b527398a"
+      },
+      "workers": 2,
+      "runner": "scripts/run_tests.sh",
+      "file_timeout": 1200
+    },
+    "native_consumers": {
+      "payload": "postgresql",
+      "hosts": [
+        "windows",
+        "linux"
+      ],
+      "files": [
+        "tests/tui_gateway/test_session_resume_store_boundary.py",
+        "tests/hermes_cli/test_sessions_command_boundary.py",
+        "tests/hermes_db/contracts/test_native_http_turn.py",
+        "tests/hermes_db/contracts/test_dashboard_native_storage.py",
+        "tests/hermes_db/contracts/test_mutation_receipts.py"
+      ],
+      "reason": "Representative real application reads,HTTP/dashboard startup and mutation receipt/rollback contracts;no repeated full consumer suites.",
+      "file_sha256": {
+        "tests/tui_gateway/test_session_resume_store_boundary.py": "0348507dbbe1072193014365aadda5934ea4a1e12cf58584fa6df989da89c1ea",
+        "tests/hermes_cli/test_sessions_command_boundary.py": "85108a1e4c33dee060a547dbc64ee1df198b8ae45d12818ff125618c2edea480",
+        "tests/hermes_db/contracts/test_native_http_turn.py": "6783e9864ea45d64279ff7e09be7ff02eefbc613e0a3a9fd4b202cb53e487377",
+        "tests/hermes_db/contracts/test_dashboard_native_storage.py": "46cc01380438671a3081b365f6daaff663e7be66a437dc12529b09e2188913dd",
+        "tests/hermes_db/contracts/test_mutation_receipts.py": "9b6bb7bd5273624c73eef44b32c63d68e39cdf8d726bb7484cce3d70a166ffd3"
+      },
+      "workers": 2,
+      "runner": "scripts/run_tests.sh",
+      "file_timeout": 1200
+    },
+    "sqlite_payload": {
+      "payload": "sqlite",
+      "hosts": [
+        "windows",
+        "linux"
+      ],
+      "files": [
+        "tests/hermes_db/contracts/test_infra_resource_ownership.py",
+        "tests/hermes_db/contracts/test_plugins_sqlite_optional_drivers.py",
+        "tests/hermes_db/contracts/test_discord_sqlite_optional_drivers.py"
+      ],
+      "reason": "Fresh PM SQLite payload actually writes/restarts without PostgreSQL dependencies;portable/Discord optional-driver boundary.",
+      "file_sha256": {
+        "tests/hermes_db/contracts/test_infra_resource_ownership.py": "f2e265ffeb6151dc138a684b3ce28e7dd291ad53f15c9dfe5feb3d41cea63c90",
+        "tests/hermes_db/contracts/test_plugins_sqlite_optional_drivers.py": "950524985bfafd9622dfb7342a96162cc9c02dedc3e0e7f81104b319d462af52",
+        "tests/hermes_db/contracts/test_discord_sqlite_optional_drivers.py": "af15ce54c606917bec7a9c396cc7b49b91a0f2889f77d845551d52c07917a8a0"
+      },
+      "workers": 2,
+      "runner": "scripts/run_tests.sh",
+      "file_timeout": 1200
+    },
+    "sqlite_matrix_payload": {
+      "payload": "sqlite-matrix",
+      "hosts": [
+        "linux"
+      ],
+      "files": [
+        "tests/gateway/test_matrix_sqlite_schema_lifecycle.py"
+      ],
+      "reason": "Project PM ships real mautrix encryption only on Linux;explicit SDK upgrade,ordinary0DDL,legacy preservation,newPID crypto recovery without PG payload.",
+      "file_sha256": {
+        "tests/gateway/test_matrix_sqlite_schema_lifecycle.py": "d9e098ca70b232888aee0c0b298f4145b6424e0d69f4719556547d4c3e1f889b"
+      },
+      "workers": 2,
+      "runner": "scripts/run_tests.sh",
+      "file_timeout": 1200
+    },
+    "distribution": {
+      "payload": "postgresql",
+      "hosts": [
+        "windows",
+        "linux"
+      ],
+      "files": [
+        "tests/hermes_db/test_distribution.py"
+      ],
+      "reason": "Independent source bundle,real SQLite business write/newPID restoration and current migration resources;Linux actual SDK SQLite business restoration uses separate matrix-only payload.",
+      "required_options": [
+        "--hermes-distribution-source",
+        "--hermes-sqlite-python",
+        "--hermes-postgresql-python"
+      ],
+      "linux_options": [
+        "--hermes-sqlite-matrix-python"
+      ],
+      "file_sha256": {
+        "tests/hermes_db/test_distribution.py": "b2dd462fcafd66bd128414a4ac9d098e707d1af9acbb770858d6d18b8b442ecc"
+      },
+      "workers": 2,
+      "runner": "scripts/run_tests.sh",
+      "file_timeout": 1200
+    },
+    "pg_layer": {
+      "payload": "postgresql",
+      "hosts": [
+        "linux"
+      ],
+      "files": [
+        "tests/hermes_db/postgresql/test_infra_independence.py",
+        "tests/hermes_db/postgresql/test_transaction_failures.py",
+        "tests/hermes_db/postgresql/test_merge_commit_recovery.py",
+        "tests/hermes_db/postgresql/test_backend_dataset_selection.py",
+        "tests/hermes_db/postgresql/test_distribution_initialization.py",
+        "tests/hermes_db/postgresql/test_matrix_sdk_flows.py",
+        "tests/hermes_db/postgresql/test_matrix_close.py"
+      ],
+      "reason": "Fixture-owned random schema;generic infra,real COMMIT-after-ACK-loss,locks/rollback,independent Profile datasets,0030→0031/repeatedupgrade,installedPG full business newPID/multiscope with allSQLite connections rejected,real SDK/close.",
+      "required_options": [
+        "--postgres-test-config",
+        "--hermes-distribution-source",
+        "--hermes-sqlite-python",
+        "--hermes-postgresql-python",
+        "--hermes-sqlite-matrix-python"
+      ],
+      "pytest_args": [
+        "-m",
+        "integration"
+      ],
+      "file_sha256": {
+        "tests/hermes_db/postgresql/test_infra_independence.py": "13289e8818083bb98a5c45418c161461082c02764d9a7094d33251a8b0b04635",
+        "tests/hermes_db/postgresql/test_transaction_failures.py": "fc8ea6365f99a48aae1f268a2f8bf2ab352b23748f823223647bef211a1827f1",
+        "tests/hermes_db/postgresql/test_merge_commit_recovery.py": "f04f5df1e5c737fb46ccedba270a10830861618b750688a9063c67e2404aef4b",
+        "tests/hermes_db/postgresql/test_backend_dataset_selection.py": "82ac87e25900009367220c5b47a55aea487e1023c07d04d7e7e48dc990065efd",
+        "tests/hermes_db/postgresql/test_distribution_initialization.py": "dce6d90accf1f25ecbbfc3e83fe05c12430fef4e9e67e94819cbc80426f4bdd2",
+        "tests/hermes_db/postgresql/test_matrix_sdk_flows.py": "e72762e8a351727594475b795bff2a471483a320806f726a6135554fafed167c",
+        "tests/hermes_db/postgresql/test_matrix_close.py": "4a4deebf8da23b09f3a17b4b4de74b2218e3ecec5376b952afd1ffe2dd7a07d5"
+      },
+      "workers": 1,
+      "runner": "scripts/run_tests.sh",
+      "file_timeout": 1200
+    }
+  },
+  "source_freeze": "Task17 must export this manifest with source and driver from one Git archive;five new PM payloads;all required groups actual exit0.",
+  "independent_gaps": [
+    "Original unified backend Task24",
+    "Seven non-WSL platform evidence gaps",
+    "Eight historical Windows baseline issues"
+  ],
+  "optional_historical_deep_suites": "Not mandatory and not claimed as rerun;all original tests/assertions retained."
+}

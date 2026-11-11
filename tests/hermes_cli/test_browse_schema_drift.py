@@ -92,6 +92,7 @@ def test_owned_lagging_store_is_not_written_and_names_the_remedy(tmp_path):
         owner.close()
     assert path.read_bytes() == before
     assert not set(_ADDED_TABLES) & _tables(path)
+    assert 'corrupt' not in str(caught.value.detail)
 
 
 def test_corrupt_store_still_returns_503(tmp_path):

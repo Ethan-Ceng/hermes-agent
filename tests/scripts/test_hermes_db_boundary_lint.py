@@ -58,3 +58,21 @@ def test_review_cannot_override_dependency_direction(checker, tmp_path, consumer
                            "category": "entry-bridge", "reason": "Cannot waive direction"}]}
     _, errors = checker.check(tmp_path, rules)
     assert errors and all("cannot" in error for error in errors)
+
+
+@pytest.mark.parametrize("consumer", ["hermes_db/domains/cron/api.py", "hermes_db/settings.py"])
+def test_api_and_technical_root_cannot_select_application(checker, tmp_path, consumer):
+    target = "hermes_cli.db_setup.resolve_db_configuration"
+    put(tmp_path, "hermes_cli/db_setup.py", "def resolve_db_configuration(): pass\n")
+    put(tmp_path, consumer, "from hermes_cli.db_setup import resolve_db_configuration\nvalue = resolve_db_configuration()\n")
+    rules = {"reviews": [{"target": target, "consumers": [consumer],
+        "category": "entry-bridge", "reason": "An old entry exemption must not override direction"}]}
+    _, errors = checker.check(tmp_path, rules)
+    assert errors and all("cannot" in error for error in errors)
+
+
+@pytest.mark.parametrize("effect", ["open('state', 'w')", "path.write_bytes(b'data')", "subprocess.run(['worker'])"])
+def test_business_cannot_perform_file_or_process_effects(checker, tmp_path, effect):
+    put(tmp_path, "hermes_db/domains/example/operation.py", f"import subprocess\ndef apply(path):\n    return {effect}\n")
+    _, errors = checker.check(tmp_path, {"reviews": []})
+    assert errors and all("cannot" in error for error in errors)

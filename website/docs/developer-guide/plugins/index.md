@@ -1176,6 +1176,9 @@ current = store.get("job-1")
 store.put("job-1", {"status": "done"}, expected_revision=current.revision)
 ```
 
+The host provisions portable storage when enabling the plugin or creating/upgrading its Profile. `plugin_store()` opens an existing dataset and executes no DDL;run `hermes db upgrade` for an existing Profile that lacks the Schema. Plugin-owned SDK/recovery resources use their setup or explicit plugin `db upgrade` command. Native and PG selections are independent datasets.
+
+
 `get` returns a `PluginRecord` (`key`, JSON `value`, `revision`, `expires_at`) or
 `None`. `expected_revision=0` creates only when absent or expired; a positive
 revision compares exactly, and `None` writes unconditionally. Stale comparisons

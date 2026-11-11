@@ -17,7 +17,8 @@
       35,
       41,
       231
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/conftest.py",
@@ -36,7 +37,8 @@
       16,
       18,
       19
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_append_message_after_close.py",
@@ -52,7 +54,8 @@
       83,
       116,
       121
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_append_messages_batch.py",
@@ -72,7 +75,8 @@
       123,
       142,
       163
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_auto_archived_lineage_reactivation.py",
@@ -85,7 +89,8 @@
     "lines": [
       13,
       19
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_auto_vacuum_holder_gate.py",
@@ -98,7 +103,8 @@
     "lines": [
       26,
       28
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_auto_vacuum_in_process_holder_gate.py",
@@ -122,7 +128,8 @@
       94,
       104,
       106
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_automatic_ended_stamp.py",
@@ -146,7 +153,8 @@
       109,
       117,
       150
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_aux_usage_accounting.py",
@@ -161,7 +169,8 @@
       18,
       123,
       169
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_background_review_session_isolation.py",
@@ -176,7 +185,8 @@
       79,
       116,
       119
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_bot_chat_archive_retire.py",
@@ -207,7 +217,8 @@
       103,
       107,
       110
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_bounded_recent_sessions.py",
@@ -222,7 +233,8 @@
       13,
       29,
       40
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_canonical_title_guard.py",
@@ -273,7 +285,8 @@
       260,
       279,
       301
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_clean_close_residual_poison.py",
@@ -286,7 +299,8 @@
     "lines": [
       13,
       20
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_compacted_message_reactions.py",
@@ -296,7 +310,12 @@
     "providers": [
       365
     ],
-    "lines": [5,14,49]
+    "lines": [
+      5,
+      14,
+      49
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_compacted_tool_result_paints_once.py",
@@ -313,7 +332,8 @@
       7,
       15,
       24
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_compaction_carried_tail_not_cloned.py",
@@ -341,7 +361,8 @@
       209,
       221,
       234
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_composite_carrier_rewind.py",
@@ -367,7 +388,8 @@
       318,
       349,
       371
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_compression_created_source.py",
@@ -375,7 +397,11 @@
       4,
       16
     ],
-    "providers": [365,369,411],
+    "providers": [
+      365,
+      369,
+      411
+    ],
     "lines": [
       8,
       35,
@@ -395,7 +421,8 @@
       203,
       205,
       208
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_compression_lease_refresh_before_publish.py",
@@ -416,7 +443,8 @@
       133,
       150,
       165
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_compression_lineage_guard.py",
@@ -447,7 +475,8 @@
       283,
       305,
       329
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_compression_watermark_commit.py",
@@ -480,7 +509,8 @@
       250,
       294,
       325
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_conftest_wal_gate.py",
@@ -493,7 +523,8 @@
     "lines": [
       17,
       40
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_conversation_root.py",
@@ -506,7 +537,8 @@
     "lines": [
       9,
       14
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_corrupt_row_robustness.py",
@@ -522,7 +554,8 @@
       64,
       99,
       111
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_cron_run_sessions.py",
@@ -543,7 +576,8 @@
       119,
       125,
       127
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_cross_vm_fs_wal_refusal.py",
@@ -575,7 +609,8 @@
       115,
       116,
       119
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_dedupe_migration_contention.py",
@@ -590,7 +625,8 @@
       28,
       75,
       103
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_delegate_cascade.py",
@@ -612,7 +648,8 @@
       75,
       84,
       96
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_delegate_child_routing_inheritance.py",
@@ -628,7 +665,8 @@
       32,
       43,
       59
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_delegate_marker_backfill_v33.py",
@@ -652,12 +690,21 @@
       76,
       89,
       102
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_delete_branched_root_leftovers.py",
-    "tasks": [4,9,16],
-    "providers": [170,365,411],
+    "tasks": [
+      4,
+      9,
+      16
+    ],
+    "providers": [
+      170,
+      365,
+      411
+    ],
     "lines": [
       11,
       20,
@@ -670,7 +717,8 @@
       49,
       50,
       52
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_delete_compression_chain.py",
@@ -683,7 +731,8 @@
     "lines": [
       23,
       39
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_delete_mode_read_busy_wait.py",
@@ -693,7 +742,12 @@
     "providers": [
       365
     ],
-    "lines": [15,35,52]
+    "lines": [
+      15,
+      35,
+      52
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_delete_session_write_guards.py",
@@ -714,7 +768,8 @@
       56,
       84,
       99
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_deleted_wal_checkpoint_guard.py",
@@ -736,11 +791,16 @@
       71,
       80,
       115
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_deleted_wal_generation_guard.py",
-    "tasks": [3,4,16],
+    "tasks": [
+      3,
+      4,
+      16
+    ],
     "providers": [
       365,
       371,
@@ -785,7 +845,8 @@
       525,
       542,
       561
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_disk_full_error.py",
@@ -807,7 +868,8 @@
       28,
       29,
       30
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_display_dedupe_pruned_tool_payload.py",
@@ -820,7 +882,8 @@
     "lines": [
       17,
       22
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_display_projection_parity.py",
@@ -835,7 +898,8 @@
       31,
       195,
       199
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_display_read_identity_work.py",
@@ -851,7 +915,8 @@
       33,
       46,
       55
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_display_read_removed_rows.py",
@@ -870,7 +935,8 @@
       67,
       68,
       84
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_display_set_one_generation.py",
@@ -883,7 +949,8 @@
     "lines": [
       6,
       10
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_display_split_heal.py",
@@ -898,7 +965,8 @@
       69,
       83,
       93
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_downgrade_delete_guard.py",
@@ -906,7 +974,11 @@
       4,
       16
     ],
-    "providers": [365,374,411],
+    "providers": [
+      365,
+      374,
+      411
+    ],
     "lines": [
       13,
       14,
@@ -920,7 +992,8 @@
       70,
       71,
       76
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_empty_sweep_archived_transcript.py",
@@ -933,7 +1006,8 @@
     "lines": [
       38,
       43
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_fts_cjk_index_retirement.py",
@@ -954,7 +1028,8 @@
       110,
       113,
       118
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_fts_cjk_retirement_concurrency.py",
@@ -962,7 +1037,11 @@
       4,
       16
     ],
-    "providers": [365,375,409],
+    "providers": [
+      365,
+      375,
+      409
+    ],
     "lines": [
       10,
       11,
@@ -1007,7 +1086,8 @@
       299,
       308,
       311
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_fts_fresh_bootstrap_admission.py",
@@ -1024,7 +1104,8 @@
       49,
       51,
       64
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_fts_holder_instance_scope.py",
@@ -1048,7 +1129,8 @@
       204,
       225,
       239
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_fts_index_fail_open.py",
@@ -1070,7 +1152,8 @@
       216,
       222,
       241
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_fts_layout_drift.py",
@@ -1161,7 +1244,8 @@
       488,
       498,
       499
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_fts_optimize_progress.py",
@@ -1184,7 +1268,8 @@
       141,
       142,
       168
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_fts_orphan_shadow_repair.py",
@@ -1194,7 +1279,12 @@
     "providers": [
       365
     ],
-    "lines": [10,40,56]
+    "lines": [
+      10,
+      40,
+      56
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_fts_projection_integrity.py",
@@ -1215,11 +1305,16 @@
       105,
       119,
       121
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_fts_rebuild_admission.py",
-    "tasks": [4,7,16],
+    "tasks": [
+      4,
+      7,
+      16
+    ],
     "providers": [
       365,
       367,
@@ -1289,7 +1384,8 @@
       635,
       648,
       673
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_fts_rebuild_corruption_class.py",
@@ -1302,11 +1398,16 @@
     "lines": [
       15,
       20
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_fts_runtime_rebuild.py",
-    "tasks": [4,7,16],
+    "tasks": [
+      4,
+      7,
+      16
+    ],
     "providers": [
       365,
       367,
@@ -1406,7 +1507,8 @@
       982,
       983,
       1011
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_fts_tool_write_bounds.py",
@@ -1429,7 +1531,8 @@
       189,
       194,
       201
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_fts_trigram_cron_exclusion.py",
@@ -1461,7 +1564,8 @@
       254,
       261,
       276
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_fts_trigram_subagent_exclusion.py",
@@ -1488,7 +1592,8 @@
       104,
       134,
       139
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_fts_update_of_narrowing.py",
@@ -1506,7 +1611,8 @@
       95,
       126,
       137
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_get_anchored_view.py",
@@ -1519,7 +1625,8 @@
     "lines": [
       9,
       14
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_get_messages_around.py",
@@ -1532,7 +1639,8 @@
     "lines": [
       10,
       15
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_get_messages_include_compacted.py",
@@ -1559,7 +1667,8 @@
       461,
       487,
       497
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_guest_durability_barriers.py",
@@ -1574,7 +1683,8 @@
       32,
       49,
       66
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_hermes_state.py",
@@ -1802,7 +1912,8 @@
       6389,
       6418,
       6420
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_hermes_state_archive_open.py",
@@ -1815,7 +1926,8 @@
     "lines": [
       4,
       9
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_hermes_state_compression_busy_retry.py",
@@ -1837,7 +1949,8 @@
       65,
       81,
       84
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_hermes_state_compression_locks.py",
@@ -1871,7 +1984,8 @@
       169,
       178,
       207
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_hermes_state_ids.py",
@@ -1887,7 +2001,8 @@
       18,
       19,
       21
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_hermes_state_readonly_preflight.py",
@@ -1913,7 +2028,8 @@
       230,
       233,
       238
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_hermes_state_ux_messages.py",
@@ -1940,7 +2056,8 @@
       69,
       71,
       73
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_hermes_state_wal_fallback.py",
@@ -1991,7 +2108,8 @@
       620,
       640,
       648
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_history_binding_moved_store.py",
@@ -1999,7 +2117,11 @@
       4,
       16
     ],
-    "providers": [365,392,411],
+    "providers": [
+      365,
+      392,
+      411
+    ],
     "lines": [
       10,
       11,
@@ -2015,7 +2137,8 @@
       39,
       40,
       44
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_history_login_label.py",
@@ -2037,7 +2160,8 @@
       93,
       106,
       108
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_import_deleted_session.py",
@@ -2045,7 +2169,11 @@
       4,
       16
     ],
-    "providers": [365,399,411],
+    "providers": [
+      365,
+      399,
+      411
+    ],
     "lines": [
       11,
       12,
@@ -2059,7 +2187,8 @@
       42,
       50,
       56
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_isolation_marker_env.py",
@@ -2072,7 +2201,8 @@
     "lines": [
       76,
       85
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_journal_mode_config.py",
@@ -2140,7 +2270,8 @@
       320,
       328,
       336
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_journal_mode_upgrade_warning.py",
@@ -2173,7 +2304,8 @@
       279,
       287,
       293
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_lease_pid_namespace.py",
@@ -2181,7 +2313,11 @@
       4,
       16
     ],
-    "providers": [365,367,402],
+    "providers": [
+      365,
+      367,
+      402
+    ],
     "lines": [
       22,
       23,
@@ -2193,11 +2329,16 @@
       82,
       83,
       88
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_ledger_delete_consistency.py",
-    "tasks": [4,9,16],
+    "tasks": [
+      4,
+      9,
+      16
+    ],
     "providers": [
       170,
       365,
@@ -2274,7 +2415,8 @@
       303,
       304,
       305
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_legacy_refusal_repair.py",
@@ -2306,7 +2448,8 @@
       183,
       198,
       218
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_list_sessions_recency.py",
@@ -2316,7 +2459,12 @@
     "providers": [
       365
     ],
-    "lines": [11,16,23]
+    "lines": [
+      11,
+      16,
+      23
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_live_db_guard_ancestry.py",
@@ -2333,7 +2481,8 @@
       144,
       162,
       169
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_live_db_isolation_guard.py",
@@ -2357,12 +2506,21 @@
       105,
       125,
       137
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_local_lineage_cache.py",
-    "tasks": [4,9,16],
-    "providers": [170,365,384],
+    "tasks": [
+      4,
+      9,
+      16
+    ],
+    "providers": [
+      170,
+      365,
+      384
+    ],
     "lines": [
       9,
       10,
@@ -2396,7 +2554,8 @@
       172,
       176,
       177
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_message_uid.py",
@@ -2421,7 +2580,8 @@
       326,
       461,
       474
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_named_profile_session_db.py",
@@ -2437,7 +2597,8 @@
       119,
       245,
       286
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_never_active_keyed_prune.py",
@@ -2450,7 +2611,8 @@
     "lines": [
       18,
       25
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_no_more_rows_retry.py",
@@ -2467,7 +2629,8 @@
       29,
       30,
       86
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_orphan_gateway_session_repair.py",
@@ -2482,7 +2645,8 @@
       34,
       332,
       333
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_orphan_sweep_cross_backend.py",
@@ -2498,7 +2662,8 @@
       46,
       53,
       61
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_pinned_archived_sidebar.py",
@@ -2511,7 +2676,8 @@
     "lines": [
       12,
       17
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_pinned_lineage.py",
@@ -2521,7 +2687,12 @@
     "providers": [
       365
     ],
-    "lines": [6,27,45]
+    "lines": [
+      6,
+      27,
+      45
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_placeholder_provenance.py",
@@ -2531,7 +2702,12 @@
     "providers": [
       365
     ],
-    "lines": [2,9,28]
+    "lines": [
+      2,
+      9,
+      28
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_prune_activity_recency.py",
@@ -2541,7 +2717,12 @@
     "providers": [
       365
     ],
-    "lines": [5,9,54]
+    "lines": [
+      5,
+      9,
+      54
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_purge_profile_state.py",
@@ -2558,7 +2739,8 @@
       19,
       70,
       71
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_read_path_transient_ioerr.py",
@@ -2575,7 +2757,8 @@
       34,
       41,
       61
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_readonly_fts_decode_error.py",
@@ -2592,7 +2775,8 @@
       77,
       117,
       134
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_reasoning_roundtrip.py",
@@ -2605,7 +2789,8 @@
     "lines": [
       13,
       34
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_rebuild_table_atomic.py",
@@ -2615,7 +2800,12 @@
     "providers": [
       413
     ],
-    "lines": [15,49,63]
+    "lines": [
+      15,
+      49,
+      63
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_recent_model_route.py",
@@ -2628,7 +2818,8 @@
     "lines": [
       2,
       6
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_rekey_profile_state.py",
@@ -2645,7 +2836,8 @@
       19,
       119,
       120
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_remove_session_files_glob_escape.py",
@@ -2655,7 +2847,12 @@
     "providers": [
       416
     ],
-    "lines": [9,18,33]
+    "lines": [
+      9,
+      18,
+      33
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_repair_unavailable_health.py",
@@ -2671,7 +2868,8 @@
       31,
       41,
       42
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_repaired_history_commit_coverage.py",
@@ -2684,7 +2882,8 @@
     "lines": [
       14,
       62
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_replace_messages_archive_siblings.py",
@@ -2697,7 +2896,8 @@
     "lines": [
       23,
       29
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_replace_messages_archives_suffix_only.py",
@@ -2707,12 +2907,25 @@
     "providers": [
       365
     ],
-    "lines": [11,19,58]
+    "lines": [
+      11,
+      19,
+      58
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_reset_lineage_delete_queued_work.py",
-    "tasks": [4,9,16],
-    "providers": [170,365,411],
+    "tasks": [
+      4,
+      9,
+      16
+    ],
+    "providers": [
+      170,
+      365,
+      411
+    ],
     "lines": [
       12,
       14,
@@ -2722,7 +2935,8 @@
       46,
       58,
       61
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_reset_owner_housekeeping.py",
@@ -2747,7 +2961,8 @@
       35,
       53,
       54
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_resolve_resume_session_id.py",
@@ -2757,7 +2972,12 @@
     "providers": [
       365
     ],
-    "lines": [17,22,25]
+    "lines": [
+      17,
+      22,
+      25
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_restore_alternation_repair.py",
@@ -2770,7 +2990,8 @@
     "lines": [
       16,
       23
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_resume_summary_carrier_once.py",
@@ -2783,7 +3004,8 @@
     "lines": [
       16,
       20
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_retain_refused_turn.py",
@@ -2819,11 +3041,16 @@
       216,
       222,
       229
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_retired_fence_outlives_horizon.py",
-    "tasks": [4,9,16],
+    "tasks": [
+      4,
+      9,
+      16
+    ],
     "providers": [
       170,
       365,
@@ -2865,7 +3092,8 @@
       100,
       101,
       103
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_retired_wal_generation_capture.py",
@@ -2873,7 +3101,11 @@
       4,
       16
     ],
-    "providers": [365,371,408],
+    "providers": [
+      365,
+      371,
+      408
+    ],
     "lines": [
       22,
       23,
@@ -2892,7 +3124,8 @@
       250,
       251,
       252
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_rewind_surfaces_invariant.py",
@@ -2912,7 +3145,8 @@
       44,
       72,
       134
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_admission.py",
@@ -2959,7 +3193,8 @@
       83,
       90,
       92
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_adoption.py",
@@ -3003,7 +3238,8 @@
       73,
       74,
       77
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_destructive_mutations.py",
@@ -3045,7 +3281,8 @@
       119,
       121,
       122
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_import_mutations.py",
@@ -3071,7 +3308,8 @@
       33,
       35,
       41
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_mutation_actions.py",
@@ -3093,7 +3331,8 @@
       25,
       26,
       27
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_mutation_retired_import.py",
@@ -3113,7 +3352,8 @@
       13,
       14,
       18
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_mutations.py",
@@ -3141,7 +3381,8 @@
       60,
       64,
       65
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_recovery.py",
@@ -3179,7 +3420,8 @@
       76,
       77,
       80
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_rewind_carrier_handoff.py",
@@ -3196,7 +3438,8 @@
       8,
       10,
       17
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_rewind_mutations.py",
@@ -3233,7 +3476,8 @@
       106,
       120,
       130
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_schema.py",
@@ -3241,7 +3485,11 @@
       4,
       16
     ],
-    "providers": [365,367,411],
+    "providers": [
+      365,
+      367,
+      411
+    ],
     "lines": [
       6,
       7,
@@ -3257,7 +3505,8 @@
       50,
       52,
       54
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_worker.py",
@@ -3265,7 +3514,11 @@
       4,
       16
     ],
-    "providers": [365,374,411],
+    "providers": [
+      365,
+      374,
+      411
+    ],
     "lines": [
       4,
       9,
@@ -3298,7 +3551,8 @@
       122,
       124,
       135
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_worker_children.py",
@@ -3333,7 +3587,8 @@
       149,
       176,
       177
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_worker_compaction.py",
@@ -3346,7 +3601,8 @@
     "lines": [
       13,
       15
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_worker_compression.py",
@@ -3356,7 +3612,12 @@
     "providers": [
       411
     ],
-    "lines": [6,29,49]
+    "lines": [
+      6,
+      29,
+      49
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_worker_compression_admission.py",
@@ -3389,7 +3650,8 @@
       77,
       79,
       81
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_worker_compression_annotations.py",
@@ -3408,7 +3670,8 @@
       13,
       15,
       16
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_worker_compression_flush.py",
@@ -3421,7 +3684,8 @@
     "lines": [
       15,
       17
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_worker_context.py",
@@ -3445,7 +3709,8 @@
       58,
       60,
       61
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_worker_history.py",
@@ -3480,7 +3745,8 @@
       95,
       96,
       97
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_worker_lifecycle.py",
@@ -3505,7 +3771,8 @@
       76,
       78,
       79
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_worker_metadata.py",
@@ -3521,7 +3788,8 @@
       37,
       85,
       86
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_worker_operations.py",
@@ -3546,7 +3814,8 @@
       39,
       46,
       61
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_worker_read_fence.py",
@@ -3559,7 +3828,8 @@
     "lines": [
       2,
       17
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_worker_title_retry.py",
@@ -3569,7 +3839,12 @@
     "providers": [
       411
     ],
-    "lines": [5,23,24]
+    "lines": [
+      5,
+      23,
+      24
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_worker_turn_cleanup.py",
@@ -3582,7 +3857,8 @@
     "lines": [
       7,
       25
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_runtime_worker_usage.py",
@@ -3610,7 +3886,8 @@
       46,
       48,
       51
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_schema_read_probe.py",
@@ -3633,7 +3910,8 @@
       73,
       87,
       91
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_search_or_relaxed_fallback.py",
@@ -3648,7 +3926,8 @@
       23,
       58,
       87
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_archived_round_trip.py",
@@ -3663,7 +3942,8 @@
       36,
       37,
       62
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_archiving.py",
@@ -3678,7 +3958,8 @@
       10,
       17,
       69
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_db_acp_cwd_backfill.py",
@@ -3691,7 +3972,8 @@
     "lines": [
       10,
       15
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_db_context_manager.py",
@@ -3710,7 +3992,8 @@
       42,
       63,
       83
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_db_leak_sweep.py",
@@ -3728,7 +4011,8 @@
       37,
       39,
       50
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_db_profile_stamp.py",
@@ -3748,12 +4032,21 @@
       83,
       107,
       126
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_db_read_conn_pool.py",
-    "tasks": [3,4,16],
-    "providers": [365,406,486],
+    "tasks": [
+      3,
+      4,
+      16
+    ],
+    "providers": [
+      365,
+      406,
+      486
+    ],
     "lines": [
       45,
       52,
@@ -3843,7 +4136,8 @@
       746,
       758,
       761
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_db_read_path_split.py",
@@ -3853,7 +4147,12 @@
     "providers": [
       365
     ],
-    "lines": [16,21,117]
+    "lines": [
+      16,
+      21,
+      117
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_delete_hook.py",
@@ -3861,7 +4160,11 @@
       4,
       16
     ],
-    "providers": [365,411,481],
+    "providers": [
+      365,
+      411,
+      481
+    ],
     "lines": [
       10,
       11,
@@ -3869,7 +4172,8 @@
       24,
       40,
       42
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_delete_profile_isolation.py",
@@ -3879,7 +4183,12 @@
     "providers": [
       365
     ],
-    "lines": [14,17,20]
+    "lines": [
+      14,
+      17,
+      20
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_export_timings.py",
@@ -3895,7 +4204,8 @@
       73,
       90,
       101
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_git_metadata_generation.py",
@@ -3920,7 +4230,8 @@
       228,
       241,
       249
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_hidden.py",
@@ -3933,7 +4244,8 @@
     "lines": [
       3,
       8
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_id_recognition_recovery.py",
@@ -3941,7 +4253,11 @@
       4,
       16
     ],
-    "providers": [365,482,483],
+    "providers": [
+      365,
+      482,
+      483
+    ],
     "lines": [
       16,
       17,
@@ -3952,7 +4268,8 @@
       66,
       74,
       83
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_import_keep_flags.py",
@@ -3969,7 +4286,8 @@
       65,
       66,
       69
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_import_value_validation.py",
@@ -3988,7 +4306,8 @@
       104,
       108,
       109
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_lifecycle_status.py",
@@ -4030,7 +4349,8 @@
       171,
       172,
       173
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_list_index_choice.py",
@@ -4040,7 +4360,12 @@
     "providers": [
       365
     ],
-    "lines": [14,24,54]
+    "lines": [
+      14,
+      24,
+      54
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_list_page_cost.py",
@@ -4055,7 +4380,8 @@
       17,
       25,
       58
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_md_export.py",
@@ -4071,7 +4397,8 @@
       9,
       35,
       60
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_model_usage_pk_heal.py",
@@ -4092,7 +4419,8 @@
       126,
       140,
       162
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_read_state.py",
@@ -4102,7 +4430,12 @@
     "providers": [
       365
     ],
-    "lines": [5,10,67]
+    "lines": [
+      5,
+      10,
+      67
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_turn_lease.py",
@@ -4110,7 +4443,11 @@
       4,
       16
     ],
-    "providers": [365,374,402],
+    "providers": [
+      365,
+      374,
+      402
+    ],
     "lines": [
       14,
       15,
@@ -4149,7 +4486,8 @@
       659,
       697,
       713
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_session_workspace_binding.py",
@@ -4169,7 +4507,8 @@
       26,
       33,
       39
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_shared_session_db_registry.py",
@@ -4283,7 +4622,8 @@
       689,
       690,
       697
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_show_subagents_listing.py",
@@ -4296,12 +4636,21 @@
     "lines": [
       6,
       11
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_sqlite_lock_safe_inspection.py",
-    "tasks": [3,4,16],
-    "providers": [365,409,486],
+    "tasks": [
+      3,
+      4,
+      16
+    ],
+    "providers": [
+      365,
+      409,
+      486
+    ],
     "lines": [
       29,
       84,
@@ -4372,7 +4721,8 @@
       389,
       391,
       397
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_sqlite_wal_reset_gate.py",
@@ -4405,7 +4755,8 @@
       331,
       334,
       350
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_stale_tool_call_marker_session_repair.py",
@@ -4430,7 +4781,8 @@
       232,
       246,
       249
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_startup_maintenance_lease.py",
@@ -4443,7 +4795,8 @@
     "lines": [
       13,
       20
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_corrupt_quarantine.py",
@@ -4489,7 +4842,8 @@
       273,
       291,
       314
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_darwin_fd_scan_hang.py",
@@ -4515,7 +4869,8 @@
       110,
       111,
       114
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_file_identity.py",
@@ -4546,7 +4901,8 @@
       252,
       258,
       265
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_fts_segment_collision_probe.py",
@@ -4566,7 +4922,8 @@
       71,
       73,
       75
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_holders.py",
@@ -4584,7 +4941,8 @@
       59,
       105,
       113
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_holders_windows_live.py",
@@ -4601,7 +4959,8 @@
       51,
       81,
       88
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_lock_fail_closed.py",
@@ -4609,7 +4968,11 @@
       4,
       16
     ],
-    "providers": [365,367,409],
+    "providers": [
+      365,
+      367,
+      409
+    ],
     "lines": [
       39,
       40,
@@ -4620,7 +4983,8 @@
       135,
       150,
       155
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_maintenance_conformance.py",
@@ -4628,7 +4992,11 @@
       4,
       16
     ],
-    "providers": [365,409,458],
+    "providers": [
+      365,
+      409,
+      458
+    ],
     "lines": [
       37,
       38,
@@ -4641,11 +5009,16 @@
       223,
       242,
       249
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_malformed_repair.py",
-    "tasks": [3,4,16],
+    "tasks": [
+      3,
+      4,
+      16
+    ],
     "providers": [
       365,
       371,
@@ -4713,7 +5086,8 @@
       806,
       822,
       835
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_notadb_fail_closed.py",
@@ -4736,7 +5110,8 @@
       152,
       157,
       164
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_repair_live_writer_guard.py",
@@ -4744,7 +5119,11 @@
       4,
       16
     ],
-    "providers": [365,379,409],
+    "providers": [
+      365,
+      379,
+      409
+    ],
     "lines": [
       34,
       35,
@@ -4789,7 +5168,8 @@
       339,
       382,
       404
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_repair_loop_cap.py",
@@ -4833,7 +5213,8 @@
       159,
       160,
       161
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_repair_loop_mtime.py",
@@ -4929,7 +5310,8 @@
       758,
       763,
       772
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_repair_non_destructive.py",
@@ -5020,11 +5402,16 @@
       860,
       862,
       871
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_second_process_maintenance.py",
-    "tasks": [3,4,16],
+    "tasks": [
+      3,
+      4,
+      16
+    ],
     "providers": [
       365,
       379,
@@ -5039,7 +5426,8 @@
       52,
       67,
       82
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_stats.py",
@@ -5047,7 +5435,11 @@
       4,
       16
     ],
-    "providers": [365,371,464],
+    "providers": [
+      365,
+      371,
+      464
+    ],
     "lines": [
       18,
       19,
@@ -5075,7 +5467,8 @@
       233,
       246,
       250
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_wal_unlink_race.py",
@@ -5097,7 +5490,8 @@
       78,
       79,
       81
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_db_write_durability.py",
@@ -5115,7 +5509,8 @@
       60,
       84,
       104
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_state_synchronous_pragma.py",
@@ -5142,7 +5537,8 @@
       182,
       185,
       196
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_storage_failure_copy.py",
@@ -5157,7 +5553,8 @@
       25,
       34,
       47
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_storage_health_latch.py",
@@ -5202,7 +5599,8 @@
       164,
       165,
       184
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_storage_import_boundary.py",
@@ -5217,7 +5615,8 @@
       20,
       21,
       24
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_sweep_orphaned_sessions.py",
@@ -5240,7 +5639,8 @@
       609,
       619,
       625
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_tail_rewind_semantics.py",
@@ -5263,7 +5663,8 @@
       199,
       210,
       228
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_target_advance_fence.py",
@@ -5271,7 +5672,11 @@
       4,
       16
     ],
-    "providers": [365,384,411],
+    "providers": [
+      365,
+      384,
+      411
+    ],
     "lines": [
       11,
       16,
@@ -5286,7 +5691,8 @@
       60,
       66,
       68
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_telegram_topic_selfheal.py",
@@ -5301,11 +5707,16 @@
       68,
       92,
       109
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_terminal_retirement.py",
-    "tasks": [4,9,16],
+    "tasks": [
+      4,
+      9,
+      16
+    ],
     "providers": [
       170,
       365,
@@ -5416,7 +5827,8 @@
       371,
       372,
       373
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_transcript_handoff_rows_cost.py",
@@ -5431,7 +5843,8 @@
       33,
       52,
       82
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_transcript_read_snapshot.py",
@@ -5446,7 +5859,8 @@
       17,
       39,
       45
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_transcript_revision_trigger_skew.py",
@@ -5456,7 +5870,12 @@
     "providers": [
       365
     ],
-    "lines": [7,30,41]
+    "lines": [
+      7,
+      30,
+      41
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_unaddressed_rewrite_identity.py",
@@ -5469,7 +5888,8 @@
     "lines": [
       15,
       20
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_wal_active_confirmed.py",
@@ -5479,7 +5899,12 @@
     "providers": [
       365
     ],
-    "lines": [6,11,34]
+    "lines": [
+      6,
+      11,
+      34
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_wal_checkpoint_strategy.py",
@@ -5492,7 +5917,8 @@
     "lines": [
       15,
       37
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_wal_lock_guard.py",
@@ -5505,7 +5931,8 @@
     "lines": [
       19,
       41
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_wal_lock_guard_lifecycle.py",
@@ -5523,7 +5950,8 @@
       59,
       72,
       102
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_watermark_interplay.py",
@@ -5540,7 +5968,8 @@
       53,
       98,
       134
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_worker_lineage_exclusion.py",
@@ -5573,7 +6002,8 @@
       43,
       44,
       45
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_worker_lineage_index.py",
@@ -5592,7 +6022,8 @@
       16,
       18,
       25
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_write_lock_owner_attribution.py",
@@ -5609,7 +6040,8 @@
       49,
       78,
       86
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_write_lock_patience.py",
@@ -5635,7 +6067,8 @@
       213,
       232,
       233
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_writer_conn_thread_safety.py",
@@ -5651,7 +6084,8 @@
       36,
       37,
       38
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_zeroed_db_quarantine_race.py",
@@ -5670,12 +6104,21 @@
       61,
       62,
       63
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "path": "tests/hermes_state/test_zeroed_state_db.py",
-    "tasks": [3,4,16],
-    "providers": [365,458,486],
+    "tasks": [
+      3,
+      4,
+      16
+    ],
+    "providers": [
+      365,
+      458,
+      486
+    ],
     "lines": [
       15,
       17,
@@ -5700,6 +6143,7 @@
       320,
       324,
       327
-    ]
+    ],
+    "reviewed_in": 16
   }
 ]

@@ -12,7 +12,8 @@
     "reason": "Real root definition/entry, not an old internal re-export shim.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/access.py",
@@ -103,7 +104,8 @@
       "session_store_is_live",
       "close_session_resources_under",
       "close_session_resources"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/backends/__init__.py",
@@ -119,7 +121,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included"
+    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/backends/postgresql/__init__.py",
@@ -135,7 +138,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included"
+    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/backends/postgresql/changes.py",
@@ -153,7 +157,8 @@
     "symbol_names": [
       "track_changes"
     ],
-    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included"
+    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/backends/postgresql/engine.py",
@@ -176,7 +181,8 @@
       "read_connection",
       "close_engines"
     ],
-    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included"
+    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/backends/postgresql/expressions/__init__.py",
@@ -190,7 +196,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included"
+    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/backends/postgresql/expressions/json_paths.py",
@@ -209,7 +216,8 @@
       "_parts",
       "path_value"
     ],
-    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included"
+    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/backends/postgresql/expressions/projections.py",
@@ -230,7 +238,8 @@
       "display_projection",
       "display_value"
     ],
-    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included"
+    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/backends/postgresql/transactions.py",
@@ -248,7 +257,8 @@
     "symbol_names": [
       "Transactions"
     ],
-    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included"
+    "implementation_note": "Implemented and verified in Task2; consumer/patch changes included",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/backends/sqlite/__init__.py",
@@ -264,7 +274,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed"
+    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/backends/sqlite/acquire.py",
@@ -316,7 +327,8 @@
       "_bound_method",
       "SQLiteSessions",
       "acquire_sqlite"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/backends/sqlite/plugin_storage.py",
@@ -334,7 +346,8 @@
     "symbol_names": [
       "SQLitePluginStore"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/contracts.py",
@@ -351,7 +364,8 @@
     "baseline_abi_sha256": "33828c925e95b4a0d86a5aa57fd706452943720a12c63bb11eac6851edc5e69d",
     "symbol_names": [
       "SessionStore"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/core/__init__.py",
@@ -367,7 +381,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/core/catalog.py",
@@ -386,7 +401,8 @@
       "DomainSpec",
       "require_domain",
       "required_tables"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/core/file_scope.py",
@@ -405,7 +421,8 @@
       "owner_id",
       "identity"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task10.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task10.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/core/resource.py",
@@ -431,7 +448,8 @@
     "baseline_abi_sha256": "b9385ba79d37bcdb9173d9732906ab1930b7a7ed3ea7b9e684cc7576ee200f6f",
     "symbol_names": [
       "DomainResource"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/core/schema_status.py",
@@ -448,7 +466,8 @@
     "baseline_abi_sha256": "0eccecad3df1958799a370a761218a04ded39f0fb51902730d5c6cac48e33d3e",
     "symbol_names": [
       "domain_status_on_connection"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/core/session_resource.py",
@@ -465,7 +484,8 @@
     "baseline_abi_sha256": "bbe0a0ac714bc3ea0919c0b2484bba950e4bb7109aa47d504ece6b5fdd2a9d71",
     "symbol_names": [
       "SessionResource"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/core/values.py",
@@ -492,7 +512,8 @@
       "digest",
       "resource_key"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/__init__.py",
@@ -508,7 +529,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/cron/__init__.py",
@@ -524,7 +546,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/cron/api.py",
@@ -532,12 +555,28 @@
     "layer": "business",
     "action": "preserve",
     "targets": [
-      "hermes_db/domains/cron/api.py"
+      "hermes_db/domains/cron/api.py",
+      "cron/storage_application.py"
     ],
     "task": 11,
     "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
-    "symbol_routes": {},
+    "symbol_routes": {
+      "domain_operation": {
+        "target": "cron/storage_application.py",
+        "task": 16,
+        "status": "completed",
+        "reason": "Actual Profile/backend dispatch remained in API;close at application owner without API exemption.",
+        "evidence": "docs/designs/hermes-db-two-layer-task16.json"
+      },
+      "_POSTGRES_MODULES": {
+        "target": "cron/storage_application.py",
+        "task": 16,
+        "status": "completed",
+        "reason": "Actual Profile/backend dispatch remained in API;close at application owner without API exemption.",
+        "evidence": "docs/designs/hermes-db-two-layer-task16.json"
+      }
+    },
     "application_imports": [
       {
         "line": 18,
@@ -551,7 +590,8 @@
       "domain_operation",
       "CronResource"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/cron/postgres/__init__.py",
@@ -567,7 +607,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/cron/postgres/delivery.py",
@@ -596,7 +637,8 @@
       "recover_abandoned",
       "_terminalize_wait_timeout"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/cron/postgres/executions.py",
@@ -671,7 +713,8 @@
       "get_incident",
       "count_incidents"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/cron/postgres/notepad.py",
@@ -695,7 +738,8 @@
       "list_notes",
       "clear_notepad"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/cron/rules.py",
@@ -711,7 +755,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/__init__.py",
@@ -727,7 +772,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/api.py",
@@ -808,7 +854,8 @@
       "connect"
     ],
     "task12_refinement": "Owner/Profile/Worker selectors are actual application routing; move them with Task12. BoardResource/DTO/business state remain here and primary Task13 stays pending.",
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/postgres/__init__.py",
@@ -824,7 +871,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/postgres/catalog.py",
@@ -1237,7 +1285,8 @@
       "terminate",
       "invalidate_descendants_for_parent_reopen"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/postgres/claims.py",
@@ -1364,7 +1413,8 @@
       "_promotion_error",
       "promote_task"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/postgres/completion.py",
@@ -1468,7 +1518,8 @@
       "record",
       "edit_result"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/postgres/dispatch.py",
@@ -1746,7 +1797,8 @@
       "_set_worker_pid",
       "adopt_worker_pid"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/postgres/effects.py",
@@ -1815,7 +1867,8 @@
       "drain",
       "after_commit"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/postgres/evidence.py",
@@ -1835,7 +1888,8 @@
       "running_snapshots",
       "unchanged"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/postgres/files.py",
@@ -2185,7 +2239,8 @@
       "settle_import_stage",
       "run_job"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/postgres/maintenance.py",
@@ -2486,7 +2541,8 @@
       "terminal_workspaces",
       "pending_workspaces"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/postgres/notify.py",
@@ -2522,7 +2578,8 @@
       "inherit",
       "count_subscriptions"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/postgres/owners.py",
@@ -2553,7 +2610,8 @@
       "_latest_run_event",
       "_task_owner_state"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/postgres/receipts.py",
@@ -2573,7 +2631,8 @@
       "refusal",
       "CommandReceipt"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/postgres/repository.py",
@@ -2607,7 +2666,8 @@
       "blocked_is_sticky",
       "resume_status"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/postgres/review.py",
@@ -2667,7 +2727,8 @@
       "_changes_error",
       "reopen_review_task"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/postgres/runs.py",
@@ -2714,7 +2775,8 @@
       "retry_status",
       "synthesize"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/postgres/swarm.py",
@@ -2802,7 +2864,8 @@
       "_build",
       "create_swarm"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/postgres/workspaces.py",
@@ -2953,7 +3016,8 @@
       "guard_parent_link",
       "live_references"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/kanban/rules.py",
@@ -3012,7 +3076,8 @@
       "typed_owner_receipt",
       "require_swarm_text"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/metrics/__init__.py",
@@ -3028,7 +3093,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/metrics/api.py",
@@ -3057,7 +3123,8 @@
       "capture_metrics",
       "open_metrics"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/metrics/bound.py",
@@ -3077,7 +3144,8 @@
       "open_bound",
       "bound_store"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/metrics/package_exports.py",
@@ -3096,7 +3164,8 @@
       "_ensure_private",
       "MetricsExport"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/metrics/policy.py",
@@ -3175,7 +3244,8 @@
       "_compact_json",
       "MetricsPolicy"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/metrics/postgres/__init__.py",
@@ -3191,7 +3261,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/metrics/postgres/outbox.py",
@@ -3230,7 +3301,8 @@
       "mark",
       "renew"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/metrics/postgres/records.py",
@@ -3276,7 +3348,8 @@
       "rollup",
       "snapshot"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/metrics/postgres/sender.py",
@@ -3295,7 +3368,8 @@
     "symbol_names": [
       "PostgresMetricsSender"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/metrics/postgres/store.py",
@@ -3314,7 +3388,8 @@
     "symbol_names": [
       "PostgresMetricsStore"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/metrics/sending.py",
@@ -3345,7 +3420,8 @@
       "_retry_after_seconds",
       "MetricsTransport"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/__init__.py",
@@ -3361,7 +3437,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/discord/__init__.py",
@@ -3377,7 +3454,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/discord/api.py",
@@ -3423,7 +3501,8 @@
       "capture_discord",
       "open_discord"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/discord/postgres/__init__.py",
@@ -3439,7 +3518,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/discord/postgres/operations/__init__.py",
@@ -3455,7 +3535,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/discord/postgres/operations/recovery.py",
@@ -3505,7 +3586,8 @@
       "advance_cursor",
       "prune"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/discord/postgres/queries/__init__.py",
@@ -3521,7 +3603,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/discord/postgres/queries/recovery.py",
@@ -3545,7 +3628,8 @@
       "message",
       "insert_row"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/discord/postgres/store.py",
@@ -3572,7 +3656,8 @@
     "symbol_names": [
       "PostgresDiscordRecoveryStore"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/__init__.py",
@@ -3588,7 +3673,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/api.py",
@@ -3648,7 +3734,8 @@
       "resource_for",
       "unit_of_work"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/__init__.py",
@@ -3664,7 +3751,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/codec.py",
@@ -3694,7 +3782,8 @@
       "device_record",
       "restore_device"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/crypto.py",
@@ -3712,7 +3801,8 @@
     "symbol_names": [
       "PostgresCryptoStore"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/failures.py",
@@ -3731,7 +3821,8 @@
       "remember",
       "checkpoint"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/olm_cache.py",
@@ -3749,7 +3840,8 @@
     "symbol_names": [
       "OlmSessions"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/operations/__init__.py",
@@ -3765,7 +3857,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/operations/accounts.py",
@@ -3797,7 +3890,8 @@
       "drop_signatures_by_key",
       "validate_message_index"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/operations/sessions.py",
@@ -3830,7 +3924,8 @@
       "get_outbound_group_session",
       "remove_outbound_group_sessions"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/queries/__init__.py",
@@ -3846,7 +3941,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/queries/crypto.py",
@@ -3872,7 +3968,8 @@
       "initialize",
       "check_generation"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/matrix/postgres/runtime.py",
@@ -3893,7 +3990,8 @@
       "_Transaction",
       "MatrixRuntime"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/records/__init__.py",
@@ -3909,7 +4007,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/records/api.py",
@@ -3955,7 +4054,8 @@
       "capture_plugin",
       "open_plugin"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/records/postgres/__init__.py",
@@ -3971,7 +4071,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/records/postgres/store.py",
@@ -4016,7 +4117,8 @@
       "prune",
       "PostgresPluginStore"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/retain/__init__.py",
@@ -4032,7 +4134,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/retain/api.py",
@@ -4092,7 +4195,8 @@
       "capture_queue",
       "open_queue"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/retain/postgres/__init__.py",
@@ -4108,7 +4212,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/retain/postgres/operations/__init__.py",
@@ -4124,7 +4229,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/plugin_storage/retain/postgres/operations/queue.py",
@@ -4157,7 +4263,8 @@
       "inspect",
       "counts"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/projects/__init__.py",
@@ -4173,7 +4280,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/projects/api.py",
@@ -4192,7 +4300,8 @@
       "domain_operation",
       "ProjectResource"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/projects/postgres.py",
@@ -4244,7 +4353,8 @@
       "list_discovered_repos",
       "project_for_path"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/projects/rules.py",
@@ -4265,7 +4375,8 @@
       "normalize_path",
       "primary_path_key"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/__init__.py",
@@ -4281,7 +4392,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/api.py",
@@ -4381,7 +4493,8 @@
       "room_operation",
       "RoomResource"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/attachments/__init__.py",
@@ -4397,7 +4510,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/attachments/api.py",
@@ -4415,7 +4529,8 @@
     "symbol_names": [
       "AttachmentResource"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/attachments/files.py",
@@ -4436,7 +4551,8 @@
       "sweep_locked",
       "AttachmentContent"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/attachments/postgres/__init__.py",
@@ -4452,7 +4568,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/attachments/postgres/metadata.py",
@@ -4494,7 +4611,8 @@
       "totals",
       "stats"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/attachments/postgres/reads.py",
@@ -4512,7 +4630,8 @@
     "symbol_names": [
       "AttachmentReaders"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/attachments/rules.py",
@@ -4546,7 +4665,8 @@
       "validate_task_manifest",
       "fold_catalog_text"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/authority_rules.py",
@@ -4569,7 +4689,8 @@
       "at_sequence",
       "history_from_rows"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/driver_rules.py",
@@ -4626,7 +4747,8 @@
       "_key",
       "_attempt_prefix"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/postgres/__init__.py",
@@ -4642,7 +4764,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/postgres/grants.py",
@@ -4683,7 +4806,8 @@
       "settle_room_grant_revoke",
       "retire_room_link_records"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/postgres/lifecycle.py",
@@ -4723,7 +4847,8 @@
       "room_context",
       "set_room_context"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/postgres/ownership.py",
@@ -4759,7 +4884,8 @@
       "stopping_attempt_homes",
       "forget_locked"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/postgres/policy.py",
@@ -4807,7 +4933,8 @@
       "store_transcript",
       "discussion_events"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/postgres/replication.py",
@@ -4830,7 +4957,8 @@
       "promote_replica",
       "demote_room"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/postgres/repository.py",
@@ -4868,7 +4996,8 @@
       "update_lease",
       "update_task"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/postgres/tasks.py",
@@ -4914,7 +5043,8 @@
       "begin_task_cancel",
       "complete_task_cancel"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/postgres/work.py",
@@ -4953,7 +5083,8 @@
       "_budget",
       "save"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/replication_rules.py",
@@ -4976,7 +5107,8 @@
       "_event_bytes",
       "_validate_page"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/rules.py",
@@ -5035,7 +5167,8 @@
       "PolicySnapshot",
       "_text"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/rooms/work_rules.py",
@@ -5074,7 +5207,8 @@
       "scope",
       "validate_provenance"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/__init__.py",
@@ -5090,7 +5224,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/mutation_rules.py",
@@ -5112,7 +5247,8 @@
       "_valid_compress_payload",
       "_child_policy"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/__init__.py",
@@ -5128,7 +5264,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/admissions.py",
@@ -5147,7 +5284,8 @@
       "_webhook",
       "RuntimeAdmissions"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/context.py",
@@ -5188,7 +5326,8 @@
     "symbol_names": [
       "RuntimeContext"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/delegations.py",
@@ -5207,7 +5346,8 @@
       "AsyncDelegationStore",
       "_prune_overflow"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/delivery_claim.py",
@@ -5225,7 +5365,8 @@
     "symbol_names": [
       "DeliveryClaim"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/delivery_ledger.py",
@@ -5243,7 +5384,8 @@
     "symbol_names": [
       "PostgresDeliveryLedger"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/idempotency.py",
@@ -5261,7 +5403,8 @@
     "symbol_names": [
       "PostgresRunIdempotencyStore"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/local.py",
@@ -5279,7 +5422,8 @@
     "symbol_names": [
       "RuntimeLocal"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/media.py",
@@ -5327,7 +5471,8 @@
       "_compact",
       "RuntimeMedia"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/metrics.py",
@@ -5350,7 +5495,8 @@
       "task": 9,
       "status": "completed",
       "commit": "d20361745731344cc1b31a928a2f7579b44f3545"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/__init__.py",
@@ -5366,7 +5512,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/api.py",
@@ -5395,7 +5542,8 @@
       "evict",
       "delete"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/api_binding.py",
@@ -5416,7 +5564,8 @@
       "admit_target",
       "_check_row"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/chat_pick.py",
@@ -5436,7 +5585,8 @@
       "prepare",
       "commit"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/current_history.py",
@@ -5455,7 +5605,8 @@
       "claim_value",
       "promote"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/deferred_pick.py",
@@ -5474,7 +5625,8 @@
       "defer",
       "compare"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/deliveries.py",
@@ -5509,7 +5661,8 @@
       "sweep",
       "pending"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/effects.py",
@@ -5528,7 +5681,8 @@
       "CoreEffect",
       "invoke"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/local_sessions.py",
@@ -5556,7 +5710,8 @@
       "commit",
       "idle_end"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/runtime.py",
@@ -5586,7 +5741,8 @@
       "recover",
       "resolve_unknown"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/runtime_queue.py",
@@ -5610,7 +5766,8 @@
       "check_replaced_input",
       "replace_automation"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/terminal_boundary.py",
@@ -5641,7 +5798,8 @@
     "symbol_names": [
       "close_discarded"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_children.py",
@@ -5660,7 +5818,8 @@
       "reservation_effect",
       "reserve"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_compression.py",
@@ -5686,7 +5845,8 @@
       "publish",
       "_migrate_automation"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_compression_reads.py",
@@ -5708,7 +5868,8 @@
       "boundary",
       "history"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_compression_state.py",
@@ -5733,7 +5894,8 @@
       "cleanup",
       "handlers"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_delegations.py",
@@ -5766,7 +5928,8 @@
       "unscheduled",
       "handlers"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_domains.py",
@@ -5791,7 +5954,8 @@
       "write_handlers",
       "read"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_handlers.py",
@@ -5828,7 +5992,8 @@
       "usage_main",
       "handlers"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py",
@@ -5874,7 +6039,8 @@
       "api_content",
       "user_content"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_metrics.py",
@@ -5915,7 +6081,8 @@
       "handlers",
       "read"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_reservation.py",
@@ -5934,7 +6101,8 @@
       "reserve",
       "lose"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_retain_queue.py",
@@ -5955,7 +6123,8 @@
       "write_handlers",
       "read"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/worker_turn.py",
@@ -5973,7 +6142,8 @@
     "symbol_names": [
       "turn"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/operations/workers.py",
@@ -5994,7 +6164,8 @@
       "apply_receipt",
       "_save_receipt"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/policy.py",
@@ -6037,7 +6208,8 @@
       "_policy_target",
       "RuntimePolicy"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/__init__.py",
@@ -6053,7 +6225,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/api.py",
@@ -6080,7 +6253,8 @@
       "output_index",
       "set_conversation"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/api_runs.py",
@@ -6103,7 +6277,8 @@
       "extend",
       "prune"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/delegations.py",
@@ -6125,7 +6300,8 @@
       "insert",
       "update"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/deliveries.py",
@@ -6153,7 +6329,8 @@
       "claim",
       "prune"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/history_access.py",
@@ -6172,7 +6349,8 @@
       "authorize_claim",
       "require_leaf"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/local_recovery.py",
@@ -6192,7 +6370,8 @@
       "receipt_ids",
       "unknown_inputs"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/runtime.py",
@@ -6223,7 +6402,8 @@
       "meta",
       "set_meta"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/terminal.py",
@@ -6244,7 +6424,8 @@
       "result",
       "worker_receipt"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/worker_retirement.py",
@@ -6267,7 +6448,8 @@
       "descendant_condition",
       "discard_orphans_on_reset"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/queries/workers.py",
@@ -6293,7 +6475,8 @@
       "claim_origin",
       "retry_target"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/response_store.py",
@@ -6311,7 +6494,8 @@
     "symbol_names": [
       "PostgresResponseStore"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/store.py",
@@ -6329,7 +6513,8 @@
     "symbol_names": [
       "PostgresRuntimeStore"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/postgres/workers.py",
@@ -6347,7 +6532,8 @@
     "symbol_names": [
       "RuntimeWorkers"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/receipts.py",
@@ -6394,7 +6580,8 @@
       "deferred_value",
       "automation_descriptor"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/runtime/values.py",
@@ -6468,7 +6655,8 @@
       "delegation_number",
       "VerifiedDelegationOwner"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/__init__.py",
@@ -6484,7 +6672,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/codec.py",
@@ -6611,7 +6800,8 @@
       "_tool_calls_len",
       "_repair_replayed_conversation"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/coverage.py",
@@ -6710,7 +6900,8 @@
       "_images_replaced",
       "CoverageRules"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/import_rules.py",
@@ -6736,7 +6927,8 @@
     "symbol_names": [
       "ImportValues"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/__init__.py",
@@ -6752,7 +6944,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/catalog.py",
@@ -6814,7 +7007,8 @@
       "_replies",
       "SessionCatalog"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/context.py",
@@ -6837,7 +7031,8 @@
       "SessionEffects",
       "SessionContext"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/history.py",
@@ -6890,7 +7085,8 @@
       "_find",
       "SessionHistory"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/lifecycle.py",
@@ -7066,7 +7262,8 @@
     "symbol_names": [
       "SessionLifecycle"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/messages.py",
@@ -7134,7 +7331,8 @@
       "_removed_todos",
       "SessionMessages"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/__init__.py",
@@ -7150,7 +7348,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/compression.py",
@@ -7171,7 +7370,8 @@
       "compact_on_connection",
       "_classify"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/compression_publish.py",
@@ -7206,7 +7406,8 @@
       "carry_timestamps",
       "_unarchive_automatic"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/compression_state.py",
@@ -7231,7 +7432,8 @@
       "_any_continuation",
       "finalize_orphans"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/gateway.py",
@@ -7251,7 +7453,8 @@
       "replace_routes",
       "retire_routes"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/gateway_local_handoff.py",
@@ -7272,7 +7475,8 @@
       "_move_title",
       "_rank"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/gateway_peers.py",
@@ -7291,7 +7495,8 @@
       "record",
       "adopt"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/gateway_rekey.py",
@@ -7324,7 +7529,8 @@
       "_session_origins",
       "_routes"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/housekeeping.py",
@@ -7348,7 +7554,8 @@
       "discard_unadmitted",
       "never_active"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/imports.py",
@@ -7377,7 +7584,8 @@
       "_cycle",
       "import_current"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/leases.py",
@@ -7398,7 +7606,8 @@
       "expiry",
       "compression_holder"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/messages.py",
@@ -7464,7 +7673,8 @@
       "_kept_prefix",
       "rewind"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/mutation_branch.py",
@@ -7484,7 +7694,8 @@
       "_title",
       "branch"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/mutation_policy.py",
@@ -7512,7 +7723,8 @@
       "picks",
       "refresh"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/mutation_transcript.py",
@@ -7546,7 +7758,8 @@
       "_summarized",
       "rewind"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/mutations.py",
@@ -7568,7 +7781,8 @@
       "_apply",
       "_require_idle"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/retention.py",
@@ -7593,7 +7807,8 @@
       "sweep_orphans",
       "auto_prune"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/retirement.py",
@@ -7615,7 +7830,8 @@
       "delete_one",
       "delete_many"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/retirement_guards.py",
@@ -7636,7 +7852,8 @@
       "require_unleased",
       "guarded_ids"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/rewrites.py",
@@ -7676,7 +7893,8 @@
       "_archive_twin",
       "prune"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/sessions.py",
@@ -7704,7 +7922,8 @@
       "reopen",
       "retire_queued_on_connection"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/titles.py",
@@ -7726,7 +7945,8 @@
       "_free_title",
       "_is_ancestor"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/transcript_guards.py",
@@ -7745,7 +7965,8 @@
       "check",
       "_check_lease"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/operations/transcript_repair.py",
@@ -7829,7 +8050,8 @@
       "_find_target",
       "_repair_target"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/__init__.py",
@@ -7845,7 +8067,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/analytics.py",
@@ -7869,7 +8092,8 @@
       "_daily",
       "rows"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/archive_refs.py",
@@ -7896,7 +8120,8 @@
       "message_names",
       "referenced_names"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/bot_views.py",
@@ -7915,7 +8140,8 @@
       "roster",
       "_summary"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/compression.py",
@@ -7935,7 +8161,8 @@
       "_target",
       "archive"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/file_grants.py",
@@ -7957,7 +8184,8 @@
       "owned",
       "pins"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/gateway.py",
@@ -7982,7 +8210,8 @@
       "retire_shared",
       "delete_routes"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/gateway_peers.py",
@@ -8007,7 +8236,8 @@
       "orphan_donors",
       "orphans"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/insights.py",
@@ -8027,7 +8257,8 @@
       "_messages",
       "rows"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/leases.py",
@@ -8049,7 +8280,8 @@
       "release",
       "merge_turn_roots"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/lineage.py",
@@ -8070,7 +8302,8 @@
       "runtime_targets",
       "advance_local_target"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/lineage_reads.py",
@@ -8096,7 +8329,8 @@
       "get_tool_rotation_root",
       "is_explicit_fork_child_row"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/media.py",
@@ -8140,7 +8374,8 @@
       "task": 9,
       "status": "completed",
       "commit": "d20361745731344cc1b31a928a2f7579b44f3545"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/messages.py",
@@ -8170,7 +8405,8 @@
       "active_ids",
       "resume_lineage"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/mutation_binding.py",
@@ -8194,7 +8430,8 @@
       "authorize_history",
       "same_history_owner"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/prompts.py",
@@ -8213,7 +8450,8 @@
       "store_prompt",
       "prune_prompts"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/retention.py",
@@ -8237,7 +8475,8 @@
       "candidates",
       "_continued_ancestors"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/retirement.py",
@@ -8263,7 +8502,8 @@
       "canonical_targets",
       "compression_neighbors"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/retirement_fences.py",
@@ -8285,7 +8525,8 @@
       "_prefixed",
       "_delete_meta"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/retirement_housekeeping.py",
@@ -8307,7 +8548,8 @@
       "keep_passed",
       "has_receipt"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/retirement_ledger.py",
@@ -8327,7 +8569,8 @@
       "_retire_admission",
       "_retire_worker"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/search_context.py",
@@ -8346,7 +8589,8 @@
       "_neighbor",
       "attach"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/session_queries.py",
@@ -8387,7 +8631,8 @@
       "project_tips",
       "_chains_by_root"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/sessions.py",
@@ -8419,7 +8664,8 @@
       "retired_session",
       "bump_generation"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/queries/usage.py",
@@ -8440,7 +8686,8 @@
       "_counter_value",
       "recent_route"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/store.py",
@@ -8458,7 +8705,8 @@
     "symbol_names": [
       "PostgresSessionStore"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/__init__.py",
@@ -8474,7 +8722,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/archive_projection.py",
@@ -8500,7 +8749,8 @@
     "symbol_names": [
       "spillover_names"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/compression_coverage.py",
@@ -8567,7 +8817,8 @@
       "Coverage",
       "exact_id"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/message_codec.py",
@@ -8589,7 +8840,8 @@
       "decoded_row",
       "merge_display_metadata"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/message_preview.py",
@@ -8652,7 +8904,8 @@
       "_nonempty",
       "roster_preview"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/retired_files.py",
@@ -8678,7 +8931,8 @@
     "symbol_names": [
       "remove"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/search.py",
@@ -8701,7 +8955,8 @@
       "_full_body",
       "statement"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/search_projection.py",
@@ -8721,7 +8976,8 @@
       "short_grams",
       "projection"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/search_query.py",
@@ -8740,7 +8996,8 @@
       "SearchQuery",
       "parse_query"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/support/usage_writer.py",
@@ -8766,7 +9023,8 @@
     "symbol_names": [
       "UsageWriter"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/postgres/usage.py",
@@ -8784,7 +9042,8 @@
     "symbol_names": [
       "SessionUsage"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/rewind.py",
@@ -8866,7 +9125,8 @@
       "plan_user_turn_rewind",
       "rewind_user_turn"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/rules.py",
@@ -8908,7 +9168,8 @@
       "classify_session_status",
       "bot_chat_title_released"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/sessions/search_rules.py",
@@ -8929,7 +9190,8 @@
       "search_sessions_by_id",
       "_flatten_text"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/verification/__init__.py",
@@ -8945,7 +9207,8 @@
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
     "symbol_names": [],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/verification/api.py",
@@ -8953,12 +9216,41 @@
     "layer": "business",
     "action": "preserve",
     "targets": [
-      "hermes_db/domains/verification/api.py"
+      "agent/verification_storage.py"
     ],
     "task": 11,
     "status": "completed",
     "reason": "Keep concrete business persistence and SQL; update imports/explicit resources with its owning task.",
-    "symbol_routes": {},
+    "symbol_routes": {
+      "postgres_resource": {
+        "target": "agent/verification_storage.py",
+        "task": 16,
+        "status": "completed",
+        "reason": "Actual Profile/Worker RPC branches belong to Agent owner;SQL unchanged in postgres.py.",
+        "evidence": "docs/designs/hermes-db-two-layer-task16.json"
+      },
+      "record": {
+        "target": "agent/verification_storage.py",
+        "task": 16,
+        "status": "completed",
+        "reason": "Actual Profile/Worker RPC branches belong to Agent owner;SQL unchanged in postgres.py.",
+        "evidence": "docs/designs/hermes-db-two-layer-task16.json"
+      },
+      "mark_edited": {
+        "target": "agent/verification_storage.py",
+        "task": 16,
+        "status": "completed",
+        "reason": "Actual Profile/Worker RPC branches belong to Agent owner;SQL unchanged in postgres.py.",
+        "evidence": "docs/designs/hermes-db-two-layer-task16.json"
+      },
+      "status": {
+        "target": "agent/verification_storage.py",
+        "task": 16,
+        "status": "completed",
+        "reason": "Actual Profile/Worker RPC branches belong to Agent owner;SQL unchanged in postgres.py.",
+        "evidence": "docs/designs/hermes-db-two-layer-task16.json"
+      }
+    },
     "application_imports": [
       {
         "line": 5,
@@ -8994,7 +9286,9 @@
       "mark_edited",
       "status"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "refined_in_task": 16,
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/verification/postgres.py",
@@ -9024,7 +9318,8 @@
       "mark_edited",
       "status"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/domains/verification/values.py",
@@ -9043,7 +9338,8 @@
       "VerificationEvidence",
       "_utc_now"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/errors.py",
@@ -9073,7 +9369,8 @@
       "StorageBusyError",
       "UnknownCommitError"
     ],
-    "implementation_note": "Unchanged technical definition reviewed"
+    "implementation_note": "Unchanged technical definition reviewed",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/factory.py",
@@ -9116,7 +9413,8 @@
       "acquire_db",
       "acquire_domain",
       "acquire_profile_domain"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/handle.py",
@@ -9133,7 +9431,8 @@
     "baseline_abi_sha256": "2c7994652fa16ec044ce636d2a84650e7a2aef16bdb2324c76ec37a65b1edd52",
     "symbol_names": [
       "DatabaseHandle"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/health.py",
@@ -9199,7 +9498,8 @@
       "own_profile_for_store",
       "persisted_profile_id",
       "configured_probe"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/__init__.py",
@@ -9208,11 +9508,13 @@
     "action": "delete_empty",
     "targets": [],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Remove empty old namespace after its actual consumers are moved.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_db/integration/api_resources.py",
@@ -9258,7 +9560,8 @@
       "open_response_store",
       "open_run_store"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/archive_refs.py",
@@ -9318,7 +9621,8 @@
       "_unlink"
     ],
     "implementation": "Existing archive_refs query module retained unchanged. Only the actual profile/file coordinator moves.",
-    "evidence": "docs/designs/hermes-db-two-layer-task10.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task10.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/authority_access.py",
@@ -9458,7 +9762,8 @@
       "authorize_history",
       "verify_worker_delegation_owner"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/cron_application.py",
@@ -9479,7 +9784,8 @@
       "CronDeliveryRuntime",
       "CronNoteRuntime"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/domain_composition.py",
@@ -9502,7 +9808,8 @@
       "kanban_resource",
       "create_domain_resource",
       "cron_resource"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/events.py",
@@ -9520,7 +9827,8 @@
     "symbol_names": [
       "emit_deleted"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/kanban_application.py",
@@ -9543,7 +9851,8 @@
       "KanbanFiles",
       "count_notify_subs"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task12.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task12.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/kanban_owner.py",
@@ -9669,7 +9978,8 @@
       "managed_scratch_roots",
       "board_operation_scope"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task12.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task12.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/kanban_wire.py",
@@ -9689,7 +9999,8 @@
       "pack",
       "unpack"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task12.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task12.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/kanban_worker.py",
@@ -9710,7 +10021,8 @@
       "connect_worker_board",
       "WorkerBoardResource"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task12.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task12.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/local_access.py",
@@ -9741,7 +10053,8 @@
       "end_idle_local_session",
       "validate_local_lineage"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/media_grants.py",
@@ -9763,7 +10076,8 @@
       "_remaining",
       "release_unused"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task10.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task10.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/media_retirement.py",
@@ -9847,7 +10161,8 @@
       "held_media_paths"
     ],
     "implementation": "Pure bounded history/held SQL moves to query module. Application supplies parser and interprets held references, retains short file effect fences. Business grants use required owner-supplied history/held callbacks.",
-    "evidence": "docs/designs/hermes-db-two-layer-task10.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task10.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/metrics_snapshot.py",
@@ -9866,7 +10181,8 @@
       "first_session_started_at"
     ],
     "implementation": "Worker query returns before optional SQL imports. Owner SELECT moves to domains.observations; owner time.time fallback remains after resource close.",
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/observations.py",
@@ -9947,7 +10263,8 @@
       "cron_writers",
       "kanban_due_board"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/postgres/__init__.py",
@@ -9956,11 +10273,13 @@
     "action": "delete_empty",
     "targets": [],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Remove empty old namespace after its actual consumers are moved.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_db/integration/postgres/operations/__init__.py",
@@ -9969,11 +10288,13 @@
     "action": "delete_empty",
     "targets": [],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Remove empty old namespace after its actual consumers are moved.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_db/integration/postgres/queries/__init__.py",
@@ -9982,11 +10303,13 @@
     "action": "delete_empty",
     "targets": [],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Remove empty old namespace after its actual consumers are moved.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_db/integration/profile_context.py",
@@ -10003,7 +10326,8 @@
     "baseline_abi_sha256": "b13f0601d2c517ab36fc642a0c04360cea1582cd4c367c5b8c9d8caa46b3ee63",
     "symbol_names": [
       "OwnedProfileContext"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/profile_lifecycle.py",
@@ -10021,7 +10345,8 @@
     "symbol_names": [
       "purge"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task10.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task10.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/profile_paths.py",
@@ -10047,7 +10372,8 @@
       "_require_cleanup_payload",
       "reanchor"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task10.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task10.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/registry.py",
@@ -10138,7 +10464,8 @@
       "_release",
       "close_all"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/retain_transport.py",
@@ -10156,7 +10483,8 @@
     "symbol_names": [
       "PostgresWriteQueue"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/room_attachments.py",
@@ -10174,7 +10502,8 @@
     "symbol_names": [
       "PostgresAttachmentStore"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/room_policy.py",
@@ -10192,7 +10521,8 @@
     "symbol_names": [
       "PostgresRoomPolicy"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/room_router.py",
@@ -10238,7 +10568,8 @@
     "symbol_names": [
       "PostgresRouterCalls"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task14.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task14.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/run_resources.py",
@@ -10257,7 +10588,8 @@
       "_home",
       "ProfileRunStores"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/runtime_access.py",
@@ -10277,7 +10609,8 @@
       "effect_for_store"
     ],
     "implementation": "Pure runtime_for_store reads actual runtime member. Raw Native owner factory is hermes_cli.db_sessions.sqlite_runtime_for_store; PG gets required context runtime_factory. Native handle sessions/runtime share one adapter.",
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/runtime_calls.py",
@@ -10313,7 +10646,8 @@
       "mutate_worker_execution",
       "apply_worker_receipt"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/runtime_composition.py",
@@ -10333,7 +10667,8 @@
       "create_worker_handlers",
       "worker_automation_state_types"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/session_composition.py",
@@ -10354,7 +10689,8 @@
       "SessionRouting",
       "SessionMedia"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/session_portability.py",
@@ -10375,7 +10711,8 @@
       "find_foreign",
       "SessionPortability"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/transfer/__init__.py",
@@ -10384,11 +10721,13 @@
     "action": "delete_empty",
     "targets": [],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Remove empty old namespace after its actual consumers are moved.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_db/integration/transfer/kanban.py",
@@ -10641,7 +10980,8 @@
       "_graph",
       "read_archive"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task13.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task13.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/worker_access.py",
@@ -10660,7 +11000,8 @@
       "worker_claim_origin",
       "worker_retry_target"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task9.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task9.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/integration/worker_metrics.py",
@@ -10721,7 +11062,8 @@
       "drain",
       "prepare_policy"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/maintenance.py",
@@ -10767,7 +11109,8 @@
       "_plugins",
       "_attachments"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task10.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task10.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/__init__.py",
@@ -10782,7 +11125,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/env.py",
@@ -10799,7 +11143,8 @@
     "baseline_abi_sha256": "d3d873aca2095bbecb3f460528ddcf1a2135d4996e0d061efb755e91897c019b",
     "symbol_names": [
       "run_migrations"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/merge_data_repair.py",
@@ -10821,7 +11166,8 @@
       "_chat",
       "_holds_refusal",
       "_repair_refusal"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0001_session_storage.py",
@@ -10839,7 +11185,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0002_search_projection.py",
@@ -10858,7 +11205,8 @@
       "_backfill",
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0003_archive_refs.py",
@@ -10877,7 +11225,8 @@
       "_backfill",
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0004_model_markers.py",
@@ -10897,7 +11246,8 @@
       "_backfill_display",
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0005_verification.py",
@@ -10915,7 +11265,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0006_projects.py",
@@ -10933,7 +11284,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0007_cron_executions.py",
@@ -10951,7 +11303,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0008_cron_delivery.py",
@@ -10969,7 +11322,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0009_cron_notepad.py",
@@ -10987,7 +11341,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0010_kanban_tasks.py",
@@ -11005,7 +11360,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0011_kanban_runs.py",
@@ -11023,7 +11379,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0012_kanban_artifacts.py",
@@ -11041,7 +11398,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0013_kanban_dispatch.py",
@@ -11059,7 +11417,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0014_kanban_commands.py",
@@ -11077,7 +11436,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0015_kanban_workspaces.py",
@@ -11095,7 +11455,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0016_kanban_notify.py",
@@ -11113,7 +11474,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0017_kanban_file_jobs.py",
@@ -11131,7 +11493,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0018_kanban_imports.py",
@@ -11149,7 +11512,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0019_room_events.py",
@@ -11167,7 +11531,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0020_room_runs.py",
@@ -11186,7 +11551,8 @@
       "upgrade",
       "_work_guards",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0021_room_policy.py",
@@ -11205,7 +11571,8 @@
       "upgrade",
       "_backfill",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0022_room_attachments.py",
@@ -11223,7 +11590,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0023_metrics.py",
@@ -11241,7 +11609,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0024_plugins.py",
@@ -11259,7 +11628,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0025_discord_recovery.py",
@@ -11277,7 +11647,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0026_retain_queue.py",
@@ -11295,7 +11666,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0027_matrix_crypto.py",
@@ -11313,7 +11685,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0028_kanban_effects.py",
@@ -11331,7 +11704,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0029_transcript_cursor.py",
@@ -11349,7 +11723,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0030_room_revoke_debts.py",
@@ -11367,7 +11742,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/0031_merge_data_repair.py",
@@ -11385,7 +11761,8 @@
     "symbol_names": [
       "upgrade",
       "downgrade"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/migrations/versions/__init__.py",
@@ -11400,7 +11777,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/schema.py",
@@ -11490,7 +11868,8 @@
       "check_domain_schema",
       "_prepare_schema",
       "upgrade_schema"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/scope.py",
@@ -11524,7 +11903,8 @@
     "symbol_names": [
       "DatabaseScope",
       "bind_profile_home"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/settings.py",
@@ -11544,7 +11924,8 @@
       "_positive_seconds",
       "DatabaseSettings"
     ],
-    "implementation_note": "Unchanged technical definition reviewed"
+    "implementation_note": "Unchanged technical definition reviewed",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/__init__.py",
@@ -11561,7 +11942,8 @@
     "baseline_abi_sha256": "4378533774e588e7b6799707f031b2c25ec44eeabf16cbf063695f4da4abb1cf",
     "symbol_names": [
       "load_metadata"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/api.py",
@@ -11576,7 +11958,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/conversations.py",
@@ -11591,7 +11974,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/cron.py",
@@ -11606,7 +11990,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/cron_delivery.py",
@@ -11621,7 +12006,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/cron_notepad.py",
@@ -11636,7 +12022,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/discord_recovery.py",
@@ -11651,7 +12038,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/gateway.py",
@@ -11668,7 +12056,8 @@
     "baseline_abi_sha256": "ac1967e75c1205d5f97fce040dfb0a8f41f80678b152f7c272e7ffa8887bf66e",
     "symbol_names": [
       "_lease_table"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/kanban.py",
@@ -11683,7 +12072,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/kanban_artifacts.py",
@@ -11698,7 +12088,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/kanban_commands.py",
@@ -11713,7 +12104,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/kanban_dispatch.py",
@@ -11728,7 +12120,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/kanban_effects.py",
@@ -11743,7 +12136,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/kanban_file_jobs.py",
@@ -11758,7 +12152,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/kanban_notify.py",
@@ -11773,7 +12168,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/kanban_workspaces.py",
@@ -11788,7 +12184,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/matrix_crypto.py",
@@ -11805,7 +12202,8 @@
     "baseline_abi_sha256": "6ef4a3a262a495f2526b946be25e4ec89f317786a5f38e9451c468345847205a",
     "symbol_names": [
       "_table"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/metadata.py",
@@ -11825,7 +12223,8 @@
       "scoped_fk",
       "text_columns",
       "zero_columns"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/metrics.py",
@@ -11840,7 +12239,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/plugins.py",
@@ -11855,7 +12255,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/projects.py",
@@ -11870,7 +12271,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/retain_queue.py",
@@ -11885,7 +12287,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/room_attachments.py",
@@ -11900,7 +12303,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/room_policy.py",
@@ -11917,7 +12321,8 @@
     "baseline_abi_sha256": "3b92e1e64182234f2f4f25c9d3a77468f2d78cd6a245df9ace6c2aab53516225",
     "symbol_names": [
       "_room_table"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/room_runs.py",
@@ -11932,7 +12337,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/room_work.py",
@@ -11949,7 +12355,8 @@
     "baseline_abi_sha256": "82013c0fbef92826da62739b1916e4363cfed1ae76bcf09e519bfb0deb44b8c1",
     "symbol_names": [
       "_evidence"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/rooms.py",
@@ -11964,7 +12371,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/runtime.py",
@@ -11979,7 +12387,8 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_db/tables/verification.py",
@@ -11994,6 +12403,7 @@
     "reason": "Frozen path and bytes: original tables/version chain/resources.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16
   }
 ]

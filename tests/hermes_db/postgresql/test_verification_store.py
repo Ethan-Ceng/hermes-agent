@@ -93,7 +93,7 @@ def test_concurrent_edits_merge_and_retention_preserves_references(evidence_prof
     from concurrent.futures import ThreadPoolExecutor
     from contextvars import copy_context
     from sqlalchemy import func, select
-    from hermes_db.domains.verification.api import postgres_resource
+    from agent.verification_storage import postgres_resource
     from hermes_db.tables.verification import verification_events as events
 
     owner, _pg = evidence_profiles

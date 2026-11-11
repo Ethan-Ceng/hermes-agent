@@ -14,7 +14,8 @@
     "baseline_abi_sha256": "e7b25c61c4ebaebeac12dd616f76308fbe3f4d9a70aae0b3a63e0d7b37dc4786",
     "symbol_names": [
       "run_db_command"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/db_parser.py",
@@ -32,7 +33,8 @@
     "symbol_names": [
       "_dispatch",
       "build_db_parser"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/db_setup.py",
@@ -58,7 +60,8 @@
       "open_profile_db",
       "storage_backend",
       "open_profile_sessions"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/kanban_db_connect.py",
@@ -117,7 +120,8 @@
     ],
     "implemented_target_sha256": {
       "hermes_cli/kanban_db_connect.py": "40266e7c4ac7d8ca4b827e3da53cca12f6c42b5090375fb1e815e861bddd7a61"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/projects_db.py",
@@ -169,7 +173,8 @@
     ],
     "implemented_target_sha256": {
       "hermes_cli/projects_db.py": "89e3b7d0ab4b5464e796f5692dba696ef90163335c81ae5fa6213234da57a264"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/sqlite_util.py",
@@ -213,7 +218,8 @@
       "add_column_if_missing",
       "write_txn"
     ],
-    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed"
+    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_state.py",
@@ -778,7 +784,8 @@
       "_foreign_state_db_holders",
       "SessionDB",
       "AsyncSessionDB"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_state_api_content.py",
@@ -789,13 +796,15 @@
       "hermes_state_api_content.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "0572924f7b381b70a8a65a1a0c312d7b276c58cfbe32e0eef519fd6acdd07b65",
     "symbol_names": [
       "SessionApiContentMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_common.py",
@@ -806,7 +815,7 @@
       "hermes_state_common.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {
       "stat_db_file_identity": {
@@ -856,7 +865,9 @@
       "_acquire_msvcrt_lock",
       "fts_rebuild_admission"
     ],
-    "task4_adjustment": "Pure physical helpers/types migrate now; unrelated business/application functions stay with their owner and original task."
+    "task4_adjustment": "Pure physical helpers/types migrate now; unrelated business/application functions stay with their owner and original task.",
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_compaction_display.py",
@@ -867,14 +878,16 @@
       "hermes_state_compaction_display.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "ef151c81340016ce6066191c4cd9acb9bd81a24a36ba11093c8b8ec4d0b8d4c8",
     "symbol_names": [
       "not_a_later_tool_copy_sql",
       "later_tool_copy_ids"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_compression.py",
@@ -885,7 +898,7 @@
       "hermes_state_compression.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "d7c905c16fc20c675d5c30e2002686e9a552eea98c38d3d7ad511f2ba6be651e",
@@ -895,7 +908,9 @@
       "_walk_compression_chain",
       "stamp_compression_ancestors",
       "SessionCompressionMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_coverage.py",
@@ -906,13 +921,15 @@
       "hermes_state_coverage.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "7df625a74fb72b7b232826b85bfaf44a8c006e8dd34c1f445c1a0c00058c301c",
     "symbol_names": [
       "SessionCoverageMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_dbfile.py",
@@ -1169,7 +1186,8 @@
       "count_db_holders",
       "_is_inactive_orphan_desktop_holder",
       "_concrete_state_db_holder_pids"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_state_delegate_children.py",
@@ -1180,13 +1198,15 @@
       "hermes_state_delegate_children.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "8e248709b07a71f845534c21ef975b888da93979e726024baeba1da6ea8f45c7",
     "symbol_names": [
       "delegate_descendant_ids"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_detached_results.py",
@@ -1197,13 +1217,15 @@
       "hermes_state_detached_results.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "3bb4b276f8e412f967c8a3b74c067257ea33ee07b70e51ec2003815afe061dfc",
     "symbol_names": [
       "SessionDetachedResultsMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_errors.py",
@@ -1214,7 +1236,7 @@
       "hermes_state_errors.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {
       "StateDbReplacedError": {
@@ -1283,7 +1305,9 @@
       "StateDbCorruptError",
       "classify_persistence_error"
     ],
-    "task4_adjustment": "Pure physical helpers/types migrate now; unrelated business/application functions stay with their owner and original task."
+    "task4_adjustment": "Pure physical helpers/types migrate now; unrelated business/application functions stay with their owner and original task.",
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_fts.py",
@@ -1294,7 +1318,7 @@
       "hermes_state_fts.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "2fc9fcec8b4520878d589e8790a30069f36aff242e18efac7b9ccc22865fb1ed",
@@ -1314,7 +1338,9 @@
       "drop_retired_cjk_index",
       "_stage_retired_cjk_index",
       "SessionFtsSetupMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_gateway.py",
@@ -1325,14 +1351,16 @@
       "hermes_state_gateway.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "3f22e77c2abf3016be2768dc8675ffc40308d7d2e09032c32cd8a616580a47ce",
     "symbol_names": [
       "_optional_table_columns",
       "SessionGatewayMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_guard.py",
@@ -1343,7 +1371,7 @@
       "hermes_state_guard.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "d1b166030744d659a6baa52d6c420b0620d98dd41b7cf6f071bc8ad3874ea00d",
@@ -1357,7 +1385,9 @@
       "_register_test_instance",
       "_set_last_init_error",
       "get_last_init_error"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_health.py",
@@ -1368,7 +1398,7 @@
       "hermes_state_health.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "82f36e24a3154d30d89a4af63cc25dc3752c13d2c6876663ef828e28072766fa",
@@ -1380,7 +1410,9 @@
       "storage_state",
       "storage_corrupt_reason",
       "reset_storage_state"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_holders.py",
@@ -1391,7 +1423,7 @@
       "hermes_state_holders.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {
       "canonical_sqlite_path": {
@@ -1427,7 +1459,9 @@
       "held_store_refusal",
       "live_writer_holds_db"
     ],
-    "task4_adjustment": "Pure physical helpers/types migrate now; unrelated business/application functions stay with their owner and original task."
+    "task4_adjustment": "Pure physical helpers/types migrate now; unrelated business/application functions stay with their owner and original task.",
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_identity.py",
@@ -1438,7 +1472,7 @@
       "hermes_state_identity.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "080cb91c01eeca85d4f2c2a0748bde738449fe7e45931f9748cc101b3e64fdd9",
@@ -1455,7 +1489,9 @@
       "_restore_row_identity",
       "_restore_identity_columns",
       "_stable_tool_key"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_ids.py",
@@ -1466,14 +1502,16 @@
       "hermes_state_ids.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "e29acfa0e6e6d28430a3139965ea3d4eaf190e0c89b267ce7e5bf9a4b464f8ef",
     "symbol_names": [
       "is_known_session_id",
       "new_session_id"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_keys.py",
@@ -1484,7 +1522,7 @@
       "hermes_state_keys.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "2ae3a7b1522242d46069657730b79522847e67d90a3f9473828697bfd9aa5690",
@@ -1498,7 +1536,9 @@
       "local_identity",
       "profile_from_session_key_namespace",
       "profile_from_session_key"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_legacy_refusal.py",
@@ -1509,7 +1549,7 @@
       "hermes_state_legacy_refusal.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "9ecdc3ad89025dd19308c330595372dbdd5684767525dff901fd2799339a4edc",
@@ -1528,7 +1568,9 @@
       "_pending",
       "repair_legacy_refused_turns",
       "advance_legacy_refusal_repair"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_local.py",
@@ -1539,7 +1581,7 @@
       "hermes_state_local.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "97286547378bcef3743c3484c1c14dd3f820a059b112646c916e41259a581cf5",
@@ -1564,7 +1606,9 @@
       "annotate_local_lineages",
       "local_receipt",
       "end_idle_local_session"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_local_lineage.py",
@@ -1575,7 +1619,7 @@
       "hermes_state_local_lineage.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "5cb1f312af0a70dd4306722a2edd26f8d8ab2135e83c1dee1fb06a717d8ddb68",
@@ -1590,7 +1634,9 @@
       "with_adopted_compression",
       "adopt_untracked_compression",
       "reset_local_target"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_local_migration.py",
@@ -1601,7 +1647,7 @@
       "hermes_state_local_migration.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "c7920f95a00009e5c3a172fd47b04bf3dd9259831629dba79d6ba8673421aca1",
@@ -1617,7 +1663,9 @@
       "validate_legacy_row",
       "bind_legacy_target",
       "legacy_lineage_root"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_lockguard.py",
@@ -1642,7 +1690,8 @@
       "hold",
       "release"
     ],
-    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed"
+    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_state_lockowners.py",
@@ -1653,7 +1702,7 @@
       "hermes_state_lockowners.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "3ef46bc9908d9ccf7c42bc77e6191f3a8a2c93c2fe9611d5a1f3f86109b48f93",
@@ -1662,7 +1711,9 @@
       "parse_proc_locks",
       "state_db_write_lock_holders",
       "log_write_lock_holders"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_maintenance.py",
@@ -1673,7 +1724,7 @@
       "hermes_state_maintenance.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "0cda59de5d4bf37e2b9e6d7cc1ee0c283efad42b02f879a6cf43af2f6801360b",
@@ -1685,7 +1736,9 @@
       "_continued_ancestors_sql",
       "_not_pinned_sql",
       "SessionMaintenanceMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_media.py",
@@ -1696,7 +1749,7 @@
       "hermes_state_media.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "f6fc9f23379e404ccc418118b9844d69118d9a824c68e3c741ec36ba95872e79",
@@ -1705,7 +1758,9 @@
       "retire_spillover",
       "collect_retired_spillover",
       "collect_retired_media"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_messages.py",
@@ -1716,14 +1771,16 @@
       "hermes_state_messages.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "2b4f17365c18e66a8f777cfecc60f1b3c6acb4a7c13996b0ea12f47ead854567",
     "symbol_names": [
       "_stale_holder",
       "SessionMessagesMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_mutation_binding.py",
@@ -1734,7 +1791,7 @@
       "hermes_state_mutation_binding.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "24319e0ca8883ab9d95067c8ece44e39d59a40c6f018a08d7ace0d0368004243",
@@ -1749,7 +1806,9 @@
       "authorize_history",
       "history_binding",
       "same_history_owner"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_mutation_branch.py",
@@ -1760,14 +1819,16 @@
       "hermes_state_mutation_branch.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "3c73355b10d6f2a9da3c6341b100674cb1075d26c073d1e0f24ae28a2d2fa6dc",
     "symbol_names": [
       "_branch_boundary",
       "branch_in_transaction"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_mutation_chat_pick.py",
@@ -1778,7 +1839,7 @@
       "hermes_state_mutation_chat_pick.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "2634180ff87ebaed81bc822de700acc26d8b68f6b022dfe079850366530f6da2",
@@ -1787,7 +1848,9 @@
       "_fenced_row",
       "prepare_chat_pick",
       "commit_chat_pick"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_mutation_compress.py",
@@ -1798,13 +1861,15 @@
       "hermes_state_mutation_compress.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "bea02e8501dc0d71c3d27d58f75f95a991380ff91e236795bb7b04f9ac3fab56",
     "symbol_names": [
       "compress_in_transaction"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_mutation_guards.py",
@@ -1815,7 +1880,7 @@
       "hermes_state_mutation_guards.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "281881e66f98e05b479c2cf26e6eec09b0bcc6a0cffd40cc992c3e72c6a11163",
@@ -1827,7 +1892,9 @@
       "require_idle",
       "_continuation_edges",
       "delete_targets"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_mutation_prepared.py",
@@ -1838,7 +1905,7 @@
       "hermes_state_mutation_prepared.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "01915912e8836d3771eb4249dcb8afaea5f655f5ed02c48a822b0d421f4a39e1",
@@ -1854,7 +1921,9 @@
       "picks_on",
       "policy_picks",
       "commit_refreshed_policy"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_mutation_reset.py",
@@ -1865,13 +1934,15 @@
       "hermes_state_mutation_reset.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4223fb87e2aac3b6ec360a0010ec406dec58b09a1f8cddc5d72181e0bb875c96",
     "symbol_names": [
       "reset_in_transaction"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_mutation_retirement.py",
@@ -1882,7 +1953,7 @@
       "hermes_state_mutation_retirement.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "30c6687f37cfd32438fbde9886e041648bc5b2bd9bf8d43cc58914af7ed1b97a",
@@ -1909,7 +1980,9 @@
       "fence_shared_routes",
       "_reclaim_expired",
       "prune_retired_tombstones"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_mutation_transcript.py",
@@ -1920,13 +1993,15 @@
       "hermes_state_mutation_transcript.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "fcc9fde438c19726dfbbfdb8404ae9aab31fbb0fb5f9c1c36d0e9bc9472f9f6b",
     "symbol_names": [
       "rewind_in_transaction"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_mutations.py",
@@ -1937,7 +2012,7 @@
       "hermes_state_mutations.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "60dea3f38d8cd8a6dcd56332bd501a34b76507ce1aaa86cef3dfb3e70f647635",
@@ -1948,7 +2023,9 @@
       "_summarized_by_compaction",
       "_carrier_live_view",
       "_import"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_pidns.py",
@@ -1959,7 +2036,7 @@
       "hermes_state_pidns.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "ee2127142a41731c52b0e8ae078f4145efc84ea1103fb484ce10bec434ad024e",
@@ -1973,7 +2050,9 @@
       "_qualify",
       "holder_pid_checkable",
       "persistent_record_pidns_checkable"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_portability.py",
@@ -1984,7 +2063,7 @@
       "hermes_state_portability.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "81e9b4a8dd801118128875cd0883f22a6aab94e2ab22a734095607892ad3248c",
@@ -1992,7 +2071,9 @@
       "_rich_select",
       "_export_timings",
       "SessionPortabilityMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_prompt_refresh.py",
@@ -2003,13 +2084,15 @@
       "hermes_state_prompt_refresh.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "6556c08615e9f06ef838d29fa27a6456cfdb35fe7eb95ffb5b13755d9fd89794",
     "symbol_names": [
       "SessionPromptRefreshMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_prune_rewrite.py",
@@ -2020,13 +2103,15 @@
       "hermes_state_prune_rewrite.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "7a6cdeb46ea9d453c49b204e3ad701b1e798274e63ff6e464289dd163c3eeb65",
     "symbol_names": [
       "SessionPruneRewriteMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_readpool.py",
@@ -2050,7 +2135,8 @@
       "_PathReadBudget",
       "_read_budget_key",
       "_read_budget_for"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_state_reconcile.py",
@@ -2061,7 +2147,7 @@
       "hermes_state_reconcile.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "ed3b33962293f840eead8feb82ea31108ea6776c030169cd40e9e1d11b94bd4f",
@@ -2089,7 +2175,9 @@
       "_verify_clean_before_lock",
       "reconcile_drift_for_browse",
       "repair_declarative_schema"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_registry.py",
@@ -2100,7 +2188,7 @@
       "hermes_state_registry.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "e16f6da9b486f52738e59a7f226d82bd163e429a3967fdd1410e4cc4834c0b0e",
@@ -2127,7 +2215,9 @@
       "borrow_live_shared_session_dbs",
       "stats",
       "release_or_close"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_repair.py",
@@ -2138,7 +2228,7 @@
       "hermes_state_repair.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "5610daa47f0d0d61094153cca4e1f38bc13c53447e6010f2c995673a40f20e63",
@@ -2203,7 +2293,9 @@
       "_strategy_dedup_schema",
       "_strategy_drop_fts_vacuum",
       "_run_repair_strategies"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_rewind.py",
@@ -2214,14 +2306,16 @@
       "hermes_state_rewind.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "b2eacd6417c1a0dd7791e6738b752c694346a22a40f332fa87f7ff453d69eeff",
     "symbol_names": [
       "retain_refused_turn_for_display",
       "SessionRewindMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_runtime.py",
@@ -2232,7 +2326,7 @@
       "hermes_state_runtime.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "ddd2277a3617eb721ad15ff3149a9ddc76b7442181cdb4496db62c0ee705a79f",
@@ -2278,7 +2372,9 @@
       "_worker_finish",
       "mutate_worker_execution",
       "apply_worker_receipt"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_runtime_workers.py",
@@ -2289,7 +2385,7 @@
       "hermes_state_runtime_workers.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "41f1ebeb12a17fefb070ea08e7f5502a50cf88d9835f92e093cbee2c4bc602c4",
@@ -2304,7 +2400,9 @@
       "_end_child_row",
       "compact_terminal_receipts",
       "_compact"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_schema.py",
@@ -2327,7 +2425,8 @@
       "SessionSchemaMixin",
       "apply_declared_schema",
       "reconcile_state_schema"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_state_search.py",
@@ -2338,7 +2437,7 @@
       "hermes_state_search.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "2255307475d1bec3c108b11a96a6ca1f478c05803f35aa7dc87ffed8ef15a22b",
@@ -2358,7 +2457,9 @@
       "_search_select_sql",
       "_search_filter_clauses",
       "SessionSearchMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_session_list.py",
@@ -2369,13 +2470,15 @@
       "hermes_state_session_list.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "82febbac385b58ded8578a07e7cf1108b93c74290f34972ca5e56307c2a372ea",
     "symbol_names": [
       "project_compression_tips"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_sessions.py",
@@ -2386,7 +2489,7 @@
       "hermes_state_sessions.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "668e95532a8a93a1f23d977eaa1377f52c378b17d0783f248b19f037c20b06ef",
@@ -2403,7 +2506,9 @@
       "_delete_delegate_children",
       "_inherit_col_sql",
       "SessionSessionsMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_sessions_model_config.py",
@@ -2414,14 +2519,16 @@
       "hermes_state_sessions_model_config.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4075f091e1872ec2feca6f275bc86dedf818bba4986d5de8053a7851c2831e8b",
     "symbol_names": [
       "update_conversation_model_config_value",
       "session_ids_with_model_config_key"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_stored_reads.py",
@@ -2432,7 +2539,7 @@
       "hermes_state_stored_reads.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "03a8d2219dcc50f65f5c6291aa6e3572bd5cce123b5ad97f3c5a1af3ae8702fc",
@@ -2441,7 +2548,9 @@
       "_ids",
       "_ReadCheck",
       "SessionStoredReadsMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_telegram.py",
@@ -2452,14 +2561,16 @@
       "hermes_state_telegram.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "22bb70e84fbdbe64fbdfc11ed442b35ee41e280b4f43f27f636ea99e32995617",
     "symbol_names": [
       "_normalize_telegram_topic_profile_name",
       "SessionTelegramTopicsMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_terminal.py",
@@ -2470,7 +2581,7 @@
       "hermes_state_terminal.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "50b84bb535d39d8ca02fde11ad67e6cdd0177a46b4649aa81c3d668270d61e74",
@@ -2479,7 +2590,9 @@
       "terminal_admission",
       "retry_terminal_admission",
       "terminal_worker_receipt"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_timeline.py",
@@ -2490,7 +2603,7 @@
       "hermes_state_timeline.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "9116f088718b4dec2ec96251da69d04257206e1f66b25befe352d8de01e5aa92",
@@ -2501,7 +2614,9 @@
       "_register_functions",
       "get_session_messages_around",
       "get_session_timeline"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_titles.py",
@@ -2512,7 +2627,7 @@
       "hermes_state_titles.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "685a713c1c63f776ef9266e6c169eec548a24225ee510890d47d93ee4d89f1be",
@@ -2520,7 +2635,9 @@
       "next_title_in_lineage",
       "SessionTitlesMixin",
       "lineage_title_on_conn"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_todo.py",
@@ -2531,13 +2648,15 @@
       "hermes_state_todo.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "760e736445256ffb71f3e4879aa90ae169f4503d25b026cc41771d9d4279faa9",
     "symbol_names": [
       "SessionTodoResultMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_usage.py",
@@ -2548,14 +2667,16 @@
       "hermes_state_usage.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "d2a511165e85a97672cf4ffd76e049e4ca72cfaf9abf35448ef6ae48baaef4e9",
     "symbol_names": [
       "_token_update_sql",
       "SessionUsageMixin"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_user_copy.py",
@@ -2566,7 +2687,7 @@
       "hermes_state_user_copy.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4d518640e87f17b30f69f982a90d77811e212e2581b3b1d32eca5b3818088259",
@@ -2574,7 +2695,9 @@
       "StorageFailure",
       "describe_storage_failure",
       "storage_failure_details"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_wal.py",
@@ -2769,7 +2892,8 @@
       "_apply_synchronous_pragma",
       "apply_database_pragmas"
     ],
-    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed"
+    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_state_worker_compression.py",
@@ -2780,7 +2904,7 @@
       "hermes_state_worker_compression.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "0bd0c32374bdef307210513e08b526f494b04d56040f6b1b3c5f13f50f7da6d4",
@@ -2813,7 +2937,9 @@
       "worker_compression_cleanup",
       "worker_compression_append",
       "worker_turn_cleanup"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_worker_context.py",
@@ -2824,7 +2950,7 @@
       "hermes_state_worker_context.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "7dd958e567381a2041bc024ff0c1e5f435c9da310323f3f6916d44c613ffc048",
@@ -2835,7 +2961,9 @@
       "worker_tool_names",
       "worker_tail_role",
       "worker_row_role"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_state_worker_lifecycle.py",
@@ -2846,7 +2974,7 @@
       "hermes_state_worker_lifecycle.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "0463bbe8cb96d7b5998d8200aa87d0f459fd37e5cea2fc5934e0d010bf6915f0",
@@ -2864,7 +2992,9 @@
       "worker_message_api_content",
       "worker_user_content",
       "insert_session_row_in_transaction"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "scripts/hermes_db_boundary_lint.py",
@@ -2875,7 +3005,7 @@
       "scripts/hermes_db_boundary_lint.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "25901bfa817b36e3c5c1fa2383e42614c66df1cd5d557386cd9e15825ad5a274",
@@ -2894,7 +3024,9 @@
       "needs_review",
       "check",
       "main"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "agent/kanban_turn_recovery.py",
@@ -2905,7 +3037,7 @@
       "agent/kanban_turn_recovery.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "eedb0a7ab0e77e161871b206cbbd33c86c13b2a62068aabf8580031ec0fc9654",
@@ -2924,7 +3056,9 @@
       "build_recovery_nudge",
       "_emit_recovery_skipped",
       "recover_failed_kanban_turns"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "agent/transcript_repair.py",
@@ -2935,7 +3069,7 @@
       "agent/transcript_repair.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "78c46a18d3ddf2b41639c3b010fe4187b8d2a07570e14feb25a9ea0ca489ce9f",
@@ -2951,7 +3085,9 @@
       "_restore_display_index",
       "_active_message_row",
       "sync_flushed_message_markers"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "agent/verification_evidence.py",
@@ -2962,7 +3098,7 @@
       "agent/verification_evidence.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "0c8819b5b0ac9449f177b4ef47a09a1bbe82bb5177047bf38d3ea8fefba5bc2f",
@@ -3006,7 +3142,9 @@
       "mark_workspace_edited",
       "_newest_workspace_verify",
       "verification_status"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "cron/delivery_queue.py",
@@ -3040,7 +3178,8 @@
     ],
     "implemented_target_sha256": {
       "cron/delivery_queue.py": "7280458d1702e69fdb8c1b161ba504b3fa744346c244e6f589efe1d06b6dd874"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "cron/executions.py",
@@ -3096,7 +3235,8 @@
     ],
     "implemented_target_sha256": {
       "cron/executions.py": "433dfb026139cfce60de3f7c1cf44f27989082dcaf7967b6b312a02b0bab180d"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "cron/incidents.py",
@@ -3132,7 +3272,8 @@
     ],
     "implemented_target_sha256": {
       "cron/incidents.py": "83f707ffbe23037e7ef01c772aa226a88cac66f8cc142e7c7bbf4ab6d3f7bf2f"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "cron/notepad.py",
@@ -3163,7 +3304,8 @@
     ],
     "implemented_target_sha256": {
       "cron/notepad.py": "db379441e4f332b06d631e86dbe5b558401c189e909caa6c48f72e6a500fc641"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "cron/scheduler.py",
@@ -3308,7 +3450,8 @@
     ],
     "implemented_target_sha256": {
       "cron/scheduler.py": "02cc792a89d72d9c6768129fd6d753f0da17c507801e0db0d03a1d0c517ec2e9"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "gateway/delivery_ledger.py",
@@ -3347,7 +3490,8 @@
     ],
     "implemented_target_sha256": {
       "gateway/delivery_ledger.py": "874df0e440d1679b038877a55784611b2247a39142c9157c6724d1495a66dbde"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "gateway/hosted_room_attachments.py",
@@ -3372,7 +3516,8 @@
     ],
     "implemented_target_sha256": {
       "gateway/hosted_room_attachments.py": "c485841fbf46cddd89038d44f90c62acdb71466de22b00634e63104c1c156d9f"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "gateway/hosted_room_driver.py",
@@ -3433,7 +3578,8 @@
     ],
     "implemented_target_sha256": {
       "gateway/hosted_room_driver.py": "2d2d6f74f700651c9695db19728d484bfe79a155b10a73a5d4c966932ed0c741"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "gateway/hosted_room_policy_checkpoint.py",
@@ -3455,7 +3601,8 @@
     ],
     "implemented_target_sha256": {
       "gateway/hosted_room_policy_checkpoint.py": "eb307a871d5b51fd4c480924d273bfb8bbd378773bbc9a26e629838eeb2afd18"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "gateway/hosted_room_replicas.py",
@@ -3483,7 +3630,8 @@
     ],
     "implemented_target_sha256": {
       "gateway/hosted_room_replicas.py": "5742a18dcea27167e6d7dde2974f6e657c1ffb8f2e2f929e72e838691e1010de"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "gateway/hosted_room_work_records.py",
@@ -3516,7 +3664,8 @@
     ],
     "implemented_target_sha256": {
       "gateway/hosted_room_work_records.py": "385970c938c83259a0678f4a81fcad969242e566699828c42f299d54464ec6ca"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "gateway/hosted_room_work_storage.py",
@@ -3544,7 +3693,8 @@
     ],
     "implemented_target_sha256": {
       "gateway/hosted_room_work_storage.py": "c4aa9b50b4d21fe4b1ad485586d0616d150155062312a0cf21890bc89875061d"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "gateway/hosted_rooms.py",
@@ -3624,7 +3774,8 @@
     ],
     "implemented_target_sha256": {
       "gateway/hosted_rooms.py": "177d477e4238406645dde452ec2c45002bed99e029ed0d8c98f99e570f5282b5"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "gateway/hosted_rooms_common.py",
@@ -3649,7 +3800,8 @@
     ],
     "implemented_target_sha256": {
       "gateway/hosted_rooms_common.py": "a9a2460cb0f5d308402fe472241a74bb5ae65f01e8e2301dc9a10d953fdc5921"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "gateway/hosted_rooms_gateway_import.py",
@@ -3687,7 +3839,8 @@
     ],
     "implemented_target_sha256": {
       "gateway/hosted_rooms_gateway_import.py": "513414b5df891618819dde3ece1a62d703420be5d08db517fcb32b4e615b489b"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "gateway/hosted_rooms_legacy_import.py",
@@ -3711,7 +3864,8 @@
     ],
     "implemented_target_sha256": {
       "gateway/hosted_rooms_legacy_import.py": "8bfecc2e2f0547335263b21ab9fde53bccea8b4b4e161ffd3dd87ce53ae84738"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "gateway/lifecycle_ledger.py",
@@ -3750,7 +3904,8 @@
     ],
     "implemented_target_sha256": {
       "gateway/lifecycle_ledger.py": "613f36f2a96b3c9d60c01dd7513cabc739366289fe404f8e51c87a20b0f8564e"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "gateway/platforms/api_server_response_store.py",
@@ -3769,7 +3924,8 @@
       "_locked",
       "ResponseStore"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "gateway/platforms/api_server_run_idempotency.py",
@@ -3788,7 +3944,8 @@
       "_outcome",
       "RunIdempotencyStore"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "gateway/readiness.py",
@@ -3799,7 +3956,7 @@
       "gateway/readiness.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "d820b4b8289ad6c2dde1a2f8502b7a8cde42972299ddfbc8be319a49828e09de",
@@ -3811,7 +3968,9 @@
       "_probe_gateway",
       "_probe_session_store",
       "collect_runtime_readiness"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "gateway/run_idle_exit.py",
@@ -3822,7 +3981,7 @@
       "gateway/run_idle_exit.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "fc4fa19c06b5bd76ddf3162371192ff90cdfaf9811460b09abb6be68da1c47fa",
@@ -3846,7 +4005,9 @@
       "_retired_for_restart",
       "unmanaged_idle_exit_watcher",
       "arm_unmanaged_idle_exit"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "gateway/session_kanban.py",
@@ -3857,7 +4018,7 @@
       "gateway/session_kanban.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "10770dfefbc74ea67d33ce57edcd77160704137e27754dc1aa9bf6257f4ee362",
@@ -3877,7 +4038,9 @@
       "worker_result",
       "worker_exit_code",
       "_run_task_turns"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "gateway/session_kanban_policy.py",
@@ -3888,7 +4051,7 @@
       "gateway/session_kanban_policy.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "aad8fa79b30e22fef6136c8c463b3cebe515d41bfbeb7bbe11ea79c2249a65ec",
@@ -3900,7 +4063,9 @@
       "_postgresql_claim",
       "describe_claim",
       "admit_postgresql_claim"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_cli/approvals_suggest.py",
@@ -3911,7 +4076,7 @@
       "hermes_cli/approvals_suggest.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "9f696328ff5d2e82520fa38506738e457d67fc52ffb1141efe20798ca374eb11",
@@ -3936,7 +4101,9 @@
       "_render_text",
       "suggest_command",
       "approvals_command"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_cli/backup.py",
@@ -3947,7 +4114,7 @@
       "hermes_cli/backup.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "6f0db06adb0cbf53f0a0cb8a8bda794ee847c00aeb11b7be78d22f08b51649c6",
@@ -4012,7 +4179,9 @@
       "prune_quick_snapshots",
       "_write_full_zip_backup",
       "_write_full_zip_backup_locked"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_cli/backup_restore.py",
@@ -4023,7 +4192,7 @@
       "hermes_cli/backup_restore.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "c177b624bad71c1b45f7e558e2a7539155eef448e731ea6e4ab87ad756731b8d",
@@ -4046,7 +4215,9 @@
       "_get_config_path_value",
       "_set_config_path_value",
       "_count_cron_jobs"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_cli/backup_sqlite.py",
@@ -4057,7 +4228,7 @@
       "hermes_cli/backup_sqlite.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "84f81afb503a6428edc21988cb646b67f064cb9b601338837b2943a3d7eb0840",
@@ -4073,7 +4244,9 @@
       "_safe_copy_db",
       "_reclaim_abandoned_staging",
       "preflight_state_db"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_cli/browser_connect.py",
@@ -4084,7 +4257,7 @@
       "hermes_cli/browser_connect.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "User-supplied SQLite document/browser database input is outside selected Hermes persistence; retain separate input-process boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "387b1d9a2973d8e0113e26fcd8e41aa99945d2298da7b7b735ba4983a08a2f69",
@@ -4142,7 +4315,9 @@
       "ChromeDebugLaunch",
       "_read_stderr_tail",
       "launch_chrome_debug"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_cli/config_defaults.py",
@@ -4153,11 +4328,13 @@
       "hermes_cli/config_defaults.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-    "symbol_names": []
+    "symbol_names": [],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_cli/data_cleanup_holders.py",
@@ -4168,7 +4345,7 @@
       "hermes_cli/data_cleanup_holders.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "63a07033724835b558c76574bf6dd0a949a9516960db62ef17fe706b655f0862",
@@ -4180,7 +4357,9 @@
       "_refuse_cron_writers",
       "_refuse_multiplexer",
       "quiescent_home"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_cli/doctor_state.py",
@@ -4191,7 +4370,7 @@
       "hermes_cli/doctor_state.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "20cf007115d45f811dacb77afe5803cb478d889b5719fa49e79b37f8212fd87f",
@@ -4226,7 +4405,9 @@
       "_check_plugins_disabled_by_update",
       "_check_plugins_in_both_lists",
       "_check_profiles"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_cli/install_state.py",
@@ -4237,7 +4418,7 @@
       "hermes_cli/install_state.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "9e6ae9aa12320fba02b68d73f8013dc5b9d8a468193d4f5f79d1fc514592c26b",
@@ -4282,7 +4463,9 @@
       "_read_text",
       "_read_mapping",
       "_parse_yaml"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_cli/kanban_db.py",
@@ -4446,7 +4629,8 @@
       "read_worker_log",
       "list_profiles_on_disk",
       "known_assignees"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/kanban_db_context.py",
@@ -4473,7 +4657,8 @@
       "_ctx_parent_results",
       "_ctx_role_history",
       "_ctx_comments"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/kanban_db_dispatch.py",
@@ -4575,7 +4760,8 @@
       "_restart_safe_worker_argv",
       "_default_spawn",
       "run_daemon"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/kanban_db_failure.py",
@@ -4592,7 +4778,8 @@
     "baseline_abi_sha256": "79b32996248a750ebd83fa31c87f5afae7b21a57c0ea7a9d95b504860a3a20f1",
     "symbol_names": [
       "_record_task_failure"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/kanban_db_graph.py",
@@ -4612,7 +4799,8 @@
       "initial_task_state",
       "decompose_triage_task",
       "_insert_decomposed_child"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/kanban_db_notify.py",
@@ -4644,7 +4832,8 @@
       "record_notify_ping",
       "rewind_notify_cursor",
       "_inherit_notify_subs"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/kanban_db_runs.py",
@@ -4667,7 +4856,8 @@
       "latest_summaries",
       "current_run_started_ats",
       "recent_profile_completions"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/kanban_db_workspace.py",
@@ -4720,7 +4910,8 @@
       "_set_task_column",
       "set_workspace_path",
       "set_branch_name"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/kanban_owner_recovery.py",
@@ -4753,7 +4944,8 @@
       "owner_reclaim_blocked",
       "owner_reclaim_blocked_after_kill",
       "managed_run_exit_code"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/kanban_sqlite_schema.py",
@@ -4771,7 +4963,8 @@
     "symbol_names": [],
     "implemented_target_sha256": {
       "hermes_cli/kanban_sqlite_schema.py": "8d85573e0549e6ba7f4def9b70b2de5bd7964ba1af962604c43b08af3e6619bb"
-    }
+    },
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/kanban_swarm.py",
@@ -4796,7 +4989,8 @@
       "post_blackboard_update",
       "latest_blackboard",
       "parse_worker_arg"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/kanban_transfer.py",
@@ -4823,7 +5017,8 @@
       "_read_board_metadata",
       "_relocate_imported_rows",
       "import_board"
-    ]
+    ],
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/observability/shared_metrics.py",
@@ -4843,7 +5038,8 @@
       "_row_resource",
       "SharedMetricsStore"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/observability/shared_metrics_sender.py",
@@ -4863,7 +5059,8 @@
       "reconcile_send_consent",
       "SharedMetricsSender"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/observability/shared_metrics_snapshot.py",
@@ -4892,7 +5089,8 @@
       "install_age_bucket",
       "collect_install_snapshot"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/plugins.py",
@@ -4903,7 +5101,7 @@
       "hermes_cli/plugins.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "bee0c0f6194fdc90fa9b6e5050349357271aa47fcbb3838bd65619f5a4fd9b92",
@@ -4961,7 +5159,9 @@
       "get_plugin_commands",
       "get_plugin_auxiliary_tasks",
       "get_plugin_toolsets"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_cli/session_lost_and_found.py",
@@ -4972,7 +5172,7 @@
       "hermes_cli/session_lost_and_found.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "51c0b00d53dd4f5abb487ee4c2f7c09f3e36b4dd7ecc0a17c1aa8999633179ef",
@@ -5015,7 +5215,9 @@
       "map_lost_and_found_rows",
       "stub_missing_parent_sessions",
       "rebuild_fts_indexes"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_cli/session_recovery.py",
@@ -5026,7 +5228,7 @@
       "hermes_cli/session_recovery.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "05d1ec68620b59cc0cffa44833dbd3eac427fd752b3c547ffffe4b0d912da683",
@@ -5082,7 +5284,9 @@
       "recover_session_database",
       "_recover_session_database_output",
       "write_recovery_report"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_cli/sessions_cmd_journal_mode.py",
@@ -5093,7 +5297,7 @@
       "hermes_cli/sessions_cmd_journal_mode.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "f5de27cb016562ed11a1a6726d473bc6065d4bc2911c2992ebbc8ee9a45ec277",
@@ -5101,7 +5305,9 @@
       "_header_mode",
       "_refusal",
       "cmd_set_journal_mode"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_cli/sqlite_runtime.py",
@@ -5123,7 +5329,8 @@
       "isolated_interpreter_env",
       "probe_sqlite_runtime"
     ],
-    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed"
+    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/sqlite_safe_read.py",
@@ -5158,7 +5365,8 @@
       "read_header_bytes_preopen",
       "offline_file_access"
     ],
-    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed"
+    "implementation_note": "Technical mechanism moved; captured application policy and actual consumers/patches updated; Task3 local gates passed",
+    "reviewed_in": 16
   },
   {
     "source": "hermes_cli/update_downgrade_guard.py",
@@ -5169,7 +5377,7 @@
       "hermes_cli/update_downgrade_guard.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "a259d3ae2e5dd8e5e943f9444d21647ee896677628c56af61bac753797b54e9c",
@@ -5185,7 +5393,9 @@
       "_ledgered_profiles",
       "would_refuse",
       "downgrade_refusal"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "hermes_cli/worktree_ops.py",
@@ -5196,7 +5406,7 @@
       "hermes_cli/worktree_ops.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "933dfd4ec7c70fe257bd0514db715b36330fd99d7c22798f3465fb933f2d7fe5",
@@ -5251,7 +5461,9 @@
       "_prune_stale_worktree_trees",
       "_warn_worktree_footprint",
       "_prune_orphaned_branches"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "plugins/kanban/dashboard/plugin_api.py",
@@ -5389,7 +5601,8 @@
       "_EventTail",
       "stream_events"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "plugins/memory/retaindb/__init__.py",
@@ -5418,7 +5631,8 @@
       "RetainDBMemoryProvider",
       "register"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "plugins/platforms/discord/recovery.py",
@@ -5436,7 +5650,8 @@
     "symbol_names": [
       "DiscordRecoveryStore"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "plugins/platforms/matrix/adapter.py",
@@ -5502,7 +5717,8 @@
       "_is_connected",
       "register"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "plugins/platforms/matrix/adapter_crypto_sqlite.py",
@@ -5530,7 +5746,8 @@
     "symbol_names": [
       "connect_sqlite"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "plugins/plugin_storage.py",
@@ -5551,7 +5768,8 @@
       "plugin_db",
       "plugin_store"
     ],
-    "evidence": "docs/designs/hermes-db-two-layer-task15.json"
+    "evidence": "docs/designs/hermes-db-two-layer-task15.json",
+    "reviewed_in": 16
   },
   {
     "source": "tools/async_delegation.py",
@@ -5562,7 +5780,7 @@
       "tools/async_delegation.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "7aac36faaab18ea78c9e2d1d2c4998f1ed4d15f38a6144004f5a7ad3e523b5d1",
@@ -5640,7 +5858,9 @@
       "allow_for_session",
       "_unfence",
       "_reset_for_tests"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "tools/browser_real_profile_logins.py",
@@ -5651,7 +5871,7 @@
       "tools/browser_real_profile_logins.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "User-supplied SQLite document/browser database input is outside selected Hermes persistence; retain separate input-process boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "7e3c2aa435657986c8ee1ae4a91fbb7f89edcc61863823419d6b9f15bd50552d",
@@ -5665,7 +5885,9 @@
       "resolve_login_password",
       "_wait_for_field_point",
       "_wait_for_autofill"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "tools/read_extract.py",
@@ -5676,7 +5898,7 @@
       "tools/read_extract.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "User-supplied SQLite document/browser database input is outside selected Hermes persistence; retain separate input-process boundaries.",
     "symbol_routes": {},
     "baseline_abi_sha256": "115911cb4aaeb9d995d000578f7f75641564190e45cf17435704c702e06ea196",
@@ -5719,7 +5941,9 @@
       "_cell_value",
       "_extract_sqlite",
       "_sqlite_cell"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "tools/tool_result_storage.py",
@@ -5730,7 +5954,7 @@
       "tools/tool_result_storage.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "68554a0fa4db9935c521d1dc96646ffe3caee9b8cb26570e41e926edf7f462b8",
@@ -5758,7 +5982,9 @@
       "_content_text_size",
       "_spill_largest_text_part",
       "enforce_turn_budget"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   },
   {
     "source": "tui_gateway/hosted_room_router_call.py",
@@ -5769,7 +5995,7 @@
       "tui_gateway/hosted_room_router_call.py"
     ],
     "task": 16,
-    "status": "pending",
+    "status": "completed",
     "reason": "Read/import/patch candidate; edit only actual affected production seam, retain unrelated behavior.",
     "symbol_routes": {},
     "baseline_abi_sha256": "5d16126bd4ef9daf95076f1bb80320dc958fb4ced37f311a9061cd4df799a231",
@@ -5778,6 +6004,8 @@
       "_recent_messages",
       "ask_router",
       "RouterCalls"
-    ]
+    ],
+    "reviewed_in": 16,
+    "evidence": "docs/designs/hermes-db-two-layer-task16.json"
   }
 ]

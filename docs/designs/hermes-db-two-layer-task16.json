@@ -1,0 +1,1275 @@
+{
+  "task": 16,
+  "status": "completed",
+  "parent_commit": "391c4537494289c654d0d9959c63b637ed927245",
+  "mapping_refs_verified": 11,
+  "scope_counts": {
+    "entries": 5,
+    "external_sources": 87,
+    "consumer_files": 1514,
+    "domain_boundaries": 0,
+    "native_patch_seams": 0,
+    "sqlite_lifecycle_candidates": 31,
+    "domain_io_sites": 0,
+    "non_python_consumer_files": 58
+  },
+  "deleted_tests": [],
+  "failures": [
+    {
+      "phase": "Boundary checker new contract red",
+      "result": "13passed/5failed/exit1",
+      "reason": "Old API/technical root direction exemption and missing direct file/process detection;new miniature packages reproduce all5 holes."
+    },
+    {
+      "phase": "Restored mixed assertion focused check",
+      "result": "5passed/1failed,NameError",
+      "reason": "Restored assertion used the retired local detail name instead of caught HTTP error detail.",
+      "fix": "Read str(caught.value.detail);preserve actual 503,unchanged bytes/no created tables and explicit owner refusal assertions.Recheck bothhosts pending."
+    },
+    {
+      "phase": "Intermediate static snapshot after restoring mixed assertion",
+      "result": "16checks exit1,health F821 only",
+      "reason": "Snapshot captured the retired local detail reference;fixed actual caught.value.detail passed focused6cases on bothhosts.Current full static rerun exits0."
+    }
+  ],
+  "actual_refinements": [
+    "Cron domain_operation and closed map moved into existing cron.storage_application;CronResource stays business.",
+    "Verification actual Profile/Worker dispatcher moved to agent.verification_storage;business postgres SQL untouched.",
+    "All business API entry exemptions removed from direction rules;technical root selection and explicit file/process/network/driver construction blocked."
+  ],
+  "required_pending": [],
+  "test_id_dispositions": [
+    {
+      "old_path": "tests/gateway/test_hosted_room_context.py",
+      "old_id": "test_settings_reads_seek_an_index_even_on_a_store_made_before_it",
+      "current_path": "tests/gateway/test_hosted_room_context.py",
+      "current_id": "test_explicit_upgrade_restores_index_for_settings_reads",
+      "disposition": "relocated or renamed",
+      "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+      "current_assertion_count": 2,
+      "current_error_contexts": [
+        "pytest.raises(StorageSchemaError)"
+      ]
+    },
+    {
+      "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "old_id": "test_unowned_lagging_store_browses_after_one_reconcile",
+      "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "current_id": "test_unowned_lagging_store_browses_after_explicit_upgrade",
+      "disposition": "relocated or renamed",
+      "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+      "current_assertion_count": 6,
+      "current_error_contexts": [
+        "pytest.raises(HTTPException, match='hermes db upgrade')"
+      ]
+    },
+    {
+      "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "old_id": "test_owned_lagging_store_is_not_written_and_names_the_remedy",
+      "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "current_id": "test_owned_lagging_store_is_not_written_and_names_the_remedy",
+      "disposition": "explicit-lifecycle assertion adaptation",
+      "reason": "Ordinary HTTP open still503 and names db upgrade;explicit upgrade refuses a running owner.No-write/no-new-tables retained.Normal corrupt-not-in-detail restored in Task16;obsolete gateway restart text retired because ordinary read no longer runs DDL.",
+      "current_assertion_count": 4,
+      "current_error_contexts": [
+        "pytest.raises(HTTPException, match='hermes db upgrade')",
+        "pytest.raises(StorageSchemaError, match='running gateway owns it')"
+      ]
+    },
+    {
+      "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "old_id": "test_session_list_reconciles_once_only_when_unowned",
+      "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "current_id": "test_session_list_requires_explicit_upgrade",
+      "disposition": "relocated or renamed",
+      "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+      "current_assertion_count": 10,
+      "current_error_contexts": []
+    },
+    {
+      "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "old_id": "test_startup_eager_reconcile_heals_only_an_unowned_stale_store",
+      "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "current_id": "test_startup_probe_leaves_stale_store_untouched",
+      "disposition": "relocated or renamed",
+      "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+      "current_assertion_count": 5,
+      "current_error_contexts": []
+    },
+    {
+      "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "old_id": "test_corrupt_non_root_page_plus_drift_is_not_written",
+      "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "current_id": "test_corrupt_non_root_page_plus_drift_is_not_written",
+      "disposition": "explicit-lifecycle assertion adaptation",
+      "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+      "current_assertion_count": 3,
+      "current_error_contexts": [
+        "pytest.raises(CorruptStoreError)"
+      ]
+    },
+    {
+      "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "old_id": "test_stuck_maintenance_holder_gets_busy_retry_not_a_gateway_remedy",
+      "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "current_id": "test_stuck_maintenance_holder_gets_busy_retry_not_a_gateway_remedy",
+      "disposition": "explicit-lifecycle assertion adaptation",
+      "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+      "current_assertion_count": 3,
+      "current_error_contexts": [
+        "pytest.raises(DeclarativeDriftError)"
+      ]
+    },
+    {
+      "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "old_id": "test_equal_cardinality_corrupt_index_plus_drift_is_not_written",
+      "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "current_id": "test_equal_cardinality_corrupt_index_plus_drift_is_not_written",
+      "disposition": "explicit-lifecycle assertion adaptation",
+      "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+      "current_assertion_count": 4,
+      "current_error_contexts": [
+        "pytest.raises(CorruptStoreError)"
+      ]
+    },
+    {
+      "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "old_id": "test_failed_column_reconcile_rolls_back_every_addition",
+      "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "current_id": "test_failed_column_reconcile_rolls_back_every_addition",
+      "disposition": "explicit-lifecycle assertion adaptation",
+      "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+      "current_assertion_count": 4,
+      "current_error_contexts": [
+        "pytest.raises(DeclarativeDriftError)"
+      ]
+    },
+    {
+      "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "old_id": "test_slow_integrity_scan_is_bounded_and_not_repeated_on_every_poll",
+      "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "current_id": "test_slow_integrity_scan_is_bounded_and_not_repeated_on_every_poll",
+      "disposition": "explicit-lifecycle assertion adaptation",
+      "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+      "current_assertion_count": 3,
+      "current_error_contexts": [
+        "pytest.raises(DeclarativeDriftError)"
+      ]
+    },
+    {
+      "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "old_id": "test_unopenable_lock_on_lagging_store_is_a_named_503",
+      "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "current_id": "test_unopenable_lock_on_lagging_store_is_a_named_503",
+      "disposition": "explicit-lifecycle assertion adaptation",
+      "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+      "current_assertion_count": 2,
+      "current_error_contexts": [
+        "pytest.raises(DeclarativeDriftError)"
+      ]
+    },
+    {
+      "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "old_id": "test_budget_refusal_on_unowned_store_names_repair_not_a_gateway",
+      "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "current_id": "test_budget_refusal_on_unowned_store_names_repair_not_a_gateway",
+      "disposition": "explicit-lifecycle assertion adaptation",
+      "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+      "current_assertion_count": 8,
+      "current_error_contexts": [
+        "pytest.raises(DeclarativeDriftError)"
+      ]
+    },
+    {
+      "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "old_id": "test_legacy_gateway_holding_the_store_without_a_lock_is_not_written",
+      "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "current_id": "test_legacy_gateway_holding_the_store_without_a_lock_is_not_written",
+      "disposition": "explicit-lifecycle assertion adaptation",
+      "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+      "current_assertion_count": 6,
+      "current_error_contexts": [
+        "pytest.raises(DeclarativeDriftError)"
+      ]
+    },
+    {
+      "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "old_id": "test_owned_refusal_names_the_owning_multiplexers_restart",
+      "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "current_id": "test_owned_refusal_names_the_owning_multiplexers_stop",
+      "disposition": "relocated or renamed",
+      "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+      "current_assertion_count": 4,
+      "current_error_contexts": [
+        "pytest.raises(DeclarativeDriftError)"
+      ]
+    },
+    {
+      "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "old_id": "test_read_only_lagging_store_gets_a_permissions_message",
+      "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+      "current_id": "test_read_only_lagging_store_gets_a_permissions_message",
+      "disposition": "explicit-lifecycle assertion adaptation",
+      "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+      "current_assertion_count": 4,
+      "current_error_contexts": [
+        "pytest.raises(DeclarativeDriftError)"
+      ]
+    },
+    {
+      "old_path": "tests/hermes_cli/test_db_commands.py",
+      "old_id": "test_sqlite_status_does_not_open_or_upgrade_a_database",
+      "current_path": "tests/hermes_cli/test_db_commands.py",
+      "current_id": "test_sqlite_status_reports_missing_until_explicit_upgrade",
+      "disposition": "relocated or renamed",
+      "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+      "current_assertion_count": 7,
+      "current_error_contexts": []
+    },
+    {
+      "old_path": "tests/hermes_cli/test_kanban_db.py",
+      "old_id": "test_connect_falls_back_to_delete_on_locking_protocol",
+      "current_path": "tests/hermes_cli/test_kanban_db_connections.py",
+      "current_id": "test_connect_falls_back_to_delete_on_locking_protocol",
+      "disposition": "relocated or renamed",
+      "reason": "Technical/WAL or explicit-schema error contract relocated with its real implementation;original business assertions retained.",
+      "current_assertion_count": 2,
+      "current_error_contexts": []
+    },
+    {
+      "old_path": "tests/hermes_cli/test_kanban_db.py",
+      "old_id": "test_connect_works_when_wal_is_silently_refused",
+      "current_path": "tests/hermes_cli/test_kanban_db_connections.py",
+      "current_id": "test_connect_works_when_wal_is_silently_refused",
+      "disposition": "relocated or renamed",
+      "reason": "Technical/WAL or explicit-schema error contract relocated with its real implementation;original business assertions retained.",
+      "current_assertion_count": 3,
+      "current_error_contexts": []
+    },
+    {
+      "old_path": "tests/hermes_cli/test_kanban_db.py",
+      "old_id": "test_sqlite_connect_closes_tracked_conn_on_setup_failure",
+      "current_path": "tests/hermes_cli/test_kanban_db_connections.py",
+      "current_id": "test_sqlite_connect_closes_tracked_conn_on_setup_failure",
+      "disposition": "relocated or renamed",
+      "reason": "Technical/WAL or explicit-schema error contract relocated with its real implementation;original business assertions retained.",
+      "current_assertion_count": 1,
+      "current_error_contexts": [
+        "pytest.raises(sqlite3.OperationalError, match='simulated setup failure')"
+      ]
+    },
+    {
+      "old_path": "tests/hermes_cli/test_kanban_db_init.py",
+      "old_id": "test_connect_reinitializes_schema_when_db_file_vanished",
+      "current_path": "tests/hermes_cli/test_kanban_db_init.py",
+      "current_id": "test_missing_board_requires_explicit_reinitialization",
+      "disposition": "relocated or renamed",
+      "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+      "current_assertion_count": 4,
+      "current_error_contexts": [
+        "pytest.raises(StorageSchemaError)"
+      ]
+    },
+    {
+      "old_path": "tests/hermes_cli/test_kanban_db_init.py",
+      "old_id": "test_connect_reinitializes_schema_when_db_replaced_by_empty_file",
+      "current_path": "tests/hermes_cli/test_kanban_db_init.py",
+      "current_id": "test_empty_replacement_requires_explicit_reinitialization",
+      "disposition": "relocated or renamed",
+      "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+      "current_assertion_count": 2,
+      "current_error_contexts": [
+        "pytest.raises(StorageSchemaError)"
+      ]
+    },
+    {
+      "old_path": "tests/hermes_cli/test_kanban_db_repair.py",
+      "old_id": "test_connect_auto_repairs_index_only_corruption",
+      "current_path": "tests/hermes_cli/test_kanban_db_repair.py",
+      "current_id": "test_explicit_initialization_repairs_index_only_corruption",
+      "disposition": "relocated or renamed",
+      "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+      "current_assertion_count": 6,
+      "current_error_contexts": []
+    },
+    {
+      "old_path": "tests/hermes_cli/test_kanban_init_lock_bounded.py",
+      "old_id": "test_first_init_connect_is_bounded_when_lock_held",
+      "current_path": "tests/hermes_cli/test_kanban_init_lock_bounded.py",
+      "current_id": "test_explicit_first_init_is_bounded_when_lock_held",
+      "disposition": "relocated or renamed",
+      "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+      "current_assertion_count": 2,
+      "current_error_contexts": []
+    },
+    {
+      "old_path": "tests/hermes_state/test_hermes_state.py",
+      "old_id": "TestReconcileColumnsErrorHandling.test_locked_alter_propagates",
+      "current_path": "tests/hermes_state/test_schema_reconcile_error_handling.py",
+      "current_id": "TestReconcileColumnsErrorHandling.test_locked_alter_propagates",
+      "disposition": "relocated or renamed",
+      "reason": "Technical/WAL or explicit-schema error contract relocated with its real implementation;original business assertions retained.",
+      "current_assertion_count": 0,
+      "current_error_contexts": [
+        "pytest.raises(sqlite3.OperationalError, match='locked')"
+      ]
+    },
+    {
+      "old_path": "tests/hermes_state/test_hermes_state.py",
+      "old_id": "TestReconcileColumnsErrorHandling.test_duplicate_column_race_stays_quiet",
+      "current_path": "tests/hermes_state/test_schema_reconcile_error_handling.py",
+      "current_id": "TestReconcileColumnsErrorHandling.test_duplicate_column_race_stays_quiet",
+      "disposition": "relocated or renamed",
+      "reason": "Technical/WAL or explicit-schema error contract relocated with its real implementation;original business assertions retained.",
+      "current_assertion_count": 1,
+      "current_error_contexts": []
+    },
+    {
+      "old_path": "tests/hermes_state/test_hermes_state.py",
+      "old_id": "TestReconcileColumnsErrorHandling.test_other_alter_failures_warn",
+      "current_path": "tests/hermes_state/test_schema_reconcile_error_handling.py",
+      "current_id": "TestReconcileColumnsErrorHandling.test_other_alter_failures_warn",
+      "disposition": "relocated or renamed",
+      "reason": "Technical/WAL or explicit-schema error contract relocated with its real implementation;original business assertions retained.",
+      "current_assertion_count": 1,
+      "current_error_contexts": []
+    },
+    {
+      "old_path": "tests/hermes_state/test_hermes_state.py",
+      "old_id": "TestReconcileColumnsErrorHandling.test_locked_alter_is_retried_by_open_lock_patience",
+      "current_path": "tests/hermes_state/test_schema_reconcile_error_handling.py",
+      "current_id": "TestReconcileColumnsErrorHandling.test_locked_alter_is_retried_by_open_lock_patience",
+      "disposition": "relocated or renamed",
+      "reason": "Technical/WAL or explicit-schema error contract relocated with its real implementation;original business assertions retained.",
+      "current_assertion_count": 2,
+      "current_error_contexts": []
+    }
+  ],
+  "retired_tests": [],
+  "mixed_assertion_preservation": "All27 global audit differences individually classified;no business test removed.Mixed normal HTTP error classification restored and rechecked;obsolete implicit-DDL adapter assertions explicitly documented.",
+  "source_audit": {
+    "task": 16,
+    "parent_commit": "391c4537494289c654d0d9959c63b637ed927245",
+    "fixed_resources": 65,
+    "mapping_refs": 11,
+    "consumer_candidates": 3033,
+    "current_resolved_reads": 132431,
+    "retired_readpoint_candidates": 7,
+    "test_identifier_count": 5798,
+    "test_issues": [
+      [
+        "tests/gateway/test_hosted_room_context.py",
+        "test_settings_reads_seek_an_index_even_on_a_store_made_before_it",
+        "missing"
+      ],
+      [
+        "tests/hermes_cli/test_browse_schema_drift.py",
+        "test_unowned_lagging_store_browses_after_one_reconcile",
+        "missing"
+      ],
+      [
+        "tests/hermes_cli/test_browse_schema_drift.py",
+        "test_owned_lagging_store_is_not_written_and_names_the_remedy",
+        "assertion count reduced",
+        6,
+        4
+      ],
+      [
+        "tests/hermes_cli/test_browse_schema_drift.py",
+        "test_session_list_reconciles_once_only_when_unowned",
+        "missing"
+      ],
+      [
+        "tests/hermes_cli/test_browse_schema_drift.py",
+        "test_startup_eager_reconcile_heals_only_an_unowned_stale_store",
+        "missing"
+      ],
+      [
+        "tests/hermes_cli/test_browse_schema_drift.py",
+        "test_corrupt_non_root_page_plus_drift_is_not_written",
+        "assertion count reduced",
+        5,
+        3
+      ],
+      [
+        "tests/hermes_cli/test_browse_schema_drift.py",
+        "test_stuck_maintenance_holder_gets_busy_retry_not_a_gateway_remedy",
+        "assertion count reduced",
+        4,
+        3
+      ],
+      [
+        "tests/hermes_cli/test_browse_schema_drift.py",
+        "test_equal_cardinality_corrupt_index_plus_drift_is_not_written",
+        "assertion count reduced",
+        6,
+        4
+      ],
+      [
+        "tests/hermes_cli/test_browse_schema_drift.py",
+        "test_failed_column_reconcile_rolls_back_every_addition",
+        "assertion count reduced",
+        5,
+        4
+      ],
+      [
+        "tests/hermes_cli/test_browse_schema_drift.py",
+        "test_slow_integrity_scan_is_bounded_and_not_repeated_on_every_poll",
+        "assertion count reduced",
+        4,
+        3
+      ],
+      [
+        "tests/hermes_cli/test_browse_schema_drift.py",
+        "test_unopenable_lock_on_lagging_store_is_a_named_503",
+        "assertion count reduced",
+        3,
+        2
+      ],
+      [
+        "tests/hermes_cli/test_browse_schema_drift.py",
+        "test_budget_refusal_on_unowned_store_names_repair_not_a_gateway",
+        "assertion count reduced",
+        9,
+        8
+      ],
+      [
+        "tests/hermes_cli/test_browse_schema_drift.py",
+        "test_legacy_gateway_holding_the_store_without_a_lock_is_not_written",
+        "assertion count reduced",
+        7,
+        6
+      ],
+      [
+        "tests/hermes_cli/test_browse_schema_drift.py",
+        "test_owned_refusal_names_the_owning_multiplexers_restart",
+        "missing"
+      ],
+      [
+        "tests/hermes_cli/test_browse_schema_drift.py",
+        "test_read_only_lagging_store_gets_a_permissions_message",
+        "assertion count reduced",
+        5,
+        4
+      ],
+      [
+        "tests/hermes_cli/test_db_commands.py",
+        "test_sqlite_status_does_not_open_or_upgrade_a_database",
+        "missing"
+      ],
+      [
+        "tests/hermes_cli/test_kanban_db.py",
+        "test_connect_falls_back_to_delete_on_locking_protocol",
+        "missing"
+      ],
+      [
+        "tests/hermes_cli/test_kanban_db.py",
+        "test_connect_works_when_wal_is_silently_refused",
+        "missing"
+      ],
+      [
+        "tests/hermes_cli/test_kanban_db.py",
+        "test_sqlite_connect_closes_tracked_conn_on_setup_failure",
+        "missing"
+      ],
+      [
+        "tests/hermes_cli/test_kanban_db_init.py",
+        "test_connect_reinitializes_schema_when_db_file_vanished",
+        "missing"
+      ],
+      [
+        "tests/hermes_cli/test_kanban_db_init.py",
+        "test_connect_reinitializes_schema_when_db_replaced_by_empty_file",
+        "missing"
+      ],
+      [
+        "tests/hermes_cli/test_kanban_db_repair.py",
+        "test_connect_auto_repairs_index_only_corruption",
+        "missing"
+      ],
+      [
+        "tests/hermes_cli/test_kanban_init_lock_bounded.py",
+        "test_first_init_connect_is_bounded_when_lock_held",
+        "missing"
+      ],
+      [
+        "tests/hermes_state/test_hermes_state.py",
+        "TestReconcileColumnsErrorHandling.test_locked_alter_propagates",
+        "missing"
+      ],
+      [
+        "tests/hermes_state/test_hermes_state.py",
+        "TestReconcileColumnsErrorHandling.test_duplicate_column_race_stays_quiet",
+        "missing"
+      ],
+      [
+        "tests/hermes_state/test_hermes_state.py",
+        "TestReconcileColumnsErrorHandling.test_other_alter_failures_warn",
+        "missing"
+      ],
+      [
+        "tests/hermes_state/test_hermes_state.py",
+        "TestReconcileColumnsErrorHandling.test_locked_alter_is_retried_by_open_lock_patience",
+        "missing"
+      ]
+    ],
+    "inventory_counts": {
+      "domain_boundaries": 67,
+      "domain_io_sites": 69,
+      "native_patch_seams": 29,
+      "sqlite_lifecycle_candidates": 106,
+      "non_python_consumer_files": 58
+    },
+    "application_capability_candidates": 63,
+    "original_algorithm_proofs": {
+      "Cron domain_operation exact": true,
+      "Verification postgres_resource exact": true,
+      "Verification record exact": true,
+      "Verification mark_edited exact": true,
+      "Verification status exact": true
+    },
+    "production_SQL_literal_delta": 0,
+    "db_modules": 340,
+    "root_entries": 11,
+    "revisions": 31,
+    "table_modules": 29,
+    "whole_project_production_python": {
+      "baseline": 3591,
+      "current": 3620,
+      "note": "Moves/additional application ownership are not claimed as net code reduction."
+    },
+    "boundary_edges": 8534,
+    "boundary_violations": 0,
+    "changed_python_blobs": [
+      [
+        "agent/verification_evidence.py",
+        "ec217b549eb59e83dfcdaeb5d31b9c64b47d35409189921791c71662e9a95a8b"
+      ],
+      [
+        "agent/verification_storage.py",
+        "1d3a054102a908757d4c109cda1e052f46343767acb159183aafc71fedec3c27"
+      ],
+      [
+        "cron/delivery_queue.py",
+        "965df13522d2f0dced8d79f1c32b4b61d061c329d13782d9978f2c8daf3ac2b4"
+      ],
+      [
+        "cron/executions.py",
+        "615b57ee2c40ceccc878b95ad01dcf19fe60d021fd77736246d33fe83c6734a5"
+      ],
+      [
+        "cron/incidents.py",
+        "5b061f5dfafd00b0c82ab343c8ad185118b68fb269fc1024ba7c570a277996a9"
+      ],
+      [
+        "cron/notepad.py",
+        "725a37f8df06fa3563317fb3a3a96f158f895ebc34ed532f4237d4b87139ce51"
+      ],
+      [
+        "cron/storage_application.py",
+        "8802e8a190e68a2b0e990588eb3e31cd3d03c45f74c52facb0feb3facab24d7f"
+      ],
+      [
+        "hermes_db/domains/cron/api.py",
+        "a880696c3858e46fd91e4542d3bcd2471dd5782899cde676e5829b6e4d395a27"
+      ],
+      [
+        "scripts/hermes_db_boundary_lint.py",
+        "47c7e8786f3ded2b067c0798f68d2857f6a796ad2e3dd6077a6b28d235845f16"
+      ],
+      [
+        "tests/hermes_cli/test_browse_schema_drift.py",
+        "e2f00a7c1ef34b0afbef4938011f19ae35a46159eb994ad855fc65440ce76ce4"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_verification_store.py",
+        "825720b581ebf338804a7910b330d59264f42bf2792d8d8d2687e876cf30c015"
+      ],
+      [
+        "tests/hermes_db/postgresql/test_worker_domain_receipts.py",
+        "97606a385461959b591ebb0bc97291d0ffdf80ea3c02d36f5fd3b1bb2066d92f"
+      ],
+      [
+        "tests/scripts/test_hermes_db_boundary_lint.py",
+        "afcd549981789ca8f11b783fe8b7806f44519730130968108ae7e6d63c4780f5"
+      ]
+    ],
+    "changed_python_blob_sha256": "7acf319c3b54f3f339525376d8f4ae9eb6067d8d958501ab791ca2ec79b6866c",
+    "disposition_file_hashes": {
+      ".build\\two-layer-dev\\task16-consumer-dispositions.json": "24f28c3a4c2cf6ff773359197d1036de3bb8a83c1eb05ee3c5b122d19a060c04",
+      ".build\\two-layer-dev\\task16-domain_boundaries-dispositions.json": "ba178d1d23546e2c3a83b995ad9c2690254b5ca2c5e11b882223bdc36602884f",
+      ".build\\two-layer-dev\\task16-domain_io_sites-dispositions.json": "37a8781480269465a5447806039a7832e505a59e441a2701232014c372d64629",
+      ".build\\two-layer-dev\\task16-native_patch_seams-dispositions.json": "07662ebc7d71087a1d45fae1775612a7435e5709dad6d8608044ac8b991fcaa9",
+      ".build\\two-layer-dev\\task16-non_python_consumer_files-dispositions.json": "7853f49954db10156ed9013484057c4582729d5e17e5487913ffc47c9f284adb",
+      ".build\\two-layer-dev\\task16-sqlite_lifecycle_candidates-dispositions.json": "61185cb6fbae5408d404e319d20e8f0e5abf138009a07c20de2789fd75c9e300",
+      ".build\\two-layer-dev\\task16-test-exception-dispositions.json": "8abb948f34ef3e1f6a5d2c6e3936b26e1d3f21fdaef5eb35fa5b781cd2e2db2c"
+    },
+    "test_id_map_sha256": "dec29280c9ee3d8290c5acd531e6b8ddcfb6985204df1fd1807d32dce70b63e4",
+    "retired_readpoint_dispositions": [
+      {
+        "path": "scripts/hermes_db_boundary_lint.py",
+        "line": 218,
+        "namespace": "hermes_db.integration",
+        "reason": "Intentional denied namespace in checker policy or its negative miniature-package contract;not an import/acquire/dispatch/patch seam."
+      },
+      {
+        "path": "scripts/hermes_db_boundary_lint.py",
+        "line": 184,
+        "namespace": "hermes_db.integration",
+        "reason": "Intentional denied namespace in checker policy or its negative miniature-package contract;not an import/acquire/dispatch/patch seam."
+      },
+      {
+        "path": "scripts/hermes_db_boundary_lint.py",
+        "line": 179,
+        "namespace": "hermes_db.backends",
+        "reason": "Intentional denied namespace in checker policy or its negative miniature-package contract;not an import/acquire/dispatch/patch seam."
+      },
+      {
+        "path": "scripts/hermes_db_boundary_lint.py",
+        "line": 180,
+        "namespace": "hermes_db.integration",
+        "reason": "Intentional denied namespace in checker policy or its negative miniature-package contract;not an import/acquire/dispatch/patch seam."
+      },
+      {
+        "path": "scripts/hermes_db_boundary_lint.py",
+        "line": 211,
+        "namespace": "hermes_db.backends",
+        "reason": "Intentional denied namespace in checker policy or its negative miniature-package contract;not an import/acquire/dispatch/patch seam."
+      },
+      {
+        "path": "scripts/hermes_db_boundary_lint.py",
+        "line": 173,
+        "namespace": "hermes_db.integration",
+        "reason": "Intentional denied namespace in checker policy or its negative miniature-package contract;not an import/acquire/dispatch/patch seam."
+      },
+      {
+        "path": "tests/scripts/test_hermes_db_boundary_lint.py",
+        "line": 46,
+        "namespace": "hermes_db.integration",
+        "reason": "Intentional denied namespace in checker policy or its negative miniature-package contract;not an import/acquire/dispatch/patch seam."
+      }
+    ],
+    "unresolved_runtime_retired_readpoints": 0,
+    "test_issue_dispositions": [
+      {
+        "old_path": "tests/gateway/test_hosted_room_context.py",
+        "old_id": "test_settings_reads_seek_an_index_even_on_a_store_made_before_it",
+        "current_path": "tests/gateway/test_hosted_room_context.py",
+        "current_id": "test_explicit_upgrade_restores_index_for_settings_reads",
+        "disposition": "relocated or renamed",
+        "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+        "current_assertion_count": 2,
+        "current_error_contexts": [
+          "pytest.raises(StorageSchemaError)"
+        ]
+      },
+      {
+        "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "old_id": "test_unowned_lagging_store_browses_after_one_reconcile",
+        "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "current_id": "test_unowned_lagging_store_browses_after_explicit_upgrade",
+        "disposition": "relocated or renamed",
+        "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+        "current_assertion_count": 6,
+        "current_error_contexts": [
+          "pytest.raises(HTTPException, match='hermes db upgrade')"
+        ]
+      },
+      {
+        "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "old_id": "test_owned_lagging_store_is_not_written_and_names_the_remedy",
+        "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "current_id": "test_owned_lagging_store_is_not_written_and_names_the_remedy",
+        "disposition": "explicit-lifecycle assertion adaptation",
+        "reason": "Ordinary HTTP open still503 and names db upgrade;explicit upgrade refuses a running owner.No-write/no-new-tables retained.Normal corrupt-not-in-detail restored in Task16;obsolete gateway restart text retired because ordinary read no longer runs DDL.",
+        "current_assertion_count": 4,
+        "current_error_contexts": [
+          "pytest.raises(HTTPException, match='hermes db upgrade')",
+          "pytest.raises(StorageSchemaError, match='running gateway owns it')"
+        ]
+      },
+      {
+        "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "old_id": "test_session_list_reconciles_once_only_when_unowned",
+        "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "current_id": "test_session_list_requires_explicit_upgrade",
+        "disposition": "relocated or renamed",
+        "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+        "current_assertion_count": 10,
+        "current_error_contexts": []
+      },
+      {
+        "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "old_id": "test_startup_eager_reconcile_heals_only_an_unowned_stale_store",
+        "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "current_id": "test_startup_probe_leaves_stale_store_untouched",
+        "disposition": "relocated or renamed",
+        "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+        "current_assertion_count": 5,
+        "current_error_contexts": []
+      },
+      {
+        "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "old_id": "test_corrupt_non_root_page_plus_drift_is_not_written",
+        "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "current_id": "test_corrupt_non_root_page_plus_drift_is_not_written",
+        "disposition": "explicit-lifecycle assertion adaptation",
+        "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+        "current_assertion_count": 3,
+        "current_error_contexts": [
+          "pytest.raises(CorruptStoreError)"
+        ]
+      },
+      {
+        "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "old_id": "test_stuck_maintenance_holder_gets_busy_retry_not_a_gateway_remedy",
+        "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "current_id": "test_stuck_maintenance_holder_gets_busy_retry_not_a_gateway_remedy",
+        "disposition": "explicit-lifecycle assertion adaptation",
+        "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+        "current_assertion_count": 3,
+        "current_error_contexts": [
+          "pytest.raises(DeclarativeDriftError)"
+        ]
+      },
+      {
+        "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "old_id": "test_equal_cardinality_corrupt_index_plus_drift_is_not_written",
+        "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "current_id": "test_equal_cardinality_corrupt_index_plus_drift_is_not_written",
+        "disposition": "explicit-lifecycle assertion adaptation",
+        "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+        "current_assertion_count": 4,
+        "current_error_contexts": [
+          "pytest.raises(CorruptStoreError)"
+        ]
+      },
+      {
+        "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "old_id": "test_failed_column_reconcile_rolls_back_every_addition",
+        "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "current_id": "test_failed_column_reconcile_rolls_back_every_addition",
+        "disposition": "explicit-lifecycle assertion adaptation",
+        "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+        "current_assertion_count": 4,
+        "current_error_contexts": [
+          "pytest.raises(DeclarativeDriftError)"
+        ]
+      },
+      {
+        "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "old_id": "test_slow_integrity_scan_is_bounded_and_not_repeated_on_every_poll",
+        "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "current_id": "test_slow_integrity_scan_is_bounded_and_not_repeated_on_every_poll",
+        "disposition": "explicit-lifecycle assertion adaptation",
+        "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+        "current_assertion_count": 3,
+        "current_error_contexts": [
+          "pytest.raises(DeclarativeDriftError)"
+        ]
+      },
+      {
+        "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "old_id": "test_unopenable_lock_on_lagging_store_is_a_named_503",
+        "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "current_id": "test_unopenable_lock_on_lagging_store_is_a_named_503",
+        "disposition": "explicit-lifecycle assertion adaptation",
+        "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+        "current_assertion_count": 2,
+        "current_error_contexts": [
+          "pytest.raises(DeclarativeDriftError)"
+        ]
+      },
+      {
+        "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "old_id": "test_budget_refusal_on_unowned_store_names_repair_not_a_gateway",
+        "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "current_id": "test_budget_refusal_on_unowned_store_names_repair_not_a_gateway",
+        "disposition": "explicit-lifecycle assertion adaptation",
+        "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+        "current_assertion_count": 8,
+        "current_error_contexts": [
+          "pytest.raises(DeclarativeDriftError)"
+        ]
+      },
+      {
+        "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "old_id": "test_legacy_gateway_holding_the_store_without_a_lock_is_not_written",
+        "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "current_id": "test_legacy_gateway_holding_the_store_without_a_lock_is_not_written",
+        "disposition": "explicit-lifecycle assertion adaptation",
+        "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+        "current_assertion_count": 6,
+        "current_error_contexts": [
+          "pytest.raises(DeclarativeDriftError)"
+        ]
+      },
+      {
+        "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "old_id": "test_owned_refusal_names_the_owning_multiplexers_restart",
+        "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "current_id": "test_owned_refusal_names_the_owning_multiplexers_stop",
+        "disposition": "relocated or renamed",
+        "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+        "current_assertion_count": 4,
+        "current_error_contexts": [
+          "pytest.raises(DeclarativeDriftError)"
+        ]
+      },
+      {
+        "old_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "old_id": "test_read_only_lagging_store_gets_a_permissions_message",
+        "current_path": "tests/hermes_cli/test_browse_schema_drift.py",
+        "current_id": "test_read_only_lagging_store_gets_a_permissions_message",
+        "disposition": "explicit-lifecycle assertion adaptation",
+        "reason": "This test now exercises explicit upgrade StorageSchemaError rather than HTTP-driven implicit DDL;HTTP status/body adapter assertions at this direct call are retired,while corruption/refusal/data byte-fingerprint/lock/integrity conditions remain in typed raises and retained assertions.HTTP corrupt-store contract remains separately covered.",
+        "current_assertion_count": 4,
+        "current_error_contexts": [
+          "pytest.raises(DeclarativeDriftError)"
+        ]
+      },
+      {
+        "old_path": "tests/hermes_cli/test_db_commands.py",
+        "old_id": "test_sqlite_status_does_not_open_or_upgrade_a_database",
+        "current_path": "tests/hermes_cli/test_db_commands.py",
+        "current_id": "test_sqlite_status_reports_missing_until_explicit_upgrade",
+        "disposition": "relocated or renamed",
+        "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+        "current_assertion_count": 7,
+        "current_error_contexts": []
+      },
+      {
+        "old_path": "tests/hermes_cli/test_kanban_db.py",
+        "old_id": "test_connect_falls_back_to_delete_on_locking_protocol",
+        "current_path": "tests/hermes_cli/test_kanban_db_connections.py",
+        "current_id": "test_connect_falls_back_to_delete_on_locking_protocol",
+        "disposition": "relocated or renamed",
+        "reason": "Technical/WAL or explicit-schema error contract relocated with its real implementation;original business assertions retained.",
+        "current_assertion_count": 2,
+        "current_error_contexts": []
+      },
+      {
+        "old_path": "tests/hermes_cli/test_kanban_db.py",
+        "old_id": "test_connect_works_when_wal_is_silently_refused",
+        "current_path": "tests/hermes_cli/test_kanban_db_connections.py",
+        "current_id": "test_connect_works_when_wal_is_silently_refused",
+        "disposition": "relocated or renamed",
+        "reason": "Technical/WAL or explicit-schema error contract relocated with its real implementation;original business assertions retained.",
+        "current_assertion_count": 3,
+        "current_error_contexts": []
+      },
+      {
+        "old_path": "tests/hermes_cli/test_kanban_db.py",
+        "old_id": "test_sqlite_connect_closes_tracked_conn_on_setup_failure",
+        "current_path": "tests/hermes_cli/test_kanban_db_connections.py",
+        "current_id": "test_sqlite_connect_closes_tracked_conn_on_setup_failure",
+        "disposition": "relocated or renamed",
+        "reason": "Technical/WAL or explicit-schema error contract relocated with its real implementation;original business assertions retained.",
+        "current_assertion_count": 1,
+        "current_error_contexts": [
+          "pytest.raises(sqlite3.OperationalError, match='simulated setup failure')"
+        ]
+      },
+      {
+        "old_path": "tests/hermes_cli/test_kanban_db_init.py",
+        "old_id": "test_connect_reinitializes_schema_when_db_file_vanished",
+        "current_path": "tests/hermes_cli/test_kanban_db_init.py",
+        "current_id": "test_missing_board_requires_explicit_reinitialization",
+        "disposition": "relocated or renamed",
+        "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+        "current_assertion_count": 4,
+        "current_error_contexts": [
+          "pytest.raises(StorageSchemaError)"
+        ]
+      },
+      {
+        "old_path": "tests/hermes_cli/test_kanban_db_init.py",
+        "old_id": "test_connect_reinitializes_schema_when_db_replaced_by_empty_file",
+        "current_path": "tests/hermes_cli/test_kanban_db_init.py",
+        "current_id": "test_empty_replacement_requires_explicit_reinitialization",
+        "disposition": "relocated or renamed",
+        "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+        "current_assertion_count": 2,
+        "current_error_contexts": [
+          "pytest.raises(StorageSchemaError)"
+        ]
+      },
+      {
+        "old_path": "tests/hermes_cli/test_kanban_db_repair.py",
+        "old_id": "test_connect_auto_repairs_index_only_corruption",
+        "current_path": "tests/hermes_cli/test_kanban_db_repair.py",
+        "current_id": "test_explicit_initialization_repairs_index_only_corruption",
+        "disposition": "relocated or renamed",
+        "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+        "current_assertion_count": 6,
+        "current_error_contexts": []
+      },
+      {
+        "old_path": "tests/hermes_cli/test_kanban_init_lock_bounded.py",
+        "old_id": "test_first_init_connect_is_bounded_when_lock_held",
+        "current_path": "tests/hermes_cli/test_kanban_init_lock_bounded.py",
+        "current_id": "test_explicit_first_init_is_bounded_when_lock_held",
+        "disposition": "relocated or renamed",
+        "reason": "Hidden ordinary-open DDL expectation replaced by explicit create/upgrade/repair;normal data/index/lock/refusal assertions retained.",
+        "current_assertion_count": 2,
+        "current_error_contexts": []
+      },
+      {
+        "old_path": "tests/hermes_state/test_hermes_state.py",
+        "old_id": "TestReconcileColumnsErrorHandling.test_locked_alter_propagates",
+        "current_path": "tests/hermes_state/test_schema_reconcile_error_handling.py",
+        "current_id": "TestReconcileColumnsErrorHandling.test_locked_alter_propagates",
+        "disposition": "relocated or renamed",
+        "reason": "Technical/WAL or explicit-schema error contract relocated with its real implementation;original business assertions retained.",
+        "current_assertion_count": 0,
+        "current_error_contexts": [
+          "pytest.raises(sqlite3.OperationalError, match='locked')"
+        ]
+      },
+      {
+        "old_path": "tests/hermes_state/test_hermes_state.py",
+        "old_id": "TestReconcileColumnsErrorHandling.test_duplicate_column_race_stays_quiet",
+        "current_path": "tests/hermes_state/test_schema_reconcile_error_handling.py",
+        "current_id": "TestReconcileColumnsErrorHandling.test_duplicate_column_race_stays_quiet",
+        "disposition": "relocated or renamed",
+        "reason": "Technical/WAL or explicit-schema error contract relocated with its real implementation;original business assertions retained.",
+        "current_assertion_count": 1,
+        "current_error_contexts": []
+      },
+      {
+        "old_path": "tests/hermes_state/test_hermes_state.py",
+        "old_id": "TestReconcileColumnsErrorHandling.test_other_alter_failures_warn",
+        "current_path": "tests/hermes_state/test_schema_reconcile_error_handling.py",
+        "current_id": "TestReconcileColumnsErrorHandling.test_other_alter_failures_warn",
+        "disposition": "relocated or renamed",
+        "reason": "Technical/WAL or explicit-schema error contract relocated with its real implementation;original business assertions retained.",
+        "current_assertion_count": 1,
+        "current_error_contexts": []
+      },
+      {
+        "old_path": "tests/hermes_state/test_hermes_state.py",
+        "old_id": "TestReconcileColumnsErrorHandling.test_locked_alter_is_retried_by_open_lock_patience",
+        "current_path": "tests/hermes_state/test_schema_reconcile_error_handling.py",
+        "current_id": "TestReconcileColumnsErrorHandling.test_locked_alter_is_retried_by_open_lock_patience",
+        "disposition": "relocated or renamed",
+        "reason": "Technical/WAL or explicit-schema error contract relocated with its real implementation;original business assertions retained.",
+        "current_assertion_count": 2,
+        "current_error_contexts": []
+      }
+    ],
+    "unresolved_test_issues": 0,
+    "deleted_tests": []
+  },
+  "required_validation": [
+    {
+      "record_file": "native-win-a8517f6eb18144bdb72dad2b2f204ecf.log.json",
+      "completed_mtime_ns": 1794412405082298900,
+      "label": "native-win",
+      "source_commit": "391c4537494289c654d0d9959c63b637ed927245",
+      "dirty_diff_sha256": "316bfaaafc478259d7010494772450eb6fdd4e4030dd0cce29ec5f98e8aa5650",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/scripts/test_hermes_db_boundary_lint.py",
+        "tests/tui_gateway/test_session_resume_store_boundary.py",
+        "tests/hermes_cli/test_sessions_command_boundary.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 3 files, 31 tests passed, 0 failed (100% complete) in 13.0s (4 workers) ==="
+      ]
+    },
+    {
+      "record_file": "native-linux-c3c4aafca25144ef8a9ce0a8ddbbf3b8.log.json",
+      "completed_mtime_ns": 1794412412480521900,
+      "label": "native-linux",
+      "source_commit": "391c4537494289c654d0d9959c63b637ed927245",
+      "dirty_diff_sha256": "316bfaaafc478259d7010494772450eb6fdd4e4030dd0cce29ec5f98e8aa5650",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/scripts/test_hermes_db_boundary_lint.py",
+        "tests/tui_gateway/test_session_resume_store_boundary.py",
+        "tests/hermes_cli/test_sessions_command_boundary.py",
+        "-j",
+        "4",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 3 files, 31 tests passed, 0 failed (100% complete) in 20.4s (4 workers) ==="
+      ]
+    },
+    {
+      "record_file": "pg-linux-b862889e399e425ab9cd659efa57ca7e.log.json",
+      "completed_mtime_ns": 1794412439146597900,
+      "label": "pg-linux",
+      "source_commit": "391c4537494289c654d0d9959c63b637ed927245",
+      "dirty_diff_sha256": "316bfaaafc478259d7010494772450eb6fdd4e4030dd0cce29ec5f98e8aa5650",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_db/postgresql/test_cron_notepad.py",
+        "tests/hermes_db/postgresql/test_verification_store.py",
+        "-j",
+        "1",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra",
+        "-m",
+        "integration",
+        "--postgres-test-config=/mnt/d/AI/hermes-agent/.build/postgresql/private/acceptance-postgresql.yaml"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 2 files, 6 tests passed, 0 failed (100% complete) in 27.3s (1 workers) ==="
+      ]
+    },
+    {
+      "record_file": "static-5dd18e7df9154731aaa2cd12e4d1bf2a.log.json",
+      "completed_mtime_ns": 1794413336560979500,
+      "label": "static",
+      "source_commit": "391c4537494289c654d0d9959c63b637ed927245",
+      "dirty_diff_sha256": "8883dd67dec1b7730a791bbbf915aae84b5c677af1eefac0ecbac7bda07fcd85",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/check",
+        "--staged",
+        "--base",
+        "0d8782ba8a"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "scripts/check: 16 checks, ok"
+      ]
+    },
+    {
+      "record_file": "db-boundary-d26402c16e9942bbba69b5ed13501a19.log.json",
+      "completed_mtime_ns": 1794413338604570200,
+      "label": "db-boundary",
+      "source_commit": "391c4537494289c654d0d9959c63b637ed927245",
+      "dirty_diff_sha256": "8883dd67dec1b7730a791bbbf915aae84b5c677af1eefac0ecbac7bda07fcd85",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/hermes_db_boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "hermes_db boundaries: 8534 resolved imports, 0 violations"
+      ]
+    },
+    {
+      "record_file": "plugin-boundary-b6d21753f80942b7b5d8a472902108e6.log.json",
+      "completed_mtime_ns": 1794413354689623400,
+      "label": "plugin-boundary",
+      "source_commit": "391c4537494289c654d0d9959c63b637ed927245",
+      "dirty_diff_sha256": "8883dd67dec1b7730a791bbbf915aae84b5c677af1eefac0ecbac7bda07fcd85",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/boundary_lint.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "module_to_core: 829",
+        "core_to_module: 26"
+      ]
+    },
+    {
+      "record_file": "contracts-5065b3eff0af477f8643497cf2acf182.log.json",
+      "completed_mtime_ns": 1794413356094892700,
+      "label": "contracts",
+      "source_commit": "391c4537494289c654d0d9959c63b637ed927245",
+      "dirty_diff_sha256": "8883dd67dec1b7730a791bbbf915aae84b5c677af1eefac0ecbac7bda07fcd85",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+        "scripts/gen_gateway_contracts.py",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": []
+    },
+    {
+      "record_file": "whitespace-0b2d828031ef4dac9144621e16a2d8f5.log.json",
+      "completed_mtime_ns": 1794413356356123500,
+      "label": "whitespace",
+      "source_commit": "391c4537494289c654d0d9959c63b637ed927245",
+      "dirty_diff_sha256": "8883dd67dec1b7730a791bbbf915aae84b5c677af1eefac0ecbac7bda07fcd85",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=D:/AI/hermes-db-packages",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": []
+    }
+  ],
+  "supplemental_validation": [
+    {
+      "record_file": "task16-focused-win-115b6d81ce524e208711caaa89d25e6f.log.json",
+      "completed_mtime_ns": 1794413003708974500,
+      "label": "task16-focused-win",
+      "source_commit": "391c4537494289c654d0d9959c63b637ed927245",
+      "dirty_diff_sha256": "89b680c1ce1cacbd326227b235aebcaedd1dd55de4c6b44e818217cc4b4af4cc",
+      "cwd": "D:\\AI\\hermes-db-packages",
+      "command": [
+        "D:/Programs/Git/bin/bash.exe",
+        "scripts/run_tests.sh",
+        "tests/hermes_cli/test_browse_schema_drift.py",
+        "tests/scripts/test_hermes_db_boundary_lint.py",
+        "-j",
+        "2",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra",
+        "-k",
+        "test_owned_lagging_store_is_not_written_and_names_the_remedy or test_business_cannot_perform_file_or_process_effects or test_api_and_technical_root_cannot_select_application"
+      ],
+      "python": "D:/AI/hermes-db-packages/.build/two-layer-dev/win/env-task4-full/Scripts/python.exe",
+      "home": "D:/AI/hermes-db-packages/.build/two-layer-dev/profile",
+      "runtime": "D:/AI/hermes-db-packages/.build/package-layout/runtime",
+      "temp": "D:/ht5-4e9ca735",
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 2 files, 6 tests passed, 0 failed (100% complete) in 2.7s (2 workers) ==="
+      ]
+    },
+    {
+      "record_file": "task16-focused-linux-281a6f99db184d62ac9b3db918f8e1e8.log.json",
+      "completed_mtime_ns": 1794413009857018500,
+      "label": "task16-focused-linux",
+      "source_commit": "391c4537494289c654d0d9959c63b637ed927245",
+      "dirty_diff_sha256": "89b680c1ce1cacbd326227b235aebcaedd1dd55de4c6b44e818217cc4b4af4cc",
+      "cwd": "/mnt/d/AI/hermes-db-packages",
+      "command": [
+        "wsl.exe",
+        "-d",
+        "Ubuntu-26.04",
+        "--cd",
+        "/mnt/d/AI/hermes-db-packages",
+        "--",
+        "/usr/bin/env",
+        "HERMES_HOME=/var/tmp/hermes-db-two-layer-task5-dev/profile",
+        "HERMES_RUNTIME_DIR=/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+        "HERMES_PYTHON=/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+        "HERMES_TEST_FILE_RETRIES=0",
+        "PYTHONUTF8=1",
+        "PYTHONIOENCODING=utf-8",
+        "bash",
+        "scripts/run_tests.sh",
+        "tests/hermes_cli/test_browse_schema_drift.py",
+        "tests/scripts/test_hermes_db_boundary_lint.py",
+        "-j",
+        "2",
+        "--file-timeout",
+        "1200",
+        "--",
+        "--tb=short",
+        "-ra",
+        "-k",
+        "test_owned_lagging_store_is_not_written_and_names_the_remedy or test_business_cannot_perform_file_or_process_effects or test_api_and_technical_root_cannot_select_application"
+      ],
+      "python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+      "home": "/var/tmp/hermes-db-two-layer-task5-dev/profile",
+      "runtime": "/var/tmp/hermes-db-packages-f2dc945598034dcca7f2bd6b9ae4794a/runtime",
+      "temp": null,
+      "exit_code": 0,
+      "summary": [
+        "=== Summary: 2 files, 6 tests passed, 0 failed (100% complete) in 9.7s (2 workers) ==="
+      ]
+    }
+  ],
+  "remaining": [
+    "Tasks17–20 fresh PM/source freeze,lean final batches and independent review remain mandatory.",
+    "Original Task24/seven non-WSL gaps/eight Windows baseline issues unchanged."
+  ],
+  "source_identity_notes": [
+    "Native3file31pass each andPG2file6pass preceded only checker metadata-read detection and restored mixed assertion;business SQL/Cron/Verification implementations unchanged.",
+    "Current focused6case batches eachhost validate strict checker and restored normal assertion.Current full16static covers all source changes."
+  ]
+}

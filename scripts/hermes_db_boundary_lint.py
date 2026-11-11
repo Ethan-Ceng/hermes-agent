@@ -2,8 +2,8 @@
 """Enforce hermes_db dependency direction and reviewed, symbol-specific reuse.
 
 The registry is a review document, not an auto-updated baseline. Composition lives
-in integration; only named entry bridges, SQLite adapters and historical migration
-helpers may select application services. Lower domains borrow explicit connections.
+in application owners;all business APIs borrow explicit resources/connections.
+Historical migration helpers remain frozen outside runtime dependency grants.
 """
 from __future__ import annotations
 
@@ -113,6 +113,26 @@ class Imports(ast.NodeVisitor):
             if target:
                 self.add(target, node.lineno)
 
+    def visit_Call(self, node):
+        if self.source.startswith("hermes_db/domains/"):
+            target = self.qualified(node.func)
+            file_methods = {"read_bytes", "write_bytes", "read_text", "write_text", "unlink", "mkdir", "rmdir",
+                            "stat", "lstat", "is_file", "is_dir", "iterdir"}
+            effect_roots = ("subprocess", "multiprocessing", "socket", "requests", "httpx", "aiohttp",
+                            "urllib.request", "shutil", "os.remove", "os.unlink", "os.mkdir", "os.makedirs",
+                            "os.rmdir", "os.rename", "os.replace", "os.open", "os.stat", "os.lstat",
+                            "sqlite3.connect", "sqlite3.Connection", "psycopg.connect", "asyncpg.connect",
+                            "sqlalchemy.create_engine")
+            if isinstance(node.func, ast.Name) and node.func.id == "open" and target is None:
+                target = "filesystem.open"
+            elif isinstance(node.func, ast.Attribute) and node.func.attr in file_methods:
+                target = "filesystem." + node.func.attr
+            elif not target or not below(target, effect_roots):
+                target = None
+            if target:
+                self.edges.add(Edge(self.source, target, node.lineno))
+        self.generic_visit(node)
+
     def visit_Constant(self, node):
         if isinstance(node.value, str) and node.value.startswith("hermes_db."):
             if module_exists(self.root, node.value):
@@ -149,7 +169,7 @@ def below(name, roots):
 def direction_error(edge):
     source = module_name(Path(edge.source))
     target = edge.target
-    if below(source, ("hermes_db.infra",)) and below(target, (
+    if below(source, ("hermes_db.infra", "hermes_db.errors", "hermes_db.settings", "hermes_db.scope", "hermes_db.factory")) and below(target, (
         "hermes_db.domains", "hermes_db.tables", "hermes_db.core.catalog", "hermes_db.integration",
         "hermes_db.factory", "hermes_db.access", "hermes_db.handle", "hermes_db.contracts",
         "hermes_db.schema", "hermes_db.health", "hermes_db.maintenance",
@@ -160,17 +180,24 @@ def direction_error(edge):
         ("hermes_db.domains.", "hermes_db.integration.", "hermes_db.factory", "hermes_db.access")
     ):
         return "infrastructure cannot select a domain or application composition"
-    if below(source, ("hermes_db.domains",)) and not entry(edge.source) and below(target,
+    if below(source, ("hermes_db.domains",)) and below(target,
         ("hermes_db.integration.", "hermes_db.factory", "hermes_db.access",
          "hermes_cli.db_sessions", "hermes_cli.db_domains", "hermes_cli.db_scope",
-         "hermes_cli.db_setup", "hermes_cli.db_diagnostics")
+         "hermes_cli.db_setup", "hermes_cli.db_diagnostics", "agent.runtime_domain_store")
     ):
         return "lower domain cannot select application composition"
     native = ("hermes_state.", "hermes_state_runtime.", "hermes_cli.kanban_db", "hermes_cli.projects_db",
               "hermes_cli.observability.shared_metrics.", "gateway.hosted_rooms.", "gateway.delivery_ledger.",
               "gateway.session.", "cron.executions.", "cron.incidents.", "cron.delivery_queue.", "cron.notepad.")
-    if below(source, ("hermes_db.domains",)) and not entry(edge.source) and (target.startswith(native) or target in {n.rstrip(".") for n in native}):
+    if below(source, ("hermes_db.domains",)) and (target.startswith(native) or target in {n.rstrip(".") for n in native}):
         return "lower domain cannot borrow a Native application facade"
+    if below(source, ("hermes_db.domains",)) and below(target, (
+        "filesystem", "subprocess", "multiprocessing", "socket", "requests", "httpx", "aiohttp",
+        "urllib.request", "shutil", "os.remove", "os.unlink", "os.mkdir", "os.makedirs", "os.rmdir",
+        "os.rename", "os.replace", "os.open", "os.stat", "os.lstat", "sqlite3.connect", "sqlite3.Connection",
+        "psycopg.connect", "asyncpg.connect", "sqlalchemy.create_engine",
+    )):
+        return "business persistence cannot own file/network/process effects or construct drivers"
     if below(target, ("hermes_db.operations", "hermes_db.repositories")):
         return "removed global technical namespace has no runtime owner"
     if target.endswith(".*"):

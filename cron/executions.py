@@ -25,7 +25,7 @@ from hermes_constants import get_hermes_home
 from hermes_time import now as _hermes_now
 from cron.constants import CLAIM_TTL_INACTIVITY_HEADROOM
 from hermes_cli.observability.shared_metrics_gateway import record_cron_finish
-from hermes_db.domains.cron.api import domain_operation
+from cron.storage_application import domain_operation
 from hermes_db.errors import StorageError
 
 logger = logging.getLogger(__name__)

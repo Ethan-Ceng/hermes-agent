@@ -193,15 +193,6 @@
       ]
     },
     {
-      "target": "agent.memory_provider.spawn_context_thread",
-      "category": "infrastructure",
-      "reason": "Existing context-propagating thread spawn, used by the shared metrics transport; preserves owning profile across thread hops.",
-      "consumers": [
-        "hermes_db/domains/kanban/postgres/dispatch.py",
-        "hermes_db/domains/sessions/postgres/support/usage_writer.py"
-      ]
-    },
-    {
       "target": "agent.message_content.flatten_message_text",
       "category": "shared-pure",
       "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
@@ -390,30 +381,6 @@
       ]
     },
     {
-      "target": "agent.retry_utils.parse_retry_after_seconds",
-      "category": "shared-pure",
-      "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
-      "consumers": [
-        "hermes_db/domains/metrics/sending.py"
-      ]
-    },
-    {
-      "target": "agent.runtime_domain_store.WorkerDomainStore",
-      "category": "entry-bridge",
-      "reason": "Original owner/backend or Worker protocol dispatch at an API entry; no SQL workflow depends on a full application store.",
-      "consumers": [
-        "hermes_db/domains/verification/api.py"
-      ]
-    },
-    {
-      "target": "agent.runtime_domain_store.worker_resource",
-      "category": "entry-bridge",
-      "reason": "Original owner/backend or Worker protocol dispatch at an API entry; no SQL workflow depends on a full application store.",
-      "consumers": [
-        "hermes_db/domains/verification/api.py"
-      ]
-    },
-    {
       "target": "agent.session_activity.ActivityProvenance",
       "category": "shared-pure",
       "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
@@ -426,8 +393,7 @@
       "category": "shared-pure",
       "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
       "consumers": [
-        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py",
-        "hermes_db/domains/sessions/postgres/catalog.py"
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
       ]
     },
     {
@@ -435,8 +401,7 @@
       "category": "shared-pure",
       "reason": "Exact Agent message metadata/identity, bounded activity provenance, content sanitization, error redaction or retry policy; no agent/store instance or provider access.",
       "consumers": [
-        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py",
-        "hermes_db/domains/sessions/postgres/catalog.py"
+        "hermes_db/domains/runtime/postgres/operations/worker_lifecycle.py"
       ]
     },
     {
@@ -731,14 +696,6 @@
       ]
     },
     {
-      "target": "gateway.session_contract.admission_media_references",
-      "category": "shared-pure",
-      "reason": "Independent bounded wire validation/projection, timestamp stripping or deterministic response identity; no Gateway service, router, backend factory or file operation.",
-      "consumers": [
-        "hermes_db/domains/runtime/postgres/media.py"
-      ]
-    },
-    {
       "target": "gateway.session_contract.created_surface",
       "category": "shared-pure",
       "reason": "Independent bounded wire validation/projection, timestamp stripping or deterministic response identity; no Gateway service, router, backend factory or file operation.",
@@ -749,54 +706,11 @@
       ]
     },
     {
-      "target": "hermes_cli.db_setup._owning_profile",
-      "category": "entry-bridge",
-      "reason": "Original profile secret/config binding at API reacquisition or Native adapter entry; no lower SQL workflow reads CLI configuration.",
-      "consumers": [
-        "hermes_db/domains/metrics/api.py",
-        "hermes_db/domains/rooms/api.py"
-      ]
-    },
-    {
-      "target": "hermes_cli.db_setup.resolve_db_configuration",
-      "category": "entry-bridge",
-      "reason": "Original owner/backend or Worker protocol dispatch at an API entry; no SQL workflow depends on a full application store.",
-      "consumers": [
-        "hermes_db/domains/cron/api.py",
-        "hermes_db/domains/verification/api.py"
-      ]
-    },
-    {
-      "target": "hermes_cli.db_setup.storage_backend",
-      "category": "entry-bridge",
-      "reason": "Original owner/backend or Worker protocol dispatch at an API entry; no SQL workflow depends on a full application store.",
-      "consumers": [
-        "hermes_db/domains/kanban/api.py",
-        "hermes_db/domains/rooms/api.py"
-      ]
-    },
-    {
       "target": "hermes_cli.kanban_block_policy.block_transition",
       "category": "shared-pure",
       "reason": "Independent workflow/default-status, block/failure policy, original error identity or pure Swarm plan; runtime respawn/process/filesystem operations are injected from integration.",
       "consumers": [
         "hermes_db/domains/kanban/postgres/claims.py"
-      ]
-    },
-    {
-      "target": "hermes_cli.kanban_db._explicit_board_slug",
-      "category": "entry-bridge",
-      "reason": "Existing Native Board selection at the backend entry; PG SQL workflow uses injected Board capabilities.",
-      "consumers": [
-        "hermes_db/domains/kanban/api.py"
-      ]
-    },
-    {
-      "target": "hermes_cli.kanban_db.get_current_board",
-      "category": "entry-bridge",
-      "reason": "Existing Native Board selection at the backend entry; PG SQL workflow uses injected Board capabilities.",
-      "consumers": [
-        "hermes_db/domains/kanban/api.py"
       ]
     },
     {
@@ -813,14 +727,6 @@
       "reason": "Independent workflow/default-status, block/failure policy, original error identity or pure Swarm plan; runtime respawn/process/filesystem operations are injected from integration.",
       "consumers": [
         "hermes_db/domains/kanban/postgres/runs.py"
-      ]
-    },
-    {
-      "target": "hermes_cli.kanban_swarm_plan.plan_swarm",
-      "category": "shared-pure",
-      "reason": "Independent workflow/default-status, block/failure policy, original error identity or pure Swarm plan; runtime respawn/process/filesystem operations are injected from integration.",
-      "consumers": [
-        "hermes_db/domains/kanban/postgres/swarm.py"
       ]
     },
     {
@@ -1022,14 +928,6 @@
       "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
       "consumers": [
         "hermes_db/domains/runtime/postgres/operations/worker_metrics.py"
-      ]
-    },
-    {
-      "target": "hermes_db.domains.metrics.policy.MetricsPolicy",
-      "category": "shared-pure",
-      "reason": "Concrete shared codec, error identity, markers or metrics policy; actual implementations and explicit scoped resource capabilities, no complete Native store.",
-      "consumers": [
-        "hermes_db/domains/runtime/postgres/metrics.py"
       ]
     },
     {
@@ -2466,33 +2364,6 @@
       ]
     },
     {
-      "target": "hermes_cli.db_domains.acquire_domain",
-      "category": "entry-bridge",
-      "reason": "Existing selected-backend/Worker entry dispatch only; no lower SQL workflow may acquire a resource or select application composition. Task5 moves this same named entry bridge to its real application owner; no consumer is added.",
-      "consumers": [
-        "hermes_db/domains/cron/api.py",
-        "hermes_db/domains/verification/api.py"
-      ]
-    },
-    {
-      "target": "hermes_cli.db_domains.acquire_profile_domain",
-      "category": "entry-bridge",
-      "reason": "Existing selected-backend/Worker entry dispatch only; no lower SQL workflow may acquire a resource or select application composition. Task5 moves this same named entry bridge to its real application owner; no consumer is added.",
-      "consumers": [
-        "hermes_db/domains/kanban/api.py",
-        "hermes_db/domains/metrics/api.py",
-        "hermes_db/domains/rooms/api.py"
-      ]
-    },
-    {
-      "target": "hermes_db.integration.kanban_worker.WorkerBoardResource",
-      "category": "entry-bridge",
-      "reason": "Existing selected-backend/Worker entry dispatch only; no lower SQL workflow may acquire a resource or select application composition.",
-      "consumers": [
-        "hermes_db/domains/kanban/api.py"
-      ]
-    },
-    {
       "target": "hermes_state_compaction_display.later_tool_copy_ids",
       "category": "shared-pure",
       "reason": "Original UID/route fingerprint, ID generation, canonical error identity or display-row projection over explicit inputs; no SessionDB facade, Mixin or SQLite operation.",
@@ -2770,22 +2641,6 @@
       ]
     },
     {
-      "target": "pm.filesystem.lock_path",
-      "category": "infrastructure",
-      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
-      "consumers": [
-        "hermes_db/domains/kanban/postgres/files.py"
-      ]
-    },
-    {
-      "target": "pm.filesystem.unlock_fd",
-      "category": "infrastructure",
-      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
-      "consumers": [
-        "hermes_db/domains/kanban/postgres/files.py"
-      ]
-    },
-    {
       "target": "tools.async_delegation._MAX_DELIVERY_ATTEMPTS",
       "category": "shared-pure",
       "reason": "Existing exact closed delivery-attempt or result-text bound value; no tool execution or discovery surface.",
@@ -2794,46 +2649,12 @@
       ]
     },
     {
-      "target": "tools.process_registry.RestartSafeScopeUnavailable",
-      "category": "shared-pure",
-      "reason": "Original restart-safe-scope error identity only; process signalling and registry policy remain injected application capabilities.",
-      "consumers": [
-        "hermes_db/domains/kanban/postgres/dispatch.py"
-      ]
-    },
-    {
-      "target": "tools.todo_tool.MAX_TODO_RESULT_CHARS",
-      "category": "shared-pure",
-      "reason": "Existing exact closed delivery-attempt or result-text bound value; no tool execution or discovery surface.",
-      "consumers": [
-        "hermes_db/domains/sessions/postgres/messages.py"
-      ]
-    },
-    {
       "target": "tools.tool_result_storage.spillover_names_in_text",
       "category": "shared-pure",
       "reason": "Existing spillover-name parser over text, not spillover filesystem creation or model tool execution.",
       "consumers": [
         "hermes_db/domains/sessions/postgres/queries/archive_refs.py",
-        "hermes_db/domains/sessions/postgres/queries/media.py",
         "hermes_db/domains/sessions/postgres/support/archive_projection.py"
-      ]
-    },
-    {
-      "target": "utils.atomic_json_write",
-      "category": "infrastructure",
-      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
-      "consumers": [
-        "hermes_db/domains/kanban/postgres/files.py",
-        "hermes_db/domains/metrics/postgres/store.py"
-      ]
-    },
-    {
-      "target": "utils.atomic_write_bytes",
-      "category": "infrastructure",
-      "reason": "Existing profile-aware paths/reasoning values, private-directory/atomic write primitives or native lock protocol; no application facade or new configuration source.",
-      "consumers": [
-        "hermes_db/domains/kanban/postgres/files.py"
       ]
     },
     {

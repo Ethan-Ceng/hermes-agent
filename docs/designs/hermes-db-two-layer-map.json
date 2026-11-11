@@ -150,7 +150,7 @@
     {
       "id": 16,
       "title": "收口所有消费者、patch、文档与层次检查",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         2,
         3,
@@ -444,6 +444,21 @@
       "path": "tests/gateway/fixtures/matrix_protocol.py",
       "task": 15,
       "layer": "test"
+    },
+    {
+      "path": "agent/verification_storage.py",
+      "task": 16,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_db/AGENTS.md",
+      "task": 16,
+      "layer": "documentation"
+    },
+    {
+      "path": "docs/designs/hermes-db-two-layer-verification.json",
+      "task": 16,
+      "layer": "validation manifest"
     }
   ],
   "new_behavior_tests": [
@@ -1405,43 +1420,43 @@
     "entries": [
       {
         "path": "hermes-db-two-layer-map/sources-db.json",
-        "sha256": "ddac2ebc4cf91aef576e23a89ca70a4b015e8fcb50cca762e039e7bb9e98cbf2",
+        "sha256": "5c3bf8d14af9b09fc0a4d4209553e402e673e4763438f2cc790a4ca8b1ea8fd4",
         "items": 359
       }
     ],
     "external_sources": [
       {
         "path": "hermes-db-two-layer-map/sources-native.json",
-        "sha256": "16379ca9bdf13cae8936568621e13917a7b92935420d97da421092556af000a7",
+        "sha256": "cacb11e7660efd630dd062f0db1c2aa4ea0e00aaf897c595dc652cedef0b6dee",
         "items": 141
       }
     ],
     "consumer_files": [
       {
         "path": "hermes-db-two-layer-map/consumers-production.json",
-        "sha256": "2b754a26bbb0968b17aef44fd9cf85507c73ba38c2befc690c6669424b3e271c",
+        "sha256": "cc1666f0ea224d75d6f642172330968c5590be0f04afd04b434f2cc1670c85cb",
         "items": 938
       },
       {
         "path": "hermes-db-two-layer-map/consumers-tests-application.json",
-        "sha256": "7e612de9c2d69e28570c0674f4ad681e010a3bac72f0a77f08a94d58d840d572",
+        "sha256": "388a5ce1b8c6808f171bc3a95d3b70f2595948aa954df336c398aab219571bbc",
         "items": 1664
       },
       {
         "path": "hermes-db-two-layer-map/consumers-tests-db.json",
-        "sha256": "264897a8d72edd351c5e618d7b183c496cdaa30e338f1fe9f33810e2a3b48c64",
+        "sha256": "5df410c89780f0cac53eb804112222803cca1a76e6f83a243393e6b824e84c33",
         "items": 211
       },
       {
         "path": "hermes-db-two-layer-map/consumers-tests-state.json",
-        "sha256": "a4951079608a3e646c0e3b0b40143bd76077f70c5b6fd31b61979dad9a3b1f00",
+        "sha256": "fe58e1c3c20ded5e916f9b7593ba271f3e4f9d5490eee6404695645742b297d5",
         "items": 220
       }
     ],
     "domain_boundaries": [
       {
         "path": "hermes-db-two-layer-map/boundaries.json",
-        "sha256": "6c9660947d0ac3bc1a629a0e5980171bc46aeb0a14159cc1b9efc640350f7b00",
+        "sha256": "3bd72e423c9e1cda9353856213754780aabfeab03aa82878c391f7fa0191d668",
         "items": 67,
         "field": "domain_boundaries"
       }
@@ -1449,7 +1464,7 @@
     "native_patch_seams": [
       {
         "path": "hermes-db-two-layer-map/boundaries.json",
-        "sha256": "6c9660947d0ac3bc1a629a0e5980171bc46aeb0a14159cc1b9efc640350f7b00",
+        "sha256": "3bd72e423c9e1cda9353856213754780aabfeab03aa82878c391f7fa0191d668",
         "items": 29,
         "field": "native_patch_seams"
       }
@@ -1457,7 +1472,7 @@
     "sqlite_lifecycle_candidates": [
       {
         "path": "hermes-db-two-layer-map/boundaries.json",
-        "sha256": "6c9660947d0ac3bc1a629a0e5980171bc46aeb0a14159cc1b9efc640350f7b00",
+        "sha256": "3bd72e423c9e1cda9353856213754780aabfeab03aa82878c391f7fa0191d668",
         "items": 106,
         "field": "sqlite_lifecycle_candidates"
       }
@@ -1465,7 +1480,7 @@
     "domain_io_sites": [
       {
         "path": "hermes-db-two-layer-map/boundaries.json",
-        "sha256": "6c9660947d0ac3bc1a629a0e5980171bc46aeb0a14159cc1b9efc640350f7b00",
+        "sha256": "3bd72e423c9e1cda9353856213754780aabfeab03aa82878c391f7fa0191d668",
         "items": 69,
         "field": "domain_io_sites"
       }
@@ -1473,7 +1488,7 @@
     "non_python_consumer_files": [
       {
         "path": "hermes-db-two-layer-map/boundaries.json",
-        "sha256": "6c9660947d0ac3bc1a629a0e5980171bc46aeb0a14159cc1b9efc640350f7b00",
+        "sha256": "3bd72e423c9e1cda9353856213754780aabfeab03aa82878c391f7fa0191d668",
         "items": 58,
         "field": "non_python_consumer_files"
       }
@@ -1860,5 +1875,40 @@
     ],
     "source_hash": "c4a6627d8319e1ae63121f0ca39643c8e0f65dedaa0a0d022c2addd886737eab",
     "actual_db_modules": 346
+  },
+  "task16_adjustment": {
+    "status": "completed",
+    "parent_commit": "391c4537494289c654d0d9959c63b637ed927245",
+    "scope_counts": {
+      "entries": 5,
+      "external_sources": 87,
+      "consumer_files": 1514,
+      "domain_boundaries": 0,
+      "native_patch_seams": 0,
+      "sqlite_lifecycle_candidates": 31,
+      "domain_io_sites": 0,
+      "non_python_consumer_files": 58
+    },
+    "validation": "User lean scope:three boundary/consumer contracts on bothhosts plus static/source/ABI/SQL/consumer audits;freeze final small manifest.",
+    "actual_refinements": [
+      "Cron domain_operation and closed map moved into existing cron.storage_application;CronResource stays business.",
+      "Verification actual Profile/Worker dispatcher moved to agent.verification_storage;business postgres SQL untouched.",
+      "All business API entry exemptions removed from direction rules;technical root selection and explicit file/process/network/driver construction blocked."
+    ],
+    "source_hash": "7acf319c3b54f3f339525376d8f4ae9eb6067d8d958501ab791ca2ec79b6866c",
+    "actual_db_modules": 340,
+    "reviewed_all_sections": true,
+    "disposition_file_hashes": {
+      ".build\\two-layer-dev\\task16-consumer-dispositions.json": "24f28c3a4c2cf6ff773359197d1036de3bb8a83c1eb05ee3c5b122d19a060c04",
+      ".build\\two-layer-dev\\task16-domain_boundaries-dispositions.json": "ba178d1d23546e2c3a83b995ad9c2690254b5ca2c5e11b882223bdc36602884f",
+      ".build\\two-layer-dev\\task16-domain_io_sites-dispositions.json": "37a8781480269465a5447806039a7832e505a59e441a2701232014c372d64629",
+      ".build\\two-layer-dev\\task16-native_patch_seams-dispositions.json": "07662ebc7d71087a1d45fae1775612a7435e5709dad6d8608044ac8b991fcaa9",
+      ".build\\two-layer-dev\\task16-non_python_consumer_files-dispositions.json": "7853f49954db10156ed9013484057c4582729d5e17e5487913ffc47c9f284adb",
+      ".build\\two-layer-dev\\task16-sqlite_lifecycle_candidates-dispositions.json": "61185cb6fbae5408d404e319d20e8f0e5abf138009a07c20de2789fd75c9e300",
+      ".build\\two-layer-dev\\task16-test-exception-dispositions.json": "8abb948f34ef3e1f6a5d2c6e3936b26e1d3f21fdaef5eb35fa5b781cd2e2db2c"
+    },
+    "test_id_map_sha256": "dec29280c9ee3d8290c5acd531e6b8ddcfb6985204df1fd1807d32dce70b63e4",
+    "unresolved_candidates": 0,
+    "verification_manifest_sha256": "007e6e319ce7128ceddd307685e921793c9d67152c4da56f87c431a309bfcd43"
   }
 }

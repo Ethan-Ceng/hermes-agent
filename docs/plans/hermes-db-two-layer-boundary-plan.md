@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`IMPLEMENTING`；阶段：消费者与层次门禁收口；当前实施任务：Task16；完成：15 / 20；阻塞：无；日期2026-11-11。
+- 整体状态：`IMPLEMENTING`；阶段：最终源码与全新PM载荷冻结；当前实施任务：Task17；完成：16 / 20；阻塞：无；日期2026-11-12。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 验证策略修订：按本轮分层风险精简（2026-11-11用户指示）
@@ -1198,7 +1198,7 @@ Rooms领域保留日志/策略/附件元数据，文件与路由生命周期归G
 
 ## Task 16：收口所有消费者、patch、文档与层次检查
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -1232,6 +1232,7 @@ Rooms领域保留日志/策略/附件元数据，文件与路由生命周期归G
 
 - `Test-Native -Files @('tests/scripts/test_hermes_db_boundary_lint.py','tests/tui_gateway/test_session_resume_store_boundary.py','tests/hermes_cli/test_sessions_command_boundary.py')`；预期完整命令exit0，实际计数/skip按本轮收集记录。
 - `Test-NativeLinux -Files @('tests/scripts/test_hermes_db_boundary_lint.py','tests/tui_gateway/test_session_resume_store_boundary.py','tests/hermes_cli/test_sessions_command_boundary.py')`；预期完整命令exit0，实际计数/skip按本轮收集记录。
+- `Test-Pg -Files @('tests/hermes_db/postgresql/test_cron_notepad.py','tests/hermes_db/postgresql/test_verification_store.py')`：实际API审计发现残留应用装配，迁往Cron/Agent真实拥有者；只补这两份直接合同，保留全部正常断言，不扩大旧业务目录。
 - `Check-Storage`；固定61+4路径/hash、DB文件预算、接口/SQL与读取点审计写回实际命令和结果。结构审计不替代业务测试。
 
 ### 完成条件
@@ -1240,11 +1241,17 @@ Rooms领域保留日志/策略/附件元数据，文件与路由生命周期归G
 
 ### 执行结果
 
-未实施；planning不计完成。
+启动：Task15本地commit391c4537494289c654d0d9959c63b637ed927245；15/20。全部11分区hash核对后按索引展开当前Task，保留owned/SOUL.md及target/SOUL.md；本Task只做消费者/规则/文档与最终精简清单收口。
 
 ### 验证证据
 
-未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
+Native3文件两端各31passed，PG2文件6passed；恢复混合断言与最严格checker两端focused各6passed；全部exit0、无skip。当前完整16check及DB/插件边界、生成合同、空白均exit0。完整命令、解释器/cwd/home/runtime/源码身份、失败/修正及未验证项见[Task16证据](../designs/hermes-db-two-layer-task16.json)。
+
+
+实际细化：Cron domain_operation/闭合后端表与Verification Profile/Worker RPC真实定义此前仍留API。映射补充Task16符号路由并同步7个实际消费者，业务SQL/事务边界保持，删除5个空integration入口；规则不再豁免业务api.py。最终精简清单见[verification manifest](../designs/hermes-db-two-layer-verification.json)，8层次+5消费者+3纯SQLite+1真实SDK+1发行+7PG文件组，不重跑旧目录。
+
+
+结算：全部3033读取候选/132431当前解析读点、67领域边界/63能力、69I/O、29Native patch、106生命周期及58非Python文件逐项审计并回写reviewed_in=16。7旧namespace命中仅为lint拒绝规则及负例；无运行旧路径。5798保留测试ID及27例外已说明：17迁文件/改名、10显式生命周期断言调整，无业务测试删除；正常corrupt误分类断言恢复并复验。5原应用算法AST完全等价，SQL字面量delta0。65固定资源/11hash、DB340/root11/31/29通过。全项目生产Python3591→3620，迁出不冒充净减少。最终精简manifest冻结，立即本地commit，Task17启动记录hash；16/20。
 
 ## Task 17：冻结最终源码并创建全新独立PM载荷
 
@@ -1486,14 +1493,14 @@ wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-two-layer-acceptance-final/sourc
 
 ### 当前执行结果
 
-- 当前实施：Task1–15已验证，15/20；Task15本地提交后进入Task16。
+- 当前实施：Task1–16已验证，16/20；Task16本地提交后进入Task17。
 - Task1–7证据见各Task及对应诊断记录。最终完整冻结批次、SDK及独立审查尚未完成。
 - 规划结构/基准/本地链接及文档静态自检：实际命令与结果写入下方准备记录。
 - 代码审查：本轮尚未执行；旧APPROVED只属于已完成持久层职责精简。
 
 ### 未通过项目与最终状态
 
-当前为`IMPLEMENTING`，Task1–15已完成，下一项Task16，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
+当前为`IMPLEMENTING`，Task1–16已完成，下一项Task17，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
 
 ## 规划准备记录与恢复
 
