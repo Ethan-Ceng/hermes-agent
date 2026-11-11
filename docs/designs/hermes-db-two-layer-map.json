@@ -171,7 +171,7 @@
     {
       "id": 17,
       "title": "冻结最终源码并创建全新独立PM载荷",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         16
       ]
@@ -1910,5 +1910,19 @@
     "test_id_map_sha256": "dec29280c9ee3d8290c5acd531e6b8ddcfb6985204df1fd1807d32dce70b63e4",
     "unresolved_candidates": 0,
     "verification_manifest_sha256": "007e6e319ce7128ceddd307685e921793c9d67152c4da56f87c431a309bfcd43"
+  },
+  "task17_adjustment": {
+    "status": "completed",
+    "source_tip": "e3898db77144cded81d64a1a750f6c2d9a31eefa",
+    "archive_sha256": "743f6d0ce34827f994f7cd631204300933e0fb7550523a111f8124dbafcef763",
+    "tracked_files": 23998,
+    "partitions": 8,
+    "actual_linux_bootstrap_python": "/var/tmp/hermes-db-two-layer-task5-dev/env/bin/python",
+    "policy": "Actual existing PM bootstrap interpreter path replaces generic example;target payloads are all fresh.Five PM builds and postbuild hash/import checks pending.",
+    "fresh_payloads": 5,
+    "all_build_exit_codes": 0,
+    "all_probe_exit_codes": 0,
+    "tracked_files_each": 23998,
+    "source_driver_mismatches": 0
   }
 }

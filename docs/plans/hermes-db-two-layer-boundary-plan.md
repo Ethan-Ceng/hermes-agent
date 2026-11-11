@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`IMPLEMENTING`；阶段：最终源码与全新PM载荷冻结；当前实施任务：Task17；完成：16 / 20；阻塞：无；日期2026-11-12。
+- 整体状态：`IMPLEMENTING`；阶段：冻结载荷关键合同验证；当前实施任务：Task18；完成：17 / 20；阻塞：无；日期2026-11-12。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 验证策略修订：按本轮分层风险精简（2026-11-11用户指示）
@@ -1255,7 +1255,7 @@ Native3文件两端各31passed，PG2文件6passed；恢复混合断言与最严�
 
 ## Task 17：冻结最终源码并创建全新独立PM载荷
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -1291,11 +1291,14 @@ Native3文件两端各31passed，PG2文件6passed；恢复混合断言与最严�
 
 ### 执行结果
 
-未实施；planning不计完成。
+启动：Task16本地commite3898db77144cded81d64a1a750f6c2d9a31eefa作为唯一SOURCE_TIP。同一archive先导出Windows source/test-driver，全tracked哈希逐项核对；Linux独立导出及5个全新PM载荷尚待真实exit0。
 
 ### 验证证据
 
-未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
+Windows2/Linux3全新PM环境全部实际exit0；5个独立解释器安装身份/依赖探针全部exit0。构建前后两端source与test-driver各23998文件hash0差异；SQLite及SQLite+Matrix均无SQLAlchemy/psycopg/Alembic，Linux实际SDK0.21.1。完整16check、DB/插件边界、生成合同、空白exit0。实际命令/解释器/cwd/home/runtime/源码身份及全部tracked8分区hash见[冻结manifest](../designs/hermes-db-two-layer-freeze.json)和[Task17证据](../designs/hermes-db-two-layer-task17.json)。本Task不含业务用例通过声明，skip不适用。
+
+
+结算：唯一SOURCE_TIP e3898db77144cded81d64a1a750f6c2d9a31eefa，archiveSHA256 743f6d0ce34827f994f7cd631204300933e0fb7550523a111f8124dbafcef763。五载荷使用冻结源自身PM/dev,test及精确extras，不使用resolve/rawpip/rawuv/旧载荷；当前Git可执行源与冻结源一致。完成17/20并立即本地commit，Task18启动记录实际hash；当前最终业务验收与独立审查仍未完成。
 
 ## Task 18：执行双主机分层关键合同与消费者冒烟
 
@@ -1493,14 +1496,14 @@ wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-two-layer-acceptance-final/sourc
 
 ### 当前执行结果
 
-- 当前实施：Task1–16已验证，16/20；Task16本地提交后进入Task17。
+- 当前实施：Task1–17已验证，17/20；Task17本地提交后进入Task18。
 - Task1–7证据见各Task及对应诊断记录。最终完整冻结批次、SDK及独立审查尚未完成。
 - 规划结构/基准/本地链接及文档静态自检：实际命令与结果写入下方准备记录。
 - 代码审查：本轮尚未执行；旧APPROVED只属于已完成持久层职责精简。
 
 ### 未通过项目与最终状态
 
-当前为`IMPLEMENTING`，Task1–16已完成，下一项Task17，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
+当前为`IMPLEMENTING`，Task1–17已完成，下一项Task18，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
 
 ## 规划准备记录与恢复
 
