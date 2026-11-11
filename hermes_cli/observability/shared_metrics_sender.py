@@ -24,7 +24,8 @@ from agent.retry_utils import parse_retry_after_seconds
 from hermes_db.infra.backends.sqlite.transactions import write_txn
 
 from hermes_db.domains.metrics.policy import _isoformat, _utc_now
-from hermes_db.domains.metrics.sending import GZIP_THRESHOLD_BYTES, MAX_ATTEMPTS, MAX_OBS_ADVANCE_SECONDS, MAX_PACKAGES_PER_PASS, MAX_SEND_ATTEMPTS, MetricsTransport, REQUEST_TIMEOUT_SECONDS, _BACKOFF_BASE_SECONDS, _BACKOFF_FACTOR, _CLAIM_LEASE_SECONDS, _FAILURE_BACKOFF_SECONDS, _PERMANENT_STATUSES, _parse_stamp, _post, _retry_after_seconds
+from hermes_cli.observability.shared_metrics_transport import GZIP_THRESHOLD_BYTES, MAX_ATTEMPTS, MAX_PACKAGES_PER_PASS, MetricsTransport, REQUEST_TIMEOUT_SECONDS, _BACKOFF_BASE_SECONDS, _BACKOFF_FACTOR, _FAILURE_BACKOFF_SECONDS, _PERMANENT_STATUSES, _post, _retry_after_seconds
+from hermes_db.domains.metrics.policy import MAX_OBS_ADVANCE_SECONDS, MAX_SEND_ATTEMPTS, _CLAIM_LEASE_SECONDS, _parse_stamp
 
 logger = logging.getLogger(__name__)
 
@@ -157,8 +158,8 @@ class SharedMetricsSender(MetricsTransport):
 
     def __new__(cls, store, *args, **kwargs):
         if cls is SharedMetricsSender and store.backend == "postgresql":
-            from hermes_db.domains.metrics.postgres.sender import PostgresMetricsSender
-            return PostgresMetricsSender(store, *args, outcome_factory=SendOutcome, **kwargs)
+            from .shared_metrics_postgres import OwnedPostgresMetricsSender
+            return OwnedPostgresMetricsSender(store, *args, outcome_factory=SendOutcome, **kwargs)
         return object.__new__(cls)
 
     def __init__(

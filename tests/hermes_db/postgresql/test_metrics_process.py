@@ -6,7 +6,7 @@ import sys
 from datetime import timedelta
 import pytest
 from hermes_db.domains.metrics import policy as native
-from hermes_db.domains.metrics.postgres import store as metric_export
+from hermes_cli.observability import shared_metrics_postgres as metric_export
 from hermes_cli.observability.shared_metrics import SharedMetricsStore
 from hermes_cli.observability.shared_metrics_contract import CLIENT_ACTIVE_METRIC
 from tests.hermes_db.postgresql.test_metrics_store import DAY, RESOURCE

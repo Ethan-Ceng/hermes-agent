@@ -6,7 +6,7 @@ from hermes_db.domains.metrics.bound import bound_store
 
 def maintain(db):
     from hermes_cli.observability.relay_shared_metrics import _get_runtime, _resolved_send_config
-    from hermes_db.integration.worker_metrics import drain
+    from hermes_cli.observability.worker_metrics_bridge import drain
     with _owning_profile(db.scope.profile_home):
         store = bound_store(db.scope, db._transactions)
         resolved = _resolved_send_config()

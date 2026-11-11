@@ -10,7 +10,7 @@ import urllib.request
 from dataclasses import dataclass
 from datetime import datetime, timedelta, UTC
 from agent.retry_utils import parse_retry_after_seconds
-from hermes_db.domains.metrics.policy import _isoformat, _utc_now
+from hermes_db.domains.metrics.policy import _isoformat, _utc_now, MAX_OBS_ADVANCE_SECONDS, MAX_SEND_ATTEMPTS, _CLAIM_LEASE_SECONDS, _parse_stamp
 logger = logging.getLogger("hermes_cli.observability.shared_metrics_sender")
 
 REQUEST_TIMEOUT_SECONDS = 30
@@ -25,19 +25,13 @@ GZIP_THRESHOLD_BYTES = 4096
 
 MAX_PACKAGES_PER_PASS = 20
 
-_CLAIM_LEASE_SECONDS = 300
 
 _FAILURE_BACKOFF_SECONDS = 15 * 60
 
 _PERMANENT_STATUSES = frozenset({400, 413})
 
-MAX_SEND_ATTEMPTS = 25
 
-MAX_OBS_ADVANCE_SECONDS = 30 * 24 * 3600
 
-def _parse_stamp(value: str) -> datetime:
-    """Parse a stamp this module itself wrote (Z-suffixed ISO-8601, UTC)."""
-    return datetime.fromisoformat(value).astimezone(UTC)
 
 @dataclass(slots=True)
 class _Response:

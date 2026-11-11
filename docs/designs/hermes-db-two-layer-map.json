@@ -102,7 +102,7 @@
     {
       "id": 11,
       "title": "闭合Cron、Projects、Verification和Metrics边界",
-      "status": "pending",
+      "status": "completed",
       "dependencies": [
         8,
         9
@@ -294,6 +294,26 @@
     {
       "path": "hermes_cli/db_session_lifecycle.py",
       "task": 9,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_cli/observability/shared_metrics_export.py",
+      "task": 11,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_cli/observability/shared_metrics_transport.py",
+      "task": 11,
+      "layer": "application"
+    },
+    {
+      "path": "hermes_cli/observability/shared_metrics_postgres.py",
+      "task": 11,
+      "layer": "application"
+    },
+    {
+      "path": "agent/runtime_metrics_store.py",
+      "task": 11,
       "layer": "application"
     }
   ],
@@ -1251,14 +1271,14 @@
     "entries": [
       {
         "path": "hermes-db-two-layer-map/sources-db.json",
-        "sha256": "ef724fc21712859c7a3bface44bcc2577577f35e13899d4be6002c93267ec26c",
+        "sha256": "33c5c5edb0341bb0accb579db98b2658379a275137b1084a7e2ec983e8b0d59e",
         "items": 359
       }
     ],
     "external_sources": [
       {
         "path": "hermes-db-two-layer-map/sources-native.json",
-        "sha256": "329e0294cdff2f12e01d0ec5f848d237965a39ed15a5e4d35057dd2cccf8ce49",
+        "sha256": "bb80be01b4854c1d68661bfa9e5bc130e40a9314b6308cb778ad2e5d066ae18d",
         "items": 141
       }
     ],
@@ -1535,5 +1555,45 @@
     "actual_db_modules": 362,
     "final_validation": "Windows98:512pass/4skip,WSL98:516pass/0skip,PG7:50pass. All exit0;latest static16,boundaries,generated contracts and whitespace exit0. Original7 algorithm bodies preserved; production SQL literal delta0."
   },
-  "task10_evidence": "docs/designs/hermes-db-two-layer-task10.json"
+  "task10_evidence": "docs/designs/hermes-db-two-layer-task10.json",
+  "task10_commit": "6f00d9b0dbe9b4a024337e96ca1901e625886836",
+  "task11_adjustment": {
+    "status": "completed",
+    "parent_commit": "6f00d9b0dbe9b4a024337e96ca1901e625886836",
+    "refinements": [
+      "Read both primary entry and actual I/O partitions. Metrics package_exports/store file effects and sending HTTP transport are Task11 work despite preserved module rows.",
+      "Move actual HTTP transport and file export mixin to observability siblings. Persisted queue policy constants/parser stay actual business definitions in metrics.policy.",
+      "Metrics Profile capture/reopen belongs to an application PG owner; business api accepts a bound source. Store/claim business methods use an actual supplied opener, bound workers use the existing receipt Connection.",
+      "PG store export/prune effects move to a concrete application owner subclass; corresponding SQL stays in actual store/outbox methods.",
+      "Worker metrics RPC facade moves unchanged to agent/runtime_metrics_store. Snapshot worker RPC branch must precede optional SQL imports.",
+      "Observation acquisition/identity checks stay in application; actual queries receive supplied Connection/store identity. Worker root metrics resource/Profile/consent/replay coordination stays application-owned, with original atomic SQL/CAS in metrics business."
+    ],
+    "actual_scope": "Original30 DB entries and3 external entries reviewed;8 preserved metrics rows require real splits/definition edits, plus the misclassified Runtime metrics RPC facade reassigned from Task9. Actual source count31 DB entries.",
+    "source_hash": "1309d3e301c99e304795991f08918ff1dd04bbddeab6f67e1f66ea4a57d79749",
+    "actual_db_modules": 357,
+    "final_validation": [
+      [
+        "=== Summary: 302 files, 2579 tests passed, 0 failed, 75 skipped (100% complete) in 899.5s (4 workers) ==="
+      ],
+      [
+        "=== Summary: 302 files, 2652 tests passed, 0 failed, 2 skipped (100% complete) in 2366.7s (2 workers) ==="
+      ],
+      [
+        "=== Summary: 14 files, 44 tests passed, 0 failed (100% complete) in 582.5s (1 workers) ==="
+      ],
+      [
+        "scripts/check: 16 checks, ok"
+      ],
+      [
+        "hermes_db boundaries: 9574 resolved imports, 0 violations"
+      ],
+      [
+        "module_to_core: 843",
+        "core_to_module: 26"
+      ],
+      [],
+      []
+    ]
+  },
+  "task11_evidence": "docs/designs/hermes-db-two-layer-task11.json"
 }

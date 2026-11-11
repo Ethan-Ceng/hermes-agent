@@ -33,7 +33,7 @@ from .shared_metrics_contract import (
 )
 from .shared_metrics_drift import conform_counter_dimensions, counter_dimensions_shape_is_known
 from hermes_db.domains.metrics.policy import MetricsPolicy, _ACTIVE_INSTALL_INTERVAL, _ACTIVE_INSTALL_STATE_KEY, _DAILY_ONCE_STATE_PREFIX, _FEATURE_STATE_PREFIX, _INSTALL_SNAPSHOT_STATE_KEY, _LOCAL_HISTORY_RETENTION_DAYS, _MILESTONE_STATE_PREFIX, _PACKAGE_SCHEMA_VERSION, _compact_json, _isoformat, _utc_now
-from hermes_db.domains.metrics.package_exports import MetricsExport, _ensure_private
+from hermes_cli.observability.shared_metrics_export import MetricsExport, _ensure_private
 
 
 

@@ -40,3 +40,32 @@ print('SQLITE_METRICS_STANDALONE_OK')
     result = subprocess.run([sys.executable, "-c", code], env=env, capture_output=True, text=True, timeout=60, check=False)
     assert result.returncode == 0, result.stderr
     assert "SQLITE_METRICS_STANDALONE_OK" in result.stdout
+
+
+def test_worker_session_age_query_needs_no_postgresql_driver(tmp_path):
+    from tests.gateway.fixtures.local_recovery_probe import child_env
+    code = r'''
+import importlib.abc,sys
+from pathlib import Path
+from types import SimpleNamespace
+class BlockDrivers(importlib.abc.MetaPathFinder):
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname.split('.')[0] in {'sqlalchemy','psycopg','alembic'}:
+            raise ImportError('Owner RPC must not load PostgreSQL dependencies')
+sys.meta_path.insert(0,BlockDrivers())
+from agent import runtime_domain_store
+seen=[]
+def query(name,payload):
+    seen.append((name,payload))
+    return 123.0
+runtime_domain_store.worker_resource=lambda domain,**kwargs:SimpleNamespace(query=query)
+from agent.runtime_metrics_snapshot import first_session_started_at
+assert first_session_started_at(Path(sys.argv[1])) == 123.0
+assert seen == [('metrics.first_session',{})]
+print('WORKER_METRIC_AGE_WITHOUT_PG_DRIVERS_OK')
+'''
+    env=child_env()
+    env.update(HERMES_HOME=str(tmp_path),HERMES_RUNTIME_DIR=str(tmp_path / "runtime"))
+    result=subprocess.run([sys.executable,"-c",code,str(tmp_path)],env=env,capture_output=True,text=True,timeout=60,check=False)
+    assert result.returncode == 0,result.stderr
+    assert "WORKER_METRIC_AGE_WITHOUT_PG_DRIVERS_OK" in result.stdout

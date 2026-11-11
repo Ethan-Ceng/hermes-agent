@@ -10,10 +10,10 @@ import pytest
 from hermes_db.domains.metrics import policy as native
 from hermes_cli.observability import shared_metrics_engagement as engagement
 from hermes_cli.observability.shared_metrics import SharedMetricsStore
-from hermes_db.domains.metrics.api import open_metrics
+from hermes_cli.observability.shared_metrics_postgres import open_metrics
 from hermes_db.domains.metrics.bound import bound_store
 from hermes_db.errors import UnknownCommitError
-from hermes_db.integration import worker_metrics as intents
+import hermes_cli.observability.worker_metrics_bridge as intents
 from hermes_db.domains.metrics.postgres import records as repo
 from tests.hermes_db.postgresql.test_metrics_store import DAY, RESOURCE
 from tests.hermes_db.postgresql.test_worker_domain_receipts import assignment

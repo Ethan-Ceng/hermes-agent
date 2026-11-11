@@ -437,7 +437,7 @@ _DB_BUSY_ERRORS = frozenset({"SQLITE_BUSY", "SQLITE_LOCKED"})
 def _messages(home: _Root) -> bool:
     from hermes_cli.db_setup import storage_backend
     if storage_backend(home.path) == "postgresql":
-        from hermes_db.integration.observations import has_messages
+        from hermes_cli.db_observations import has_messages
         return has_messages(home.path)
     db = home.file("state.db")
     if not db.is_file():

@@ -14,7 +14,7 @@ def create_runtime_store(session_store):
 
 def create_worker_handlers(home, operation):
     from hermes_db.domains.runtime.postgres.operations.worker_handlers import handlers
-    from hermes_db.integration.worker_metrics import prepare_policy, record
+    from hermes_cli.observability.worker_metrics_bridge import prepare_policy, record
     policy = prepare_policy(home, operation)
     return handlers(metrics_policy=policy, record_engagement=record, automation_states=worker_automation_state_types)
 

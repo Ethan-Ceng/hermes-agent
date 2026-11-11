@@ -2,7 +2,7 @@
 
 ## 文档状态
 
-- 状态：`IMPLEMENTING`；2026-11-11用户授权按既有20项计划实施。Task1–10已验证，10/20；Task10完成Profile/文件效果分层及原事务栅栏闭合，下一项Task11，最终验证及独立审查尚未完成。
+- 状态：`IMPLEMENTING`；2026-11-11用户授权按既有20项计划实施。Task1–11已验证，11/20；Task11完成Cron/Projects/Verification/Metrics边界，下一项Task12，最终验证及独立审查尚未完成。
 - 日期：2026-11-10；设计基准：`0d8782ba8adb168a86abb6a8e338591d70d03428`。
 - 隔离目录：D:/AI/hermes-db-packages；实施分支refactor/hermes-db-two-layer-boundary。正式D:/AI/hermes-agent仍在90a2987e8c，未切换。
 - 依据：[持久层精简设计](hermes-db-persistence-scope.md)、[已完成实施账本](../plans/hermes-db-persistence-scope-plan.md)、[逐项映射及固定锚点](hermes-db-persistence-scope-map.json)、[统一后端设计](unified-database-backends.md)。本设计不改写这些工作的历史验收。
@@ -210,3 +210,10 @@ Connection/scope；引用检查与本地unlink保持原短事务及锁顺序，�
 Gateway的session_storage_authority.py拥有claim检查和owner-memory commit协调，
 session_worker_process_proof.py在数据库访问前捕获PID/birth证明。保留原same-Connection历史授权、
 publication顺序，以及Session map fence到session_ingress_media capture lease lock的原顺序和最后pin保护。
+
+Task11小领域拥有者：cron/storage_application.py绑定具体Cron runtime；agent/runtime_metrics_snapshot.py
+负责Snapshot获取/Worker路由，agent/runtime_metrics_store.py负责现有Metrics RPC facade。
+Metrics的Profile/ref打开与具体PG store/sender组合在shared_metrics_postgres.py，HTTP transport在
+shared_metrics_transport.py，本地package导出在shared_metrics_export.py；以上均归hermes_cli/observability。
+worker_metrics_bridge.py拥有root/consent/owner-clock准备及提交后Root replay，业务worker_metrics仅作原子SQL/CAS。
+共享队列常量/parser是metrics.policy真实定义；bound metrics仍借用原receipt Connection，普通打开验证捕获的target。

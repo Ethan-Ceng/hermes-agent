@@ -96,9 +96,7 @@ def create_domain_resource(name, backend):
 def cron_resource(name, backend):
     scope = backend.scope
     from hermes_db.domains.cron.api import CronResource
-    from hermes_db.integration.cron_application import (
-        CronExecutionRuntime, CronIncidentRuntime, CronDeliveryRuntime, CronNoteRuntime,
-    )
+    from cron.storage_application import CronExecutionRuntime, CronIncidentRuntime, CronDeliveryRuntime, CronNoteRuntime
     return CronResource(name, backend,
         executions=CronExecutionRuntime(scope), incidents=CronIncidentRuntime(scope),
         delivery=CronDeliveryRuntime(scope), notes=CronNoteRuntime(scope))

@@ -9,12 +9,12 @@ def postgres_store(cls, database_path, outbox_directory, profile_home):
     from agent.runtime_domain_store import worker_resource
     worker = worker_resource('metrics', profile_home=profile_home) if cls is SharedMetricsStore else None
     if worker is not None:
-        from hermes_db.domains.runtime.postgres.metrics import WorkerMetricsStore
+        from agent.runtime_metrics_store import WorkerMetricsStore
         return WorkerMetricsStore(worker)
     if cls is SharedMetricsStore and storage_backend(profile_home) == "postgresql":
-        from hermes_db.domains.metrics.postgres.store import PostgresMetricsStore
-        from hermes_db.domains.metrics.api import capture_metrics
-        return PostgresMetricsStore(capture_metrics(profile_home), outbox_directory=outbox_directory)
+        from .shared_metrics_postgres import OwnedPostgresMetricsStore
+        from hermes_cli.observability.shared_metrics_postgres import capture_metrics
+        return OwnedPostgresMetricsStore(capture_metrics(profile_home), outbox_directory=outbox_directory)
     return object.__new__(cls)
 
 

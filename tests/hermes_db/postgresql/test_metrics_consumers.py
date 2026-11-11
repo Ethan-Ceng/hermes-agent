@@ -7,7 +7,7 @@ import pytest
 from hermes_db.domains.metrics import policy as native
 from hermes_cli.observability.shared_metrics import SharedMetricsStore
 from hermes_cli.observability.shared_metrics_contract import CLIENT_ACTIVE_METRIC
-from hermes_db.domains.metrics.api import open_metrics
+from hermes_cli.observability.shared_metrics_postgres import open_metrics
 from hermes_db.domains.metrics.postgres import records as repo
 from tests.hermes_db.postgresql.test_metrics_store import DAY, RESOURCE
 

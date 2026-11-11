@@ -113,7 +113,7 @@ def _kanban_busy() -> str | None:
     from hermes_constants import get_hermes_home
     home = get_hermes_home()
     if storage_backend(home) == "postgresql":
-        from hermes_db.integration.observations import kanban_due_board
+        from hermes_cli.db_observations import kanban_due_board
         slug = kanban_due_board(home, _KANBAN_DUE_STATUSES)
         return f"kanban work on board {slug}" if slug is not None else None
     from hermes_cli import kanban_db

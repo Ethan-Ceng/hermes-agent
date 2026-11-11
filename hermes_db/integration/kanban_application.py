@@ -332,7 +332,7 @@ class KanbanFiles:
         return content_root(BoardFiles(self._context.scope.profile_home, board_id, slug))
 
     def terminal_execution(self, binding, execution_id, generation):
-        from hermes_db.integration.observations import terminal_execution
+        from hermes_cli.db_observations import terminal_execution
         with self._context.activate():
             return terminal_execution(binding, execution_id, generation)
 

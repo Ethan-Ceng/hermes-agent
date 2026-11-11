@@ -8,7 +8,7 @@ import json
 
 def reconcile(conn, store, enabled, now):
     from hermes_db.domains.metrics.policy import _isoformat
-    from hermes_db.domains.metrics.sending import MAX_OBS_ADVANCE_SECONDS, _parse_stamp
+    from hermes_db.domains.metrics.policy import MAX_OBS_ADVANCE_SECONDS, _parse_stamp
     raw = stamp = _isoformat(now)
     previous = conn.scalar(select(marks.c.stamp).where(repo.key(marks, store, {'name': 'obs'})))
     if previous is not None:
@@ -94,7 +94,7 @@ def freeze_identity(conn, store, row):
 
 def claim(conn, store, now, seen):
     from hermes_db.domains.metrics.policy import _isoformat
-    from hermes_db.domains.metrics.sending import MAX_SEND_ATTEMPTS, _CLAIM_LEASE_SECONDS
+    from hermes_db.domains.metrics.policy import MAX_SEND_ATTEMPTS, _CLAIM_LEASE_SECONDS
     stmt = select(packages).where(repo.scope(packages, store), packages.c.exported_at.is_not(None), pending(), or_(packages.c.next_attempt_at.is_(None), packages.c.next_attempt_at <= _isoformat(now)), gate(), packages.c.send_attempts < MAX_SEND_ATTEMPTS)
     if seen:
         stmt = stmt.where(packages.c.package_id.not_in(sorted(seen)))
@@ -120,7 +120,7 @@ def mark(conn, store, package_id, token, columns):
 
 def renew(conn, store, package_id, token, now):
     from hermes_db.domains.metrics.policy import _isoformat
-    from hermes_db.domains.metrics.sending import _CLAIM_LEASE_SECONDS
+    from hermes_db.domains.metrics.policy import _CLAIM_LEASE_SECONDS
     if token is None:
         return False
     return repo.change_package(conn, store, packages, package_id, dict(next_attempt_at=_isoformat(now + timedelta(seconds=_CLAIM_LEASE_SECONDS))), pending(), packages.c.claim_token == token, packages.c.next_attempt_at > _isoformat(now)) == 1

@@ -7,7 +7,7 @@
 - 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
-- 整体状态：`IMPLEMENTING`；阶段：Cron/Projects/Verification/Metrics边界；当前实施任务：Task11；完成：10 / 20；阻塞：无；日期2026-11-11。
+- 整体状态：`IMPLEMENTING`；阶段：Kanban所有者与RPC边界；当前实施任务：Task12；完成：11 / 20；阻塞：无；日期2026-11-11。
 - 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
 
 ## 范围与可判定边界
@@ -861,7 +861,7 @@ Profile生命周期和媒体授权数据规则留存储，实际文件协调归�
 
 ## Task 11：闭合Cron、Projects、Verification和Metrics边界
 
-状态：pending
+状态：completed
 
 ### 目标
 
@@ -905,11 +905,40 @@ Profile生命周期和媒体授权数据规则留存储，实际文件协调归�
 
 ### 执行结果
 
-未实施；planning不计完成。
+启动：Task10实际本地commit 6f00d9b0dbe9b4a024337e96ca1901e625886836，当前10/20；映射分区hash已校验，依Task11实际消费者继续。旧Task验证不计本Task成果。
 
 ### 验证证据
 
 未执行本Task业务验证。实施后记录实际展开命令、source/解释器/cwd、退出码、passed/failed/skipped、失败修正/未验证项及恢复commit。
+
+
+按domain_io_sites补充复核：Metrics package_exports、PG store文件导出/回收和sending HTTP虽在preserve入口列表，实际I/O分区明确归Task11，须拆到observability应用兄弟。Profile捕获/重开归应用，业务API只处理已绑定source；PG业务Store/claim接受真实opener、worker bound用同receipt Connection。共享队列纯常量/parser保留metrics.policy真实定义。原Runtime下WorkerMetricsStore是RPC适配，迁到agent/runtime_metrics_store。新增无PG依赖的worker session-age RPC回归，先验证现有过早SQLAlchemy导入的失败，再分层整改。均保留SQL、DTO、consent/回执/no-op revision及时间语义，不增加框架/兼容flag/shim。
+
+新增worker无PG驱动回归先红（1pass/1fail，明确在metrics_snapshot顶层from sqlalchemy导入被拒），将Worker RPC分支放在SQL查询导入之前后Native必需2文件3pass/0fail。Cron应用runtime原体迁出，观测query/获取拆分，Metrics Profile/fingerprint打开、HTTP transport、文件export/prune由真实应用拥有者组合，原队列常量/parser在业务policy有实际定义。业务Store/claim通过必需opener处理已解析/已绑定资源，bound worker保留receipt Connection；RPC facade迁到agent。生产Python编译通过，继续必需PG/WSL、扩大消费者和静态。
+
+PG必需4文件首批16pass/1fail，唯一失败是test_metrics_store仍patch旧业务模块atomic_json_write，现改应用实际读取模块，并同步faults/process同类patch，保留pool.checkedout()==0、保留期、未导出数据与故障恢复断言。搬移PG导出方法时同时补齐其timedelta依赖（在PG执行前通过代码核对发现）。后续完整复验不计此前失败为通过。
+
+必需Windows/WSL各2文件3pass/0fail，PG必需复验4文件17pass/0fail；扩大PG14文件44pass/0fail，均exit0。初始边界19读取点来自9个未登记新位置的纯值/同Connection依赖，已逐符号复核后最新16check、DB边界0违规、插件边界、生成契约和空白exit0。源码审计固定65资源、11分区hash、root11、31revision、29表模块及生产SQL字面量delta0通过；DB当前357≤359，最终仍复核，不以迁出宣称算法净减少。12组Cron/RPC/文件export/HTTP backoff/parser/queue bounds/观测query算法AST一致，25既有测试114条正常assert保留。扩大Native批次仍待完成，当前Task11不计完成。
+
+中间结算：Windows扩大批次已完整exit0：302文件2579pass/0fail/75skip。只剩同302文件选择范围的WSL完整批次未结束，当前0失败；Task11仍in_progress，不将中间结果计完成。源码审计hash仍db6908bef5b65cd5155bfe7f0f3a5fbbb80420f10cd128aae99b0f06782d1076。
+
+
+失败/根因记录：扩大WSL302文件实际exit1：2651pass/1fail/2skip，prepared_compaction原lt_1s等待分桶收到1s_to_5s。实际日志首轮冷插件发现落在_effective_aux_timeout配置加载中；独立隔离新进程同调用首次2.160s、第二次0.001s，压缩生产实现相对0d基准0差异。仅在该测试开始真实0.2s deadline前预热实际配置，不更换时钟、不扩大界限，原分桶/取消/会话边界/失败分类全部assert保持。保持Task11 in_progress，重跑两端相同302完整文件与PG/static门禁；原失败不得用单文件补跑冒充完整通过。
+
+
+复验中间失败：第二轮扩大WSL报告真实Cron managed_gateway_restart合同1项失败（该文件39pass/1fail），完整批次仍在执行，完整失败段及实际exit码待收取。当前只读定位，不改运行中源码，不将环境推测计作根因，保留原302文件范围与全部断言。
+
+
+Cron诊断：同源完整文件actualexit1：39pass/1fail，精确失败为原10s启动窗口内started不存在；聚焦原真实managed-restart用例随后actualexit0：1pass，保留真实systemd scope/新Worker/ledger completed/单次副作用/单次投递全部断言。独立保存的测试工件记录payload到started为6.343s、副作用1行。无生产代码、时限或assert修改。原失败完整批次结束后，以相同302文件选择范围、2workers且不同时执行其他主机/PG/static批次复验，以隔离启动资源竞争；仅降低并发，不删除文件/用例/断言。原失败记录继续保留，不用聚焦结果冒充完整通过。
+
+
+第二轮完整WSL结算：302文件2651pass/1fail/2skip，实际exit1，1618.8s/4workers，完整失败段确认仍为Cron started.exists()原10s启动窗口，后续未增加失败。最新Windows完整302文件2579pass/75skip、PG14文件44pass及静态全门禁均exit0。核对源码hash1309d3e3未变化；所有其他测试批次已结束，现在仅运行WSL同302文件、2workers完整复验。不更改文件/用例/断言/时限，保留所有失败，不用聚焦通过替代整批exit0。
+
+
+第三轮同302范围/2workers中间证据：原Cron完整文件40pass/0fail，34.6s，原10s启动等待及真实scope/PID/单次副作用/投递assert均未改。当前累计105文件1320pass/0fail；仍等待完整302文件actualexit0，不以完整单文件替代整批结算。
+
+
+最终结算：=== Summary: 302 files, 2579 tests passed, 0 failed, 75 skipped (100% complete) in 899.5s (4 workers) ===；=== Summary: 302 files, 2652 tests passed, 0 failed, 2 skipped (100% complete) in 2366.7s (2 workers) ===；PG14文件44pass/0fail，均实际exit0。两端同302文件，全部32选择器及必需文件完整保留。实际skip逐文件、所有初始失败/修正、展开命令/解释器/cwd/home/runtime/temp/源码身份/退出码见[Task11证据](../designs/hermes-db-two-layer-task11.json)。最新16check、DB边界0违规、插件边界、生成契约及空白exit0。固定65资源/11分区hash/root11/31revision/29表模块保持，DB357≤359、生产SQL字面量delta0；12组原算法体AST一致，28既有测试130条业务assert保留，无删除。正式目录预期HEAD且clean，只读核对通过。立即创建本地commit，实际hash由Task12启动记录；完成11/20。最终冻结验证、独立审查及既有独立平台缺证仍保留。
 
 ## Task 12：迁出Kanban拥有者、进程和RPC适配
 
@@ -1451,14 +1480,14 @@ Windows独立发行组使用同根Windows实际路径、其PG父解释器及私�
 
 ### 当前执行结果
 
-- 当前实施：Task1–10已验证，10/20；Task10本地提交后进入Task11。
+- 当前实施：Task1–11已验证，11/20；Task11本地提交后进入Task12。
 - Task1–7证据见各Task及对应诊断记录。最终完整冻结批次、SDK及独立审查尚未完成。
 - 规划结构/基准/本地链接及文档静态自检：实际命令与结果写入下方准备记录。
 - 代码审查：本轮尚未执行；旧APPROVED只属于已完成持久层职责精简。
 
 ### 未通过项目与最终状态
 
-当前为`IMPLEMENTING`，Task1–10已完成，下一项Task11，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
+当前为`IMPLEMENTING`，Task1–11已完成，下一项Task12，因此不能READY_TO_MERGE。启动后如有实际失败为FAILED、外部阻塞为BLOCKED并记录；独立APPROVED及全部20Task/必需门禁完成后才READY_TO_MERGE。本轮计划不解除原统一Task24、七非WSL缺证或Windows八项基准问题。
 
 ## 规划准备记录与恢复
 

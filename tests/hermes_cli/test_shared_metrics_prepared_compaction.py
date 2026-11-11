@@ -125,10 +125,12 @@ def test_pass_and_splice_outcomes_are_counted_in_the_owning_profile(tmp_path, ma
 
 
 def test_waste_modes_say_why(monkeypatch, marks):
-    from agent.auxiliary_client import aux_stream_deadline
+    from agent.auxiliary_client import _effective_aux_timeout, aux_stream_deadline
     from agent.conversation_compression_telemetry import _emit_compression_attempt_telemetry
     import agent.context_compressor as module
 
+    # Cold plugin/config discovery is startup work, outside the measured wait bucket.
+    _effective_aux_timeout("compression", None)
     msgs = _messages(30)
     # A compaction gives up waiting on a pass that runs past the host's deadline; the pass is told why it stops.
     slow = _compressor()

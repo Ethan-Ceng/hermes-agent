@@ -910,7 +910,8 @@
       "consumers": [
         "hermes_db/domains/metrics/policy.py",
         "hermes_db/domains/metrics/postgres/outbox.py",
-        "hermes_db/domains/metrics/postgres/records.py"
+        "hermes_db/domains/metrics/postgres/records.py",
+        "hermes_db/domains/metrics/postgres/worker_metrics.py"
       ]
     },
     {
@@ -1485,6 +1486,7 @@
       "consumers": [
         "hermes_db/domains/kanban/postgres/owners.py",
         "hermes_db/domains/kanban/postgres/receipts.py",
+        "hermes_db/domains/metrics/postgres/worker_metrics.py",
         "hermes_db/domains/rooms/postgres/ownership.py",
         "hermes_db/domains/sessions/postgres/operations/housekeeping.py",
         "hermes_db/domains/sessions/postgres/operations/imports.py",
@@ -3109,6 +3111,62 @@
       "reason": "Existing Kanban file-map row lock on the supplied Connection/resource; no filesystem work. Reanchor preserves file-map lock before Session map lock in the original transaction.",
       "consumers": [
         "hermes_db/domains/profile_paths.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_contract.ENGAGEMENT_SURFACES",
+      "category": "shared-pure",
+      "reason": "Closed surface enum for supplied worker engagement payload; no Profile/env/storage/sending.",
+      "consumers": [
+        "hermes_db/domains/metrics/postgres/worker_metrics.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_contract._MODEL_ROUTE_MAX_LENGTHS",
+      "category": "shared-pure",
+      "reason": "Fixed route identifier length bounds from the existing metric contract, over explicit payload fields.",
+      "consumers": [
+        "hermes_db/domains/metrics/postgres/worker_metrics.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_contract._metric_identifier",
+      "category": "shared-pure",
+      "reason": "Existing pure metric identifier normalization over supplied provider/model strings; no configuration or IO.",
+      "consumers": [
+        "hermes_db/domains/metrics/postgres/worker_metrics.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_engagement.STATE_KEY",
+      "category": "shared-pure",
+      "reason": "Exact persisted engagement state namespace; no application observer or Profile service is borrowed.",
+      "consumers": [
+        "hermes_db/domains/metrics/postgres/worker_metrics.py"
+      ]
+    },
+    {
+      "target": "hermes_cli.observability.shared_metrics_engagement.apply",
+      "category": "shared-pure",
+      "reason": "Pure engagement fold over supplied previous state, owner-clock timestamp, closed metadata and explicit busy-peak capability; no Profile/secret/file/network lookup.",
+      "consumers": [
+        "hermes_db/domains/metrics/postgres/worker_metrics.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.runtime.postgres.operations.worker_domains.ReceiptDomainResource",
+      "category": "shared-connection",
+      "reason": "Borrow the original supplied worker receipt Connection/scope for atomic metrics record; no connection creation, commit, process or RPC work.",
+      "consumers": [
+        "hermes_db/domains/metrics/postgres/worker_metrics.py"
+      ]
+    },
+    {
+      "target": "hermes_db.domains.cron.postgres.executions._decode",
+      "category": "shared-query-value",
+      "reason": "Existing pure row-to-Cron DTO decoding for scoped claimed/running observation rows, without Cron process/config lookup.",
+      "consumers": [
+        "hermes_db/domains/observations.py"
       ]
     }
   ]

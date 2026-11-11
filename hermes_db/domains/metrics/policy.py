@@ -48,6 +48,21 @@ def _compact_json(value: Any) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"))
 
 
+
+_CLAIM_LEASE_SECONDS = 300
+
+
+MAX_SEND_ATTEMPTS = 25
+
+
+MAX_OBS_ADVANCE_SECONDS = 30 * 24 * 3600
+
+
+def _parse_stamp(value: str) -> datetime:
+    """Parse a stamp this module itself wrote (Z-suffixed ISO-8601, UTC)."""
+    return datetime.fromisoformat(value).astimezone(UTC)
+
+
 class MetricsPolicy:
 
     def record_model_call(self, dimensions: dict[str, str], resource: dict[str, str]) -> None:

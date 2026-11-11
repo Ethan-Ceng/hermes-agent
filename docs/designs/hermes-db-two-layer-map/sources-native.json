@@ -4832,7 +4832,7 @@
       "hermes_cli/observability/shared_metrics.py"
     ],
     "task": 11,
-    "status": "pending",
+    "status": "completed",
     "reason": "Storage adapter/lifecycle candidate; actual business/SDK types and plugin published API boundaries remain.",
     "symbol_routes": {},
     "baseline_abi_sha256": "418ab6b1dd5a48524389f7dcae2d66a97eaa1fc223e31313d179e8a8d4a7087d",
@@ -4840,7 +4840,8 @@
       "drain_deferring_stores",
       "_row_resource",
       "SharedMetricsStore"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
   },
   {
     "source": "hermes_cli/observability/shared_metrics_sender.py",
@@ -4851,7 +4852,7 @@
       "hermes_cli/observability/shared_metrics_sender.py"
     ],
     "task": 11,
-    "status": "pending",
+    "status": "completed",
     "reason": "Storage adapter/lifecycle candidate; actual business/SDK types and plugin published API boundaries remain.",
     "symbol_routes": {},
     "baseline_abi_sha256": "140b2a40fa80752c328543bb9d8ccb739c3cf9797e84808f3a3a400865c96d93",
@@ -4859,7 +4860,8 @@
       "SendOutcome",
       "reconcile_send_consent",
       "SharedMetricsSender"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
   },
   {
     "source": "hermes_cli/observability/shared_metrics_snapshot.py",
@@ -4870,7 +4872,7 @@
       "hermes_cli/observability/shared_metrics_snapshot.py"
     ],
     "task": 11,
-    "status": "pending",
+    "status": "completed",
     "reason": "Storage adapter/lifecycle candidate; actual business/SDK types and plugin published API boundaries remain.",
     "symbol_routes": {},
     "baseline_abi_sha256": "27b5995818d1394481fcef1e9b3acde34190411c16b5c46c93a3a7408f833322",
@@ -4887,7 +4889,8 @@
       "_first_session_started_at",
       "install_age_bucket",
       "collect_install_snapshot"
-    ]
+    ],
+    "evidence": "docs/designs/hermes-db-two-layer-task11.json"
   },
   {
     "source": "hermes_cli/plugins.py",

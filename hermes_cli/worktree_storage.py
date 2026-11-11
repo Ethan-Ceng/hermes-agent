@@ -71,7 +71,7 @@ def _active(value):
 
 def _observations(reference, worktree_path):
     from hermes_cli.worktree_ops import _inside_tree
-    from hermes_db.integration.observations import worktree_sessions
+    from hermes_cli.db_observations import worktree_sessions
     rows, meta = worktree_sessions(reference.home, reference.store_id, reference.target)
     inside = _inside_tree(worktree_path)
     return [row for row in rows if inside(row["cwd"])], {key for key, value in meta if _active(value)}

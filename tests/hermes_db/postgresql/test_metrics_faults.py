@@ -4,11 +4,11 @@ from datetime import timedelta
 import json
 import pytest
 from hermes_db.domains.metrics import policy as native
-from hermes_db.domains.metrics.postgres import store as metric_export
+from hermes_cli.observability import shared_metrics_postgres as metric_export
 from hermes_cli.observability.shared_metrics import SharedMetricsStore
 from hermes_cli.observability.shared_metrics_contract import CLIENT_ACTIVE_METRIC
 from hermes_cli.observability.shared_metrics_sender import SharedMetricsSender
-from hermes_db.domains.metrics.api import open_metrics
+from hermes_cli.observability.shared_metrics_postgres import open_metrics
 from hermes_db.errors import UnknownCommitError
 from hermes_db.domains.metrics.postgres import outbox as metric_packages
 from hermes_db.domains.metrics.postgres import records as repo
