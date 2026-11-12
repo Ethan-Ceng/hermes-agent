@@ -4,11 +4,11 @@
 
 - 设计：[两层边界设计](../designs/hermes-db-two-layer-boundary.md)；逐项映射：[模块、符号、消费者和固定资源](../designs/hermes-db-two-layer-map.json)。
 - 源码基准：`0d8782ba8adb168a86abb6a8e338591d70d03428`。上轮精简已完成，本轮Task全部重新从pending开始；旧测试/旧审查只作参考。
-- 正式目录：D:/AI/hermes-agent，HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`；正式运行实例不得修改、切换或停止。
+- 正式目录：D:/AI/hermes-agent；实施期间保持HEAD `90a2987e8c5decb7997157ca17a301ff51ecce78`及运行实例不变。2026-11-12用户后续明确授权本地合入供验收，实际操作见“用户授权的本地合入与验收准备”。
 - 隔离实施目录：D:/AI/hermes-db-packages。规划当前分支refactor/hermes-db-persistence-scope；目标实施分支`refactor/hermes-db-two-layer-boundary`，2026-11-11已创建。
 - 规划提交：`f735660e8db182ca2b9fb8c139815a5bed2caf06`；保存用户原有10个暂存规划文件，不计Task实现完成。
 - 整体状态：`READY_TO_MERGE`；阶段：本轮分层与独立复审完成；当前实施任务：无；完成：20 / 20；阻塞：无；日期2026-11-12。
-- 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；不推送/PR/合并/部署/重启。
+- 提交策略：沿用用户每完成一个Task立即更新计划并创建本地commit的要求。规划自检不代替Task1或业务验收；实施阶段不推送/PR/合并/部署/重启。后续用户授权的本地合入单独记录，不改写原验收证据。
 
 ## 验证策略修订：按本轮分层风险精简（2026-11-11用户指示）
 
@@ -1555,6 +1555,21 @@ wsl.exe -d Ubuntu-26.04 --cd /var/tmp/hermes-db-two-layer-acceptance-final-v2/so
 ### 最终状态
 
 READY_TO_MERGE；20/20已完成。本地Task20完成commit：`9d268564da1998f5c3c5a5327ce23cb79a33f3e1`；实际hash已由独立文档receipt记录，不执行合并或部署。
+
+## 用户授权的本地合入与验收准备（2026-11-12）
+
+用户后续指令：“合并到当前正在运行目录，我要运行测试验收”。该授权取代实施期间禁止正式目录合入的限制；以下是实施与独立审查完成后的本地操作，不增加或重计20个Task成果，也不表示用户功能验收完成。
+
+- 目标目录/分支：`D:/AI/hermes-agent`，`docs/hermes-db-package-layout`；工作区起初clean。本地`main`和正式旧HEAD均已包含在待合入分支历史中，无须重写历史。
+- 实际命令：`git merge --ff-only refactor/hermes-db-two-layer-boundary`，exit0；从`90a2987e8c5decb7997157ca17a301ff51ecce78`快进至`47e2317fa03fd116a4007e1f6f874cc5095cdcba`，合入后tree与目标分支完全相同。恢复分支`backup/hermes-db-before-two-layer-20261112`指向旧HEAD。
+- 合并前最新检查：在`D:/AI/hermes-db-packages`，使用PM解释器`D:/AI/hermes-db-packages/.build/two-layer-dev/win/env/Scripts/python.exe`运行`python scripts/check --staged --base 0d8782ba8a`，exit0，16 checks，health 0 blocking/0 advisory；`python scripts/hermes_db_boundary_lint.py --check`为8534依赖/0违规，`python scripts/boundary_lint.py --check`、`python scripts/gen_gateway_contracts.py --check`、`git diff --check 90a2987e8c5decb7997157ca17a301ff51ecce78 HEAD`均exit0。运行Python/测试/pyproject/uv.lock与独立APPROVED的`0aa4f5973542615cd044ec748313c8c4b9c988be`无差异。
+- 合并前冒烟：同一cwd/PM解释器，通过`D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts/test_infra_independence.py tests/hermes_db/contracts/test_infra_resource_ownership.py tests/gateway/test_api_sqlite_schema_lifecycle.py -j 1 --file-timeout 180 -- --tb=short -ra`，exit0，3文件5passed/0failed/0skip。
+- 生命周期：使用现有正式HOME及官方`python -m hermes_cli.main gateway stop`。首次因1个活跃会话拒绝，exit1，源码保持未修改；会话自然结束后同命令exit0，旧PID36172 drained cleanly、运行状态stopped。全程未使用`--yes`/`--interrupt`。
+- 合并后正式cwd导入身份实际为`D:/AI/hermes-agent/hermes_db/__init__.py`。同PM解释器在正式cwd通过`D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts/test_infra_resource_ownership.py tests/gateway/test_api_sqlite_schema_lifecycle.py -j 1 --file-timeout 180 -- --tb=short -ra`，exit0，2文件3passed/0failed/0skip；实际SQLite写入、新PID恢复、普通打开0DDL及缺库拒绝保持。
+- 两次测试均先绑定`HERMES_HOME=D:/AI/hermes-agent/.build/db-merge-20261112/profile`、`HERMES_RUNTIME_DIR=D:/AI/hermes-agent/.build/db-merge-20261112/runtime`、上述`HERMES_PYTHON`、`HERMES_TEST_FILE_RETRIES=0`及UTF-8。未使用正式Profile作测试数据，未执行正式数据迁移、后端切换或配置变更。
+- 仅删除正式源码中已确认无Git跟踪文件、无reparse point且全为`.pyc`的退役`hermes_db/integration`和`hermes_db/backends`目录，共39个缓存文件；隔离checkout原有`owned/`、`target/`不动。未推送、创建PR或合并远程分支。
+- 本次静态/冒烟输出及停止拒绝保存在本地ignored `.build/db-merge-20261112/`；`merge-preflight.json`保留首次拒绝，`merge-result.json`记录实际快进。后续通过官方`python -m hermes_cli.main gateway start`、`gateway status`和`webapp --skip-build`准备运行验收，实际PID/源码身份/存储状态另存该目录的`runtime-result.json`。
+- 本地合入已完成；实现验收仍为既有`READY_TO_MERGE`/独立`APPROVED`结论。用户交互功能验收待进行；未把合入冒烟算作旧PG全领域深测、全系统验收或历史平台缺口关闭。
 
 ## 规划准备记录与恢复
 

@@ -4,7 +4,7 @@
 
 - 状态：`READY_TO_MERGE`；2026-11-12。20/20完成，独立最终复审APPROVED；R1最小修正、真实红绿灯与v2全组复验通过。5freshPM载荷、10批159passed/3真实平台skip、24019文件hash及固定资源核对通过；初版CHANGES_REQUIRED/158结果单独保留。结论仅限本轮两层分层，不外推全系统验收。
 - 日期：2026-11-10；设计基准：`0d8782ba8adb168a86abb6a8e338591d70d03428`。
-- 隔离目录：D:/AI/hermes-db-packages；实施分支refactor/hermes-db-two-layer-boundary。正式D:/AI/hermes-agent仍在90a2987e8c，未切换。
+- 隔离目录：D:/AI/hermes-db-packages；实施分支refactor/hermes-db-two-layer-boundary。实施期间正式D:/AI/hermes-agent保持90a2987e8c；2026-11-12用户后续授权本地快进合入47e2317fa03f供运行验收，详见[实施计划的本地合入记录](../plans/hermes-db-two-layer-boundary-plan.md)。
 - 依据：[持久层精简设计](hermes-db-persistence-scope.md)、[已完成实施账本](../plans/hermes-db-persistence-scope-plan.md)、[逐项映射及固定锚点](hermes-db-persistence-scope-map.json)、[统一后端设计](unified-database-backends.md)。本设计不改写这些工作的历史验收。
 
 ## 背景与目标
