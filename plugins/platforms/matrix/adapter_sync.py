@@ -10,7 +10,8 @@ logger = logging.getLogger("plugins.platforms.matrix.adapter")
 
 
 async def sync_loop(adapter):
-    from plugins.platforms.matrix.adapter import _is_permanent_matrix_auth_error
+    from plugins.platforms.matrix.adapter import _is_permanent_matrix_auth_error, describe_proxy_error
+    from plugins.platforms.matrix.session_proxy import matrix_redaction_proxy
     client = adapter._client
     try:
         next_batch = await client.sync_store.get_next_batch()
@@ -29,9 +30,9 @@ async def sync_loop(adapter):
                 if adapter._closing:
                     return
                 if _is_permanent_matrix_auth_error(error):
-                    logger.error("Matrix: permanent auth error, stopping sync: %s", error)
+                    logger.error("Matrix: permanent auth error, stopping sync: %s", describe_proxy_error(error, matrix_redaction_proxy(adapter._proxy_url, adapter._homeserver)) or error)
                     return
-                logger.warning("Matrix: sync error: %s — retrying in 5s", error)
+                logger.warning("Matrix: sync error: %s — retrying in 5s", describe_proxy_error(error, matrix_redaction_proxy(adapter._proxy_url, adapter._homeserver)) or error)
                 await asyncio.sleep(5)
     except StorageError:
         # Restart through the existing adapter supervisor; a poisoned ratchet cannot be reused.
@@ -40,6 +41,8 @@ async def sync_loop(adapter):
 
 
 async def initial_sync(adapter, client):
+    from plugins.platforms.matrix.adapter import describe_proxy_error
+    from plugins.platforms.matrix.session_proxy import matrix_redaction_proxy
     try:
         arguments = dict(timeout=10000, full_state=True)
         if getattr(adapter, "_storage_backend", None) == "postgresql":
@@ -53,8 +56,8 @@ async def initial_sync(adapter, client):
     except StorageError as error:
         logger.error("Matrix: initial sync storage failed: %s", error)
         return False
-    except Exception as error:
-        logger.exception("Matrix: initial sync error: %s", error)
+    except Exception as error:  # health: allow BLE001 -- SDK sync boundary logs proxy-redacted errors; raw tracebacks can expose proxy credentials
+        logger.warning("Matrix: initial sync error: %s", describe_proxy_error(error, matrix_redaction_proxy(adapter._proxy_url, adapter._homeserver)) or error)
     return True
 
 

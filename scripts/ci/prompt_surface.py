@@ -26,6 +26,7 @@ import argparse
 import difflib
 import json
 import logging
+import re
 import os
 import shutil
 import socket
@@ -79,7 +80,6 @@ def _pin_environment() -> None:
     socket.socket.connect = refuse  # type: ignore[method-assign]
     socket.create_connection = refuse  # type: ignore[assignment]
     socket.getaddrinfo = refuse  # type: ignore[assignment]
-    sys.platform = "linux"  # skills index ``platforms:`` gate
 
     import hermes_time
     hermes_time.now = lambda: FIXED_NOW  # type: ignore[assignment]
@@ -88,6 +88,11 @@ def _pin_environment() -> None:
     import tools.registry as registry_module
     registry_module._check_fn_cached = lambda _fn: True  # type: ignore[assignment]
     from agent import skill_utils
+    from functools import partial
+    skill_utils.skill_matches_platform_list = partial(skill_utils.skill_matches_platform_list, current_platform="linux")
+    from agent import prompt_builder
+    prompt_builder.build_environment_hints = partial(
+        prompt_builder.build_environment_hints, host_platform="linux", host_is_wsl=False)
     skill_utils._ENV_DETECT_CACHE.update({"docker": False, "s6": False})
     # The toolchain probe line reports the host's python/node/pip; it is environment, not code.
     from tools import env_probe
@@ -109,11 +114,24 @@ def _scrub(text: str, home: Path) -> str:
     import platform as _platform
     for raw, token in sorted({
         str(home / ".hermes"): "<HERMES_HOME>",
+        (home / ".hermes").as_posix(): "<HERMES_HOME>",
         str(home): "<HOME>",
+        home.as_posix(): "<HOME>",
         f"{_platform.system()} ({_platform.release()})": "<HOST_OS>",
     }.items(), key=lambda kv: -len(kv[0])):
         text = text.replace(raw, token)
-    return text
+    return re.sub(r"<(?:HOME|HERMES_HOME)>[^\s\"'<>]*",
+                  lambda match: match.group(0).replace("\\", "/"), text)
+
+
+def _scrub_json(value, home):
+    if isinstance(value, str):
+        return _scrub(value, home)
+    if isinstance(value, list):
+        return [_scrub_json(item, home) for item in value]
+    if isinstance(value, dict):
+        return {key: _scrub_json(item, home) for key, item in value.items()}
+    return value
 
 
 def _enabled_toolsets(platform: str) -> list[str]:
@@ -141,7 +159,7 @@ def _render_surface(home: Path, platform: str, model: str, code: bool) -> tuple[
         session_id=SESSION_ID, enabled_toolsets=_enabled_toolsets(platform),
     )
     tiers = {tier: _scrub(text, home) for tier, text in build_system_prompt_parts(agent).items()}
-    tools = json.loads(_scrub(json.dumps(agent.tools), home))
+    tools = _scrub_json(agent.tools, home)
     return tiers, {t["function"]["name"]: t["function"] for t in tools}
 
 
@@ -149,7 +167,7 @@ def _render_child(out: Path) -> int:
     home = Path(os.environ["HOME"]).resolve()
     (home / "plain").mkdir(parents=True, exist_ok=True)
     (home / "code").mkdir(parents=True, exist_ok=True)
-    (home / "code" / "pyproject.toml").write_text('[project]\nname = "demo"\n', encoding="utf-8")
+    (home / "code" / "pyproject.toml").write_text('[project]\nname = "demo"\n', encoding="utf-8", newline="\n")
     sys.path.insert(0, str(ROOT))
     failures = _ImportFailures()
     logging.getLogger().addHandler(failures)
@@ -176,7 +194,7 @@ def _write_snapshot(out: Path, prompts: dict[str, dict[str, str]], tools_by_surf
     manifest: dict[str, dict] = {}
     for surface, tiers in prompts.items():
         text = "\n\n".join(f"===== {tier} =====\n{tiers[tier]}" for tier in ("stable", "context", "volatile"))
-        (out / "prompts" / f"{surface}.txt").write_text(text + "\n", encoding="utf-8")
+        (out / "prompts" / f"{surface}.txt").write_text(text + "\n", encoding="utf-8", newline="\n")
         tools = tools_by_surface[surface]
         manifest[surface] = {
             "prompt_tokens": {tier: len(tiers[tier]) // CHARS_PER_TOKEN for tier in tiers},
@@ -187,11 +205,11 @@ def _write_snapshot(out: Path, prompts: dict[str, dict[str, str]], tools_by_surf
         variants = {s: json.dumps(t[name], indent=2, sort_keys=True, ensure_ascii=False) + "\n"
                     for s, t in tools_by_surface.items() if name in t}
         common = Counter(variants.values()).most_common(1)[0][0]
-        (out / "tools" / f"{name}.json").write_text(common, encoding="utf-8")
+        (out / "tools" / f"{name}.json").write_text(common, encoding="utf-8", newline="\n")
         for surface, text in variants.items():
             if text != common:
-                (out / "tools" / f"{name}.{surface}.json").write_text(text, encoding="utf-8")
-    (out / MANIFEST).write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+                (out / "tools" / f"{name}.{surface}.json").write_text(text, encoding="utf-8", newline="\n")
+    (out / MANIFEST).write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
 
 
 def render(out: Path) -> int:
@@ -206,6 +224,8 @@ def render(out: Path) -> int:
             "TZ": "UTC", "LANG": "C.UTF-8", "PYTHONHASHSEED": "0", "PYTHONPATH": str(ROOT),
             "TMPDIR": tmp, "PYTHONDONTWRITEBYTECODE": "1",
         }
+        if os.name == "nt":
+            env.update(USERPROFILE=str(home), TEMP=tmp, TMP=tmp)
         for key in ("HERMES_RUNTIME_DIR", "SYSTEMROOT"):
             if os.environ.get(key):
                 env[key] = os.environ[key]
@@ -343,7 +363,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "_child":
         return _render_child(args.out)
     text = summarize(args.base, args.head)
-    args.output.write_text(text, encoding="utf-8")
+    args.output.write_text(text, encoding="utf-8", newline="\n")
     print("prompt surface: changed" if text else "prompt surface: unchanged")
     return 0
 

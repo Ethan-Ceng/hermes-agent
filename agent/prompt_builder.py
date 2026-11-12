@@ -685,7 +685,7 @@ PLATFORM_HINTS = {
     "desktop": (
         # Every claim verified against the shipping renderer (inline-preview-directive.tsx). Widget text is
         # recipe-first: HOW (an inline widget IS a ::preview'd HTML file) and WHY (the frame injects the theme
-        # prelude first; width adopts the first measured span). setup_mcp is taught by its own tool schema.
+        # prelude first; the frame spans the column up to its cap). setup_mcp is taught by its own tool schema.
         "You are chatting inside the Hermes desktop app, a graphical chat surface. Markdown renders with full GitHub "
         "flavor (tables, syntax-highlighted code, math via $...$, task lists, callouts). Deliver files by writing "
         "MEDIA:/absolute/path/to/file — any file type: images/audio/video render inline, everything else becomes a "
@@ -695,11 +695,12 @@ PLATFORM_HINTS = {
         "frame already themes it — the app's live theme arrives as var(--foreground), var(--muted-foreground), "
         "var(--accent), var(--border), var(--card), plus the app font, zero margins, and a transparent background, "
         "injected before your styles — so use those vars for color and don't set your own background, font, or margins "
-        "(only a standalone PAGE — mockup, poster, game — overrides them). The frame sizes itself to your content: "
-        "height live, width from the content's first measured span — lay content flush left with no centering wrappers "
-        "or it measures full-bleed. Widgets talk back: data-hermes-send=\"prompt\" on any clickable element (or "
-        "window.hermes.send(\"prompt\")) sends that prompt as a hidden user turn — answer it by updating the widget's "
-        "file, not with prose."
+        "(only a standalone PAGE — mockup, poster, game — overrides them). The frame spans the chat column up to 960px "
+        "and follows it on resize, and its height follows your content live up to 1200px: lay content out fluidly and "
+        "flush left, with no centering wrappers, and size charts from the frame's current width, redrawing on resize. "
+        "Widgets talk back: data-hermes-send=\"prompt\" on any clickable "
+        "element (or window.hermes.send(\"prompt\")) sends that prompt as a hidden user turn — answer it by updating "
+        "the widget's file, not with prose."
     ),
     "api_server": (
         "You're responding through an API server. The rendering layer is unknown — assume plain text. No markdown "
@@ -723,6 +724,7 @@ PLATFORM_HINTS = {
 # described a renderer that does not exist anywhere in web/. If a real WebUI chat surface ships, write a
 # hint from its actual renderer — do not resurrect this text.
 TELEGRAM_RICH_MESSAGES_HINT = (
+    "Rich messages are on for this chat, so the bullets/no-tables advice above does not apply. "
     "Telegram now supports rich Markdown, so lean into it: whenever it makes the answer clearer or easier to scan, "
     "actively reach for real Markdown tables (pipe `| col | col |` syntax), bullet and numbered lists, task lists (`- "
     "[ ]` / `- [x]`), headings, nested blockquotes, collapsible details, footnotes/references, math/formulas (`$...$`, "
@@ -878,8 +880,13 @@ def _format_backend_probe(output: str) -> str:
 
 
 def _probe_remote_backend(env_type: str) -> str | None:
-    """Describe the active non-local backend via a live probe; None if it failed (cached, failures included)."""
+    """Describe the active non-local backend via a live probe; None if it failed (cached, failures included).
+    None in a hosted scope: the probe builds and tears down a throwaway environment, and a hosted agent's
+    only environment is its own sandbox."""
     from hermes_constants import hermes_home_key
+    from tools.hosted_tool_policy import host_feature_enabled
+    if not host_feature_enabled("backend_probe"):
+        return None
     cache_key = (hermes_home_key(), env_type, _tenv_read("TERMINAL_CWD", ""))
     formatted = _BACKEND_PROBE_CACHE.get(cache_key)
     if formatted is None:
@@ -902,29 +909,35 @@ def _clear_backend_probe_cache() -> None:
     _BACKEND_PROBE_CACHE.clear()
 
 
-def _local_host_hints() -> list[str]:
+def _local_host_hints(*, host_platform: str | None = None, host_is_wsl: bool | None = None) -> list[str]:
     """Host OS / home / cwd block for a local terminal backend (tools run on this host)."""
     import platform
 
+    current = sys.platform if host_platform is None else host_platform
+    wsl = is_wsl() if host_is_wsl is None else host_is_wsl
+
+    def path_text(value):
+        return Path(value).as_posix() if host_platform == "linux" else str(value)
+
     host = (
-        "WSL (Windows Subsystem for Linux)" if is_wsl()
-        else f"Windows ({_windows_marketing_version()})" if sys.platform == "win32"
-        else f"macOS ({platform.mac_ver()[0] or platform.release()})" if sys.platform == "darwin"
+        "WSL (Windows Subsystem for Linux)" if wsl
+        else f"Windows ({_windows_marketing_version()})" if current == "win32"
+        else f"macOS ({platform.mac_ver()[0] or platform.release()})" if current == "darwin"
         else f"{platform.system()} ({platform.release()})"
     )
-    host_lines = [f"Host: {host}", f"User home directory: {os.path.expanduser('~')}"]
+    host_lines = [f"Host: {host}", f"User home directory: {path_text(os.path.expanduser('~'))}"]
     try:
-        host_lines.append(f"Current working directory: {resolve_agent_cwd()}")
+        host_lines.append(f"Current working directory: {path_text(resolve_agent_cwd())}")
     except OSError:
         pass
     # The model reaches for the system temp dir by reflex (tmpfs on most Linux hosts, fills RAM);
     # naming Hermes' scratch dir here is what makes the TMPDIR export a habit rather than a hidden default.
     try:
-        host_lines.append(f"Scratch directory: {get_scratch_dir()} (TMPDIR points here; write temporary files "
+        host_lines.append(f"Scratch directory: {path_text(get_scratch_dir())} (TMPDIR points here; write temporary files "
                           "and probes there, never under the system temp dir; entries idle for 24h are pruned)")
     except OSError:
         pass
-    if not (sys.platform == "win32" and not is_wsl()):
+    if not (current == "win32" and not wsl):
         return ["\n".join(host_lines)]
     host_lines.append(
         "Note: on Windows, the machine hostname (e.g. from `hostname` or uname) is NOT the username. "
@@ -1011,18 +1024,24 @@ def _embedder_environment_hint() -> str:
         (_config_readonly("agent.environment_hint").get("agent", {}) or {}).get("environment_hint", "")).strip()
 
 
-def build_environment_hints() -> str:
+def build_environment_hints(*, host_platform: str | None = None, host_is_wsl: bool | None = None) -> str:
     """Execution-environment block: local backends get host OS/home/cwd; remote/sandbox
     backends get ONLY the backend's own state (the agent's tools cannot touch the host).
     WSL and embedder hints are appended."""
+    wsl = is_wsl() if host_is_wsl is None else host_is_wsl
     backend = (_tenv_read("TERMINAL_ENV") or "local").strip().lower()
     is_remote_backend = backend in _REMOTE_TERMINAL_BACKENDS or _plugin_backend_is_remote(backend)
-    hints = [_remote_backend_hint(backend)] if is_remote_backend else _local_host_hints()
+    if is_remote_backend:
+        hints = [_remote_backend_hint(backend)]
+    elif host_platform is None and host_is_wsl is None:
+        hints = _local_host_hints()
+    else:
+        hints = _local_host_hints(host_platform=host_platform, host_is_wsl=wsl)
     # A host-placed Bot Screen is only reachable from a local backend (a sandboxed terminal cannot
     # open windows on the gateway host), and a sandbox-placed one is the sandbox probe's business.
     if not is_remote_backend:
         hints.append(_bot_screen_hint())
-    hints += [WSL_ENVIRONMENT_HINT] if is_wsl() else []
+    hints += [WSL_ENVIRONMENT_HINT] if wsl else []
     return "\n\n".join(h for h in (*hints, _embedder_environment_hint()) if h)
 
 
@@ -1243,8 +1262,9 @@ def build_skills_system_prompt(
     ContextVar would otherwise leak the default profile's skills into a bot's prompt.
     """
     from agent.safe_worker_policy import safe_worker_enabled
+    from tools.hosted_tool_policy import host_feature_enabled
 
-    if safe_worker_enabled():
+    if safe_worker_enabled() or not host_feature_enabled("skills"):
         return ""
     _home_token = None
     if skills_dir_override is not None:
@@ -1521,8 +1541,9 @@ def load_soul_md(context_length: Optional[int] = None, home_override: Path | Non
     the skills-index leak fixed in #86313).
     """
     from agent.safe_worker_policy import safe_worker_enabled
+    from tools.hosted_tool_policy import host_feature_enabled
 
-    if safe_worker_enabled():
+    if safe_worker_enabled() or not host_feature_enabled("context_files"):
         return None
     try:
         from hermes_cli.config import ensure_hermes_home
@@ -1728,9 +1749,10 @@ def build_context_files_prompt(
     from HERMES_HOME is independent and always included unless *skip_soul* (already the identity slot).
     """
     from agent.safe_worker_policy import safe_worker_enabled
+    from tools.hosted_tool_policy import host_feature_enabled
 
-    if safe_worker_enabled():
-        return ""
+    if safe_worker_enabled() or not host_feature_enabled("context_files"):
+        return ""  # hosted: the project's files are in the agent's sandbox, this host's are not its
     cwd_path = Path(cwd if cwd is not None else os.getcwd()).resolve()
     if _project_context_suppressed(cwd, cwd_path, allow_install_tree_fallback):
         logger.warning(

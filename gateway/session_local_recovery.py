@@ -3,7 +3,7 @@ import asyncio
 import contextlib
 import json
 import logging
-from hermes_db.health import is_postgresql_store, storage_identity, persisted_profile_id
+from hermes_db.health import is_postgresql_store, storage_identity
 
 from gateway.config import Platform
 from gateway.session import SessionEntry, SessionSource
@@ -121,8 +121,8 @@ def owned_receipt(authority, sid):
     store that moved with its profile (another machine, a moved home) still owns its rows. Its
     owner is this store; the route namespace binds the profile."""
     receipt = local_receipt(authority.db, sid)
-    if receipt['profile_id'] != persisted_profile_id(authority):
-        raise RuntimeStoreError('profile_mismatch')
+    from gateway.session_receipt_ownership import validate_receipt_profile
+    validate_receipt_profile(authority, receipt)
     if is_postgresql_store(authority.db):
         from hermes_db.domains.runtime.local_access import validate_local_lineage
         validate_local_lineage(authority.db, receipt)

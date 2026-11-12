@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 import stat
 from hermes_platform.host.facts import os_family
+from hermes_db.infra.sqlite.lockguard import own_descriptors
 from hermes_db.infra.sqlite.wal import _on_disk_journal_mode
 from hermes_cli.db_sqlite_policy import apply_database_pragmas, apply_wal_with_fallback
 from hermes_db.infra.sqlite.generation import canonical_sqlite_path, _iter_proc_fd_targets, _iter_darwin_fd_targets
@@ -65,22 +66,7 @@ def _own_descriptor_for_identity(identity) -> Optional[int]:
     if not identity:
         return None
     wanted = tuple(identity)
-    for fd_dir in ("/proc/self/fd", "/dev/fd"):
-        try:
-            names = os.listdir(fd_dir)
-        except OSError:
-            continue
-        for name in names:
-            if not name.isdigit():
-                continue
-            try:
-                st = os.fstat(int(name))
-            except OSError:
-                continue
-            if (st.st_dev, st.st_ino) == wanted:
-                return int(name)
-        return None  # the table was readable: a definitive miss
-    return None
+    return next((fd for fd, ident in own_descriptors() or () if ident == wanted), None)
 
 
 def _copy_range(read: Callable[[int, int], Optional[bytes]], dest: Path, *, size: int) -> dict[str, Any]:

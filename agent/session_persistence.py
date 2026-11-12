@@ -492,7 +492,8 @@ class SessionPersistenceMixin:
         advertised ``session_search`` tool stays usable."""
         # Persistence-isolated forks (background review) must not lazily open the canonical state DB —
         # that would re-arm the flush to write the fork's harness turn into the user's real session.
-        if getattr(self, "_persist_disabled", False):
+        from tools.hosted_tool_policy import host_feature_enabled
+        if getattr(self, "_persist_disabled", False) or not host_feature_enabled("session_recall"):
             return None
         if self._session_db is not None:
             return self._session_db
@@ -621,8 +622,9 @@ class SessionPersistenceMixin:
 
     def _save_trajectory(self, messages: list[dict[str, Any]], user_query: str, completed: bool):
         """Save conversation trajectory to JSONL file."""
-        if not self.save_trajectories:
-            return
+        from tools.hosted_tool_policy import host_feature_enabled
+        if not self.save_trajectories or not host_feature_enabled("trajectory_export"):
+            return  # hosted: no host file for a tenant's transcript
         trajectory = self._convert_to_trajectory_format(messages, user_query, completed)
         _save_trajectory_to_file(trajectory, self.model, completed)
 

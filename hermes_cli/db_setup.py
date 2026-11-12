@@ -13,24 +13,15 @@ from hermes_db.settings import DatabaseSettings, PostgresSettings
 @contextmanager
 def _owning_profile(home):
     from hermes_cli.config_backend import ConfigBackendUnavailable
-    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
-    from agent.secret_scope import (
-        build_profile_secret_scope, current_secret_scope_home, reset_secret_scope, set_secret_scope,
-    )
-
-    home_token = set_hermes_home_override(home)
-    secret_token = None
+    from hermes_cli.db_scope import _bind_storage_state
+    from agent.secret_scope import current_secret_scope, current_secret_scope_home
     try:
         bound = current_secret_scope_home()
-        if bound is None or Path(bound).resolve() != home:
-            secret_token = set_secret_scope(build_profile_secret_scope(home), profile_home=str(home))
-        yield
+        secrets = current_secret_scope() if bound and Path(bound).resolve() == home else None
+        with _bind_storage_state(home, secrets):
+            yield
     except ConfigBackendUnavailable:
         raise StorageConfigurationError("Profile storage configuration is unavailable") from None
-    finally:
-        if secret_token is not None:
-            reset_secret_scope(secret_token)
-        reset_hermes_home_override(home_token)
 
 
 def _section(config, name):

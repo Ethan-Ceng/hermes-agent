@@ -246,3 +246,38 @@ def complete_task_cancel(store, identity, *, cancel_id, expected_cancel_generati
         if (row['status'], row['cancel_id'], int(row['cancel_generation'])) != ('stopping', cancel_id, expected_cancel_generation):
             raise _storage_shared_1.StaleTaskError('task stop acknowledgement is stale')
     return change(store, identity, now=now, replay=_storage_shared_1._cancel_replay(cancel_id), guard=guard, fields=dict(status='cancelled', terminal_at=now, updated_at=now))
+
+
+def room_task_summary(store, *, room_id, statuses):
+    """Counts and shown rows share the existing REPEATABLE READ snapshot."""
+    from sqlalchemy import func
+    room_id = native._identifier(room_id, label="room_id")
+    statuses = tuple(statuses)
+    if any(status not in native.TASK_STATUSES for status in statuses):
+        raise native.DriverValidationError("invalid task status")
+    with store.read() as conn:
+        counts = {status: int(count) for status, count in conn.execute(
+            select(tasks.c.status, func.count()).where(repo.scope(tasks, store, room_id)).group_by(tasks.c.status))}
+        statement = select(tasks).where(repo.scope(tasks, store, room_id), tasks.c.status.in_(statuses)).order_by(
+            tasks.c.source_event_seq, tasks.c.created_at, tasks.c.task_id)
+        rows = conn.execute(statement).mappings().all() if statuses else []
+        return counts, [native._task_from_row(repo.record(row)) for row in rows]
+
+
+def room_change_rows(store, statuses=native.SHOWN_TASK_STATUSES):
+    """Only live rooms and the visible task generations contribute to change notifications."""
+    from sqlalchemy import and_
+    from hermes_db.tables.rooms import rooms
+    join = rooms.outerjoin(tasks, and_(tasks.c.store_id == rooms.c.store_id,
+        tasks.c.room_id == rooms.c.room_id, tasks.c.status.in_(statuses)))
+    statement = select(rooms.c.room_id, rooms.c.next_seq, rooms.c.revision,
+        tasks.c.task_id, tasks.c.status, tasks.c.execution_generation, tasks.c.cancel_generation).select_from(join).where(
+            repo.scope(rooms, store), rooms.c.disbanded_at.is_(None))
+    grouped = {}
+    with store.read() as conn:
+        for room_id, seq, revision, task_id, status, execution, cancellation in conn.execute(statement):
+            entry = grouped.setdefault(room_id, (seq, revision, []))
+            if task_id is not None:
+                entry[2].append((task_id, status, execution, cancellation))
+    return {room_id: native.RoomChangeRows(seq, revision, tuple(sorted(rows)))
+            for room_id, (seq, revision, rows) in grouped.items()}

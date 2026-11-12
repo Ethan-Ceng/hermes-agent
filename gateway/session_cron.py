@@ -310,7 +310,8 @@ async def execute(authority, ref, row, policy):
         from cron.cancellation import CancelRequest, _CombinedCancelEvent
 
         home = profile_home_for_store(authority.db)
-        with _profile_runtime_scope(home):
+        from agent.runtime_scope import bind_turn, claim_fence
+        with _profile_runtime_scope(home), bind_turn(ref.session_id, row['admission_id'], claim_fence(row)):
             # The forwarded ``cron.cancel`` carries no reason, so the operator's marker is read here
             # first: a stopped agent run reports "cancelled on request", not a lost fire claim.
             stop = _CombinedCancelEvent(CancelRequest(execution_id), cancel)

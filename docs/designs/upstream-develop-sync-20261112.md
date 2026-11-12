@@ -38,3 +38,19 @@
 develop最终包含原develop、个人起点、本地main且历史不重写；冲突和迁移读取点已核对；
 指导、计划、审查落盘；必需静态、行为及数据库验证通过；无无关文件暂存、推送或正式实例操作。
 用户的确认沿用前轮建议，以最新数据库重构为个人起点；无待用户决定的实现歧义。
+
+## 迁移回执身份校验的安全替代方案
+
+自动审批拒绝直接把persisted_profile_id比较限定到PG，被拒绝的修改未执行。
+已核对上游main两个恢复函数：原生回执保留minting home，按实际存储行和route/origin隔离；6c8606d51d明确禁止重写minting home。
+替代提案保留PG store-id严格相等；SQLite旧home不相等时，额外核对authority自身DB的session行、sid、route、origin profile/chat/user，任何不符均profile_mismatch。
+新增独立validator与两个行为合同先验证该规则；验证后替代方案获准接入生产恢复函数，未绕过自动审批。
+
+替代validator已通过规范runner的2个测试，明确拒绝foreign PG store-id、origin beta、其他user/chat、foreign route和缺失session；本次接入该已验证规则，保持现有后续session-id/lineage/route/policy检查。
+
+## 上游新增持久化能力适配决策
+
+比较新增PG表/revision与复用现有scoped state_meta命名记录：本轮选择后者，保存每个子代理一个具名版本化键，在域层通过当前store-id和短事务锁隔离，保留原claim/recovery/TTL/pin行为；不新增Schema或改动历史资源。
+SQLite维持上游原表。两后端通过具名记录操作接口提供相同结果，不提供通用SQL翻译或SQLite回落。Profile/秘密与后台scope绑定仍归tools应用装配。
+PG metadata前缀扫描只用于有界清理和pin列表，单条读写使用组合主键；如后续规模证明需要专表，再独立设计索引与迁移。
+同轮为上游新增room_task_summary补PG具名查询及groups变更签名读取，不把PG引用转换成文件路径。新增两个真实PG行为合同先证明当前缺口，测试fixture只用已标明独立验收DB与随机Schema。

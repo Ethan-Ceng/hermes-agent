@@ -22,6 +22,8 @@ def _reserve_homes(tmp_path, monkeypatch, names=('alpha', 'beta')):
         home.mkdir(parents=True, mode=0o700)
         (home / 'config.yaml').write_text('{}')
         homes.append((name, home))
+    for _name, profile_home in homes:
+        hermes_state.SessionDB(profile_home / "state.db").close()
     return root, homes
 
 

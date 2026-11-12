@@ -313,8 +313,8 @@ def restore_api_session(authority, session_id):
     if saved is None:
         raise RuntimeStoreError('not_found')
     receipt = json.loads(saved)
-    if receipt['profile_id'] != persisted_profile_id(authority):
-        raise RuntimeStoreError('profile_mismatch')
+    from gateway.session_receipt_ownership import validate_receipt_profile
+    validate_receipt_profile(authority, receipt)
     entry = SessionEntry.from_dict(receipt['entry'])
     source = entry.origin
     if receipt['profile_id'] != authority.profile_id and (source is None or source.profile != _served_profile(authority)):

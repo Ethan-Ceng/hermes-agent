@@ -104,6 +104,8 @@ async def test_owner_execution_binds_the_scheduler_cron_identity_inside_run_job(
     from hermes_state_runtime import admit_session_input, begin_runtime_epoch, claim_session_input
 
     monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    from cron.executions import initialize
+    initialize()
     execution = create_execution('job', source='builtin', scheduled_instant='2026-10-08T09:00:00')
     record = mark_execution_running(execution['id'])
     db = SessionDB(tmp_path / 'state.db')

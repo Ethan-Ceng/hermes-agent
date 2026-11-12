@@ -47,3 +47,12 @@ origin 为个人 Fork，upstream 为 https://github.com/NousResearch/hermes-agen
 - 官方 fetch 失败：Could not resolve host: github.com。本轮先整合本地 main，线上最新未确认。
 - 保留用户未跟踪目录，不操作正式配置、秘密和业务数据库，不推送、不部署或重启。
 - 完成状态和最新验证证据以执行计划为准，不能复用旧分支通过记录冒充本次验收。
+
+
+## 本轮使用与运行环境
+
+验收和审查记录见上述计划及 reviews/upstream-develop-sync-20261112-review.md。
+本地develop提升不切换已有工作区；当前主工作区仍为main，后续可在其确认工作状态后执行git switch develop。
+源码合并不会替正式实例执行Schema升级；原生新表需要由已有显式Profile创建/升级流程准备。
+正式环境升级、配置和重启另行安排，不使用普通运行时隐式DDL代替升级。
+两条backup保留整合前输入；最新个人重构的原工作区和未跟踪文件均保留。

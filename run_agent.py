@@ -747,6 +747,9 @@ class AIAgent(
         (/refine, with or without focus) is user-initiated: it bypasses the automatic-only delegate,
         ``enabled`` and idle-defer gates (#87250: ``enabled: false`` stops only automatic forks).
         """
+        from tools.hosted_tool_policy import host_feature_enabled
+        if not host_feature_enabled("background_review"):
+            return  # hosted: the review fork writes the profile's memory and skills on this host
         # Automatic-review gates run at enqueue/spawn time; the idle dispatcher re-checks `enabled` at dispatch time.
         if not explicit and focus is None and getattr(self, "_delegate_depth", 0) > 0:
             return

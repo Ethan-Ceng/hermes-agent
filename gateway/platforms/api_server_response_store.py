@@ -201,13 +201,13 @@ class ResponseStore:
         state_db = Path(self._db_path).parent / 'state.db'
         if not pending or not state_db.is_file():
             return
+        from hermes_db.infra.sqlite.safe_read import connect_tracked
         from hermes_state_holders import read_only_db_uri
         from hermes_db.domains.runtime.receipts import ADMISSION_PREFIX
         terminal = []
         ids = list(pending)
         try:
-            from hermes_db.infra.sqlite.connections import open_uri
-            with closing(open_uri(read_only_db_uri(state_db), db_label="response canonical state", row_factory=None, wal=False)) as canon:
+            with closing(connect_tracked(read_only_db_uri(state_db), uri=True, tracking_path=state_db)) as canon:
                 for start in range(0, len(ids), 500):
                     chunk = ids[start:start + 500]
                     marks = ','.join('?' * len(chunk))

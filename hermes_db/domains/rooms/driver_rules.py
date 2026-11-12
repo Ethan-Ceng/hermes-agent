@@ -4,7 +4,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from functools import partial
 from hermes_db.domains.rooms.rules import bounded_int, canonical_json, compact_json, identifier, text
-from typing import Any, Callable, Literal, get_args
+from typing import Any, Callable, Literal, NamedTuple, get_args
 import hashlib
 import json
 import math
@@ -255,3 +255,12 @@ InvalidTaskTransitionError.__module__ = 'gateway.hosted_room_driver'
 TaskIdentity.__module__ = 'gateway.hosted_room_driver'
 DriverLease.__module__ = 'gateway.hosted_room_driver'
 TaskAttempt.__module__ = 'gateway.hosted_room_driver'
+
+
+SHOWN_TASK_STATUSES = ("queued", "running", "stopping", "indeterminate", "deferred")
+
+
+class RoomChangeRows(NamedTuple):
+    next_seq: int
+    revision: int
+    tasks: tuple
