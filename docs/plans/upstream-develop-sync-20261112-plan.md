@@ -4,9 +4,9 @@
 - 指导：docs/upstream-sync-guide.md。
 - 分支：sync/upstream-20261112。
 - 工作区：D:/AI/hermes-agent/.build/upstream-sync-20261112。
-- 整体状态：READY_TO_MERGE；当前任务：Task 5；完成：4/5。
+- 整体状态：MERGED；当前任务：全部完成；完成：5/5。
 - 日期：2026-11-13 Asia/Shanghai。
-- 阻塞：官方fetch DNS失败；本轮冻结本地main，线上最新未确认。
+- 范围限制：官方fetch DNS失败；本轮冻结本地main，线上最新未确认。
 - 授权：本地指导、整合和合入develop；没有推送或部署授权。
 
 ## 全局约束
@@ -63,13 +63,13 @@ develop...个人=0/64；main...个人=5024/161。官方fetch exit1：Could not r
 
 ## Task 5：本地合入develop并交付
 
-状态：pending
+状态：completed
 
 目标：已验收结果fast-forward进入develop。涉及：本地整合提交、develop引用与本记录。
 步骤：保存整合提交，确认develop未在任何工作区检出且仍为原SHA，核对祖先后以update-ref的expected-old比较交换等价快进。并行变化则中止提升并重新整合。
 验证：merge-base --is-ancestor核对三条输入；核对develop SHA、状态与未推送关系。
 完成条件：develop包含三条输入，无意外文件/推送/部署/正式数据操作。
-结果与证据：尚未开始。
+结果与证据：整合提交9cd5c2854df435d50f24ee2f6bc8fe68a2c30adb已创建，双亲为指导提交3c8c3ef18d及冻结main 6c95ee82ef。develop从cbfc773dd7以expected-old比较交换快进至该提交；三条输入的merge-base --is-ancestor均exit0。最后仅追加完成记录，不改动已验收源码。
 
 ## 最终验证
 
@@ -104,7 +104,7 @@ WSL共享Windows worktree的gitdir指针在runner预编译阶段有诊断警告�
 
 ### 未通过项目与最终状态
 
-必需门禁无未通过项；前端完整构建与线上最新不在本轮已验证范围，限制见上文。自审APPROVED（独立Reviewer未执行），当前状态READY_TO_MERGE；用户已授权本地合入develop，下一步执行受保护快进。
+必需门禁无未通过项；前端完整构建与线上最新不在本轮已验证范围，限制见上文。自审APPROVED（独立Reviewer未执行），合并前状态READY_TO_MERGE，受保护快进已成功；交付状态MERGED。
 
 ## Task 3 发现与范围修订
 
@@ -141,3 +141,13 @@ scripts/check --staged --base main：18项，agents链超70字符、ruff2项、h
 - 自审修正：PG resumable短事务锁纳入物理target与store-id，避免不同Schema同名store无谓争用；健康探针保留原mode=ro，新增tracked读不隐式创建数据库。
 - 额外共享TS noEmit检查暂不可执行：现有node_modules只有tsc shim，实际TypeScript包缺失，未安装或修改用户依赖；Python生成合同验证已通过，未宣称桌面/前端完整构建通过。
 - Task5改用等价快进CAS：先确认develop未在任何工作区检出、仍为原SHA且为整合结果祖先，再用git update-ref <new> <expected-old>更新，避免两次全树检出；不强推、不覆盖并行提交。
+
+
+## 本地交付核对
+
+- 合并提交：9cd5c2854df435d50f24ee2f6bc8fe68a2c30adb；保留双方历史，没有squash、rebase或force。
+- develop已经包含原develop、最新个人37fd59cf8d及本地main 6c95ee82ef，三条祖先命令exit0。
+- 源码验证后的差异只有指导、设计、计划与自审记录；合并前最终文档agents-md单项和相对main whitespace均exit0。
+- 最后完成记录另存docs提交并再次以expected-old比较交换快进develop；同步分支保留。
+- 两条backup、主工作区main和原个人工作区保留；没有push、正式配置/秘密/业务数据修改或正式实例重启。
+- 限制：线上最新未确认；没有执行全仓测试、完整前端/桌面构建或正式数据迁移。

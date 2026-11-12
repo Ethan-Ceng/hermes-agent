@@ -46,7 +46,7 @@ Matrix异常通过现有proxy redaction脱敏，无敏感原始traceback。
 | stock提示与生成合同 | 通过 | Windows/Linux prompt surface各2项，Python生成合同 |
 | 新Schema迁移 | 不适用 | 未新增PG Schema，原生沿用显式初始化；正式升级未执行 |
 | 完整前端构建 | 未执行 | 非本轮手动适配范围，限制已披露 |
-| develop祖先与并行保护 | 提升时检查 | 旧SHA比较交换，必须包含三条输入 |
+| develop祖先与并行保护 | 通过 | 三条输入祖先exit0，expected-old比较交换快进至9cd5c2854d |
 
 ## 审查结论
 
