@@ -10,13 +10,13 @@
 
 ## 当前状态
 
-`IMPLEMENTING`；2/3 完成；用户已有未跟踪 `owned/`、`target/` 保留。最终本地合入沿用用户已授权的正式目录验收流程，无推送或PR。
+`READY_TO_MERGE`；3/3 完成；用户已有未跟踪 `owned/`、`target/` 保留。最终本地合入沿用用户已授权的正式目录验收流程，无推送或PR。
 
 | Task | 内容 | 状态 | 完成条件 |
 |---|---|---|---|
 | 1 | 核对实际源码、引用、相对路径与固定资源，保存移动清单 | completed | 全部活动读取点与历史证据分类，固定资源记录，计划检查点 |
 | 2 | 移动两个后端实现，删除空中间包，同步读取点和活动文档 | completed | 归一化后代码/SQL等价，活动旧引用为零，轻量合同通过 |
-| 3 | 最终静态门禁、完整差异自审与验收准备 | in_progress | 最新检查通过，保存范围与限制，允许正式目录快进更新 |
+| 3 | 最终静态门禁、完整差异自审与验收准备 | completed | 最新检查通过，保存范围与限制，允许正式目录快进更新 |
 
 ## 必需验证
 
@@ -25,7 +25,7 @@
 - 操作审计：逐文件基准文本仅替换模块/路径前缀后应与新文件一致；AST与SQL字符串归一化后相同。核对65固定资源字节、31 revision、29表模块、根11及DB Python上限；编译受影响Python。
 - 测试统一 `D:/Programs/Git/bin/bash.exe scripts/run_tests.sh`，少量完整文件覆盖技术隔离、PG池生命周期、SQLite真实读写/新PID恢复、API显式Schema和一个真实生产消费者；`HERMES_PYTHON` 为上述PM解释器，`HERMES_TEST_FILE_RETRIES=0`。
 - `python scripts/check --staged --base a8afc874d94f`；`python scripts/hermes_db_boundary_lint.py --check`；`python scripts/boundary_lint.py --check`；`python scripts/gen_gateway_contracts.py --check`；`git diff --cached --check`。
-- 正式应用：官方入口安全停止/快进合入/启动，绑定原正式HOME；确认新PID、运行源码身份、存储状态及Webapp监听。用户已有中断授权保留，优先正常空闲停止。
+- 正式应用：官方入口安全停止/快进合入/启动，绑定原正式HOME；确认新PID、运行源码身份、存储状态及Webapp监听。优先正常空闲停止，保持既有生命周期保护。
 
 ## 执行证据
 
@@ -33,7 +33,13 @@ Task1：实际基准a8afc874d94f；14模块、175活动文件（172Python/3规�
 
 ## 最终验证
 
-待执行；本轮为目录/导入调整，自审的独立性限制应明确，不沿用旧独立审查冒充本轮审查。
+Task3已完成：当前运行代码为 `9d6870622c1f007cb9ff7908d29c294452b995fd`。`python scripts/check --staged --base a8afc874d94f` exit0：16 checks；181文件health 0 blocking/0 advisory（87.9s）。插件边界829/26、生成合同、完整差异/暂存空白均exit0。上述命令使用计划指定PM解释器、隔离cwd/HOME/RUNTIME，完整输出在 `.build/infra-layout/static.log`、`boundary_lint.log`、`gen_gateway_contracts.log`。
+
+完整Git差异自审 `python .build/infra-layout/review.py` exit0：181Python逐字节只变模块/路径前缀，1359个SQL字面量相同，65固定Git资源hash相同，零越范围修改、零活动旧namespace读取点，无未处理问题。审查结论为 [APPROVED（自审）](../reviews/hermes-db-infra-layout-review.md)，明确不冒充独立审查；原20项独立审查保留原源码范围。
+
+当前5完整文件12passed/0failed/0skip。未新增安装载荷、未重跑PG全领域深测或SDK全组，未变Schema/SQL/事务/配置；当前结论只覆盖机械目录简化、动态读取点及实际轻量合同。此前Task24/非WSL/Windows历史问题维持原记录。
+
+最后证据提交只改活动文档和计划，运行Python/测试/依赖必须与上述实施commit等价。正式目录更新执行及新PID/代码身份/存储/Webapp状态保存到本地ignored `.build/infra-layout-rollout-20261112/runtime-result.json`（正式目录），用户功能验收仍由用户进行。
 
 Task2：Task1实际commit `cf3df8824cd8c47ebef0bca36d5c79e229eef380`。14模块直接迁入infra/sqlite和infra/postgresql；175活动引用文件同步，另更新当前设计与hermes_db/AGENTS。原184文件的181Python逐字节仅允许模块/路径前缀替换，AST/编译通过，3550条assert保持；固定65原工作树字节不变。移除唯一空中间包后DB339/root11/31revision/29表模块。14新模块实际导入身份通过，旧namespace不存在；活动读取点零旧引用（历史映射/冻结记录保留）。
 
