@@ -15,8 +15,8 @@ class InfrastructureOnly(importlib.abc.MetaPathFinder):
             raise AssertionError('Infrastructure selected a business or application module')
 
 sys.meta_path.insert(0, InfrastructureOnly())
-from hermes_db.infra.backends.postgresql.engine import get_engine, close_engines
-from hermes_db.infra.backends.postgresql.transactions import Transactions
+from hermes_db.infra.postgresql.engine import get_engine, close_engines
+from hermes_db.infra.postgresql.transactions import Transactions
 from hermes_db.settings import PostgresSettings
 settings = PostgresSettings('postgresql://unused/infra_probe', 'infra_probe')
 first = get_engine(settings)
@@ -48,9 +48,9 @@ class SQLiteInfrastructureOnly(importlib.abc.MetaPathFinder):
             raise AssertionError('SQLite infrastructure selected business persistence')
 
 sys.meta_path.insert(0, SQLiteInfrastructureOnly())
-from hermes_db.infra.backends.sqlite.connections import open_db
-from hermes_db.infra.backends.sqlite.schema import initialize_database
-from hermes_db.infra.backends.sqlite.transactions import transaction
+from hermes_db.infra.sqlite.connections import open_db
+from hermes_db.infra.sqlite.schema import initialize_database
+from hermes_db.infra.sqlite.transactions import transaction
 path, operation = sys.argv[1:]
 if operation == 'write':
     connection = open_db(path, db_label='infra', journal_mode='delete')

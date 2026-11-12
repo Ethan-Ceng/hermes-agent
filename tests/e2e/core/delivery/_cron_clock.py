@@ -271,7 +271,7 @@ def install(clock: VirtualClock, control: Control, setattr_fn=setattr) -> None:
     # Durability is not under test (SIGKILL keeps the page cache); per-write fsync of
     # jobs.json/markers dominates wall time at virtual cadence. Atomic renames stay real.
     setattr_fn(os, "fsync", lambda _fd: None)
-    from hermes_db.infra.backends.sqlite import connections as sqlite_util
+    from hermes_db.infra.sqlite import connections as sqlite_util
 
     real_open_db = sqlite_policy.open_profile_sqlite
 

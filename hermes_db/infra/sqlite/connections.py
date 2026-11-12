@@ -48,7 +48,7 @@ def _open_configured(
     three. Only the transient ``database is locked`` from that pragma is retried (``wal_lock_retries``):
     a first opener initializing a shared DB can make it ignore the busy timeout, notably on Windows.
     """
-    from hermes_db.infra.backends.sqlite.wal import apply_wal_with_fallback
+    from hermes_db.infra.sqlite.wal import apply_wal_with_fallback
 
     # Resolved at call time: fd-leak tests patch ``sqlite3.connect`` through the caller's module.
     conn = connect(timeout=busy_timeout_ms / 1000, check_same_thread=check_same_thread)
@@ -76,5 +76,5 @@ def _open_configured(
 
 def open_uri(uri: str, **options) -> sqlite3.Connection:
     """Open an already-resolved SQLite URI while retaining actual file-connection tracking."""
-    from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
+    from hermes_db.infra.sqlite.safe_read import connect_tracked
     return _open_configured(partial(connect_tracked, uri, uri=True), **options)

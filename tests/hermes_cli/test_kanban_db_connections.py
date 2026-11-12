@@ -7,7 +7,7 @@ import pytest
 
 from hermes_cli import kanban_db as kb
 from hermes_cli import kanban_db_connect as kbc
-from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
+from hermes_db.infra.sqlite import wal as hermes_state_wal
 
 
 def test_connect_falls_back_to_delete_on_locking_protocol(tmp_path, monkeypatch, caplog):
@@ -37,7 +37,7 @@ def test_connect_falls_back_to_delete_on_locking_protocol(tmp_path, monkeypatch,
 
     # These tests exercise the WAL-attempt path; assume a fixed SQLite so the
     # WAL-reset vulnerability gate doesn't short-circuit before the pragma.
-    from hermes_db.infra.backends.sqlite import wal as _hermes_state_wal
+    from hermes_db.infra.sqlite import wal as _hermes_state_wal
     monkeypatch.setattr(
         _hermes_state_wal, "is_sqlite_wal_reset_vulnerable",
         lambda version_info=None: False,
@@ -145,7 +145,7 @@ def test_connect_works_when_wal_is_silently_refused(tmp_path, monkeypatch, caplo
 
 def test_sqlite_connect_closes_tracked_conn_on_setup_failure(tmp_path, monkeypatch):
     """A PRAGMA failure after connect must not abandon a tracked kanban fd."""
-    from hermes_db.infra.backends.sqlite import safe_read as sqlite_safe_read
+    from hermes_db.infra.sqlite import safe_read as sqlite_safe_read
 
     db_path = tmp_path / "kanban.db"
     real_connect = sqlite3.connect

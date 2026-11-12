@@ -7,7 +7,7 @@ skip with an actionable finding while a live writer holds the database.
 """
 
 from __future__ import annotations
-import hermes_db.infra.backends.sqlite.generation as sqlite_generation
+import hermes_db.infra.sqlite.generation as sqlite_generation
 
 import sqlite3
 from pathlib import Path
@@ -58,7 +58,7 @@ def test_doctor_names_retired_wal_holders_instead_of_healthy_state_db(tmp_path, 
     health probe is another opener) nor checkpoint under --fix."""
     from hermes_cli import doctor
     from hermes_cli import doctor_state
-    import hermes_db.infra.backends.sqlite.generation as hermes_state_dbfile
+    import hermes_db.infra.sqlite.generation as hermes_state_dbfile
 
     db = tmp_path / "state.db"
     db.write_bytes(b"")

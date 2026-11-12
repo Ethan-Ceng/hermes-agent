@@ -26,7 +26,7 @@ try:
     import hermes_db
     from hermes_yaml import safe_load
     from sqlalchemy import text
-    from hermes_db.infra.backends.postgresql.engine import get_engine
+    from hermes_db.infra.postgresql.engine import get_engine
     from hermes_cli.db_sessions import acquire_db
     from hermes_db.schema import REQUIRED_REVISION, upgrade_schema
     from hermes_db.scope import DatabaseScope
@@ -50,7 +50,7 @@ try:
         phase = 'previous-pg-revision'
         from alembic import command
         from alembic.config import Config
-        from hermes_db.infra.backends.postgresql.schema import prepare_schema
+        from hermes_db.infra.postgresql.schema import prepare_schema
         from hermes_db.schema import REQUIRED_EXTENSIONS, _PG_TRGM_ACTION
         migrations = Path(hermes_db.__file__).parent / 'migrations'
         config = Config(str(migrations / 'alembic.ini'))

@@ -86,7 +86,7 @@ def plugin_store(name: str, *, namespace: str = "default", profile_home: Path | 
 @contextmanager
 def plugin_sqlite_transaction(conn):
     """Commit or roll back an explicit legacy SQLite plugin operation without closing its connection."""
-    from hermes_db.infra.backends.sqlite.transactions import write_txn
+    from hermes_db.infra.sqlite.transactions import write_txn
     with write_txn(conn):
         yield conn
 
@@ -163,9 +163,9 @@ def open_discord(reference, *, write=False):
 def capture_matrix(profile_home, homeserver, account_id, device_id):
     from hermes_cli.db_setup import resolve_db_configuration
     from hermes_cli.db_sessions import _owner_only
-    from hermes_db.infra.backends.postgresql.engine import get_engine
+    from hermes_db.infra.postgresql.engine import get_engine
     from hermes_db.core.values import resource_key
-    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.postgresql.transactions import Transactions
     from hermes_db.tables.metadata import SCHEMA
     _owner_only()
     if not homeserver or not account_id or not device_id:
@@ -461,7 +461,7 @@ def _plugin_sqlite_connection(profile_home, path, *, write=False):
     from hermes_cli.db_setup import _owning_profile
     from hermes_cli.db_sqlite_policy import open_ready_profile_sqlite
     from hermes_db.domains.plugin_storage.records.sqlite import schema_ready
-    from hermes_db.infra.backends.sqlite.transactions import write_txn
+    from hermes_db.infra.sqlite.transactions import write_txn
     with _owning_profile(profile_home):
         if selected_storage_backend(profile_home) != 'sqlite':
             raise StorageConfigurationError('Captured SQLite plugin backend changed;reopen its owning store')

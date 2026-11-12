@@ -2,7 +2,7 @@
 
 import pytest
 
-from hermes_db.infra.backends.sqlite import generation, session_connections
+from hermes_db.infra.sqlite import generation, session_connections
 from hermes_state import SessionDB, get_last_init_error
 from hermes_state_guard import _set_last_init_error
 

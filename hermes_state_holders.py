@@ -6,7 +6,7 @@ SQLite connection factory needed by the final lock probe.
 """
 
 from __future__ import annotations
-from hermes_db.infra.backends.sqlite.generation import canonical_sqlite_path
+from hermes_db.infra.sqlite.generation import canonical_sqlite_path
 
 import errno
 import functools
@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 from typing import Callable, List, Optional, Sequence, Set, Tuple
 
-from hermes_db.infra.backends.sqlite.runtime import is_sqlite_lock_error
+from hermes_db.infra.sqlite.runtime import is_sqlite_lock_error
 
 try:  # Hard dependency, but tolerate scaffold-phase imports before pip install.
     import psutil

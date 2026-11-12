@@ -54,16 +54,15 @@ hermes_db基础设施层
                  SQLite / PostgreSQL
 ```
 
-建议的目录落位：
+当前目录落位（2026-11-12用户确认简化，见[后续实施计划](../plans/hermes-db-infra-layout-plan.md)）：
 
 ```text
 hermes_db/
   根部11个实际入口/定义          按下文明确所属职责
   infra/                       基础设施执行区域
     resource.py                通用连接/事务资源，不含sessions/runtime成员
-    backends/
-      sqlite/                  SQLite连接、并发和生命周期执行
-      postgresql/              PG池、短事务、超时和生命周期执行
+    sqlite/                    SQLite连接、并发和生命周期执行
+    postgresql/                PG池、短事务、超时和生命周期执行
   domains/                     业务持久化区域
     sessions/                  业务API、规则及各后端存储实现
     runtime/

@@ -27,7 +27,7 @@ import sqlite3
 
 import pytest
 
-from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
+from hermes_db.infra.sqlite import wal as hermes_state_wal
 import hermes_yaml as yaml
 
 
@@ -44,7 +44,7 @@ def _configure_mode(monkeypatch: pytest.MonkeyPatch, tmp_path, mode: object) -> 
 
 def _disable_vulnerable_gate(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        'hermes_db.infra.backends.sqlite.wal.is_sqlite_wal_reset_vulnerable',
+        'hermes_db.infra.sqlite.wal.is_sqlite_wal_reset_vulnerable',
         lambda **kwargs: False,
     )
 
@@ -241,7 +241,7 @@ class TestTheWarningStaysQuiet:
 
         _configure_mode(monkeypatch, tmp_path, "wal")
         monkeypatch.setattr(
-            'hermes_db.infra.backends.sqlite.wal.is_sqlite_wal_reset_vulnerable',
+            'hermes_db.infra.sqlite.wal.is_sqlite_wal_reset_vulnerable',
             lambda **kwargs: True,
         )
         path = tmp_path / "vulnerable.db"
@@ -273,7 +273,7 @@ class TestTheExistingContractIsUnchanged:
         try:
             assert conn.execute("PRAGMA journal_mode=WAL").fetchone()[0].lower() == "wal"
             monkeypatch.setattr(
-                'hermes_db.infra.backends.sqlite.wal.is_sqlite_wal_reset_vulnerable',
+                'hermes_db.infra.sqlite.wal.is_sqlite_wal_reset_vulnerable',
                 lambda **kwargs: True,
             )
             assert apply_wal_with_fallback(conn, db_label="existing-wal.db") == "wal"

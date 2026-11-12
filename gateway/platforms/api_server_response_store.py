@@ -61,10 +61,10 @@ class ResponseStore:
                 db_path = str(get_hermes_home() / "response_store.db")
         self._db_path: Optional[str] = db_path if db_path != ":memory:" else None
         try:
-            from hermes_db.infra.backends.sqlite.connections import open_db
+            from hermes_db.infra.sqlite.connections import open_db
             self._conn = open_db(db_path, db_label="response_store.db", row_factory=None, check_same_thread=False, wal=False)
         except Exception:
-            from hermes_db.infra.backends.sqlite.connections import open_db
+            from hermes_db.infra.sqlite.connections import open_db
             self._conn = open_db(":memory:", db_label="response_store.db", row_factory=None, check_same_thread=False, wal=False)
             self._db_path = None
         # Shared WAL-fallback so response_store.db degrades gracefully on NFS/SMB/FUSE homes.
@@ -85,7 +85,7 @@ class ResponseStore:
         self._conn.execute('CREATE TABLE IF NOT EXISTS response_output_order '
             '(request_key TEXT NOT NULL, item_id TEXT NOT NULL, output_index INTEGER NOT NULL, '
             'PRIMARY KEY(request_key,item_id), UNIQUE(request_key,output_index))')
-        from hermes_db.infra.backends.sqlite.schema import add_column_if_missing
+        from hermes_db.infra.sqlite.schema import add_column_if_missing
         add_column_if_missing(self._conn, 'response_keys', 'model_json', 'model_json TEXT')
         add_column_if_missing(self._conn, 'response_keys', 'settled_at', 'settled_at REAL')
         add_column_if_missing(self._conn, 'response_keys', 'response_id', 'response_id TEXT')
@@ -206,7 +206,7 @@ class ResponseStore:
         terminal = []
         ids = list(pending)
         try:
-            from hermes_db.infra.backends.sqlite.connections import open_uri
+            from hermes_db.infra.sqlite.connections import open_uri
             with closing(open_uri(read_only_db_uri(state_db), db_label="response canonical state", row_factory=None, wal=False)) as canon:
                 for start in range(0, len(ids), 500):
                     chunk = ids[start:start + 500]

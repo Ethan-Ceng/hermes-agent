@@ -52,7 +52,7 @@ except BaseException as exc:
     raise SystemExit(1) from None
 finally:
     if expected=='postgresql' and optional['sqlalchemy']:
-        from hermes_db.infra.backends.postgresql.engine import close_engines
+        from hermes_db.infra.postgresql.engine import close_engines
         close_engines()
 report['sqlite_attempts']=len(attempts)
 print(json.dumps(report))

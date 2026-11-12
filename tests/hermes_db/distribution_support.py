@@ -25,7 +25,7 @@ if role == 'write':
     if backend == 'postgresql':
         from dataclasses import replace
         from tests.hermes_db.pg_support import read_test_config
-        from hermes_db.infra.backends.postgresql.engine import get_engine
+        from hermes_db.infra.postgresql.engine import get_engine
         from hermes_db.schema import upgrade_schema
         from sqlalchemy import text
         configured = read_test_config(private)

@@ -18,9 +18,9 @@ import time
 
 import pytest
 
-from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
+from hermes_db.infra.sqlite import wal as hermes_state_wal
 from hermes_cli.db_sqlite_policy import apply_wal_with_fallback
-from hermes_db.infra.backends.sqlite.wal import is_sqlite_wal_reset_vulnerable
+from hermes_db.infra.sqlite.wal import is_sqlite_wal_reset_vulnerable
 
 @pytest.fixture(autouse=True)
 def _reset_wal_reset_bug_warnings():

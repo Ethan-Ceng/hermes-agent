@@ -1,4 +1,4 @@
-'Child-process roles for the SQLite torture chamber.\n\nRun as ``python _roles.py <role> <json-args>``. Every role is a real OS process that opens the shared\n``state.db`` through the production ``SessionDB`` (or, for the non-hermes opener, a bare ``sqlite3``\nconnection) and reports through append-only files, so a ``kill -9`` loses nothing it already reported:\n\n* ``<name>.journal`` — writers: ``I <tok> <sid> <nrows>`` before an append, ``A <tok>`` once it returned.\n* ``<name>.report`` — JSON lines: ``ready`` / ``stats`` / ``error`` / ``closed`` events.\n\nTokens are single FTS words (``TK`` + alnum) so the test can look every acknowledged append up by content,\nthrough ``messages`` and through the FTS indexes.\n\nJournal-mode seam: with ``HERMES_E2E_SQLITE_VERSION_PIN`` set, the production version probe\n``hermes_db.infra.backends.sqlite.wal.is_sqlite_wal_reset_vulnerable()`` reports that SQLite version instead of the linked one;\nthe real range predicate and ``apply_wal_with_fallback`` then decide the journal mode as they would there.\n'
+'Child-process roles for the SQLite torture chamber.\n\nRun as ``python _roles.py <role> <json-args>``. Every role is a real OS process that opens the shared\n``state.db`` through the production ``SessionDB`` (or, for the non-hermes opener, a bare ``sqlite3``\nconnection) and reports through append-only files, so a ``kill -9`` loses nothing it already reported:\n\n* ``<name>.journal`` — writers: ``I <tok> <sid> <nrows>`` before an append, ``A <tok>`` once it returned.\n* ``<name>.report`` — JSON lines: ``ready`` / ``stats`` / ``error`` / ``closed`` events.\n\nTokens are single FTS words (``TK`` + alnum) so the test can look every acknowledged append up by content,\nthrough ``messages`` and through the FTS indexes.\n\nJournal-mode seam: with ``HERMES_E2E_SQLITE_VERSION_PIN`` set, the production version probe\n``hermes_db.infra.sqlite.wal.is_sqlite_wal_reset_vulnerable()`` reports that SQLite version instead of the linked one;\nthe real range predicate and ``apply_wal_with_fallback`` then decide the journal mode as they would there.\n'
 
 from __future__ import annotations
 
@@ -45,7 +45,7 @@ def _apply_sqlite_version_pin() -> None:
     pin = os.environ.get("HERMES_E2E_SQLITE_VERSION_PIN")
     if not pin:
         return
-    from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
+    from hermes_db.infra.sqlite import wal as hermes_state_wal
 
     pinned = tuple(int(p) for p in pin.split("."))
     probe = hermes_state_wal.is_sqlite_wal_reset_vulnerable

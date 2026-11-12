@@ -1,9 +1,9 @@
-'A retiring gateway must get long enough to finish its WAL checkpoint.\n\nRegression for the 2026-08-31 corruption. ``gateway run --replace`` reaped the\nprevious instance with SIGTERM, waited **5 seconds**, then SIGKILLed any\nsurvivor. A gateway closing a 500MB WAL store runs a PASSIVE checkpoint in\n``SessionDB.close()``; on a WAL that had grown to 3936 pages (4x the 1000-page\nautocheckpoint threshold) that does not reliably finish in 5s. A SIGKILL\nlanding mid-checkpoint leaves half-written b-tree pages — macOS ``fsync``\nguarantees neither data-on-platter nor write ordering, which is exactly why\n``hermes_db.infra.backends.sqlite.wal._enforce_macos_synchronous_full`` exists.\n\nThe port-rebinding reason the 5s deadline was introduced still holds, so the\nforce-kill stays — it just must not fire on a process that is still shutting\ndown normally, and when it does fire it must say so.\n'
+'A retiring gateway must get long enough to finish its WAL checkpoint.\n\nRegression for the 2026-08-31 corruption. ``gateway run --replace`` reaped the\nprevious instance with SIGTERM, waited **5 seconds**, then SIGKILLed any\nsurvivor. A gateway closing a 500MB WAL store runs a PASSIVE checkpoint in\n``SessionDB.close()``; on a WAL that had grown to 3936 pages (4x the 1000-page\nautocheckpoint threshold) that does not reliably finish in 5s. A SIGKILL\nlanding mid-checkpoint leaves half-written b-tree pages — macOS ``fsync``\nguarantees neither data-on-platter nor write ordering, which is exactly why\n``hermes_db.infra.sqlite.wal._enforce_macos_synchronous_full`` exists.\n\nThe port-rebinding reason the 5s deadline was introduced still holds, so the\nforce-kill stays — it just must not fire on a process that is still shutting\ndown normally, and when it does fire it must say so.\n'
 from __future__ import annotations
 
 import pytest
 
-from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
+from hermes_db.infra.sqlite import wal as hermes_state_wal
 
 from hermes_cli.gateway import (
     _ORPHAN_EXIT_GRACE_SECONDS,

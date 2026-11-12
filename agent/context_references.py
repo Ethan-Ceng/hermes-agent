@@ -18,7 +18,7 @@ from typing import Awaitable, Callable
 from agent.file_safety import HOME_CREDENTIAL_DIRS
 from agent.model_metadata import CHARS_PER_TOKEN, estimate_tokens_rough
 from hermes_cli._subprocess_compat import IS_WINDOWS, harden_git_argv, noninteractive_git_env, windows_hide_flags
-from hermes_db.infra.backends.sqlite.safe_read import LiveConnectionError, offline_file_access
+from hermes_db.infra.sqlite.safe_read import LiveConnectionError, offline_file_access
 from hermes_cli.sizefmt import format_bytes
 
 # ── Plugin context-reference provider API ────────────────────────────────────

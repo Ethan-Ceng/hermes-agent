@@ -44,11 +44,11 @@ def test_reviewed_symbols_do_not_grant_the_rest_of_a_module(checker, tmp_path):
     ("hermes_db/core/__init__.py", "hermes_db.domains.cron.api"),
     ("hermes_db/domains/cron/postgres/attempts.py", "gateway.delivery_ledger"),
     ("hermes_db/domains/cron/postgres/attempts.py", "hermes_db.integration"),
-    ("hermes_db/infra/backends/postgresql/units.py", "hermes_db.integration.compose"),
-    ("hermes_db/infra/backends/postgresql/units.py", "hermes_db.tables.metadata"),
-    ("hermes_db/infra/backends/postgresql/units.py", "hermes_db.core.catalog"),
-    ("hermes_db/infra/backends/postgresql/units.py", "hermes_db.domains.sessions.store"),
-    ("hermes_db/infra/backends/postgresql/units.py", "hermes_cli.db_setup"),
+    ("hermes_db/infra/postgresql/units.py", "hermes_db.integration.compose"),
+    ("hermes_db/infra/postgresql/units.py", "hermes_db.tables.metadata"),
+    ("hermes_db/infra/postgresql/units.py", "hermes_db.core.catalog"),
+    ("hermes_db/infra/postgresql/units.py", "hermes_db.domains.sessions.store"),
+    ("hermes_db/infra/postgresql/units.py", "hermes_cli.db_setup"),
     ("hermes_db/domains/cron/postgres/attempts.py", "hermes_db.integration.compose"),
 ])
 def test_review_cannot_override_dependency_direction(checker, tmp_path, consumer, target):

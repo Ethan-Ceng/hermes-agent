@@ -127,7 +127,7 @@ def _connect() -> sqlite3.Connection:
 
 
 def _transaction():
-    from hermes_db.infra.backends.sqlite.transactions import transaction
+    from hermes_db.infra.sqlite.transactions import transaction
 
     return transaction(_connect())
 

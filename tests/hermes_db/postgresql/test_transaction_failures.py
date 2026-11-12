@@ -33,7 +33,7 @@ def test_acknowledgement_loss_after_real_commit_reuses_the_admission(pg_store, p
 
 def test_real_root_lock_timeout_does_not_partially_admit(pg_store, pg_runtime):
     from hermes_db.errors import StorageBusyError
-    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.postgresql.transactions import Transactions
     from hermes_db.tables.metadata import SCHEMA
     from hermes_db.domains.sessions.postgres.queries import sessions
     from hermes_cli.db_runtime import create_runtime_store
@@ -57,7 +57,7 @@ def test_real_root_lock_timeout_does_not_partially_admit(pg_store, pg_runtime):
 def test_real_statement_cancellation_is_a_query_timeout(pg_store):
     from sqlalchemy import text
     from hermes_db.errors import StorageQueryTimeoutError
-    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.postgresql.transactions import Transactions
     from hermes_db.tables.metadata import SCHEMA
     base = pg_store._transactions
     transactions = Transactions(base.engine, base.schema, statement_timeout=0.05, schema_token=SCHEMA)
@@ -74,9 +74,9 @@ def test_closed_real_connection_is_storage_unavailable(pg_store):
 
 
 def test_real_single_connection_pool_exhaustion_is_storage_unavailable(pg_store, postgres_test_config):
-    from hermes_db.infra.backends.postgresql.engine import get_engine
+    from hermes_db.infra.postgresql.engine import get_engine
     from hermes_db.errors import StorageUnavailableError
-    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.postgresql.transactions import Transactions
     from hermes_db.tables.metadata import SCHEMA
     settings = replace(postgres_test_config.settings, schema=pg_store._transactions.schema,
         pool_size=1, max_overflow=0, connection_budget=1, pool_timeout_seconds=0.05)

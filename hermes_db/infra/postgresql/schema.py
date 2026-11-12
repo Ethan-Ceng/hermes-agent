@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from hermes_db.errors import StorageSchemaError, StorageUnavailableError
-from hermes_db.infra.backends.postgresql.engine import get_engine, require_postgresql_driver
+from hermes_db.infra.postgresql.engine import get_engine, require_postgresql_driver
 from hermes_db.settings import PostgresSettings
 
 

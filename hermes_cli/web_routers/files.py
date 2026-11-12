@@ -30,7 +30,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response, StreamingRes
 from hermes_cli import web_server_file_tickets as file_tickets
 from hermes_cli._subprocess_compat import windows_hide_flags
 from hermes_cli.home_data_layout import SECRET_CACHE_STORES
-from hermes_db.infra.backends.sqlite.safe_read import LiveConnectionError, offline_file_access
+from hermes_db.infra.sqlite.safe_read import LiveConnectionError, offline_file_access
 from hermes_cli.staged_uploads import (
     ensure_profile_subdir, is_staged_upload, removed_on_failure, resolve_upload_home,
 )

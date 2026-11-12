@@ -90,7 +90,7 @@ def initialize() -> None:
     initialize_profile_sqlite(path, db_label="cron/executions.db", synchronous_full=True, initialize=_initialize_schema).close()
 
 def _initialize_schema(conn: sqlite3.Connection) -> None:
-    from hermes_db.infra.backends.sqlite.schema import add_column_if_missing
+    from hermes_db.infra.sqlite.schema import add_column_if_missing
 
     conn.execute(
         """CREATE TABLE IF NOT EXISTS cron_incidents (
@@ -122,7 +122,7 @@ def _initialize_schema(conn: sqlite3.Connection) -> None:
 
 @contextmanager
 def _transaction() -> Iterator[sqlite3.Connection]:
-    from hermes_db.infra.backends.sqlite.transactions import transaction
+    from hermes_db.infra.sqlite.transactions import transaction
 
     with _lock, transaction(_connect()) as conn:
         yield conn

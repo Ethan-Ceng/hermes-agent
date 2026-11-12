@@ -12,7 +12,7 @@ def configured_probe(home):
             return None
         settings, scope = resolve_db_configuration(home)
         from sqlalchemy import select
-        from hermes_db.infra.backends.postgresql.engine import read_connection
+        from hermes_db.infra.postgresql.engine import read_connection
         from hermes_db.errors import StorageSchemaError
         from hermes_cli.db_scope import OwnedProfileContext
         from hermes_db.schema import status_on_connection

@@ -16,7 +16,7 @@ def test_notepad_persistence_scope_render_and_job_removal(pg_profiles):
         assert not (home / "cron/notepad.db").exists()
     with pg_profiles("two"):
         notepad.set_note(job["id"], "cursor\x00🙂", "other")
-    from hermes_db.infra.backends.postgresql.engine import close_engines
+    from hermes_db.infra.postgresql.engine import close_engines
     close_engines()
     with pg_profiles("one"):
         assert notepad.get_note(job["id"], "cursor\x00🙂") == "中文\x00🙂"
@@ -76,7 +76,7 @@ def test_storage_failure_cannot_render_as_empty_and_cleanup_is_reported(pg_profi
     from sqlalchemy import text
     from cron import jobs, notepad
     from hermes_cli.db_setup import resolve_db_configuration
-    from hermes_db.infra.backends.postgresql.engine import get_engine
+    from hermes_db.infra.postgresql.engine import get_engine
     from hermes_db.errors import StorageError
 
     with pg_profiles("one"):

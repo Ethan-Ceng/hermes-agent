@@ -3,7 +3,7 @@ import sqlite3
 import pytest
 from unittest.mock import patch
 from hermes_state import SessionDB
-from hermes_db.infra.backends.sqlite.session_connections import SQLiteConnections
+from hermes_db.infra.sqlite.session_connections import SQLiteConnections
 
 class TestReconcileColumnsErrorHandling:
     """_reconcile_columns must not bury migration failures (#79531/#80037).

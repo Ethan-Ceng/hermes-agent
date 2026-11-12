@@ -467,7 +467,7 @@ def _retired_wal_holders(f: Finding, state_db_path: Path, _DHH: str) -> bool:
     refused while they live, and the current inode has no holders, so the plain holder count says
     "0 holding the DB open" beside a green state.db line — the opposite of the truth."""
     from hermes_constants import profile_cli_selector
-    from hermes_db.infra.backends.sqlite.generation import iter_deleted_sqlite_sidecar_holders
+    from hermes_db.infra.sqlite.generation import iter_deleted_sqlite_sidecar_holders
     from hermes_state_holders import describe_holder_pid
     pids = list(dict.fromkeys(pid for pid, _ in iter_deleted_sqlite_sidecar_holders(state_db_path)))
     if not pids:

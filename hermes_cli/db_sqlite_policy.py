@@ -6,8 +6,8 @@ import sys
 import time
 from pathlib import Path
 
-from hermes_db.infra.backends.sqlite import connections, wal
-from hermes_db.infra.backends.sqlite.schema import initialize_database
+from hermes_db.infra.sqlite import connections, wal
+from hermes_db.infra.sqlite.schema import initialize_database
 
 def resolve_journal_mode() -> str:
     """The configured ``database.journal_mode`` (``wal`` default; ``delete`` for filesystems without WAL-safe

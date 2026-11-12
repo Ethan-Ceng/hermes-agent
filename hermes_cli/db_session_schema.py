@@ -15,14 +15,14 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 import stat
 from hermes_platform.host.facts import os_family
-from hermes_db.infra.backends.sqlite.wal import _on_disk_journal_mode
+from hermes_db.infra.sqlite.wal import _on_disk_journal_mode
 from hermes_cli.db_sqlite_policy import apply_database_pragmas, apply_wal_with_fallback
-from hermes_db.infra.backends.sqlite.generation import canonical_sqlite_path, _iter_proc_fd_targets, _iter_darwin_fd_targets
+from hermes_db.infra.sqlite.generation import canonical_sqlite_path, _iter_proc_fd_targets, _iter_darwin_fd_targets
 logger = logging.getLogger("hermes_state")
 
 from hermes_state_common import FTS_REBUILD_DEFERRAL_KEY
 from hermes_state_holders import read_only_db_uri
-from hermes_db.infra.backends.sqlite.generation import (RetiredGenerationCaptureError, _preopen_header, _pread_db_range, _stat_sqlite_sidecar_identity, stat_db_file_identity as _stat_db_file_identity, _connect_tracked_db)
+from hermes_db.infra.sqlite.generation import (RetiredGenerationCaptureError, _preopen_header, _pread_db_range, _stat_sqlite_sidecar_identity, stat_db_file_identity as _stat_db_file_identity, _connect_tracked_db)
 
 _FTS_TABLE_NAMES = ("messages_fts", "messages_fts_trigram")
 
@@ -129,7 +129,7 @@ def _parse_sqlite_header(header: bytes) -> dict[str, Any]:
     if len(header) < _SQLITE_HEADER_BYTES or header[:16] != b"SQLite format 3\x00":
         return {"valid": False}
     raw_page_size = struct.unpack(">H", header[16:18])[0]
-    from hermes_db.infra.backends.sqlite.generation import _STATE_DB_APPLICATION_ID_OFFSET
+    from hermes_db.infra.sqlite.generation import _STATE_DB_APPLICATION_ID_OFFSET
     fields = {"change_counter": 24, "page_count": 28, "user_version": 60,
               "application_id": _STATE_DB_APPLICATION_ID_OFFSET, "version_valid_for": 92}
     parsed = {name: struct.unpack(">I", header[off:off + 4])[0] for name, off in fields.items()}
@@ -602,7 +602,7 @@ def _check_sqlite_upgrade_source(path: Path) -> None:
     from contextlib import closing
 
     from hermes_db.errors import StorageSchemaError
-    from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
+    from hermes_db.infra.sqlite.safe_read import connect_tracked
     from hermes_state_common import SCHEMA_VERSION
     from hermes_state_reconcile import _require_history_tables
 

@@ -407,9 +407,9 @@ def _connect_tracked_db(path, tracking_path=None, **kwargs):
     without hermes_cli); a real connection failure must propagate — a silent untracked retry
     would disable the guard for that connection."""
     try:
-        from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
+        from hermes_db.infra.sqlite.safe_read import connect_tracked
     except ImportError:
-        logger.debug('hermes_db.infra.backends.sqlite.safe_read unavailable; opening %s untracked (byte-probe guard inactive in this install)', path)
+        logger.debug('hermes_db.infra.sqlite.safe_read unavailable; opening %s untracked (byte-probe guard inactive in this install)', path)
         return sqlite3.connect(str(path), **kwargs)
     # Open through THIS module's sqlite3.connect so tests patching hermes_state.sqlite3.connect keep control.
     return connect_tracked(path, tracking_path=tracking_path, connect_fn=sqlite3.connect, **kwargs)
@@ -424,7 +424,7 @@ def _preopen_header(path: Path, probe_bytes: int, force: bool) -> Optional[bytes
         if not path.is_file():
             return None
         path.stat()
-        from hermes_db.infra.backends.sqlite.safe_read import has_live_connection, read_header_bytes_preopen
+        from hermes_db.infra.sqlite.safe_read import has_live_connection, read_header_bytes_preopen
         if not force and has_live_connection(path):
             return None
         return read_header_bytes_preopen(path, length=max(16, probe_bytes), force=force)

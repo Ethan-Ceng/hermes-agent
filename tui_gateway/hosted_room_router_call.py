@@ -109,7 +109,7 @@ class RouterCalls(RouterCallLifecycle):
         from gateway.hosted_room_storage import assert_sqlite_location
         assert_sqlite_location(self._db_path)
         from hermes_cli.db_sqlite_policy import open_ready_profile_sqlite
-        from hermes_db.infra.backends.sqlite.transactions import transaction
+        from hermes_db.infra.sqlite.transactions import transaction
 
         from gateway.hosted_rooms_common import table_exists
 

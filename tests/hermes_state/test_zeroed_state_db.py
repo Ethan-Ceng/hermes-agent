@@ -312,7 +312,7 @@ def test_live_connection_0_byte_not_quarantined_in_process(tmp_path, monkeypatch
     quarantined by is_zeroed_state_db / SessionDB.
     """
     import hermes_state as hs
-    from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
+    from hermes_db.infra.sqlite.safe_read import connect_tracked
 
     monkeypatch.setenv("HERMES_HOME", str(tmp_path))
     db = tmp_path / "state.db"

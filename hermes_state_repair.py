@@ -77,9 +77,9 @@ def _sidecars(db_path: Path):
 
 
 def _read_offline(db_path: Path, what: str, reader) -> Optional[str]:
-    "Run *reader()* under ``hermes_db.infra.backends.sqlite.safe_read.offline_file_access``.\n\n    ``close()`` on ANY raw descriptor cancels every POSIX advisory lock this process holds on the file,\n    including a peer connection's RESERVED lock (``sqlite_safe_read`` rule 1), so a raw read is only safe with\n    no live connection; ``None`` when that makes it unsafe or the file is unreadable. Scaffold/embed installs\n    without hermes_cli have no tracked connections."
+    "Run *reader()* under ``hermes_db.infra.sqlite.safe_read.offline_file_access``.\n\n    ``close()`` on ANY raw descriptor cancels every POSIX advisory lock this process holds on the file,\n    including a peer connection's RESERVED lock (``sqlite_safe_read`` rule 1), so a raw read is only safe with\n    no live connection; ``None`` when that makes it unsafe or the file is unreadable. Scaffold/embed installs\n    without hermes_cli have no tracked connections."
     try:
-        from hermes_db.infra.backends.sqlite.safe_read import LiveConnectionError, offline_file_access
+        from hermes_db.infra.sqlite.safe_read import LiveConnectionError, offline_file_access
     except ImportError:
         offline_file_access, LiveConnectionError = (lambda _p, **_k: contextlib.nullcontext()), OSError
     try:
@@ -473,9 +473,9 @@ def _publish_backup_bundle(db_path: Path, staging: Path, backup_path: Path) -> N
 
 
 def _backup_db_file(db_path: Path) -> tuple[Optional[Path], Optional[str]]:
-    "Raw-copy a (possibly malformed) DB plus sidecars to a timestamped backup.\n\n    Raw bytes on purpose: the DB won't open cleanly, so preserve them exactly for forensics. Returns ``(backup_path,\n    None)`` or ``(None, reason)``; repair treats a refused backup as a HARD STOP because the bundle is the recovery\n    path when every strategy fails. Refuses while a connection to this DB is live in the process: the raw read would\n    ``close()`` a descriptor and cancel that connection's POSIX advisory locks (``hermes_db.infra.backends.sqlite.safe_read``) —\n    real case: one SessionDB enters repair while the gateway holds others.\n\n    Dedupe: reuse the newest backup when byte-identical to the current recovery image (``_backup_content_identity``\n    — NOT mtime, NOT ``_db_fingerprint``); a repair loop once re-copied the same bytes on every restart. Staging\n    names live OUTSIDE the ``.malformed-backup-`` prefix: inside it they count as a backup, sort NEWEST (prune kept\n    partials, deleted intact copies) and dedupe could return one with no real forensic copy on disk.\n\n    Refusal reasons (``_backup_free_space_error`` / ``_MANUAL_RECOVER_HINT``) point operators at the safe lane,\n    `hermes sessions recover --source <db> --inspect-only`, never at a raw sqlite3 shell on the live file.\n\n    See #69603.\n    "
+    "Raw-copy a (possibly malformed) DB plus sidecars to a timestamped backup.\n\n    Raw bytes on purpose: the DB won't open cleanly, so preserve them exactly for forensics. Returns ``(backup_path,\n    None)`` or ``(None, reason)``; repair treats a refused backup as a HARD STOP because the bundle is the recovery\n    path when every strategy fails. Refuses while a connection to this DB is live in the process: the raw read would\n    ``close()`` a descriptor and cancel that connection's POSIX advisory locks (``hermes_db.infra.sqlite.safe_read``) —\n    real case: one SessionDB enters repair while the gateway holds others.\n\n    Dedupe: reuse the newest backup when byte-identical to the current recovery image (``_backup_content_identity``\n    — NOT mtime, NOT ``_db_fingerprint``); a repair loop once re-copied the same bytes on every restart. Staging\n    names live OUTSIDE the ``.malformed-backup-`` prefix: inside it they count as a backup, sort NEWEST (prune kept\n    partials, deleted intact copies) and dedupe could return one with no real forensic copy on disk.\n\n    Refusal reasons (``_backup_free_space_error`` / ``_MANUAL_RECOVER_HINT``) point operators at the safe lane,\n    `hermes sessions recover --source <db> --inspect-only`, never at a raw sqlite3 shell on the live file.\n\n    See #69603.\n    "
     with contextlib.suppress(ImportError):  # scaffold/embed installs without hermes_cli track no connections
-        from hermes_db.infra.backends.sqlite.safe_read import has_live_connection
+        from hermes_db.infra.sqlite.safe_read import has_live_connection
         if has_live_connection(db_path):
             reason = (f"a connection to {db_path} is still open in this process; raw-copying it would cancel that "
                       "connection's POSIX advisory locks. Close all SessionDB handles first.")
@@ -567,8 +567,8 @@ def preflight_db_writability(db_path: Path, *, db_label: str = "state.db", direc
 
 
 def _connect_repair_durable(db_path: Path, *, timeout: float = 5.0) -> sqlite3.Connection:
-    '``sqlite3.connect`` for the repair/probe paths, with macOS write barriers.\n\n    These paths bypass ``SessionDB``/:func:`apply_wal_with_fallback`, so they inherited ``synchronous=NORMAL`` and\n    no ``checkpoint_fullfsync`` — on Darwin an interrupted ``REINDEX``/``VACUUM``/``writable_schema`` rewrite leaves\n    half-written b-tree pages. Autocommit (``isolation_level=None``): DDL and ``VACUUM`` are illegal inside an\n    implicit transaction. Barriers are best-effort: on a malformed schema even ``PRAGMA synchronous=FULL`` raises,\n    so whole-file rewrites call :func:`_reapply_durability_barriers` once the schema parses again.\n\n    Tracked (:func:`hermes_db.infra.backends.sqlite.safe_read.connect_tracked`) because repair connections hold the\n    strongest locks in the process (``locking_mode=EXCLUSIVE``, ``BEGIN IMMEDIATE``); an untracked fd let\n    the byte-level probes ``open()``/``close()`` the live file, which cancels every POSIX advisory lock this\n    process holds on it (sqlite.org/howtocorrupt §2.2) and lets an external writer commit mid-repair (#63386).\n    '
-    from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
+    '``sqlite3.connect`` for the repair/probe paths, with macOS write barriers.\n\n    These paths bypass ``SessionDB``/:func:`apply_wal_with_fallback`, so they inherited ``synchronous=NORMAL`` and\n    no ``checkpoint_fullfsync`` — on Darwin an interrupted ``REINDEX``/``VACUUM``/``writable_schema`` rewrite leaves\n    half-written b-tree pages. Autocommit (``isolation_level=None``): DDL and ``VACUUM`` are illegal inside an\n    implicit transaction. Barriers are best-effort: on a malformed schema even ``PRAGMA synchronous=FULL`` raises,\n    so whole-file rewrites call :func:`_reapply_durability_barriers` once the schema parses again.\n\n    Tracked (:func:`hermes_db.infra.sqlite.safe_read.connect_tracked`) because repair connections hold the\n    strongest locks in the process (``locking_mode=EXCLUSIVE``, ``BEGIN IMMEDIATE``); an untracked fd let\n    the byte-level probes ``open()``/``close()`` the live file, which cancels every POSIX advisory lock this\n    process holds on it (sqlite.org/howtocorrupt §2.2) and lets an external writer commit mid-repair (#63386).\n    '
+    from hermes_db.infra.sqlite.safe_read import connect_tracked
 
     conn = connect_tracked(db_path, tracking_path=db_path, timeout=timeout, isolation_level=None)
     _reapply_durability_barriers(conn)
@@ -584,7 +584,7 @@ def _reapply_durability_barriers(conn: sqlite3.Connection) -> bool:
     """Best-effort (re)application of the macOS write barriers; True if accepted.
     Call before ``VACUUM``/``REINDEX`` once the schema parses: a connection opened
     on a malformed schema could not take them at open time. Never raises."""
-    from hermes_db.infra.backends.sqlite.wal import _apply_macos_checkpoint_barrier, _enforce_macos_synchronous_full
+    from hermes_db.infra.sqlite.wal import _apply_macos_checkpoint_barrier, _enforce_macos_synchronous_full
     try:
         _apply_macos_checkpoint_barrier(conn)
         _enforce_macos_synchronous_full(conn)
@@ -597,7 +597,7 @@ def apply_durability_barriers(conn: sqlite3.Connection) -> bool:
     """Durability barriers for guest users of ``state.db`` that must inherit its owner's journal mode. Also
     applies the configured ``database.synchronous`` level, a per-connection pragma that otherwise only
     rides on the journal-mode setup path guests must not run."""
-    from hermes_db.infra.backends.sqlite.wal import _apply_synchronous_pragma
+    from hermes_db.infra.sqlite.wal import _apply_synchronous_pragma
     ok = _reapply_durability_barriers(conn)
     with contextlib.suppress(Exception):
         from hermes_cli.config import cfg_get, load_config_readonly  # local: avoids an import cycle
@@ -973,7 +973,7 @@ def _probe_journal_mode_for_repair(db_path: Path) -> Optional[str]:
     """Best-effort journal-mode probe: ``wal``/``delete``, or ``None`` when the file cannot be opened or
     probed (malformed header, concurrent opener's locks — both expected on the repair path); callers then
     fall back to ``database.journal_mode``."""
-    from hermes_db.infra.backends.sqlite.wal import _on_disk_journal_mode
+    from hermes_db.infra.sqlite.wal import _on_disk_journal_mode
     try:
         with _repair_conn(db_path) as conn:
             return _on_disk_journal_mode(conn)

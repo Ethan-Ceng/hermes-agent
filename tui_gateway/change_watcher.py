@@ -225,7 +225,7 @@ def _session_db_content_sig(db_path: Path):
     conn = None
     try:
         import hashlib
-        from hermes_db.infra.backends.sqlite.generation import _connect_tracked_db
+        from hermes_db.infra.sqlite.generation import _connect_tracked_db
         from hermes_state_holders import read_only_db_uri
 
         conn = _connect_tracked_db(read_only_db_uri(db_path), tracking_path=db_path,

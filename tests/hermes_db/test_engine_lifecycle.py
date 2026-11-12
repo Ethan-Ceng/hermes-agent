@@ -7,7 +7,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from hermes_db.infra.backends.postgresql import engine
+from hermes_db.infra.postgresql import engine
 from hermes_db.errors import StorageConfigurationError, StorageUnavailableError
 from hermes_db.settings import PostgresSettings
 

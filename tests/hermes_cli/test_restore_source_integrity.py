@@ -58,7 +58,7 @@ def _restore(entry, home, snapshot_id, source):
 def test_restore_uses_literal_paths_and_preserves_live_connection(
     tmp_path, capsys, home, entry
 ):
-    from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
+    from hermes_db.infra.sqlite.safe_read import connect_tracked
 
     target = home / "state.db"
     _database(target, 3)

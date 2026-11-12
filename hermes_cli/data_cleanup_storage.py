@@ -16,9 +16,9 @@ def capture_removal(home):
     with _owning_profile(home):
         if storage_backend(home) == "sqlite":
             return None
-        from hermes_db.infra.backends.postgresql.engine import get_engine
+        from hermes_db.infra.postgresql.engine import get_engine
         from hermes_db.core.values import resource_key
-        from hermes_db.infra.backends.postgresql.transactions import Transactions
+        from hermes_db.infra.postgresql.transactions import Transactions
         from hermes_db.tables.metadata import SCHEMA
         settings, scope = resolve_db_configuration(home)
         pg = settings.postgresql

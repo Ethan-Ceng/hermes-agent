@@ -1,6 +1,6 @@
-"The SessionDB read path must not leak one connection per (SessionDB x thread).\n\n``_get_read_conn`` used to cache a read-only connection in ``threading.local()``\nand pin it in a strong set (``_read_conns``) that was only ever drained by\n``close()``. Starlette dispatches sync routes on anyio worker threads, so a\nSessionDB that is never closed -- the dashboard's module-global ``_db`` and\nthe per-session ``session_db`` handles -- gained a connection, and a file\ndescriptor, for every worker thread that ever served a read. In production\nthat walked into the 256 soft ``RLIMIT_NOFILE`` a service manager hands the\nprocess, after which every request failed with ``OSError`` EMFILE while the\nprocess stayed alive, so the supervisor's restart-on-exit never fired.\n\nWorse, those connections were opened WITHOUT ``check_same_thread=False`` (both\nwriter opens pass it), so ``close()`` on them raised ``ProgrammingError`` from\na different thread and the bare ``except Exception: pass`` hid it -- leaving\n``hermes_db.infra.backends.sqlite.safe_read``'s registry permanently over-counted as well.\n\nThe contract pinned here: reads borrow from a BOUNDED pool, connections are\nreturned and reused, surplus connections are closed rather than dropped, and\n``close()`` actually closes them from whatever thread it runs on.\n\nBounded means bounded at PEAK, not merely at rest. Pooling returns behind a\n``maxsize`` LifoQueue while opening unconditionally on a miss still lets a\nburst of N simultaneous readers on a cold pool open N descriptors before\nclosing the surplus -- which is the exact shape of the production incident,\nsince the burst that exhausts the pool is the burst that exhausts the fd\ntable. Peak is held down by a permit acquired before the open and released\nafter the close; past the ceiling readers degrade to the locked writer\nconnection. Tests that join their workers before counting cannot see any of\nthis, so the peak assertions use a barrier.\n\nThese assert on the pool/registry counts, never on ``lsof``: SQLite's unix VFS\nparks a closed descriptor on a per-inode reuse list while any connection still\nholds POSIX locks on that inode, so raw descriptor counts lag the real\nconnection count and make such assertions flaky.\n"
+"The SessionDB read path must not leak one connection per (SessionDB x thread).\n\n``_get_read_conn`` used to cache a read-only connection in ``threading.local()``\nand pin it in a strong set (``_read_conns``) that was only ever drained by\n``close()``. Starlette dispatches sync routes on anyio worker threads, so a\nSessionDB that is never closed -- the dashboard's module-global ``_db`` and\nthe per-session ``session_db`` handles -- gained a connection, and a file\ndescriptor, for every worker thread that ever served a read. In production\nthat walked into the 256 soft ``RLIMIT_NOFILE`` a service manager hands the\nprocess, after which every request failed with ``OSError`` EMFILE while the\nprocess stayed alive, so the supervisor's restart-on-exit never fired.\n\nWorse, those connections were opened WITHOUT ``check_same_thread=False`` (both\nwriter opens pass it), so ``close()`` on them raised ``ProgrammingError`` from\na different thread and the bare ``except Exception: pass`` hid it -- leaving\n``hermes_db.infra.sqlite.safe_read``'s registry permanently over-counted as well.\n\nThe contract pinned here: reads borrow from a BOUNDED pool, connections are\nreturned and reused, surplus connections are closed rather than dropped, and\n``close()`` actually closes them from whatever thread it runs on.\n\nBounded means bounded at PEAK, not merely at rest. Pooling returns behind a\n``maxsize`` LifoQueue while opening unconditionally on a miss still lets a\nburst of N simultaneous readers on a cold pool open N descriptors before\nclosing the surplus -- which is the exact shape of the production incident,\nsince the burst that exhausts the pool is the burst that exhausts the fd\ntable. Peak is held down by a permit acquired before the open and released\nafter the close; past the ceiling readers degrade to the locked writer\nconnection. Tests that join their workers before counting cannot see any of\nthis, so the peak assertions use a barrier.\n\nThese assert on the pool/registry counts, never on ``lsof``: SQLite's unix VFS\nparks a closed descriptor on a per-inode reuse list while any connection still\nholds POSIX locks on that inode, so raw descriptor counts lag the real\nconnection count and make such assertions flaky.\n"
 
-import hermes_db.infra.backends.sqlite.session_connections
+import hermes_db.infra.sqlite.session_connections
 import queue
 import sqlite3
 import threading
@@ -12,7 +12,7 @@ from hermes_state import SessionDB
 
 def _live_count(path) -> int:
     """Live-connection count the tracking registry holds for *path*."""
-    import hermes_db.infra.backends.sqlite.safe_read as mod
+    import hermes_db.infra.sqlite.safe_read as mod
 
     with mod._live_lock:
         return mod._live_connections.get(mod._key(path), 0)
@@ -159,7 +159,7 @@ def test_read_open_failure_backs_off_but_recovers(db):
     """
     import time as _time
 
-    from hermes_db.infra.backends.sqlite.session_connections import _READ_OPEN_RETRY_SECONDS
+    from hermes_db.infra.sqlite.session_connections import _READ_OPEN_RETRY_SECONDS
 
     baseline = db._connections._get_read_conn()
     assert baseline is not None, "baseline read open should succeed"
@@ -205,7 +205,7 @@ def test_peak_live_connections_bounded_under_simultaneous_burst(db):
     of them have checked out, so the count below IS the simultaneous peak
     rather than a sample of it.
     """
-    from hermes_db.infra.backends.sqlite.session_connections import _READ_POOL_MAX
+    from hermes_db.infra.sqlite.session_connections import _READ_POOL_MAX
 
     n = 64
     assert n > _READ_POOL_MAX, "burst must exceed the ceiling to test anything"
@@ -257,7 +257,7 @@ def test_exhausted_permits_fall_back_to_the_writer_connection(db):
     connection. Blocking instead would convert descriptor exhaustion into a
     stall -- the same outage with a different stack trace.
     """
-    from hermes_db.infra.backends.sqlite.session_connections import _READ_POOL_MAX
+    from hermes_db.infra.sqlite.session_connections import _READ_POOL_MAX
 
     held = [db._connections._checkout_read_conn() for _ in range(_READ_POOL_MAX)]
     assert all(c is not None for c in held), "the first _READ_POOL_MAX must succeed"
@@ -286,7 +286,7 @@ def test_permits_are_not_stranded_by_a_failed_open(db, monkeypatch):
     """
     import sqlite3 as _sqlite3
 
-    from hermes_db.infra.backends.sqlite.session_connections import _READ_POOL_MAX
+    from hermes_db.infra.sqlite.session_connections import _READ_POOL_MAX
 
     def boom(*a, **kw):
         raise _sqlite3.OperationalError("simulated open failure")
@@ -312,7 +312,7 @@ def test_permits_are_not_stranded_by_a_failed_open(db, monkeypatch):
 @pytest.mark.requires_wal
 def test_close_returns_every_permit(db):
     """close() must release the permits its drained connections held."""
-    from hermes_db.infra.backends.sqlite.session_connections import _READ_POOL_MAX
+    from hermes_db.infra.sqlite.session_connections import _READ_POOL_MAX
 
     held = [db._connections._checkout_read_conn() for _ in range(_READ_POOL_MAX)]
     for c in held:
@@ -345,7 +345,7 @@ def test_close_returns_every_permit(db):
 def test_peak_is_bounded_across_two_SessionDBs_on_one_path(db):
     """Two handles on one file must share one read-connection ceiling."""
     from hermes_state import SessionDB
-    from hermes_db.infra.backends.sqlite.session_connections import _READ_POOL_MAX
+    from hermes_db.infra.sqlite.session_connections import _READ_POOL_MAX
 
     second = SessionDB(db_path=db.db_path)
     try:
@@ -403,7 +403,7 @@ def test_idle_permits_are_reclaimed_from_a_peer_instance(db):
     the life of the process. Trading one bug for a quieter one.
     """
     from hermes_state import SessionDB
-    from hermes_db.infra.backends.sqlite.session_connections import _READ_POOL_MAX
+    from hermes_db.infra.sqlite.session_connections import _READ_POOL_MAX
 
     # Warm every permit into db's IDLE pool.
     held = [db._connections._checkout_read_conn() for _ in range(_READ_POOL_MAX)]
@@ -444,8 +444,8 @@ def test_idle_permits_are_reclaimed_from_a_peer_instance(db):
 def test_peak_is_bounded_across_many_database_files(tmp_path):
     """Read connections must be capped for the PROCESS, not just per file."""
     from hermes_state import SessionDB
-    from hermes_db.infra.backends.sqlite.session_connections import _READ_POOL_MAX
-    from hermes_db.infra.backends.sqlite.session_connections import _READ_POOL_PROCESS_MAX
+    from hermes_db.infra.sqlite.session_connections import _READ_POOL_MAX
+    from hermes_db.infra.sqlite.session_connections import _READ_POOL_PROCESS_MAX
 
     n_files = (_READ_POOL_PROCESS_MAX // _READ_POOL_MAX) + 2
     dbs = []
@@ -485,18 +485,18 @@ def test_peak_is_bounded_across_many_database_files(tmp_path):
     finally:
         for d in dbs:
             d.close()
-        assert hermes_db.infra.backends.sqlite.session_connections._process_read_permits.acquire(blocking=False), (
+        assert hermes_db.infra.sqlite.session_connections._process_read_permits.acquire(blocking=False), (
             "close() stranded a process permit"
         )
-        hermes_db.infra.backends.sqlite.session_connections._process_read_permits.release()
+        hermes_db.infra.sqlite.session_connections._process_read_permits.release()
 
 
 @pytest.mark.requires_wal
 def test_idle_connections_are_reclaimed_across_database_files(tmp_path):
     """A quiet profile's idle connections must not starve the busy one."""
     from hermes_state import SessionDB
-    from hermes_db.infra.backends.sqlite.session_connections import _READ_POOL_MAX
-    from hermes_db.infra.backends.sqlite.session_connections import _READ_POOL_PROCESS_MAX
+    from hermes_db.infra.sqlite.session_connections import _READ_POOL_MAX
+    from hermes_db.infra.sqlite.session_connections import _READ_POOL_PROCESS_MAX
 
     quiet = []
     try:
@@ -530,7 +530,7 @@ def test_no_read_connection_is_opened_without_descriptor_headroom(db, monkeypatc
     subprocess pipes, and EMFILE lands on whoever asks next -- which in the
     report was terminal_tool, not SQLite.
     """
-    import hermes_db.infra.backends.sqlite.session_connections as readpool
+    import hermes_db.infra.sqlite.session_connections as readpool
 
     # Drain the pool so the next read must OPEN rather than reuse.
     while True:
@@ -559,7 +559,7 @@ def test_no_read_connection_is_opened_without_descriptor_headroom(db, monkeypatc
 
 def test_fd_headroom_guard_fails_open_where_it_cannot_measure(monkeypatch):
     """No RLIMIT_NOFILE (Windows) means unmeasurable, not tight."""
-    import hermes_db.infra.backends.sqlite.session_connections as readpool
+    import hermes_db.infra.sqlite.session_connections as readpool
 
     monkeypatch.setattr(readpool, "_fd_soft_limit", lambda: None)
     assert readpool._fd_headroom_ok() is True
@@ -580,8 +580,8 @@ def test_fd_soft_limit_fails_open_for_importable_resource_stub(monkeypatch):
 
     monkeypatch.setitem(sys.modules, "resource", types.ModuleType("resource"))
 
-    assert hermes_db.infra.backends.sqlite.session_connections._fd_soft_limit() is None
-    assert hermes_db.infra.backends.sqlite.session_connections._fd_headroom_ok() is True
+    assert hermes_db.infra.sqlite.session_connections._fd_soft_limit() is None
+    assert hermes_db.infra.sqlite.session_connections._fd_headroom_ok() is True
 
 
 @pytest.mark.requires_wal
@@ -591,7 +591,7 @@ def test_duplicate_handles_on_one_path_are_reported(db, caplog):
     import re
 
     from hermes_state import SessionDB
-    from hermes_db.infra.backends.sqlite.session_connections import _HANDLES_PER_PATH_WARN
+    from hermes_db.infra.sqlite.session_connections import _HANDLES_PER_PATH_WARN
 
     def open_extra_handle():
         return SessionDB(db_path=db.db_path)
@@ -632,7 +632,7 @@ def test_read_only_handles_do_not_count_toward_the_duplicate_writer_warning(db, 
     import logging
 
     from hermes_state import SessionDB
-    from hermes_db.infra.backends.sqlite.session_connections import _HANDLES_PER_PATH_WARN
+    from hermes_db.infra.sqlite.session_connections import _HANDLES_PER_PATH_WARN
 
     extra = []
     try:
@@ -692,7 +692,7 @@ def test_closed_handles_do_not_count_toward_duplicate_writer_warning(db, caplog)
     """Closing a writer releases its duplicate-writer diagnostic membership."""
     import logging
 
-    from hermes_db.infra.backends.sqlite.session_connections import _HANDLES_PER_PATH_WARN
+    from hermes_db.infra.sqlite.session_connections import _HANDLES_PER_PATH_WARN
 
     closed = [SessionDB(db_path=db.db_path) for _ in range(_HANDLES_PER_PATH_WARN - 1)]
     for handle in closed:
@@ -711,7 +711,7 @@ def test_closed_handles_do_not_count_toward_duplicate_writer_warning(db, caplog)
 
 def test_failed_initialization_does_not_register_duplicate_writer_handle(db, monkeypatch):
     """A constructor that raises before opening must never join the handle budget."""
-    budget = hermes_db.infra.backends.sqlite.session_connections._read_budget_for(db.db_path)
+    budget = hermes_db.infra.sqlite.session_connections._read_budget_for(db.db_path)
     registered = []
     original_register = budget.register
 

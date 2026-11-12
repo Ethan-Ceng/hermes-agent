@@ -303,7 +303,7 @@ def _restore_db_pages(src: Path, dst: Path) -> bool:
                 logger.debug("Closing %s before the fallback restore failed: %s", dst, close_exc)
         # Fallback: unlink+move (the old approach).  This still works for
         # the common case where no other process holds the DB open.
-        from hermes_db.infra.backends.sqlite.safe_read import LiveConnectionError, offline_file_access
+        from hermes_db.infra.sqlite.safe_read import LiveConnectionError, offline_file_access
 
         try:
             holders = _foreign_db_holder_pids(dst)

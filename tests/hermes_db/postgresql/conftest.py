@@ -7,11 +7,11 @@ import pytest
 
 @pytest.fixture
 def pg_store(postgres_test_config, postgres_schema, tmp_path):
-    from hermes_db.infra.backends.postgresql.engine import get_engine
+    from hermes_db.infra.postgresql.engine import get_engine
     from hermes_db.schema import upgrade_schema
     from hermes_db.scope import DatabaseScope
     from hermes_cli.db_sessions import create_session_store
-    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.postgresql.transactions import Transactions
     from hermes_db.tables.metadata import SCHEMA
 
     settings = replace(postgres_test_config.settings, schema=postgres_schema)

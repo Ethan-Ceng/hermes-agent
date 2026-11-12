@@ -13,7 +13,7 @@ def test_model_marker_revision_backfills_both_stores_and_preserves_raw_json(post
     from alembic import command
     from alembic.config import Config
     from sqlalchemy import text
-    from hermes_db.infra.backends.postgresql.schema import prepare_schema
+    from hermes_db.infra.postgresql.schema import prepare_schema
     from hermes_db.schema import REQUIRED_EXTENSIONS, _PG_TRGM_ACTION, upgrade_schema
     import hermes_db.schema as module
 

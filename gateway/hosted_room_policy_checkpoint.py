@@ -163,7 +163,7 @@ class HostedRoomPolicyCheckpoint:
         )
 
     def _transaction(self):
-        from hermes_db.infra.backends.sqlite.transactions import transaction
+        from hermes_db.infra.sqlite.transactions import transaction
 
         return transaction(self._connect())
 

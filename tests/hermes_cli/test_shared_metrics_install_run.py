@@ -175,7 +175,7 @@ def test_receipt_is_recorded_only_on_a_day_the_sender_can_ever_send(marks, monke
     whose package CONSENT_GATE_SQL never passes (period_start < opened_at). The receipt waits for the
     first start on a later day, and the package carrying it then passes the real gate."""
     from hermes_cli.observability.shared_metrics_sender import CONSENT_GATE_SQL, reconcile_send_consent
-    from hermes_db.infra.backends.sqlite.transactions import write_txn
+    from hermes_db.infra.sqlite.transactions import write_txn
 
     t0 = datetime(2026, 10, 6, tzinfo=UTC)
     clock = {"now": t0 + timedelta(hours=9)}

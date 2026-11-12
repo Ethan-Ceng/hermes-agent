@@ -28,7 +28,7 @@ conn.close()
 
 @pytest.fixture
 def delete_mode_db(tmp_path, monkeypatch) -> Path:
-    from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
+    from hermes_db.infra.sqlite import wal as hermes_state_wal
     monkeypatch.setattr(sqlite_policy, "resolve_journal_mode", lambda: "delete")
     db = tmp_path / "state.db"
     handle = SessionDB(db_path=db)

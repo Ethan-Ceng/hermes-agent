@@ -78,7 +78,7 @@ def test_projects_folders_meta_cache_and_scope(project_profiles, tmp_path, monke
         assert pdb.get_project(store, project_id).description is None
         assert pdb.get_active_id(store) is None
         assert pdb.get_discovery_policy_key(store) is None
-    from hermes_db.infra.backends.postgresql.engine import close_engines
+    from hermes_db.infra.postgresql.engine import close_engines
     close_engines()
     with owner("one"), pdb.connect_closing() as store:
         assert pdb.get_project(store, project_id).description == "desc\x00"
@@ -162,7 +162,7 @@ def test_discovery_and_inventory_do_not_hide_pg_failure(project_profiles):
     from gateway.session_local_inventory import _project
     from hermes_cli import projects_db as pdb
     from hermes_cli.db_setup import resolve_db_configuration
-    from hermes_db.infra.backends.postgresql.engine import get_engine
+    from hermes_db.infra.postgresql.engine import get_engine
     from hermes_db.errors import StorageError
     from tui_gateway import server
 

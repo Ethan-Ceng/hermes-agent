@@ -274,7 +274,7 @@ def _state_db_journal_mode(path: Path) -> Optional[str]:
     """On-disk journal mode of ``path`` via one ``PRAGMA journal_mode`` read on a short-lived
     connection (no lock outlives it); ``None`` when undeterminable.  Never raises."""
     try:
-        from hermes_db.infra.backends.sqlite.wal import _on_disk_journal_mode
+        from hermes_db.infra.sqlite.wal import _on_disk_journal_mode
 
         with closing(sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=1.0)) as conn:
             return _on_disk_journal_mode(conn) or None

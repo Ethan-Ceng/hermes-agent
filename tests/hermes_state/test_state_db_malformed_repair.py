@@ -12,7 +12,7 @@ journal_mode in apply_wal_with_fallback), before _init_schema runs — so it
 cannot be handled at the FTS-rebuild layer. These tests verify the
 sqlite_master surgery path recovers the canonical data and self-heals on open.
 """
-import hermes_db.infra.backends.sqlite.generation as sqlite_generation
+import hermes_db.infra.sqlite.generation as sqlite_generation
 
 from hermes_cli import db_sqlite_policy as sqlite_policy
 import contextlib
@@ -28,7 +28,7 @@ import pytest
 import hermes_state
 from hermes_cli import db_session_schema as session_schema
 import hermes_state_repair
-from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
+from hermes_db.infra.sqlite import wal as hermes_state_wal
 from hermes_state import SessionDB, is_malformed_db_error
 from hermes_state_repair import repair_state_db_schema
 
@@ -514,7 +514,7 @@ def _release_header_probe_fds() -> None:
     """Close this process's cached header-probe fds (no SQLite connection is live, so no lock is at risk)."""
     import os
 
-    import hermes_db.infra.backends.sqlite.generation as hermes_state_dbfile
+    import hermes_db.infra.sqlite.generation as hermes_state_dbfile
     with sqlite_generation._HEADER_PROBE_LOCK:
         for fd, _dev, _ino in sqlite_generation._HEADER_PROBE_FDS.values():
             os.close(fd)

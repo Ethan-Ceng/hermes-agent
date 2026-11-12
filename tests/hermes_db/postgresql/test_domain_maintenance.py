@@ -15,7 +15,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 @contextmanager
 def lose_completion_ack(monkeypatch):
     from hermes_db.errors import UnknownCommitError
-    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.postgresql.transactions import Transactions
     from hermes_db.domains.kanban.postgres import repository as repo
     original, event, completed = Transactions.write, repo.event, []
     def observed(conn, store, task_id, kind, *args, **kwargs):
@@ -180,7 +180,7 @@ def test_attachment_deletion_failure_retains_intent_until_fresh_process_replays(
 def test_unknown_uncommitted_file_generation_is_swept_but_old_dataset_marker_is_preserved(pg_profiles, monkeypatch):
     from contextlib import contextmanager
     import json
-    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.postgresql.transactions import Transactions
     from hermes_db.errors import UnknownCommitError
     from hermes_cli.db_maintenance import maintain_profile
     with pg_profiles("one") as home, kbc.connect_closing() as board:

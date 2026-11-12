@@ -14,8 +14,8 @@ def acquire_backend(settings: DatabaseSettings, scope: DatabaseScope, *, sqlite_
     scope.require_store_id()
     if schema_token is None:
         raise StorageConfigurationError("PostgreSQL backend acquisition requires an explicit schema token")
-    from hermes_db.infra.backends.postgresql.engine import get_engine
-    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.postgresql.engine import get_engine
+    from hermes_db.infra.postgresql.transactions import Transactions
 
     pg = settings.postgresql
     transactions = Transactions(get_engine(pg), pg.schema, schema_token=schema_token,

@@ -106,7 +106,7 @@ def _refusal(exc) -> str:
 def _unreadable_store(exc: sqlite3.Error, store: str) -> str:
     """One line for a store adopt cannot read: what is wrong and what to run. Adopt opens the store
     read-only, so it neither upgrades a store from an older release nor waits out another writer."""
-    from hermes_db.infra.backends.sqlite.runtime import is_sqlite_lock_error
+    from hermes_db.infra.sqlite.runtime import is_sqlite_lock_error
     from hermes_state_repair import _schema_not_built
 
     if is_sqlite_lock_error(exc):

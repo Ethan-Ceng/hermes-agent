@@ -35,7 +35,7 @@ def test_pg_update_guard_never_inspects_legacy_sqlite_or_offers_native_snapshot_
 
 def test_post_update_completion_probes_pg_schema_and_never_sqlite_runtime(pg_profiles, monkeypatch, capsys):
     from hermes_cli.update_cmd_maint import _print_verified_update_completion
-    from hermes_db.infra.backends.sqlite import runtime as sqlite_runtime
+    from hermes_db.infra.sqlite import runtime as sqlite_runtime
     def forbidden(*args, **kwargs):
         pytest.fail("PG update verification must not create even an in-memory SQLite probe")
     monkeypatch.setattr(sqlite_runtime, "probe_sqlite_runtime", forbidden)

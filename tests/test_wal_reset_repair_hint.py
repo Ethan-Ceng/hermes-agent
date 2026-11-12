@@ -9,7 +9,7 @@ from hermes_cli import db_sqlite_policy as sqlite_policy
 
 from unittest.mock import patch
 
-from hermes_db.infra.backends.sqlite import wal as hermes_state
+from hermes_db.infra.sqlite import wal as hermes_state
 
 
 def _hint_for(method):

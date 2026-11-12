@@ -1,4 +1,4 @@
-"""Invariants for the canonical SQLite connect/transaction layer (``hermes_db/infra/backends/sqlite/``).
+"""Invariants for the canonical SQLite connect/transaction layer (``hermes_db/infra/sqlite/``).
 
 Every small store used to carry its own connect + PRAGMA + ``with conn:`` stack, so the #69567 fd-leak
 fix and the WAL fallback rules had to be re-pasted per module (and at least one copy missed each).
@@ -8,13 +8,13 @@ These tests pin the contract: one opener, one closer, and every store routed thr
 from __future__ import annotations
 
 from hermes_cli import db_sqlite_policy as sqlite_policy
-from hermes_db.infra.backends.sqlite import transactions as sqlite_transactions
+from hermes_db.infra.sqlite import transactions as sqlite_transactions
 
 import sqlite3
 
 import pytest
 
-from hermes_db.infra.backends.sqlite import connections as sqlite_util
+from hermes_db.infra.sqlite import connections as sqlite_util
 
 
 def test_transaction_closes_the_connection_even_when_the_body_raises(tmp_path):

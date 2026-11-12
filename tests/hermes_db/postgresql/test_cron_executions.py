@@ -63,7 +63,7 @@ def test_execution_incident_lifecycle_isolation_and_reopen(cron_profiles):
     with cron_profiles("two"):
         assert ex.get_execution(claimed["id"]) is None
         assert inc.count_incidents() == 0
-    from hermes_db.infra.backends.postgresql.engine import close_engines
+    from hermes_db.infra.postgresql.engine import close_engines
     close_engines()
     with cron_profiles("one"):
         assert ex.get_execution(claimed["id"])["error"] == "failure\x00"
@@ -142,7 +142,7 @@ def test_occurrence_order_and_real_connection_loss(cron_profiles, monkeypatch):
     from cron import executions as ex
     from cron.occurrences import completed_occurrence
     from hermes_cli.db_setup import resolve_db_configuration
-    from hermes_db.infra.backends.postgresql.engine import get_engine
+    from hermes_db.infra.postgresql.engine import get_engine
     from hermes_db.errors import StorageError
 
     with cron_profiles("one"):

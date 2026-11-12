@@ -16,7 +16,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 
 def test_real_commit_lost_ack_is_replayed_once(pg_profiles, monkeypatch):
     from hermes_db.errors import UnknownCommitError
-    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.postgresql.transactions import Transactions
     with pg_profiles("one"):
         location = rooms.default_db_path()
         create(location)

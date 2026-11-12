@@ -20,7 +20,7 @@ from unittest.mock import ANY, patch
 import pytest
 
 import hermes_state
-from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
+from hermes_db.infra.sqlite import wal as hermes_state_wal
 from hermes_state import DeletedWalGenerationError, SessionDB
 
 

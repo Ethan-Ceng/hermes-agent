@@ -17,7 +17,7 @@ import pytest
 from hermes_cli import backup as backup_mod
 from hermes_cli import backup_restore as backup_restore_mod
 from hermes_cli import update_cmd
-from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
+from hermes_db.infra.sqlite.safe_read import connect_tracked
 
 
 def _make_db(path, marker):

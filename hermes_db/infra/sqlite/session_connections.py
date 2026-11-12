@@ -262,10 +262,10 @@ import queue
 import sqlite3
 from contextlib import contextmanager, suppress
 
-from hermes_db.infra.backends.sqlite import wal
-from hermes_db.infra.backends.sqlite import lockguard as _lockguard
-from hermes_db.infra.backends.sqlite import generation
-from hermes_db.infra.backends.sqlite.generation import (StateDbReplacedError, DeletedWalGenerationError, RetiredGenerationCaptureError, stat_db_file_identity as _stat_db_file_identity, canonical_sqlite_path)
+from hermes_db.infra.sqlite import wal
+from hermes_db.infra.sqlite import lockguard as _lockguard
+from hermes_db.infra.sqlite import generation
+from hermes_db.infra.sqlite.generation import (StateDbReplacedError, DeletedWalGenerationError, RetiredGenerationCaptureError, stat_db_file_identity as _stat_db_file_identity, canonical_sqlite_path)
 import sys
 
 _READ_OPEN_RETRY_SECONDS = 60.0

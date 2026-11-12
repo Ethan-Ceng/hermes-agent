@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from cron import lifecycle_guard
-from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
+from hermes_db.infra.sqlite.safe_read import connect_tracked
 
 
 def test_referenced_script_read_refuses_live_sqlite_connection(tmp_path, monkeypatch):

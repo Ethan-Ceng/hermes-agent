@@ -15,7 +15,7 @@ import sys
 
 import pytest
 
-from hermes_db.infra.backends.sqlite.safe_read import connect_tracked, has_live_connection
+from hermes_db.infra.sqlite.safe_read import connect_tracked, has_live_connection
 from hermes_cli import doctor_platform
 
 VULNERABLE = (3, 50, 4)
@@ -50,7 +50,7 @@ def clean_registry():
     fixture) would otherwise leave the registry dirty and make the *next*
     test's refusal assertion pass for the wrong reason.
     """
-    import hermes_db.infra.backends.sqlite.safe_read as mod
+    import hermes_db.infra.sqlite.safe_read as mod
 
     def _clear():
         with mod._live_lock:
@@ -288,7 +288,7 @@ class TestReportDatabaseJournalModes:
         # #110848: startup only refuses WAL for fresh databases on virtiofs/9p; doctor must surface an existing WAL
         # file there (with a non-vulnerable SQLite, where it used to print a plain info line).
         _make_db(tmp_path / "state.db", journal_mode="WAL")
-        monkeypatch.setattr('hermes_db.infra.backends.sqlite.wal._path_on_cross_vm_fs', lambda p: True)
+        monkeypatch.setattr('hermes_db.infra.sqlite.wal._path_on_cross_vm_fs', lambda p: True)
 
         doctor_platform._report_database_journal_modes(tmp_path, (3, 51, 3))
 

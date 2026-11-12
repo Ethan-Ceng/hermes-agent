@@ -133,7 +133,7 @@ def test_current_pg_revision_backfills_search_and_chunks_atomically(postgres_tes
     from alembic.config import Config
     from sqlalchemy import text
     from hermes_db import migrations
-    from hermes_db.infra.backends.postgresql.schema import prepare_schema
+    from hermes_db.infra.postgresql.schema import prepare_schema
     from hermes_db.schema import REQUIRED_EXTENSIONS, _PG_TRGM_ACTION, upgrade_schema
 
     settings = replace(postgres_test_config.settings, schema=postgres_schema)

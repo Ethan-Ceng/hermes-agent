@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_db.infra.backends.sqlite.runtime import is_sqlite_wal_reset_vulnerable, probe_sqlite_runtime
+from hermes_db.infra.sqlite.runtime import is_sqlite_wal_reset_vulnerable, probe_sqlite_runtime
 
 
 @pytest.mark.parametrize(

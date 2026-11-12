@@ -11,7 +11,7 @@ from pathlib import Path
 def schema_drift_reason(path: Path):
     """Return a missing declared table/column, not a corruption diagnosis."""
     from hermes_state_schema import schema_read_probe_statements
-    from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
+    from hermes_db.infra.sqlite.safe_read import connect_tracked
 
     with closing(connect_tracked(path.resolve().as_uri() + '?mode=ro', uri=True, tracking_path=path)) as conn:
         try:
@@ -68,7 +68,7 @@ def _reconcile_locked(path, backup, report):
 
     if _live_writer_holds_db(path):
         raise RuntimeError('a live writer still holds state.db; stop it and retry')
-    from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
+    from hermes_db.infra.sqlite.safe_read import connect_tracked
     with closing(connect_tracked(path.resolve().as_uri() + '?mode=ro', uri=True, tracking_path=path)) as conn:
         _require_history_tables(conn)
     if schema_drift_reason(path) is None:
@@ -205,7 +205,7 @@ def _apply_additive_schema(path: Path, budget: _Budget | None = None) -> None:
     idempotent. The declared shape is verified inside the transaction before COMMIT: a column
     the shared reconciler could not add (it logs and continues) or an expired budget rolls the
     store back to exactly what it was, never a partial upgrade."""
-    from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
+    from hermes_db.infra.sqlite.safe_read import connect_tracked
     from hermes_state_repair import _reapply_durability_barriers, _schema_not_built
     from hermes_state_schema import apply_declared_schema, schema_read_probe_statements
 
@@ -254,7 +254,7 @@ def _integrity_problem(path: Path, budget: _Budget):
     first problems. Full integrity_check, not quick_check: quick_check skips index-vs-table content,
     so an index with the right entry count but the wrong keys passes it. Raises
     :class:`BrowseBudgetExceeded` when the scan cannot finish in time (fail closed: no write)."""
-    from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
+    from hermes_db.infra.sqlite.safe_read import connect_tracked
     budget.check()
     try:
         with closing(connect_tracked(path.resolve().as_uri() + '?mode=ro', uri=True, tracking_path=path,
@@ -384,7 +384,7 @@ def reconcile_declarative_drift(path: Path) -> bool:
     reason = schema_drift_reason(path)
     if reason is None:
         return False
-    from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
+    from hermes_db.infra.sqlite.safe_read import connect_tracked
     with closing(connect_tracked(path.resolve().as_uri() + '?mode=ro', uri=True, tracking_path=path)) as conn:
         try:
             _require_history_tables(conn)

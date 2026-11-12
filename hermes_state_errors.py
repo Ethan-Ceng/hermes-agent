@@ -1,12 +1,12 @@
 """Exception types and error-classification predicates for the state store.
 Shared by hermes_state and its mixins; string predicates match wrapped RPC
 strings as well as live sqlite3 exceptions."""
-from hermes_db.infra.backends.sqlite.generation import DeletedWalGenerationError, StateDbReplacedError
+from hermes_db.infra.sqlite.generation import DeletedWalGenerationError, StateDbReplacedError
 
 import errno
 import re
 import sqlite3
-from hermes_db.infra.backends.sqlite.runtime import _sqlite_primary_code, _SQLITE_LOCK_CODES, is_sqlite_lock_error
+from hermes_db.infra.sqlite.runtime import _sqlite_primary_code, _SQLITE_LOCK_CODES, is_sqlite_lock_error
 
 # Malformed schema: ``sqlite_master`` itself is inconsistent (typically a DUPLICATE
 # ``CREATE VIRTUAL TABLE messages_fts`` row). SQLite parses the whole schema while

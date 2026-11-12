@@ -13,7 +13,7 @@ def test_upgrade_backfills_scoped_opaque_keys_from_existing_pg_events(postgres_t
     from alembic import command
     from alembic.config import Config
     from sqlalchemy import text
-    from hermes_db.infra.backends.postgresql.schema import prepare_schema
+    from hermes_db.infra.postgresql.schema import prepare_schema
     from hermes_db.schema import REQUIRED_EXTENSIONS, _PG_TRGM_ACTION, upgrade_schema
     settings = replace(postgres_test_config.settings, schema=postgres_schema)
     migration = Path(__file__).resolve().parents[3] / "hermes_db" / "migrations"

@@ -13,10 +13,10 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 def old_store(postgres_test_config, postgres_schema, tmp_path):
     from alembic import command
     from alembic.config import Config
-    from hermes_db.infra.backends.postgresql.engine import get_engine
-    from hermes_db.infra.backends.postgresql.schema import prepare_schema
+    from hermes_db.infra.postgresql.engine import get_engine
+    from hermes_db.infra.postgresql.schema import prepare_schema
     from hermes_db.schema import REQUIRED_EXTENSIONS, _PG_TRGM_ACTION
-    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.postgresql.transactions import Transactions
     from hermes_db.tables.metadata import SCHEMA
     from hermes_db.scope import DatabaseScope
     from hermes_cli.db_sessions import create_session_store

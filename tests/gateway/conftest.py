@@ -30,7 +30,7 @@ first wins; the other fails with ``ImportError``, and the polluted
 ``sys.path`` cascades into unrelated tests. See PR #17764 for the
 incident.
 """
-import hermes_db.infra.backends.sqlite.generation as sqlite_generation
+import hermes_db.infra.sqlite.generation as sqlite_generation
 
 import ast
 import os
@@ -65,7 +65,7 @@ def private_db_probe_cleanup(tmp_path):
     owns the inode cancels its POSIX locks. Opt-in tests must first register normal
     runner/store cleanup and use only databases underneath their private tmp_path.
     """
-    import hermes_db.infra.backends.sqlite.generation as dbfile
+    import hermes_db.infra.sqlite.generation as dbfile
 
     with sqlite_generation._HEADER_PROBE_LOCK:
         existing = set(sqlite_generation._HEADER_PROBE_FDS)

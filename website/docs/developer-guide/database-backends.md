@@ -29,11 +29,11 @@ in SQLite mode.
 | `hermes_db/domains/<domain>/postgres/queries/` | Core statements, scoped predicates and lossless row conversion |
 | `hermes_db/domains/<domain>/postgres/operations/` | Locks, quotas, state transitions, receipts and multi-step transactions |
 | `hermes_db/tables/` | Shared current Core metadata, composite keys and scope-preserving foreign keys |
-| `hermes_db/infra/backends/postgresql/transactions.py` | Bounded connections, transaction outcomes and sanitized failures |
+| `hermes_db/infra/postgresql/transactions.py` | Bounded connections, transaction outcomes and sanitized failures |
 | `hermes_db/migrations/` | Explicit forward Alembic revisions and frozen historical schema definitions |
 
-PostgreSQL pools and technical transaction outcomes live under `hermes_db/infra/backends/postgresql/`.
-`hermes_db/infra/backends/postgresql/schema.py` reads versions and extensions, holds the existing
+PostgreSQL pools and technical transaction outcomes live under `hermes_db/infra/postgresql/`.
+`hermes_db/infra/postgresql/schema.py` reads versions and extensions, holds the existing
 upgrade lock, and runs Alembic only when an explicit upgrade supplies the migration directory,
 target revision, extension requirements and schema token. `hermes_db/schema.py` and
 `hermes_db/domains/schema_status.py` aggregate business readiness. Ordinary PG acquisition only
@@ -88,7 +88,7 @@ Native facades cannot be imported by lower PG workflows. Historical migrations
 remain frozen and do not receive runtime dependency permissions.
 
 SQLite technical connections, transactions, WAL, lock guards and runtime inspection live under
-`hermes_db/infra/backends/sqlite/`. They accept resolved options and never initialize business
+`hermes_db/infra/sqlite/`. They accept resolved options and never initialize business
 Schema during ordinary `open_db`. `hermes_cli/db_sqlite_policy.py` captures Profile WAL settings
 and composes explicit `initialize_profile_sqlite` calls with the existing business algorithms.
 Session acquisitions use `SessionDB.open_existing`, which checks version and declared columns

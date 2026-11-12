@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from gateway.hosted_room_peer import MAX_STATUS_GRANT_TTL_SECONDS
-from hermes_db.infra.backends.sqlite.schema import add_column_if_missing
+from hermes_db.infra.sqlite.schema import add_column_if_missing
 
 
 # Keep the extracted store's log records on the API server logger.
@@ -68,7 +68,7 @@ class RunIdempotencyStore:
                 db_path = ":memory:"
         self._db_path = None if db_path == ":memory:" else db_path
         try:
-            from hermes_db.infra.backends.sqlite.connections import open_db
+            from hermes_db.infra.sqlite.connections import open_db
             self._conn = open_db(db_path, db_label="runs_idempotency.db", row_factory=None, check_same_thread=False, busy_timeout_ms=30000, wal=False)
         except Exception as exc:
             # Docker may create the container object before `docker run` fails to start it (e.g. exit code
@@ -78,7 +78,7 @@ class RunIdempotencyStore:
             logger.warning(
                 "Run idempotency storage is unavailable; falling back to "
                 "process memory, so replay will not survive a restart: %s", exc)
-            from hermes_db.infra.backends.sqlite.connections import open_db
+            from hermes_db.infra.sqlite.connections import open_db
             self._conn = open_db(":memory:", db_label="runs_idempotency.db", row_factory=None, check_same_thread=False, wal=False)
             self._db_path = None
         from hermes_cli.db_sqlite_policy import apply_wal_with_fallback

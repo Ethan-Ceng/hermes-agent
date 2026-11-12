@@ -72,7 +72,7 @@ print(json.dumps({'pid': os.getpid()}))
 
 
 def test_ordinary_writer_does_not_recreate_a_file_lost_before_connect(tmp_path, monkeypatch):
-    from hermes_db.infra.backends.sqlite.session_connections import SQLiteConnections
+    from hermes_db.infra.sqlite.session_connections import SQLiteConnections
 
     path = tmp_path / "state.db"
     SessionDB(path).close()

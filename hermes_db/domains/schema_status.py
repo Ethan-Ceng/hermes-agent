@@ -4,7 +4,7 @@ from hermes_db.core.catalog import KNOWN_DOMAINS, POSTGRES_DOMAINS, required_tab
 
 
 def domain_status_on_connection(conn, schema, *, revision_ready, extensions_ready):
-    from hermes_db.infra.backends.postgresql.schema import list_tables
+    from hermes_db.infra.postgresql.schema import list_tables
 
     actual = list_tables(conn, schema)
     result = {}

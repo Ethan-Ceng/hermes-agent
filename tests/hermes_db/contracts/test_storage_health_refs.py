@@ -30,7 +30,7 @@ def test_core_storage_identity_and_health_do_not_require_a_local_database_file(c
 
 def test_pg_readiness_reports_unreachable_storage_instead_of_uninitialized_file(core_pair, monkeypatch):
     from gateway.readiness import _probe_state_db
-    from hermes_db.infra.backends.postgresql import engine
+    from hermes_db.infra.postgresql import engine
     from hermes_db.errors import StorageUnavailableError
     store = core_pair[0]
     _configured(monkeypatch, store)

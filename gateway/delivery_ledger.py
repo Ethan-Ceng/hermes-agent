@@ -24,7 +24,7 @@ import threading
 import time
 from typing import Any, Dict, List, Optional
 
-from hermes_db.infra.backends.sqlite.schema import add_column_if_missing
+from hermes_db.infra.sqlite.schema import add_column_if_missing
 from hermes_constants import get_process_hermes_home
 
 logger = logging.getLogger(__name__)
@@ -79,7 +79,7 @@ def _initialize_schema(conn: sqlite3.Connection) -> None:
 
 
 def _transaction():
-    from hermes_db.infra.backends.sqlite.transactions import transaction
+    from hermes_db.infra.sqlite.transactions import transaction
 
     return transaction(_connect())
 

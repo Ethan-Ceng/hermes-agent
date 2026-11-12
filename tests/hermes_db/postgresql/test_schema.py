@@ -99,7 +99,7 @@ def test_technical_inspection_and_missing_extensions_do_not_provision(settings, 
     from sqlalchemy import event
     from hermes_cli.db_sessions import acquire_db
     from hermes_db.errors import StorageSchemaError
-    from hermes_db.infra.backends.postgresql.schema import list_tables, missing_extensions, prepare_schema, read_revision
+    from hermes_db.infra.postgresql.schema import list_tables, missing_extensions, prepare_schema, read_revision
     from hermes_db.scope import DatabaseScope
     from hermes_db.settings import DatabaseSettings
 

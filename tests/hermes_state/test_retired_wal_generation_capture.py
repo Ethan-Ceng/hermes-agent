@@ -22,7 +22,7 @@ import pytest
 import hermes_state
 from hermes_state import DeletedWalGenerationError, SessionDB
 from hermes_cli.db_session_schema import RETIRED_GENERATION_MANIFEST, capture_retired_wal_generation
-from hermes_db.infra.backends.sqlite.generation import RetiredGenerationCaptureError
+from hermes_db.infra.sqlite.generation import RetiredGenerationCaptureError
 from tests.hermes_state._wal_generation_harness import (
     gateway_writer, integrity_ok_conn, lose_sidecars, make_db, pin_wal, require_wal, write_second_generation,
 )

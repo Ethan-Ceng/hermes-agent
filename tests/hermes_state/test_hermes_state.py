@@ -1,6 +1,6 @@
 """Tests for hermes_state.py — SessionDB SQLite CRUD, FTS5 search, export."""
-import hermes_db.infra.backends.sqlite.generation as sqlite_generation
-from hermes_db.infra.backends.sqlite.session_connections import SQLiteConnections
+import hermes_db.infra.sqlite.generation as sqlite_generation
+from hermes_db.infra.sqlite.session_connections import SQLiteConnections
 
 import contextlib
 import re
@@ -16,7 +16,7 @@ from unittest import mock
 import pytest
 
 import hermes_state
-from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
+from hermes_db.infra.sqlite import wal as hermes_state_wal
 import hermes_state_common
 import hermes_state_schema
 from agent.session_activity import ActivityProvenance, build_activity_snapshot
@@ -163,7 +163,7 @@ class TestConnectionLifecycle:
         import subprocess
         import sys
 
-        from hermes_db.infra.backends.sqlite.generation import iter_deleted_sqlite_sidecar_holders
+        from hermes_db.infra.sqlite.generation import iter_deleted_sqlite_sidecar_holders
 
         db_path = tmp_path / "state.db"
         first = SessionDB(db_path=db_path)
@@ -189,7 +189,7 @@ class TestConnectionLifecycle:
         self, tmp_path, monkeypatch
     ):
         """A failed schema init must close the connection opened before it."""
-        from hermes_db.infra.backends.sqlite.safe_read import has_live_connection
+        from hermes_db.infra.sqlite.safe_read import has_live_connection
 
         db_path = tmp_path / "state.db"
         opened = []
@@ -222,7 +222,7 @@ class TestConnectionLifecycle:
         self, tmp_path, monkeypatch
     ):
         """A post-open read setup failure must close its unregistered conn."""
-        from hermes_db.infra.backends.sqlite import safe_read as sqlite_safe_read, wal as sqlite_wal
+        from hermes_db.infra.sqlite import safe_read as sqlite_safe_read, wal as sqlite_wal
 
         db_path = tmp_path / "state.db"
         db = SessionDB(db_path=db_path)
@@ -326,7 +326,7 @@ class TestConnectionLifecycle:
         forensic backup."""
         import sqlite3
 
-        from hermes_db.infra.backends.sqlite.safe_read import has_live_connection
+        from hermes_db.infra.sqlite.safe_read import has_live_connection
 
         db_path = tmp_path / "state.db"
         writable = SessionDB(db_path=db_path)
@@ -375,7 +375,7 @@ class TestConnectionLifecycle:
         """
         import sqlite3
 
-        from hermes_db.infra.backends.sqlite.safe_read import has_live_connection
+        from hermes_db.infra.sqlite.safe_read import has_live_connection
 
         db_path = tmp_path / "state.db"
         writable = SessionDB(db_path=db_path)
@@ -1914,7 +1914,7 @@ class TestSanitizeTitle:
 class TestSchemaInit:
     def test_wal_mode(self, db):
         """Prefer WAL on fixed SQLite; DELETE on WAL-reset-vulnerable builds (#69784)."""
-        from hermes_db.infra.backends.sqlite.wal import is_sqlite_wal_reset_vulnerable
+        from hermes_db.infra.sqlite.wal import is_sqlite_wal_reset_vulnerable
 
         cursor = db._connections._conn.execute("PRAGMA journal_mode")
         mode = cursor.fetchone()[0].lower()

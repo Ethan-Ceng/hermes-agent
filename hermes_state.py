@@ -34,13 +34,13 @@ from hermes_state_health import (
     STORAGE_CORRUPT, mark_storage_corrupt, note_storage_error, storage_corrupt_reason, storage_state,
 )
 from hermes_state_errors import _DELETED_WAL_GENERATION_MSG, _DISK_IO_ERROR_MARKER, _STATE_DB_CORRUPT_MSG, _STATE_DB_GENERATION_KEY, _STATE_DB_REPLACED_MSG, SessionCompressionInProgressError, StateDbCorruptError, _is_no_more_rows, classify_persistence_error, is_malformed_db_error, is_malformed_schema_error
-from hermes_db.infra.backends.sqlite.runtime import is_sqlite_lock_error
-from hermes_db.infra.backends.sqlite.generation import DeletedWalGenerationError, StateDbReplacedError
+from hermes_db.infra.sqlite.runtime import is_sqlite_lock_error
+from hermes_db.infra.sqlite.generation import DeletedWalGenerationError, StateDbReplacedError
 from hermes_state_guard import (
     _STATE_DB_GUARD_BYPASS_ENV, _in_test_context, _is_production_state_db, _real_platform_state_root,
     _register_test_instance, _set_last_init_error, get_last_init_error,
 )
-from hermes_db.infra.backends.sqlite.session_connections import SQLiteConnections
+from hermes_db.infra.sqlite.session_connections import SQLiteConnections
 from hermes_state_sessions import SessionSessionsMixin
 from hermes_state_fts import SessionFtsSetupMixin
 from hermes_state_portability import SessionPortabilityMixin
@@ -48,7 +48,7 @@ from hermes_state_telegram import SessionTelegramTopicsMixin
 from hermes_state_schema import SessionSchemaMixin
 import hermes_state_holders as _state_holders
 from hermes_state_lockowners import log_write_lock_holders
-from hermes_db.infra.backends.sqlite.generation import refuse_deleted_wal_generation
+from hermes_db.infra.sqlite.generation import refuse_deleted_wal_generation
 from hermes_cli import db_session_schema
 from hermes_cli.db_session_schema import _secure_state_db_files
 from hermes_state_messages import SessionMessagesMixin
@@ -56,7 +56,7 @@ from hermes_state_prune_rewrite import SessionPruneRewriteMixin
 from hermes_state_api_content import SessionApiContentMixin
 from hermes_state_coverage import SessionCoverageMixin
 from hermes_state_rewind import SessionRewindMixin
-from hermes_db.infra.backends.sqlite.wal import _WAL_INCOMPAT_MARKERS
+from hermes_db.infra.sqlite.wal import _WAL_INCOMPAT_MARKERS
 from hermes_cli.db_sqlite_policy import apply_database_pragmas, capture_database_pragmas
 from hermes_state_repair import _claim_repair_attempt, preflight_db_writability, repair_state_db_schema
 from hermes_state_titles import SessionTitlesMixin

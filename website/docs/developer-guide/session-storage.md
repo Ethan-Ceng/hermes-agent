@@ -17,7 +17,7 @@ workers write through that owner (`RuntimeSessionStore` RPC), never by opening
 `state.db` for transcript writes themselves.
 
 SQLite business source: `hermes_state.py` and its topic siblings. Connections, read pools,
-file-generation guards and physical close live in `hermes_db/infra/backends/sqlite/`.
+file-generation guards and physical close live in `hermes_db/infra/sqlite/`.
 `hermes_cli/db_setup.py` resolves the Profile; `hermes_cli/db_sessions.py` and
 `hermes_cli/db_domains.py` compose business acquisitions. `hermes_db/factory.py` selects
 resolved technical resources, and `hermes_db/access.py` releases or checks acquired views.

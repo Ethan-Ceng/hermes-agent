@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from hermes_db.infra.backends.postgresql.engine import read_connection
-from hermes_db.infra.backends.postgresql import schema as pg_schema
+from hermes_db.infra.postgresql.engine import read_connection
+from hermes_db.infra.postgresql import schema as pg_schema
 from hermes_db.errors import StorageSchemaError
 from hermes_db.settings import PostgresSettings
 

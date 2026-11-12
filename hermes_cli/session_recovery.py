@@ -187,8 +187,8 @@ def _disk_space_preflight(source: Path, work_root: Path, output_parent: Optional
 
 
 def _copy_source_bundle(source: Path, snapshot_dir: Path) -> tuple[Path, list[str]]:
-    "Copy the source DB bundle aside so SQLite never opens the original.\n\n    The whole copy runs inside ``offline_file_access`` (holds the connection-lifecycle lock). Recovery\n    normally runs as its own CLI process against an offline file, so the refusal should never fire; the\n    guard keeps this path consistent with ``hermes_state_repair._backup_db_file``.\n\n    Checking for a live connection and *then* copying would be a check/use race: a connection could open in\n    that window, and the copy's ``close()`` would cancel its POSIX advisory locks -- the failure class\n    ``hermes_db.infra.backends.sqlite.safe_read`` exists to prevent (see #71724). Holding the lock means no connection can\n    appear mid-copy, across the main file and every sidecar.\n    "
-    from hermes_db.infra.backends.sqlite.safe_read import LiveConnectionError, offline_file_access
+    "Copy the source DB bundle aside so SQLite never opens the original.\n\n    The whole copy runs inside ``offline_file_access`` (holds the connection-lifecycle lock). Recovery\n    normally runs as its own CLI process against an offline file, so the refusal should never fire; the\n    guard keeps this path consistent with ``hermes_state_repair._backup_db_file``.\n\n    Checking for a live connection and *then* copying would be a check/use race: a connection could open in\n    that window, and the copy's ``close()`` would cancel its POSIX advisory locks -- the failure class\n    ``hermes_db.infra.sqlite.safe_read`` exists to prevent (see #71724). Holding the lock means no connection can\n    appear mid-copy, across the main file and every sidecar.\n    "
+    from hermes_db.infra.sqlite.safe_read import LiveConnectionError, offline_file_access
     snapshot_source = snapshot_dir / source.name
     copied: list[str] = []
     try:

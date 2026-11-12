@@ -1,6 +1,6 @@
 """#100871: a transient SQLITE_IOERR on a warm pooled read connection is retried on the same
 connection, then surfaced -- never quarantined, never a close+reopen."""
-import hermes_db.infra.backends.sqlite.generation as sqlite_generation
+import hermes_db.infra.sqlite.generation as sqlite_generation
 import sqlite3
 
 import pytest

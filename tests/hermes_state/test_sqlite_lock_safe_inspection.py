@@ -26,7 +26,7 @@ import threading
 
 import pytest
 
-from hermes_db.infra.backends.sqlite.safe_read import file_length_matches_header, has_live_connection, page_count_bytes, read_header_bytes_preopen, track_connection, untrack_connection
+from hermes_db.infra.sqlite.safe_read import file_length_matches_header, has_live_connection, page_count_bytes, read_header_bytes_preopen, track_connection, untrack_connection
 
 
 _INTRUDER = textwrap.dedent(
@@ -72,7 +72,7 @@ def _make_db(path, journal_mode: str) -> None:
 def clean_registry():
     yield
     # Keep the module-level registry from leaking across tests.
-    import hermes_db.infra.backends.sqlite.safe_read as mod
+    import hermes_db.infra.sqlite.safe_read as mod
 
     with mod._live_lock:
         mod._live_connections.clear()
@@ -114,7 +114,7 @@ def test_tracking_registry_does_not_leak_across_close_paths(tmp_path, clean_regi
     """
     import contextlib
 
-    from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
+    from hermes_db.infra.sqlite.safe_read import connect_tracked
 
     db = tmp_path / "state.db"
     boot = connect_tracked(db, isolation_level=None)
@@ -166,7 +166,7 @@ def test_failed_close_keeps_connection_tracked(tmp_path, clean_registry):
     ``has_live_connection`` reports false, so the byte-probe guard permits
     ``open``/``close`` on a live database — cancelling POSIX advisory locks.
     """
-    from hermes_db.infra.backends.sqlite.safe_read import connect_tracked
+    from hermes_db.infra.sqlite.safe_read import connect_tracked
 
     class ControllableConnection(sqlite3.Connection):
         def close(self):
@@ -210,7 +210,7 @@ def test_probe_and_connect_do_not_race(tmp_path, clean_registry, monkeypatch):
     interleaving is possible. If the lock is only held across the check, that
     thread slips in and the probe's ``close()`` cancels its POSIX locks.
     """
-    import hermes_db.infra.backends.sqlite.safe_read as ssr
+    import hermes_db.infra.sqlite.safe_read as ssr
 
     db = tmp_path / "state.db"
     _make_db(db, "DELETE")

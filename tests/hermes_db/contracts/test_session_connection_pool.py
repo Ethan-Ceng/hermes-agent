@@ -17,7 +17,7 @@ class NoApplication(importlib.abc.MetaPathFinder):
             raise AssertionError('Connection resource selected application or PostgreSQL imports')
 
 sys.meta_path.insert(0, NoApplication())
-from hermes_db.infra.backends.sqlite.session_connections import SQLiteConnections
+from hermes_db.infra.sqlite.session_connections import SQLiteConnections
 path = Path(sys.argv[1])
 writer = sqlite3.connect(path, isolation_level=None, check_same_thread=False)
 writer.execute('PRAGMA journal_mode=WAL')

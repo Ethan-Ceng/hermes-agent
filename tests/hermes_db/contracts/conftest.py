@@ -61,7 +61,7 @@ def store(request, tmp_path):
     from hermes_cli.db_sessions import create_session_store
     from hermes_db.scope import DatabaseScope
     from hermes_db.tables import load_metadata
-    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.postgresql.transactions import Transactions
     from hermes_db.tables.metadata import SCHEMA
 
     engine = _offline_engine(sa, tmp_path, "core.db")
@@ -82,7 +82,7 @@ def core_pair(tmp_path):
     from hermes_cli.db_sessions import create_session_store
     from hermes_db.scope import DatabaseScope
     from hermes_db.tables import load_metadata
-    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.postgresql.transactions import Transactions
     from hermes_db.tables.metadata import SCHEMA
 
     engine = _offline_engine(sa, tmp_path, "isolated.db")

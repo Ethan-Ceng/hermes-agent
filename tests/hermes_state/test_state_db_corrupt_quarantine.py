@@ -132,7 +132,7 @@ class TestQuarantinedHandleStopsTouchingTheFile:
         db, _real_conn = _quarantined_db(tmp_path)
         db.close()
         reopen = MagicMock()
-        monkeypatch.setattr('hermes_db.infra.backends.sqlite.generation._connect_tracked_db', reopen)
+        monkeypatch.setattr('hermes_db.infra.sqlite.generation._connect_tracked_db', reopen)
         with pytest.raises(StateDbCorruptError, match="structural corruption"):
             db.create_session(session_id="s4", source="cli", model="test")
         reopen.assert_not_called()

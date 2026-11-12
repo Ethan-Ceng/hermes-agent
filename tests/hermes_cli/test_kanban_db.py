@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
+from hermes_db.infra.sqlite import wal as hermes_state_wal
 from hermes_cli import kanban_db as kb
 from hermes_cli.kanban_sqlite_schema import SCHEMA_SQL
 from hermes_cli import kanban_db_connect as kbc
@@ -1323,7 +1323,7 @@ def test_add_column_if_missing_is_idempotent_on_race(kanban_home):
     """
     import sqlite3
 
-    from hermes_db.infra.backends.sqlite.schema import add_column_if_missing as _add_column_if_missing
+    from hermes_db.infra.sqlite.schema import add_column_if_missing as _add_column_if_missing
 
     conn = sqlite3.connect(":memory:")
     conn.row_factory = sqlite3.Row
@@ -1812,7 +1812,7 @@ def test_write_txn_check_reads_correct_header_fields(tmp_path):
     """
     import struct
     from hermes_cli.kanban_db_connect import connect
-    from hermes_db.infra.backends.sqlite.safe_read import file_length_matches_header
+    from hermes_db.infra.sqlite.safe_read import file_length_matches_header
 
     db = tmp_path / "synthetic.db"
     kbc.init_db(db_path=db)

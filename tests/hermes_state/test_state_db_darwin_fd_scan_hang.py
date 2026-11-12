@@ -13,7 +13,7 @@ these run on every platform.
 """
 
 from __future__ import annotations
-import hermes_db.infra.backends.sqlite.generation as sqlite_generation
+import hermes_db.infra.sqlite.generation as sqlite_generation
 
 import ctypes
 import logging
@@ -22,8 +22,8 @@ import struct
 import threading
 import time
 
-import hermes_db.infra.backends.sqlite.generation as dbfile
-from hermes_db.infra.backends.sqlite.generation import _DARWIN_FD_INO_OFFSET, _DARWIN_FD_PATH_OFFSET, _DARWIN_FD_DEV_OFFSET, _DARWIN_FD_RECORD_SIZE, _iter_darwin_sidecar_holders
+import hermes_db.infra.sqlite.generation as dbfile
+from hermes_db.infra.sqlite.generation import _DARWIN_FD_INO_OFFSET, _DARWIN_FD_PATH_OFFSET, _DARWIN_FD_DEV_OFFSET, _DARWIN_FD_RECORD_SIZE, _iter_darwin_sidecar_holders
 
 # Far below the 5s production budget so the suite stays fast; far above zero
 # so scheduling jitter cannot flake it.

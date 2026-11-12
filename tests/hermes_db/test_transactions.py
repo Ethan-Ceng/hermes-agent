@@ -8,7 +8,7 @@ import pytest
 sa = pytest.importorskip("sqlalchemy", reason="optional postgresql extra")
 
 from hermes_db.errors import RetryableStorageError, StorageBusyError, StorageConflictError, StorageWriteError, UnknownCommitError
-from hermes_db.infra.backends.postgresql.transactions import Transactions
+from hermes_db.infra.postgresql.transactions import Transactions
 from hermes_db.tables.metadata import SCHEMA
 
 

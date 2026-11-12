@@ -64,7 +64,7 @@ def close_session_resources_under(home):
 
 def close_session_resources():
     """The gateway calls this only after all producer/worker quiesce checks pass."""
-    from hermes_db.infra.backends.postgresql.engine import close_engines
+    from hermes_db.infra.postgresql.engine import close_engines
     from hermes_db.domains.sessions.registry import close_all as close_native
     from hermes_state_registry import close_all
     count = close_all() + close_native()
@@ -80,7 +80,7 @@ def acquire_db(settings: DatabaseSettings, scope: DatabaseScope) -> DatabaseHand
         backend = acquire_backend(settings, scope, sqlite_path=scope.profile_home / "state.db")
         return acquire_sqlite(backend)
     scope.require_store_id()
-    from hermes_db.infra.backends.postgresql.engine import require_postgresql_driver
+    from hermes_db.infra.postgresql.engine import require_postgresql_driver
 
     require_postgresql_driver()
     from hermes_db.domains.sessions.registry import acquire

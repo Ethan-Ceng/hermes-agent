@@ -80,7 +80,7 @@ def _initialize_schema(conn: sqlite3.Connection) -> None:
 
 @contextmanager
 def _transaction() -> Iterator[sqlite3.Connection]:
-    from hermes_db.infra.backends.sqlite.transactions import transaction
+    from hermes_db.infra.sqlite.transactions import transaction
 
     with _lock, transaction(_connect()) as conn:
         yield conn

@@ -6,7 +6,7 @@ opener would mint a fresh WAL is the split-brain that produces intermittent
 fail closed on both the open and write paths instead of creating the second
 generation.
 """
-import hermes_db.infra.backends.sqlite.generation as sqlite_generation
+import hermes_db.infra.sqlite.generation as sqlite_generation
 
 from hermes_cli import db_sqlite_policy as sqlite_policy
 
@@ -19,13 +19,13 @@ from pathlib import Path
 
 import pytest
 
-import hermes_db.infra.backends.sqlite.generation as hermes_state_dbfile
-import hermes_db.infra.backends.sqlite.session_connections
-from hermes_db.infra.backends.sqlite import wal as hermes_state_wal
+import hermes_db.infra.sqlite.generation as hermes_state_dbfile
+import hermes_db.infra.sqlite.session_connections
+from hermes_db.infra.sqlite import wal as hermes_state_wal
 from hermes_state import DeletedWalGenerationError, SessionDB, StateDbReplacedError, classify_persistence_error
-from hermes_db.infra.backends.sqlite.session_connections import _close_time_checkpoint_configurable
-from hermes_db.infra.backends.sqlite.generation import refuse_deleted_wal_generation
-from hermes_db.infra.backends.sqlite.generation import _pread_db_header, iter_deleted_sqlite_sidecar_holders
+from hermes_db.infra.sqlite.session_connections import _close_time_checkpoint_configurable
+from hermes_db.infra.sqlite.generation import refuse_deleted_wal_generation
+from hermes_db.infra.sqlite.generation import _pread_db_header, iter_deleted_sqlite_sidecar_holders
 from tests.hermes_state._wal_generation_harness import (
     gateway_writer, integrity_ok_path, lose_sidecars, make_db, message_count, pin_wal, require_wal,
     write_second_generation,
@@ -243,7 +243,7 @@ def test_write_path_ignores_live_unhashed_dentry(tmp_path, force_wal, monkeypatc
             return target + " (deleted)"
         return target
 
-    monkeypatch.setattr(hermes_db.infra.backends.sqlite.session_connections.os, "readlink", fake_readlink)
+    monkeypatch.setattr(hermes_db.infra.sqlite.session_connections.os, "readlink", fake_readlink)
     try:
         assert db._connections._wal_generation_was_lost() is False
         db.append_message("s", role="user", content="after-artifact")

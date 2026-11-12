@@ -17,8 +17,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, List, Optional
 
-from hermes_db.infra.backends.sqlite.schema import add_column_if_missing as _add_column_if_missing
-from hermes_db.infra.backends.sqlite.transactions import write_txn
+from hermes_db.infra.sqlite.schema import add_column_if_missing as _add_column_if_missing
+from hermes_db.infra.sqlite.transactions import write_txn
 from hermes_constants import get_hermes_home
 from hermes_db.domains.projects.api import domain_operation
 from hermes_db.domains.projects.rules import (

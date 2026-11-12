@@ -17,7 +17,7 @@ import pytest
 from hermes_cli import config
 from hermes_cli.db_sqlite_policy import apply_wal_with_fallback
 from utils import atomic_yaml_write
-from hermes_db.infra.backends.sqlite import wal
+from hermes_db.infra.sqlite import wal
 
 
 def test_config_import_and_provider_env_catalog_never_read_config(tmp_path):

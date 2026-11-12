@@ -70,7 +70,7 @@ def test_gateway_watch_drains_without_file_and_send_holds_no_connection(queue_pr
     from gateway.run_delivery_queue_watch import DeliveryQueueWatch
     from gateway import run as gateway
     from hermes_cli.db_setup import resolve_db_configuration
-    from hermes_db.infra.backends.postgresql.engine import get_engine
+    from hermes_db.infra.postgresql.engine import get_engine
 
     with queue_profiles("one") as home:
         settings, _scope = resolve_db_configuration()
@@ -145,7 +145,7 @@ def test_finish_commit_confirmation_loss_does_not_duplicate_send(queue_profiles,
     from sqlalchemy.exc import OperationalError
     from cron import delivery_queue as queue
     from hermes_cli.db_setup import resolve_db_configuration
-    from hermes_db.infra.backends.postgresql.engine import get_engine
+    from hermes_db.infra.postgresql.engine import get_engine
     from hermes_db.errors import UnknownCommitError
 
     with queue_profiles("one"):

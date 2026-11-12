@@ -20,7 +20,7 @@ sys.meta_path.insert(0, InfrastructureOnly())
 from hermes_db.factory import acquire_backend
 from hermes_db.scope import DatabaseScope
 from hermes_db.settings import DatabaseSettings
-from hermes_db.infra.backends.sqlite.connections import open_db
+from hermes_db.infra.sqlite.connections import open_db
 path = Path(sys.argv[1])
 resource = acquire_backend(DatabaseSettings(), DatabaseScope(path.parent), sqlite_path=path)
 assert resource.sqlite_path == path

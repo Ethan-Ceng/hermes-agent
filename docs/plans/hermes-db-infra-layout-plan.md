@@ -10,13 +10,13 @@
 
 ## 当前状态
 
-`IMPLEMENTING`；1/3 完成；用户已有未跟踪 `owned/`、`target/` 保留。最终本地合入沿用用户已授权的正式目录验收流程，无推送或PR。
+`IMPLEMENTING`；2/3 完成；用户已有未跟踪 `owned/`、`target/` 保留。最终本地合入沿用用户已授权的正式目录验收流程，无推送或PR。
 
 | Task | 内容 | 状态 | 完成条件 |
 |---|---|---|---|
 | 1 | 核对实际源码、引用、相对路径与固定资源，保存移动清单 | completed | 全部活动读取点与历史证据分类，固定资源记录，计划检查点 |
-| 2 | 移动两个后端实现，删除空中间包，同步读取点和活动文档 | in_progress | 归一化后代码/SQL等价，活动旧引用为零，轻量合同通过 |
-| 3 | 最终静态门禁、完整差异自审与验收准备 | pending | 最新检查通过，保存范围与限制，允许正式目录快进更新 |
+| 2 | 移动两个后端实现，删除空中间包，同步读取点和活动文档 | completed | 归一化后代码/SQL等价，活动旧引用为零，轻量合同通过 |
+| 3 | 最终静态门禁、完整差异自审与验收准备 | in_progress | 最新检查通过，保存范围与限制，允许正式目录快进更新 |
 
 ## 必需验证
 
@@ -34,3 +34,7 @@ Task1：实际基准a8afc874d94f；14模块、175活动文件（172Python/3规�
 ## 最终验证
 
 待执行；本轮为目录/导入调整，自审的独立性限制应明确，不沿用旧独立审查冒充本轮审查。
+
+Task2：Task1实际commit `cf3df8824cd8c47ebef0bca36d5c79e229eef380`。14模块直接迁入infra/sqlite和infra/postgresql；175活动引用文件同步，另更新当前设计与hermes_db/AGENTS。原184文件的181Python逐字节仅允许模块/路径前缀替换，AST/编译通过，3550条assert保持；固定65原工作树字节不变。移除唯一空中间包后DB339/root11/31revision/29表模块。14新模块实际导入身份通过，旧namespace不存在；活动读取点零旧引用（历史映射/冻结记录保留）。
+
+实际验证cwd为隔离checkout，上述PM解释器和隔离HOME/RUNTIME；`python .build/infra-layout/move.py` exit0；`python scripts/hermes_db_boundary_lint.py --check` exit0，8534依赖/0违规。`D:/Programs/Git/bin/bash.exe scripts/run_tests.sh tests/hermes_db/contracts/test_infra_independence.py tests/hermes_db/contracts/test_infra_resource_ownership.py tests/hermes_db/contracts/test_session_connection_pool.py tests/hermes_db/contracts/test_sqlite_open_lifecycle.py tests/hermes_cli/test_sessions_command_boundary.py -j 2 --file-timeout 180 -- --tb=short -ra` exit0：5完整文件12passed/0failed/0skip。无业务测试退役或正常断言删除；本轮只减少一个空初始化文件，不宣称业务代码净减少。

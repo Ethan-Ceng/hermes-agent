@@ -23,7 +23,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.allow_network]
 
 def test_maximum_attachment_uses_small_frames_and_replays_lost_commit(pg_profiles, monkeypatch):
     from hermes_db.errors import UnknownCommitError
-    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.postgresql.transactions import Transactions
     with pg_profiles("one") as home, closing(open_session_store(home / "state.db")) as db:
         _runtime, connection, scope = setup_owner(home, db, monkeypatch)
         context = asyncio.run(call(connection, scope, "board.resolve"))

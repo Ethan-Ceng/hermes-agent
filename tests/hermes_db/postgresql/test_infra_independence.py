@@ -29,8 +29,8 @@ sys.addaudithook(reject_sqlite)
 
 def probe():
     from sqlalchemy import Column, Integer, MetaData, Table, select
-    from hermes_db.infra.backends.postgresql.engine import close_engines, get_engine
-    from hermes_db.infra.backends.postgresql.transactions import Transactions
+    from hermes_db.infra.postgresql.engine import close_engines, get_engine
+    from hermes_db.infra.postgresql.transactions import Transactions
     from hermes_db.settings import PostgresSettings
     settings = PostgresSettings(**json.loads(sys.stdin.read()))
     token = 'caller_owned_schema'
